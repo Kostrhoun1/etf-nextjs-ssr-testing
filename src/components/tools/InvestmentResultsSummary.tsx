@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PiggyBank, Target } from 'lucide-react';
+import { PiggyBank, Target, TrendingUp } from 'lucide-react';
 import { CalculationData } from '@/utils/investmentCalculations';
 
 interface InvestmentResultsSummaryProps {

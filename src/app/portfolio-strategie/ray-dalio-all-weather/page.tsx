@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Cloud, BarChart3, AlertCircle, CheckCircle, Target, Brain } from 'lucide-react';
+import { Cloud, BarChart3, AlertCircle, CheckCircle, Target, Brain, Users } from 'lucide-react';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import AllWeatherPortfolioPerformance from '@/components/portfolio/AllWeatherPortfolioPerformance';
 import { getETFLink } from '@/data/etf-mappings';

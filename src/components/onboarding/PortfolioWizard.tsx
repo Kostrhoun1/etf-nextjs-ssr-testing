@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { ArrowRight, Sparkles, Target, Clock, Home, GraduationCap, PiggyBank, ExternalLink , Globe, TrendingUp, Building} from 'lucide-react';
+import { ArrowRight, Sparkles, Target, Clock, Home, GraduationCap, PiggyBank, ExternalLink , Globe, TrendingUp, Building, Shield} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { portfolioEngine, InvestorProfile, PortfolioRecommendation } from '@/utils/portfolioRecommendationEngine';

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Metadata } from 'next';
 import Layout from '@/components/Layout';
@@ -10,7 +10,7 @@ import { ETF } from '@/types/etf';
 import SEOHead from '@/components/SEO/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
 
-export default function SrovnaniETF() {
+function SrovnaniETFContent() {
   const searchParams = useSearchParams();
   
   // Read URL parameters for pre-selected ETFs
@@ -359,5 +359,13 @@ export default function SrovnaniETF() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function SrovnaniETF() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SrovnaniETFContent />
+    </Suspense>
   );
 }

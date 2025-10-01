@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, AlertTriangle, XCircle, Clock, Lightbulb } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Clock, Lightbulb, Shield, TrendingUp } from 'lucide-react';
 import { EmergencyFundData } from '@/utils/emergencyFundCalculations';
 
 interface EmergencyFundResultsProps {

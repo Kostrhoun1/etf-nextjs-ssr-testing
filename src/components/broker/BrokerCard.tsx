@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Star, CreditInfo } from 'lucide-react';
+import { Check, X, Star, CreditCard, Globe, TrendingUp, Shield, Info } from 'lucide-react';
 import { Broker } from '../../types/broker';
 
 interface BrokerCardProps {
@@ -13,7 +13,7 @@ interface BrokerCardProps {
   onToggle: () => void;
 }
 
-const BrokerisExpanded, onToggle }) => {
+const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle }) => {
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onToggle}>
       <CardHeader className="pb-4">

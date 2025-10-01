@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { TrendingDown, ExternalLink } from 'lucide-react';
+import { TrendingDown, ExternalLink, Shield, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ETFComparison {

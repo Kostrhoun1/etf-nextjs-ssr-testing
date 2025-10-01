@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Sparkles, Target } from 'lucide-react';
+import { ArrowRight, Sparkles, Target, TrendingUp, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { recommendationEngine, UserProfile } from '@/utils/investmentRecommendationEngine';
 

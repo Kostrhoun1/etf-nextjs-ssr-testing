@@ -6,7 +6,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Calculator } from 'lucide-react';
+import { Home, Calculator, TrendingUp, Shield } from 'lucide-react';
 import MortgageCalculator from '@/components/tools/MortgageCalculator';
 
 const MortgageCalculatorContent: React.FC = () => {

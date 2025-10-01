@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Target } from 'lucide-react';
+import { BarChart3, Target, Shield } from 'lucide-react';
 
 export default function PermanentniPortfolioHero() {
   return (

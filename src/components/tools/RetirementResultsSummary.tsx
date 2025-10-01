@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, AlertCircle, TrendingDown, Clock, AlertTriangle, Calculator } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, TrendingDown, Clock, AlertTriangle, Calculator, TrendingUp } from 'lucide-react';
 import { FireData, calculateFire } from '@/utils/retirementCalculations';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 

@@ -6,7 +6,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator } from 'lucide-react';
+import { Calculator, Shield, TrendingUp, Users } from 'lucide-react';
 import NetSalaryCalculator from '@/components/tools/NetSalaryCalculator';
 
 const NetSalaryCalculatorContent: React.FC = () => {

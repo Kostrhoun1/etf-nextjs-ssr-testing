@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, ArrowRight, Target, MapPin, Crown, Landmark , DollarSign, Rocket, Zap, Users, Flag} from 'lucide-react';
+import { Star, BarChart3, ArrowRight, Target, MapPin, Crown, Landmark , DollarSign, Rocket, Zap, Users, Flag, Shield} from 'lucide-react';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';

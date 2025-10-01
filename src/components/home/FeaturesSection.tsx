@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { BarChart, Search, BookOpen, Calculator, FileText } from "lucide-react";
+import { BarChart, Search, BookOpen, Calculator, FileText, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 

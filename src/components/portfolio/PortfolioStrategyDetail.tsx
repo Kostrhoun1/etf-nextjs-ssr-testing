@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BarChart3, CheckCircle, AlertTriangle, ExternalLink, ArrowLeft, Home } from 'lucide-react';
+import { BarChart3, CheckCircle, AlertTriangle, ExternalLink, ArrowLeft, Home, Users, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ETFData {

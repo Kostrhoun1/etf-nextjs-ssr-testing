@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { TrendingDown, PieChart, Calculator } from 'lucide-react';
+import { TrendingDown, PieChart, Calculator, DollarSign, TrendingUp, Building } from 'lucide-react';
 import { NetSalaryData, formatCurrency, formatPercentage } from '@/utils/netSalaryCalculations';
 
 interface NetSalaryResultsProps {

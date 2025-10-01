@@ -3,7 +3,7 @@
 import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Calculator } from 'lucide-react';
+import { Check, X, Calculator, Shield, TrendingUp } from 'lucide-react';
 import { brokers } from '../../data/brokerData';
 
 const BrokerDetails: React.FC = () => {
