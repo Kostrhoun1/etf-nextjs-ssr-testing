@@ -241,7 +241,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead
-                  className="cursor-pointer hover:bg-gray-50 text-left"
+                  className="cursor-pointer hover:bg-gray-50 text-left md:static sticky left-0 bg-white z-10 border-r border-gray-200 min-w-[200px]"
                   onClick={() => handleSort('name')}
                 >
                   Název / ISIN
@@ -302,7 +302,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
             <TableBody>
               {paginatedETFs.map((etf) => (
                 <TableRow key={etf.isin} className="border-b hover:bg-gray-50">
-                  <TableCell className="p-3">
+                  <TableCell className="p-3 md:static sticky left-0 bg-white z-10 border-r border-gray-200 min-w-[200px]">
                     <div className="flex items-start gap-3">
                       {onSelectETF && (
                         <div className="flex pt-1">
