@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
   title: {
@@ -74,6 +75,7 @@ export default function RootLayout({
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
