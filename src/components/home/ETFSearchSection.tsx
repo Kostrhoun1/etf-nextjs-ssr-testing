@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
 const ETFSearchSection: React.FC = () => {
@@ -89,19 +90,38 @@ const ETFSearchSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Layout s taby */}
+        {/* Layout s taby/dropdown */}
         <div className="w-full">
           {/* Hlavní obsah */}
           <div>
             <Tabs value={activeCategory} onValueChange={handleCategoryChange} className="w-full">
-              {/* Taby pro kategorie */}
-              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 mb-4">
-                {categories.map(category => (
-                  <TabsTrigger key={category} value={category} className="text-xs md:text-sm px-2 py-1">
-                    {category}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              {/* Dropdown pro mobily, taby pro větší obrazovky */}
+              <div className="mb-4">
+                {/* Dropdown na mobilech */}
+                <div className="block md:hidden">
+                  <Select value={activeCategory} onValueChange={handleCategoryChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Vyberte kategorii ETF" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Taby pro větší obrazovky */}
+                <TabsList className="hidden md:grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+                  {categories.map(category => (
+                    <TabsTrigger key={category} value={category} className="text-xs md:text-sm px-2 py-1">
+                      {category}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
 
               {/* Obsah tabů */}
               {categories.map(category => (
