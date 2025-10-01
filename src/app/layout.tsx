@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     default: "ETF průvodce.cz - Nejlepší ETF fondy pro české investory",
     template: "%s | ETF průvodce.cz"
   },
-  description: "★ ZDARMA ETF průvodce ★ Jediný web s přepočtem výkonnosti ETF do CZK! Zobrazujeme reálné výnosy fondů pro české investory bez kurzových rozdílů. Databáze 3500+ ETF s výkonností v CZK/EUR/USD.",
+  description: "★ ZDARMA ETF průvodce ★ Srovnání více než 3500 ETF fondů pro české investory s výkonností přepočítanou do CZK! Kompletní databáze, pokročilé filtry, srovnání brokerů a investiční kalkulačky.",
   keywords: [
     "ETF fondy", "nejlepší ETF", "ETF srovnání", "kde koupit ETF",
     "ETF výkonnost CZK", "přepočet výnosů ETF", "ETF česká koruna přepočet", 
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     locale: 'cs_CZ',
     url: 'https://etfpruvodce.cz',
     siteName: 'ETF průvodce.cz',
-    title: 'ETF průvodce.cz - Jediný web s přepočtem výkonnosti ETF do CZK',
-    description: 'Unikátní databáze 3500+ ETF fondů s přepočtem výkonnosti do českých korun. Sledujte reálné výnosy bez kurzových rozdílů!',
+    title: 'ETF průvodce.cz - Srovnání 3500+ ETF fondů s výkonností v CZK',
+    description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: [
       {
         url: '/og-image.jpg',
@@ -45,8 +45,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
-    description: 'Kompletní databáze 3500+ ETF fondů s analýzami a kalkulačkami pro české investory.',
+    title: 'ETF průvodce.cz - Srovnání 3500+ ETF fondů s výkonností v CZK',
+    description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: ['/og-image.jpg'],
   },
   robots: {
