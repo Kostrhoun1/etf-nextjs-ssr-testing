@@ -20,8 +20,8 @@ const usp = [
   },
   {
     icon: BookOpen,
-    title: "Praktické tipy a vzdělávání",
-    description: "Jednoduše a srozumitelně – průvodci, články i odpovědi na časté dotazy o ETF investování.",
+    title: "Tipy nejlepší ETF",
+    description: "Nejlepší ETF podle indexů, regionů nebo typů aktiv – akciové, dluhopisové, dividendové a další.",
   },
 ];
 
