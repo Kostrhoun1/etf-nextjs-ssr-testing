@@ -92,7 +92,7 @@ const ETFSimpleTable: React.FC<ETFSimpleTableProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead
-                className="cursor-pointer hover:bg-gray-50 text-left md:static sticky left-0 bg-white z-10 border-r border-gray-200 min-w-[200px]"
+                className="cursor-pointer hover:bg-gray-50 text-left md:relative sticky left-0 bg-white z-10 md:border-r-0 border-r border-gray-200 min-w-[200px] md:min-w-0"
                 onClick={() => onSort('name')}
               >
                 Název / ISIN
@@ -153,7 +153,7 @@ const ETFSimpleTable: React.FC<ETFSimpleTableProps> = ({
           <TableBody>
             {etfs.map((etf) => (
               <TableRow key={etf.isin} className="border-b hover:bg-gray-50">
-                <TableCell className="p-3 md:static sticky left-0 bg-white z-10 border-r border-gray-200 min-w-[200px]">
+                <TableCell className="p-3 md:relative sticky left-0 bg-white z-10 md:border-r-0 border-r border-gray-200 min-w-[200px] md:min-w-0">
                   <div className="flex items-start gap-3">
                     {(onAddETF && onRemoveETF) && (
                       <div className="flex pt-1">
