@@ -447,7 +447,7 @@ export default function DegiroFreeETFPage() {
               
               return (
                 <div key={index} className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: `${0.2 + index * 0.1}s`}}>
-                  <div className={`flex items-center justify-center rounded-full bg-gradient-to-r ${colorMap[item.color]} w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform`}>
+                  <div className={`flex items-center justify-center rounded-full bg-gradient-to-r ${colorMap[item.color as keyof typeof colorMap]} w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform`}>
                     <Icon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-orange-800 transition-colors">
