@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { CurrencyToggle } from '@/components/ui/CurrencyToggle';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ETFData {
   isin: string;
@@ -12,6 +14,14 @@ interface ETFData {
   return_1y: number | null;
   return_3y: number | null;
   return_5y: number | null;
+  return_ytd_czk: number | null;
+  return_1y_czk: number | null;
+  return_3y_czk: number | null;
+  return_5y_czk: number | null;
+  return_ytd_usd: number | null;
+  return_1y_usd: number | null;
+  return_3y_usd: number | null;
+  return_5y_usd: number | null;
   ter_numeric: number | null;
 }
 
@@ -26,10 +36,16 @@ const akcioviPortfolioAllocations = [
 const AkcioviPortfolioPerformance: React.FC = () => {
   const [etfData, setEtfData] = useState<Record<string, ETFData>>({});
   const [loading, setLoading] = useState(true);
+  const { selectedCurrency, getPerformanceValue } = useCurrency();
 
   useEffect(() => {
     fetchETFData();
   }, []);
+
+  // Přepočítáme performance při změně měny
+  useEffect(() => {
+    // Trigger re-render when currency changes
+  }, [selectedCurrency]);
 
   const fetchETFData = async () => {
     try {
@@ -37,7 +53,7 @@ const AkcioviPortfolioPerformance: React.FC = () => {
 
       const { data, error } = await supabase
         .from('etf_funds')
-        .select('isin, name, return_ytd, return_1y, return_3y, return_5y, ter_numeric')
+        .select('isin, name, return_ytd, return_1y, return_3y, return_5y, return_ytd_czk, return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_usd, return_1y_usd, return_3y_usd, return_5y_usd, ter_numeric')
         .in('isin', isins);
 
       if (error) {
@@ -59,7 +75,7 @@ const AkcioviPortfolioPerformance: React.FC = () => {
   };
 
   const calculatePortfolioPerformance = () => {
-    const periods = ['return_ytd', 'return_1y', 'return_3y', 'return_5y'] as const;
+    const periods = ['ytd', '1y', '3y', '5y'] as const;
     const results: Record<string, number | null> = {};
 
     for (const period of periods) {
@@ -68,16 +84,19 @@ const AkcioviPortfolioPerformance: React.FC = () => {
 
       for (const allocation of akcioviPortfolioAllocations) {
         const etf = etfData[allocation.isin];
-        if (etf && etf[period] !== null && etf[period] !== undefined) {
-          weightedReturn += (allocation.percentage / 100) * etf[period]!;
-          totalAvailableWeight += allocation.percentage / 100;
+        if (etf) {
+          const performanceValue = getPerformanceValue(etf as any, period);
+          if (performanceValue !== null && performanceValue !== undefined) {
+            weightedReturn += (allocation.percentage / 100) * performanceValue;
+            totalAvailableWeight += allocation.percentage / 100;
+          }
         }
       }
 
       if (totalAvailableWeight >= 0.8) {
-        results[period] = weightedReturn / totalAvailableWeight;
+        results[`return_${period}`] = weightedReturn / totalAvailableWeight;
       } else {
-        results[period] = null;
+        results[`return_${period}`] = null;
       }
     }
 
@@ -99,10 +118,13 @@ const AkcioviPortfolioPerformance: React.FC = () => {
     return (
       <Card className="mb-12">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <BarChart3 className="text-blue-600" />
-            Aktuální výkonnost Akciového Portfolia
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-3">
+              <BarChart3 className="text-blue-600" />
+              Reálná výkonnost portfolia
+            </CardTitle>
+            <CurrencyToggle className="text-sm" />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -119,10 +141,13 @@ const AkcioviPortfolioPerformance: React.FC = () => {
   return (
     <Card className="mb-12" id="vykonnost">
       <CardHeader>
-        <CardTitle className="flex items-center gap-3">
-          <BarChart3 className="text-blue-600" />
-          Aktuální výkonnost Akciového Portfolia
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-3">
+            <BarChart3 className="text-blue-600" />
+            Reálná výkonnost portfolia
+          </CardTitle>
+          <CurrencyToggle className="text-sm" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-4 gap-6 mb-6">
@@ -145,14 +170,14 @@ const AkcioviPortfolioPerformance: React.FC = () => {
               {formatPerformance(performance.return_3y as number)}
             </div>
             <div className="text-gray-600 mb-1">3 roky</div>
-            <div className="text-sm text-gray-500">Anualizovaný výnos</div>
+            <div className="text-sm text-gray-500">Celkový výnos</div>
           </div>
           <div className="text-center">
             <div className={`text-3xl font-bold mb-2 ${getPerformanceColor(performance.return_5y as number)}`}>
               {formatPerformance(performance.return_5y as number)}
             </div>
             <div className="text-gray-600 mb-1">5 let</div>
-            <div className="text-sm text-gray-500">Anualizovaný výnos</div>
+            <div className="text-sm text-gray-500">Celkový výnos</div>
           </div>
         </div>
 
@@ -179,11 +204,11 @@ const AkcioviPortfolioPerformance: React.FC = () => {
                         <div className="text-xs text-gray-500">{allocation.etfName}</div>
                       </td>
                       <td className="text-right py-2 font-semibold">{allocation.percentage}%</td>
-                      <td className={`text-right py-2 ${getPerformanceColor(etf?.return_1y || null)}`}>
-                        {formatPerformance(etf?.return_1y || null)}
+                      <td className={`text-right py-2 ${getPerformanceColor(getPerformanceValue(etf as any, '1y'))}`}>
+                        {formatPerformance(getPerformanceValue(etf as any, '1y'))}
                       </td>
-                      <td className={`text-right py-2 ${getPerformanceColor(etf?.return_3y || null)}`}>
-                        {formatPerformance(etf?.return_3y || null)}
+                      <td className={`text-right py-2 ${getPerformanceColor(getPerformanceValue(etf as any, '3y'))}`}>
+                        {formatPerformance(getPerformanceValue(etf as any, '3y'))}
                       </td>
                       <td className="text-right py-2 text-gray-600">
                         {etf?.ter_numeric ? `${etf.ter_numeric.toFixed(2)}%` : '-'}

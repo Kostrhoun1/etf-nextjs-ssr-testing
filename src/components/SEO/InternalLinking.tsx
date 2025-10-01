@@ -14,14 +14,21 @@ interface InternalLinkingProps {
   relatedLinks?: RelatedLink[];
   title?: string;
   className?: string;
+  currentPage?: string;
+  links?: RelatedLink[];
 }
 
 const InternalLinking: React.FC<InternalLinkingProps> = ({ 
   relatedLinks, 
   title = "Související články a nástroje",
-  className = ""
+  className = "",
+  currentPage,
+  links
 }) => {
-  if (!relatedLinks || relatedLinks.length === 0) return null;
+  // Use links prop as fallback for relatedLinks
+  const linksToRender = relatedLinks || links;
+  
+  if (!linksToRender || linksToRender.length === 0) return null;
 
   return (
     <section className={`bg-gray-50 rounded-lg p-8 ${className}`}>
@@ -29,7 +36,7 @@ const InternalLinking: React.FC<InternalLinkingProps> = ({
         {title}
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {relatedLinks.map((link, index) => (
+        {linksToRender.map((link, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3 mb-2">

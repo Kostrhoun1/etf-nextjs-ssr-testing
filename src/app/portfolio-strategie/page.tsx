@@ -64,7 +64,8 @@ export default function PortfolioStrategiePage() {
                 </h1>
                 
                 <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
-                  Porovnejte reálnou performance 5 osvědčených investičních strategií vypočítanou z aktuálních dat více než 3000 ETF fondů v naší databázi.
+                  Odhalte, která investiční strategie skutečně funguje! Testujeme 5 legendárních portfolií na reálných datech z 3000+ ETF fondů. 
+                  Zjistěte, jestli byste dnes byli bohatší s Ray Daliem nebo Nobelovou nadací.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -89,23 +90,23 @@ export default function PortfolioStrategiePage() {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-400/20 to-blue-400/20 rounded-3xl transform rotate-3"></div>
                 <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-xl">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Proč naše strategie?</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Analýza založená na reálných datech</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-violet-500 rounded-full"></div>
-                      <span className="text-gray-700">Reálná historická data</span>
+                      <span className="text-gray-700">Historická performance z databáze ETF</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                      <span className="text-gray-700">3000+ ETF fondů v databázi</span>
+                      <span className="text-gray-700">Přesné výpočty ze 3000+ fondů</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-700">Vědecky ověřené strategie</span>
+                      <span className="text-gray-700">Osvědčené investiční strategie</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
-                      <span className="text-gray-700">Aktuální performance {currentYear}</span>
+                      <span className="text-gray-700">Aktuální data roku {currentYear}</span>
                     </div>
                   </div>
                   <div className="mt-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-lg border border-violet-200">
@@ -132,140 +133,37 @@ export default function PortfolioStrategiePage() {
           <PortfolioStrategies />
         </div>
 
-        {/* How to Choose Strategy Section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Portfolio Selection Guide */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Jak vybrat správnou strategii
+              Která strategie vás udělá bohatým?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Výběr správné portfolio strategie závisí na vašem rizikovém profilu a investičním horizontu
+              Nezáleží na tom, jestli jste začátečník nebo zkušený investor. Záleží na tom, jestli dokážete dodržet strategii i v krizi. 
+              Vyberte si tu, se kterou budete spát v klidu i když trhy padají.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center justify-center rounded-full bg-violet-100 w-12 h-12">
-                    <BarChart3 className="w-6 h-6 text-violet-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-violet-900">Podle tolerance k riziku</h3>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-violet-500 rounded-full"></div>
-                    <span className="text-gray-700"><strong>Konzervativní:</strong> Permanentní 4% nebo All-Weather 5-8%</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                    <span className="text-gray-700"><strong>Umírněné:</strong> Nobel 6% nebo Dividendové portfolio</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
-                    <span className="text-gray-700"><strong>Agresivní:</strong> Akciové 7-8% portfolio</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center justify-center rounded-full bg-blue-100 w-12 h-12">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-blue-900">Podle investičního horizontu</h3>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-gray-700"><strong>5-10 let:</strong> Více dluhopisů (40-60%)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
-                    <span className="text-gray-700"><strong>10-20 let:</strong> Vyvážené portfolio (60/40)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                    <span className="text-gray-700"><strong>20+ let:</strong> Akciově orientované (80-100%)</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Implementation Tips */}
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Praktické tipy pro implementaci
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Jak správně řídit vaše portfolio strategie v praxi
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 bg-white rounded-2xl p-8 border border-gray-200">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10">
-                  <span className="text-xl">🔄</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Rebalancing portfolia</h3>
+          <Card className="bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200 p-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Sparkles className="w-8 h-8 text-violet-600" />
               </div>
-              <p className="text-gray-600 mb-4">
-                Pravidelně přebalancujte portfolio, aby se udržely cílové alokace:
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Průvodce výběrem portfolia</h3>
+              <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+                Odpovězte si na pár jednoduchých otázek a my vám doporučíme ideální strategii podle vašeho rizikového profilu, 
+                investičního horizontu a životní situace.
               </p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-gray-700"><strong>Čtvrtletně:</strong> Pro aktivní investory</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-gray-700"><strong>Pololetně:</strong> Doporučeno pro většinu investorů</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-gray-700"><strong>Ročně:</strong> Minimální frekvence</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-gray-700"><strong>Po větších pohybech:</strong> Když alokace vybočí o více než 5%</span>
-                </div>
-              </div>
+              <Button
+                onClick={() => setShowWizard(true)}
+                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold"
+              >
+                <Target className="w-5 h-5 mr-2" />
+                Spustit průvodce výběrem
+              </Button>
             </div>
-
-            <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 bg-white rounded-2xl p-8 border border-gray-200">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center rounded-full bg-amber-100 w-10 h-10">
-                  <span className="text-xl">💰</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Pravidelné investování (DCA)</h3>
-              </div>
-              <p className="text-gray-600 mb-4">
-                Dollar Cost Averaging snižuje riziko špatného časování trhu:
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                  <span className="text-gray-700">Investujte stejnou částku každý měsíc</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                  <span className="text-gray-700">Nekupujte najednou, rozložte nákupy v čase</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                  <span className="text-gray-700">Ignorujte krátkodobé výkyvy trhu</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                  <span className="text-gray-700">Zaměřte se na dlouhodobý růst</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          </Card>
         </div>
 
         {/* Strategy Selection CTA */}

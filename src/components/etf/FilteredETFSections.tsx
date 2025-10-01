@@ -42,6 +42,46 @@ const colorSchemes = {
     icon: "text-purple-600",
     bg: "bg-purple-50",
     border: "border-purple-200"
+  },
+  indigo: {
+    icon: "text-indigo-600",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200"
+  },
+  gray: {
+    icon: "text-gray-600",
+    bg: "bg-gray-50",
+    border: "border-gray-200"
+  },
+  slate: {
+    icon: "text-slate-600",
+    bg: "bg-slate-50",
+    border: "border-slate-200"
+  },
+  zinc: {
+    icon: "text-zinc-600",
+    bg: "bg-zinc-50",
+    border: "border-zinc-200"
+  },
+  teal: {
+    icon: "text-teal-600",
+    bg: "bg-teal-50",
+    border: "border-teal-200"
+  },
+  cyan: {
+    icon: "text-cyan-600",
+    bg: "bg-cyan-50",
+    border: "border-cyan-200"
+  },
+  pink: {
+    icon: "text-pink-600",
+    bg: "bg-pink-50",
+    border: "border-pink-200"
+  },
+  rose: {
+    icon: "text-rose-600",
+    bg: "bg-rose-50",
+    border: "border-rose-200"
   }
 };
 

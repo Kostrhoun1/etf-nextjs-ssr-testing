@@ -1,7 +1,7 @@
 import React from 'react';
+import { Metadata } from 'next';
+import Script from 'next/script';
 import Layout from '@/components/Layout';
-import SEOHead from '@/components/SEO/SEOHead';
-import StructuredData from '@/components/SEO/StructuredData';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -9,32 +9,52 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Smartphone, Globe, TrendingUp, Shield, Users, Award } from 'lucide-react';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 
-export default function DEGIRORecenzePage() {
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Domů",
-        "item": "https://etfpruvodce.cz"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Kde koupit ETF",
-        "item": "https://etfpruvodce.cz/kde-koupit-etf"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "DEGIRO recenze 2025",
-        "item": "https://etfpruvodce.cz/degiro-recenze"
-      }
-    ]
-  };
+const currentYear = new Date().getFullYear();
 
+export const metadata: Metadata = {
+  title: `DEGIRO recenze ${currentYear} - Komplexní test a hodnocení brokera | ETF průvodce.cz`,
+  description: `✅ DEGIRO recenze ${currentYear} - hodnocení 79/100. Součást flatexDEGIRO Bank AG s 3+ miliony klientů. Přístup na 31 světových burz, nízké poplatky.`,
+  keywords: `DEGIRO recenze, DEGIRO broker, DEGIRO test, DEGIRO hodnocení, DEGIRO poplatky, DEGIRO ETF, online broker Česká republika`,
+  authors: [{ name: 'ETF průvodce.cz' }],
+  openGraph: {
+    title: `DEGIRO recenze ${currentYear} - Komplexní test a hodnocení brokera`,
+    description: `DEGIRO recenze ${currentYear} - hodnocení 79/100. Součást flatexDEGIRO Bank AG s 3+ miliony klientů.`,
+    url: 'https://etfpruvodce.cz/degiro-recenze',
+    siteName: 'ETF průvodce.cz',
+    images: [{
+      url: 'https://etfpruvodce.cz/og-degiro-recenze.jpg',
+      width: 1200,
+      height: 630,
+    }],
+    locale: 'cs_CZ',
+    type: 'article',
+    publishedTime: `${currentYear}-01-01`,
+    modifiedTime: new Date().toISOString(),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `DEGIRO recenze ${currentYear}`,
+    description: `DEGIRO recenze ${currentYear} - hodnocení 79/100. Součást flatexDEGIRO Bank AG.`,
+    images: ['https://etfpruvodce.cz/og-degiro-recenze.jpg'],
+  },
+  alternates: {
+    canonical: 'https://etfpruvodce.cz/degiro-recenze',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-image-preview': 'large',
+    'max-snippet': -1,
+    'max-video-preview': -1,
+  },
+  other: {
+    'article:author': 'ETF průvodce.cz',
+    'article:published_time': `${currentYear}-01-01`,
+    'article:modified_time': new Date().toISOString(),
+  }
+};
+
+export default function DEGIRORecenzePage() {
   const reviewSchema = {
     "@context": "https://schema.org",
     "@type": "Review",
@@ -70,17 +90,47 @@ export default function DEGIRORecenzePage() {
     "reviewBody": "DEGIRO je populární evropský online broker s nízkými poplatky a širokou nabídkou ETF fondů. Součást flatexDEGIRO Bank AG s více než 3 miliony klientů. Hodnocení 79/100 bodů."
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Domů",
+        "item": "https://etfpruvodce.cz"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Kde koupit ETF",
+        "item": "https://etfpruvodce.cz/kde-koupit-etf"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "DEGIRO recenze 2025",
+        "item": "https://etfpruvodce.cz/degiro-recenze"
+      }
+    ]
+  };
+
   return (
     <Layout>
-      <SEOHead
-        title="DEGIRO recenze 2025 - Komplexní test a hodnocení brokera | ETF průvodce.cz"
-        description="✅ DEGIRO recenze 2025 - hodnocení 79/100. Součást flatexDEGIRO Bank AG s 3+ miliony klientů. Přístup na 31 světových burz, nízké poplatky."
-        canonical="https://etfpruvodce.cz/degiro-recenze"
-        keywords="DEGIRO recenze, DEGIRO broker, DEGIRO test, DEGIRO hodnocení, DEGIRO poplatky, DEGIRO ETF, online broker Česká republika"
-        schema={reviewSchema}
-        ogImage="https://etfpruvodce.cz/og-degiro-recenze.jpg"
+      <Script
+        id="degiro-review-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(reviewSchema),
+        }}
       />
-      <StructuredData data={breadcrumbSchema} />
+      <Script
+        id="degiro-breadcrumb-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
       
       
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -147,6 +197,10 @@ export default function DEGIRORecenzePage() {
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                     Nulový minimální vklad
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    Core Selection ETF za 0 EUR + 1 EUR manipulační poplatek
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -465,9 +519,18 @@ export default function DEGIRORecenzePage() {
                       Poplatek za transakci
                     </td>
                   </tr>
+                  <tr className="hover:bg-gray-50 bg-green-50">
+                    <td className="py-3 px-4 font-medium">ETF Core Selection</td>
+                    <td className="py-3 px-4">
+                      <Badge className="bg-green-100 text-green-800 font-semibold">0 EUR + 1 EUR manipulační</Badge>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 text-sm">
+                      200+ vybraných ETF zdarma
+                    </td>
+                  </tr>
                   <tr className="hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium">ETF</td>
-                    <td className="py-3 px-4 text-orange-700 font-semibold">1-3 EUR</td>
+                    <td className="py-3 px-4 font-medium">ETF ostatní</td>
+                    <td className="py-3 px-4 text-orange-700 font-semibold">3 EUR + manipulační</td>
                     <td className="py-3 px-4 text-gray-600 text-sm">
                       Podle burzy a ETF
                     </td>
@@ -502,9 +565,9 @@ export default function DEGIRORecenzePage() {
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
               <h4 className="font-semibold text-blue-800 mb-2">💡 Tip pro úsporu nákladů</h4>
               <p className="text-sm text-blue-700">
-                Využívajte možnost vkladů a výběrů v českých korunách zdarma. 
-                U ETF vybírjte ty s nejnižšími poplatky (1 EUR) a konverzi měn 
-                provádějte v co největších objemech.
+                <strong>Vybírejte ETF z Core Selection</strong> (200+ fondů) - platíte pouze 1 EUR manipulační poplatek, 
+                žádné transakční poplatky! Využívejte také vklady a výběry v českých korunách zdarma 
+                a konverzi měn provádějte v co největších objemech.
               </p>
             </div>
           </CardContent>

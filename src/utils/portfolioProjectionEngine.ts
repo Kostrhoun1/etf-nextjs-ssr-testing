@@ -16,6 +16,7 @@ export interface ProjectionInput {
   riskLevel: number;
   timeHorizonYears: number;
   portfolioType: string;
+  expectedReturn?: number;
 }
 
 export interface ProjectionDataPoint {
@@ -74,26 +75,29 @@ function getPortfolioType(riskLevel: number): keyof typeof portfolioParameters {
   return 'conservative';
 }
 
-function getScenarios(riskLevel: number): ProjectionScenario[] {
+function getScenarios(riskLevel: number, expectedReturn?: number): ProjectionScenario[] {
   const type = getPortfolioType(riskLevel);
   const params = portfolioParameters[type];
+  
+  // Použij skutečný očekávaný výnos pokud je k dispozici, jinak fallback na obecný
+  const baseReturn = expectedReturn ? expectedReturn / 100 : params.expectedReturn;
   
   return [
     {
       name: 'Pesimistický',
-      annualReturn: params.expectedReturn - params.volatility,
+      annualReturn: Math.max(0.005, baseReturn - params.volatility), // Minimálně 0.5% ročně
       volatility: params.volatility * 1.5,
       description: 'Dlouhodobá stagnace trhů, četnější krize'
     },
     {
       name: 'Realistický',
-      annualReturn: params.expectedReturn,
+      annualReturn: baseReturn,
       volatility: params.volatility,
       description: 'Průměrný vývoj na základě historických dat'
     },
     {
       name: 'Optimistický',
-      annualReturn: params.expectedReturn + params.volatility * 0.5,
+      annualReturn: baseReturn + params.volatility * 0.5,
       volatility: params.volatility * 0.8,
       description: 'Příznivý vývoj trhů s menšími výkyvy'
     }
@@ -189,7 +193,7 @@ function simulateGrowth(
  * Hlavní funkce pro výpočet projekcí portfolia
  */
 export function calculatePortfolioProjection(input: ProjectionInput): ProjectionResult {
-  const scenarios = getScenarios(input.riskLevel);
+  const scenarios = getScenarios(input.riskLevel, input.expectedReturn);
   
   // Simulace všech tří scénářů
   const optimisticData = simulateGrowth(

@@ -1,15 +1,57 @@
-'use client';
-
 import React from 'react';
+import { Metadata } from 'next';
+import Script from 'next/script';
 import Layout from '@/components/Layout';
-import SEOHead from '@/components/SEO/SEOHead';
-
-import StructuredData from '@/components/SEO/StructuredData';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Crown , Flag, Shield, Users, Award, TrendingUp} from 'lucide-react';
+
+const currentYear = new Date().getFullYear();
+
+export const metadata: Metadata = {
+  title: `Nejlepší brokeři ${currentYear} - Kompletní srovnání ETF brokerů | ETF průvodce.cz`,
+  description: `✅ Objektivní srovnání nejlepších brokerů pro ETF investice v ${currentYear}. Portu 98/100, XTB 94/100, Trading 212, DEGIRO a další. Poplatky, funkce, hodnocení.`,
+  keywords: `nejlepší brokeři ${currentYear}, srovnání brokerů, ETF broker, XTB, DEGIRO, Trading 212, Interactive Brokers, Portu, Fio e-Broker`,
+  authors: [{ name: 'ETF průvodce.cz' }],
+  openGraph: {
+    title: `Nejlepší brokeři ${currentYear} - Kompletní srovnání ETF brokerů`,
+    description: `Objektivní srovnání nejlepších brokerů pro ETF investice v ${currentYear}. Portu 98/100, XTB 94/100 a další.`,
+    url: 'https://etfpruvodce.cz/srovnani-brokeru',
+    siteName: 'ETF průvodce.cz',
+    images: [{
+      url: 'https://etfpruvodce.cz/og-srovnani-brokeru.jpg',
+      width: 1200,
+      height: 630,
+    }],
+    locale: 'cs_CZ',
+    type: 'website',
+    publishedTime: `${currentYear}-01-01`,
+    modifiedTime: new Date().toISOString(),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Nejlepší brokeři ${currentYear}`,
+    description: `Objektivní srovnání nejlepších brokerů pro ETF investice v ${currentYear}.`,
+    images: ['https://etfpruvodce.cz/og-srovnani-brokeru.jpg'],
+  },
+  alternates: {
+    canonical: 'https://etfpruvodce.cz/srovnani-brokeru',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-image-preview': 'large',
+    'max-snippet': -1,
+    'max-video-preview': -1,
+  },
+  other: {
+    'article:author': 'ETF průvodce.cz',
+    'article:published_time': `${currentYear}-01-01`,
+    'article:modified_time': new Date().toISOString(),
+  }
+};
 
 export default function SrovnaniBrokeruPage() {
   const breadcrumbSchema = {
@@ -130,15 +172,20 @@ export default function SrovnaniBrokeruPage() {
 
   return (
     <Layout>
-      <SEOHead
-        title="Nejlepší brokeři 2025 - Kompletní srovnání pro ETF | ETF průvodce.cz"
-        description="✅ Objektivní srovnání nejlepších brokerů 2025 pro ETF investice. XTB (4.7/5) vs DEGIRO vs Trading 212. Transparentní poplatky, licenční informace."
-        canonical="https://etfpruvodce.cz/srovnani-brokeru"
-        keywords="srovnání brokerů 2025, nejlepší broker, DEGIRO vs XTB, Trading 212, broker pro ETF"
-        schema={comparisonSchema}
-        ogImage="https://etfpruvodce.cz/og-srovnani-brokeru.jpg"
+      <Script
+        id="broker-comparison-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(comparisonSchema),
+        }}
       />
-      <StructuredData data={breadcrumbSchema} />
+      <Script
+        id="broker-comparison-breadcrumb-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero sekce */}

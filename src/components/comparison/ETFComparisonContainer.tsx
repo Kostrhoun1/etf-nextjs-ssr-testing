@@ -54,7 +54,7 @@ const ETFComparisonContainer: React.FC<ETFComparisonContainerProps> = ({
           onShowDetailedComparison={handleShowDetailedComparison}
           onClearAll={clearComparison}
         />
-        <LastUpdatedInfo lastUpdated={lastUpdated} />
+        <LastUpdatedInfo lastUpdated={lastUpdated} showCurrencyToggle={true} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

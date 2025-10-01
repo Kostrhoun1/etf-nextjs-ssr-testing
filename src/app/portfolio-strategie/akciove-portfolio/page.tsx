@@ -9,7 +9,6 @@ import { BarChart3, AlertCircle, CheckCircle, Target, Zap, Users, TrendingUp } f
 import InternalLinking from '@/components/SEO/InternalLinking';
 import AkcioviPortfolioPerformance from '@/components/portfolio/AkcioviPortfolioPerformance';
 import { getETFLink } from '@/data/etf-mappings';
-import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Akciové Portfolio Strategie | 80% akcie + 20% nemovitosti | ETF průvodce.cz',
@@ -166,14 +165,6 @@ export default function AkciovPortfolioPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-12">
 
-          {/* Breadcrumbs */}
-          <Breadcrumbs 
-            items={[
-              { label: "Portfolio Strategie", href: "/portfolio-strategie" },
-              { label: "Akciové Portfolio" }
-            ]}
-            className="mb-8"
-          />
 
           {/* Portfolio Složení */}
           <div id="allocation">

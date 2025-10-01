@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TrendingDown, BarChart3, Info, Download, ExternalLink } from 'lucide-react';
+import { TrendingDown, BarChart3, Info, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 
@@ -64,7 +64,7 @@ const portfolioStrategies: PortfolioStrategy[] = [
     id: 'nobel',
     name: 'Nobelovo Portfolio',
     description: 'Vyváženost mezi rizikem a výnosem',
-    philosophy: 'Založeno na moderní portfoliové teorii a výzkumech nositelů Nobelovy ceny za ekonomii.',
+    philosophy: 'Investiční strategie používaná Nobelovou nadací pro správu svého kapitálu. Kombinuje růstový potenciál akcií s konzervativními aktivy.',
     riskLevel: 'Umírněné',
     expectedReturn: '6% ročně',
     maxDrawdown: 'Do -25%',
@@ -126,6 +126,7 @@ const PortfolioStrategies: React.FC = () => {
   useEffect(() => {
     fetchETFData();
   }, []);
+
 
   const fetchETFData = async () => {
     try {
@@ -404,20 +405,6 @@ const PortfolioStrategies: React.FC = () => {
         </Card>
       )}
 
-      {/* CTA */}
-      <div className="bg-gradient-to-r from-violet-600 to-blue-600 rounded-xl p-8 text-white text-center">
-        <h3 className="text-2xl font-bold mb-4">Chcete se dozvědět více?</h3>
-        <p className="text-lg text-blue-100 mb-6">
-          Stáhněte si náš komplexní průvodce s detailním popisem všech strategií, praktickými radami a tipy pro implementaci.
-        </p>
-        <Link 
-          href="/co-jsou-etf/jak-zacit-investovat"
-          className="bg-white text-violet-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center gap-2"
-        >
-          <Download className="w-5 h-5" />
-          Stáhnout průvodce zdarma
-        </Link>
-      </div>
     </div>
   );
 };

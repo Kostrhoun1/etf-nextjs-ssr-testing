@@ -4,7 +4,6 @@ import HeroSection from '@/components/home/HeroSection';
 import USPSection from '@/components/home/USPSection';
 import ETFSearchSection from '@/components/home/ETFSearchSection';
 import BrokerComparisonSection from '@/components/home/BrokerComparisonSection';
-import CTASection from '@/components/home/CTASection';
 import FAQSection from '@/components/SEO/FAQSection';
 import PortfolioStrategiesTeaser from '@/components/home/PortfolioStrategiesTeaser';
 import InternalLinking from '@/components/SEO/InternalLinking';
@@ -64,8 +63,6 @@ export default async function HomePage() {
       {/* SROVNÁNÍ BROKERŮ */}
       <BrokerComparisonSection />
 
-      {/* CTA sekce */}
-      <CTASection totalCount={totalETFCount} />
 
       {/* FAQ sekce */}
       <FAQSection 
@@ -77,7 +74,7 @@ export default async function HomePage() {
           },
           {
             question: "Který broker je nejlepší pro nákup ETF v České republice?",
-            answer: "Mezi nejlepší brokeře patří DEGIRO (bez poplatků za vybrané ETF), XTB (0% poplatky do 100 000 EUR), Trading212 (0% poplatky) a Interactive Brokers. Výběr závisí na vašich potřebách a objemu investic."
+            answer: "Nejlepším brokerem je Portu (98/100 bodů) pro automatizované investování. Pro aktivní obchodování je výborný XTB (94/100) s 0% poplatky, Trading212 (87/100) či DEGIRO (79/100) s nízkými poplatky."
           },
           {
             question: "Jaké jsou nejlepší ETF fondy pro rok 2025?",
@@ -85,7 +82,7 @@ export default async function HomePage() {
           },
           {
             question: "Kolik stojí investování do ETF fondů?",
-            answer: "Náklady se skládají z poplatků brokera (0-15 EUR na transakci) a ročních poplatků fondu (TER 0,1-0,7%). U některých brokerů je nákup vybraných ETF zdarma."
+            answer: "Náklady se skládají z poplatků brokera a ročních poplatků fondu (TER 0,1-0,7%). Nejlepší brokeři: Portu (0,24-1% ročně), XTB a Trading212 (0% poplatky), DEGIRO (1-3 EUR za transakci)."
           },
           {
             question: "Jak funguje zdanění ETF fondů v ČR?",
@@ -93,7 +90,7 @@ export default async function HomePage() {
           },
           {
             question: "Lze investovat do ETF s malými částkami?",
-            answer: "Ano, mnohé brokeři nabízejí spořící plány už od 25 EUR měsíčně. Ideální je pravidelné investování (DCA - Dollar Cost Averaging) pro snížení rizika časování trhu."
+            answer: "Ano, u nejlepších brokerů můžete začít s malými částkami: Portu od 500 Kč, XTB a Trading212 od 1 EUR. Většina nabízí automatické investování a frakční ETF pro malé pravidelné investice."
           }
         ]}
         className="mt-16 bg-gray-50"

@@ -1,12 +1,14 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
+import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
 interface LastUpdatedInfoProps {
   lastUpdated: Date | null;
   className?: string;
+  showCurrencyToggle?: boolean;
 }
 
-const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ lastUpdated, className = "" }) => {
+const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ lastUpdated, className = "", showCurrencyToggle = false }) => {
   if (!lastUpdated) {
     return null;
   }
@@ -22,9 +24,12 @@ const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ lastUpdated, classNam
   };
 
   return (
-    <div className={`flex items-center gap-2 text-sm text-gray-500 ${className}`}>
-      <Clock className="h-4 w-4" />
-      <span>Poslední aktualizace: {formatDate(lastUpdated)}</span>
+    <div className={`flex items-center justify-between ${className}`}>
+      <div className="flex items-center gap-2 text-sm text-gray-500">
+        <Clock className="h-4 w-4" />
+        <span>Poslední aktualizace: {formatDate(lastUpdated)}</span>
+      </div>
+      {showCurrencyToggle && <CurrencyToggle />}
     </div>
   );
 };

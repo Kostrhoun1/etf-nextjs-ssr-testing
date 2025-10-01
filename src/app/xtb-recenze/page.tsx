@@ -1,15 +1,59 @@
 
-
 import React from 'react';
+import { Metadata } from 'next';
+import Script from 'next/script';
 import Layout from '@/components/Layout';
-import SEOHead from '@/components/SEO/SEOHead';
-import StructuredData from '@/components/SEO/StructuredData';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Smartphone , Flag, Shield, Users, Award, Globe, TrendingUp} from 'lucide-react';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
+
+const currentYear = new Date().getFullYear();
+
+export const metadata: Metadata = {
+  title: `XTB recenze ${currentYear} - Komplexní test a hodnocení brokera | ETF průvodce.cz`,
+  description: `✅ XTB recenze ${currentYear} - hodnocení 94/100. Transparentní broker s českou licencí ČNB, bezplatnými ETF obchody a 24/7 podporou.`,
+  keywords: `XTB recenze, XTB broker, XTB test, XTB hodnocení, XTB poplatky, XTB ETF, online broker Česká republika, XTB česká licence`,
+  authors: [{ name: 'ETF průvodce.cz' }],
+  openGraph: {
+    title: `XTB recenze ${currentYear} - Komplexní test a hodnocení brokera`,
+    description: `XTB recenze ${currentYear} - hodnocení 94/100. Transparentní broker s českou licencí ČNB.`,
+    url: 'https://etfpruvodce.cz/xtb-recenze',
+    siteName: 'ETF průvodce.cz',
+    images: [{
+      url: 'https://etfpruvodce.cz/og-xtb-recenze.jpg',
+      width: 1200,
+      height: 630,
+    }],
+    locale: 'cs_CZ',
+    type: 'article',
+    publishedTime: `${currentYear}-01-01`,
+    modifiedTime: new Date().toISOString(),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `XTB recenze ${currentYear}`,
+    description: `XTB recenze ${currentYear} - hodnocení 94/100. Transparentní broker s českou licencí ČNB.`,
+    images: ['https://etfpruvodce.cz/og-xtb-recenze.jpg'],
+  },
+  alternates: {
+    canonical: 'https://etfpruvodce.cz/xtb-recenze',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-image-preview': 'large',
+    'max-snippet': -1,
+    'max-video-preview': -1,
+  },
+  other: {
+    'article:author': 'ETF průvodce.cz',
+    'article:published_time': `${currentYear}-01-01`,
+    'article:modified_time': new Date().toISOString(),
+  }
+};
 
 export default function XTBRecenzePage() {
   const breadcrumbSchema = {
@@ -74,15 +118,20 @@ export default function XTBRecenzePage() {
 
   return (
     <Layout>
-      <SEOHead
-        title="XTB recenze 2025 - Komplexní test a hodnocení brokera | ETF průvodce.cz"
-        description="✅ XTB recenze 2025 - hodnocení 94/100. Více než 11 400 instrumentů, frakční podíly, licence ČNB. Bezpoplatkové obchodování s 1 690 ETF a akciemi."
-        canonical="https://etfpruvodce.cz/xtb-recenze"
-        keywords="XTB recenze, XTB broker, XTB test, XTB hodnocení, XTB poplatky, XTB ETF, online broker Česká republika"
-        schema={reviewSchema}
-        ogImage="https://etfpruvodce.cz/og-xtb-recenze.jpg"
+      <Script
+        id="xtb-review-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(reviewSchema),
+        }}
       />
-      <StructuredData data={breadcrumbSchema} />
+      <Script
+        id="xtb-breadcrumb-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
       
       
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

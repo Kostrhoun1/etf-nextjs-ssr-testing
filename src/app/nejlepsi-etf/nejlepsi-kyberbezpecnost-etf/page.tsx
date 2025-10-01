@@ -14,6 +14,7 @@ const TOP_3_CYBERSECURITY_ETFS_TEMPLATE = [
     isin: "IE00BYPLS672",
     provider: "Legal & General",
     reason: "Největší pure-play cybersecurity ETF s 2,42 mld. EUR. Zaměřuje se výhradně na společnosti poskytující kybernetickou bezpečnost a ochranu dat.",
+    degiroFree: false,
   },
   {
     name: "iShares Digital Security UCITS ETF USD (Acc)",
@@ -21,6 +22,7 @@ const TOP_3_CYBERSECURITY_ETFS_TEMPLATE = [
     isin: "IE00BG0J4C88", 
     provider: "iShares",
     reason: "Kvalitní cybersecurity ETF s 1,46 mld. EUR a TER 0,40%. Sleduje globální společnosti v oblasti digitální bezpečnosti a kybernetické ochrany.",
+    degiroFree: false,
   },
   {
     name: "First Trust Nasdaq Cybersecurity UCITS ETF",
@@ -28,6 +30,7 @@ const TOP_3_CYBERSECURITY_ETFS_TEMPLATE = [
     isin: "IE00BF16M727",
     provider: "First Trust", 
     reason: "Specializovaný cybersecurity ETF s 1,11 mld. EUR sledující Nasdaq CTA Cybersecurity Index. Zaměřuje se na technologie kybernetické bezpečnosti.",
+    degiroFree: false,
   }
 ];
 

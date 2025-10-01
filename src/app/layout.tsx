@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
 export const metadata: Metadata = {
   title: {
@@ -70,7 +71,9 @@ export default function RootLayout({
   return (
     <html lang="cs">
       <body className="font-sans antialiased">
-        {children}
+        <CurrencyProvider>
+          {children}
+        </CurrencyProvider>
       </body>
     </html>
   );

@@ -23,7 +23,8 @@ export const brokers: Broker[] = [
     customerSupport: '9-17 (pracovní dny)',
     specialFeatures: ['Core ETF selection', 'Dividend reinvestment', 'Tax reports'],
     pros: [
-      'Velmi nízké poplatky na ETF',
+      'Core Selection ETF za 0 EUR (200+ fondů)',
+      'Pouze 1 EUR manipulační poplatek',
       'Bezplatná konverze CZK/EUR',
       'Široká nabídka UCITS ETF',
       'Česká zákaznická podpora'

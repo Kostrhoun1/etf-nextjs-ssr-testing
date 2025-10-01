@@ -14,6 +14,7 @@ const TOP_3_COMMODITY_ETFS_TEMPLATE = [
     isin: "IE00BDQZRK82",
     provider: "iShares",
     reason: "Největší diverzifikovaný komoditní ETF s 2,81 mld. EUR. Široká expozice k energetickým, zemědělským a průmyslovým komoditám přes swap strukturu.",
+    degiroFree: false,
   },
   {
     name: "Xtrackers DBLCI Optimum Yield Commodity UCITS ETF 1C",
@@ -21,6 +22,7 @@ const TOP_3_COMMODITY_ETFS_TEMPLATE = [
     isin: "LU0292106167", 
     provider: "Xtrackers",
     reason: "Komplexní komoditní ETF s 1,47 mld. EUR sledující DB Liquid Commodity Index s optimalizovaným roll yieldem pro 14 komodit.",
+    degiroFree: false,
   },
   {
     name: "WisdomTree Broad Commodities UCITS ETF USD Acc",
@@ -28,6 +30,7 @@ const TOP_3_COMMODITY_ETFS_TEMPLATE = [
     isin: "IE00B8CRQX21",
     provider: "WisdomTree", 
     reason: "Široký komoditní ETF s 1,12 mld. EUR poskytující expozici k energetickým, zemědělským a kovům s optimalizovanou váhou.",
+    degiroFree: false,
   }
 ];
 

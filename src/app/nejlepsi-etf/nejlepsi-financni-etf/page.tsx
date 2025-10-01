@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, CreditBanknote, Calculator , DollarSign, Rocket, Zap, Users, CreditCard, Building, Banknote, TrendingUp, Shield} from 'lucide-react';
+import { Star, BarChart3, Target, Calculator , DollarSign, Rocket, Zap, Users, CreditCard, Building, Banknote, TrendingUp, Shield} from 'lucide-react';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';

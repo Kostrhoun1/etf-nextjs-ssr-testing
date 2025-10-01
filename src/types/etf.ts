@@ -188,6 +188,35 @@ export interface ETF {
   return_2021?: number;
   return_inception?: number;
   performance_last_updated?: string;
+  
+  // Currency Performance - CZK
+  return_1m_czk?: number;
+  return_3m_czk?: number;
+  return_6m_czk?: number;
+  return_ytd_czk?: number;
+  return_1y_czk?: number;
+  return_3y_czk?: number;
+  return_5y_czk?: number;
+  return_2021_czk?: number;
+  return_2022_czk?: number;
+  return_2023_czk?: number;
+  return_2024_czk?: number;
+  
+  // Currency Performance - USD
+  return_1m_usd?: number;
+  return_3m_usd?: number;
+  return_6m_usd?: number;
+  return_ytd_usd?: number;
+  return_1y_usd?: number;
+  return_3y_usd?: number;
+  return_5y_usd?: number;
+  return_2021_usd?: number;
+  return_2022_usd?: number;
+  return_2023_usd?: number;
+  return_2024_usd?: number;
+  
+  // Currency Metadata
+  currency_performance_updated_at?: string;
 }
 
 // Simplified ETF type for list displays
@@ -245,4 +274,33 @@ export interface ETFListItem {
   return_2021?: number;
   return_inception?: number;
   performance_last_updated?: string;
+  
+  // Currency Performance - CZK
+  return_1m_czk?: number;
+  return_3m_czk?: number;
+  return_6m_czk?: number;
+  return_ytd_czk?: number;
+  return_1y_czk?: number;
+  return_3y_czk?: number;
+  return_5y_czk?: number;
+  return_2021_czk?: number;
+  return_2022_czk?: number;
+  return_2023_czk?: number;
+  return_2024_czk?: number;
+  
+  // Currency Performance - USD
+  return_1m_usd?: number;
+  return_3m_usd?: number;
+  return_6m_usd?: number;
+  return_ytd_usd?: number;
+  return_1y_usd?: number;
+  return_3y_usd?: number;
+  return_5y_usd?: number;
+  return_2021_usd?: number;
+  return_2022_usd?: number;
+  return_2023_usd?: number;
+  return_2024_usd?: number;
+  
+  // Currency Metadata
+  currency_performance_updated_at?: string;
 }

@@ -8,7 +8,6 @@ interface CalculatorItem {
   description: string;
   icon: React.ReactNode;
   href: string;
-  difficulty: string;
   category: 'investment' | 'finance' | 'advanced';
 }
 
@@ -19,7 +18,6 @@ const CalculatorHub: React.FC = () => {
       description: 'Spočítejte si hypoteční splátky a celkové náklady na bydlení',
       icon: <Home className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/hypotecni-kalkulacka',
-      difficulty: 'Snadná',
       category: 'finance',
     },
     {
@@ -27,7 +25,6 @@ const CalculatorHub: React.FC = () => {
       description: 'Kalkulačka splátek spotřebitelského úvěru a celkových nákladů',
       icon: <CreditCard className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/uverova-kalkulacka',
-      difficulty: 'Snadná',
       category: 'finance',
     },
     {
@@ -35,7 +32,6 @@ const CalculatorHub: React.FC = () => {
       description: 'Výpočet čisté mzdy podle aktuální české legislativy',
       icon: <Calculator className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/cisty-plat-2025',
-      difficulty: 'Snadná',
       category: 'finance',
     },
     {
@@ -43,7 +39,6 @@ const CalculatorHub: React.FC = () => {
       description: 'DCA strategie a compound interest výpočty pro ETF investice',
       icon: <TrendingUp className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/investicni-kalkulacka',
-      difficulty: 'Střední',
       category: 'investment'
     },
     {
@@ -51,7 +46,6 @@ const CalculatorHub: React.FC = () => {
       description: '4% withdrawal rule a FIRE plánování pro finanční nezávislost',
       icon: <PiggyBank className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/fire-kalkulacka',
-      difficulty: 'Střední',
       category: 'investment'
     },
     {
@@ -59,7 +53,6 @@ const CalculatorHub: React.FC = () => {
       description: 'Optimální velikost emergency fund podle vaší situace',
       icon: <Shield className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/nouzova-rezerva',
-      difficulty: 'Snadná',
       category: 'finance'
     },
     {
@@ -67,7 +60,6 @@ const CalculatorHub: React.FC = () => {
       description: 'Analýza dopadu TER a dalších poplatků na dlouhodobé výnosy',
       icon: <Target className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/kalkulacka-poplatku-etf',
-      difficulty: 'Střední',
       category: 'investment'
     },
     {
@@ -75,7 +67,6 @@ const CalculatorHub: React.FC = () => {
       description: 'Pokročilá simulace portfolia na základě historických dat',
       icon: <BarChart className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/monte-carlo-simulator',
-      difficulty: 'Pokročilá',
       category: 'advanced'
     },
     {
@@ -83,7 +74,6 @@ const CalculatorHub: React.FC = () => {
       description: 'Analýza kurzového rizika a hedging strategií pro ETF',
       icon: <DollarSign className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/kurzovy-dopad-etf',
-      difficulty: 'Pokročilá',
       category: 'advanced'
     }
   ];
@@ -139,13 +129,6 @@ const CalculatorHub: React.FC = () => {
                     <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">
                       {calc.title}
                     </h3>
-                    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded mt-1 ${
-                      calc.difficulty === 'Snadná' ? 'bg-emerald-100 text-emerald-800' :
-                      calc.difficulty === 'Střední' ? 'bg-amber-100 text-amber-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {calc.difficulty}
-                    </span>
                   </div>
                 </div>
                 

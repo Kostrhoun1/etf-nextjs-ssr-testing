@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
 interface ETFComparisonHeaderProps {
   selectedCount: number;
@@ -17,8 +18,8 @@ const ETFComparisonHeader: React.FC<ETFComparisonHeaderProps> = ({
 }) => {
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900">
             ETF srovnání - Nejlepší nástroj pro porovnání ETF fondů 2025
           </h1>

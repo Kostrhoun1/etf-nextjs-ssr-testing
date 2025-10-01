@@ -26,9 +26,10 @@ export const PortfolioProjectionChart: React.FC<PortfolioProjectionChartProps> =
       monthlyContribution: defaultMonthlyAmount,
       riskLevel,
       timeHorizonYears: 20,
-      portfolioType: portfolioName
+      portfolioType: portfolioName,
+      expectedReturn: expectedReturn
     });
-  }, [initialAmount, defaultMonthlyAmount, riskLevel, portfolioName]);
+  }, [initialAmount, defaultMonthlyAmount, riskLevel, portfolioName, expectedReturn]);
 
   // Transformace dat pro chart (pouze každý 12. měsíc = roky)
   const chartData = projectionData.dataPoints

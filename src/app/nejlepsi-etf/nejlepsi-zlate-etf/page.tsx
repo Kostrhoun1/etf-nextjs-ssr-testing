@@ -14,6 +14,7 @@ const TOP_3_GOLD_ETFS_TEMPLATE = [
     isin: "IE00B4ND3602",
     provider: "iShares",
     reason: "Největší fyzicky zajištěný zlatý ETF v Evropě s 15,7 mld. EUR. 100% zajištěn fyzickým zlatem uloženým v bezpečných trezorech s auditovanou transparentností.",
+    degiroFree: false,
   },
   {
     name: "Xtrackers Physical Gold ETC EUR Hedged",
@@ -21,6 +22,7 @@ const TOP_3_GOLD_ETFS_TEMPLATE = [
     isin: "DE000A1E0HR8", 
     provider: "Xtrackers",
     reason: "Fyzicky zajištěný zlatý ETF s EUR hedgingem eliminující měnové riziko. 8,2 mld. EUR s optimálním poměrem cena/výkon pro české investory.",
+    degiroFree: false,
   },
   {
     name: "WisdomTree Physical Gold ETC",
@@ -28,6 +30,7 @@ const TOP_3_GOLD_ETFS_TEMPLATE = [
     isin: "JE00B1VS3333",
     provider: "WisdomTree", 
     reason: "Prémiový fyzicky zajištěný zlatý ETF s 7,8 mld. EUR. Nízký TER 0,39% a vysoká likvidita pro efektivní obchodování se zlatem.",
+    degiroFree: false,
   }
 ];
 

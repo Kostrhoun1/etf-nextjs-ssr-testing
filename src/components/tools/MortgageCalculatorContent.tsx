@@ -156,45 +156,6 @@ const MortgageCalculatorContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Aktuální informace o hypotékách 2025 */}
-        <div className="bg-white rounded-2xl border p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Aktuální situace na hypotečním trhu 2025</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-green-800">Orientační sazby</h3>
-              <ul className="space-y-2 text-gray-700 text-sm">
-                <li>• <strong>1 rok fixace:</strong> 5,2 - 6,1%</li>
-                <li>• <strong>3 roky fixace:</strong> 5,0 - 5,8%</li>
-                <li>• <strong>5 let fixace:</strong> 4,9 - 5,7%</li>
-                <li>• <strong>10 let fixace:</strong> 5,1 - 5,9%</li>
-                <li>• <strong>20 let fixace:</strong> 5,3 - 6,2%</li>
-              </ul>
-              <p className="text-xs text-gray-600 mt-3">
-                <em>Sazby se liší podle banky a bonity klienta</em>
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-blue-800">Trendy a doporučení</h3>
-              <ul className="space-y-2 text-gray-700 text-sm">
-                <li>• Kratší fixace jsou obecně výhodnější</li>
-                <li>• Důraz na vlastní kapitál - více než 20%</li>
-                <li>• Státní podpora pro mladé (do 36 let)</li>
-                <li>• Pozor na růst cen nemovitostí</li>
-                <li>• Refinancování starších hypotéky může být výhodné</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-orange-800">Důležité změny</h3>
-              <ul className="space-y-2 text-gray-700 text-sm">
-                <li>• Přísnější podmínky pro schválení</li>
-                <li>• Vyšší požadavky na příjem</li>
-                <li>• Důraz na reálnou hodnotu nemovitosti</li>
-                <li>• Možnost odpočtu úroků z daní</li>
-                <li>• Nová pravidla pro investiční nemovitosti</li>
-              </ul>
-            </div>
-          </div>
-        </div>
 
         {/* FAQ sekce */}
         <FAQSection

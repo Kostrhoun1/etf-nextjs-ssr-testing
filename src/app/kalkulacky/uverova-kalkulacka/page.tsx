@@ -111,28 +111,28 @@ export default function UverovaKalkulackaPage() {
 
             <div className="bg-white p-8 rounded-2xl shadow-sm">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Aktuální úrokové sazby 2025
+                Jak vybrat nejlepší úvěr?
               </h2>
               <div className="space-y-4 text-gray-700">
                 <div>
-                  <strong className="text-blue-600">Spotřebitelské úvěry:</strong>
+                  <strong className="text-blue-600">Klíčové faktory:</strong>
                   <ul className="mt-2 space-y-1 ml-4">
-                    <li>• Běžné úvěry: 8,9 - 15,9% p.a.</li>
-                    <li>• Refinancování: 7,9 - 13,9% p.a.</li>
-                    <li>• Úvěry pro VIP klienty: 6,9 - 11,9% p.a.</li>
-                    <li>• Americká hypotéka: 8,5 - 14,5% p.a.</li>
+                    <li>• Porovnejte RPSN, ne jen úrokovou sazbu</li>
+                    <li>• Zvažte dobu splatnosti a výši splátky</li>
+                    <li>• Zkontrolujte všechny poplatky</li>
+                    <li>• Přečtěte si smlouvu před podpisem</li>
                   </ul>
                 </div>
                 <div>
-                  <strong className="text-blue-600">RPSN obvykle:</strong>
+                  <strong className="text-blue-600">Užitečné tipy:</strong>
                   <ul className="mt-2 space-y-1 ml-4">
-                    <li>• O 1-3% vyšší než úroková sazba</li>
-                    <li>• Závisí na výši a délce úvěru</li>
-                    <li>• Zahrnuje všechny poplatky</li>
+                    <li>• Požádejte o nabídku u více bank</li>
+                    <li>• Vyjednávejte lepší podmínky</li>
+                    <li>• Zvažte pojištění úvěru</li>
                   </ul>
                 </div>
-                <p className="text-sm text-gray-600">
-                  <em>Sazby jsou orientační a liší se podle bonity klienta a nabídky banky.</em>
+                <p className="text-sm bg-blue-50 p-3 rounded">
+                  <strong>Doporučení:</strong> Vždy si nechte čas na rozmyšlenou a nepoddávejte se tlaku na okamžité podpisy.
                 </p>
               </div>
             </div>

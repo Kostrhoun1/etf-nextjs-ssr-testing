@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { ArrowRight, Sparkles, Target, Clock, Home, GraduationCap, PiggyBank, ExternalLink , Globe, TrendingUp, Building, Shield} from 'lucide-react';
+import { ArrowRight, Sparkles, Target, Clock, Home, GraduationCap, ExternalLink , Globe, TrendingUp, Building, Shield} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { portfolioEngine, InvestorProfile, PortfolioRecommendation } from '@/utils/portfolioRecommendationEngine';
-import { PortfolioProjectionChart } from '@/components/portfolio/PortfolioProjectionChart';
 
 interface PortfolioWizardProps {
   onClose?: () => void;
@@ -233,7 +232,7 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
               id: 'retirement', 
               label: 'Důchod', 
               desc: 'Dlouhodobé spoření na penzi',
-              icon: PiggyBank
+              icon: Shield
             },
             { 
               id: 'house', 
@@ -284,91 +283,6 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
               </Card>
             );
           })}
-        </div>
-      )
-    },
-    {
-      title: "Kolik plánujete investovat?",
-      description: "Nastavte jednorazovou i pravidelnou investici",
-      content: (
-        <div className="space-y-8">
-          {/* Jednorazová investice */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-              <PiggyBank className="w-4 h-4" />
-              Jednorazová vstupní investice
-            </h4>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 mb-2">
-                {(profile.initialAmount || 0).toLocaleString()} Kč
-              </div>
-              <Slider
-                value={[profile.initialAmount || 0]}
-                onValueChange={(value) => setProfile({...profile, initialAmount: value[0]})}
-                max={500000}
-                min={0}
-                step={5000}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>0 Kč</span>
-                <span>500 000 Kč</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 gap-2 mt-3">
-              {[0, 50000, 100000, 250000].map(amount => (
-                <Button
-                  key={amount}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setProfile({...profile, initialAmount: amount})}
-                  className={profile.initialAmount === amount ? 'border-blue-500 bg-blue-50' : ''}
-                >
-                  {amount === 0 ? 'Žádná' : `${(amount/1000)} tis. Kč`}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Měsíční investice */}
-          <div className="bg-violet-50 p-4 rounded-lg border border-violet-200">
-            <h4 className="font-semibold text-violet-800 mb-3 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Pravidelná měsíční investice
-            </h4>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-violet-600 mb-2">
-                {(profile.monthlyAmount || 5000).toLocaleString()} Kč
-              </div>
-              <Slider
-                value={[profile.monthlyAmount || 5000]}
-                onValueChange={(value) => setProfile({...profile, monthlyAmount: value[0]})}
-                max={50000}
-                min={500}
-                step={500}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>500 Kč</span>
-                <span>50 000 Kč</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {[1000, 5000, 10000].map(amount => (
-                <Button
-                  key={amount}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setProfile({...profile, monthlyAmount: amount})}
-                  className={profile.monthlyAmount === amount ? 'border-violet-500 bg-violet-50' : ''}
-                >
-                  {amount.toLocaleString()} Kč
-                </Button>
-              ))}
-            </div>
-          </div>
         </div>
       )
     },
@@ -473,14 +387,6 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
             </div>
           </div>
 
-          {/* Portfolio Projection Chart */}
-          <PortfolioProjectionChart
-            portfolioName={recommendation.name}
-            riskLevel={recommendation.riskLevel}
-            defaultMonthlyAmount={profile.monthlyAmount || 5000}
-            initialAmount={profile.initialAmount || 0}
-            expectedReturn={parseFloat(recommendation.expectedReturn) || 0}
-          />
 
           {/* Disclaimer */}
           <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg text-sm">
@@ -538,8 +444,7 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
       case 3: return profile.timeHorizon !== undefined;
       case 4: return profile.experience !== undefined;
       case 5: return profile.goals && profile.goals.length > 0;
-      case 6: return profile.monthlyAmount !== undefined;
-      case 7: return recommendation !== null;
+      case 6: return recommendation !== null;
       default: return false;
     }
   };

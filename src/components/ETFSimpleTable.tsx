@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 import { ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import { formatPercentage, formatTER } from '@/utils/csvParser';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ETFSimpleTableProps {
   etfs: ETFListItem[];
@@ -37,6 +38,7 @@ const ETFSimpleTable: React.FC<ETFSimpleTableProps> = ({
   isHomepage = false,
 }) => {
   const [loadingETF, setLoadingETF] = useState<string | null>(null);
+  const { getPerformanceValue } = useCurrency();
 
   const handleSelectETF = async (etf: ETFListItem) => {
     if (!onAddETF || !onRemoveETF) return;
@@ -208,17 +210,17 @@ const ETFSimpleTable: React.FC<ETFSimpleTableProps> = ({
                 <TableCell className="text-right font-mono p-3">
                   {formatTER(etf.ter_numeric)}
                 </TableCell>
-                <TableCell className={`p-3 text-right ${getReturnColor(etf.return_ytd)}`}>
-                  {etf.return_ytd ? formatPercentage(etf.return_ytd) : '-'}
+                <TableCell className={`p-3 text-right ${getReturnColor(getPerformanceValue(etf, 'ytd'))}`}>
+                  {getPerformanceValue(etf, 'ytd') !== null ? formatPercentage(getPerformanceValue(etf, 'ytd')!) : '-'}
                 </TableCell>
-                <TableCell className={`p-3 text-right ${getReturnColor(etf.return_1y)}`}>
-                  {etf.return_1y ? formatPercentage(etf.return_1y) : '-'}
+                <TableCell className={`p-3 text-right ${getReturnColor(getPerformanceValue(etf, '1y'))}`}>
+                  {getPerformanceValue(etf, '1y') !== null ? formatPercentage(getPerformanceValue(etf, '1y')!) : '-'}
                 </TableCell>
-                <TableCell className={`p-3 text-right ${getReturnColor(etf.return_3y)}`}>
-                  {etf.return_3y ? formatPercentage(etf.return_3y) : '-'}
+                <TableCell className={`p-3 text-right ${getReturnColor(getPerformanceValue(etf, '3y'))}`}>
+                  {getPerformanceValue(etf, '3y') !== null ? formatPercentage(getPerformanceValue(etf, '3y')!) : '-'}
                 </TableCell>
-                 <TableCell className={`p-3 text-right ${getReturnColor(etf.return_5y)}`}>
-                   {etf.return_5y ? formatPercentage(etf.return_5y) : '-'}
+                 <TableCell className={`p-3 text-right ${getReturnColor(getPerformanceValue(etf, '5y'))}`}>
+                   {getPerformanceValue(etf, '5y') !== null ? formatPercentage(getPerformanceValue(etf, '5y')!) : '-'}
                  </TableCell>
                  <TableCell className="text-right font-mono p-3 text-sm">
                    {formatFundSize(etf.fund_size_numeric)}

@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { BarChart3, AlertCircle, CheckCircle, Target, DollarSign, TrendingUp, Users } from 'lucide-react';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import DividendPortfolioPerformance from '@/components/portfolio/DividendPortfolioPerformance';
-import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import { getETFLink } from '@/data/etf-mappings';
 
 export const metadata: Metadata = {
@@ -156,14 +155,6 @@ export default function DividendPortfolioPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-12">
 
-          {/* Breadcrumbs */}
-          <Breadcrumbs 
-            items={[
-              { label: "Portfolio Strategie", href: "/portfolio-strategie" },
-              { label: "Dividendové Portfolio" }
-            ]}
-            className="mb-8"
-          />
 
           {/* Portfolio Složení */}
           <div id="allocation">

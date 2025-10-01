@@ -15,7 +15,7 @@ const DetailedBrokerComparison: React.FC = () => {
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
             Komplexní analýza šesti předních brokerských platforem z pohledu českého investora do ETF fondů. 
-            Porovnání zahrnuje XTB (94/100), DEGIRO, Fio e-Broker, Trading 212, Interactive Brokers a Portu.
+            Porovnání zahrnuje XTB, DEGIRO, Fio e-Broker, Trading 212, Interactive Brokers a Portu.
           </p>
         </div>
 

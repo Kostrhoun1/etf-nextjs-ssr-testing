@@ -4,8 +4,6 @@ export interface InvestorProfile {
   age: number;
   riskTolerance: 'conservative' | 'moderate' | 'aggressive';
   timeHorizon: 'short' | 'medium' | 'long'; // <5, 5-15, 15+ years
-  monthlyAmount: number;
-  initialAmount?: number; // Jednorazová vstupní investice
   experience: 'beginner' | 'intermediate' | 'advanced';
   goals: ('retirement' | 'house' | 'general_wealth' | 'education')[];
 }
@@ -37,6 +35,7 @@ export interface PortfolioRecommendation {
   allocation: PortfolioAllocation;
   etfs: ETFRecommendation[];
   expectedReturn: string;
+  expectedReturnNumeric: number; // Číselná hodnota v procentech
   volatility: string;
   riskLevel: number; // 1-10
   rebalanceFrequency: string;
@@ -60,6 +59,7 @@ export class PortfolioRecommendationEngine {
       strategyId: "permanent",
       riskLevel: 3,
       expectedReturn: "4% ročně",
+      expectedReturnNumeric: 4,
       allocations: [
         { asset: 'Akcie', percentage: 25, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World' },
         { asset: 'Dluhopisy', percentage: 25, isin: 'IE00BDBRDM35', etfName: 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)' },
@@ -75,6 +75,7 @@ export class PortfolioRecommendationEngine {
       strategyId: "nobel",
       riskLevel: 6,
       expectedReturn: "6% ročně",
+      expectedReturnNumeric: 6,
       allocations: [
         { asset: 'Akcie', percentage: 55, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World' },
         { asset: 'Dluhopisy', percentage: 25, isin: 'IE00BDBRDM35', etfName: 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)' },
@@ -89,6 +90,7 @@ export class PortfolioRecommendationEngine {
       strategyId: "stock",
       riskLevel: 8,
       expectedReturn: "7-8% ročně",
+      expectedReturnNumeric: 7.5,
       allocations: [
         { asset: 'Světové akcie', percentage: 80, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World UCITS ETF' },
         { asset: 'Nemovitosti (REITs)', percentage: 20, isin: 'IE00B0M63284', etfName: 'iShares European Property Yield UCITS ETF' },
@@ -102,6 +104,7 @@ export class PortfolioRecommendationEngine {
       strategyId: "allweather",
       riskLevel: 4,
       expectedReturn: "5-8% ročně",
+      expectedReturnNumeric: 6.5,
       allocations: [
         { asset: 'Dlouhodobé dluhopisy', percentage: 40, isin: 'IE00BFM6TC58', etfName: 'iShares USD Treasury Bond 20+yr UCITS ETF USD (Acc)' },
         { asset: 'Akcie', percentage: 30, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World' },
@@ -118,6 +121,7 @@ export class PortfolioRecommendationEngine {
       strategyId: "dividend",
       riskLevel: 5,
       expectedReturn: "4% dividendy + růst",
+      expectedReturnNumeric: 5,
       allocations: [
         { asset: 'Dividendové akcie', percentage: 95, isin: 'IE00B9CQXS71', etfName: 'SPDR S&P Global Dividend Aristocrats UCITS ETF' },
         { asset: 'Nemovitosti (REITs)', percentage: 5, isin: 'IE00B1FZS350', etfName: 'iShares Developed Markets Property Yield UCITS ETF' },
@@ -153,6 +157,7 @@ export class PortfolioRecommendationEngine {
       allocation: allocationSummary,
       etfs: etfRecommendations,
       expectedReturn: strategy.expectedReturn,
+      expectedReturnNumeric: strategy.expectedReturnNumeric,
       volatility: "Střední", // Default for compatibility
       riskLevel: strategy.riskLevel,
       rebalanceFrequency: "Podle strategie", // Default for compatibility

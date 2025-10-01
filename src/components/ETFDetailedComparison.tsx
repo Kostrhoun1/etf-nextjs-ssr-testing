@@ -4,6 +4,7 @@ import React from 'react';
 import { ETF } from '@/types/etf';
 import { formatPercentage, formatTER } from '@/utils/csvParser';
 import { formatCurrency, getDistributionPolicyLabel } from '@/utils/etfFormatters';
+import { useCurrency, PerformancePeriod } from '@/contexts/CurrencyContext';
 import ETFDetailedComparisonHeader from './comparison/ETFDetailedComparisonHeader';
 import ETFComparisonTable from './comparison/ETFComparisonTable';
 import ETFPerformanceMetricsTable from './comparison/ETFPerformanceMetricsTable';
@@ -25,6 +26,8 @@ const ETFDetailedComparison: React.FC<ETFDetailedComparisonProps> = ({
   console.log('ETFDetailedComparison - selectedETFs:', selectedETFs);
   console.log('ETFDetailedComparison - selectedETFs length:', selectedETFs.length);
 
+  const { getPerformanceValue } = useCurrency();
+
   const basicInfoData = [
     { label: 'Poskytovatel', key: 'fund_provider' },
     { label: 'Kategorie', key: 'category' },
@@ -41,20 +44,108 @@ const ETFDetailedComparison: React.FC<ETFDetailedComparisonProps> = ({
   ];
 
   const performanceData = [
-    { label: 'Výnos 1 měsíc', key: 'return_1m', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 3 měsíce', key: 'return_3m', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 6 měsíců', key: 'return_6m', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'YTD výnos', key: 'return_ytd', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 1 rok', key: 'return_1y', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 3 roky', key: 'return_3y', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 5 let', key: 'return_5y', format: (value: number) => formatPercentage(value), className: 'font-mono' },
+    { 
+      label: 'Výnos 1 měsíc', 
+      key: 'performance_1m', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '1m');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 3 měsíce', 
+      key: 'performance_3m', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '3m');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 6 měsíců', 
+      key: 'performance_6m', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '6m');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'YTD výnos', 
+      key: 'performance_ytd', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, 'ytd');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 1 rok', 
+      key: 'performance_1y', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '1y');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 3 roky', 
+      key: 'performance_3y', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '3y');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 5 let', 
+      key: 'performance_5y', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '5y');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
   ];
 
   const yearlyPerformanceData = [
-    { label: 'Výnos 2021', key: 'return_2021', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 2022', key: 'return_2022', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 2023', key: 'return_2023', format: (value: number) => formatPercentage(value), className: 'font-mono' },
-    { label: 'Výnos 2024', key: 'return_2024', format: (value: number) => formatPercentage(value), className: 'font-mono' },
+    { 
+      label: 'Výnos 2021', 
+      key: 'performance_2021', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '2021');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 2022', 
+      key: 'performance_2022', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '2022');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 2023', 
+      key: 'performance_2023', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '2023');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
+    { 
+      label: 'Výnos 2024', 
+      key: 'performance_2024', 
+      format: (value: any, etf: ETF) => {
+        const perfValue = getPerformanceValue(etf, '2024');
+        return perfValue !== null ? formatPercentage(perfValue) : '-';
+      }, 
+      className: 'font-mono' 
+    },
   ];
 
   if (selectedETFs.length === 0) {

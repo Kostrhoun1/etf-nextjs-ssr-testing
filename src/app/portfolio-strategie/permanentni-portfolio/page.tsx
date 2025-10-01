@@ -10,7 +10,6 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import PortfolioAllocationChart from '@/components/portfolio/PortfolioAllocationChart';
 import PermanentniPortfolioHero from '@/components/portfolio/PermanentniPortfolioHero';
 import PermanentniPortfolioPerformance from '@/components/portfolio/PermanentniPortfolioPerformance';
-import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import { getETFLink } from '@/data/etf-mappings';
 
 export const metadata: Metadata = {
@@ -88,14 +87,6 @@ export default function PermanentniPortfolioPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-12">
 
-          {/* Breadcrumbs */}
-          <Breadcrumbs 
-            items={[
-              { label: "Portfolio Strategie", href: "/portfolio-strategie" },
-              { label: "Permanentní Portfolio" }
-            ]}
-            className="mb-8"
-          />
 
           {/* Portfolio Složení */}
           <div id="allocation">

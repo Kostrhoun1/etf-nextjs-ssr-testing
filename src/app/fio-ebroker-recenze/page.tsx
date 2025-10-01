@@ -1,15 +1,59 @@
 
-
 import React from 'react';
+import { Metadata } from 'next';
+import Script from 'next/script';
 import Layout from '@/components/Layout';
-import SEOHead from '@/components/SEO/SEOHead';
-import StructuredData from '@/components/SEO/StructuredData';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Users, TrendingUp, Shield } from 'lucide-react';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
+
+const currentYear = new Date().getFullYear();
+
+export const metadata: Metadata = {
+  title: `Fio e-Broker recenze ${currentYear} - Český broker s optimálním zdaněním | ETF průvodce.cz`,
+  description: `✅ Fio e-Broker recenze ${currentYear} - hodnocení 75/100. Český broker s lokální podporou a optimálním zdaněním českých dividend (15%).`,
+  keywords: `Fio e-Broker recenze, Fio broker, Fio e-Broker test, Fio hodnocení, český broker, 15% zdanění dividend`,
+  authors: [{ name: 'ETF průvodce.cz' }],
+  openGraph: {
+    title: `Fio e-Broker recenze ${currentYear} - Český broker s optimálním zdaněním`,
+    description: `Fio e-Broker recenze ${currentYear} - hodnocení 75/100. Český broker s lokální podporou.`,
+    url: 'https://etfpruvodce.cz/fio-ebroker-recenze',
+    siteName: 'ETF průvodce.cz',
+    images: [{
+      url: 'https://etfpruvodce.cz/og-fio-recenze.jpg',
+      width: 1200,
+      height: 630,
+    }],
+    locale: 'cs_CZ',
+    type: 'article',
+    publishedTime: `${currentYear}-01-01`,
+    modifiedTime: new Date().toISOString(),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Fio e-Broker recenze ${currentYear}`,
+    description: `Fio e-Broker recenze ${currentYear} - hodnocení 75/100. Český broker s lokální podporou.`,
+    images: ['https://etfpruvodce.cz/og-fio-recenze.jpg'],
+  },
+  alternates: {
+    canonical: 'https://etfpruvodce.cz/fio-ebroker-recenze',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-image-preview': 'large',
+    'max-snippet': -1,
+    'max-video-preview': -1,
+  },
+  other: {
+    'article:author': 'ETF průvodce.cz',
+    'article:published_time': `${currentYear}-01-01`,
+    'article:modified_time': new Date().toISOString(),
+  }
+};
 
 export default function FioEbrokerRecenzePage() {
   const breadcrumbSchema = {
@@ -48,7 +92,7 @@ export default function FioEbrokerRecenzePage() {
       "serviceType": "Online brokerage",
       "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": "76",
+        "ratingValue": "75",
         "bestRating": "100",
         "worstRating": "0",
         "reviewCount": "1"
@@ -56,7 +100,7 @@ export default function FioEbrokerRecenzePage() {
     },
     "reviewRating": {
       "@type": "Rating",
-      "ratingValue": "76",
+      "ratingValue": "75",
       "bestRating": "100",
       "worstRating": "0"
     },
@@ -96,15 +140,20 @@ export default function FioEbrokerRecenzePage() {
 
   return (
     <Layout>
-      <SEOHead
-        title="Fio e-Broker recenze 2025 - Český broker | ETF průvodce.cz"
-        description="✅ Detailní recenze Fio e-Broker 2025. Poplatky, výhody českého brokera. Hodí se pro domácí investory, ale omezené ETF nabídky."
-        canonical="https://etfpruvodce.cz/fio-ebroker-recenze"
-        keywords="Fio e-Broker recenze, Fio broker, český broker, Fio poplatky, domácí broker"
-        schema={reviewSchema}
-        ogImage="https://etfpruvodce.cz/og-fio-ebroker-recenze.jpg"
+      <Script
+        id="fio-review-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(reviewSchema),
+        }}
       />
-      <StructuredData data={breadcrumbSchema} />
+      <Script
+        id="fio-breadcrumb-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
       
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

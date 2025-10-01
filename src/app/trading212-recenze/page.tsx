@@ -1,15 +1,59 @@
 
-
 import React from 'react';
+import { Metadata } from 'next';
+import Script from 'next/script';
 import Layout from '@/components/Layout';
-import SEOHead from '@/components/SEO/SEOHead';
-import StructuredData from '@/components/SEO/StructuredData';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star , Flag, Shield, Users, Award, TrendingUp} from 'lucide-react';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
+
+const currentYear = new Date().getFullYear();
+
+export const metadata: Metadata = {
+  title: `Trading 212 recenze ${currentYear} - Komplexní test a hodnocení brokera | ETF průvodce.cz`,
+  description: `✅ Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker s moderní mobilní aplikací a frakčním investováním.`,
+  keywords: `Trading 212 recenze, Trading 212 broker, Trading 212 test, Trading 212 hodnocení, Trading 212 poplatky, Trading 212 ETF, bezplatný broker`,
+  authors: [{ name: 'ETF průvodce.cz' }],
+  openGraph: {
+    title: `Trading 212 recenze ${currentYear} - Komplexní test a hodnocení brokera`,
+    description: `Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker s moderní aplikací.`,
+    url: 'https://etfpruvodce.cz/trading212-recenze',
+    siteName: 'ETF průvodce.cz',
+    images: [{
+      url: 'https://etfpruvodce.cz/og-trading212-recenze.jpg',
+      width: 1200,
+      height: 630,
+    }],
+    locale: 'cs_CZ',
+    type: 'article',
+    publishedTime: `${currentYear}-01-01`,
+    modifiedTime: new Date().toISOString(),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Trading 212 recenze ${currentYear}`,
+    description: `Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker.`,
+    images: ['https://etfpruvodce.cz/og-trading212-recenze.jpg'],
+  },
+  alternates: {
+    canonical: 'https://etfpruvodce.cz/trading212-recenze',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-image-preview': 'large',
+    'max-snippet': -1,
+    'max-video-preview': -1,
+  },
+  other: {
+    'article:author': 'ETF průvodce.cz',
+    'article:published_time': `${currentYear}-01-01`,
+    'article:modified_time': new Date().toISOString(),
+  }
+};
 
 export default function Trading212RecenzePage() {
   const breadcrumbSchema = {
@@ -96,15 +140,20 @@ export default function Trading212RecenzePage() {
 
   return (
     <Layout>
-      <SEOHead
-        title="Trading 212 recenze 2025 - Bezpoplatkový broker s AutoInvest | ETF průvodce.cz"
-        description="✅ Kompletní recenze Trading 212 2025. 0% poplatky za akcie i ETF, frakční obchodování, AutoInvest funkce. Ideální pro začátečníky."
-        canonical="https://etfpruvodce.cz/trading212-recenze"
-        keywords="Trading 212 recenze, Trading 212 broker, 0% poplatky, AutoInvest, frakční akcie, ETF bez poplatků"
-        schema={reviewSchema}
-        ogImage="https://etfpruvodce.cz/og-trading212-recenze.jpg"
+      <Script
+        id="trading212-review-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(reviewSchema),
+        }}
       />
-      <StructuredData data={breadcrumbSchema} />
+      <Script
+        id="trading212-breadcrumb-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
       
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

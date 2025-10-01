@@ -14,6 +14,7 @@ const TOP_3_BOND_ETFS_TEMPLATE = [
     isin: "IE00BDBRDM35",
     provider: "iShares",
     reason: "Největší globální dluhopisový ETF s EUR zajištěním proti měnovému riziku. Diverzifikace napříč světovými státními a firemními dluhopisy s 25,8 mld. EUR.",
+    degiroFree: false,
   },
   {
     name: "Xtrackers Global Government Bond UCITS ETF 1C EUR Hedged",
@@ -21,6 +22,7 @@ const TOP_3_BOND_ETFS_TEMPLATE = [
     isin: "LU0378818131", 
     provider: "Xtrackers",
     reason: "Specializovaný státní dluhopisový ETF s EUR zajištěním a TER 0,25%. Fokus na vysoce kvalitní vládní dluhopisy s 18,4 mld. EUR.",
+    degiroFree: false,
   },
   {
     name: "Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Accumulating",
@@ -28,6 +30,7 @@ const TOP_3_BOND_ETFS_TEMPLATE = [
     isin: "IE00BG47KH54",
     provider: "Vanguard", 
     reason: "Výjimečně nízký TER 0,10% pro globální dluhopisový ETF. Široká diverzifikace států i korporátních dluhopisů s 12,1 mld. EUR.",
+    degiroFree: false,
   }
 ];
 

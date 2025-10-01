@@ -7,6 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatPercentage } from '@/utils/csvParser';
 import ETFRating from '@/components/ETFRating';
 import Layout from '@/components/Layout';
+import ETFDetailHeader from '@/components/etf/ETFDetailHeader';
+import ETFPerformanceCards from '@/components/etf/ETFPerformanceCards';
+import ETFPerformanceTable from '@/components/etf/ETFPerformanceTable';
 
 interface PageProps {
   params: Promise<{
@@ -174,36 +177,7 @@ export default async function ETFDetailPage({ params }: PageProps) {
     <Layout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{etf.name}</h1>
-            <p className="text-lg text-gray-600 mb-4">
-              {(etf.primary_ticker || etf.exchange_1_ticker) && 
-                `${etf.primary_ticker || etf.exchange_1_ticker} • `
-              }
-              {etf.isin} • {etf.fund_provider}
-            </p>
-            <div className="mb-4">
-              <ETFRating etf={etf} showDescription size="lg" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {etf.degiro_free && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  DEGIRO Free
-                </Badge>
-              )}
-              {etf.category === 'Páková ETF' && (
-                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-semibold">
-                  PÁKOVÁ ETF
-                </Badge>
-              )}
-              <Badge variant="outline">{etf.category}</Badge>
-              <Badge variant="outline">{etf.fund_domicile}</Badge>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ETFDetailHeader etf={etf} />
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
@@ -213,38 +187,7 @@ export default async function ETFDetailPage({ params }: PageProps) {
             <p className="text-xl font-bold">{formatPercentage(etf.ter_numeric)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-gray-500 mb-1">YTD výnos</p>
-            <p className={`text-xl font-bold ${getReturnColor(etf.return_ytd)}`}>
-              {etf.return_ytd ? formatPercentage(etf.return_ytd) : '-'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-gray-500 mb-1">1 rok</p>
-            <p className={`text-xl font-bold ${getReturnColor(etf.return_1y)}`}>
-              {etf.return_1y ? formatPercentage(etf.return_1y) : '-'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-gray-500 mb-1">3 roky</p>
-            <p className={`text-xl font-bold ${getReturnColor(etf.return_3y)}`}>
-              {etf.return_3y ? formatPercentage(etf.return_3y) : '-'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-gray-500 mb-1">5 let</p>
-            <p className={`text-xl font-bold ${getReturnColor(etf.return_5y)}`}>
-              {etf.return_5y ? formatPercentage(etf.return_5y) : '-'}
-            </p>
-          </CardContent>
-        </Card>
+        <ETFPerformanceCards etf={etf} />
       </div>
 
       {/* Main Content Grid */}
@@ -343,144 +286,7 @@ export default async function ETFDetailPage({ params }: PageProps) {
         </Card>
 
         {/* Performance Metrics Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Výkonnostní metriky</CardTitle>
-            <CardDescription>Historická výkonnost fondu</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-28">Období</TableHead>
-                  <TableHead>Výnos</TableHead>
-                  <TableHead>Volatilita</TableHead>
-                  <TableHead>Max. pokles</TableHead>
-                  <TableHead>Výnos/riziko</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">1 měsíc</TableCell>
-                  <TableCell className={getReturnColor(etf.return_1m)}>
-                    {etf.return_1m ? formatPercentage(etf.return_1m) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">3 měsíce</TableCell>
-                  <TableCell className={getReturnColor(etf.return_3m)}>
-                    {etf.return_3m ? formatPercentage(etf.return_3m) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">6 měsíců</TableCell>
-                  <TableCell className={getReturnColor(etf.return_6m)}>
-                    {etf.return_6m ? formatPercentage(etf.return_6m) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">YTD</TableCell>
-                  <TableCell className={getReturnColor(etf.return_ytd)}>
-                    {etf.return_ytd ? formatPercentage(etf.return_ytd) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">1 rok</TableCell>
-                  <TableCell className={getReturnColor(etf.return_1y)}>
-                    {etf.return_1y ? formatPercentage(etf.return_1y) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {etf.volatility_1y ? formatPercentage(etf.volatility_1y) : '-'}
-                  </TableCell>
-                  <TableCell className="text-red-600">
-                    {etf.max_drawdown_1y ? formatPercentage(etf.max_drawdown_1y) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {etf.return_per_risk_1y ? formatPercentage(etf.return_per_risk_1y) : '-'}
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">3 roky</TableCell>
-                  <TableCell className={getReturnColor(etf.return_3y)}>
-                    {etf.return_3y ? formatPercentage(etf.return_3y) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {etf.volatility_3y ? formatPercentage(etf.volatility_3y) : '-'}
-                  </TableCell>
-                  <TableCell className="text-red-600">
-                    {etf.max_drawdown_3y ? formatPercentage(etf.max_drawdown_3y) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {etf.return_per_risk_3y ? formatPercentage(etf.return_per_risk_3y) : '-'}
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">5 let</TableCell>
-                  <TableCell className={getReturnColor(etf.return_5y)}>
-                    {etf.return_5y ? formatPercentage(etf.return_5y) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {etf.volatility_5y ? formatPercentage(etf.volatility_5y) : '-'}
-                  </TableCell>
-                  <TableCell className="text-red-600">
-                    {etf.max_drawdown_5y ? formatPercentage(etf.max_drawdown_5y) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {etf.return_per_risk_5y ? formatPercentage(etf.return_per_risk_5y) : '-'}
-                  </TableCell>
-                </TableRow>
-                <TableRow className="border-t-2 border-gray-200">
-                  <TableCell className="font-medium text-sm text-blue-700">2021</TableCell>
-                  <TableCell className={getReturnColor(etf.return_2021)}>
-                    {etf.return_2021 ? formatPercentage(etf.return_2021) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium text-sm text-blue-700">2022</TableCell>
-                  <TableCell className={getReturnColor(etf.return_2022)}>
-                    {etf.return_2022 ? formatPercentage(etf.return_2022) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium text-sm text-blue-700">2023</TableCell>
-                  <TableCell className={getReturnColor(etf.return_2023)}>
-                    {etf.return_2023 ? formatPercentage(etf.return_2023) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium text-sm text-blue-700">2024</TableCell>
-                  <TableCell className={getReturnColor(etf.return_2024)}>
-                    {etf.return_2024 ? formatPercentage(etf.return_2024) : '-'}
-                  </TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>-</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <ETFPerformanceTable etf={etf} />
 
         {/* Risk Metrics Table */}
         <Card>

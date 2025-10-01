@@ -10,7 +10,6 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import NobelPortfolioPerformance from '@/components/portfolio/NobelPortfolioPerformance';
 import { getETFLink } from '@/data/etf-mappings';
 import NobelPortfolioHero from '@/components/portfolio/NobelPortfolioHero';
-import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Nobel Portfolio Strategie 2025 | 6% ročně s ETF | ETF průvodce.cz',
@@ -76,8 +75,8 @@ export default function NobelPortfolioPage() {
               "riskRating": "Umírněné",
               "isBasedOn": {
                 "@type": "ResearchProject",
-                "name": "Moderní portfoliová teorie",
-                "description": "Strategie inspirovaná výzkumy nositelů Nobelovy ceny za ekonomii"
+                "name": "Nobelova nadace",
+                "description": "Investiční strategie používaná Nobelovou nadací pro správu svého kapitálu"
               }
             })
           }}
@@ -85,14 +84,6 @@ export default function NobelPortfolioPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-12">
 
-          {/* Breadcrumbs */}
-          <Breadcrumbs 
-            items={[
-              { label: "Portfolio Strategie", href: "/portfolio-strategie" },
-              { label: "Nobel Portfolio" }
-            ]}
-            className="mb-8"
-          />
 
           {/* Portfolio Složení */}
           <div id="allocation">
@@ -351,7 +342,7 @@ export default function NobelPortfolioPage() {
             {[
               {
                 question: "Proč má Nobel Portfolio zrovna 55/25/20 složení?",
-                answer: "Toto rozdělení vychází z moderní portfoliové teorie a výzkumů nositelů Nobelovy ceny za ekonomii. 55% akcií poskytuje růstový potenciál, 25% dluhopisů stabilitu a ochranu v krizích, 20% nemovitostí diverzifikaci a ochranu proti inflaci. Tato kombinace optimalizuje poměr výnos/riziko pro střední rizikový profil."
+                answer: "Toto rozdělení používá Nobelova nadace pro správu svého kapitálu. 55% akcií poskytuje růstový potenciál, 25% dluhopisů stabilitu a ochranu v krizích, 20% nemovitostí diverzifikaci a ochranu proti inflaci. Tato kombinace optimalizuje poměr výnos/riziko pro střední rizikový profil."
               },
               {
                 question: "Jak často je potřeba rebalancovat Nobel Portfolio?",

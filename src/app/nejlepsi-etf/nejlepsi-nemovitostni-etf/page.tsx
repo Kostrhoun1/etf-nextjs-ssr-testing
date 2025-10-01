@@ -14,13 +14,15 @@ const TOP_3_REIT_ETFS_TEMPLATE = [
     isin: "IE00B1FZS350",
     provider: "iShares",
     reason: "Největší globální REIT ETF s 882 mil. EUR a vysokou dividendovou výnosností 3,19%. Diverzifikace napříč vyspělými trhy včetně USA, Japonska a Evropy s quarterly dividendami.",
+    degiroFree: false,
   },
   {
     name: "HSBC FTSE EPRA NAREIT Developed UCITS ETF USD",
     ticker: "HPROP",
     isin: "IE00B5L01S80", 
     provider: "HSBC ETF",
-    reason: "Největší REIT ETF s 1,37 mld. EUR a atraktivním dividendovým výnosem 3,34%. Nízký TER 0,24% a quarterly výplaty dividend pro pravidelný pasivní příjem.",
+    reason: "Největší REIT ETF s 1,37 mld. EUR a atraktivním dividendovým výnosem 3,34%. Nízký TER 0,24% a quarterly výplaty dividend pro pravidelný příjem.",
+    degiroFree: false,
   },
   {
     name: "SPDR Dow Jones Global Real Estate UCITS ETF",
@@ -28,6 +30,7 @@ const TOP_3_REIT_ETFS_TEMPLATE = [
     isin: "IE00B8GF1M35",
     provider: "SPDR", 
     reason: "Globální nemovitostní ETF s 1,76 mld. EUR sledující Dow Jones Global Select Real Estate Securities Index. Dividendový výnos 2,85% s quarterly výplatami.",
+    degiroFree: false,
   }
 ];
 

@@ -75,7 +75,7 @@ export default function NobelPortfolioHero() {
               </div>
               <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                 <p className="text-sm font-semibold text-blue-800">
-                  🏆 Vědecky prokázaná efektivita
+                  🏆 Strategie Nobelovy nadace
                 </p>
               </div>
             </div>

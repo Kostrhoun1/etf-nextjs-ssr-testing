@@ -76,7 +76,7 @@ const WhatAreETFs: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                    <span className="text-gray-700">Nízké poplatky 0,07-0,5% ročně</span>
+                    <span className="text-gray-700">Nízké poplatky 0,03-0,5% ročně</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
@@ -121,7 +121,7 @@ const WhatAreETFs: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                      <span className="text-gray-700">Nízké poplatky (0,07-0,5%)</span>
+                      <span className="text-gray-700">Nízké poplatky (0,03-0,5%)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
@@ -153,47 +153,44 @@ const WhatAreETFs: React.FC = () => {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Světová diverzifikace ETF fondů</h2>
             
-            <div className="grid md:grid-cols-2 gap-8 items-center mb-8">
-              <div>
+            <div className="grid md:grid-cols-3 gap-8 items-center mb-8">
+              <div className="md:col-span-2">
                 <p className="text-lg text-gray-800 mb-6">
                   Jeden ETF vám umožní investovat do <strong>celého světa najednou</strong>. Například ETF VWCE obsahuje 
                   3800+ firem z desítek zemí a automaticky vás diverzifikuje napříč všemi kontinenty.
                 </p>
                 
-                <div className="space-y-4">
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-blue-900">🇺🇸 Severní Amerika</span>
-                      <span className="text-blue-700 font-bold">64%</span>
-                    </div>
-                  </div>
-                  <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-emerald-900">🇪🇺 Evropa</span>
-                      <span className="text-emerald-700 font-bold">15%</span>
-                    </div>
-                  </div>
-                  <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-violet-900">🇯🇵 Japonsko</span>
-                      <span className="text-violet-700 font-bold">6%</span>
-                    </div>
-                  </div>
-                  <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-amber-900">🌏 Ostatní trhy</span>
-                      <span className="text-amber-700 font-bold">15%</span>
-                    </div>
-                  </div>
-                </div>
+                <p className="text-lg text-gray-700">
+                  Místo vybírání jednotlivých akcií z různých zemí stačí jeden nákup ETF a automaticky získáte 
+                  vyváženou expozici vůči všem hlavním světovým trhům podle jejich ekonomické velikosti.
+                </p>
               </div>
               
-              <div>
-                <img 
-                  src="/images/etf-mapa-diverzifikace.png" 
-                  alt="Mapa světové geografické diverzifikace ETF fondů podle regionů" 
-                  className="w-full rounded-lg shadow-lg"
-                />
+              <div className="space-y-3">
+                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-blue-900">🇺🇸 Severní Amerika</span>
+                    <span className="text-blue-700 font-bold">64%</span>
+                  </div>
+                </div>
+                <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-emerald-900">🇪🇺 Evropa</span>
+                    <span className="text-emerald-700 font-bold">15%</span>
+                  </div>
+                </div>
+                <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-violet-900">🇯🇵 Japonsko</span>
+                    <span className="text-violet-700 font-bold">6%</span>
+                  </div>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-amber-900">🌏 Ostatní trhy</span>
+                    <span className="text-amber-700 font-bold">15%</span>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -275,13 +272,6 @@ const WhatAreETFs: React.FC = () => {
               </Link>
             </div>
             
-            <div className="bg-emerald-50 rounded-lg p-6 border border-emerald-200">
-              <h3 className="font-bold text-lg text-emerald-900 mb-3">💡 Tip pro začátečníky</h3>
-              <p className="text-emerald-800">
-                Začněte s <strong>VWCE</strong> - je to nejjednodušší způsob, jak investovat do celého světa jedním ETF. 
-                Obsahuje jak vyspělé, tak rozvíjející se trhy a poskytuje maximální diverzifikaci.
-              </p>
-            </div>
           </section>
 
           {/* 4. Jak fungují ETF technicky */}
@@ -381,7 +371,7 @@ const WhatAreETFs: React.FC = () => {
                     <td className="py-4 px-6 font-medium">Poplatky ročně</td>
                     <td className="text-center py-4 px-6">
                       <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        ✅ 0,07-0,5%
+                        ✅ 0,03-0,5%
                       </span>
                     </td>
                     <td className="text-center py-4 px-6">
@@ -433,6 +423,60 @@ const WhatAreETFs: React.FC = () => {
                   </tr>
                 </tbody>
               </table>
+            </div>
+            
+            {/* Praktická ukázka dopadu poplatků */}
+            <div className="mt-8 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6 border border-red-200">
+              <h3 className="font-bold text-lg text-red-900 mb-4 flex items-center gap-2">
+                💸 Poplatky při investování 10 000 Kč měsíčně po 20 let
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-4 border border-emerald-200">
+                  <h4 className="font-semibold text-emerald-800 mb-3">ETF fond (0,2% poplatek)</h4>
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span>Celková investice:</span>
+                      <span className="font-semibold">2 400 000 Kč</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Po 20 letech:</span>
+                      <span className="font-semibold text-emerald-600">4 853 044 Kč</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Zisk:</span>
+                      <span className="font-semibold text-emerald-600">+2 453 044 Kč</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-red-200">
+                  <h4 className="font-semibold text-red-800 mb-3">Aktivní fond (1,8% poplatek)</h4>
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span>Celková investice:</span>
+                      <span className="font-semibold">2 400 000 Kč</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Po 20 letech:</span>
+                      <span className="font-semibold text-red-600">4 040 000 Kč</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Zisk:</span>
+                      <span className="font-semibold text-red-600">+1 640 000 Kč</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-red-800 font-semibold mb-3">
+                  ⚠️ Rozdíl: <span className="text-xl">813 044 Kč</span> méně kvůli vyšším poplatkům!
+                </p>
+                <a 
+                  href="/kalkulacky/kalkulacka-poplatku-etf" 
+                  className="inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 text-sm font-semibold rounded-lg transition-all"
+                >
+                  🧮 Spočítejte si dopad poplatků
+                </a>
+              </div>
             </div>
           </section>
 
@@ -546,7 +590,7 @@ const WhatAreETFs: React.FC = () => {
                 },
                 {
                   question: "Jaké jsou poplatky u ETF a jak se platí?",
-                  answer: "ETF mají nejnižší poplatky ze všech investičních instrumentů. TER (Total Expense Ratio) je 0,07-0,5% ročně a automaticky se strhává z hodnoty ETF. Navíc platíte broker poplatky za nákup/prodej - Trading 212 a XTB nabízí 0% poplatky. Spread (rozdíl mezi nákupní a prodejní cenou) je u velkých ETF obvykle 0,01-0,05%."
+                  answer: "ETF mají nejnižší poplatky ze všech investičních instrumentů. TER (Total Expense Ratio) je 0,03-0,5% ročně a automaticky se strhává z hodnoty ETF. Navíc platíte broker poplatky za nákup/prodej - Trading 212 a XTB nabízí 0% poplatky. Spread (rozdíl mezi nákupní a prodejní cenou) je u velkých ETF obvykle 0,01-0,05%."
                 },
                 {
                   question: "S kolika penězi začít investovat do ETF?",

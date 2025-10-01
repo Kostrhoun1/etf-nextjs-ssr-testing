@@ -96,17 +96,18 @@ export default function KdeKoupitETF() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link 
                   href="#porovnani"
-                  className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md"
+                  className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-14"
                 >
                   <Award className="w-5 h-5 mr-2" />
                   Srovnat brokery
                 </Link>
-                <Button asChild size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-semibold">
-                  <Link href="/co-jsou-etf/jak-zacit-investovat">
-                    <ArrowRight className="w-5 h-5 mr-2" />
-                    Jak začít
-                  </Link>
-                </Button>
+                <Link 
+                  href="/co-jsou-etf/jak-zacit-investovat"
+                  className="inline-flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-semibold rounded-md transition-all h-14"
+                >
+                  <ArrowRight className="w-5 h-5 mr-2" />
+                  Jak začít
+                </Link>
               </div>
             </div>
             
@@ -353,27 +354,27 @@ export default function KdeKoupitETF() {
             {[
               {
                 question: "Kde koupit ETF v České republice?",
-                answer: "ETF můžete koupit u online brokerů jako DEGIRO, XTB, Trading 212, Interactive Brokers nebo u českých bank jako Fio e-Broker. Nejlepší volbou jsou online brokeři s nízkými poplatky a širokým výběrem ETF fondů."
+                answer: "ETF můžete koupit u online brokerů jako Portu (98/100), XTB (94/100), Trading 212 (87/100), Interactive Brokers (85/100), DEGIRO (79/100) nebo u českého Fio e-Broker (75/100). Každý má své výhody podle vašich potřeb a zkušeností."
               },
               {
                 question: "Který broker je nejlepší pro začátečníky?",
-                answer: "Pro začátečníky doporučujeme DEGIRO (snadné ovládání, ETF zdarma) nebo XTB (0% poplatky do 100 000 EUR měsíčně, česká podpora). Oba nabízejí intuitivní rozhraní a nízké náklady."
+                answer: "Pro začátečníky doporučujeme Portu (automatizované investování, česká podpora, od 500 Kč) nebo XTB (0% poplatky, česká podpora 24/7, demo účet). Pro pokročilejší uživatele je vhodný Trading 212 (zcela bezplatný, frakční investování)."
               },
               {
                 question: "Kolik stojí nákup ETF u různých brokerů?",
-                answer: "Poplatky se liší: DEGIRO - 0€ za vybrané ETF, jinak 2€ + 0,03%; XTB - 0€ do 100 000 EUR měsíčně; Trading 212 - 0€; Interactive Brokers - od 1,25€; Fio e-Broker - 0,4% (min. 7,90€)."
+                answer: "Poplatky: Portu 0,24-1% ročně (all-in), XTB 0% bez komisí, Trading 212 0% zcela zdarma, DEGIRO 1€ (Core Selection) nebo 3€ (ostatní), Interactive Brokers $0,005/akcie (min. $1), Fio e-Broker 0,29-0,79%."
               },
               {
                 question: "Jsou online brokeři bezpeční?",
-                answer: "Ano, všichni doporučení brokeři jsou regulovaní v EU a nabízejí ochranu investorů do 20 000€ podle ESMA směrnic. DEGIRO, XTB, Trading 212 a Interactive Brokers jsou ověřené platformy s miliony uživatelů."
+                answer: "Ano, všichni naši doporučení brokeři jsou regulovaní: Portu a Fio (ČNB), XTB (ČNB + varšavská burza), DEGIRO (BaFin/DNB), Trading 212 (FCA/CySEC), Interactive Brokers (CBI/SEC). Ochrana investorů činí 20 000-100 000 EUR."
               },
               {
                 question: "Mohu koupit americké ETF u evropských brokerů?",
-                answer: "Ne, kvůli MiFID II regulaci nemohou evropští brokeři nabízet americké ETF retailovým investorům. Místo toho lze koupit evropské ETF (UCITS) sledující stejné indexy, např. CSPX místo SPY."
+                answer: "Ne, kvůli MiFID II regulaci nemohou evropští brokeři nabízet americké ETF retailovým investorům. Místo toho lze koupit evropské UCITS ETF sledující stejné indexy, např. CSPX místo SPY, dostupné u všech našich brokerů."
               },
               {
                 question: "Jak začít s malými částkami?",
-                answer: "Většina brokerů neumožňuje částečné akcie, ale nabízejí spořící plány už od 25€ měsíčně. Trading 212 umožňuje nákup frakcí akcií/ETF už od 1€."
+                answer: "Minimální vklady: Portu od 500 Kč, Trading 212 od 1 EUR, ostatní od 0 EUR. Frakční investování nabízejí XTB, Trading 212, Interactive Brokers a Portu. Automatické investování mají Portu (plně), Trading 212 (Pies) a XTB (plány)."
               }
             ].map((faq, index) => (
               <details key={index} className="group border border-gray-200 rounded-lg hover:border-violet-200 transition-colors">
