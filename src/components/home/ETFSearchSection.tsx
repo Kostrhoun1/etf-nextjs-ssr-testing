@@ -108,15 +108,17 @@ const ETFSearchSection: React.FC = () => {
                 <TabsContent key={category} value={category}>
                   {/* Statistiky */}
                   <div className="mb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-gray-600">
                         <span className="text-gray-700 font-medium">
                           TOP {Math.min(10, filteredETFs.length)}
                         </span>
-                        <span>ETF fondů v kategorii <strong>{category}</strong></span>
+                        <span className="text-sm sm:text-base">ETF fondů v kategorii <strong>{category}</strong></span>
                         <span className="text-sm text-gray-500">({filteredETFs.length} celkem)</span>
                       </div>
-                      <CurrencyToggle />
+                      <div className="flex justify-start md:justify-end">
+                        <CurrencyToggle className="scale-90 md:scale-100" />
+                      </div>
                     </div>
                   </div>
 

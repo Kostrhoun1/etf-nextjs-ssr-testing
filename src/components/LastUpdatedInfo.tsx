@@ -24,12 +24,16 @@ const LastUpdatedInfo: React.FC<LastUpdatedInfoProps> = ({ lastUpdated, classNam
   };
 
   return (
-    <div className={`flex items-center justify-between ${className}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${className}`}>
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <Clock className="h-4 w-4" />
         <span>Poslední aktualizace: {formatDate(lastUpdated)}</span>
       </div>
-      {showCurrencyToggle && <CurrencyToggle />}
+      {showCurrencyToggle && (
+        <div className="flex justify-start sm:justify-end">
+          <CurrencyToggle className="scale-90 sm:scale-100" />
+        </div>
+      )}
     </div>
   );
 };
