@@ -135,13 +135,39 @@ const InfographicsContent: React.FC = () => {
                     </p>
                     
                     <div className="flex gap-2">
-                      <Button 
-                        className="flex-1 bg-violet-600 hover:bg-violet-700" 
-                        disabled={tool.comingSoon}
-                      >
-                        <ImageIcon className="w-4 h-4 mr-2" />
-                        {isCs ? 'Vytvořit' : 'Create'}
-                      </Button>
+                      {idx === 0 && ( // Portfolio Analyzer
+                        <Link href="/portfolio-strategie" className="flex-1">
+                          <Button className="w-full bg-violet-600 hover:bg-violet-700">
+                            <ImageIcon className="w-4 h-4 mr-2" />
+                            {isCs ? 'Vytvořit' : 'Create'}
+                          </Button>
+                        </Link>
+                      )}
+                      {idx === 1 && ( // ETF Performance Charts
+                        <Link href="/srovnani-etf" className="flex-1">
+                          <Button className="w-full bg-violet-600 hover:bg-violet-700">
+                            <ImageIcon className="w-4 h-4 mr-2" />
+                            {isCs ? 'Vytvořit' : 'Create'}
+                          </Button>
+                        </Link>
+                      )}
+                      {idx === 2 && ( // Social Media Templates
+                        <Link href="/srovnani-etf?view=infographic" className="flex-1">
+                          <Button className="w-full bg-violet-600 hover:bg-violet-700">
+                            <ImageIcon className="w-4 h-4 mr-2" />
+                            {isCs ? 'Vytvořit' : 'Create'}
+                          </Button>
+                        </Link>
+                      )}
+                      {idx === 3 && ( // Market Heatmap
+                        <Button 
+                          className="flex-1 bg-violet-600 hover:bg-violet-700" 
+                          disabled={tool.comingSoon}
+                        >
+                          <ImageIcon className="w-4 h-4 mr-2" />
+                          {isCs ? 'Vytvořit' : 'Create'}
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -225,14 +251,18 @@ const InfographicsContent: React.FC = () => {
               }
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-violet-600 hover:bg-gray-100">
-                <ImageIcon className="w-5 h-5 mr-2" />
-                {isCs ? 'Vytvořit první infografiku' : 'Create First Infographic'}
-              </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-violet-700">
-                <Globe className="w-5 h-5 mr-2" />
-                {isCs ? 'Procházet příklady' : 'Browse Examples'}
-              </Button>
+              <Link href="/srovnani-etf">
+                <Button size="lg" className="bg-white text-violet-600 hover:bg-gray-100">
+                  <ImageIcon className="w-5 h-5 mr-2" />
+                  {isCs ? 'Vytvořit první infografiku' : 'Create First Infographic'}
+                </Button>
+              </Link>
+              <Link href="/portfolio-strategie">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-violet-700">
+                  <Globe className="w-5 h-5 mr-2" />
+                  {isCs ? 'Procházet příklady' : 'Browse Examples'}
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
