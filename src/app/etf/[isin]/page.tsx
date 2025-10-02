@@ -3,6 +3,18 @@ import { ETF } from '@/types/etf';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
+
+// Tato funkce pomůže Next.js rozpoznat možné parametry
+export async function generateStaticParams() {
+  try {
+    // Vracíme prázdný array, protože chceme dynamické renderování
+    // ale Next.js očekává, že funkce existuje
+    return [];
+  } catch (error) {
+    console.error('Error in generateStaticParams:', error);
+    return [];
+  }
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,9 +26,9 @@ import ETFPerformanceCards from '@/components/etf/ETFPerformanceCards';
 import ETFPerformanceTable from '@/components/etf/ETFPerformanceTable';
 
 interface PageProps {
-  params: Promise<{
+  params: {
     isin: string;
-  }>;
+  };
 }
 
 async function getETFData(isin: string): Promise<ETF | null> {
@@ -35,7 +47,7 @@ async function getETFData(isin: string): Promise<ETF | null> {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { isin } = await params;
+  const { isin } = params;
   const etf = await getETFData(isin);
 
   if (!etf) {
@@ -121,7 +133,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ETFDetailPage({ params }: PageProps) {
-  const { isin } = await params;
+  const { isin } = params;
   const etf = await getETFData(isin);
 
   if (!etf) {
