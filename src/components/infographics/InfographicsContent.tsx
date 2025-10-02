@@ -152,6 +152,7 @@ const InfographicsContent: React.FC = () => {
   const [infographicMode, setInfographicMode] = useState<'performance' | 'ter' | 'heatmap'>('heatmap');
   const [category, setCategory] = useState<string>('Akcie');
   const [period, setPeriod] = useState<'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y'>('3y');
+  const [currency, setCurrency] = useState<'czk' | 'usd' | 'eur'>('czk');
   const [index, setIndex] = useState<string>('sp500');
   const [terMode, setTerMode] = useState<'category' | 'index'>('category');
   const [heatmapPeriod, setHeatmapPeriod] = useState<'1d' | 'wtd' | 'mtd' | '1m' | '3m' | '6m' | 'ytd' | '1y' | '3y' | '5y' | '10y'>('1y');
@@ -438,41 +439,42 @@ const InfographicsContent: React.FC = () => {
     };
 
     // Helper funkce pro získání TOP 5 fondů podle kategorie a období
-    const getTopFundsByCategory = (category: string, period: 'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y', periodLabel: string) => {
+    const getTopFundsByCategory = (category: string, period: 'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y', periodLabel: string, currency: string = 'eur') => {
       if (!etfs || !Array.isArray(etfs)) return [];
       
       // Mapování období na databázové sloupce s fallback logikou
-      const getReturnField = (period: string) => {
+      const getReturnField = (period: string, currency: string) => {
+        // EUR sloupce nemají příponu, CZK a USD mají
+        const suffix = currency === 'eur' ? '' : `_${currency}`;
         switch (period) {
-          case 'ytd': return 'return_ytd_czk';
-          case '1m': return 'return_1m_czk'; // fallback na ytd pokud není dostupné
-          case '3m': return 'return_3m_czk'; // fallback na ytd pokud není dostupné
-          case '6m': return 'return_6m_czk'; // fallback na 1y pokud není dostupné
-          case '1y': return 'return_1y_czk';
-          case '3y': return 'return_3y_czk';
-          case '5y': return 'return_5y_czk';
-          default: return 'return_ytd_czk';
+          case 'ytd': return `return_ytd${suffix}`;
+          case '1m': return `return_1m${suffix}`;
+          case '3m': return `return_3m${suffix}`;
+          case '6m': return `return_6m${suffix}`;
+          case '1y': return `return_1y${suffix}`;
+          case '3y': return `return_3y${suffix}`;
+          case '5y': return `return_5y${suffix}`;
+          default: return `return_ytd${suffix}`;
         }
       };
       
-      const returnField = getReturnField(period);
-      
       // Funkce pro získání hodnoty s fallback logikou
-      const getReturnValue = (etf: any, period: string) => {
-        const primaryField = getReturnField(period);
+      const getReturnValue = (etf: any, period: string, currency: string) => {
+        const primaryField = getReturnField(period, currency);
         let value = etf[primaryField];
         
         // Pokud primární pole není dostupné nebo je 0, zkus fallback
         if (!value || value === 0) {
+          const fallbackSuffix = currency === 'eur' ? '' : `_${currency}`;
           switch (period) {
             case '1m':
             case '3m':
               // Pro 1M a 3M zkus YTD jako fallback
-              value = etf['return_ytd_czk'];
+              value = etf[`return_ytd${fallbackSuffix}`];
               break;
             case '6m':
               // Pro 6M zkus 1Y jako fallback
-              value = etf['return_1y_czk'] || etf['return_ytd_czk'];
+              value = etf[`return_1y${fallbackSuffix}`] || etf[`return_ytd${fallbackSuffix}`];
               break;
             default:
               value = etf[primaryField];
@@ -486,12 +488,12 @@ const InfographicsContent: React.FC = () => {
         .filter(etf => {
           if (etf.is_leveraged || etf.category !== category) return false;
           
-          const returnValue = getReturnValue(etf, period);
+          const returnValue = getReturnValue(etf, period, currency);
           return returnValue && returnValue !== 0;
         })
         .sort((a, b) => {
-          const aValue = getReturnValue(a, period);
-          const bValue = getReturnValue(b, period);
+          const aValue = getReturnValue(a, period, currency);
+          const bValue = getReturnValue(b, period, currency);
           return bValue - aValue;
         });
       
@@ -500,42 +502,43 @@ const InfographicsContent: React.FC = () => {
         .map((etf, index) => ({
           rank: index + 1,
           name: etf.name,
-          return: getReturnValue(etf, period), // Použij fallback funkci
+          return: getReturnValue(etf, period, currency), // Použij fallback funkci
           provider: etf.fund_provider,
           isin: etf.isin,
           primary_ticker: etf.primary_ticker
         }));
 
 
-      // Formátování období pro podnadpis
-      const getPeriodDescription = (period: 'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y', periodLabel: string) => {
+      // Formátování období pro podnadpis s měnou
+      const getPeriodDescription = (period: 'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y', periodLabel: string, currency: string) => {
         const currentYear = new Date().getFullYear();
         const currentDate = new Date().toLocaleDateString('cs-CZ');
+        const currencyLabel = currency.toUpperCase();
         
         switch (period) {
           case 'ytd':
-            return `Výkonnost ${currentYear} YTD, k datu: ${currentDate}`;
+            return `Výkonnost ${currentYear} YTD v ${currencyLabel}, k datu: ${currentDate}`;
           case '1m':
-            return `1měsíční výkonnost (fallback: YTD), k datu: ${currentDate}`;
+            return `1měsíční výkonnost v ${currencyLabel}, k datu: ${currentDate}`;
           case '3m':
-            return `3měsíční výkonnost (fallback: YTD), k datu: ${currentDate}`;
+            return `3měsíční výkonnost v ${currencyLabel}, k datu: ${currentDate}`;
           case '6m':
-            return `6měsíční výkonnost (fallback: 1Y), k datu: ${currentDate}`;
+            return `6měsíční výkonnost v ${currencyLabel}, k datu: ${currentDate}`;
           case '1y':
-            return `1letá výkonnost, k datu: ${currentDate}`;
+            return `1letá výkonnost v ${currencyLabel}, k datu: ${currentDate}`;
           case '3y':
-            return `3letá výkonnost, k datu: ${currentDate}`;
+            return `3letá výkonnost v ${currencyLabel}, k datu: ${currentDate}`;
           case '5y':
-            return `5letá výkonnost, k datu: ${currentDate}`;
+            return `5letá výkonnost v ${currencyLabel}, k datu: ${currentDate}`;
           default:
-            return `Výkonnost ${periodLabel}, k datu: ${currentDate}`;
+            return `Výkonnost ${periodLabel} v ${currencyLabel}, k datu: ${currentDate}`;
         }
       };
 
       return (
         <InfographicCard 
           title={`TOP 5 NEJVÝKONĚJŠÍCH ${getCategoryNameForTitle(category)} ETF`} 
-          subtitle={`${getPeriodDescription(period, periodLabel)}`}
+          subtitle={`${getPeriodDescription(period, periodLabel, currency)}`}
           category={category}
           type="stats"
         >
@@ -747,83 +750,83 @@ const InfographicsContent: React.FC = () => {
     switch (selectedType) {
       // Akciové ETF
       case 'top-akcie-ytd':
-        return getTopFundsByCategory('Akcie', 'ytd', 'YTD');
+        return getTopFundsByCategory('Akcie', 'ytd', 'YTD', currency);
       case 'top-akcie-1m':
-        return getTopFundsByCategory('Akcie', '1m', '1M');
+        return getTopFundsByCategory('Akcie', '1m', '1M', currency);
       case 'top-akcie-3m':
-        return getTopFundsByCategory('Akcie', '3m', '3M');
+        return getTopFundsByCategory('Akcie', '3m', '3M', currency);
       case 'top-akcie-6m':
-        return getTopFundsByCategory('Akcie', '6m', '6M');
+        return getTopFundsByCategory('Akcie', '6m', '6M', currency);
       case 'top-akcie-1y':
-        return getTopFundsByCategory('Akcie', '1y', '1Y');
+        return getTopFundsByCategory('Akcie', '1y', '1Y', currency);
       case 'top-akcie-3y':
-        return getTopFundsByCategory('Akcie', '3y', '3Y');
+        return getTopFundsByCategory('Akcie', '3y', '3Y', currency);
       case 'top-akcie-5y':
-        return getTopFundsByCategory('Akcie', '5y', '5Y');
+        return getTopFundsByCategory('Akcie', '5y', '5Y', currency);
 
       // Dluhopisové ETF
       case 'top-dluhopisy-ytd':
-        return getTopFundsByCategory('Dluhopisy', 'ytd', 'YTD');
+        return getTopFundsByCategory('Dluhopisy', 'ytd', 'YTD', currency);
       case 'top-dluhopisy-1m':
-        return getTopFundsByCategory('Dluhopisy', '1m', '1M');
+        return getTopFundsByCategory('Dluhopisy', '1m', '1M', currency);
       case 'top-dluhopisy-3m':
-        return getTopFundsByCategory('Dluhopisy', '3m', '3M');
+        return getTopFundsByCategory('Dluhopisy', '3m', '3M', currency);
       case 'top-dluhopisy-6m':
-        return getTopFundsByCategory('Dluhopisy', '6m', '6M');
+        return getTopFundsByCategory('Dluhopisy', '6m', '6M', currency);
       case 'top-dluhopisy-1y':
-        return getTopFundsByCategory('Dluhopisy', '1y', '1Y');
+        return getTopFundsByCategory('Dluhopisy', '1y', '1Y', currency);
       case 'top-dluhopisy-3y':
-        return getTopFundsByCategory('Dluhopisy', '3y', '3Y');
+        return getTopFundsByCategory('Dluhopisy', '3y', '3Y', currency);
       case 'top-dluhopisy-5y':
-        return getTopFundsByCategory('Dluhopisy', '5y', '5Y');
+        return getTopFundsByCategory('Dluhopisy', '5y', '5Y', currency);
 
       // Krypto ETF
       case 'top-krypto-ytd':
-        return getTopFundsByCategory('Krypto', 'ytd', 'YTD');
+        return getTopFundsByCategory('Krypto', 'ytd', 'YTD', currency);
       case 'top-krypto-1m':
-        return getTopFundsByCategory('Krypto', '1m', '1M');
+        return getTopFundsByCategory('Krypto', '1m', '1M', currency);
       case 'top-krypto-3m':
-        return getTopFundsByCategory('Krypto', '3m', '3M');
+        return getTopFundsByCategory('Krypto', '3m', '3M', currency);
       case 'top-krypto-6m':
-        return getTopFundsByCategory('Krypto', '6m', '6M');
+        return getTopFundsByCategory('Krypto', '6m', '6M', currency);
       case 'top-krypto-1y':
-        return getTopFundsByCategory('Krypto', '1y', '1Y');
+        return getTopFundsByCategory('Krypto', '1y', '1Y', currency);
       case 'top-krypto-3y':
-        return getTopFundsByCategory('Krypto', '3y', '3Y');
+        return getTopFundsByCategory('Krypto', '3y', '3Y', currency);
       case 'top-krypto-5y':
-        return getTopFundsByCategory('Krypto', '5y', '5Y');
+        return getTopFundsByCategory('Krypto', '5y', '5Y', currency);
 
       // Komoditní ETF
       case 'top-komodity-ytd':
-        return getTopFundsByCategory('Komodity', 'ytd', 'YTD');
+        return getTopFundsByCategory('Komodity', 'ytd', 'YTD', currency);
       case 'top-komodity-1m':
-        return getTopFundsByCategory('Komodity', '1m', '1M');
+        return getTopFundsByCategory('Komodity', '1m', '1M', currency);
       case 'top-komodity-3m':
-        return getTopFundsByCategory('Komodity', '3m', '3M');
+        return getTopFundsByCategory('Komodity', '3m', '3M', currency);
       case 'top-komodity-6m':
-        return getTopFundsByCategory('Komodity', '6m', '6M');
+        return getTopFundsByCategory('Komodity', '6m', '6M', currency);
       case 'top-komodity-1y':
-        return getTopFundsByCategory('Komodity', '1y', '1Y');
+        return getTopFundsByCategory('Komodity', '1y', '1Y', currency);
       case 'top-komodity-3y':
-        return getTopFundsByCategory('Komodity', '3y', '3Y');
+        return getTopFundsByCategory('Komodity', '3y', '3Y', currency);
       case 'top-komodity-5y':
-        return getTopFundsByCategory('Komodity', '5y', '5Y');
+        return getTopFundsByCategory('Komodity', '5y', '5Y', currency);
 
       // Nemovitostní ETF
       case 'top-nemovitosti-ytd':
-        return getTopFundsByCategory('Nemovitosti', 'ytd', 'YTD');
+        return getTopFundsByCategory('Nemovitosti', 'ytd', 'YTD', currency);
       case 'top-nemovitosti-1m':
-        return getTopFundsByCategory('Nemovitosti', '1m', '1M');
+        return getTopFundsByCategory('Nemovitosti', '1m', '1M', currency);
       case 'top-nemovitosti-3m':
-        return getTopFundsByCategory('Nemovitosti', '3m', '3M');
+        return getTopFundsByCategory('Nemovitosti', '3m', '3M', currency);
       case 'top-nemovitosti-6m':
-        return getTopFundsByCategory('Nemovitosti', '6m', '6M');
+        return getTopFundsByCategory('Nemovitosti', '6m', '6M', currency);
       case 'top-nemovitosti-1y':
-        return getTopFundsByCategory('Nemovitosti', '1y', '1Y');
+        return getTopFundsByCategory('Nemovitosti', '1y', '1Y', currency);
       case 'top-nemovitosti-3y':
-        return getTopFundsByCategory('Nemovitosti', '3y', '3Y');
+        return getTopFundsByCategory('Nemovitosti', '3y', '3Y', currency);
       case 'top-nemovitosti-5y':
-        return getTopFundsByCategory('Nemovitosti', '5y', '5Y');
+        return getTopFundsByCategory('Nemovitosti', '5y', '5Y', currency);
       
       // Nejlevnější ETF podle TER - kategorie
       case 'nejlevnejsi-akcie':
@@ -920,7 +923,7 @@ const InfographicsContent: React.FC = () => {
 
             {/* Nastavení pro výkonnost */}
             {infographicMode === 'performance' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">Kategorie ETF</Label>
                   <Select value={category} onValueChange={setCategory}>
@@ -950,6 +953,19 @@ const InfographicsContent: React.FC = () => {
                       <SelectItem value="1y">🗓️ 1 rok</SelectItem>
                       <SelectItem value="3y">📆 3 roky</SelectItem>
                       <SelectItem value="5y">📈 5 let</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Měna</Label>
+                  <Select value={currency} onValueChange={(value: 'czk' | 'usd' | 'eur') => setCurrency(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="czk">🇨🇿 CZK (Koruna)</SelectItem>
+                      <SelectItem value="eur">🇪🇺 EUR (Euro)</SelectItem>
+                      <SelectItem value="usd">🇺🇸 USD (Dolar)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1052,7 +1068,7 @@ const InfographicsContent: React.FC = () => {
                     period === '1y' ? '1 rok' :
                     period === '3y' ? '3 roky' : 
                     period === '5y' ? '5 let' : period
-                  }` :
+                  } • ${currency.toUpperCase()}` :
                   infographicMode === 'ter' ?
                   `TER • ${terMode === 'category' ? category : index.toUpperCase()}` :
                   `Heatmap • ${
