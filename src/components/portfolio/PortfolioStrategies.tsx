@@ -185,7 +185,14 @@ const PortfolioStrategies: React.FC = () => {
         // Renormalizujeme váhy na 100% pro dostupná ETF
         results[period] = weightedReturn / totalAvailableWeight;
       } else {
-        console.warn(`Insufficient data for ${strategy.name} - ${period}: Missing data for ${missingETFs.join(', ')}`);
+        console.log(`Debug: ${strategy.name} - ${period}:`);
+        console.log(`  - Total weight available: ${totalAvailableWeight.toFixed(2)} (need 0.8)`);
+        console.log(`  - Missing ETFs: ${missingETFs.join(', ')}`);
+        console.log(`  - ETF data keys:`, Object.keys(etfData));
+        strategy.allocations.forEach(allocation => {
+          const etf = etfData[allocation.isin];
+          console.log(`  - ${allocation.isin}: found=${!!etf}, ${period}=${etf?.[period]}`);
+        });
         results[period] = null;
       }
     }
