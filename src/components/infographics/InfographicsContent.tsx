@@ -441,28 +441,66 @@ const InfographicsContent: React.FC = () => {
     const getTopFundsByCategory = (category: string, period: 'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y', periodLabel: string) => {
       if (!etfs || !Array.isArray(etfs)) return [];
       
-      const returnField = period === 'ytd' ? 'return_ytd_czk' : 
-                          period === '1m' ? 'return_1m_czk' :
-                          period === '3m' ? 'return_3m_czk' :
-                          period === '6m' ? 'return_6m_czk' :
-                          period === '1y' ? 'return_1y_czk' :
-                          period === '3y' ? 'return_3y_czk' : 'return_5y_czk';
+      // Mapování období na databázové sloupce s fallback logikou
+      const getReturnField = (period: string) => {
+        switch (period) {
+          case 'ytd': return 'return_ytd_czk';
+          case '1m': return 'return_1m_czk'; // fallback na ytd pokud není dostupné
+          case '3m': return 'return_3m_czk'; // fallback na ytd pokud není dostupné
+          case '6m': return 'return_6m_czk'; // fallback na 1y pokud není dostupné
+          case '1y': return 'return_1y_czk';
+          case '3y': return 'return_3y_czk';
+          case '5y': return 'return_5y_czk';
+          default: return 'return_ytd_czk';
+        }
+      };
       
+      const returnField = getReturnField(period);
+      
+      // Funkce pro získání hodnoty s fallback logikou
+      const getReturnValue = (etf: any, period: string) => {
+        const primaryField = getReturnField(period);
+        let value = etf[primaryField];
+        
+        // Pokud primární pole není dostupné nebo je 0, zkus fallback
+        if (!value || value === 0) {
+          switch (period) {
+            case '1m':
+            case '3m':
+              // Pro 1M a 3M zkus YTD jako fallback
+              value = etf['return_ytd_czk'];
+              break;
+            case '6m':
+              // Pro 6M zkus 1Y jako fallback
+              value = etf['return_1y_czk'] || etf['return_ytd_czk'];
+              break;
+            default:
+              value = etf[primaryField];
+          }
+        }
+        
+        return value;
+      };
+
       const allFilteredFunds = etfs
-        .filter(etf => 
-          !etf.is_leveraged && // Vyloučit leveraged ETF
-          etf[returnField] && 
-          etf[returnField] !== 0 &&
-          etf.category === category
-        )
-        .sort((a, b) => b[returnField] - a[returnField]);
+        .filter(etf => {
+          if (etf.is_leveraged || etf.category !== category) return false;
+          
+          const returnValue = getReturnValue(etf, period);
+          return returnValue && returnValue !== 0;
+        })
+        .sort((a, b) => {
+          const aValue = getReturnValue(a, period);
+          const bValue = getReturnValue(b, period);
+          return bValue - aValue;
+        });
       
       const topFunds = allFilteredFunds
         .slice(0, 5)
         .map((etf, index) => ({
           rank: index + 1,
           name: etf.name,
-          return: etf[returnField],
+          return: getReturnValue(etf, period), // Použij fallback funkci
           provider: etf.fund_provider,
           isin: etf.isin,
           primary_ticker: etf.primary_ticker
@@ -478,11 +516,11 @@ const InfographicsContent: React.FC = () => {
           case 'ytd':
             return `Výkonnost ${currentYear} YTD, k datu: ${currentDate}`;
           case '1m':
-            return `1měsíční výkonnost, k datu: ${currentDate}`;
+            return `1měsíční výkonnost (fallback: YTD), k datu: ${currentDate}`;
           case '3m':
-            return `3měsíční výkonnost, k datu: ${currentDate}`;
+            return `3měsíční výkonnost (fallback: YTD), k datu: ${currentDate}`;
           case '6m':
-            return `6měsíční výkonnost, k datu: ${currentDate}`;
+            return `6měsíční výkonnost (fallback: 1Y), k datu: ${currentDate}`;
           case '1y':
             return `1letá výkonnost, k datu: ${currentDate}`;
           case '3y':
