@@ -1,6 +1,8 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { ETF } from '@/types/etf';
 import { notFound } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
