@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\s+/g, '');
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.replace(/\s+/g, '');
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/\s+/g, '');
 
 // Debug logging for development
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
@@ -25,9 +25,9 @@ if (!supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Server-side Supabase client (with service role for data fetching)
-export const supabaseAdmin = supabaseServiceKey 
+export const supabaseAdmin = (supabaseServiceKey && supabaseServiceKey.length > 50) 
   ? createClient(supabaseUrl, supabaseServiceKey)
-  : supabase; // Fallback to regular client if service key is not available
+  : supabase; // Fallback to regular client if service key is invalid
 
 // ETF Fund type (based on your database)
 export interface ETFFund {
