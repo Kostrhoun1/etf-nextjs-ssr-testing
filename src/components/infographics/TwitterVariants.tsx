@@ -204,7 +204,7 @@ const TwitterOptimizedContent: React.FC<{ data: any[], mode: 'performance' | 'te
                 {index + 1}
               </div>
               <div className="flex-1">
-                <div className="font-black text-2xl text-gray-900 leading-tight mb-1">{etf.name}</div>
+                <div className="font-black text-2xl text-gray-900 leading-tight mb-1 line-clamp-1">{etf.name}</div>
                 <div className="text-base text-gray-600 font-medium">{etf.primary_ticker} • TER: {etf.ter_numeric}%</div>
               </div>
             </div>
@@ -229,7 +229,7 @@ const TwitterOptimizedContent: React.FC<{ data: any[], mode: 'performance' | 'te
                 {index + 1}
               </div>
               <div className="flex-1">
-                <div className="font-black text-2xl text-gray-900 leading-tight mb-1">{etf.name}</div>
+                <div className="font-black text-2xl text-gray-900 leading-tight mb-1 line-clamp-1">{etf.name}</div>
                 <div className="text-base text-gray-600 font-medium">{etf.primary_ticker} • TER: {etf.ter_numeric}%</div>
               </div>
             </div>
