@@ -10,6 +10,14 @@ interface ETFLiveData {
   return_3y: number | null;
   return_5y: number | null;
   return_ytd: number | null;
+  return_1y_czk: number | null;
+  return_3y_czk: number | null;
+  return_5y_czk: number | null;
+  return_ytd_czk: number | null;
+  return_1y_usd: number | null;
+  return_3y_usd: number | null;
+  return_5y_usd: number | null;
+  return_ytd_usd: number | null;
   current_dividend_yield_numeric: number | null;
   rating: number | null;
   rating_score: number | null;
@@ -53,6 +61,14 @@ export const useETFLiveData = (etfTemplates?: ETFTemplate[]) => {
             return_3y,
             return_5y,
             return_ytd,
+            return_1y_czk,
+            return_3y_czk,
+            return_5y_czk,
+            return_ytd_czk,
+            return_1y_usd,
+            return_3y_usd,
+            return_5y_usd,
+            return_ytd_usd,
             current_dividend_yield_numeric,
             rating,
             rating_score,
@@ -110,6 +126,14 @@ export const useETFLiveData = (etfTemplates?: ETFTemplate[]) => {
       return3Y: liveETF?.return_3y || null,
       return5Y: liveETF?.return_5y || null,
       returnYTD: liveETF?.return_ytd || null,
+      return1Y_czk: liveETF?.return_1y_czk || null,
+      return3Y_czk: liveETF?.return_3y_czk || null,
+      return5Y_czk: liveETF?.return_5y_czk || null,
+      returnYTD_czk: liveETF?.return_ytd_czk || null,
+      return1Y_usd: liveETF?.return_1y_usd || null,
+      return3Y_usd: liveETF?.return_3y_usd || null,
+      return5Y_usd: liveETF?.return_5y_usd || null,
+      returnYTD_usd: liveETF?.return_ytd_usd || null,
       dividendYield: liveETF?.current_dividend_yield_numeric || null,
       rating: liveETF?.rating || null,
       ratingScore: liveETF?.rating_score || null,

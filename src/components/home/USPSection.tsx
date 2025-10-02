@@ -1,10 +1,10 @@
 import React from "react";
-import { BarChart, BookOpen, Calculator, DollarSign } from "lucide-react";
+import { BarChart, BookOpen, Calculator, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const usp = [
   {
-    icon: DollarSign,
+    icon: TrendingUp,
     title: "Výkonnost v CZK",
     description: "Jako jediní zobrazujeme reálné výnosy ETF přepočítané do českých korun.",
   },
