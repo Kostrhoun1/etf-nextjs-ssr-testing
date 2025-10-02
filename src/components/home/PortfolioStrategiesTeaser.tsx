@@ -49,7 +49,7 @@ const topStrategies: PortfolioStrategy[] = [
     allocations: [
       { asset: 'Dlouhodobé dluhopisy', percentage: 40, isin: 'IE00BFM6TC58' },
       { asset: 'Akcie', percentage: 30, isin: 'IE00BK5BQT80' },
-      { asset: 'Střednědobé dluhopisy', percentage: 15, isin: 'LU1287023185' },
+      { asset: 'Střednědobé dluhopisy', percentage: 15, isin: 'IE00B3VWN518' },
       { asset: 'Komodity', percentage: 7.5, isin: 'IE00BD6FTQ80' },
       { asset: 'Zlato', percentage: 7.5, isin: 'IE00B4ND3602' },
     ],

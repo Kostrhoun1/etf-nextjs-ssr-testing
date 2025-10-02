@@ -13,7 +13,7 @@ export const ETF_TICKER_TO_ISIN = {
   
   // ✅ DLUHOPISOVÉ ETF (AKUMULAČNÍ)
   'SXRC': 'IE00BFM6TC58', // iShares USD Treasury Bond 20+yr UCITS ETF USD (Acc) - Ray Dalio dlouhé
-  'EGOV7': 'LU1287023185', // Amundi Euro Government Bond 7-10Y UCITS ETF Acc - Ray Dalio střední
+  'EGOV7': 'IE00B3VWN518', // iShares USD Treasury Bond 7-10yr UCITS ETF (Acc) - Ray Dalio střední
   'AGGH': 'IE00BDBRDM35', // iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)
   
   // ✅ KOMODITNÍ ETF

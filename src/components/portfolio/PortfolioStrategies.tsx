@@ -98,7 +98,7 @@ const portfolioStrategies: PortfolioStrategy[] = [
     allocations: [
       { asset: 'Dlouhodobé dluhopisy', percentage: 40, isin: 'IE00BFM6TC58', etfName: 'iShares USD Treasury Bond 20+yr UCITS ETF USD (Acc)' },
       { asset: 'Akcie', percentage: 30, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World' },
-      { asset: 'Střednědobé dluhopisy', percentage: 15, isin: 'LU1287023185', etfName: 'Amundi Euro Government Bond 7-10Y UCITS ETF Acc' },
+      { asset: 'Střednědobé dluhopisy', percentage: 15, isin: 'IE00B3VWN518', etfName: 'iShares USD Treasury Bond 7-10yr UCITS ETF (Acc)' },
       { asset: 'Komodity', percentage: 7.5, isin: 'IE00BD6FTQ80', etfName: 'Invesco Bloomberg Commodity UCITS ETF Acc' },
       { asset: 'Zlato', percentage: 7.5, isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold ETC' },
     ],
