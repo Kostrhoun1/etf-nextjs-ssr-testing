@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef, useState } from 'react';
 import { TrendingUp, Star, Trophy, Medal, Crown, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -147,6 +149,49 @@ const TwitterVariant4: React.FC<TwitterVariantProps> = ({ title, subtitle, child
   );
 };
 
+// Varianta 5: ETF průvodce styl (emerald gradientu jako na co-jsou-etf)
+const TwitterVariant5: React.FC<TwitterVariantProps> = ({ title, subtitle, children }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div 
+      ref={cardRef}
+      className="relative w-[1200px] h-[675px] bg-gradient-to-br from-gray-50 to-white shadow-xl overflow-hidden"
+      style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+    >
+      {/* Animované pozadí s blobs */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-teal-50/30 to-blue-50/50"></div>
+      <div className="absolute top-10 left-1/4 w-32 h-32 bg-gradient-to-br from-emerald-200 to-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-30"></div>
+      <div className="absolute top-20 right-1/4 w-32 h-32 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30"></div>
+      <div className="absolute bottom-10 left-1/3 w-32 h-32 bg-gradient-to-br from-teal-200 to-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-30"></div>
+      
+      {/* Moderní header s emerald gradientem */}
+      <div className="relative bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="inline-flex items-center bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-emerald-200/50">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              ETF analýza 2025
+            </div>
+            <div>
+              <h1 className="text-3xl font-black leading-tight">{title}</h1>
+              {subtitle && <p className="text-white/90 text-lg mt-1">{subtitle}</p>}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-medium">www.etfpruvodce.cz</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content s moderním designem */}
+      <div className="relative h-[579px] p-6">
+        {children}
+      </div>
+    </div>
+  );
+};
+
 // Obsah optimalizovaný pro čitelnost na X
 const TwitterOptimizedContent: React.FC<{ data: any[], mode: 'performance' | 'ter' }> = ({ data, mode }) => {
   if (mode === 'performance') {
@@ -210,7 +255,7 @@ const TwitterVariants: React.FC<{
   data?: any[];
   mode: 'performance' | 'ter';
 }> = ({ title, subtitle, data = [], mode }) => {
-  const [selectedVariant, setSelectedVariant] = useState<1 | 2 | 3 | 4>(1);
+  const [selectedVariant, setSelectedVariant] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   const downloadImage = (format: string) => {
     // Implementace pro stáhnutí obrázku - zatím jen placeholder
@@ -230,6 +275,8 @@ const TwitterVariants: React.FC<{
         return <TwitterVariant3 title={title} subtitle={subtitle}>{content}</TwitterVariant3>;
       case 4:
         return <TwitterVariant4 title={title} subtitle={subtitle}>{content}</TwitterVariant4>;
+      case 5:
+        return <TwitterVariant5 title={title} subtitle={subtitle}>{content}</TwitterVariant5>;
       default:
         return <TwitterVariant1 title={title} subtitle={subtitle}>{content}</TwitterVariant1>;
     }
@@ -267,19 +314,15 @@ const TwitterVariants: React.FC<{
         >
           ⭐ Čistá bílá
         </Button>
+        <Button
+          variant={selectedVariant === 5 ? 'default' : 'outline'}
+          onClick={() => setSelectedVariant(5)}
+          className="gap-2"
+        >
+          🌿 ETF průvodce
+        </Button>
       </div>
 
-      {/* Download Buttons */}
-      <div className="flex gap-2 justify-center mb-6">
-        <Button variant="outline" onClick={() => downloadImage('png')} className="gap-2">
-          <Download className="w-4 h-4" />
-          Stáhnout PNG
-        </Button>
-        <Button variant="outline" onClick={() => downloadImage('jpg')} className="gap-2">
-          <Download className="w-4 h-4" />
-          Stáhnout JPG
-        </Button>
-      </div>
 
       {/* Preview */}
       <div className="flex justify-center overflow-auto">

@@ -13,16 +13,20 @@ const sortCategories = (categories: string[]): string[] => {
 };
 
 export const useETFSearchData = () => {
+  console.log('🎪 useETFSearchData hook initialized');
   const [etfs, setETFs] = useState<ETFListItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [maxTerFromData, setMaxTerFromData] = useState<number>(2);
   const [totalETFCount, setTotalETFCount] = useState<number>(0);
   const { fetchETFs, isLoading, lastUpdated, getETFCount } = useETFData();
+  
+  console.log('🎪 useETFSearchData - fetchETFs type:', typeof fetchETFs);
 
   useEffect(() => {
+    console.log('🎯 useETFSearchData useEffect triggered');
     const loadData = async () => {
       try {
-        console.log('🚀 Loading all ETF data...');
+        console.log('🚀 Starting ETF data loading process...');
         
         // Načti všechny ETF najednou (bez dvoufázového načítání)
         const allETFs = await fetchETFs(); // bez limitu = všechny

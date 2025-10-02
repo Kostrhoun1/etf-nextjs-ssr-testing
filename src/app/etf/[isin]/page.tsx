@@ -47,7 +47,7 @@ async function getETFData(isin: string): Promise<ETF | null> {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { isin } = params;
+  const { isin } = await params;
   const etf = await getETFData(isin);
 
   if (!etf) {
@@ -133,7 +133,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ETFDetailPage({ params }: PageProps) {
-  const { isin } = params;
+  const { isin } = await params;
   const etf = await getETFData(isin);
 
   if (!etf) {
