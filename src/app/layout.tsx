@@ -75,7 +75,7 @@ export default function RootLayout({
   return (
     <html lang="cs">
       <body className="font-sans antialiased">
-        <GoogleAnalytics measurementId="G-358719985" />
+        <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
