@@ -3,6 +3,7 @@ import "./globals.css";
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 export const metadata: Metadata = {
   title: {
@@ -74,6 +75,7 @@ export default function RootLayout({
   return (
     <html lang="cs">
       <body className="font-sans antialiased">
+        <GoogleAnalytics measurementId="G-358719985" />
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
