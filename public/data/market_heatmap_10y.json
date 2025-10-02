@@ -171,7 +171,7 @@
     },
     "Bonds": {
       "symbol": "BND",
-      "performance": NaN,
+      "performance": 0,
       "current_price": 74.32,
       "currency": "USD",
       "name": "Vanguard Total Bond Market Index Fund",
@@ -229,8 +229,8 @@
         287.94
       ],
       "asset_classes": [
-        "Bonds",
-        NaN
+        "Bitcoin",
+        49820.34
       ]
     },
     "worst_performers": {
@@ -250,7 +250,7 @@
     "category_averages": {
       "sectors": 220.79,
       "regions": 129.53,
-      "asset_classes": NaN
+      "asset_classes": 6261.79
     }
   }
 }

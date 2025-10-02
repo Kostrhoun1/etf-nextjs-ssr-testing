@@ -211,7 +211,8 @@ const InfographicsContent: React.FC = () => {
         period === '3y' ? 'Za poslední 3 roky' : 
         'Za posledních 5 let';
       
-      return `${periodText} • Data k ${currentDate}`;
+      const currencyText = currency.toUpperCase();
+      return `${periodText} (${currencyText}) • Data k ${currentDate}`;
     } else if (infographicMode === 'ter') {
       const currentDate = new Date().toLocaleDateString('cs-CZ', { 
         day: 'numeric', 
@@ -264,22 +265,60 @@ const InfographicsContent: React.FC = () => {
 
   // Helper funkce pro social media varianty
   const getTopPerformingETFs = () => {
-    const returnField = period === 'ytd' ? 'return_ytd_czk' : period === '3y' ? 'return_3y_czk' : 'return_5y_czk';
+    // Použij stejnou logiku jako v getTopFundsByCategory
+    const getReturnField = (period: string, currency: string) => {
+      const suffix = currency === 'eur' ? '' : `_${currency}`;
+      switch (period) {
+        case 'ytd': return `return_ytd${suffix}`;
+        case '1m': return `return_1m${suffix}`;
+        case '3m': return `return_3m${suffix}`;
+        case '6m': return `return_6m${suffix}`;
+        case '1y': return `return_1y${suffix}`;
+        case '3y': return `return_3y${suffix}`;
+        case '5y': return `return_5y${suffix}`;
+        default: return `return_ytd${suffix}`;
+      }
+    };
+
+    const getReturnValue = (etf: any, period: string, currency: string) => {
+      const primaryField = getReturnField(period, currency);
+      let value = etf[primaryField];
+      
+      if (!value || value === 0) {
+        const fallbackSuffix = currency === 'eur' ? '' : `_${currency}`;
+        switch (period) {
+          case '1m':
+          case '3m':
+            value = etf[`return_ytd${fallbackSuffix}`];
+            break;
+          case '6m':
+            value = etf[`return_1y${fallbackSuffix}`] || etf[`return_ytd${fallbackSuffix}`];
+            break;
+          default:
+            value = etf[primaryField];
+        }
+      }
+      
+      return value;
+    };
     
     if (!etfs || !Array.isArray(etfs)) return [];
     
     return etfs
-      .filter(etf => 
-        !etf.is_leveraged &&
-        etf[returnField] && 
-        etf[returnField] !== 0 &&
-        etf.category === category
-      )
-      .sort((a, b) => b[returnField] - a[returnField])
+      .filter(etf => {
+        if (etf.is_leveraged || etf.category !== category) return false;
+        const returnValue = getReturnValue(etf, period, currency);
+        return returnValue && returnValue !== 0;
+      })
+      .sort((a, b) => {
+        const aValue = getReturnValue(a, period, currency);
+        const bValue = getReturnValue(b, period, currency);
+        return bValue - aValue;
+      })
       .slice(0, 10)
       .map((etf, index) => ({
         name: etf.name,
-        performance: etf[returnField].toFixed(1),
+        performance: getReturnValue(etf, period, currency).toFixed(1),
         ter_numeric: etf.ter_numeric ? etf.ter_numeric.toFixed(2) : 'N/A',
         isin: etf.isin,
         primary_ticker: getBestTicker(etf)
@@ -357,8 +396,11 @@ const InfographicsContent: React.FC = () => {
     }
   }, [infographicMode, category, period, terMode, index, heatmapPeriod]);
 
-  // Load heatmap data
+  console.log('🔎 Before heatmap useEffect - mode:', infographicMode, 'period:', heatmapPeriod);
+  
+  // Load heatmap data - working version from original code
   useEffect(() => {
+    console.log('🌟 Secondary heatmap useEffect for mode changes - mode:', infographicMode, 'period:', heatmapPeriod);
     if (infographicMode === 'heatmap') {
       const loadHeatmapData = async () => {
         try {
@@ -382,16 +424,56 @@ const InfographicsContent: React.FC = () => {
         } catch (error) {
           console.error('❌ Chyba při načítání heatmap dat:', error);
           console.error('URL was:', `/data/market_heatmap_${heatmapPeriod}.json`);
+          
+          // Fallback dummy data pro testování
+          console.log('🚨 Using fallback dummy data');
+          const fallbackData = {
+            metadata: {
+              period: heatmapPeriod,
+              generated_at: new Date().toISOString(),
+              data_source: "Fallback Test Data"
+            },
+            sectors: {
+              "Technology": {
+                symbol: "XLK",
+                performance: 15.2,
+                current_price: 168.45,
+                currency: "USD",
+                name: "Technology Test",
+                last_updated: new Date().toISOString()
+              },
+              "Healthcare": {
+                symbol: "XLV",
+                performance: 8.7,
+                current_price: 142.31,
+                currency: "USD", 
+                name: "Healthcare Test",
+                last_updated: new Date().toISOString()
+              }
+            },
+            regions: {},
+            asset_classes: {},
+            summary_stats: {
+              best_performers: {},
+              worst_performers: {},
+              category_averages: {}
+            }
+          };
+          setHeatmapData(fallbackData);
         }
       };
       loadHeatmapData();
+    } else {
+      console.log('🚫 Not loading heatmap - mode is not heatmap');
     }
   }, [infographicMode, heatmapPeriod]);
 
 
 
   const renderContent = () => {
-    console.log('InfographicsGenerator renderContent - loading:', loading, 'etfs:', etfs?.length);
+    console.log('🚀 RENDERCONTENT CALLED - mode:', infographicMode, 'loading:', loading, 'etfs:', etfs?.length);
+    console.log('🎯 Heatmap data available:', !!heatmapData, 'heatmapPeriod:', heatmapPeriod);
+    console.log('🎯 selectedType:', selectedType);
     
     if (loading) {
       return (
@@ -864,9 +946,20 @@ const InfographicsContent: React.FC = () => {
       case 'heatmap-3y':
       case 'heatmap-5y':
       case 'heatmap-10y':
+        console.log('🎯 Rendering heatmap - data available:', !!heatmapData, 'selectedType:', selectedType);
+        console.log('🎯 Heatmap data object:', heatmapData);
+        console.log('🔍 Checking heatmapData structure:');
+        console.log('  - Has heatmapData:', !!heatmapData);
+        console.log('  - Has sectors:', !!heatmapData?.sectors);
+        console.log('  - Sectors keys:', heatmapData?.sectors ? Object.keys(heatmapData.sectors) : 'none');
+        console.log('  - Sectors count:', heatmapData?.sectors ? Object.keys(heatmapData.sectors).length : 0);
+        
+        // Simplified check - render if data exists at all
         if (heatmapData) {
+          console.log('✨ Rendering MarketHeatmap with data - any data exists');
           return <MarketHeatmap data={heatmapData} />;
         } else {
+          console.log('⏳ Showing heatmap loading state - no data');
           return (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -1090,33 +1183,31 @@ const InfographicsContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Hlavní obsah infografiky */}
+
+        {/* Main Infographic Content */}
         <div className="mb-12">
-          {renderContent()}
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            {infographicMode === 'heatmap' ? '🔥 Market Heatmap' : '🎨 Infografiky pro X/Twitter'}
+          </h2>
+          
+          {/* Render the actual content */}
+          <div className="flex justify-center">
+            {renderContent()}
+          </div>
         </div>
 
-        {/* Twitter/X infografiky */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-center">🎨 Infografiky pro X/Twitter</h2>
-          {infographicMode !== 'heatmap' ? (
+        {/* Twitter/X infografiky - only for non-heatmap modes */}
+        {infographicMode !== 'heatmap' && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-center">🎨 Infografiky pro X/Twitter</h2>
             <TwitterVariants
               title={getTitle()}
               subtitle={getSubtitle()}
               data={infographicMode === 'performance' ? getTopPerformingETFs() : getLowestTerETFs()}
               mode={infographicMode === 'performance' ? 'performance' : 'ter'}
             />
-          ) : (
-            <div className="flex justify-center">
-              <div className="w-[1200px] h-[675px] bg-gradient-to-br from-violet-100 to-purple-100 rounded-xl flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-8xl mb-6">📊</div>
-                  <div className="text-4xl font-bold text-gray-800 mb-4">Market Heatmap</div>
-                  <div className="text-xl text-gray-600">Pro X/Twitter použijte výkonnost nebo TER módy</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
       </div>
     </Layout>

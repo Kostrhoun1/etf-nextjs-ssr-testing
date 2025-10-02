@@ -61,7 +61,7 @@ export const useETFSearchData = () => {
     };
 
     loadData();
-  }, [fetchETFs, getETFCount]);
+  }, []); // Empty dependency array to run only on mount
 
   return {
     etfs,
