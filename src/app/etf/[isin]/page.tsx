@@ -32,38 +32,18 @@ interface PageProps {
 }
 
 async function getETFData(isin: string): Promise<ETF | null> {
-  try {
-    console.log('🔍 Fetching ETF data for ISIN:', isin);
-    console.log('📡 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...');
-    
-    const { data: etf, error } = await supabaseAdmin
-      .from('etf_funds')
-      .select('*')
-      .eq('isin', isin)
-      .single();
+  const { data: etf, error } = await supabaseAdmin
+    .from('etf_funds')
+    .select('*')
+    .eq('isin', isin)
+    .single();
 
-    if (error) {
-      console.error('❌ Supabase error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      });
-      return null;
-    }
-
-    if (!etf) {
-      console.warn('⚠️ No ETF found for ISIN:', isin);
-      return null;
-    }
-
-    console.log('✅ Successfully fetched ETF:', etf.name);
-    return etf as ETF;
-  } catch (err) {
-    console.error('💥 Unexpected error in getETFData:', err);
+  if (error || !etf) {
+    console.error('Error fetching ETF:', error);
     return null;
   }
+
+  return etf as ETF;
 }
 
 export async function generateMetadata({ params }: PageProps) {
