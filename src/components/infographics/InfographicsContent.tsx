@@ -815,6 +815,9 @@ const InfographicsContent: React.FC = () => {
       case 'heatmap-1d':
       case 'heatmap-wtd':
       case 'heatmap-mtd':
+      case 'heatmap-1m':
+      case 'heatmap-3m':
+      case 'heatmap-6m':
       case 'heatmap-ytd':
       case 'heatmap-1y':
       case 'heatmap-3y':
@@ -1033,6 +1036,10 @@ const InfographicsContent: React.FC = () => {
           </div>
         </div>
 
+        {/* Hlavní obsah infografiky */}
+        <div className="mb-12">
+          {renderContent()}
+        </div>
 
         {/* Twitter/X infografiky */}
         <div className="mb-12">
