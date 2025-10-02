@@ -161,6 +161,16 @@ const PortfolioStrategies: React.FC = () => {
   };
 
   const calculatePortfolioPerformance = (strategy: PortfolioStrategy) => {
+    // Pokud ještě nemáme načtená data, vracíme null
+    if (Object.keys(etfData).length === 0) {
+      return {
+        return_ytd: null,
+        return_1y: null,
+        return_3y: null,
+        return_5y: null
+      };
+    }
+
     const periods = ['return_ytd', 'return_1y', 'return_3y', 'return_5y'] as const;
     const results: Record<string, number | null> = {};
 
@@ -185,14 +195,7 @@ const PortfolioStrategies: React.FC = () => {
         // Renormalizujeme váhy na 100% pro dostupná ETF
         results[period] = weightedReturn / totalAvailableWeight;
       } else {
-        console.log(`Debug: ${strategy.name} - ${period}:`);
-        console.log(`  - Total weight available: ${totalAvailableWeight.toFixed(2)} (need 0.8)`);
-        console.log(`  - Missing ETFs: ${missingETFs.join(', ')}`);
-        console.log(`  - ETF data keys:`, Object.keys(etfData));
-        strategy.allocations.forEach(allocation => {
-          const etf = etfData[allocation.isin];
-          console.log(`  - ${allocation.isin}: found=${!!etf}, ${period}=${etf?.[period]}`);
-        });
+        console.warn(`${strategy.name}: Insufficient data for ${period} (${(totalAvailableWeight * 100).toFixed(0)}% coverage, need 80%)`);
         results[period] = null;
       }
     }
