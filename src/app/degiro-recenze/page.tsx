@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     url: 'https://etfpruvodce.cz/degiro-recenze',
     siteName: 'ETF průvodce.cz',
     images: [{
-      url: 'https://etfpruvodce.cz/og-degiro-recenze.jpg',
+      url: 'https://etfpruvodce.cz/og-image.jpg',
       width: 1200,
       height: 630,
     }],
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `DEGIRO recenze ${currentYear}`,
     description: `DEGIRO recenze ${currentYear} - hodnocení 79/100. Součást flatexDEGIRO Bank AG.`,
-    images: ['https://etfpruvodce.cz/og-degiro-recenze.jpg'],
+    images: ['https://etfpruvodce.cz/og-image.jpg'],
   },
   alternates: {
     canonical: 'https://etfpruvodce.cz/degiro-recenze',
