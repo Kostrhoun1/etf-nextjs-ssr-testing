@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Calculator, TrendingDown, AlertTriangle, Info, ArrowRight, Loader2, DollarSign } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const FeeCalculatorContent: React.FC = () => {
   // Společné parametry investice
@@ -135,32 +136,79 @@ const FeeCalculatorContent: React.FC = () => {
     { broker: "Česká spořitelna", buyFee: "0,6%", custody: "1500 Kč/rok", notes: "Min. 242 Kč za transakci", highlight: false }
   ];
 
-  // Mock ETF data pro nejlevnější ETF
-  const isLoading = false;
-  const cheapestETFs = [
-    { name: "SPDR Core S&P 500 UCITS ETF", ticker: "SPXS", isin: "IE00B3XXRP09", ter: 0.03, ter_percent: "0,03%", region: "USA" },
-    { name: "Vanguard S&P 500 UCITS ETF", ticker: "VUSA", isin: "IE00B3XXRQ26", ter: 0.07, ter_percent: "0,07%", region: "USA" },
-    { name: "iShares Core EURO STOXX 50 UCITS ETF", ticker: "SX5E", isin: "IE00B4L5YC18", ter: 0.10, ter_percent: "0,10%", region: "Evropa" },
-    { name: "Xtrackers MSCI World UCITS ETF", ticker: "XMWO", isin: "IE00BZ02LR44", ter: 0.12, ter_percent: "0,12%", region: "Svět" },
-    { name: "HSBC MSCI World UCITS ETF", ticker: "HMWO", isin: "IE00B4X9L533", ter: 0.15, ter_percent: "0,15%", region: "Svět" },
-    { name: "iShares Core MSCI World UCITS ETF", ticker: "IWDA", isin: "IE00B4L5Y983", ter: 0.20, ter_percent: "0,20%", region: "Svět" },
-    { name: "SPDR MSCI ACWI IMI UCITS ETF", ticker: "SPYY", isin: "IE00B3YLTY66", ter: 0.17, ter_percent: "0,17%", region: "Svět" },
-    { name: "Vanguard FTSE All-World UCITS ETF", ticker: "VWCE", isin: "IE00BK5BQT80", ter: 0.22, ter_percent: "0,22%", region: "Svět" },
-    { name: "iShares Core S&P 500 UCITS ETF", ticker: "CSPX", isin: "IE00B5BMR087", ter: 0.07, ter_percent: "0,07%", region: "USA" },
-    { name: "Amundi Prime Global UCITS ETF DR", ticker: "PGLO", isin: "LU1931974429", ter: 0.05, ter_percent: "0,05%", region: "Svět" },
-    { name: "Xtrackers Core DAX UCITS ETF", ticker: "XDAX", isin: "LU0274211480", ter: 0.09, ter_percent: "0,09%", region: "Německo" },
-    { name: "iShares Core DAX UCITS ETF", ticker: "EXS1", isin: "DE0005933931", ter: 0.16, ter_percent: "0,16%", region: "Německo" },
-    { name: "SPDR S&P 400 US Mid Cap UCITS ETF", ticker: "SPMD", isin: "IE00BKWQ0Q14", ter: 0.30, ter_percent: "0,30%", region: "USA" },
-    { name: "Vanguard FTSE Developed Europe UCITS ETF", ticker: "VEUR", isin: "IE00B945VV12", ter: 0.10, ter_percent: "0,10%", region: "Evropa" },
-    { name: "iShares MSCI EM IMI UCITS ETF", ticker: "EIMI", isin: "IE00BKM4GZ66", ter: 0.18, ter_percent: "0,18%", region: "Rozvíjející se trhy" },
-    { name: "Xtrackers MSCI Emerging Markets UCITS ETF", ticker: "XMEM", isin: "IE00BTJRMP35", ter: 0.18, ter_percent: "0,18%", region: "Rozvíjející se trhy" },
-    { name: "iShares Core FTSE 100 UCITS ETF", ticker: "ISF", isin: "IE00B53SZB19", ter: 0.07, ter_percent: "0,07%", region: "Velká Británie" },
-    { name: "SPDR FTSE UK All Share UCITS ETF", ticker: "SPUK", isin: "IE00B7452L46", ter: 0.20, ter_percent: "0,20%", region: "Velká Británie" },
-    { name: "iShares NASDAQ 100 UCITS ETF", ticker: "CNDX", isin: "IE00BFZXGZ54", ter: 0.33, ter_percent: "0,33%", region: "USA" },
-    { name: "Amundi NASDAQ-100 UCITS ETF", ticker: "ANX", isin: "LU1681038672", ter: 0.23, ter_percent: "0,23%", region: "USA" }
-  ];
+  // State pro nejlevnější ETF z databáze
+  const [isLoading, setIsLoading] = useState(true);
+  const [cheapestETFs, setCheapestETFs] = useState<Array<{
+    name: string;
+    ticker: string;
+    isin: string;
+    ter: number;
+    ter_percent: string;
+    region: string;
+  }>>([]);
 
-  const etfsCount = 3500;
+  // Načtení nejlevnějších ETF z databáze
+  useEffect(() => {
+    const fetchCheapestETFs = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('etf_funds')
+          .select('isin, name, ticker, ter_numeric, category, geographic_focus')
+          .not('ter_numeric', 'is', null)
+          .gte('ter_numeric', 0)
+          .lte('ter_numeric', 1)
+          .gte('fund_size_numeric', 100) // Pouze fondy s velikostí nad 100M
+          .order('ter_numeric', { ascending: true })
+          .limit(20);
+
+        if (error) {
+          console.error('Error fetching cheapest ETFs:', error);
+          setCheapestETFs([]);
+          return;
+        }
+
+        const formattedETFs = data?.map(etf => ({
+          name: etf.name || 'N/A',
+          ticker: etf.ticker || 'N/A',
+          isin: etf.isin,
+          ter: etf.ter_numeric || 0,
+          ter_percent: etf.ter_numeric ? `${etf.ter_numeric.toFixed(2)}%` : 'N/A',
+          region: etf.geographic_focus || etf.category || 'N/A'
+        })) || [];
+
+        setCheapestETFs(formattedETFs);
+      } catch (error) {
+        console.error('Error fetching cheapest ETFs:', error);
+        setCheapestETFs([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCheapestETFs();
+  }, []);
+
+  const [etfsCount, setEtfsCount] = useState(3500);
+
+  // Načtení celkového počtu ETF z databáze  
+  useEffect(() => {
+    const fetchETFCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('etf_funds')
+          .select('*', { count: 'exact', head: true });
+
+        if (!error && count !== null) {
+          setEtfsCount(count);
+        }
+      } catch (error) {
+        console.error('Error fetching ETF count:', error);
+      }
+    };
+
+    fetchETFCount();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -497,10 +545,15 @@ const FeeCalculatorContent: React.FC = () => {
                 {cheapestETFs.map((etf, index) => (
                   <tr key={etf.isin} className={index % 2 === 0 ? "bg-white" : "bg-gray-25"}>
                     <td className="border border-gray-200 p-4 font-medium">
-                      <div className="font-semibold text-blue-600">{etf.ticker}</div>
-                      <div className="text-sm text-gray-600 mt-1 line-clamp-1">
-                        {etf.name}
-                      </div>
+                      <Link 
+                        href={`/etf/${etf.isin}`}
+                        className="block hover:bg-violet-50 p-2 -m-2 rounded transition-colors"
+                      >
+                        <div className="font-semibold text-blue-600 hover:text-blue-800">{etf.ticker}</div>
+                        <div className="text-sm text-gray-600 mt-1 line-clamp-1 hover:text-gray-800">
+                          {etf.name}
+                        </div>
+                      </Link>
                     </td>
                     <td className="border border-gray-200 p-4 text-center">
                       <code className="bg-gray-100 px-2 py-1 rounded">{etf.ticker}</code>
