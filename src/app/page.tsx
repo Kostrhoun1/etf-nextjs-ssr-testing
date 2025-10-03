@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     siteName: 'ETF průvodce.cz',
     images: [
       {
-        url: 'https://etfpruvodce.cz/og-homepage.jpg',
+        url: 'https://etfpruvodce.cz/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
