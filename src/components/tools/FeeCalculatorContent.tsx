@@ -156,7 +156,7 @@ const FeeCalculatorContent: React.FC = () => {
           .from('etf_funds')
           .select('isin, name, primary_ticker, ter_numeric, category, region')
           .not('ter_numeric', 'is', null)
-          .gte('ter_numeric', 0)
+          .gt('ter_numeric', 0)
           .lte('ter_numeric', 1)
           .gte('fund_size_numeric', 100) // Pouze fondy s velikostí nad 100M
           .order('ter_numeric', { ascending: true })
