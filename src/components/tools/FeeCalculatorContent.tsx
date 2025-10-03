@@ -128,12 +128,12 @@ const FeeCalculatorContent: React.FC = () => {
   };
 
   const brokerFees = [
-    { broker: "DEGIRO", buyFee: "1€ (Core), 3€ (ostatní)", custody: "2,5€/rok", notes: "Core Selection ETF zdarma, zahraniční burza 2,5€/rok", highlight: true },
-    { broker: "XTB", buyFee: "0 Kč*", custody: "0 Kč", notes: "Do 100k€ měsíčně zdarma", highlight: true },
-    { broker: "Trading 212", buyFee: "0 Kč", custody: "0 Kč", notes: "Všechny ETF úplně zdarma", highlight: true },
-    { broker: "Interactive Brokers", buyFee: "0,35%", custody: "0 Kč", notes: "Min. 35 Kč, max. 1% z hodnoty", highlight: false },
-    { broker: "Fio e-Broker", buyFee: "190-390 Kč", custody: "0 Kč", notes: "Podle burzy (Frankfurt 190 Kč)", highlight: false },
-    { broker: "Česká spořitelna", buyFee: "0,6%", custody: "1500 Kč/rok", notes: "Min. 242 Kč za transakci", highlight: false }
+    { broker: "Portu", buyFee: "0,24-1% ročně", custody: "0 Kč", notes: "All-in poplatek (správa portfolia)", highlight: true },
+    { broker: "XTB", buyFee: "0%", custody: "0 Kč", notes: "Bez komisí pro ETF", highlight: true },
+    { broker: "Trading 212", buyFee: "0%", custody: "0 Kč", notes: "Zcela zdarma", highlight: true },
+    { broker: "DEGIRO", buyFee: "1€ (Core), 3€ (ostatní)", custody: "2,5€/rok", notes: "Core Selection 200+ ETF za 1€, ostatní 3€", highlight: false },
+    { broker: "Interactive Brokers", buyFee: "$0,005/akcie", custody: "0 Kč", notes: "Min. $1 za transakci", highlight: false },
+    { broker: "Fio e-Broker", buyFee: "0,29-0,79%", custody: "0 Kč", notes: "Podle burzy a regionu", highlight: false }
   ];
 
   // State pro nejlevnější ETF z databáze
