@@ -154,7 +154,7 @@ const FeeCalculatorContent: React.FC = () => {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('etf_funds')
-          .select('isin, name, ticker, ter_numeric, category, geographic_focus')
+          .select('isin, name, primary_ticker, ter_numeric, category, region')
           .not('ter_numeric', 'is', null)
           .gte('ter_numeric', 0)
           .lte('ter_numeric', 1)
@@ -170,11 +170,11 @@ const FeeCalculatorContent: React.FC = () => {
 
         const formattedETFs = data?.map(etf => ({
           name: etf.name || 'N/A',
-          ticker: etf.ticker || 'N/A',
+          ticker: etf.primary_ticker || 'N/A',
           isin: etf.isin,
           ter: etf.ter_numeric || 0,
           ter_percent: etf.ter_numeric ? `${etf.ter_numeric.toFixed(2)}%` : 'N/A',
-          region: etf.geographic_focus || etf.category || 'N/A'
+          region: etf.region || etf.category || 'N/A'
         })) || [];
 
         setCheapestETFs(formattedETFs);
