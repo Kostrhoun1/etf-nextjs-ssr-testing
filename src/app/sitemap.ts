@@ -163,16 +163,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    // Add popular ticker redirect pages (only for ETFs with primary_ticker)
-    const tickerPages = allETFs
-      .filter(etf => etf.primary_ticker && etf.primary_ticker.trim() !== '')
-      .slice(0, 200) // Limit to top 200 most popular (by fund size)
-      .map((etf) => ({
-        url: `${baseUrl}/etf/ticker/${etf.primary_ticker}`,
-        lastModified: etf.updated_at ? new Date(etf.updated_at) : dbLastUpdate,
-        changeFrequency: 'monthly' as const,
-        priority: 0.6,
-      }))
+    // Note: Ticker redirect pages removed - they don't have actual routes
+    const tickerPages: MetadataRoute.Sitemap = []
 
     // Add popular ETF comparison URLs using tickers (not ISINs)
     const popularComparisons = [
