@@ -12,19 +12,21 @@ async function getETFByTicker(ticker: string) {
   const upperTicker = ticker.toUpperCase();
   
   // Try to find ETF by various ticker fields
-  const { data: etf, error } = await supabaseAdmin
+  // Order by fund size to prefer larger/more popular ETFs when there are duplicates
+  const { data: etfs, error } = await supabaseAdmin
     .from('etf_funds')
-    .select('isin, primary_ticker, exchange_1_ticker, exchange_2_ticker, exchange_3_ticker')
+    .select('isin, primary_ticker, exchange_1_ticker, exchange_2_ticker, exchange_3_ticker, fund_size_numeric')
     .or(
       `primary_ticker.eq.${upperTicker},exchange_1_ticker.eq.${upperTicker},exchange_2_ticker.eq.${upperTicker},exchange_3_ticker.eq.${upperTicker}`
     )
-    .single();
+    .order('fund_size_numeric', { ascending: false })
+    .limit(1);
 
-  if (error || !etf) {
+  if (error || !etfs || etfs.length === 0) {
     return null;
   }
 
-  return etf;
+  return etfs[0];
 }
 
 export async function generateMetadata({ params }: PageProps) {
