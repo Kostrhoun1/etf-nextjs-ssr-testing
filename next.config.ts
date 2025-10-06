@@ -9,6 +9,18 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Redirect www to non-www
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.etfpruvodce.cz',
+          },
+        ],
+        destination: 'https://etfpruvodce.cz/:path*',
+        permanent: true,
+      },
       {
         source: '/tipy',
         destination: '/nejlepsi-etf',

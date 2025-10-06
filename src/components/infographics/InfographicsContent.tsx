@@ -521,7 +521,7 @@ const InfographicsContent: React.FC = () => {
     };
 
     // Helper funkce pro získání TOP 5 fondů podle kategorie a období
-    const getTopFundsByCategory = (category: string, period: 'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y', periodLabel: string, currency: string = 'eur') => {
+    const getTopFundsByCategory = (category: string, period: 'ytd' | '1m' | '3m' | '6m' | '1y' | '3y' | '5y', periodLabel: string, currentCurrency: string) => {
       if (!etfs || !Array.isArray(etfs)) return [];
       
       // Mapování období na databázové sloupce s fallback logikou
@@ -570,12 +570,12 @@ const InfographicsContent: React.FC = () => {
         .filter(etf => {
           if (etf.is_leveraged || etf.category !== category) return false;
           
-          const returnValue = getReturnValue(etf, period, currency);
+          const returnValue = getReturnValue(etf, period, currentCurrency);
           return returnValue && returnValue !== 0;
         })
         .sort((a, b) => {
-          const aValue = getReturnValue(a, period, currency);
-          const bValue = getReturnValue(b, period, currency);
+          const aValue = getReturnValue(a, period, currentCurrency);
+          const bValue = getReturnValue(b, period, currentCurrency);
           return bValue - aValue;
         });
       
@@ -584,7 +584,7 @@ const InfographicsContent: React.FC = () => {
         .map((etf, index) => ({
           rank: index + 1,
           name: etf.name,
-          return: getReturnValue(etf, period, currency), // Použij fallback funkci
+          return: getReturnValue(etf, period, currentCurrency), // Použij fallback funkci
           provider: etf.fund_provider,
           isin: etf.isin,
           primary_ticker: etf.primary_ticker
@@ -620,7 +620,7 @@ const InfographicsContent: React.FC = () => {
       return (
         <InfographicCard 
           title={`TOP 5 NEJVÝKONĚJŠÍCH ${getCategoryNameForTitle(category)} ETF`} 
-          subtitle={`${getPeriodDescription(period, periodLabel, currency)}`}
+          subtitle={`${getPeriodDescription(period, periodLabel, currentCurrency)}`}
           category={category}
           type="stats"
         >
