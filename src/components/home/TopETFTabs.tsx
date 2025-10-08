@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowRight, TrendingUp, DollarSign, Building, Landmark, Bitcoin, Search, Filter } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -122,18 +122,46 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Mobile Dropdown */}
+        <div className="md:hidden mb-6">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue>
+                {(() => {
+                  const activeCategory = categories.find(cat => cat.id === activeTab);
+                  const iconMap = { TrendingUp, DollarSign, Building, Landmark, Bitcoin };
+                  const IconComponent = iconMap[activeCategory?.iconName as keyof typeof iconMap] || TrendingUp;
+                  return (
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="h-4 w-4" />
+                      <span>{activeCategory?.name}</span>
+                    </div>
+                  );
+                })()}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => {
+                const iconMap = { TrendingUp, DollarSign, Building, Landmark, Bitcoin };
+                const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUp;
+                return (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="h-4 w-4" />
+                      <span>{category.name}</span>
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Desktop Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mb-8 h-auto p-1">
+          <TabsList className="hidden md:grid w-full grid-cols-3 lg:grid-cols-5 mb-8 h-auto p-1">
             {categories.map((category) => {
-              // Map icon name to component
-              const iconMap = {
-                TrendingUp,
-                DollarSign,
-                Building,
-                Landmark,
-                Bitcoin
-              };
+              const iconMap = { TrendingUp, DollarSign, Building, Landmark, Bitcoin };
               const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUp;
               
               return (
@@ -143,17 +171,19 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
                   className="flex items-center gap-2 p-3 data-[state=active]:bg-violet-100 data-[state=active]:text-violet-700"
                 >
                   <IconComponent className="h-4 w-4" />
-                  <span className="hidden sm:inline">{category.name}</span>
-                  <span className="sm:hidden">{category.name.split(' ')[0]}</span>
+                  <span>{category.name}</span>
                 </TabsTrigger>
               );
             })}
           </TabsList>
 
-          {categories.map((category) => (
-            <TabsContent key={category.id} value={category.id} className="mt-0">
-
-              {/* ETF Table - Desktop and Mobile responsive */}
+        {/* Content for both mobile dropdown and desktop tabs */}
+        <div className="mt-0">
+          {(() => {
+            const activeCategory = categories.find(cat => cat.id === activeTab);
+            if (!activeCategory) return null;
+            
+            return (
               <div className="overflow-x-auto">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full border-collapse bg-white rounded-lg shadow-sm">
@@ -170,7 +200,7 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
                     </tr>
                   </thead>
                   <tbody>
-                    {category.etfs.slice(0, 10).map((etf, index) => (
+                    {activeCategory.etfs.slice(0, 10).map((etf, index) => (
                       <tr key={etf.isin} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td className="p-4">
                           <div className="flex flex-col">
@@ -234,8 +264,8 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
                 </table>
 
                 {/* Mobile Cards */}
-                <div className="md:hidden space-y-4">
-                  {category.etfs.slice(0, 10).map((etf, index) => (
+                <div className="md:hidden space-y-3">
+                  {activeCategory.etfs.slice(0, 5).map((etf, index) => (
                     <Card key={etf.isin} className="shadow-sm">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-3">
@@ -278,42 +308,14 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
                             <div className="font-medium text-xs">{formatNumber(etf.fund_size_numeric)} mil.</div>
                           </div>
                         </div>
-                        
-                        {/* Additional mobile metrics */}
-                        <div className="grid grid-cols-3 gap-3 text-sm mt-3 pt-3 border-t border-gray-100">
-                          <div className="text-center">
-                            <div className="text-gray-500 text-xs mb-1">YTD</div>
-                            <div className={`font-medium ${
-                              getReturnValue(etf, 'ytd') && getReturnValue(etf, 'ytd')! > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {formatPercentage(getReturnValue(etf, 'ytd'))}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-gray-500 text-xs mb-1">3Y</div>
-                            <div className={`font-medium ${
-                              getReturnValue(etf, '3y') && getReturnValue(etf, '3y')! > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {formatPercentage(getReturnValue(etf, '3y'))}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-gray-500 text-xs mb-1">5Y</div>
-                            <div className={`font-medium ${
-                              getReturnValue(etf, '5y') && getReturnValue(etf, '5y')! > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {formatPercentage(getReturnValue(etf, '5y'))}
-                            </div>
-                          </div>
-                        </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </div>
-
-            </TabsContent>
-          ))}
+            );
+          })()}
+        </div>
         </Tabs>
 
         {/* Bottom CTA Section */}
