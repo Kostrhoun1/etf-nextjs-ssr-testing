@@ -4,7 +4,7 @@ import { calculateETFRating, getRatingDescription, getRatingColor } from '@/util
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import { Info, Star } from 'lucide-react';
 
 interface ETFRatingProps {
   etf: ETF | ETFListItem;
@@ -24,11 +24,9 @@ const ETFRating: React.FC<ETFRatingProps> = ({
   if (!rating) {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center">
+        <div className="flex items-center gap-0.5">
           {[1, 2, 3, 4, 5].map((star) => (
-            <span key={star} className="text-gray-300 text-lg leading-none">
-              ⭐
-            </span>
+            <Star key={star} className={`${starSizeClasses[size]} text-gray-300`} />
           ))}
         </div>
         <span className="text-sm text-gray-500">
@@ -45,23 +43,21 @@ const ETFRating: React.FC<ETFRatingProps> = ({
   };
 
   const starSizeClasses = {
-    sm: 'text-base',
-    md: 'text-lg',
-    lg: 'text-xl'
+    sm: 'w-3 h-3',
+    md: 'w-4 h-4',
+    lg: 'w-5 h-5'
   };
 
   const renderStars = (rating: number) => {
     return (
-      <div className="flex items-center">
+      <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
-          <span
+          <Star
             key={star}
             className={`${starSizeClasses[size]} ${
-              star <= rating ? 'text-yellow-600' : 'text-gray-300'
-            } leading-none`}
-          >
-            ⭐
-          </span>
+              star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+            }`}
+          />
         ))}
       </div>
     );

@@ -2,13 +2,14 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Layout from '@/components/Layout';
 import HeroSection from '@/components/home/HeroSection';
 import USPSection from '@/components/home/USPSection';
-import ETFSearchSection from '@/components/home/ETFSearchSection';
+import TopETFTabs from '@/components/home/TopETFTabs';
 import BrokerComparisonSection from '@/components/home/BrokerComparisonSection';
 import FAQSection from '@/components/SEO/FAQSection';
 import PortfolioStrategiesTeaser from '@/components/home/PortfolioStrategiesTeaser';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import SEOHead from '@/components/SEO/SEOHead';
 import GlobalSEO from '@/components/SEO/GlobalSEO';
+import { getTopETFsByCategories } from '@/lib/getTopETFsByCategories';
 import Link from 'next/link';
 import { Metadata } from 'next';
 
@@ -46,6 +47,7 @@ async function getETFCount() {
 
 export default async function HomePage() {
   const totalETFCount = await getETFCount();
+  const topETFCategories = await getTopETFsByCategories();
 
   return (
     <Layout>
@@ -57,8 +59,8 @@ export default async function HomePage() {
       {/* USP sekce - kompaktní */}
       <USPSection />
 
-      {/* PŘEHLED ETF FONDŮ - HLAVNÍ OBSAH */}
-      <ETFSearchSection />
+      {/* TOP ETF PODLE KATEGORIÍ - RYCHLÝ NÁHLED */}
+      <TopETFTabs categories={topETFCategories} totalETFCount={totalETFCount} />
 
       {/* SROVNÁNÍ BROKERŮ */}
       <BrokerComparisonSection />

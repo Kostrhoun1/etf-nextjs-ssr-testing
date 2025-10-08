@@ -62,6 +62,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  other: {
+    'google-site-verification': 'your-google-verification-code',
+  },
   verification: {
     google: 'your-google-verification-code',
   },
@@ -74,6 +77,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="cs">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://nbhwnatadyubiuadfakx.supabase.co" />
+      </head>
       <body className="font-sans antialiased">
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
         <CurrencyProvider>

@@ -11,6 +11,7 @@ import { Menu, Mail, Settings } from 'lucide-react';
 import Logo from './Logo';
 import BreadcrumbNav from './SEO/BreadcrumbNav';
 import LastUpdatedInfo from './LastUpdatedInfo';
+import GlobalETFSearch from './GlobalETFSearch';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -60,6 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-lg sticky top-0 z-40 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Main header row */}
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
               <Link href="/" className="flex items-center group">
@@ -67,8 +69,16 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
               </Link>
             </div>
             
-            {/* Desktop navigation - centered */}
-            <nav className="hidden md:flex space-x-1 absolute left-1/2 transform -translate-x-1/2">
+            {/* Desktop search - mezi logem a menu */}
+            <div className="hidden lg:block flex-1 max-w-md mx-8">
+              <GlobalETFSearch 
+                placeholder="Hledat ETF podle ISIN, názvu..."
+                className="w-full"
+              />
+            </div>
+            
+            {/* Desktop navigation */}
+            <nav className="hidden md:flex space-x-1">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
@@ -84,7 +94,6 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
               ))}
             </nav>
             
-            
             {/* Mobile menu */}
             <div className="md:hidden">
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -95,7 +104,16 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-80">
-                  <div className="mt-6">
+                  <div className="mt-6 space-y-6">
+                    {/* Mobile search na prvním místě */}
+                    <div className="px-4">
+                      <GlobalETFSearch 
+                        placeholder="Hledat ETF..."
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    {/* Mobile navigation */}
                     <nav className="flex flex-col space-y-2">
                       {navigation.map((item) => (
                         <Link
@@ -116,6 +134,14 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
                 </SheetContent>
               </Sheet>
             </div>
+          </div>
+          
+          {/* Mobile search row - pod hlavním headerem pouze na středních obrazovkách */}
+          <div className="md:hidden lg:hidden border-t border-gray-100 py-3">
+            <GlobalETFSearch 
+              placeholder="Hledar ETF podle ISIN, názvu..."
+              className="w-full"
+            />
           </div>
         </div>
       </header>
