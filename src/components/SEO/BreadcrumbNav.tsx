@@ -37,8 +37,15 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ items }) => {
     breadcrumbItems = [
       { name: 'Domů', href: '/' },
       ...pathSegments.map((segment, index) => {
-        const href = '/' + pathSegments.slice(0, index + 1).join('/');
-        const name = segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ');
+        let href = '/' + pathSegments.slice(0, index + 1).join('/');
+        let name = segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ');
+        
+        // Special handling for ETF pages - redirect to ETF comparison
+        if (segment === 'etf' && index === 0) {
+          href = '/srovnani-etf';
+          name = 'Srovnání ETF';
+        }
+        
         return { name, href };
       })
     ];

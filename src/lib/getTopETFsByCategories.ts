@@ -1,5 +1,18 @@
 import { supabaseAdmin } from '@/lib/supabase';
-import { getCategoryByETF, categoryMappings, CategoryDataServer } from '@/lib/categoryMappings';
+import { categoryMappings, CategoryDataServer } from '@/lib/categoryMappings';
+
+// Server-side version of getCategoryByETF
+const getCategoryByETFServer = (category: string): string => {
+  // Použij přímo kategorie z databáze
+  const dbCategories = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto'];
+  
+  if (dbCategories.includes(category)) {
+    return category;
+  }
+  
+  // Default fallback
+  return 'Akcie';
+};
 
 export interface ETFItem {
   isin: string;
@@ -73,7 +86,7 @@ export async function getTopETFsByCategories(): Promise<CategoryDataWithETFs[]> 
     const etfsByCategory: { [key: string]: ETFItem[] } = {};
 
     etfs.forEach(etf => {
-      const mappedCategory = getCategoryByETF(etf.category || '');
+      const mappedCategory = getCategoryByETFServer(etf.category || '');
       if (!etfsByCategory[mappedCategory]) {
         etfsByCategory[mappedCategory] = [];
       }

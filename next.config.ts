@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  experimental: {
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   async redirects() {
     return [
       // Redirect www to non-www
@@ -32,6 +37,21 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
     ];
+  },
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      };
+    }
+    return config;
   },
 };
 

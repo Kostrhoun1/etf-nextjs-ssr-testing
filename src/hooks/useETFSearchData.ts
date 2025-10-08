@@ -26,9 +26,9 @@ export const useETFSearchData = () => {
     console.log('🎯 useETFSearchData useEffect triggered');
     const loadData = async () => {
       try {
-        console.log('🚀 Starting ETF data loading process...');
+        console.log('🚀 Starting FAST ETF data loading process...');
         
-        // Načti všechny ETF najednou (bez dvoufázového načítání)
+        // Načti všechny ETF najednou
         const allETFs = await fetchETFs(); // bez limitu = všechny
         
         // Přidej ticker alias pro kompatibilitu

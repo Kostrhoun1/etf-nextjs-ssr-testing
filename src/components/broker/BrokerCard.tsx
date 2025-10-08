@@ -22,6 +22,7 @@ const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle })
             src={broker.logo} 
             alt={`${broker.name} logo`}
             className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+            loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src = `data:image/svg+xml;base64,${btoa(`<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="8" fill="#f3f4f6"/><text x="24" y="28" text-anchor="middle" font-family="Arial" font-size="12" fill="#6b7280">${broker.name.charAt(0)}</text></svg>`)}`;
             }}
