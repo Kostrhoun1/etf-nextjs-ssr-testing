@@ -46,8 +46,19 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ items }) => {
           name = 'Srovnání ETF';
         }
         
+        // Special handling for ticker pages - skip the "ticker" segment
+        if (segment === 'ticker' && pathSegments[index - 1] === 'etf') {
+          return null; // Skip this segment entirely
+        }
+        
+        // Special handling for ticker values - show as ETF name
+        if (pathSegments[index - 1] === 'ticker' && pathSegments[index - 2] === 'etf') {
+          name = `${segment.toUpperCase()} ETF`;
+          href = `/etf/ticker/${segment}`;
+        }
+        
         return { name, href };
-      })
+      }).filter(Boolean) // Remove null entries
     ];
   }
 
