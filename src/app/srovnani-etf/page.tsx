@@ -5,48 +5,61 @@ import SrovnaniETFClient from './SrovnaniETFClient';
 
 const currentYear = new Date().getFullYear();
 
-export const metadata: Metadata = {
-  title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů | ETF průvodce.cz`,
-  description: `🔍 Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER, výkonnosti a rizika. DEGIRO filtry, live databáze, zdarma.`,
-  keywords: `ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF ${currentYear}, ETF filtr, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze`,
-  authors: [{ name: 'ETF průvodce.cz' }],
-  openGraph: {
-    title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů`,
-    description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER, výkonnosti a rizika.`,
-    url: 'https://etfpruvodce.cz/srovnani-etf',
-    siteName: 'ETF průvodce.cz',
-    images: [{
-      url: 'https://etfpruvodce.cz/og-etf-comparison.jpg',
-      width: 1200,
-      height: 630,
-    }],
-    locale: 'cs_CZ',
-    type: 'website',
-    publishedTime: `${currentYear}-01-01`,
-    modifiedTime: new Date().toISOString(),
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `ETF srovnání ${currentYear}`,
-    description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER a výkonnosti.`,
-    images: ['https://etfpruvodce.cz/og-etf-comparison.jpg'],
-  },
-  alternates: {
-    canonical: 'https://etfpruvodce.cz/srovnani-etf',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    'max-image-preview': 'large',
-    'max-snippet': -1,
-    'max-video-preview': -1,
-  },
-  other: {
-    'article:author': 'ETF průvodce.cz',
-    'article:published_time': `${currentYear}-01-01`,
-    'article:modified_time': new Date().toISOString(),
+// Dynamic metadata generation to handle query parameters
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams;
+  const compareParam = resolvedSearchParams?.compare;
+
+  // Build canonical URL with query parameters if present
+  let canonicalUrl = 'https://etfpruvodce.cz/srovnani-etf';
+  if (compareParam) {
+    const compareString = Array.isArray(compareParam) ? compareParam[0] : compareParam;
+    canonicalUrl += `?compare=${encodeURIComponent(compareString)}`;
   }
-};
+
+  return {
+    title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů | ETF průvodce.cz`,
+    description: `🔍 Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER, výkonnosti a rizika. DEGIRO filtry, live databáze, zdarma.`,
+    keywords: `ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF ${currentYear}, ETF filtr, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze`,
+    authors: [{ name: 'ETF průvodce.cz' }],
+    openGraph: {
+      title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů`,
+      description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER, výkonnosti a rizika.`,
+      url: canonicalUrl,
+      siteName: 'ETF průvodce.cz',
+      images: [{
+        url: 'https://etfpruvodce.cz/og-etf-comparison.jpg',
+        width: 1200,
+        height: 630,
+      }],
+      locale: 'cs_CZ',
+      type: 'website',
+      publishedTime: `${currentYear}-01-01`,
+      modifiedTime: new Date().toISOString(),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `ETF srovnání ${currentYear}`,
+      description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER a výkonnosti.`,
+      images: ['https://etfpruvodce.cz/og-etf-comparison.jpg'],
+    },
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+    other: {
+      'article:author': 'ETF průvodce.cz',
+      'article:published_time': `${currentYear}-01-01`,
+      'article:modified_time': new Date().toISOString(),
+    }
+  };
+}
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

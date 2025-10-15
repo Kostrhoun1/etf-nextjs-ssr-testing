@@ -59,9 +59,16 @@ export async function generateMetadata({ params }: PageProps) {
   // Include ticker in title and description for better SEO
   const ticker = etf.primary_ticker || etf.exchange_1_ticker || '';
   const titleWithTicker = ticker ? `${ticker} - ${etf.name} (${etf.isin})` : `${etf.name} (${etf.isin})`;
-  const descriptionWithTicker = ticker 
+  const descriptionWithTicker = ticker
     ? `Detailní analýza ETF ${ticker} - ${etf.name} od ${etf.fund_provider}. TER ${formatPercentage(etf.ter_numeric)}, ${etf.return_1y ? 'roční výnos ' + formatPercentage(etf.return_1y) : 'výkonnostní data'}, složení portfolia a detailní informace o fondu.`
     : `Kompletní analýza ETF ${etf.name} od ${etf.fund_provider}. TER ${formatPercentage(etf.ter_numeric)}, ${etf.return_1y ? 'roční výnos ' + formatPercentage(etf.return_1y) : 'výkonnostní data'}, složení portfolia a detailní informace o fondu.`;
+
+  // SEO optimization: noindex for small/low-quality ETFs to save crawl budget
+  // Only index ETFs with meaningful size (>= 50M EUR) OR good rating (>= 3)
+  // This helps Google focus on indexing quality content
+  const fundSize = etf.fund_size_numeric || 0;
+  const rating = etf.rating || 0;
+  const shouldIndex = fundSize >= 50 || rating >= 3;
 
   return {
     title: `${titleWithTicker} | ETF Průvodce`,
@@ -80,6 +87,14 @@ export async function generateMetadata({ params }: PageProps) {
     },
     alternates: {
       canonical: `https://www.etfpruvodce.cz/etf/${isin}`,
+    },
+    robots: {
+      index: shouldIndex,
+      follow: true,
+      googleBot: {
+        index: shouldIndex,
+        follow: true,
+      },
     },
     other: {
       // Add structured data for ETF investment product

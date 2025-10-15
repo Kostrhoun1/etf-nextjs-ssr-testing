@@ -69,8 +69,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { comparison } = await params;
   const parsed = parseComparison(comparison);
-  
-  if (!parsed || !POPULAR_COMPARISONS.includes(comparison)) {
+
+  if (!parsed) {
     return {
       title: 'ETF srovnání nenalezeno',
     };
@@ -133,24 +133,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function StaticComparisonPage({ params }: PageProps) {
   const { comparison } = await params;
   const parsed = parseComparison(comparison);
-  
-  // Check if this is a supported comparison
-  if (!parsed || !POPULAR_COMPARISONS.includes(comparison)) {
+
+  // Check if comparison format is valid
+  if (!parsed) {
     notFound();
   }
-  
+
   const { ticker1, ticker2 } = parsed;
-  
+
   // Verify ETFs exist in database
   const etfs = await getETFData(ticker1, ticker2);
   if (!etfs) {
     notFound();
   }
-  
+
   // Create searchParams for the existing client component
   const searchParams = {
     compare: `${ticker1},${ticker2}`
   };
-  
+
   return <SrovnaniETFClient searchParams={searchParams} />;
 }

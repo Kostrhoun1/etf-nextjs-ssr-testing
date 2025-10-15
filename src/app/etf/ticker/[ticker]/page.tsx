@@ -66,7 +66,11 @@ export async function generateMetadata({ params }: PageProps) {
   const providerName = etf.fund_provider || '';
   const fundSize = etf.fund_size_numeric ? `${(etf.fund_size_numeric / 1000000).toFixed(0)}M EUR` : '';
   const ter = etf.ter_numeric ? `${etf.ter_numeric.toFixed(2)}%` : '';
-  
+
+  // Ticker pages are STANDALONE pages for SEO purposes
+  // They should have their own canonical pointing to themselves
+  const canonicalUrl = `https://etfpruvodce.cz/etf/ticker/${formattedTicker.toLowerCase()}`;
+
   return {
     title: `${formattedTicker} ETF - ${etf.name} | Detail fondu ${providerName}`,
     description: `${formattedTicker} ETF (${etf.name}) od ${providerName}. Velikost fondu: ${fundSize}, TER: ${ter}. Kompletní analýza, výkonnost a srovnání ETF fondu ${formattedTicker}.`,
@@ -74,17 +78,23 @@ export async function generateMetadata({ params }: PageProps) {
     openGraph: {
       title: `${formattedTicker} ETF - ${etf.name}`,
       description: `Detailní analýza ETF fondu ${formattedTicker} od ${providerName}. Velikost: ${fundSize}, TER: ${ter}.`,
-      url: `https://etfpruvodce.cz/etf/ticker/${formattedTicker.toLowerCase()}`,
+      url: canonicalUrl,
       type: 'article',
     },
     alternates: {
-      canonical: `https://etfpruvodce.cz/etf/ticker/${formattedTicker.toLowerCase()}`
+      canonical: canonicalUrl
     }
   };
 }
 
 export default async function ETFTickerDetailPage({ params }: PageProps) {
   const { ticker } = await params;
+
+  // Validate ticker - prevent empty or invalid tickers
+  if (!ticker || ticker === '-' || ticker.trim() === '' || ticker.length < 2) {
+    notFound();
+  }
+
   const etf = await getETFByTicker(ticker);
 
   if (!etf) {

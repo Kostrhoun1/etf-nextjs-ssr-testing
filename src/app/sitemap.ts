@@ -163,60 +163,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    // Add popular ticker detail pages (top 200 ETFs with tickers - full content pages for SEO)
-    const tickerPages = allETFs
-      .filter(etf => etf.primary_ticker && etf.primary_ticker.trim() !== '' && etf.primary_ticker.trim() !== '-')
-      .slice(0, 200) // Limit to top 200 most popular (by fund size)
-      .map((etf) => ({
-        url: `${baseUrl}/etf/ticker/${etf.primary_ticker}`,
-        lastModified: etf.updated_at ? new Date(etf.updated_at) : dbLastUpdate,
-        changeFrequency: 'weekly' as const, // More frequent updates for better SEO
-        priority: 0.8, // Higher priority for ticker pages (good for SEO)
-      }))
+    // REMOVED: Ticker pages to avoid duplicate content issues
+    // Ticker URLs now redirect to ISIN pages via middleware (301 permanent redirect)
+    // This prevents Google from seeing duplicate content between /etf/ticker/X and /etf/ISIN
 
-    // Add popular ETF comparison URLs using tickers (not ISINs)
-    const popularComparisons = [
-      // World vs S&P 500 comparisons
-      'VWCE,CSPX', 'IWDA,CSPX', 'VWCE,IWDA', 'SWDA,CSPX', 'SWDA,VWCE',
-      
-      // S&P 500 variants
-      'CSPX,VUAA', 'CSPX,SXR8', 'VUAA,SXR8', 'EUNM,CSPX',
-      
-      // Europe vs World
-      'VWCE,EUNL', 'IWDA,EUNL', 'CSPX,EUNL', 'SWDA,EUNL', 'EUNL,VEUR',
-      
-      // Emerging Markets
-      'VWCE,EIMI', 'IWDA,EIMI', 'CSPX,EIMI', 'VFEM,EIMI', 'AEEM,EIMI',
-      
-      // Technology ETFs
-      'CSPX,EQQQ', 'VWCE,EQQQ', 'IWDA,EQQQ', 'EQQQ,IUIT', 'WTCH,EQQQ',
-      
-      // Bond vs Equity
-      'VWCE,VGEA', 'CSPX,VGEA', 'IWDA,VGEA', 'AGGG,VWCE', 'EUNL,VGEA',
-      
-      // Small Cap vs Large Cap
-      'VWCE,IUSN', 'CSPX,IUSN', 'EUNL,IEUS', 'WZUS,CSPX',
-      
-      // Dividend ETFs
-      'VWCE,VHYL', 'CSPX,VHYL', 'IUSV,VWCE', 'EUDV,VWCE',
-      
-      // Regional comparisons
-      'VWCE,AAPJ', 'CSPX,AAPJ', 'EUNL,JPGL', 'VWCE,FLCH',
-      
-      // ESG vs Traditional
-      'VWCE,ESGW', 'CSPX,ESGW', 'EUNL,EUSE', 'IWDA,ESGW'
-    ]
-
-    const comparisonPages = popularComparisons.map((comparison, index) => ({
-      url: `${baseUrl}/srovnani-etf?compare=${comparison}`,
-      lastModified: dbLastUpdate || new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8, // High priority for popular comparisons
-    }))
-
-    etfPages = [...etfPages, ...tickerPages, ...comparisonPages]
-    console.log(`Added ${tickerPages.length} ticker redirect pages to sitemap`)
-    console.log(`Added ${comparisonPages.length} popular ETF comparison pages to sitemap`)
+    console.log(`Added ${allETFs.length} ISIN pages to sitemap`)
+    console.log(`Ticker pages removed from sitemap - will redirect to ISIN pages via middleware`)
   } catch (error) {
     console.error('Error fetching ETF data for sitemap:', error)
   }
