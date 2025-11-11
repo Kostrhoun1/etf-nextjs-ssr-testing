@@ -107,8 +107,39 @@ export async function generateMetadata({ params }: PageProps) {
   const rating = etf.rating || 0;
   const isHighQuality = fundSize >= 100 || rating >= 4;
 
+  // Optimize title for CTR (Click-Through Rate) - include performance data
+  const titleParts = [ticker || etf.isin.substring(0, 6)];
+
+  // Add performance if positive and significant
+  if (etf.return_1y && typeof etf.return_1y === 'number' && etf.return_1y > 0.05) {
+    titleParts.push(`+${(etf.return_1y * 100).toFixed(1)}% ročně`);
+  } else if (etf.return_1y && typeof etf.return_1y === 'number' && etf.return_1y < -0.05) {
+    titleParts.push(`${(etf.return_1y * 100).toFixed(1)}%`);
+  }
+
+  // Add TER (always competitive info)
+  if (etf.ter_numeric && typeof etf.ter_numeric === 'number') {
+    titleParts.push(`TER ${(etf.ter_numeric * 100).toFixed(2)}%`);
+  }
+
+  // Add rating if 4+ stars (quality signal)
+  if (etf.rating && typeof etf.rating === 'number' && etf.rating >= 4) {
+    const stars = '⭐'.repeat(Math.round(etf.rating));
+    titleParts.push(`${stars}`);
+  }
+
+  // Add year for freshness
+  titleParts.push('2025');
+
+  const optimizedTitle = `${titleParts.join(' • ')} | ETF průvodce`;
+
+  // Fallback if too long (Google truncates at ~60 chars)
+  const finalTitle = optimizedTitle.length <= 65
+    ? optimizedTitle
+    : `${ticker || etf.isin.substring(0, 6)} ETF • ${etf.return_1y && typeof etf.return_1y === 'number' ? (etf.return_1y * 100).toFixed(1) + '% ' : ''}TER ${etf.ter_numeric && typeof etf.ter_numeric === 'number' ? (etf.ter_numeric * 100).toFixed(2) + '%' : 'N/A'} • 2025`;
+
   return {
-    title: `${titleWithTicker} | ETF Průvodce`,
+    title: finalTitle,
     description: descriptionWithTicker,
     keywords: ticker ? [ticker, etf.name, etf.isin, etf.fund_provider, 'ETF', 'investice', 'analýza'].join(', ') : [etf.name, etf.isin, etf.fund_provider, 'ETF', 'investice', 'analýza'].join(', '),
     openGraph: {
@@ -306,7 +337,26 @@ export default async function ETFDetailPage({ params }: PageProps) {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
+
+      {/* Server-rendered H1 - CRITICAL for SEO - Google sees this immediately */}
+      <div className="mb-6">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          {(etf.primary_ticker || etf.exchange_1_ticker) && (
+            <span className="text-blue-600">
+              {etf.primary_ticker || etf.exchange_1_ticker}
+            </span>
+          )}
+          {(etf.primary_ticker || etf.exchange_1_ticker) && ' - '}
+          {etf.name}
+        </h1>
+        <div className="flex items-center gap-3 text-gray-600">
+          <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{etf.isin}</span>
+          <span className="text-gray-400">•</span>
+          <span className="font-medium">{etf.fund_provider}</span>
+        </div>
+      </div>
+
+      {/* Then client component WITHOUT H1 */}
       <ETFDetailHeader etf={etf} />
 
       {/* Key Metrics */}

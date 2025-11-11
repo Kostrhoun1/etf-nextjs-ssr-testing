@@ -15,13 +15,7 @@ const ETFDetailHeader: React.FC<ETFDetailHeaderProps> = ({ etf }) => {
     <div className="mb-8">
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{etf.name}</h1>
-          <p className="text-lg text-gray-600 mb-4">
-            {(etf.primary_ticker || etf.exchange_1_ticker) && 
-              `${etf.primary_ticker || etf.exchange_1_ticker} • `
-            }
-            {etf.isin} • {etf.fund_provider}
-          </p>
+          {/* H1 moved to server component in page.tsx - SEO critical */}
           <div className="mb-4">
             <ETFRating etf={etf} showDescription size="lg" />
           </div>
