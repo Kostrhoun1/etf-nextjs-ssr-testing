@@ -15,9 +15,9 @@ const BrokerOverview: React.FC = () => {
         <Card key={broker.id} className="hover:shadow-lg transition-shadow flex flex-col h-full">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-4">
-              <img 
-                src={broker.logo} 
-                alt={`${broker.name} logo`}
+              <img
+                src={broker.logo}
+                alt={`${broker.name} logo - online broker pro nákup ETF fondů`}
                 className="w-12 h-12 rounded-lg object-cover bg-gray-100"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = `data:image/svg+xml;base64,${btoa(`<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="8" fill="#f3f4f6"/><text x="24" y="28" text-anchor="middle" font-family="Arial" font-size="12" fill="#6b7280">${broker.name.charAt(0)}</text></svg>`)}`;

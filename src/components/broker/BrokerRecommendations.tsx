@@ -53,9 +53,9 @@ const BrokerRecommendations: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center gap-3 mb-4">
-                    <img 
-                      src={broker.logo} 
-                      alt={`${broker.name} logo`}
+                    <img
+                      src={broker.logo}
+                      alt={`${broker.name} logo - online broker pro investování do ETF fondů`}
                       className="w-12 h-12 rounded-lg object-cover"
                     />
                     <div>
@@ -115,7 +115,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-green-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('xtb')?.logo} alt="XTB" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('xtb')?.logo} alt="XTB logo - broker s 0% poplatky na ETF" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-green-800">XTB</strong>
                     <Badge className="bg-green-100 text-green-700">94/100</Badge>
                   </div>
@@ -126,7 +126,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-green-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('portu')?.logo} alt="Portu" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('portu')?.logo} alt="Portu logo - český robo-advisor pro automatické investice" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-green-800">Portu</strong>
                     <Badge className="bg-green-100 text-green-700">98/100</Badge>
                   </div>
@@ -160,7 +160,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('ibkr')?.logo} alt="IBKR" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('ibkr')?.logo} alt="Interactive Brokers logo - globální broker pro pokročilé investory" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-purple-800">Interactive Brokers</strong>
                     <Badge className="bg-purple-100 text-purple-700">85/100</Badge>
                   </div>
@@ -171,7 +171,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('xtb')?.logo} alt="XTB" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('xtb')?.logo} alt="XTB logo - broker s 0% poplatky na ETF" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-purple-800">XTB</strong>
                     <Badge className="bg-purple-100 text-purple-700">94/100</Badge>
                   </div>
@@ -205,7 +205,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('fio')?.logo} alt="Fio" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('fio')?.logo} alt="Fio eBroker logo - česká banka s nízkonákladovým brokeringem" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-blue-800">Fio e-Broker</strong>
                     <Badge className="bg-blue-100 text-blue-700">75/100</Badge>
                   </div>
@@ -216,7 +216,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('portu')?.logo} alt="Portu" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('portu')?.logo} alt="Portu logo - český robo-advisor pro automatické investice" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-blue-800">Portu</strong>
                     <Badge className="bg-blue-100 text-blue-700">98/100</Badge>
                   </div>
@@ -250,7 +250,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-orange-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('portu')?.logo} alt="Portu" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('portu')?.logo} alt="Portu logo - český robo-advisor pro automatické investice" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-orange-800">Portu</strong>
                     <Badge className="bg-orange-100 text-orange-700">98/100</Badge>
                   </div>
@@ -261,7 +261,7 @@ const BrokerRecommendations: React.FC = () => {
               <div className="bg-white p-4 rounded-lg border border-orange-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={getBroker('trading212')?.logo} alt="Trading212" className="w-6 h-6 rounded" loading="lazy" />
+                    <img src={getBroker('trading212')?.logo} alt="Trading 212 logo - broker s 0% poplatky a frakčními akciemi" className="w-6 h-6 rounded" loading="lazy" />
                     <strong className="text-orange-800">Trading 212</strong>
                     <Badge className="bg-orange-100 text-orange-700">87/100</Badge>
                   </div>

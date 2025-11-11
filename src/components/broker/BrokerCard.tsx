@@ -18,9 +18,9 @@ const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle })
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onToggle}>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-4">
-          <img 
-            src={broker.logo} 
-            alt={`${broker.name} logo`}
+          <img
+            src={broker.logo}
+            alt={`${broker.name} logo - online broker pro nákup ETF fondů${broker.czSupport ? ' s českou podporou' : ''}`}
             className="w-12 h-12 rounded-lg object-cover bg-gray-100"
             loading="lazy"
             onError={(e) => {
