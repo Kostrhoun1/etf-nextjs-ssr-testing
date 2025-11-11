@@ -372,8 +372,8 @@ export default async function ETFDetailPage({ params }: PageProps) {
           <span className="font-medium">{etf.fund_provider}</span>
         </div>
 
-        {/* Author byline - E-E-A-T signal */}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        {/* Author byline + Last Updated - E-E-A-T signal */}
+        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
@@ -385,16 +385,20 @@ export default async function ETFDetailPage({ params }: PageProps) {
           >
             Tomáš Kostrhoun
           </a>
+          {etf.updated_at && (
+            <>
+              <span className="text-gray-400">•</span>
+              <span>
+                Aktualizováno: {new Date(etf.updated_at).toLocaleDateString('cs-CZ', {
+                  day: 'numeric',
+                  month: 'numeric',
+                  year: 'numeric'
+                })}
+              </span>
+            </>
+          )}
         </div>
       </div>
-
-      {/* Last Updated - Trust signal */}
-      {etf.updated_at && (
-        <LastUpdated
-          date={etf.updated_at}
-          author="Tomáš Kostrhoun"
-        />
-      )}
 
       {/* Then client component WITHOUT H1 */}
       <ETFDetailHeader etf={etf} />
