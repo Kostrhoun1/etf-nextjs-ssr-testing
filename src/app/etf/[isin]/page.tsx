@@ -358,10 +358,37 @@ export default async function ETFDetailPage({ params }: PageProps) {
           {(etf.primary_ticker || etf.exchange_1_ticker) && ' - '}
           {etf.name}
         </h1>
-        <div className="flex items-center gap-3 text-gray-600">
+        <div className="flex items-center gap-3 text-gray-600 mb-3">
           <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{etf.isin}</span>
           <span className="text-gray-400">•</span>
           <span className="font-medium">{etf.fund_provider}</span>
+        </div>
+
+        {/* Author byline - E-E-A-T signal */}
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Autor: </span>
+          <a
+            href="/o-nas"
+            className="text-violet-600 hover:text-violet-700 font-medium hover:underline"
+          >
+            Tomáš Kostrhoun
+          </a>
+          {etf.updated_at && (
+            <>
+              <span className="text-gray-400">•</span>
+              <span>
+                Aktualizováno: {new Date(etf.updated_at).toLocaleDateString('cs-CZ', {
+                  day: 'numeric',
+                  month: 'numeric',
+                  year: 'numeric'
+                })}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
