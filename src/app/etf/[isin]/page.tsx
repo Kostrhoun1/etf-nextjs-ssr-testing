@@ -266,6 +266,15 @@ export async function generateMetadata({ params }: PageProps) {
             "about": {
               "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`
             },
+            "author": {
+              "@id": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
+            },
+            "reviewedBy": {
+              "@id": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
+            },
+            "publisher": {
+              "@id": "https://www.etfpruvodce.cz#organization"
+            },
             "datePublished": etf.inception_date || "2024-01-01",
             "dateModified": etf.updated_at || new Date().toISOString(),
             "inLanguage": "cs-CZ"

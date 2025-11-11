@@ -4,6 +4,7 @@ import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import AuthorSchema from '@/components/SEO/AuthorSchema';
 
 export const metadata: Metadata = {
   title: {
@@ -86,6 +87,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+        {/* Author & Organization Schema - E-E-A-T signals for Google */}
+        <AuthorSchema />
       </head>
       <body className="font-sans antialiased">
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
