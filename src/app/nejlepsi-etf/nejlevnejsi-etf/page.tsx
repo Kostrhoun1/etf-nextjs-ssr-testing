@@ -7,6 +7,7 @@ import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/Internal
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import type { Metadata } from 'next';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 nejlevnější ETF - editoriální výběr s live daty z databáze
 const TOP_3_CHEAPEST_ETFS_TEMPLATE = [
@@ -99,7 +100,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlevnejsiETFPage() {
+export default async function NejlevnejsiETFPage() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
 
   // JSON-LD structured data
@@ -123,7 +127,7 @@ export default function NejlevnejsiETFPage() {
       }
     },
     datePublished: `${currentYear}-01-15`,
-    dateModified: new Date().toISOString().split('T')[0],
+    dateModified: lastModified.split('T')[0],
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': 'https://etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf'
@@ -208,7 +212,7 @@ export default function NejlevnejsiETFPage() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

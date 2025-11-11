@@ -7,6 +7,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import type { Metadata } from 'next';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 doporučené ETF pro rok 2025 - výběr na základě databázové analýzy
 const TOP_3_ETF_2025_TEMPLATE = [
@@ -98,7 +99,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlepsiETF2025() {
+export default async function NejlepsiETF2025() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
     year: 'numeric', 
@@ -127,7 +131,7 @@ export default function NejlepsiETF2025() {
       }
     },
     "datePublished": `${currentYear}-01-01`,
-    "dateModified": new Date().toISOString(),
+    "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": "https://etfpruvodce.cz/nejlepsi-etf-2025"
@@ -279,7 +283,7 @@ export default function NejlepsiETF2025() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

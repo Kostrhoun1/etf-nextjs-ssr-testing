@@ -7,6 +7,7 @@ import { Star, BarChart3, ArrowRight, Target, MapPin, Crown, Landmark , DollarSi
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 skutečné FTSE ETF z databáze
 const TOP_3_FTSE_ETFS_TEMPLATE = [
@@ -256,7 +257,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlepsiFTSEETFPage() {
+export default async function NejlepsiFTSEETFPage() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
     year: 'numeric', 
@@ -334,7 +338,7 @@ export default function NejlepsiFTSEETFPage() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

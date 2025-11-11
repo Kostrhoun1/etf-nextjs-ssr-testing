@@ -5,6 +5,7 @@ import { Star, BarChart3, Target, Plane, ScanLine , DollarSign, Rocket, Zap, Use
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 const TOP_3_DEFENSE_ETFS_TEMPLATE = [
   {
@@ -119,7 +120,10 @@ const structuredData = {
   }
 };
 
-export default function NejlepsiDefenseETFPage() {
+export default async function NejlepsiDefenseETFPage() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   return (
     <Layout>
       <script
@@ -167,7 +171,7 @@ export default function NejlepsiDefenseETFPage() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

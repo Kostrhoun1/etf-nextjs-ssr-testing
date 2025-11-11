@@ -7,6 +7,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import type { Metadata } from 'next';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 doporučené americké ETF - editoriální výběr s live daty z databáze
 const TOP_3_AMERICAN_ETFS_TEMPLATE = [
@@ -267,7 +268,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlepsiAmerickeETFPage() {
+export default async function NejlepsiAmerickeETFPage() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
     year: 'numeric', 
@@ -345,7 +349,7 @@ export default function NejlepsiAmerickeETFPage() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

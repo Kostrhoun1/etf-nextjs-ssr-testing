@@ -7,6 +7,7 @@ import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/Internal
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import type { Metadata } from 'next';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 doporučené DEGIRO zdarma ETF - editoriální výběr s live daty z databáze
 const TOP_3_DEGIRO_FREE_ETFS_TEMPLATE = [
@@ -144,7 +145,10 @@ const degiroFreeSections = [
   }
 ];
 
-export default function DegiroFreeETFPage() {
+export default async function DegiroFreeETFPage() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
     year: 'numeric', 
@@ -173,7 +177,7 @@ export default function DegiroFreeETFPage() {
       }
     },
     "datePublished": `${currentYear}-01-30`,
-    "dateModified": new Date().toISOString(),
+    "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": "https://etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro"
@@ -337,7 +341,7 @@ export default function DegiroFreeETFPage() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

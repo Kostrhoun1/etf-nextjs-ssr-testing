@@ -7,6 +7,7 @@ import { Star, BarChart3, ArrowRight, Target, MapPin, Briefcase , DollarSign, Ro
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 doporučené MSCI World ETF - editoriální výběr s live daty z databáze
 const TOP_3_MSCI_WORLD_ETFS_TEMPLATE = [
@@ -275,7 +276,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlepsiMSCIWorldETF() {
+export default async function NejlepsiMSCIWorldETF() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
     year: 'numeric', 
@@ -325,7 +329,7 @@ export default function NejlepsiMSCIWorldETF() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

@@ -6,6 +6,7 @@ import { Star, BarChart3, Target, Fuel, Leaf, Sun , DollarSign, Rocket, Zap, Use
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 doporučené Energy ETF - editoriální výběr s live daty z databáze
 const TOP_3_ENERGY_ETFS_TEMPLATE = [
@@ -92,7 +93,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlepsiEnergetickeETFPage() {
+export default async function NejlepsiEnergetickeETFPage() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
 
   // JSON-LD strukturovaná data pro SEO
@@ -116,7 +120,7 @@ export default function NejlepsiEnergetickeETFPage() {
       }
     },
     "datePublished": "2025-01-15",
-    "dateModified": new Date().toISOString(),
+    "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-energeticke-etf"
@@ -295,7 +299,7 @@ export default function NejlepsiEnergetickeETFPage() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

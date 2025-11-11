@@ -7,6 +7,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import type { Metadata } from 'next';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 doporučené Growth ETF - editoriální výběr s live daty z databáze
 const TOP_3_GROWTH_ETFS_TEMPLATE = [
@@ -101,7 +102,10 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default function NejlepsiGrowthETF() {
+export default async function NejlepsiGrowthETF() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
     year: 'numeric', 
@@ -130,7 +134,7 @@ export default function NejlepsiGrowthETF() {
       }
     },
     "datePublished": "2025-01-15",
-    "dateModified": new Date().toISOString(),
+    "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-growth-etf"
@@ -318,7 +322,7 @@ export default function NejlepsiGrowthETF() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

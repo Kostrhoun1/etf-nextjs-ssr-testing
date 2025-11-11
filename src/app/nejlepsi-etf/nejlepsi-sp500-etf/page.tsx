@@ -7,6 +7,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import type { Metadata } from 'next';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 doporučené S&P 500 ETF - editoriální výběr s live daty z databáze
 const TOP_3_SP500_ETFS_TEMPLATE = [
@@ -98,13 +99,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlepsiSP500ETF() {
+export default async function NejlepsiSP500ETF() {
   const currentYear = new Date().getFullYear();
-  const currentDate = new Date().toLocaleDateString('cs-CZ', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const currentDate = new Date().toLocaleDateString('cs-CZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
+
+  // Get last modified date from database (based on S&P 500 ETF updates)
+  const sp500Isins = ['IE00B5BMR087', 'IE00B3YCGJ38', 'IE00B6YX5C33']; // CSPX, SPXP, SPY5
+  const lastModified = await getLastModifiedDate(sp500Isins);
 
   // Enhanced structured data with FAQs and more products
   const articleSchema = {
@@ -127,7 +132,7 @@ export default function NejlepsiSP500ETF() {
       }
     },
     "datePublished": `${currentYear}-01-15`,
-    "dateModified": new Date().toISOString(),
+    "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf"
@@ -291,7 +296,7 @@ export default function NejlepsiSP500ETF() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'

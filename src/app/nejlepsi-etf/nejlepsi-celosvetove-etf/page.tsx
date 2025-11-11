@@ -7,6 +7,7 @@ import { Star, BarChart3, ArrowRight, Target, Earth, Compass, Map , DollarSign, 
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
+import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // Top 3 světové ETF založené na databázových datech
 const TOP_3_WORLD_ETFS_TEMPLATE = [
@@ -267,7 +268,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NejlepsiSvetoveETFPage() {
+export default async function NejlepsiSvetoveETFPage() {
+  // Get last modified date from database (all ETF updates)
+  const lastModified = await getLastModifiedDate();
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
     year: 'numeric', 
@@ -345,7 +349,7 @@ export default function NejlepsiSvetoveETFPage() {
                 </a>
                 <span className="text-gray-400">•</span>
                 <span>
-                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                  Aktualizováno: {new Date(lastModified).toLocaleDateString('cs-CZ', {
                     day: 'numeric',
                     month: 'numeric',
                     year: 'numeric'
