@@ -104,9 +104,9 @@ export default function NejlepsiESGETFPage() {
     "description": "Srovnání nejlepších ESG ETF 2025. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů.",
     "image": "https://etfpruvodce.cz/og-esg-etf.jpg",
     "author": {
-      "@type": "Organization",
-      "name": "ETF průvodce.cz",
-      "url": "https://etfpruvodce.cz"
+      "@type": "Person",
+      "name": "Tomáš Kostrhoun",
+      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
@@ -280,7 +280,30 @@ export default function NejlepsiESGETFPage() {
                   ESG ETF
                 </span>
               </h1>
-              
+
+              {/* Author byline - E-E-A-T signal */}
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Autor: </span>
+                <a
+                  href="/o-nas"
+                  className="text-violet-600 hover:text-violet-700 font-medium hover:underline"
+                >
+                  Tomáš Kostrhoun
+                </a>
+                <span className="text-gray-400">•</span>
+                <span>
+                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+
               <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
                 Kompletní srovnání nejlepších ESG ETF pro udržitelné investování. 
                 ESG screening, klimatické cíle a sustainable investing včetně praktických tipů.

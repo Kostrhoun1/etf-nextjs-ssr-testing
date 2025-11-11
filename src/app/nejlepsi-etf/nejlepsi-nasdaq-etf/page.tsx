@@ -114,9 +114,9 @@ export default function NejlepsiNASDAQETF() {
     "description": `Srovnání nejlepších NASDAQ 100 ETF ${currentYear}. CNDX, ANX, XNAS - poplatky TER, výnosy, expozice k Apple, Microsoft, Tesla.`,
     "image": "https://etfpruvodce.cz/og-nasdaq-etf.jpg",
     "author": {
-      "@type": "Organization",
-      "name": "ETF průvodce.cz",
-      "url": "https://etfpruvodce.cz"
+      "@type": "Person",
+      "name": "Tomáš Kostrhoun",
+      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization",
@@ -127,7 +127,7 @@ export default function NejlepsiNASDAQETF() {
       }
     },
     "datePublished": `${currentYear}-01-15`,
-    "dateModified": new Date(new Date().getMonth(), 1).toISOString(),
+    "dateModified": new Date().toISOString(),
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf"
@@ -304,7 +304,30 @@ export default function NejlepsiNASDAQETF() {
                   NASDAQ ETF
                 </span>
               </h1>
-              
+
+              {/* Author byline - E-E-A-T signal */}
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Autor: </span>
+                <a
+                  href="/o-nas"
+                  className="text-violet-600 hover:text-violet-700 font-medium hover:underline"
+                >
+                  Tomáš Kostrhoun
+                </a>
+                <span className="text-gray-400">•</span>
+                <span>
+                  Aktualizováno: {new Date().toLocaleDateString('cs-CZ', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+
               <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
                 Kompletní srovnání nejlepších NASDAQ 100 ETF fondů pro expozici k americkým technologickým gigantům. 
                 Analýza Apple, Microsoft, Tesla a dalších.
