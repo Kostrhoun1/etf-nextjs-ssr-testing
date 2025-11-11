@@ -38,6 +38,7 @@ import ETFDetailHeader from '@/components/etf/ETFDetailHeader';
 import ETFPerformanceCards from '@/components/etf/ETFPerformanceCards';
 import ETFPerformanceTable from '@/components/etf/ETFPerformanceTable';
 import RelatedETFSection from '@/components/etf/RelatedETFSection';
+import LastUpdated from '@/components/SEO/LastUpdated';
 
 interface PageProps {
   params: {
@@ -174,6 +175,13 @@ export async function generateMetadata({ params }: PageProps) {
       'max-video-preview': -1,
     },
     other: {
+      // Article metadata for freshness signals
+      'article:published_time': etf.inception_date || '2024-01-01T00:00:00Z',
+      'article:modified_time': etf.updated_at || new Date().toISOString(),
+      'article:author': 'Tomáš Kostrhoun',
+      'article:section': 'ETF Analysis',
+      'og:updated_time': etf.updated_at || new Date().toISOString(),
+
       // Add structured data for ETF investment product
       'structured-data': JSON.stringify({
         "@context": "https://schema.org",
@@ -377,20 +385,16 @@ export default async function ETFDetailPage({ params }: PageProps) {
           >
             Tomáš Kostrhoun
           </a>
-          {etf.updated_at && (
-            <>
-              <span className="text-gray-400">•</span>
-              <span>
-                Aktualizováno: {new Date(etf.updated_at).toLocaleDateString('cs-CZ', {
-                  day: 'numeric',
-                  month: 'numeric',
-                  year: 'numeric'
-                })}
-              </span>
-            </>
-          )}
         </div>
       </div>
+
+      {/* Last Updated - Trust signal */}
+      {etf.updated_at && (
+        <LastUpdated
+          date={etf.updated_at}
+          author="Tomáš Kostrhoun"
+        />
+      )}
 
       {/* Then client component WITHOUT H1 */}
       <ETFDetailHeader etf={etf} />

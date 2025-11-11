@@ -37,23 +37,23 @@ export default function AboutPage() {
                 </div>
 
                 <p className="text-lg">
-                  S více než <strong>12letou zkušeností</strong> v oblasti hypotéčních úvěrů, spotřebitelského úvěrování 
-                  a řízení P&L jsem přešel z pozice <strong>Head of Loans & Mortgages v MONETA Money Bank</strong> 
-                  k roli nezávislého poradce a zakladatele fintech projektů.
+                  S více než <strong>12letou zkušeností</strong> v oblasti hypotéčních úvěrů, spotřebitelského úvěrování a řízení P&L jsem přešel z pozice <strong>Head of Loans & Mortgages v MONETA Money Bank</strong> k roli nezávislého poradce a zakladatele fintech projektů.
                 </p>
 
                 <p>
-                  Moje expertiza se zaměřuje na produktovou strategii, oceňování a digitální automatizaci. 
-                  V průběhu své kariéry jsem vedl tým 30+ FTE, spravoval úvěrové portfolio v hodnotě 
-                  <strong>150+ miliard CZK</strong> a uvedl na trh <strong>první end-to-end online hypotéku</strong> 
-                  v České republice.
+                  V průběhu své kariéry jsem vedl tým 30+ FTE, spravoval úvěrové portfolio v hodnotě <strong>150+ miliard CZK</strong> a uvedl na trh <strong>první end-to-end online hypotéku</strong> v České republice. Během těchto let jsem ale neustále narážel na stejný problém: <strong>nízkou úroveň finanční gramotnosti</strong> mezi českými klienty.
                 </p>
 
                 <p>
-                  Aktuálně se věnujem budování fintech a poradenských platforem zaměřených na 
-                  osobní finance, hypotéky a spotřebitelské úvěrování napříč CEE/EU regiony. 
-                  Má práce se zaměřuje na objevování problémů, sizing trhů a vývoj MVP roadmap, 
-                  přičemž navrhuji cenové modely, koncepty úvěrových rizik a digitální procesy.
+                  Lidé často nerozuměli základním finančním konceptům – od úrokových sazeb přes diverzifikaci až po dlouhodobé investiční strategie. Místo toho se spoléhali na rady od prodejců, kteří často preferovali drahé produkty s vysokými provizemi nad efektivní řešení. To mě motivovalo zaměřit se na <strong>zvyšování finanční gramotnosti v Česku</strong>.
+                </p>
+
+                <p>
+                  <strong>Proč ETF fondy?</strong> ETF představují demokratizaci investování – nízké náklady, široká diverzifikace, transparentnost. Jsou to nástroje, které umožňují běžným lidem budovat majetek stejným způsobem jako institucionální investoři. Během své praxe v bankovnictví jsem se naučil analyzovat finanční produkty, hodnotit rizika a spravovat portfolia. Tuto expertizu teď chci zpřístupnit širší veřejnosti.
+                </p>
+
+                <p>
+                  Aktuálně se věnuji <strong>vzdělávání v oblasti osobních financí a investic</strong>. ETF průvodce.cz je projekt, který kombinuje data-driven přístup z bankovnictví s moderními technologiemi, aby poskytl českým investorům nástroje pro informovaná rozhodnutí. Můj cíl je jasný: pomoct lidem pochopit, jak efektivně investovat, a zbavit je závislosti na drahých aktivně řízených fondech a poradcích s provizními motivacemi.
                 </p>
 
                 <div className="bg-white rounded-lg p-6 mt-8">

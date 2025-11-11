@@ -206,6 +206,7 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
                   <li><Link href="/co-jsou-etf" className="hover:text-white transition-colors">Co jsou ETF</Link></li>
                   <li><Link href="/kde-koupit-etf" className="hover:text-white transition-colors">Kde koupit ETF</Link></li>
                   <li><Link href="/co-jsou-etf/jak-zacit-investovat" className="hover:text-white transition-colors">Jak začít investovat</Link></li>
+                  <li><Link href="/o-nas" className="hover:text-white transition-colors">O nás</Link></li>
                 </ul>
               </div>
               

@@ -93,6 +93,42 @@ export default async function HomePage() {
           {
             question: "Lze investovat do ETF s malými částkami?",
             answer: "Ano, u nejlepších brokerů můžete začít s malými částkami: Portu od 500 Kč, XTB a Trading212 od 1 EUR. Většina nabízí automatické investování a frakční ETF pro malé pravidelné investice."
+          },
+          {
+            question: "Jaký je rozdíl mezi ETF a podílovým fondem?",
+            answer: "ETF se obchodují na burze jako akcie (kdykoli během obchodního dne), zatímco podílové fondy se kupují/prodávají pouze jednou denně za NAV cenu. ETF mají typicky nižší poplatky (TER 0.1-0.5%) oproti aktivním podílovým fondům (1-2%). ETF jsou také transparentnější - portfolio se zveřejňuje denně."
+          },
+          {
+            question: "Jaké ETF doporučujete pro úplné začátečníky?",
+            answer: "Pro začátečníky doporučujeme začít s jedním globálním ETF jako VWCE (Vanguard All-World) nebo SWDA (iShares Core MSCI World). Tyto ETF poskytují diverzifikaci napříč tisíci společnostmi ve více než 20 zemích. Jsou to tzv. \"all-in-one\" řešení - není potřeba složitě skládat portfolio."
+          },
+          {
+            question: "Co znamená TER (Total Expense Ratio)?",
+            answer: "TER je roční náklad fondu vyjádřený v procentech z investované částky. Například TER 0,20% znamená, že ročně zaplatíte 20 Kč z každých 10 000 Kč. TER zahrnuje správu fondu, administrativu a marketing. Nižší TER = vyšší výnos pro investora. ETF mají typicky TER 0,1-0,7%, zatímco aktivní fondy 1-2%."
+          },
+          {
+            question: "Jsou ETF bezpečnější než akcie jednotlivých společností?",
+            answer: "Ano, ETF jsou výrazně bezpečnější díky diverzifikaci. Zatímco jedna akcie může zkrachovat (např. Lehman Brothers -100%), ETF obsahuje desítky až tisíce akcií. Pokud jedna společnost zkrachuje, ovlivní to pouze zlomek vašeho portfolia. ETF sledující celosvětové indexy (VWCE, SWDA) jsou nejbezpečnější volbou pro dlouhodobé investování."
+          },
+          {
+            question: "Jak často mám investovat do ETF?",
+            answer: "Nejlepší strategie je pravidelné měsíční investování (dollar-cost averaging). Tím eliminujete riziko špatného načasování trhu. U brokerů jako Portu, XTB nebo Trading212 můžete nastavit automatické měsíční nákupy již od 500 Kč. Tato strategie historicky překonává jednorázové investice v 60-70% případů."
+          },
+          {
+            question: "Co je to akumulační (ACC) a distribuční (DIST) ETF?",
+            answer: "Akumulační ETF (ACC) automaticky reinvestují všechny dividendy zpět do fondu - vaše investice roste bez vašeho zásahu. Distribuční ETF (DIST) vyplácejí dividendy na váš účet. Pro dlouhodobé investory jsou akumulační ETF výhodnější díky složenému úročení a daňové efektivitě (dividendy se nezdaňují průběžně, ale až při prodeji)."
+          },
+          {
+            question: "Jaké jsou nejčastější chyby začínajících investorů do ETF?",
+            answer: "1) Příliš složené portfolio (10+ ETF místo 1-3), 2) Investování jednorázové částky místo pravidelného DCA, 3) Prodej při poklesu trhu, 4) Ignorování TER a výběr drahých fondů, 5) Investování do sektorových ETF bez pochopení rizika. Nejlepší strategie: pravidelně investovat do 1-2 globálních ETF a držet dlouhodobě (10+ let)."
+          },
+          {
+            question: "Jak dlouho mám držet investici do ETF?",
+            answer: "ETF jsou určeny pro dlouhodobé investování - minimálně 5 let, ideálně 10-20 let. Historická data ukazují, že při horizontu 15+ let je pravděpodobnost ztráty téměř nulová. Krátkodobé investování (1-2 roky) je riskantní kvůli volatilitě trhů. Pravidlo: čím delší horizont, tím vyšší očekávaný výnos (historicky 7-10% ročně)."
+          },
+          {
+            question: "Co se stane s mými ETF, pokud broker zkrachuje?",
+            answer: "Vaše ETF jsou v bezpečí! ETF jsou ze zákona odděleny od majetku brokera (segregace aktiv). V případě krachu brokera jsou vaše ETF převedena k jinému brokerovi nebo můžete požádat o jejich prodej. ETF v EU jsou navíc chráněny direktivou UCITS a kompenzačním fondem investorů (do 20 000 EUR). Proto volte pouze regulované brokery s licencí ČNB/ECB."
           }
         ]}
         className="mt-16 bg-gray-50"
