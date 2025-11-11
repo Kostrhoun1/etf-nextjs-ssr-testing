@@ -5,10 +5,24 @@ import TwitterVariants from '@/components/infographics/TwitterVariants';
 export const metadata: Metadata = {
   title: 'Nejlepší ETF 2025 - Výkonnost | Infografika pro X/Twitter',
   description: 'Infografika s nejlepšími ETF fondy podle výkonnosti za posledních 3 roky. Optimalizováno pro sdílení na X/Twitter.',
+  alternates: {
+    canonical: 'https://www.etfpruvodce.cz/infografiky/nejlepsi-etf-vykonnost',
+  },
   openGraph: {
     title: 'Nejlepší ETF 2025 - Výkonnost',
     description: 'TOP 5 ETF fondů s nejvyšší výkonností za posledních 3 roky',
+    url: 'https://www.etfpruvodce.cz/infografiky/nejlepsi-etf-vykonnost',
+    siteName: 'ETF průvodce.cz',
+    locale: 'cs_CZ',
+    type: 'website',
     images: ['/og-etf-performance.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-snippet': -1,
+    'max-image-preview': 'large',
+    'max-video-preview': -1,
   },
 };
 

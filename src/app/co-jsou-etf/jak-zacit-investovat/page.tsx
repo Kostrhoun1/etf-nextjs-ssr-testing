@@ -16,7 +16,20 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Jak začít investovat do ETF? | ETF průvodce.cz',
     description: 'Kompletní návod jak začít s ETF investováním. Od výběru brokera po sestavení portfolia.',
-    url: 'https://etfpruvodce.cz/co-jsou-etf/jak-zacit-investovat',
+    url: 'https://www.etfpruvodce.cz/co-jsou-etf/jak-zacit-investovat',
+    siteName: 'ETF průvodce.cz',
+    locale: 'cs_CZ',
+    type: 'article',
+  },
+  alternates: {
+    canonical: 'https://www.etfpruvodce.cz/co-jsou-etf/jak-zacit-investovat',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-snippet': -1,
+    'max-image-preview': 'large',
+    'max-video-preview': -1,
   },
 };
 

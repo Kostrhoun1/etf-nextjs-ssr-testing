@@ -49,10 +49,13 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `Nejlepší ETF ${currentYear} - CSPX vs IWDA vs VWCE | ETF průvodce.cz`,
     description: `✅ Top 3 nejlepší ETF fondy pro rok ${currentYear}. CSPX, IWDA, VWCE - srovnání poplatků TER, výnosů, velikosti fondů. Aktuální data k ${currentDate}.`,
     keywords: `nejlepší ETF ${currentYear}, CSPX, IWDA, VWCE, ETF fondy, investování, indexové fondy`,
+    alternates: {
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf-2025',
+    },
     openGraph: {
       title: `Nejlepší ETF ${currentYear} - Top 3 doporučení pro české investory`,
       description: `Kompletní srovnání nejlepších ETF fondů pro rok ${currentYear}. Analýza CSPX, IWDA, VWCE - poplatky, výnosy, rizika.`,
-      url: 'https://etfpruvodce.cz/nejlepsi-etf-2025',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf-2025',
       siteName: 'ETF průvodce.cz',
       images: [
         {

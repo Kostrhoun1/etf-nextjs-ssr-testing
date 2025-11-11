@@ -5,10 +5,24 @@ import MarketHeatmap from '@/components/infographics/MarketHeatmap';
 export const metadata: Metadata = {
   title: 'Tržní heatmapa 2025 - Výkonnost sektorů a regionů | Infografika',
   description: 'Interaktivní heatmapa výkonnosti trhů, sektorů a regionů. Aktuální data pro investory.',
+  alternates: {
+    canonical: 'https://www.etfpruvodce.cz/infografiky/trzni-heatmapa',
+  },
   openGraph: {
     title: 'Tržní heatmapa 2025',
     description: 'Výkonnost sektorů, regionů a tříd aktiv v přehledné heatmapě',
+    url: 'https://www.etfpruvodce.cz/infografiky/trzni-heatmapa',
+    siteName: 'ETF průvodce.cz',
+    locale: 'cs_CZ',
+    type: 'website',
     images: ['/og-market-heatmap.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-snippet': -1,
+    'max-image-preview': 'large',
+    'max-video-preview': -1,
   },
 };
 

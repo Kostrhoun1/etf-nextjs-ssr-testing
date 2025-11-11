@@ -5,10 +5,24 @@ import TwitterVariants from '@/components/infographics/TwitterVariants';
 export const metadata: Metadata = {
   title: 'Nejlevnější ETF 2025 - Nejnižší poplatky TER | Infografika pro X/Twitter',
   description: 'Infografika s ETF fondy s nejnižšími poplatky TER. Optimalizováno pro sdílení na X/Twitter.',
+  alternates: {
+    canonical: 'https://www.etfpruvodce.cz/infografiky/nejlevnejsi-etf-ter',
+  },
   openGraph: {
     title: 'Nejlevnější ETF 2025 - Nejnižší TER',
     description: 'TOP 5 ETF fondů s nejnižšími poplatky TER',
+    url: 'https://www.etfpruvodce.cz/infografiky/nejlevnejsi-etf-ter',
+    siteName: 'ETF průvodce.cz',
+    locale: 'cs_CZ',
+    type: 'website',
     images: ['/og-etf-ter.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-snippet': -1,
+    'max-image-preview': 'large',
+    'max-video-preview': -1,
   },
 };
 

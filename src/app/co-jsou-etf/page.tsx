@@ -9,10 +9,23 @@ export const metadata: Metadata = {
   title: 'Co jsou ETF fondy? | Kompletní průvodce pro české investory 2025',
   description: 'Kompletní průvodce Exchange Traded Funds pro české investory. Naučte se pasivní investování, porovnejte nejlepší ETF a začněte investovat ještě dnes.',
   keywords: 'ETF fondy, co jsou ETF, Exchange Traded Fund, pasivní investování, VWCE, CSPX, SWDA',
+  alternates: {
+    canonical: 'https://www.etfpruvodce.cz/co-jsou-etf',
+  },
   openGraph: {
     title: 'Co jsou ETF fondy? | ETF průvodce.cz',
     description: 'Kompletní průvodce Exchange Traded Funds pro české investory. Naučte se pasivní investování, porovnejte nejlepší ETF a začněte investovat ještě dnes.',
-    url: 'https://etfpruvodce.cz/co-jsou-etf',
+    url: 'https://www.etfpruvodce.cz/co-jsou-etf',
+    siteName: 'ETF průvodce.cz',
+    locale: 'cs_CZ',
+    type: 'article',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    'max-snippet': -1,
+    'max-image-preview': 'large',
+    'max-video-preview': -1,
   },
 };
 

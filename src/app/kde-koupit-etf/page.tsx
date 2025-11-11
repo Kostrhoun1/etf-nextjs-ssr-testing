@@ -7,6 +7,17 @@ import { Store, ArrowRight, ExternalLink, Award, Shield, Users, DollarSign, Tren
 import SEOHead from '@/components/SEO/SEOHead';
 import InternalLinking, { BrokerGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 import { generateBrokerSchema, generateFAQSchema, generateBreadcrumbSchema } from '@/components/SEO/BrokerSEO';
+import { generateCanonicalMetadata } from '@/lib/metadata';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = generateCanonicalMetadata(
+  '/kde-koupit-etf',
+  'Kde koupit ETF 2025 🏆 Nejlepší brokeři pro české investory',
+  'Porovnání nejlepších brokerů pro nákup ETF v ČR: Portu, XTB, Trading212, DEGIRO. Poplatky, regulace, výběr ETF. Kompletní průvodce 2025.',
+  {
+    keywords: 'kde koupit ETF, broker ETF, DEGIRO, XTB, Trading212, Portu, poplatky broker, nákup ETF Česko'
+  }
+);
 
 export default function KdeKoupitETF() {
   const currentYear = new Date().getFullYear();

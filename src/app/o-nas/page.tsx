@@ -2,14 +2,13 @@ import Layout from '@/components/Layout';
 import { Metadata } from 'next';
 import { Mail, LinkedinIcon } from 'lucide-react';
 import Link from 'next/link';
+import { generateCanonicalMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'O nás - ETF průvodce.cz',
-  description: 'Seznamte se s Tomášem Kostrhoun, autorem ETF průvodce.cz. Fintech expert s 12letou zkušeností v bankovnictví, jehož cílem je zvýšení investiční gramotnosti v České republice.',
-  alternates: {
-    canonical: '/o-nas'
-  }
-};
+export const metadata: Metadata = generateCanonicalMetadata(
+  '/o-nas',
+  'O nás - ETF průvodce.cz',
+  'Seznamte se s Tomášem Kostrhoun, autorem ETF průvodce.cz. Fintech expert s 12letou zkušeností v bankovnictví, jehož cílem je zvýšení investiční gramotnosti v České republice.'
+);
 
 export default function AboutPage() {
   return (

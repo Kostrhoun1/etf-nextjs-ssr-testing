@@ -2,12 +2,22 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { 
-  Star, Brain, ArrowRight, BarChart3, 
+import {
+  Star, Brain, ArrowRight, BarChart3,
   Target, ChevronRight, BookOpen, Globe, Building, Shield, Award,
   DollarSign, Rocket, Zap, Users} from 'lucide-react';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import type { Metadata } from 'next';
+import { generateCanonicalMetadata } from '@/lib/metadata';
+
+export const metadata: Metadata = generateCanonicalMetadata(
+  '/nejlepsi-etf',
+  'Nejlepší ETF 2025 🏆 TOP doporučení pro české investory',
+  'Komplexní přehled nejlepších ETF fondů 2025 podle kategorií: S&P 500, MSCI World, technologie, dividendy, ESG. Expertní doporučení a analýzy.',
+  {
+    keywords: 'nejlepší ETF 2025, top ETF, doporučené ETF, S&P 500 ETF, MSCI World ETF, technologické ETF, dividendové ETF, ESG ETF'
+  }
+);
 
 // Kompletní ETF kategorie pro rok 2025
 const ETF_CATEGORIES = {
@@ -26,7 +36,7 @@ const ETF_CATEGORIES = {
       { slug: "nejlepsi-dax-etf", title: "DAX ETF", description: "Německé dividend aristokraty" }
     ]
   },
-  
+
   // Podle regionů
   regions: {
     title: "Podle regionů",
@@ -116,68 +126,6 @@ const ETF_CATEGORIES = {
     ]
   }
 };
-
-// Next.js Metadata API for SSR SEO
-export async function generateMetadata(): Promise<Metadata> {
-  const currentYear = new Date().getFullYear();
-  const currentDate = new Date().toLocaleDateString('cs-CZ', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-
-  return {
-    title: `Nejlepší ETF ${currentYear} - Kompletní průvodce podle kategorií | ETF průvodce.cz`,
-    description: `✅ Nejlepší ETF ${currentYear} podle indexů, regionů, sektorů a strategií. S&P 500, NASDAQ, MSCI World, dividendové a tech ETF. Aktuální data k ${currentDate}.`,
-    keywords: `nejlepší ETF ${currentYear}, S&P 500 ETF, NASDAQ ETF, MSCI World ETF, dividendové ETF, tech ETF, evropské ETF, ETF indexy, investování do ETF`,
-    openGraph: {
-      title: `Nejlepší ETF ${currentYear} - Kompletní průvodce podle kategorií`,
-      description: `Nejlepší ETF ${currentYear} podle indexů, regionů, sektorů a strategií. S&P 500, NASDAQ, MSCI World, dividendové a tech ETF.`,
-      url: 'https://etfpruvodce.cz/nejlepsi-etf',
-      siteName: 'ETF průvodce.cz',
-      images: [
-        {
-          url: 'https://etfpruvodce.cz/og-nejlepsi-etf.jpg',
-          width: 1200,
-          height: 630,
-          alt: `Nejlepší ETF ${currentYear}`,
-        },
-      ],
-      locale: 'cs_CZ',
-      type: 'article',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `Nejlepší ETF ${currentYear} - Kompletní průvodce`,
-      description: `Nejlepší ETF ${currentYear} podle indexů, regionů, sektorů a strategií. S&P 500, NASDAQ, MSCI World, dividendové ETF.`,
-      images: ['https://etfpruvodce.cz/og-nejlepsi-etf.jpg'],
-    },
-    alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf',
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
-    other: {
-      'article:author': 'ETF průvodce.cz',
-      'article:published_time': `${currentYear}-01-01T10:00:00.000Z`,
-      'article:modified_time': new Date().toISOString(),
-      'article:section': 'Investment Guides',
-      'article:tag': 'nejlepší ETF, ETF průvodce, investování, indexové fondy',
-      'theme-color': '#3B82F6',
-      'msapplication-TileColor': '#3B82F6',
-      'format-detection': 'telephone=no',
-    },
-  };
-}
 
 const currentYear = new Date().getFullYear();
 
