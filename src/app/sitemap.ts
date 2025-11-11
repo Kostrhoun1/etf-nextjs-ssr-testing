@@ -154,14 +154,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     console.log(`Adding ${allETFs.length} ETF pages to sitemap`)
-    
-    // Add ETF detail pages - use individual ETF update date or database last update
-    etfPages = allETFs.map((etf) => ({
-      url: `${baseUrl}/etf/${etf.isin}`,
-      lastModified: etf.updated_at ? new Date(etf.updated_at) : dbLastUpdate,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
+
+    // Add ETF detail pages with dynamic priority based on fund quality
+    etfPages = allETFs.map((etf, index) => {
+      // Higher priority for top ETFs, high-quality funds
+      let priority = 0.5; // Default priority
+
+      if (index < 100) {
+        priority = 0.9; // Top 100 ETFs by size
+      } else if (index < 500) {
+        priority = 0.8; // Top 500 ETFs
+      } else if (index < 1000) {
+        priority = 0.7; // Top 1000 ETFs
+      } else {
+        priority = 0.6; // Other ETFs
+      }
+
+      return {
+        url: `${baseUrl}/etf/${etf.isin}`,
+        lastModified: etf.updated_at ? new Date(etf.updated_at) : dbLastUpdate,
+        changeFrequency: 'weekly' as const,
+        priority,
+      };
+    })
 
     // REMOVED: Ticker pages to avoid duplicate content issues
     // Ticker URLs now redirect to ISIN pages via middleware (301 permanent redirect)

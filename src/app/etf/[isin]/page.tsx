@@ -2,14 +2,27 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { ETF } from '@/types/etf';
 import { notFound } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
+// ISR: Revalidate every 24 hours (86400 seconds)
+export const revalidate = 86400;
 
-// Tato funkce pomůže Next.js rozpoznat možné parametry
+// Generate static params for top 500 ETFs at build time
+// Others will be generated on-demand (ISR)
 export async function generateStaticParams() {
   try {
-    // Vracíme prázdný array, protože chceme dynamické renderování
-    // ale Next.js očekává, že funkce existuje
-    return [];
+    const { data: etfs, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select('isin')
+      .order('fund_size_numeric', { ascending: false })
+      .limit(500);
+
+    if (error || !etfs) {
+      console.error('Error in generateStaticParams:', error);
+      return [];
+    }
+
+    return etfs.map((etf) => ({
+      isin: etf.isin,
+    }));
   } catch (error) {
     console.error('Error in generateStaticParams:', error);
     return [];
@@ -24,6 +37,7 @@ import Layout from '@/components/Layout';
 import ETFDetailHeader from '@/components/etf/ETFDetailHeader';
 import ETFPerformanceCards from '@/components/etf/ETFPerformanceCards';
 import ETFPerformanceTable from '@/components/etf/ETFPerformanceTable';
+import RelatedETFSection from '@/components/etf/RelatedETFSection';
 
 interface PageProps {
   params: {
@@ -46,6 +60,30 @@ async function getETFData(isin: string): Promise<ETF | null> {
   return etf as ETF;
 }
 
+async function getRelatedETFs(etf: ETF): Promise<ETF[]> {
+  try {
+    // Find similar ETFs based on category, provider, or index
+    const { data: relatedETFs, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select('isin, name, primary_ticker, exchange_1_ticker, fund_provider, ter_numeric, return_1y, rating, fund_size_numeric')
+      .neq('isin', etf.isin) // Exclude current ETF
+      .or(`category.eq.${etf.category},fund_provider.eq.${etf.fund_provider},index_name.eq.${etf.index_name}`)
+      .gte('fund_size_numeric', 50) // Only show funds with meaningful size
+      .order('fund_size_numeric', { ascending: false })
+      .limit(6);
+
+    if (error || !relatedETFs) {
+      console.error('Error fetching related ETFs:', error);
+      return [];
+    }
+
+    return relatedETFs as ETF[];
+  } catch (error) {
+    console.error('Error in getRelatedETFs:', error);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { isin } = await params;
   const etf = await getETFData(isin);
@@ -63,22 +101,31 @@ export async function generateMetadata({ params }: PageProps) {
     ? `Detailní analýza ETF ${ticker} - ${etf.name} od ${etf.fund_provider}. TER ${formatPercentage(etf.ter_numeric)}, ${etf.return_1y ? 'roční výnos ' + formatPercentage(etf.return_1y) : 'výkonnostní data'}, složení portfolia a detailní informace o fondu.`
     : `Kompletní analýza ETF ${etf.name} od ${etf.fund_provider}. TER ${formatPercentage(etf.ter_numeric)}, ${etf.return_1y ? 'roční výnos ' + formatPercentage(etf.return_1y) : 'výkonnostní data'}, složení portfolia a detailní informace o fondu.`;
 
-  // SEO optimization: noindex for small/low-quality ETFs to save crawl budget
-  // Only index ETFs with meaningful size (>= 50M EUR) OR good rating (>= 3)
-  // This helps Google focus on indexing quality content
+  // SEO optimization: Index all ETFs but set priority based on quality
+  // High quality ETFs (large funds or good ratings) get max-snippet and max-image-preview
   const fundSize = etf.fund_size_numeric || 0;
   const rating = etf.rating || 0;
-  const shouldIndex = fundSize >= 50 || rating >= 3;
+  const isHighQuality = fundSize >= 100 || rating >= 4;
 
   return {
     title: `${titleWithTicker} | ETF Průvodce`,
     description: descriptionWithTicker,
-    keywords: ticker ? [ticker, etf.name, etf.isin, etf.fund_provider, 'ETF', 'investice'].join(', ') : [etf.name, etf.isin, etf.fund_provider, 'ETF', 'investice'].join(', '),
+    keywords: ticker ? [ticker, etf.name, etf.isin, etf.fund_provider, 'ETF', 'investice', 'analýza'].join(', ') : [etf.name, etf.isin, etf.fund_provider, 'ETF', 'investice', 'analýza'].join(', '),
     openGraph: {
       title: `${titleWithTicker} | ETF Průvodce`,
       description: descriptionWithTicker,
       url: `https://www.etfpruvodce.cz/etf/${isin}`,
+      siteName: 'ETF průvodce.cz',
       type: 'article',
+      locale: 'cs_CZ',
+      images: [
+        {
+          url: `https://www.etfpruvodce.cz/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: `${etf.name} - Analýza ETF`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
@@ -89,59 +136,110 @@ export async function generateMetadata({ params }: PageProps) {
       canonical: `https://www.etfpruvodce.cz/etf/${isin}`,
     },
     robots: {
-      index: shouldIndex,
+      index: true,
       follow: true,
-      googleBot: {
-        index: shouldIndex,
-        follow: true,
-      },
+      'max-snippet': isHighQuality ? -1 : 160,
+      'max-image-preview': isHighQuality ? 'large' : 'standard',
+      'max-video-preview': -1,
     },
     other: {
       // Add structured data for ETF investment product
       'structured-data': JSON.stringify({
         "@context": "https://schema.org",
-        "@type": ["FinancialProduct", "InvestmentFund"],
-        "name": etf.name,
-        "identifier": {
-          "@type": "PropertyValue",
-          "propertyID": "ISIN",
-          "value": etf.isin
-        },
-        "description": etf.description_cs || etf.description_en || `ETF fond ${etf.name} od poskytovatele ${etf.fund_provider}`,
-        "provider": {
-          "@type": "Organization",
-          "name": etf.fund_provider
-        },
-        "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
-        "category": etf.category,
-        "currency": etf.fund_currency,
-        "feesAndCommissionsSpecification": {
-          "@type": "UnitPriceSpecification",
-          "price": etf.ter_numeric,
-          "priceCurrency": "percent",
-          "unitText": "TER (Total Expense Ratio)"
-        },
-        "yields": etf.current_dividend_yield_numeric ? {
-          "@type": "MonetaryAmount",
-          "value": etf.current_dividend_yield_numeric,
-          "currency": "percent"
-        } : undefined,
-        "fundSize": etf.fund_size_numeric,
-        "inceptionDate": etf.inception_date,
-        "trackingError": etf.tracking_error,
-        "distributionPolicy": etf.distribution_policy,
-        "domicile": etf.fund_domicile,
-        "aggregateRating": etf.rating ? {
-          "@type": "AggregateRating",
-          "ratingValue": etf.rating,
-          "bestRating": 5,
-          "worstRating": 1
-        } : undefined,
-        "offers": {
-          "@type": "Offer",
-          "availability": "https://schema.org/InStock",
-          "priceCurrency": etf.fund_currency
-        }
+        "@graph": [
+          {
+            "@type": ["FinancialProduct", "InvestmentFund"],
+            "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`,
+            "name": etf.name,
+            "identifier": {
+              "@type": "PropertyValue",
+              "propertyID": "ISIN",
+              "value": etf.isin
+            },
+            "description": etf.description_cs || etf.description_en || `ETF fond ${etf.name} od poskytovatele ${etf.fund_provider}`,
+            "provider": {
+              "@type": "Organization",
+              "name": etf.fund_provider
+            },
+            "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
+            "category": etf.category,
+            "currency": etf.fund_currency,
+            "feesAndCommissionsSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": etf.ter_numeric,
+              "priceCurrency": "percent",
+              "unitText": "TER (Total Expense Ratio)"
+            },
+            "yields": etf.current_dividend_yield_numeric ? {
+              "@type": "MonetaryAmount",
+              "value": etf.current_dividend_yield_numeric,
+              "currency": "percent"
+            } : undefined,
+            "fundSize": etf.fund_size_numeric,
+            "inceptionDate": etf.inception_date,
+            "trackingError": etf.tracking_error,
+            "distributionPolicy": etf.distribution_policy,
+            "domicile": etf.fund_domicile,
+            "aggregateRating": etf.rating ? {
+              "@type": "AggregateRating",
+              "ratingValue": etf.rating,
+              "bestRating": 5,
+              "worstRating": 1,
+              "ratingCount": 1
+            } : undefined,
+            "offers": {
+              "@type": "Offer",
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": etf.fund_currency
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#breadcrumb`,
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Domů",
+                "item": "https://www.etfpruvodce.cz"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Srovnání ETF",
+                "item": "https://www.etfpruvodce.cz/srovnani-etf"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": etf.name,
+                "item": `https://www.etfpruvodce.cz/etf/${etf.isin}`
+              }
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#webpage`,
+            "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
+            "name": `${titleWithTicker} | ETF Průvodce`,
+            "description": descriptionWithTicker,
+            "isPartOf": {
+              "@type": "WebSite",
+              "@id": "https://www.etfpruvodce.cz#website",
+              "name": "ETF průvodce.cz",
+              "url": "https://www.etfpruvodce.cz"
+            },
+            "breadcrumb": {
+              "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#breadcrumb`
+            },
+            "about": {
+              "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`
+            },
+            "datePublished": etf.inception_date || "2024-01-01",
+            "dateModified": etf.updated_at || new Date().toISOString(),
+            "inLanguage": "cs-CZ"
+          }
+        ]
       })
     }
   };
@@ -154,6 +252,9 @@ export default async function ETFDetailPage({ params }: PageProps) {
   if (!etf) {
     notFound();
   }
+
+  // Get related ETFs for internal linking
+  const relatedETFs = await getRelatedETFs(etf);
 
   const getReturnColor = (value: number | null | undefined) => {
     if (!value) return 'text-gray-600';
@@ -609,6 +710,9 @@ export default async function ETFDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Related ETFs for SEO internal linking */}
+      <RelatedETFSection etfs={relatedETFs} />
     </div>
     </Layout>
   );
