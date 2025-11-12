@@ -621,6 +621,389 @@ export default async function NejlepsiNASDAQETF() {
         </div>
       </section>
 
+      {/* SECTION 8: NASDAQ 100-Specific Pro Optimization Tips */}
+      <section id="pro-tipy" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+            ⚡ 5 pokročilých tipů specifických pro NASDAQ 100 ETF
+          </h2>
+          <p className="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+            Tyto strategie fungují specificky pro NASDAQ 100 index a jeho tech-heavy strukturu. Neplatí pro S&P 500, MSCI World ani jiné diversifikované indexy.
+          </p>
+
+          <div className="space-y-8">
+            {/* Tip 1: Magnificent 7 Extreme Concentration */}
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-8 border-2 border-red-300 hover:shadow-xl transition-all">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    1
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    ⚠️ Magnificent 7 Extreme Concentration (45%+ indexu!)
+                  </h3>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    NASDAQ 100 má <strong>NEJVYŠŠÍ koncentraci TOP 7</strong> ze všech hlavních indexů:
+                    Apple, Microsoft, Amazon, Nvidia, Tesla, Meta, Alphabet často tvoří <strong>45-50% celého indexu</strong>.
+                    To je skoro DVOJNÁSOBEK S&P 500 (~25-30%) a TROJNÁSOBEK MSCI World (~15%).
+                  </p>
+                  <div className="bg-white rounded-xl p-4 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-3">📊 Koncentrační riziko v číslech:</p>
+                    <div className="grid md:grid-cols-3 gap-3 text-sm">
+                      <div className="bg-red-50 rounded p-3 border-l-4 border-red-500">
+                        <p className="font-bold text-red-800">NASDAQ 100</p>
+                        <p className="text-2xl font-bold text-red-900 my-1">45-50%</p>
+                        <p className="text-xs text-gray-600">TOP 7 companies</p>
+                      </div>
+                      <div className="bg-orange-50 rounded p-3 border-l-4 border-orange-500">
+                        <p className="font-bold text-orange-800">S&P 500</p>
+                        <p className="text-2xl font-bold text-orange-900 my-1">25-30%</p>
+                        <p className="text-xs text-gray-600">TOP 7 companies</p>
+                      </div>
+                      <div className="bg-green-50 rounded p-3 border-l-4 border-green-500">
+                        <p className="font-bold text-green-800">MSCI World</p>
+                        <p className="text-2xl font-bold text-green-900 my-1">~15%</p>
+                        <p className="text-xs text-gray-600">TOP 7 companies</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border-l-4 border-red-500 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-2">💡 Rebalancing strategie:</p>
+                    <div className="space-y-2 text-sm text-gray-700">
+                      <div className="flex items-start gap-2">
+                        <span className="text-red-600 font-bold">🚨</span>
+                        <div>
+                          <strong>Magnificent 7 {'>'}  50%:</strong> KRITICKÉ! Zvažte přidat Equal-Weight NASDAQ ETF
+                          (např. Invesco NASDAQ 100 Equal Weight) nebo S&P 500 pro snížení single-stock risk.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-orange-600 font-bold">⚠️</span>
+                        <div>
+                          <strong>Magnificent 7 = 45-50%:</strong> Normální pro NASDAQ, ale sledujte.
+                          Pokud 1-2 z TOP 7 zakolísají, pocítíte to výrazně.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✅</span>
+                        <div>
+                          <strong>Magnificent 7 {'<'} 40%:</strong> Nižší koncentrace = nižší riziko.
+                          Vzácné, ale ideální čas pro větší alokaci do NASDAQ.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>Kde sledovat aktuální váhu:</strong> <a href="https://www.slickcharts.com/nasdaq100" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">SlickCharts.com/nasdaq100</a>
+                    {' '}(real-time tracking)
+                  </p>
+                  <p className="text-xs text-gray-500 mt-3 italic">
+                    ⚠️ Poznámka: S&P 500 má také Magnificent 7, ale s ~25-30% váhou je riziko poloviční.
+                    MSCI World má ještě širší diverzifikaci (~15% TOP 7).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tip 2: December Annual Rebalance Volatility */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border-2 border-purple-300 hover:shadow-xl transition-all">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    2
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    📅 December Rebalance = Major Volatility Spike (1x yearly vs S&P 500 quarterly)
+                  </h3>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    NASDAQ 100 se rebalancuje pouze <strong>1x ročně v prosinci</strong> (vs S&P 500 quarterly).
+                    To znamená, že všechny změny v indexu (přidání/odstranění společností, cap adjustments) se dějí najednou
+                    → <strong>extrémní volatilita v 3. týdnu prosince</strong>.
+                  </p>
+                  <div className="bg-white rounded-xl p-4 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-3">🗓️ December Rebalance Timeline:</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start gap-3 border-l-4 border-blue-500 pl-3">
+                        <span className="font-bold text-blue-700">1. týden:</span>
+                        <p className="text-gray-700">NASDAQ oznámí změny v indexu (companies in/out). Trhy spekulují.</p>
+                      </div>
+                      <div className="flex items-start gap-3 border-l-4 border-orange-500 pl-3">
+                        <span className="font-bold text-orange-700">2.-3. týden:</span>
+                        <p className="text-gray-700">
+                          <strong>PEAK VOLATILITY!</strong> Institucionální investoři forced buying/selling.
+                          ETF tracking error widening. Spread increases.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3 border-l-4 border-green-500 pl-3">
+                        <span className="font-bold text-green-700">4. týden + January:</span>
+                        <p className="text-gray-700">Volatilita klesá, trhy se normalizují. Ideální čas pro nákup.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border-l-4 border-purple-500 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-2">💡 Trading strategie pro prosincový rebalance:</p>
+                    <ol className="space-y-2 text-sm text-gray-700 list-decimal list-inside">
+                      <li>
+                        <strong>NEDĚLEJTE velké nákupy 10.-20. prosince</strong> → spread je wide, volatility vysoká,
+                        můžete koupit o 2-5% dráž než fair value.
+                      </li>
+                      <li>
+                        <strong>Pokud investujete pravidelně (DCA):</strong> Přesuňte prosincovou investici na začátek ledna.
+                        Vyhnete se rebalance chaosu.
+                      </li>
+                      <li>
+                        <strong>Opportunistic buying:</strong> Pokud NASDAQ klesne {'>'} 10% v prosinci kvůli rebalanci,
+                        je to often short-term overreaction → buying opportunity (ale risky!).
+                      </li>
+                    </ol>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 italic">
+                    ⚠️ Poznámka: S&P 500 rebalancuje quarterly → volatility je rozložená, nižší impact per event.
+                    MSCI World má rolling rebalance → téměř žádný spike.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tip 3: Zero Financials Sector Gap */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-blue-300 hover:shadow-xl transition-all">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    3
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    🏦 Zero Financials = 13% Market Missing (by design)
+                  </h3>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    NASDAQ 100 <strong>EXCLUDES všechny financial companies</strong> (banks, insurance, investment firms) by definition.
+                    To znamená, že vám chybí ~<strong>13% of S&P 500</strong>: JPMorgan, Bank of America, Berkshire Hathaway, Visa, Mastercard, atd.
+                  </p>
+                  <div className="bg-white rounded-xl p-4 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-3">💼 Co vám chybí bez Financials:</p>
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-2">
+                        <p className="font-bold text-red-800">❌ Nemáte exposure k:</p>
+                        <ul className="text-gray-700 space-y-1">
+                          <li>• JPMorgan Chase (největší US banka)</li>
+                          <li>• Berkshire Hathaway (Warren Buffett)</li>
+                          <li>• Visa, Mastercard (payment processors)</li>
+                          <li>• BlackRock, Goldman Sachs (investment)</li>
+                          <li>• Insurance giants (Prudential, MetLife)</li>
+                        </ul>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="font-bold text-green-800">✅ Máte více tech/consumer:</p>
+                        <ul className="text-gray-700 space-y-1">
+                          <li>• Extra weight v Tech (~50% vs 30%)</li>
+                          <li>• Extra weight v Consumer Discretionary</li>
+                          <li>• Extra weight v Healthcare tech</li>
+                          <li>• Čistší "growth" profil</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border-l-4 border-blue-500 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-2">💡 Portfolio completion strategie:</p>
+                    <div className="space-y-3 text-sm text-gray-700">
+                      <div className="bg-blue-50 rounded p-3">
+                        <p className="font-bold text-blue-800 mb-1">Option A: Pure NASDAQ (Accept the gap)</p>
+                        <p className="text-xs">100% NASDAQ 100 ETF → Čistý tech/growth bet. Ignorujete financials intentionally.</p>
+                      </div>
+                      <div className="bg-green-50 rounded p-3">
+                        <p className="font-bold text-green-800 mb-1">Option B: 70/30 Split (Balanced)</p>
+                        <p className="text-xs">
+                          70% NASDAQ 100 + 30% Financial Sector ETF (např. SPDR Financial XLF)
+                          → Získáte tech exposure + financial balance.
+                        </p>
+                      </div>
+                      <div className="bg-purple-50 rounded p-3">
+                        <p className="font-bold text-purple-800 mb-1">Option C: Switch to S&P 500 (Full market)</p>
+                        <p className="text-xs">
+                          S&P 500 má tech (~30%) + financials (~13%) + 9 dalších sektorů.
+                          Wider diversifikace, nižší volatilita.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 italic">
+                    ⚠️ Poznámka: Absence financials je FEATURE, ne bug. NASDAQ chce pure non-financial exposure.
+                    Pokud chcete financials, kombinujte s Financial ETF nebo použijte S&P 500.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tip 4: 2x Downside in Bear Markets */}
+            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-8 border-2 border-orange-300 hover:shadow-xl transition-all">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-orange-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    4
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    📉 Beta ~1.2-1.3: NASDAQ klesá ~20-30% víc než S&P 500 v bear markets
+                  </h3>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    NASDAQ 100 má <strong>beta koeficient ~1.2-1.3</strong> vůči S&P 500.
+                    To znamená: když S&P 500 klesne o 10%, NASDAQ typicky klesne o <strong>12-13%</strong>.
+                    V velkých bear markets je rozdíl ještě větší (growth stocks jsou hit harder).
+                  </p>
+                  <div className="bg-white rounded-xl p-4 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-3">📊 Historické bear market drawdowns:</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <div className="bg-red-50 rounded p-3 border-l-4 border-red-500">
+                          <p className="font-bold text-red-800">2022 Bear Market</p>
+                          <p className="text-xs text-gray-600 mb-2">Fed rate hikes, tech selloff</p>
+                          <div className="space-y-1">
+                            <p><span className="font-bold text-red-900">NASDAQ:</span> -33%</p>
+                            <p><span className="font-bold text-orange-900">S&P 500:</span> -18%</p>
+                            <p className="text-xs font-bold text-red-700">→ NASDAQ -15pp worse!</p>
+                          </div>
+                        </div>
+                        <div className="bg-orange-50 rounded p-3 border-l-4 border-orange-500">
+                          <p className="font-bold text-orange-800">2000-2002 Dot-com</p>
+                          <p className="text-xs text-gray-600 mb-2">Tech bubble burst</p>
+                          <div className="space-y-1">
+                            <p><span className="font-bold text-red-900">NASDAQ:</span> -78% (!)</p>
+                            <p><span className="font-bold text-orange-900">S&P 500:</span> -49%</p>
+                            <p className="text-xs font-bold text-red-700">→ NASDAQ -29pp worse!</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border-l-4 border-orange-500 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-2">💡 Bear market survival strategie:</p>
+                    <ol className="space-y-2 text-sm text-gray-700 list-decimal list-inside">
+                      <li>
+                        <strong>Očekávejte -30% drawdowns v bear markets</strong> (vs S&P 500 -20%).
+                        Nečekejte že NASDAQ drží lépe - tech is always hit harder.
+                      </li>
+                      <li>
+                        <strong>DCA agresivně v drawdownech:</strong> Když NASDAQ klesne {'>'} 25%, alokujte extra capital.
+                        Recovery je obvykle rychlejší než S&P 500 (2020 COVID: NASDAQ +45% za 6 měsíců).
+                      </li>
+                      <li>
+                        <strong>NEPRODÁVEJTE na dně!</strong> NASDAQ investor psychology: panic selling at -30% → miss recovery.
+                        Držte nebo kupujte, neprodávejte.
+                      </li>
+                      <li>
+                        <strong>Hedge option (pokročilé):</strong> 80% NASDAQ + 20% Bonds/Gold ETF → snížení volatility,
+                        ztráta growth upside (trade-off).
+                      </li>
+                    </ol>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 italic">
+                    ⚠️ Poznámka: Vyšší volatilita = vyšší riziko, ale také vyšší long-term returns.
+                    NASDAQ historically outperforms S&P 500 over 10+ years, ale cesta je bolestnější.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tip 5: Modified Cap-Weighting Anti-Monopoly Rule */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-green-300 hover:shadow-xl transition-all">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    5
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    ⚖️ Modified Cap-Weighting: 24% cap rule prevents Apple/Microsoft monopoly
+                  </h3>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    NASDAQ 100 používá <strong>modified market-cap weighting</strong> s pravidlem:
+                    žádná společnost nemůže mít váhu {'>'} 24% indexu. Pokud Apple/Microsoft překročí 24% při rebalanci,
+                    jsou automaticky "capped" a excess weight je redistribuován.
+                  </p>
+                  <div className="bg-white rounded-xl p-4 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-3">📊 Jak funguje 24% cap:</p>
+                    <div className="space-y-3 text-sm text-gray-700">
+                      <div className="bg-blue-50 rounded p-3 border-l-4 border-blue-500">
+                        <p className="font-bold text-blue-800">Scénář 1: Apple roste na 26% market cap</p>
+                        <p className="text-xs mt-1">
+                          Při prosincovém rebalanci → Apple je capped na 24%.
+                          Excess 2% je distributed to stocks #2-#100 proportionally.
+                        </p>
+                      </div>
+                      <div className="bg-green-50 rounded p-3 border-l-4 border-green-500">
+                        <p className="font-bold text-green-800">Efekt: Anti-monopoly protection</p>
+                        <p className="text-xs mt-1">
+                          Zabraňuje tomu, aby 1 společnost dominovala index (unlike pure market-cap indexy).
+                          NASDAQ má built-in diversifikaci.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border-l-4 border-green-500 mb-4">
+                    <p className="text-sm text-gray-800 font-medium mb-2">💡 Investiční implikace:</p>
+                    <div className="space-y-2 text-sm text-gray-700">
+                      <div className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✅</span>
+                        <div>
+                          <strong>Pro:</strong> NASDAQ má built-in diversifikaci. I když Apple exploduje,
+                          váha je capped → nižší single-stock risk než pure market-cap.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-orange-600 font-bold">⚠️</span>
+                        <div>
+                          <strong>Con:</strong> Pokud chcete MAXIMUM exposure k Apple/Microsoft growth,
+                          NASDAQ vás limituje. S&P 500 Technology ETF (uncapped) může mít Apple na 35%+.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">💡</span>
+                        <div>
+                          <strong>Strategie:</strong> Pokud věříte v Apple/Microsoft long-term dominanci,
+                          kombinujte 70% NASDAQ + 30% direct Apple/Microsoft stocks pro extra exposure.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-yellow-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-800 font-medium mb-2">📚 Srovnání s jinými indexy:</p>
+                    <div className="grid md:grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <p className="font-bold text-gray-800">NASDAQ 100 (Modified Cap):</p>
+                        <p className="text-gray-600">Max 24% per stock → forced diversifikace</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">S&P 500 (Pure Market-Cap):</p>
+                        <p className="text-gray-600">No caps → Apple může mít 7-8% celého indexu</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">Equal-Weight NASDAQ:</p>
+                        <p className="text-gray-600">Each stock = 1% → maximum diversifikace, nižší returns</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">Tech Sector ETF:</p>
+                        <p className="text-gray-600">Pure tech, no caps → nejvyšší single-stock concentration</p>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 italic">
+                    ⚠️ Poznámka: 24% cap je unikátní pro NASDAQ 100. Většina indexů (S&P 500, MSCI World) používá pure market-cap weighting bez cap limits.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
