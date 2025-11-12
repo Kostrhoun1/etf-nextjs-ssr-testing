@@ -77,7 +77,7 @@ const jsonLd = {
     url: 'https://etf-pruvodce.cz'
   },
   datePublished: '2025-01-15',
-  dateModified: lastModified,
+  dateModified: new Date().toISOString().split('T')[0],
   mainEntityOfPage: {
     '@type': 'WebPage',
     '@id': 'https://etf-pruvodce.cz/nejlepsi-etf/nejlepsi-asijsko-pacificke-etf'
