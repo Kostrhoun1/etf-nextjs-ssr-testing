@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: PageProps) {
 
   // Ticker pages are STANDALONE pages for SEO purposes
   // They should have their own canonical pointing to themselves
-  const canonicalUrl = `https://etfpruvodce.cz/etf/ticker/${formattedTicker.toLowerCase()}`;
+  const canonicalUrl = `https://www.etfpruvodce.cz/etf/ticker/${formattedTicker.toLowerCase()}`;
 
   return {
     title: `${formattedTicker} ETF - ${etf.name} | Detail fondu ${providerName}`,
@@ -113,7 +113,7 @@ export default async function ETFTickerDetailPage({ params }: PageProps) {
       "@type": "Organization",
       "name": etf.fund_provider || "ETF Provider"
     },
-    "url": `https://etfpruvodce.cz/etf/ticker/${formattedTicker.toLowerCase()}`,
+    "url": `https://www.etfpruvodce.cz/etf/ticker/${formattedTicker.toLowerCase()}`,
     "identifier": {
       "@type": "PropertyValue",
       "propertyID": "Ticker",

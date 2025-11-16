@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší AI ETF ${currentYear} - umělá inteligence a robotika`,
       description: `Srovnání nejlepších AI ETF ${currentYear}. Umělá inteligence, machine learning, big data - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-ai-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiAIETFPage() {
     "@type": "Article",
     "headline": `Nejlepší AI ETF ${currentYear} - umělá inteligence a robotika`,
     "description": "Srovnání nejlepších AI ETF 2025. Umělá inteligence, machine learning, big data - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-ai-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-ai-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "AI ETF, umělá inteligence, machine learning, big data, robotika, automatizace",
@@ -228,19 +228,19 @@ export default async function NejlepsiAIETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší AI ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf"
       }
     ]
   };

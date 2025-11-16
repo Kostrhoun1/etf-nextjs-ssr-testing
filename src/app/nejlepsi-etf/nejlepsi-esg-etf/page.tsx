@@ -70,7 +70,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory`,
       description: `Srovnání nejlepších ESG ETF ${currentYear}. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -89,7 +89,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-esg-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf'
     }
   };
 }
@@ -106,25 +106,25 @@ export default async function NejlepsiESGETFPage() {
     "@type": "Article",
     "headline": `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory`,
     "description": "Srovnání nejlepších ESG ETF 2025. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-esg-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-esg-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "ESG ETF, udržitelné investování, ESG screening, klimatické cíle, sustainable investing",
@@ -229,19 +229,19 @@ export default async function NejlepsiESGETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší ESG ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf"
       }
     ]
   };

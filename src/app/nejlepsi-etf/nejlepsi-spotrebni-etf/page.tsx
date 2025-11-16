@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary`,
       description: `Srovnání nejlepších spotřebních ETF ${currentYear}. Consumer staples, discretionary, retail - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-consumer-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiSpotrebniETFPage() {
     "@type": "Article",
     "headline": `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary`,
     "description": "Srovnání nejlepších spotřebních ETF 2025. Consumer staples, discretionary, retail - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-consumer-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-consumer-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "spotřební ETF, consumer staples, consumer discretionary, retail, spotřební sektor",
@@ -204,19 +204,19 @@ export default async function NejlepsiSpotrebniETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší spotřební ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf"
       }
     ]
   };

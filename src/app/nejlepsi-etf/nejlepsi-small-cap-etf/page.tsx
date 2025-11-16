@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší Small Cap ETF ${currentYear} - malé společnosti a Russell 2000`,
       description: `Srovnání nejlepších Small Cap ETF ${currentYear}. Russell 2000, MSCI World Small Cap, evropské malé společnosti - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-small-cap-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiSmallCapETFPage() {
     "@type": "Article",
     "headline": `Nejlepší Small Cap ETF ${currentYear} - malé společnosti a Russell 2000`,
     "description": "Srovnání nejlepších Small Cap ETF 2025. Russell 2000, MSCI World Small Cap, evropské malé společnosti - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-small-cap-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-small-cap-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "Small Cap ETF, malé společnosti, Russell 2000, MSCI World Small Cap, small cap investování",
@@ -204,19 +204,19 @@ export default async function NejlepsiSmallCapETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší Small Cap ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf"
       }
     ]
   };

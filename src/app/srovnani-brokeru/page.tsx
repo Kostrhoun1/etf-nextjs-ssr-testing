@@ -18,10 +18,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Nejlepší brokeři ${currentYear} - Kompletní srovnání ETF brokerů`,
     description: `Objektivní srovnání nejlepších brokerů pro ETF investice v ${currentYear}. Portu 98/100, XTB 94/100 a další.`,
-    url: 'https://etfpruvodce.cz/srovnani-brokeru',
+    url: 'https://www.etfpruvodce.cz/srovnani-brokeru',
     siteName: 'ETF průvodce.cz',
     images: [{
-      url: 'https://etfpruvodce.cz/og-srovnani-brokeru.jpg',
+      url: 'https://www.etfpruvodce.cz/og-srovnani-brokeru.jpg',
       width: 1200,
       height: 630,
     }],
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `Nejlepší brokeři ${currentYear}`,
     description: `Objektivní srovnání nejlepších brokerů pro ETF investice v ${currentYear}.`,
-    images: ['https://etfpruvodce.cz/og-srovnani-brokeru.jpg'],
+    images: ['https://www.etfpruvodce.cz/og-srovnani-brokeru.jpg'],
   },
   alternates: {
-    canonical: 'https://etfpruvodce.cz/srovnani-brokeru',
+    canonical: 'https://www.etfpruvodce.cz/srovnani-brokeru',
   },
   robots: {
     index: true,
@@ -62,13 +62,13 @@ export default function SrovnaniBrokeruPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Nejlepší brokeři 2025",
-        "item": "https://etfpruvodce.cz/srovnani-brokeru"
+        "item": "https://www.etfpruvodce.cz/srovnani-brokeru"
       }
     ]
   };
@@ -78,7 +78,7 @@ export default function SrovnaniBrokeruPage() {
     "@type": "WebPage",
     "name": "Nejlepší brokeři 2025 - Kompletní srovnání",
     "description": "Objektivní srovnání nejlepších brokerů pro ETF investice v roce 2025. XTB 4.7/5, DEGIRO, Interactive Brokers, Trading 212 a další.",
-    "url": "https://etfpruvodce.cz/srovnani-brokeru",
+    "url": "https://www.etfpruvodce.cz/srovnani-brokeru",
     "breadcrumb": breadcrumbSchema,
     "mainEntity": {
       "@type": "ItemList",
@@ -89,19 +89,19 @@ export default function SrovnaniBrokeruPage() {
           "@type": "FinancialService",
           "position": 1,
           "name": "DEGIRO",
-          "url": "https://etfpruvodce.cz/degiro-recenze"
+          "url": "https://www.etfpruvodce.cz/degiro-recenze"
         },
         {
           "@type": "FinancialService", 
           "position": 2,
           "name": "XTB",
-          "url": "https://etfpruvodce.cz/xtb-recenze"
+          "url": "https://www.etfpruvodce.cz/xtb-recenze"
         },
         {
           "@type": "FinancialService",
           "position": 3,
           "name": "Trading 212",
-          "url": "https://etfpruvodce.cz/trading212-recenze"
+          "url": "https://www.etfpruvodce.cz/trading212-recenze"
         }
       ]
     }

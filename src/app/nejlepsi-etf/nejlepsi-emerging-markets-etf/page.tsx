@@ -52,8 +52,8 @@ export async function generateMetadata(): Promise<Metadata> {
   
   const title = `Nejlepší emerging markets ETF ${currentYear} - EIMI vs C9EM vs HMEF | ETF průvodce.cz`;
   const description = `✅ Srovnání nejlepších emerging markets ETF ${currentYear}. EIMI, C9EM, HMEF - rozvíjející se trhy, poplatky TER, výnosy. Analýza EM k ${currentDate}.`;
-  const canonical = 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-emerging-markets-etf';
-  const ogImage = 'https://etfpruvodce.cz/og-emerging-markets-etf.jpg';
+  const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-emerging-markets-etf';
+  const ogImage = 'https://www.etfpruvodce.cz/og-emerging-markets-etf.jpg';
   
   // Enhanced keywords for better discoverability
   const keywords = [
@@ -85,14 +85,14 @@ export async function generateMetadata(): Promise<Metadata> {
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject", 
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": publishedDate,
@@ -193,13 +193,13 @@ export async function generateMetadata(): Promise<Metadata> {
         "@type": "ListItem",
         "position": 1,
         "name": "ETF průvodce.cz",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",

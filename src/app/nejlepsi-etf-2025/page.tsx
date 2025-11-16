@@ -20,13 +20,13 @@ export default function NejlepsiETF2025Page() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Nejlepší ETF 2025",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf-2025"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf-2025"
       }
     ]
   };
@@ -183,10 +183,10 @@ export default function NejlepsiETF2025Page() {
       <SEOHead
         title="Nejlepší ETF 2025 - Top 10 fondů pro investování | ETF průvodce.cz"
         description="✅ Nejlepší ETF fondy 2025: VWCE, IWDA, VUAA a další. Detailní analýza, poplatky, výnosy. Sestavte si ideální portfolio s minimálními náklady!"
-        canonical="https://etfpruvodce.cz/nejlepsi-etf-2025"
+        canonical="https://www.etfpruvodce.cz/nejlepsi-etf-2025"
         keywords="nejlepší ETF 2025, VWCE, IWDA, VUAA, ETF fondy, investování ETF, portfolio ETF"
         schema={listSchema}
-        ogImage="https://etfpruvodce.cz/og-nejlepsi-etf-2025.jpg"
+        ogImage="https://www.etfpruvodce.cz/og-nejlepsi-etf-2025.jpg"
       />
       <StructuredData data={breadcrumbSchema} />
       

@@ -37,7 +37,7 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
     "@type": "WebApplication",
     "name": "ETF srovnání 2025 - Nejlepší nástroj pro porovnání ETF fondů",
     "description": "Porovnejte více než 3500 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
-    "url": "https://etfpruvodce.cz/srovnani-etf",
+    "url": "https://www.etfpruvodce.cz/srovnani-etf",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web Browser",
     "featureList": [
@@ -56,7 +56,7 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
     "provider": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
-      "url": "https://etfpruvodce.cz"
+      "url": "https://www.etfpruvodce.cz"
     },
     "audience": {
       "@type": "Audience",
@@ -165,9 +165,9 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
       <SEOHead
         title="ETF srovnání 2025 - Nejlepší nástroj pro porovnání ETF fondů České republiky"
         description="★ ETF srovnání ZDARMA ★ Porovnejte více než 3500 ETF fondů 2025. Filtrování podle TER poplatků, výkonnosti, rizika. Americké ETF, evropské ETF, DEGIRO zdarma ETF. Nejlepší ETF srovnání pro české investory."
-        canonical="https://etfpruvodce.cz/srovnani-etf"
+        canonical="https://www.etfpruvodce.cz/srovnani-etf"
         keywords="ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF 2025, ETF filtr, ETF search, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze česky"
-        ogImage="https://etfpruvodce.cz/og-etf-comparison.jpg"
+        ogImage="https://www.etfpruvodce.cz/og-etf-comparison.jpg"
         schema={webAppSchema}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

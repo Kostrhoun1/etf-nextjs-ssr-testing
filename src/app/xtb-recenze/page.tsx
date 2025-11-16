@@ -20,10 +20,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `XTB recenze ${currentYear} - Komplexní test a hodnocení brokera`,
     description: `XTB recenze ${currentYear} - hodnocení 94/100. Transparentní broker s českou licencí ČNB.`,
-    url: 'https://etfpruvodce.cz/xtb-recenze',
+    url: 'https://www.etfpruvodce.cz/xtb-recenze',
     siteName: 'ETF průvodce.cz',
     images: [{
-      url: 'https://etfpruvodce.cz/og-xtb-recenze.jpg',
+      url: 'https://www.etfpruvodce.cz/og-xtb-recenze.jpg',
       width: 1200,
       height: 630,
     }],
@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `XTB recenze ${currentYear}`,
     description: `XTB recenze ${currentYear} - hodnocení 94/100. Transparentní broker s českou licencí ČNB.`,
-    images: ['https://etfpruvodce.cz/og-xtb-recenze.jpg'],
+    images: ['https://www.etfpruvodce.cz/og-xtb-recenze.jpg'],
   },
   alternates: {
-    canonical: 'https://etfpruvodce.cz/xtb-recenze',
+    canonical: 'https://www.etfpruvodce.cz/xtb-recenze',
   },
   robots: {
     index: true,
@@ -64,19 +64,19 @@ export default function XTBRecenzePage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Kde koupit ETF",
-        "item": "https://etfpruvodce.cz/kde-koupit-etf"
+        "item": "https://www.etfpruvodce.cz/kde-koupit-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "XTB recenze 2025",
-        "item": "https://etfpruvodce.cz/xtb-recenze"
+        "item": "https://www.etfpruvodce.cz/xtb-recenze"
       }
     ]
   };

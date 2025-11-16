@@ -70,25 +70,25 @@ export default async function NejlepsiDluhopisoveETFPage() {
     "@type": "Article",
     "headline": `Nejlepší dluhopisové ETF ${currentYear} - státní a korporátní dluhopisy`,
     "description": "Srovnání nejlepších dluhopisových ETF 2025. Státní a korporátní dluhopisy, EUR zajištění, výnosy - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-bond-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-bond-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-dluhopisove-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-dluhopisove-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "dluhopisové ETF, státní dluhopisy, korporátní dluhopisy, bond ETF, AGGH, XGLE, VAGF",
@@ -169,19 +169,19 @@ export default async function NejlepsiDluhopisoveETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší dluhopisové ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-dluhopisove-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-dluhopisove-etf"
       }
     ]
   };

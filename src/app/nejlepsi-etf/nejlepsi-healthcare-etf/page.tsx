@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika`,
       description: `Srovnání nejlepších healthcare ETF ${currentYear}. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-healthcare-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiHealthcareETFPage() {
     "@type": "Article",
     "headline": `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika`,
     "description": "Srovnání nejlepších healthcare ETF 2025. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-healthcare-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-healthcare-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "healthcare ETF, zdravotnictví, farmaceutika, biotechnologie, medical sektor",
@@ -228,19 +228,19 @@ export default async function NejlepsiHealthcareETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší healthcare ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf"
       }
     ]
   };

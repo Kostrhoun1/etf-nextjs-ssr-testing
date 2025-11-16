@@ -69,7 +69,7 @@ const jsonLd = {
   author: {
     '@type': 'Person',
     name: 'Tomáš Kostrhoun',
-    url: 'https://etfpruvodce.cz/o-nas#tomas-kostrhoun'
+    url: 'https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun'
   },
   publisher: {
     '@type': 'Organization',

@@ -20,11 +20,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
     description: 'Kompletní databáze 3500+ ETF fondů s analýzami a kalkulačkami pro české investory.',
-    url: 'https://etfpruvodce.cz/',
+    url: 'https://www.etfpruvodce.cz/',
     siteName: 'ETF průvodce.cz',
     images: [
       {
-        url: 'https://etfpruvodce.cz/og-image.jpg',
+        url: 'https://www.etfpruvodce.cz/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://etfpruvodce.cz/'
+    canonical: 'https://www.etfpruvodce.cz/'
   }
 };
 

@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší clean energy ETF ${currentYear} - čistá energie a obnovitelné zdroje`,
       description: `Srovnání nejlepších clean energy ETF ${currentYear}. Solární, větrná, vodní energie - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-clean-energy-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiCleanEnergyETFPage() {
     "@type": "Article",
     "headline": `Nejlepší clean energy ETF ${currentYear} - čistá energie a obnovitelné zdroje`,
     "description": "Srovnání nejlepších clean energy ETF 2025. Solární, větrná, vodní energie - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-clean-energy-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-clean-energy-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "clean energy ETF, čistá energie, obnovitelné zdroje, solární energie, větrná energie",
@@ -228,19 +228,19 @@ export default async function NejlepsiCleanEnergyETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší clean energy ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf"
       }
     ]
   };

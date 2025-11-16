@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší finanční ETF ${currentYear} - banky a finanční sektor`,
       description: `Srovnání nejlepších finančních ETF ${currentYear}. Banky, pojišťovny, REIT - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-financial-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiFinancniETFPage() {
     "@type": "Article",
     "headline": `Nejlepší finanční ETF ${currentYear} - banky a finanční sektor`,
     "description": "Srovnání nejlepších finančních ETF 2025. Banky, pojišťovny, REIT - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-financial-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-financial-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "finanční ETF, banky, financial sector, pojišťovny, REIT, finanční služby",
@@ -228,19 +228,19 @@ export default async function NejlepsiFinancniETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší finanční ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-financni-etf"
       }
     ]
   };

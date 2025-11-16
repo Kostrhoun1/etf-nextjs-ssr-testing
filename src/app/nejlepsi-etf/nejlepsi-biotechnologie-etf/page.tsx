@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika`,
       description: `Srovnání nejlepších biotechnologie ETF ${currentYear}. Biotech, farmaceutika, genomika - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-biotechnology-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiBiotechnologyETFPage() {
     "@type": "Article",
     "headline": `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika`,
     "description": "Srovnání nejlepších biotechnologie ETF 2025. Biotech, farmaceutika, genomika - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-biotechnology-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-biotechnology-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "biotechnologie ETF, biotech, farmaceutika, genomika, lékařské inovace",
@@ -228,19 +228,19 @@ export default async function NejlepsiBiotechnologyETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší biotechnologie ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf"
       }
     ]
   };

@@ -20,10 +20,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Interactive Brokers recenze ${currentYear} - Komplexní test a hodnocení`,
     description: `Interactive Brokers recenze ${currentYear} - hodnocení 85/100. Americká společnost s globálním přístupem.`,
-    url: 'https://etfpruvodce.cz/interactive-brokers-recenze',
+    url: 'https://www.etfpruvodce.cz/interactive-brokers-recenze',
     siteName: 'ETF průvodce.cz',
     images: [{
-      url: 'https://etfpruvodce.cz/og-ibkr-recenze.jpg',
+      url: 'https://www.etfpruvodce.cz/og-ibkr-recenze.jpg',
       width: 1200,
       height: 630,
     }],
@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `Interactive Brokers recenze ${currentYear}`,
     description: `Interactive Brokers recenze ${currentYear} - hodnocení 85/100. Americká společnost s globálním přístupem.`,
-    images: ['https://etfpruvodce.cz/og-ibkr-recenze.jpg'],
+    images: ['https://www.etfpruvodce.cz/og-ibkr-recenze.jpg'],
   },
   alternates: {
-    canonical: 'https://etfpruvodce.cz/interactive-brokers-recenze',
+    canonical: 'https://www.etfpruvodce.cz/interactive-brokers-recenze',
   },
   robots: {
     index: true,
@@ -64,19 +64,19 @@ export default function InteractiveBrokersRecenzePage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Kde koupit ETF",
-        "item": "https://etfpruvodce.cz/kde-koupit-etf"
+        "item": "https://www.etfpruvodce.cz/kde-koupit-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Interactive Brokers recenze 2025",
-        "item": "https://etfpruvodce.cz/interactive-brokers-recenze"
+        "item": "https://www.etfpruvodce.cz/interactive-brokers-recenze"
       }
     ]
   };

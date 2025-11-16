@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/private/', '/admin/'],
     },
-    sitemap: 'https://etfpruvodce.cz/sitemap.xml',
+    sitemap: 'https://www.etfpruvodce.cz/sitemap.xml',
   }
 }

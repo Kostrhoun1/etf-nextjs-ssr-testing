@@ -118,25 +118,25 @@ export default async function NejlepsiDividendoveETF() {
     "@type": "Article",
     "headline": `Nejlepší dividendové ETF ${currentYear} - Dividend Aristocrats vs High Yield`,
     "description": `Srovnání nejlepších dividendových ETF ${currentYear}. Dividend Aristocrats, High Yield - dividendové výnosy, TER, velikost fondů.`,
-    "image": "https://etfpruvodce.cz/og-dividend-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-dividend-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-dividendove-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-dividendove-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "dividendové ETF, Dividend Aristocrats, High Yield, pasivní příjem, investování",
@@ -243,19 +243,19 @@ export default async function NejlepsiDividendoveETF() {
         "@type": "ListItem", 
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2, 
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Nejlepší dividendové ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-dividendove-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-dividendove-etf"
       }
     ]
   };

@@ -19,13 +19,13 @@ export default function KalkulackyPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Finanční kalkulačky 2025",
-        "item": "https://etfpruvodce.cz/kalkulacky"
+        "item": "https://www.etfpruvodce.cz/kalkulacky"
       }
     ]
   };
@@ -35,7 +35,7 @@ export default function KalkulackyPage() {
     "@type": "WebPage",
     "name": "Finanční kalkulačky 2025 - Kompletní přehled",
     "description": "Kompletní přehled všech finančních kalkulaček. Hypotéka, úvěry, čistá mzda, investice, penzi. Bezplatné nástroje s aktuálními daty 2025.",
-    "url": "https://etfpruvodce.cz/kalkulacky",
+    "url": "https://www.etfpruvodce.cz/kalkulacky",
     "breadcrumb": breadcrumbSchema,
     "mainEntity": {
       "@type": "ItemList",
@@ -46,21 +46,21 @@ export default function KalkulackyPage() {
           "@type": "SoftwareApplication",
           "position": 1,
           "name": "Hypoteční kalkulačka 2025",
-          "url": "https://etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka",
+          "url": "https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka",
           "applicationCategory": "FinanceApplication"
         },
         {
           "@type": "SoftwareApplication",
           "position": 2,
           "name": "Kalkulačka čisté mzdy 2025",
-          "url": "https://etfpruvodce.cz/kalkulacky/cisty-plat-2025",
+          "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025",
           "applicationCategory": "FinanceApplication"
         },
         {
           "@type": "SoftwareApplication",
           "position": 3,
           "name": "Úvěrová kalkulačka - spotřebitelský úvěr",
-          "url": "https://etfpruvodce.cz/kalkulacky/spotrebitelsky-uver",
+          "url": "https://www.etfpruvodce.cz/kalkulacky/spotrebitelsky-uver",
           "applicationCategory": "FinanceApplication"
         }
       ]
@@ -72,10 +72,10 @@ export default function KalkulackyPage() {
       <SEOHead
         title={`Finanční kalkulačky ${currentYear} - Hypotéka, úvěry, mzda | ETF průvodce.cz`}
         description={`✅ Kompletní přehled finančních kalkulaček ${currentYear}. Hypoteční kalkulačka, čistá mzda, spotřebitelské úvěry, investiční nástroje. Vše zdarma s aktuálními daty.`}
-        canonical="https://etfpruvodce.cz/kalkulacky"
+        canonical="https://www.etfpruvodce.cz/kalkulacky"
         keywords={`finanční kalkulačky ${currentYear}, hypoteční kalkulačka, kalkulačka čisté mzdy, úvěrová kalkulačka, investiční kalkulačky, bezplatné nástroje`}
         schema={sitemapSchema}
-        ogImage="https://etfpruvodce.cz/og-kalkulacky.jpg"
+        ogImage="https://www.etfpruvodce.cz/og-kalkulacky.jpg"
       />
       <StructuredData data={breadcrumbSchema} />
 

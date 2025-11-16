@@ -54,11 +54,11 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `Nejlevnější ETF ${currentYear} - Nejnižší TER poplatky`,
       description: `Nejlevnější ETF ${currentYear} s nejnižšími TER poplatky. Akciové, dluhopisové a REIT ETF od 0,03%.`,
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf',
       siteName: 'ETF průvodce.cz',
       images: [
         {
-          url: 'https://etfpruvodce.cz/og-nejlevnejsi-etf.jpg',
+          url: 'https://www.etfpruvodce.cz/og-nejlevnejsi-etf.jpg',
           width: 1200,
           height: 630,
           alt: `Nejlevnější ETF ${currentYear}`,
@@ -71,10 +71,10 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `Nejlevnější ETF ${currentYear} - Nejnižší TER poplatky`,
       description: `Nejlevnější ETF ${currentYear} s nejnižšími TER poplatky. Akciové, dluhopisové a REIT ETF od 0,03%.`,
-      images: ['https://etfpruvodce.cz/og-nejlevnejsi-etf.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-nejlevnejsi-etf.jpg'],
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf',
     },
     robots: {
       index: true,
@@ -112,25 +112,25 @@ export default async function NejlevnejsiETFPage() {
     '@type': 'Article',
     headline: `Nejlevnější ETF ${currentYear} - Nejnižší TER poplatky`,
     description: 'Kompletní přehled nejlevnějších ETF fondů s nejnižšími TER poplatky podle kategorií.',
-    image: 'https://etfpruvodce.cz/og-nejlevnejsi-etf.jpg',
+    image: 'https://www.etfpruvodce.cz/og-nejlevnejsi-etf.jpg',
     author: {
       '@type': 'Person',
       name: 'Tomáš Kostrhoun',
-      url: 'https://etfpruvodce.cz/o-nas#tomas-kostrhoun'
+      url: 'https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun'
     },
     publisher: {
       '@type': 'Organization',
       name: 'ETF průvodce.cz',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://etfpruvodce.cz/logo.png'
+        url: 'https://www.etfpruvodce.cz/logo.png'
       }
     },
     datePublished: `${currentYear}-01-15`,
     dateModified: lastModified.split('T')[0],
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': 'https://etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf'
+      '@id': 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf'
     }
   };
 

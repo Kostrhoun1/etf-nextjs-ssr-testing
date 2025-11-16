@@ -53,11 +53,11 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `Nejlepší NASDAQ ETF ${currentYear} - CNDX vs ANX vs XNAS`,
       description: `Srovnání nejlepších NASDAQ 100 ETF ${currentYear}. CNDX, ANX, XNAS - poplatky TER, výnosy, expozice k Apple, Microsoft, Tesla.`,
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf',
       siteName: 'ETF průvodce.cz',
       images: [
         {
-          url: 'https://etfpruvodce.cz/og-nasdaq-etf.jpg',
+          url: 'https://www.etfpruvodce.cz/og-nasdaq-etf.jpg',
           width: 1200,
           height: 630,
           alt: `Nejlepší NASDAQ ETF ${currentYear}`,
@@ -70,10 +70,10 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `Nejlepší NASDAQ ETF ${currentYear} - CNDX vs ANX vs XNAS`,
       description: `Srovnání nejlepších NASDAQ 100 ETF ${currentYear}. CNDX, ANX, XNAS - poplatky TER, výnosy, expozice k Apple, Microsoft, Tesla.`,
-      images: ['https://etfpruvodce.cz/og-nasdaq-etf.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-nasdaq-etf.jpg'],
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf',
     },
     robots: {
       index: true,
@@ -116,25 +116,25 @@ export default async function NejlepsiNASDAQETF() {
     "@type": "Article",
     "headline": `Nejlepší NASDAQ ETF ${currentYear} - CNDX vs ANX vs XNAS`,
     "description": `Srovnání nejlepších NASDAQ 100 ETF ${currentYear}. CNDX, ANX, XNAS - poplatky TER, výnosy, expozice k Apple, Microsoft, Tesla.`,
-    "image": "https://etfpruvodce.cz/og-nasdaq-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-nasdaq-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": `${currentYear}-01-15`,
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": `NASDAQ ETF, CNDX, ANX, XNAS, technologie, investování`,
@@ -246,19 +246,19 @@ export default async function NejlepsiNASDAQETF() {
         "@type": "ListItem", 
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2, 
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Nejlepší NASDAQ ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-nasdaq-etf"
       }
     ]
   };

@@ -69,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Nejlepší robotika ETF ${currentYear} - robotics a automatizace`,
       description: `Srovnání nejlepších robotika ETF ${currentYear}. Robotics, automatizace, AI - TER, velikost fondů.`,
       type: 'article',
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf',
       siteName: 'ETF průvodce.cz',
       locale: 'cs_CZ',
       images: [
@@ -88,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-robotics-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf'
     }
   };
 }
@@ -105,25 +105,25 @@ export default async function NejlepsiRobotikaETFPage() {
     "@type": "Article",
     "headline": `Nejlepší robotika ETF ${currentYear} - robotics a automatizace`,
     "description": "Srovnání nejlepších robotika ETF 2025. Robotics, automatizace, AI - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-robotics-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-robotics-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "robotika ETF, robotics, automatizace, AI, průmyslové roboty",
@@ -228,19 +228,19 @@ export default async function NejlepsiRobotikaETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší robotika ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-robotika-etf"
       }
     ]
   };

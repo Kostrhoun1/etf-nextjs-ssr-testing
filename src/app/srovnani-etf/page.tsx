@@ -11,7 +11,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const compareParam = resolvedSearchParams?.compare;
 
   // Build canonical URL with query parameters if present
-  let canonicalUrl = 'https://etfpruvodce.cz/srovnani-etf';
+  let canonicalUrl = 'https://www.etfpruvodce.cz/srovnani-etf';
   if (compareParam) {
     const compareString = Array.isArray(compareParam) ? compareParam[0] : compareParam;
     canonicalUrl += `?compare=${encodeURIComponent(compareString)}`;
@@ -28,7 +28,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
       url: canonicalUrl,
       siteName: 'ETF průvodce.cz',
       images: [{
-        url: 'https://etfpruvodce.cz/og-etf-comparison.jpg',
+        url: 'https://www.etfpruvodce.cz/og-etf-comparison.jpg',
         width: 1200,
         height: 630,
       }],
@@ -41,7 +41,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
       card: 'summary_large_image',
       title: `ETF srovnání ${currentYear}`,
       description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER a výkonnosti.`,
-      images: ['https://etfpruvodce.cz/og-etf-comparison.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-etf-comparison.jpg'],
     },
     alternates: {
       canonical: canonicalUrl,
@@ -125,7 +125,7 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
     "@type": "WebApplication",
     "name": `ETF srovnání ${currentYear} - Nejlepší nástroj pro porovnání ETF fondů`,
     "description": "Porovnejte více než 3500 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
-    "url": "https://etfpruvodce.cz/srovnani-etf",
+    "url": "https://www.etfpruvodce.cz/srovnani-etf",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web Browser",
     "browserRequirements": "Moderní webový prohlížeč",
@@ -148,8 +148,8 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
     "provider": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
-      "url": "https://etfpruvodce.cz",
-      "logo": "https://etfpruvodce.cz/logo.png"
+      "url": "https://www.etfpruvodce.cz",
+      "logo": "https://www.etfpruvodce.cz/logo.png"
     },
     "audience": {
       "@type": "Audience",
@@ -176,7 +176,7 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
       {
         "@type": "DataDownload",
         "encodingFormat": "application/json",
-        "contentUrl": "https://etfpruvodce.cz/api/etf"
+        "contentUrl": "https://www.etfpruvodce.cz/api/etf"
       }
     ],
     "temporalCoverage": `${currentYear}`,
@@ -200,13 +200,13 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "ETF srovnání",
-        "item": "https://etfpruvodce.cz/srovnani-etf"
+        "item": "https://www.etfpruvodce.cz/srovnani-etf"
       }
     ]
   };

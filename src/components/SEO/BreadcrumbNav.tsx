@@ -70,7 +70,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ items }) => {
       "@type": "ListItem",
       "position": index + 1,
       "name": item.name,
-      "item": index === breadcrumbItems.length - 1 ? undefined : `https://etfpruvodce.cz${item.href}`
+      "item": index === breadcrumbItems.length - 1 ? undefined : `https://www.etfpruvodce.cz${item.href}`
     }))
   };
 

@@ -52,8 +52,8 @@ export async function generateMetadata(): Promise<Metadata> {
   
   const title = `Nejlepší STOXX 600 ETF ${currentYear} - LYP6 vs EXSA vs XESC | ETF průvodce.cz`;
   const description = `✅ Srovnání nejlepších STOXX 600 ETF ${currentYear}. LYP6, EXSA, XESC - poplatky TER, výnosy, velikost fondů. Kompletní analýza evropských ETF k ${currentDate}.`;
-  const canonical = 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-stoxx600-etf';
-  const ogImage = 'https://etfpruvodce.cz/og-stoxx600-etf.jpg';
+  const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-stoxx600-etf';
+  const ogImage = 'https://www.etfpruvodce.cz/og-stoxx600-etf.jpg';
   
   // Enhanced keywords for better discoverability
   const keywords = [
@@ -84,14 +84,14 @@ export async function generateMetadata(): Promise<Metadata> {
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject", 
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": publishedDate,
@@ -177,13 +177,13 @@ export async function generateMetadata(): Promise<Metadata> {
         "@type": "ListItem",
         "position": 1,
         "name": "ETF průvodce.cz",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",

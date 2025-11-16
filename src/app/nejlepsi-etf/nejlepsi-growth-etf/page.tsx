@@ -119,25 +119,25 @@ export default async function NejlepsiGrowthETF() {
     "@type": "Article",
     "headline": `Nejlepší Growth ETF ${currentYear} - NASDAQ, tech růstové akcie`,
     "description": `Srovnání nejlepších Growth ETF ${currentYear}. NASDAQ QQQ, růstové akcie, technologie - TER, velikost fondů.`,
-    "image": "https://etfpruvodce.cz/og-growth-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-growth-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-growth-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-growth-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "Growth ETF, růstové akcie, Russell Growth, growth investing, growth factor",
@@ -244,19 +244,19 @@ export default async function NejlepsiGrowthETF() {
         "@type": "ListItem", 
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2, 
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Nejlepší Growth ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-growth-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-growth-etf"
       }
     ]
   };

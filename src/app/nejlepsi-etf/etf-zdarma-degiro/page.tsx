@@ -53,11 +53,11 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `ETF zdarma na DEGIRO ${currentYear} - 65+ komisně bezplatných fondů`,
       description: `Kompletní seznam 65+ ETF fondů zdarma na DEGIRO ${currentYear}. CSPX, IWDA, EMIM - nulové komise pro první obchod měsíčně.`,
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro',
       siteName: 'ETF průvodce.cz',
       images: [
         {
-          url: 'https://etfpruvodce.cz/og-degiro-free-etf.jpg',
+          url: 'https://www.etfpruvodce.cz/og-degiro-free-etf.jpg',
           width: 1200,
           height: 630,
           alt: `ETF zdarma na DEGIRO ${currentYear}`,
@@ -70,10 +70,10 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `ETF zdarma na DEGIRO ${currentYear} - 65+ komisně bezplatných fondů`,
       description: `Kompletní seznam 65+ ETF fondů zdarma na DEGIRO ${currentYear}. CSPX, IWDA, EMIM - nulové komise pro první obchod měsíčně.`,
-      images: ['https://etfpruvodce.cz/og-degiro-free-etf.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-degiro-free-etf.jpg'],
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro',
     },
     robots: {
       index: true,
@@ -162,25 +162,25 @@ export default async function DegiroFreeETFPage() {
     "@type": "Article",
     "headline": `ETF zdarma na DEGIRO ${currentYear} - Kompletní seznam komisně bezplatných fondů`,
     "description": `Kompletní seznam 65+ ETF fondů zdarma na DEGIRO ${currentYear}. CSPX, IWDA, EMIM - nulové komise pro první obchod měsíčně.`,
-    "image": "https://etfpruvodce.cz/og-degiro-free-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-degiro-free-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": `${currentYear}-01-30`,
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro"
     },
     "articleSection": "Investment Guides",
     "keywords": `DEGIRO ETF zdarma, CSPX, IWDA, EMIM, investování, indexové fondy`,
@@ -263,19 +263,19 @@ export default async function DegiroFreeETFPage() {
         "@type": "ListItem", 
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2, 
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "ETF zdarma na DEGIRO",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro"
       }
     ]
   };

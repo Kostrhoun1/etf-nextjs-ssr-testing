@@ -60,7 +60,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'ETF průvodce.cz',
       images: [
         {
-          url: 'https://etfpruvodce.cz/og-best-etf-2025.jpg',
+          url: 'https://www.etfpruvodce.cz/og-best-etf-2025.jpg',
           width: 1200,
           height: 630,
           alt: `Nejlepší ETF ${currentYear} - srovnání VWCE vs CSPX vs IWDA`,
@@ -73,7 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `Nejlepší ETF ${currentYear} - Top 3 doporučení`,
       description: `Srovnání nejlepších ETF fondů ${currentYear}: CSPX, IWDA, VWCE. Poplatky, výnosy, praktické tipy.`,
-      images: ['https://etfpruvodce.cz/og-best-etf-2025.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-best-etf-2025.jpg'],
     },
     robots: {
       index: true,
@@ -116,25 +116,25 @@ export default async function NejlepsiETF2025() {
     "@type": "Article",
     "headline": `Nejlepší ETF ${currentYear} - Top 3 doporučení pro české investory`,
     "description": `Kompletní srovnání nejlepších ETF fondů pro rok ${currentYear}. CSPX, IWDA, VWCE - poplatky TER, výnosy, velikost fondů.`,
-    "image": "https://etfpruvodce.cz/og-best-etf-2025.jpg",
+    "image": "https://www.etfpruvodce.cz/og-best-etf-2025.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": `${currentYear}-01-01`,
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf-2025"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf-2025"
     },
     "articleSection": "Investment Guides",
     "keywords": `nejlepší ETF ${currentYear}, CSPX, IWDA, VWCE, ETF fondy, investování`,
@@ -205,19 +205,19 @@ export default async function NejlepsiETF2025() {
         "@type": "ListItem", 
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2, 
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": `Nejlepší ETF ${currentYear}`,
-        "item": "https://etfpruvodce.cz/nejlepsi-etf-2025"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf-2025"
       }
     ]
   };

@@ -20,10 +20,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Portu recenze ${currentYear} - Česká robo-advisor platforma`,
     description: `Portu recenze ${currentYear} - hodnocení 98/100. Česká automatizovaná investiční platforma.`,
-    url: 'https://etfpruvodce.cz/portu-recenze',
+    url: 'https://www.etfpruvodce.cz/portu-recenze',
     siteName: 'ETF průvodce.cz',
     images: [{
-      url: 'https://etfpruvodce.cz/og-portu-recenze.jpg',
+      url: 'https://www.etfpruvodce.cz/og-portu-recenze.jpg',
       width: 1200,
       height: 630,
     }],
@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `Portu recenze ${currentYear}`,
     description: `Portu recenze ${currentYear} - hodnocení 98/100. Česká automatizovaná investiční platforma.`,
-    images: ['https://etfpruvodce.cz/og-portu-recenze.jpg'],
+    images: ['https://www.etfpruvodce.cz/og-portu-recenze.jpg'],
   },
   alternates: {
-    canonical: 'https://etfpruvodce.cz/portu-recenze',
+    canonical: 'https://www.etfpruvodce.cz/portu-recenze',
   },
   robots: {
     index: true,
@@ -64,19 +64,19 @@ export default function PortuRecenzePage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Kde koupit ETF",
-        "item": "https://etfpruvodce.cz/kde-koupit-etf"
+        "item": "https://www.etfpruvodce.cz/kde-koupit-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Portu recenze 2025",
-        "item": "https://etfpruvodce.cz/portu-recenze"
+        "item": "https://www.etfpruvodce.cz/portu-recenze"
       }
     ]
   };

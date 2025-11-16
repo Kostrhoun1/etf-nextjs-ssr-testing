@@ -70,25 +70,25 @@ export default async function NejlepsiKomoditniETFPage() {
     "@type": "Article",
     "headline": `Nejlepší komoditní ETF ${currentYear} - zlato, ropa a diverzifikace`,
     "description": "Srovnání nejlepších komoditních ETF 2025. Zlato, ropa, zemědělské komodity, inflační ochrana - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-commodity-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-commodity-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-komoditni-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-komoditni-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "komoditní ETF, zlato ETF, ropa ETF, zemědělské komodity, ICOM, XCOM, GCOM",
@@ -193,19 +193,19 @@ export default async function NejlepsiKomoditniETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší komoditní ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-komoditni-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-komoditni-etf"
       }
     ]
   };

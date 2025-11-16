@@ -70,25 +70,25 @@ export default async function NejlepsiCybersecurityETFPage() {
     "@type": "Article",
     "headline": `Nejlepší kyberbezpečnost ETF ${currentYear} - cybersecurity a ochrana dat`,
     "description": "Srovnání nejlepších kyberbezpečnost ETF 2025. Cybersecurity, ochrana dat, L&G Cyber Security - TER, velikost fondů.",
-    "image": "https://etfpruvodce.cz/og-cybersecurity-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-cybersecurity-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": { 
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "kyberbezpečnost ETF, cybersecurity, ochrana dat, L&G Cyber Security, iShares Digital Security",
@@ -193,19 +193,19 @@ export default async function NejlepsiCybersecurityETFPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem", 
         "position": 2,
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3, 
         "name": "Nejlepší kyberbezpečnost ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf"
       }
     ]
   };

@@ -101,10 +101,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${ticker1} vs ${ticker2} - ETF srovnání ${currentYear}`,
       description: `Detailní srovnání ETF fondů ${ticker1} vs ${ticker2}. Porovnání výkonnosti, poplatků a rizika.`,
-      url: `https://etfpruvodce.cz/srovnani-etf/${comparison}`,
+      url: `https://www.etfpruvodce.cz/srovnani-etf/${comparison}`,
       siteName: 'ETF průvodce.cz',
       images: [{
-        url: 'https://etfpruvodce.cz/og-etf-comparison.jpg',
+        url: 'https://www.etfpruvodce.cz/og-etf-comparison.jpg',
         width: 1200,
         height: 630,
       }],
@@ -115,10 +115,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title: `${ticker1} vs ${ticker2} srovnání`,
       description: `Detailní ETF srovnání ${ticker1} vs ${ticker2} - poplatky, výkonnost, riziko.`,
-      images: ['https://etfpruvodce.cz/og-etf-comparison.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-etf-comparison.jpg'],
     },
     alternates: {
-      canonical: `https://etfpruvodce.cz/srovnani-etf/${comparison}`,
+      canonical: `https://www.etfpruvodce.cz/srovnani-etf/${comparison}`,
     },
     robots: {
       index: true,

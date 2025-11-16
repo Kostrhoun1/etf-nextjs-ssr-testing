@@ -20,10 +20,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Trading 212 recenze ${currentYear} - Komplexní test a hodnocení brokera`,
     description: `Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker s moderní aplikací.`,
-    url: 'https://etfpruvodce.cz/trading212-recenze',
+    url: 'https://www.etfpruvodce.cz/trading212-recenze',
     siteName: 'ETF průvodce.cz',
     images: [{
-      url: 'https://etfpruvodce.cz/og-trading212-recenze.jpg',
+      url: 'https://www.etfpruvodce.cz/og-trading212-recenze.jpg',
       width: 1200,
       height: 630,
     }],
@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `Trading 212 recenze ${currentYear}`,
     description: `Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker.`,
-    images: ['https://etfpruvodce.cz/og-trading212-recenze.jpg'],
+    images: ['https://www.etfpruvodce.cz/og-trading212-recenze.jpg'],
   },
   alternates: {
-    canonical: 'https://etfpruvodce.cz/trading212-recenze',
+    canonical: 'https://www.etfpruvodce.cz/trading212-recenze',
   },
   robots: {
     index: true,
@@ -64,19 +64,19 @@ export default function Trading212RecenzePage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Kde koupit ETF",
-        "item": "https://etfpruvodce.cz/kde-koupit-etf"
+        "item": "https://www.etfpruvodce.cz/kde-koupit-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Trading 212 recenze 2025",
-        "item": "https://etfpruvodce.cz/trading212-recenze"
+        "item": "https://www.etfpruvodce.cz/trading212-recenze"
       }
     ]
   };

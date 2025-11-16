@@ -21,7 +21,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   description,
   canonical,
   keywords,
-  ogImage = 'https://etfpruvodce.cz/og-image.jpg',
+  ogImage = 'https://www.etfpruvodce.cz/og-image.jpg',
   ogType = 'website',
   publishedTime,
   modifiedTime,

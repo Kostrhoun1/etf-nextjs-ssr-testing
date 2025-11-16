@@ -14,16 +14,16 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // Redirect www to non-www
+      // Redirect non-www to www
       {
         source: '/:path*',
         has: [
           {
             type: 'host',
-            value: 'www.etfpruvodce.cz',
+            value: 'etfpruvodce.cz',
           },
         ],
-        destination: 'https://etfpruvodce.cz/:path*',
+        destination: 'https://www.etfpruvodce.cz/:path*',
         permanent: true,
       },
       {

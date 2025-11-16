@@ -119,25 +119,25 @@ export default async function NejlepsiValueETF() {
     "@type": "Article",
     "headline": `Nejlepší Value ETF ${currentYear} - P/E ratio a podhodnocené akcie`,
     "description": `Srovnání nejlepších Value ETF ${currentYear}. Podhodnocené akcie, nízké P/E ratio, P/B ratio - TER, velikost fondů.`,
-    "image": "https://etfpruvodce.cz/og-value-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-value-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization", 
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": "2025-01-15",
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-value-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-value-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": "Value ETF, podhodnocené akcie, P/E ratio, P/B ratio, value investing, fundamentální analýza",
@@ -220,19 +220,19 @@ export default async function NejlepsiValueETF() {
         "@type": "ListItem", 
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2, 
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Nejlepší Value ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-value-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-value-etf"
       }
     ]
   };

@@ -53,11 +53,11 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `Nejlepší S&P 500 ETF ${currentYear} - CSPX vs SPXP vs SPY5`,
       description: `Srovnání nejlepších S&P 500 ETF ${currentYear}. CSPX, SPXP, SPY5 - poplatky TER, výnosy, velikost fondů.`,
-      url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf',
       siteName: 'ETF průvodce.cz',
       images: [
         {
-          url: 'https://etfpruvodce.cz/og-sp500-etf.jpg',
+          url: 'https://www.etfpruvodce.cz/og-sp500-etf.jpg',
           width: 1200,
           height: 630,
           alt: `Nejlepší S&P 500 ETF ${currentYear}`,
@@ -70,10 +70,10 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `Nejlepší S&P 500 ETF ${currentYear} - CSPX vs SPXP vs SPY5`,
       description: `Srovnání nejlepších S&P 500 ETF ${currentYear}. CSPX, SPXP, SPY5 - poplatky TER, výnosy, velikost fondů.`,
-      images: ['https://etfpruvodce.cz/og-sp500-etf.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-sp500-etf.jpg'],
     },
     alternates: {
-      canonical: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf',
     },
     robots: {
       index: true,
@@ -117,25 +117,25 @@ export default async function NejlepsiSP500ETF() {
     "@type": "Article",
     "headline": `Nejlepší S&P 500 ETF ${currentYear} - CSPX vs SPXP vs SPY5`,
     "description": `Srovnání nejlepších S&P 500 ETF ${currentYear}. CSPX, SPXP, SPY5 - poplatky TER, výnosy, velikost fondů.`,
-    "image": "https://etfpruvodce.cz/og-sp500-etf.jpg",
+    "image": "https://www.etfpruvodce.cz/og-sp500-etf.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
-      "url": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
     },
     "publisher": {
       "@type": "Organization",
       "name": "ETF průvodce.cz",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://etfpruvodce.cz/logo.png"
+        "url": "https://www.etfpruvodce.cz/logo.png"
       }
     },
     "datePublished": `${currentYear}-01-15`,
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf"
     },
     "articleSection": "Investment Guides",
     "keywords": `S&P 500 ETF, CSPX, SPXP, SPY5, investování, indexové fondy`,
@@ -218,19 +218,19 @@ export default async function NejlepsiSP500ETF() {
         "@type": "ListItem", 
         "position": 1,
         "name": "Domů",
-        "item": "https://etfpruvodce.cz"
+        "item": "https://www.etfpruvodce.cz"
       },
       {
         "@type": "ListItem",
         "position": 2, 
         "name": "Nejlepší ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Nejlepší S&P 500 ETF",
-        "item": "https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-sp500-etf"
       }
     ]
   };

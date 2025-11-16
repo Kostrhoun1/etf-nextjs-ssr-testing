@@ -28,7 +28,7 @@ export default function PortfolioStrategiePage() {
           "provider": {
             "@type": "Organization",
             "name": "ETF průvodce.cz",
-            "url": "https://etfpruvodce.cz"
+            "url": "https://www.etfpruvodce.cz"
           },
           "category": "Investment Strategy",
           "audience": {
