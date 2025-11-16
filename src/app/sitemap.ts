@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// Sitemap updated 2025-11-16 - Canonical URL fix - All URLs now use www variant
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.etfpruvodce.cz'
   
