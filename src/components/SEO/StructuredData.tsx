@@ -109,7 +109,8 @@ export const FinancialProductStructuredData: React.FC<{
       "name": provider
     },
     "fees": fees,
-    "url": window.location.href
+    // Always use www variant for canonical URL
+    "url": typeof window !== 'undefined' ? `https://www.etfpruvodce.cz${window.location.pathname}` : ''
   };
 
   return <StructuredData data={productData} id="financial-product-data" />;

@@ -70,7 +70,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('og:description', description, true);
     setMetaTag('og:image', ogImage, true);
     setMetaTag('og:type', ogType, true);
-    setMetaTag('og:url', canonical || window.location.href, true);
+    // Always use www variant for canonical URL
+    const currentUrl = canonical || `https://www.etfpruvodce.cz${window.location.pathname}`;
+    setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:site_name', 'ETF průvodce.cz', true);
 
     // Twitter tags
