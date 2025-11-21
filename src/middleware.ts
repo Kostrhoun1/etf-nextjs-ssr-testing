@@ -9,11 +9,11 @@ function isISIN(str: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
-  // Redirect www to non-www (canonical domain)
+  // Redirect non-www to www (canonical domain)
   const host = request.headers.get('host');
-  if (host?.startsWith('www.')) {
+  if (host && !host.startsWith('www.') && !host.startsWith('localhost')) {
     const newUrl = request.nextUrl.clone();
-    newUrl.host = host.replace('www.', '');
+    newUrl.host = 'www.' + host;
     return NextResponse.redirect(newUrl, 301);
   }
 
