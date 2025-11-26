@@ -88,6 +88,13 @@ export default function Trading212RecenzePage() {
       "description": "Online broker s komisí 0% pro akcie a ETF investice",
       "url": "https://www.trading212.com/",
       "serviceType": "Online brokerage",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "107 Cheapside",
+        "addressLocality": "London",
+        "postalCode": "EC2V 6DN",
+        "addressCountry": "GB"
+      },
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "87",

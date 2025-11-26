@@ -88,6 +88,13 @@ export default function PortuRecenzePage() {
       "description": "Česká automatizovaná investiční platforma založená v roce 2017",
       "url": "https://www.portu.cz/",
       "serviceType": "Robo-advisor",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Rohanské nábřeží 671/15",
+        "addressLocality": "Praha",
+        "postalCode": "186 00",
+        "addressCountry": "CZ"
+      },
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "98",

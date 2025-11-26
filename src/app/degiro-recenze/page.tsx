@@ -63,8 +63,15 @@ export default function DEGIRORecenzePage() {
       "description": "Online broker pro obchodování s ETF, akciemi a dalšími finančními instrumenty",
       "url": "https://www.degiro.cz",
       "serviceType": "Online brokerage",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Rembrandt Tower, Amstelplein 1",
+        "addressLocality": "Amsterdam",
+        "postalCode": "1096 HA",
+        "addressCountry": "NL"
+      },
       "aggregateRating": {
-        "@type": "AggregateRating", 
+        "@type": "AggregateRating",
         "ratingValue": "79",
         "bestRating": "100",
         "worstRating": "0",

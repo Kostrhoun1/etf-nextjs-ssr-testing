@@ -88,6 +88,14 @@ export default function InteractiveBrokersRecenzePage() {
       "description": "Americký online broker pro profesionální a pokročilé investory",
       "url": "https://www.interactivebrokers.com/",
       "serviceType": "Online brokerage",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "One Pickwick Plaza",
+        "addressLocality": "Greenwich",
+        "addressRegion": "CT",
+        "postalCode": "06830",
+        "addressCountry": "US"
+      },
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "85",

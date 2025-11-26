@@ -88,6 +88,13 @@ export default function XTBRecenzePage() {
       "description": "Online broker pro obchodování s ETF, akciemi a dalšími finančními instrumenty",
       "url": "https://www.xtb.com/cz",
       "serviceType": "Online brokerage",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Purkyňova 2121/3",
+        "addressLocality": "Praha",
+        "postalCode": "110 00",
+        "addressCountry": "CZ"
+      },
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "94",
