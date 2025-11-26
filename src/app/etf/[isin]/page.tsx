@@ -381,16 +381,7 @@ export default async function ETFDetailPage({ params }: PageProps) {
         "fundSize": etf.fund_size_numeric,
         "inceptionDate": etf.inception_date,
         "distributionPolicy": etf.distribution_policy,
-        "domicile": etf.fund_domicile,
-        ...(etf.rating && {
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": etf.rating,
-            "bestRating": 5,
-            "worstRating": 1,
-            "ratingCount": 1
-          }
-        })
+        "domicile": etf.fund_domicile
       },
       {
         "@type": "WebPage",
