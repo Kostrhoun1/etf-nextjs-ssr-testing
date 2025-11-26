@@ -84,7 +84,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/interactive-brokers-recenze',
     '/fio-ebroker-recenze',
     '/portu-recenze',
-    '/infografiky'
+    '/infografiky',
+    '/infografiky/nejlepsi-etf-vykonnost',
+    '/infografiky/nejlevnejsi-etf-ter',
+    '/infografiky/trzni-heatmapa',
+    '/nejlepsi-etf-2025',
+    '/o-nas'
   ]
 
   // Helper functions for intelligent lastModified dates
