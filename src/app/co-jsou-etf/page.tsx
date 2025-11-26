@@ -32,8 +32,77 @@ export const metadata: Metadata = {
 const WhatAreETFs: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
+  // FAQ structured data for SEO
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Jsou ETF fondy bezpečné?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ETF s označením UCITS (většina evropských ETF) jsou velmi bezpečné díky přísné regulaci Evropské unie. Vaše peníze jsou odděleny od majetku správce fondu podle zákona o kolektivním investování. I kdyby správce ETF zkrachoval, vaše investice zůstávají chráněny jako samostatný majetek. ETF jsou proto bezpečnější než jednotlivé akcie nebo aktivní fondy."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Jak dlouho držet ETF investice?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ETF jsou určené pro dlouhodobé investování (5+ let). Čím déle držíte, tím více se vyrovnají krátkodobé výkyvy. Historická data ukazují, že při držení déle než 15 let byla pravděpodobnost ztráty téměř nulová. Daňová výhoda v ČR: Zisky z prodeje ETF jsou po 3 letech držení osvobozeny od daně z příjmu."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Jaký je rozdíl mezi VWCE a CSPX?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "VWCE (Vanguard FTSE All-World) obsahuje 3800+ firem z celého světa s TER 0,22%, zatímco CSPX (iShares Core S&P 500) obsahuje 500 největších US firem s TER 0,07%. Pro začátečníky doporučujeme VWCE - poskytuje větší diverzifikaci a automaticky vás chrání před koncentračním rizikem jednoho regionu."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Jaké jsou poplatky u ETF a jak se platí?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ETF mají nejnižší poplatky ze všech investičních instrumentů. TER (Total Expense Ratio) je 0,03-0,5% ročně a automaticky se strhává z hodnoty ETF. Navíc platíte broker poplatky za nákup/prodej - Trading 212 a XTB nabízí 0% poplatky. Spread (rozdíl mezi nákupní a prodejní cenou) je u velkých ETF obvykle 0,01-0,05%."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "S kolika penězi začít investovat do ETF?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Můžete začít investovat do ETF už s 1000-5000 Kč. Moderní brokeři jako Trading 212 nebo XTB umožňují nákup frakčních podílů, takže nemusíte kupovat celý podíl ETF. Důležitější než velikost počáteční investice je pravidelnost - investování 3000 Kč měsíčně po dobu 20 let může při průměrném výnosu 7% p.a. vyrůst na více než 1,5 milionu korun."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Jak se platí daně z ETF v České republice?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Při držení méně než 3 roky platíte 15% daň z příjmu z realizovaného zisku. Při držení 3+ roky je zisk z prodeje zcela osvobozen od daně! Akumulační ETF (VWCE, CSPX) nevyplácí dividendy, takže neplatíte žádnou daň během držení. Pro daňovou efektivitu vybírejte akumulační ETF."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Jaké jsou nevýhody ETF fondů?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ETF kopírují trh, takže během recesí klesají stejně jako celý trh. Zahraniční ETF jsou vystaveny měnovému riziku. U menších ETF může být větší spread. Tracking error způsobuje malé odchylky od indexu (0,1-0,3% ročně). Nemůžete ovlivnit, které konkrétní akcie ETF drží. Nevýhody ETF jsou však minimální ve srovnání s výhodami."
+        }
+      }
+    ]
+  };
+
   return (
     <Layout>
+      {/* FAQ Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Modern Hero Section */}
       <section className="relative min-h-[60vh] bg-gradient-to-br from-gray-50 to-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-teal-50/30 to-blue-50/50"></div>

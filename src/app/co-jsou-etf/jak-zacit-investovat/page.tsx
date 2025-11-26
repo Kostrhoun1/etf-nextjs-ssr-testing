@@ -36,6 +36,62 @@ export const metadata: Metadata = {
 const JakZacitInvestovatPage: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
+  // FAQ structured data for SEO
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "S jakou částkou můžu začít investovat do ETF?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Můžete začít už s 50-100 EUR měsíčně. Většina brokerů neumá minimální investici pro ETF. Důležitější než vysoká částka je pravidelnost investování."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Je lepší investovat najednou nebo postupně?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Pro začátečníky je lepší postupné investování (DCA - Dollar Cost Averaging). Investujte stejnou částku každý měsíc bez ohledu na cenu. Snižuje to riziko špatného načasování."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Kolik ETF fondů mám mít v portfoliu?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Pro začátečníky stačí 2-3 kvalitní ETF. Například: 80% VWCE (svět) + 20% VGEA (dluhopisy). Nepřekombinujte to s 10+ fondy."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Kdy mám prodávat ETF fondy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ETF jsou určené pro dlouhodobé držení (5+ let). Prodávejte pouze pokud se změní vaše životní situace nebo investiční cíle. Neprodávejte kvůli krátkodobým výkyvům."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Musím platit daně z ETF investic?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ano, z prodeje ETF se platí 15% daň z kapitálového zisku. Můžete využít odpočet 100 000 Kč ročně. Dividendy jsou také zdaněny. Doporučujeme konzultaci s daňovým poradcem."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Jak často mám rebalancovat portfolio?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Jednou ročně nebo když se alokace změní o více než 5%. Například pokud máte 80/20 akcie/dluhopisy a dojde k posunu na 85/15, je čas rebalancovat."
+        }
+      }
+    ]
+  };
+
   const steps = [
     {
       title: "1. Definujte své cíle",
@@ -190,6 +246,11 @@ const JakZacitInvestovatPage: React.FC = () => {
 
   return (
     <Layout>
+      {/* FAQ Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero Section */}
       <section className="relative min-h-[60vh] bg-gradient-to-br from-gray-50 to-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-teal-50/30 to-blue-50/50"></div>
