@@ -1,7 +1,5 @@
-
 import React from 'react';
 import { Metadata } from 'next';
-import Script from 'next/script';
 import Layout from '@/components/Layout';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -139,22 +137,13 @@ export default function PortuRecenzePage() {
 
   return (
     <Layout>
-      <Script
-        id="portu-review-schema"
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(reviewSchema),
         }}
       />
-      <Script
-        id="portu-breadcrumb-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbSchema),
-        }}
-      />
-      
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero sekce */}
         <div className="text-center mb-8">

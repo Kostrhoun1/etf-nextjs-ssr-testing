@@ -351,8 +351,83 @@ export default async function ETFDetailPage({ params }: PageProps) {
   const topCountries = getTopCountries();
   const topSectors = getTopSectors();
 
+  // Generate structured data for SSR
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["FinancialProduct", "InvestmentFund"],
+        "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`,
+        "name": etf.name,
+        "identifier": {
+          "@type": "PropertyValue",
+          "propertyID": "ISIN",
+          "value": etf.isin
+        },
+        "description": etf.description_cs || etf.description_en || `ETF fond ${etf.name} od poskytovatele ${etf.fund_provider}`,
+        "provider": {
+          "@type": "Organization",
+          "name": etf.fund_provider
+        },
+        "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
+        "category": etf.category,
+        "currency": etf.fund_currency,
+        "feesAndCommissionsSpecification": etf.ter_numeric ? {
+          "@type": "UnitPriceSpecification",
+          "price": etf.ter_numeric,
+          "priceCurrency": "percent",
+          "unitText": "TER (Total Expense Ratio)"
+        } : undefined,
+        "fundSize": etf.fund_size_numeric,
+        "inceptionDate": etf.inception_date,
+        "distributionPolicy": etf.distribution_policy,
+        "domicile": etf.fund_domicile,
+        ...(etf.rating && {
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": etf.rating,
+            "bestRating": 5,
+            "worstRating": 1,
+            "ratingCount": 1
+          }
+        })
+      },
+      {
+        "@type": "WebPage",
+        "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#webpage`,
+        "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
+        "name": `${etf.primary_ticker || etf.isin} - ${etf.name} | ETF Průvodce`,
+        "description": `Detailní analýza ETF ${etf.name} od ${etf.fund_provider}. TER, výkonnost, složení portfolia.`,
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://www.etfpruvodce.cz#website",
+          "name": "ETF průvodce.cz",
+          "url": "https://www.etfpruvodce.cz"
+        },
+        "about": {
+          "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`
+        },
+        "author": {
+          "@id": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
+        },
+        "publisher": {
+          "@id": "https://www.etfpruvodce.cz#organization"
+        },
+        "datePublished": etf.inception_date || "2024-01-01",
+        "dateModified": etf.updated_at || new Date().toISOString(),
+        "inLanguage": "cs-CZ"
+      }
+    ]
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
       {/* Server-rendered H1 - CRITICAL for SEO - Google sees this immediately */}

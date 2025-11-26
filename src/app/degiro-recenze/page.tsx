@@ -1,6 +1,5 @@
 import React from 'react';
 import { Metadata } from 'next';
-import Script from 'next/script';
 import Layout from '@/components/Layout';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -117,22 +116,13 @@ export default function DEGIRORecenzePage() {
 
   return (
     <Layout>
-      <Script
-        id="degiro-review-schema"
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(reviewSchema),
         }}
       />
-      <Script
-        id="degiro-breadcrumb-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbSchema),
-        }}
-      />
-      
-      
+
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Header Section */}

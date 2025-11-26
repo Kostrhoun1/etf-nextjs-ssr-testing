@@ -64,10 +64,10 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    'google-site-verification': 'your-google-verification-code',
+    'google-site-verification': 'xcO4Z-AnzPYJ288SOKyYz4KphoizdnaitN7V8e1yXKc',
   },
   verification: {
-    google: 'your-google-verification-code',
+    google: 'xcO4Z-AnzPYJ288SOKyYz4KphoizdnaitN7V8e1yXKc',
   },
 };
 

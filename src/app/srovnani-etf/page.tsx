@@ -1,6 +1,5 @@
 import React from 'react';
 import { Metadata } from 'next';
-import Script from 'next/script';
 import SrovnaniETFClient from './SrovnaniETFClient';
 
 const currentYear = new Date().getFullYear();
@@ -213,25 +212,16 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <Script
-        id="etf-comparison-webapp-schema"
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(webAppSchema),
         }}
       />
-      <Script
-        id="etf-comparison-dataset-schema"
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(datasetSchema),
-        }}
-      />
-      <Script
-        id="etf-comparison-breadcrumb-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbSchema),
         }}
       />
       <SrovnaniETFClient searchParams={finalSearchParams} />
