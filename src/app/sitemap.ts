@@ -1,194 +1,245 @@
 import { MetadataRoute } from 'next'
 import { supabaseAdmin } from '@/lib/supabase'
 
-// Generate sitemap index with multiple sitemaps
-// Updated 2025-12-04 - Split into multiple sitemaps for better Google indexing
-export async function generateSitemaps() {
-  // Return array of sitemap IDs
-  // ID 0 = static pages, ID 1+ = ETF pages (batched by 1000)
-
-  // Get total ETF count
-  const { count } = await supabaseAdmin
-    .from('etf_funds')
-    .select('*', { count: 'exact', head: true })
-
-  const etfCount = count || 0
-  const etfSitemapCount = Math.ceil(etfCount / 1000) // 1000 ETFs per sitemap
-
-  // Generate sitemap IDs: 0 for pages, 1+ for ETF batches
-  const sitemaps = [{ id: 0 }] // Static pages
-
-  for (let i = 1; i <= etfSitemapCount; i++) {
-    sitemaps.push({ id: i })
-  }
-
-  return sitemaps
-}
-
-export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
+// Sitemap updated 2025-11-16 - Canonical URL fix - All URLs now use www variant
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.etfpruvodce.cz'
-
-  // ID 0 = Static pages sitemap
-  if (id === 0) {
-    return generateStaticPagesSitemap(baseUrl)
-  }
-
-  // ID 1+ = ETF pages sitemaps (batched)
-  return generateETFSitemap(baseUrl, id)
-}
-
-// Static pages sitemap
-function generateStaticPagesSitemap(baseUrl: string): MetadataRoute.Sitemap {
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const yearStart = new Date(2025, 0, 1)
-
+  
+  // Static pages
   const staticPages = [
-    // Homepage
-    { path: '', lastMod: now, freq: 'daily' as const, priority: 1 },
-
-    // Main sections
-    { path: '/co-jsou-etf', lastMod: yearStart, freq: 'monthly' as const, priority: 0.9 },
-    { path: '/co-jsou-etf/jak-zacit-investovat', lastMod: yearStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/kde-koupit-etf', lastMod: monthStart, freq: 'monthly' as const, priority: 0.9 },
-    { path: '/srovnani-etf', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-brokeru', lastMod: monthStart, freq: 'monthly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/nejlepsi-etf-2025', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/o-nas', lastMod: yearStart, freq: 'monthly' as const, priority: 0.5 },
-
-    // ETF Comparisons (high value pages)
-    { path: '/srovnani-etf/vwce-vs-cspx', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/iwda-vs-cspx', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/vwce-vs-iwda', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/cspx-vs-vwra', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/cspx-vs-vuaa', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/swrd-vs-iwda', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/vwce-vs-vwrl', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/iwda-vs-vwra', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/cspx-vs-eunl', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-    { path: '/srovnani-etf/vwce-vs-eunl', lastMod: now, freq: 'weekly' as const, priority: 0.95 },
-
-    // Portfolio strategies
-    { path: '/portfolio-strategie', lastMod: yearStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/portfolio-strategie/akciove-portfolio', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/portfolio-strategie/dividendove-portfolio', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/portfolio-strategie/nobel-portfolio', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/portfolio-strategie/permanentni-portfolio', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/portfolio-strategie/ray-dalio-all-weather', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-
-    // Calculators
-    { path: '/kalkulacky', lastMod: yearStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/kalkulacky/hypotecni-kalkulacka', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/cisty-plat-2025', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/uverova-kalkulacka', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/investicni-kalkulacka', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/monte-carlo-simulator', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/fire-kalkulacka', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/nouzova-rezerva', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/kalkulacka-poplatku-etf', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-    { path: '/kalkulacky/kurzovy-dopad-etf', lastMod: yearStart, freq: 'monthly' as const, priority: 0.7 },
-
-    // Best ETF categories
-    { path: '/nejlepsi-etf/nejlepsi-etf-2025', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlevnejsi-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/etf-zdarma-degiro', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-celosvetove-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-sp500-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-msci-world-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-nasdaq-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-dax-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-stoxx600-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-ftse100-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-americke-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-evropske-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-asijsko-pacificke-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-japonske-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-cinske-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-emerging-markets-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-dividendove-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-nemovitostni-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-dluhopisove-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-komoditni-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-zlate-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-technologicke-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-healthcare-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-financni-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-energeticke-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-spotrebni-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-ai-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-robotika-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-clean-energy-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-cloud-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-biotechnologie-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-defense-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-value-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-growth-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-small-cap-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-    { path: '/nejlepsi-etf/nejlepsi-esg-etf', lastMod: now, freq: 'weekly' as const, priority: 0.9 },
-
-    // Broker reviews
-    { path: '/degiro-recenze', lastMod: monthStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/xtb-recenze', lastMod: monthStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/trading212-recenze', lastMod: monthStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/interactive-brokers-recenze', lastMod: monthStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/fio-ebroker-recenze', lastMod: monthStart, freq: 'monthly' as const, priority: 0.8 },
-    { path: '/portu-recenze', lastMod: monthStart, freq: 'monthly' as const, priority: 0.8 },
-
-    // Infographics
-    { path: '/infografiky', lastMod: now, freq: 'weekly' as const, priority: 0.7 },
-    { path: '/infografiky/nejlepsi-etf-vykonnost', lastMod: now, freq: 'weekly' as const, priority: 0.7 },
-    { path: '/infografiky/nejlevnejsi-etf-ter', lastMod: now, freq: 'weekly' as const, priority: 0.7 },
-    { path: '/infografiky/trzni-heatmapa', lastMod: now, freq: 'weekly' as const, priority: 0.7 },
+    '',
+    '/co-jsou-etf',
+    '/co-jsou-etf/jak-zacit-investovat',
+    '/kde-koupit-etf',
+    '/srovnani-etf',
+    // Static ETF comparison pages
+    '/srovnani-etf/vwce-vs-cspx',
+    '/srovnani-etf/iwda-vs-cspx',
+    '/srovnani-etf/vwce-vs-iwda',
+    '/srovnani-etf/cspx-vs-vwra',
+    '/srovnani-etf/cspx-vs-vuaa',
+    '/srovnani-etf/swrd-vs-iwda',
+    '/srovnani-etf/vwce-vs-vwrl',
+    '/srovnani-etf/iwda-vs-vwra',
+    '/srovnani-etf/cspx-vs-eunl',
+    '/srovnani-etf/vwce-vs-eunl',
+    '/srovnani-brokeru',
+    '/portfolio-strategie',
+    '/portfolio-strategie/akciove-portfolio',
+    '/portfolio-strategie/dividendove-portfolio',
+    '/portfolio-strategie/nobel-portfolio',
+    '/portfolio-strategie/permanentni-portfolio',
+    '/portfolio-strategie/ray-dalio-all-weather',
+    '/kalkulacky',
+    '/kalkulacky/hypotecni-kalkulacka',
+    '/kalkulacky/cisty-plat-2025',
+    '/kalkulacky/uverova-kalkulacka',
+    '/kalkulacky/investicni-kalkulacka',
+    '/kalkulacky/monte-carlo-simulator',
+    '/kalkulacky/fire-kalkulacka',
+    '/kalkulacky/nouzova-rezerva',
+    '/kalkulacky/kalkulacka-poplatku-etf',
+    '/kalkulacky/kurzovy-dopad-etf',
+    '/nejlepsi-etf',
+    '/nejlepsi-etf/nejlepsi-etf-2025',
+    '/nejlepsi-etf/nejlevnejsi-etf',
+    '/nejlepsi-etf/etf-zdarma-degiro',
+    '/nejlepsi-etf/nejlepsi-celosvetove-etf',
+    '/nejlepsi-etf/nejlepsi-sp500-etf',
+    '/nejlepsi-etf/nejlepsi-msci-world-etf',
+    '/nejlepsi-etf/nejlepsi-nasdaq-etf',
+    '/nejlepsi-etf/nejlepsi-dax-etf',
+    '/nejlepsi-etf/nejlepsi-stoxx600-etf',
+    '/nejlepsi-etf/nejlepsi-ftse100-etf',
+    '/nejlepsi-etf/nejlepsi-americke-etf',
+    '/nejlepsi-etf/nejlepsi-evropske-etf',
+    '/nejlepsi-etf/nejlepsi-asijsko-pacificke-etf',
+    '/nejlepsi-etf/nejlepsi-japonske-etf',
+    '/nejlepsi-etf/nejlepsi-cinske-etf',
+    '/nejlepsi-etf/nejlepsi-emerging-markets-etf',
+    '/nejlepsi-etf/nejlepsi-dividendove-etf',
+    '/nejlepsi-etf/nejlepsi-nemovitostni-etf',
+    '/nejlepsi-etf/nejlepsi-dluhopisove-etf',
+    '/nejlepsi-etf/nejlepsi-komoditni-etf',
+    '/nejlepsi-etf/nejlepsi-zlate-etf',
+    '/nejlepsi-etf/nejlepsi-technologicke-etf',
+    '/nejlepsi-etf/nejlepsi-healthcare-etf',
+    '/nejlepsi-etf/nejlepsi-financni-etf',
+    '/nejlepsi-etf/nejlepsi-energeticke-etf',
+    '/nejlepsi-etf/nejlepsi-spotrebni-etf',
+    '/nejlepsi-etf/nejlepsi-ai-etf',
+    '/nejlepsi-etf/nejlepsi-robotika-etf',
+    '/nejlepsi-etf/nejlepsi-clean-energy-etf',
+    '/nejlepsi-etf/nejlepsi-cloud-etf',
+    '/nejlepsi-etf/nejlepsi-biotechnologie-etf',
+    '/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf',
+    '/nejlepsi-etf/nejlepsi-defense-etf',
+    '/nejlepsi-etf/nejlepsi-value-etf',
+    '/nejlepsi-etf/nejlepsi-growth-etf',
+    '/nejlepsi-etf/nejlepsi-small-cap-etf',
+    '/nejlepsi-etf/nejlepsi-esg-etf',
+    '/degiro-recenze',
+    '/xtb-recenze',
+    '/trading212-recenze',
+    '/interactive-brokers-recenze',
+    '/fio-ebroker-recenze',
+    '/portu-recenze',
+    '/infografiky',
+    '/infografiky/nejlepsi-etf-vykonnost',
+    '/infografiky/nejlevnejsi-etf-ter',
+    '/infografiky/trzni-heatmapa',
+    '/nejlepsi-etf-2025',
+    '/o-nas'
   ]
 
-  return staticPages.map(page => ({
-    url: `${baseUrl}${page.path}`,
-    lastModified: page.lastMod,
-    changeFrequency: page.freq,
-    priority: page.priority,
-  }))
-}
+  // Helper functions for intelligent lastModified dates
+  const getMonthlyUpdateDate = () => {
+    const now = new Date()
+    // Always the 1st day of current month for broker reviews (monthly updates)
+    return new Date(now.getFullYear(), now.getMonth(), 1)
+  }
 
-// ETF pages sitemap (batched by 1000)
-async function generateETFSitemap(baseUrl: string, batchId: number): Promise<MetadataRoute.Sitemap> {
-  const batchSize = 1000
-  const offset = (batchId - 1) * batchSize // batchId 1 = offset 0, batchId 2 = offset 1000, etc.
+  const getDatabaseLastUpdate = async () => {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('etf_funds')
+        .select('updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single()
 
+      if (error || !data?.updated_at) {
+        return new Date() // Fallback to current date
+      }
+
+      return new Date(data.updated_at)
+    } catch (error) {
+      console.error('Error getting database last update:', error)
+      return new Date()
+    }
+  }
+
+  // Get all ETF ISINs from database with pagination to handle 3600+ ETFs
+  let etfPages: MetadataRoute.Sitemap = []
+  let dbLastUpdate: Date
+  
   try {
-    const { data: etfs, error } = await supabaseAdmin
-      .from('etf_funds')
-      .select('isin, updated_at, fund_size_numeric')
-      .order('fund_size_numeric', { ascending: false })
-      .range(offset, offset + batchSize - 1)
+    // Get the latest database update date for ETF-related pages
+    dbLastUpdate = await getDatabaseLastUpdate()
+    console.log('Database last update:', dbLastUpdate)
 
-    if (error) {
-      console.error(`Error fetching ETFs for sitemap batch ${batchId}:`, error)
-      return []
+    let allETFs: any[] = []
+    let hasMore = true
+    let offset = 0
+    const batchSize = 1000
+
+    // Fetch all ETFs in batches
+    while (hasMore) {
+      const { data, error } = await supabaseAdmin
+        .from('etf_funds')
+        .select('isin, primary_ticker, updated_at')
+        .order('fund_size_numeric', { ascending: false })
+        .range(offset, offset + batchSize - 1)
+
+      if (error) {
+        console.error('Error fetching ETFs for sitemap:', error)
+        break
+      }
+
+      if (data && data.length > 0) {
+        allETFs = [...allETFs, ...data]
+        offset += batchSize
+        
+        // If we got less than batchSize, we've reached the end
+        if (data.length < batchSize) {
+          hasMore = false
+        }
+      } else {
+        hasMore = false
+      }
     }
 
-    if (!etfs || etfs.length === 0) {
-      return []
-    }
+    console.log(`Adding ${allETFs.length} ETF pages to sitemap`)
 
-    return etfs.map((etf, index) => {
-      // Priority based on position in overall ranking
-      const globalIndex = offset + index
-      let priority = 0.6
-      if (globalIndex < 100) priority = 0.9
-      else if (globalIndex < 500) priority = 0.8
-      else if (globalIndex < 1000) priority = 0.7
+    // Add ETF detail pages with dynamic priority based on fund quality
+    etfPages = allETFs.map((etf, index) => {
+      // Higher priority for top ETFs, high-quality funds
+      let priority = 0.5; // Default priority
+
+      if (index < 100) {
+        priority = 0.9; // Top 100 ETFs by size
+      } else if (index < 500) {
+        priority = 0.8; // Top 500 ETFs
+      } else if (index < 1000) {
+        priority = 0.7; // Top 1000 ETFs
+      } else {
+        priority = 0.6; // Other ETFs
+      }
 
       return {
         url: `${baseUrl}/etf/${etf.isin}`,
-        lastModified: etf.updated_at ? new Date(etf.updated_at) : new Date(),
+        lastModified: etf.updated_at ? new Date(etf.updated_at) : dbLastUpdate,
         changeFrequency: 'weekly' as const,
         priority,
-      }
+      };
     })
+
+    // REMOVED: Ticker pages to avoid duplicate content issues
+    // Ticker URLs now redirect to ISIN pages via middleware (301 permanent redirect)
+    // This prevents Google from seeing duplicate content between /etf/ticker/X and /etf/ISIN
+
+    console.log(`Added ${allETFs.length} ISIN pages to sitemap`)
+    console.log(`Ticker pages removed from sitemap - will redirect to ISIN pages via middleware`)
   } catch (error) {
-    console.error(`Error generating ETF sitemap batch ${batchId}:`, error)
-    return []
+    console.error('Error fetching ETF data for sitemap:', error)
   }
+
+  // Combine static and dynamic pages with intelligent dates
+  const monthlyUpdateDate = getMonthlyUpdateDate()
+  
+  const staticSitemapEntries = staticPages.map((path) => {
+    let lastModified: Date
+    let changeFrequency: 'daily' | 'weekly' | 'monthly'
+    
+    // Intelligent lastModified dates based on content type
+    if (path.includes('recenze')) {
+      // Broker reviews: monthly updates (1st of each month)
+      lastModified = monthlyUpdateDate
+      changeFrequency = 'monthly'
+    } else if (path.includes('/nejlepsi-etf') || path.includes('/srovnani-etf')) {
+      // ETF-related pages: use database last update
+      lastModified = dbLastUpdate || new Date()
+      changeFrequency = 'weekly'
+    } else if (path.includes('/srovnani-brokeru')) {
+      // Broker comparison: monthly updates
+      lastModified = monthlyUpdateDate
+      changeFrequency = 'monthly'
+    } else if (path.includes('/kalkulacky')) {
+      // Calculators: less frequent updates
+      lastModified = new Date(2025, 0, 1) // January 1, 2025
+      changeFrequency = 'monthly'
+    } else if (path === '') {
+      // Homepage: daily
+      lastModified = new Date()
+      changeFrequency = 'daily'
+    } else {
+      // Other pages: quarterly updates
+      lastModified = new Date(2025, 0, 1) // January 1, 2025
+      changeFrequency = 'monthly'
+    }
+
+    return {
+      url: `${baseUrl}${path}`,
+      lastModified,
+      changeFrequency,
+      priority: path === '' ? 1 : 
+               path.includes('/srovnani-etf/') && path.includes('-vs-') ? 0.95 : // Static comparisons highest priority
+               path.includes('/nejlepsi-etf') || path.includes('/srovnani') ? 0.9 : 0.8,
+    }
+  }) as MetadataRoute.Sitemap
+
+  console.log(`Monthly update date for broker reviews: ${monthlyUpdateDate}`)
+  console.log(`Database last update for ETF pages: ${dbLastUpdate}`)
+
+  return [...staticSitemapEntries, ...etfPages]
 }
