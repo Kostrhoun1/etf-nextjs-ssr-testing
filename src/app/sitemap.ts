@@ -119,77 +119,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Get all ETF ISINs from database with pagination to handle 3600+ ETFs
+  // TEMPORARY: Reduced sitemap to help Google index static pages first
+  // Only include TOP 50 ETFs by fund size to reduce sitemap from 3700 to ~130 URLs
+  // This should help Google prioritize indexing our static content pages
+  // TODO: Gradually increase ETF count once static pages are indexed
+
   let etfPages: MetadataRoute.Sitemap = []
   let dbLastUpdate: Date
-  
+
   try {
     // Get the latest database update date for ETF-related pages
     dbLastUpdate = await getDatabaseLastUpdate()
     console.log('Database last update:', dbLastUpdate)
 
-    let allETFs: any[] = []
-    let hasMore = true
-    let offset = 0
-    const batchSize = 1000
+    // TEMPORARY: Only fetch TOP 50 ETFs instead of all 3600+
+    const ETF_LIMIT = 50
 
-    // Fetch all ETFs in batches
-    while (hasMore) {
-      const { data, error } = await supabaseAdmin
-        .from('etf_funds')
-        .select('isin, primary_ticker, updated_at')
-        .order('fund_size_numeric', { ascending: false })
-        .range(offset, offset + batchSize - 1)
+    const { data: topETFs, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select('isin, primary_ticker, updated_at')
+      .order('fund_size_numeric', { ascending: false })
+      .limit(ETF_LIMIT)
 
-      if (error) {
-        console.error('Error fetching ETFs for sitemap:', error)
-        break
-      }
+    if (error) {
+      console.error('Error fetching ETFs for sitemap:', error)
+    } else if (topETFs && topETFs.length > 0) {
+      console.log(`Adding TOP ${topETFs.length} ETF pages to sitemap (reduced from 3600+)`)
 
-      if (data && data.length > 0) {
-        allETFs = [...allETFs, ...data]
-        offset += batchSize
-        
-        // If we got less than batchSize, we've reached the end
-        if (data.length < batchSize) {
-          hasMore = false
-        }
-      } else {
-        hasMore = false
-      }
-    }
-
-    console.log(`Adding ${allETFs.length} ETF pages to sitemap`)
-
-    // Add ETF detail pages with dynamic priority based on fund quality
-    etfPages = allETFs.map((etf, index) => {
-      // Higher priority for top ETFs, high-quality funds
-      let priority = 0.5; // Default priority
-
-      if (index < 100) {
-        priority = 0.9; // Top 100 ETFs by size
-      } else if (index < 500) {
-        priority = 0.8; // Top 500 ETFs
-      } else if (index < 1000) {
-        priority = 0.7; // Top 1000 ETFs
-      } else {
-        priority = 0.6; // Other ETFs
-      }
-
-      return {
+      // Add ETF detail pages - all top 50 get high priority
+      etfPages = topETFs.map((etf) => ({
         url: `${baseUrl}/etf/${etf.isin}`,
         lastModified: etf.updated_at ? new Date(etf.updated_at) : dbLastUpdate,
         changeFrequency: 'weekly' as const,
-        priority,
-      };
-    })
+        priority: 0.8, // High priority for top ETFs
+      }))
+    }
 
-    // REMOVED: Ticker pages to avoid duplicate content issues
-    // Ticker URLs now redirect to ISIN pages via middleware (301 permanent redirect)
-    // This prevents Google from seeing duplicate content between /etf/ticker/X and /etf/ISIN
-
-    console.log(`Added ${allETFs.length} ISIN pages to sitemap`)
-    console.log(`Ticker pages removed from sitemap - will redirect to ISIN pages via middleware`)
+    console.log(`Sitemap now contains ~${82 + ETF_LIMIT} URLs (was 3700+)`)
+    console.log(`This helps Google prioritize static pages for indexing`)
   } catch (error) {
     console.error('Error fetching ETF data for sitemap:', error)
   }
