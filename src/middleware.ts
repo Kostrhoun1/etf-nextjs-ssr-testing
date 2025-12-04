@@ -120,9 +120,16 @@ export async function middleware(request: NextRequest) {
 }
 
 // Configure which routes should trigger the middleware
+// Include all routes for www redirect, but exclude static files
 export const config = {
   matcher: [
-    '/etf/ticker/:ticker*',
-    '/srovnani-etf',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files (robots.txt, sitemap.xml, etc.)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };
