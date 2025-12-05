@@ -119,10 +119,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // TEMPORARY: Reduced sitemap to help Google index static pages first
-  // Only include TOP 50 ETFs by fund size to reduce sitemap from 3700 to ~130 URLs
-  // This should help Google prioritize indexing our static content pages
-  // TODO: Gradually increase ETF count once static pages are indexed
+  // Include ALL ETFs in sitemap - Google needs to know about all pages
+  // Large sitemaps (thousands of URLs) are normal and expected
 
   let etfPages: MetadataRoute.Sitemap = []
   let dbLastUpdate: Date
@@ -132,31 +130,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     dbLastUpdate = await getDatabaseLastUpdate()
     console.log('Database last update:', dbLastUpdate)
 
-    // TEMPORARY: Only fetch TOP 50 ETFs instead of all 3600+
-    const ETF_LIMIT = 50
+    // Fetch ALL ETFs using pagination (Supabase has 1000 row limit per request)
+    let allETFs: Array<{ isin: string; primary_ticker: string | null; updated_at: string | null; fund_size_numeric: number | null }> = []
+    let offset = 0
+    const batchSize = 1000
 
-    const { data: topETFs, error } = await supabaseAdmin
-      .from('etf_funds')
-      .select('isin, primary_ticker, updated_at')
-      .order('fund_size_numeric', { ascending: false })
-      .limit(ETF_LIMIT)
+    while (true) {
+      const { data, error } = await supabaseAdmin
+        .from('etf_funds')
+        .select('isin, primary_ticker, updated_at, fund_size_numeric')
+        .order('fund_size_numeric', { ascending: false, nullsFirst: false })
+        .range(offset, offset + batchSize - 1)
 
-    if (error) {
-      console.error('Error fetching ETFs for sitemap:', error)
-    } else if (topETFs && topETFs.length > 0) {
-      console.log(`Adding TOP ${topETFs.length} ETF pages to sitemap (reduced from 3600+)`)
+      if (error) {
+        console.error('Error fetching ETFs for sitemap:', error)
+        break
+      }
 
-      // Add ETF detail pages - all top 50 get high priority
-      etfPages = topETFs.map((etf) => ({
+      if (!data || data.length === 0) break
+
+      allETFs = allETFs.concat(data)
+
+      if (data.length < batchSize) break
+      offset += batchSize
+    }
+
+    if (allETFs.length > 0) {
+      console.log(`Adding ${allETFs.length} ETF pages to sitemap`)
+
+      // Add ETF detail pages with priority based on fund size ranking
+      etfPages = allETFs.map((etf, index) => ({
         url: `${baseUrl}/etf/${etf.isin}`,
         lastModified: etf.updated_at ? new Date(etf.updated_at) : dbLastUpdate,
         changeFrequency: 'weekly' as const,
-        priority: 0.8, // High priority for top ETFs
+        // Top 100 ETFs get highest priority, then gradually decrease
+        priority: index < 100 ? 0.9 : index < 500 ? 0.8 : index < 1000 ? 0.7 : 0.6,
       }))
     }
 
-    console.log(`Sitemap now contains ~${82 + ETF_LIMIT} URLs (was 3700+)`)
-    console.log(`This helps Google prioritize static pages for indexing`)
+    console.log(`Sitemap contains ${82 + allETFs.length} total URLs`)
   } catch (error) {
     console.error('Error fetching ETF data for sitemap:', error)
   }
