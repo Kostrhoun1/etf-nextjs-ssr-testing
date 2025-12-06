@@ -256,9 +256,14 @@ export default function PortfolioStrategiePage() {
         <InternalLinking
           relatedLinks={[
             {
-              title: "Jak začít investovat do ETF",
-              href: "/co-jsou-etf/jak-zacit-investovat",
-              description: "Kompletní průvodce s detailním popisem strategií pro začátečníky"
+              title: "Backtest portfolia",
+              href: "/kalkulacky/backtest-portfolia",
+              description: "Otestujte historickou výkonnost strategií od roku 2000"
+            },
+            {
+              title: "Monte Carlo simulátor",
+              href: "/kalkulacky/monte-carlo-simulator",
+              description: "Prognóza budoucnosti s tisíci scénářů"
             },
             {
               title: "Srovnání ETF fondů",
@@ -266,14 +271,9 @@ export default function PortfolioStrategiePage() {
               description: "Najděte nejlepší ETF pro vaše portfolio"
             },
             {
-              title: "Investiční kalkulačka",
-              href: "/kalkulacky/investicni-kalkulacka",
-              description: "Simulujte růst vašeho portfolia"
-            },
-            {
-              title: "Monte Carlo simulátor",
-              href: "/kalkulacky/monte-carlo-simulator",
-              description: "Analýza rizik a pravděpodobnosti úspěchu"
+              title: "Jak začít investovat do ETF",
+              href: "/co-jsou-etf/jak-zacit-investovat",
+              description: "Kompletní průvodce pro začátečníky"
             },
             {
               title: "Nejlepší ETF 2025",

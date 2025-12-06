@@ -583,24 +583,24 @@ export default function RayDalioAllWeatherPage() {
           <InternalLinking
             relatedLinks={[
               {
+                title: "Backtest portfolia",
+                href: "/kalkulacky/backtest-portfolia",
+                description: "Otestujte historickou výkonnost All-Weather Portfolia"
+              },
+              {
+                title: "Monte Carlo simulátor",
+                href: "/kalkulacky/monte-carlo-simulator",
+                description: "Prognóza budoucnosti s tisíci scénářů"
+              },
+              {
                 title: "Portfolio strategie přehled",
                 href: "/portfolio-strategie",
                 description: "Porovnejte všech 5 investičních strategií"
               },
               {
                 title: "Permanentní Portfolio",
-                href: "/portfolio-strategie/permanentni-portfolio", 
+                href: "/portfolio-strategie/permanentni-portfolio",
                 description: "Jednodušší konzervativní alternativa"
-              },
-              {
-                title: "Nobel Portfolio",
-                href: "/portfolio-strategie/nobel-portfolio",
-                description: "Vědecky podložená strategie s 6% výnosem"
-              },
-              {
-                title: "Investiční kalkulačka",
-                href: "/kalkulacky/investicni-kalkulacka",
-                description: "Simulujte růst vašeho All-Weather portfolia"
               },
               {
                 title: "Srovnání ETF fondů",

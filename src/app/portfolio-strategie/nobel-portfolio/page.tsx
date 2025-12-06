@@ -413,24 +413,24 @@ export default function NobelPortfolioPage() {
         <InternalLinking
           relatedLinks={[
             {
+              title: "Backtest portfolia",
+              href: "/kalkulacky/backtest-portfolia",
+              description: "Otestujte historickou výkonnost Nobel Portfolia"
+            },
+            {
+              title: "Monte Carlo simulátor",
+              href: "/kalkulacky/monte-carlo-simulator",
+              description: "Prognóza budoucnosti s tisíci scénářů"
+            },
+            {
               title: "Portfolio strategie přehled",
               href: "/portfolio-strategie",
               description: "Porovnejte všech 5 investičních strategií"
             },
             {
-              title: "Permanentní Portfolio",
-              href: "/portfolio-strategie/permanentni-portfolio", 
-              description: "Konzervativní strategie s 4% očekávaným výnosem"
-            },
-            {
               title: "Ray Dalio All-Weather",
               href: "/portfolio-strategie/ray-dalio-all-weather",
               description: "Strategie odolná vůči všem ekonomickým podmínkám"
-            },
-            {
-              title: "Investiční kalkulačka",
-              href: "/kalkulacky/investicni-kalkulacka",
-              description: "Simulujte růst vašeho Nobel Portfolia"
             },
             {
               title: "Srovnání ETF fondů",

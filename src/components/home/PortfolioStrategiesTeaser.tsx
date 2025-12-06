@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart3 } from 'lucide-react';
+import { ArrowRight, BarChart3, History } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 
@@ -162,6 +162,28 @@ const PortfolioStrategiesTeaser: React.FC = () => {
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Porovnejte reálnou performance různých investičních přístupů založených na skutečných datech z naší databáze ETF fondů.
         </p>
+      </div>
+
+      {/* CTA - Backtest */}
+      <div className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-xl p-6 mb-12 border border-blue-200">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-100 p-3 rounded-full">
+              <History className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900">Otestujte strategie na historických datech</h3>
+              <p className="text-gray-600 text-sm">Backtest portfolia od roku 2000 s reálnými daty</p>
+            </div>
+          </div>
+          <Link
+            href="/kalkulacky/backtest-portfolia"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center gap-2 whitespace-nowrap"
+          >
+            Spustit backtest
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
 
       {/* Strategy Cards */}

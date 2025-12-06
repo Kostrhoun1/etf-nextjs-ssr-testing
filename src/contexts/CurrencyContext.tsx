@@ -23,7 +23,7 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 
 // Currency provider component
 export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('EUR');
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('CZK');
 
   // Load currency preference from localStorage on mount
   useEffect(() => {

@@ -1,41 +1,77 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Layout from '@/components/Layout';
+import MonteCarloContent from '@/components/tools/MonteCarloContent';
 
 export const metadata: Metadata = {
-  title: 'Monte Carlo Simulátor | Analýza investičních rizik ETF portfolia',
-  description: 'Pokročilý Monte Carlo simulátor pro analýzu pravděpodobnosti úspěchu investičního portfolia. Simulace tisíců scénářů pro ETF investice.',
-  keywords: 'Monte Carlo simulátor, analýza rizik, portfolio simulace, ETF rizika, pravděpodobnost úspěchu',
-  alternates: {
-    canonical: 'https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator',
-  },
+  title: 'Monte Carlo simulátor ETF portfolia 2025 | Prognóza investic | ETF průvodce.cz',
+  description: 'Generujte tisíce scénářů budoucího vývoje vašeho ETF portfolia. Monte Carlo simulace ukáže pravděpodobnostní rozsah výsledků na 5-30 let dopředu. Zdarma online nástroj.',
+  keywords: [
+    'Monte Carlo simulace',
+    'simulátor portfolia',
+    'prognóza investic',
+    'pravděpodobnostní analýza',
+    'budoucí hodnota portfolia',
+    'ETF prognóza',
+    'investiční scénáře',
+    'riziko portfolia',
+    'percentily výnosů',
+    'finanční plánování',
+    'důchodové plánování',
+    'FIRE kalkulačka'
+  ],
   openGraph: {
-    title: 'Monte Carlo Simulátor | ETF průvodce.cz',
-    description: 'Pokročilý Monte Carlo simulátor pro analýzu pravděpodobnosti úspěchu investičního portfolia.',
-    url: 'https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator',
-    siteName: 'ETF průvodce.cz',
-    locale: 'cs_CZ',
+    title: 'Monte Carlo simulátor ETF portfolia 2025',
+    description: 'Generujte tisíce scénářů budoucího vývoje portfolia. Zjistěte pravděpodobnostní rozsah výsledků investice.',
     type: 'website',
+    locale: 'cs_CZ'
   },
-  robots: {
-    index: true,
-    follow: true,
-    'max-snippet': -1,
-    'max-image-preview': 'large',
-    'max-video-preview': -1,
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Monte Carlo simulátor ETF portfolia 2025',
+    description: 'Tisíce scénářů budoucího vývoje vašeho portfolia.'
   },
+  alternates: {
+    canonical: 'https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator'
+  }
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Monte Carlo simulátor ETF portfolia 2025',
+  description: 'Nástroj pro generování pravděpodobnostních scénářů budoucího vývoje ETF portfolia pomocí Monte Carlo simulace. Analyzujte rizika a možné výsledky investic na horizontu 5-30 let.',
+  url: 'https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator',
+  applicationCategory: 'FinanceApplication',
+  operatingSystem: 'Web',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'CZK'
+  },
+  featureList: [
+    'Generování stovek náhodných scénářů',
+    'Pravděpodobnostní pásma (percentily)',
+    'Nastavitelný počet simulací (100-1000)',
+    'Prognóza na 5-30 let',
+    'Přednastavená portfolia',
+    'Podpora více měn (CZK, EUR, USD)',
+    'Vizualizace výsledků',
+    'Statistiky z historických dat'
+  ]
 };
 
 export default function MonteCarloSimulatorPage() {
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-4xl font-bold mb-8">Monte Carlo Simulátor</h1>
-        <div className="bg-orange-50 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4">🚀 Pokročilá kalkulačka se připravuje</h2>
-          <p>Monte Carlo simulátor pro analýzu portfolia bude brzy dostupný.</p>
-        </div>
-      </div>
-    </Layout>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <Layout>
+        <MonteCarloContent />
+      </Layout>
+    </>
   );
 }

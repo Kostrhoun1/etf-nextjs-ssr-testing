@@ -139,13 +139,13 @@ export default async function HomePage() {
 
 
       {/* Related Content Links */}
-      <InternalLinking 
+      <InternalLinking
         relatedLinks={[
           { title: "Srovnání ETF fondů", href: "/srovnani-etf", description: "Porovnejte více než 3500 ETF fondů" },
           { title: "Portfolio Strategie", href: "/portfolio-strategie", description: "5 ověřených investičních strategií" },
+          { title: "Backtest portfolia", href: "/kalkulacky/backtest-portfolia", description: "Historická simulace výkonnosti od roku 2000" },
           { title: "Kde koupit ETF", href: "/kde-koupit-etf", description: "Nejlepší brokeři pro české investory" },
-          { title: "Nejlevnější ETF fondy", href: "/nejlepsi-etf/nejlevnejsi-etf", description: "TOP ETF s nejnižšími poplatky pro efektivní investování" },
-          { title: "Investiční kalkulačky", href: "/kalkulacky", description: "Bezplatné kalkulačky a nástroje" },
+          { title: "Investiční kalkulačky", href: "/kalkulacky", description: "10+ bezplatných nástrojů a kalkulaček" },
           { title: "Nejlepší ETF 2025", href: "/nejlepsi-etf/nejlepsi-etf-2025", description: "Doporučené ETF fondy pro rok 2025" }
         ]}
         title="Další užitečné stránky"

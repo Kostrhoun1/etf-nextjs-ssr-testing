@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator, BarChart, PiggyBank, CreditHome, Target, Home, CreditCard, TrendingUp, Shield, DollarSign } from 'lucide-react';
+import { Calculator, BarChart, PiggyBank, CreditHome, Target, Home, CreditCard, TrendingUp, Shield, DollarSign, History } from 'lucide-react';
 import Link from 'next/link';
 
 interface CalculatorItem {
@@ -63,8 +63,15 @@ const CalculatorHub: React.FC = () => {
       category: 'investment'
     },
     {
+      title: 'Backtest portfolia',
+      description: 'Otestujte historickou výkonnost ETF portfolia od roku 2000',
+      icon: <History className="h-6 w-6 text-blue-700" />,
+      href: '/kalkulacky/backtest-portfolia',
+      category: 'advanced'
+    },
+    {
       title: 'Monte Carlo simulátor',
-      description: 'Pokročilá simulace portfolia na základě historických dat',
+      description: 'Prognóza budoucnosti portfolia s tisíci scénářů',
       icon: <BarChart className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/monte-carlo-simulator',
       category: 'advanced'
@@ -191,7 +198,7 @@ const CalculatorHub: React.FC = () => {
             <ul className="space-y-2 text-gray-600">
               <li>• <strong>Základní výpočty:</strong> Mzda, úvěry, hypotéky</li>
               <li>• <strong>Investiční plánování:</strong> ETF, DCA, compound interest</li>
-              <li>• <strong>Pokročilé analýzy:</strong> Monte Carlo, měnová rizika</li>
+              <li>• <strong>Pokročilé analýzy:</strong> Backtest portfolia, Monte Carlo, měnová rizika</li>
             </ul>
           </div>
         </div>

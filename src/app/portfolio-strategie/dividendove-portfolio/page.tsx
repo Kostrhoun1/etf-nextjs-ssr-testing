@@ -390,12 +390,16 @@ export default function DividendPortfolioPage() {
             </CardContent>
           </Card>
 
-          <InternalLinking 
+          <InternalLinking
             relatedLinks={[
-              { title: "Permanentní Portfolio", href: "/portfolio-strategie/permanentni-portfolio", description: "Stabilní 4% portfolio pro konzervativní investory" },
+              { title: "Backtest portfolia", href: "/kalkulacky/backtest-portfolia", description: "Otestujte historickou výkonnost Dividendového Portfolia" },
+              { title: "Monte Carlo simulátor", href: "/kalkulacky/monte-carlo-simulator", description: "Prognóza budoucnosti s tisíci scénářů" },
+              { title: "Portfolio strategie přehled", href: "/portfolio-strategie", description: "Porovnejte všech 5 investičních strategií" },
               { title: "Nobel Portfolio", href: "/portfolio-strategie/nobel-portfolio", description: "Vyvážené portfolio s 6% očekávaným výnosem" },
               { title: "Akciové Portfolio", href: "/portfolio-strategie/akciove-portfolio", description: "Agresivní růstová strategie s 7-8% výnosem" }
             ]}
+            title="Související strategie a nástroje"
+            className="mt-16"
           />
         </div>
       </div>

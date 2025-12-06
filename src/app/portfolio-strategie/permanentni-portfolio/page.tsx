@@ -421,29 +421,29 @@ export default function PermanentniPortfolioPage() {
         <InternalLinking
           relatedLinks={[
             {
+              title: "Backtest portfolia",
+              href: "/kalkulacky/backtest-portfolia",
+              description: "Otestujte historickou výkonnost Permanentního Portfolia"
+            },
+            {
+              title: "Monte Carlo simulátor",
+              href: "/kalkulacky/monte-carlo-simulator",
+              description: "Prognóza budoucnosti s tisíci scénářů"
+            },
+            {
               title: "Portfolio strategie přehled",
               href: "/portfolio-strategie",
               description: "Porovnejte všech 5 investičních strategií"
             },
             {
               title: "Nobel Portfolio",
-              href: "/portfolio-strategie/nobel-portfolio", 
+              href: "/portfolio-strategie/nobel-portfolio",
               description: "Vědecky podložená strategie s 6% očekávaným výnosem"
             },
             {
               title: "Ray Dalio All-Weather",
               href: "/portfolio-strategie/ray-dalio-all-weather",
               description: "Pokročilejší všepogodní strategie"
-            },
-            {
-              title: "Investiční kalkulačka",
-              href: "/kalkulacky/investicni-kalkulacka",
-              description: "Simulujte růst vašeho Permanentního Portfolia"
-            },
-            {
-              title: "Nejlepší ETF 2025",
-              href: "/nejlepsi-etf/nejlepsi-etf-2025",
-              description: "Najděte vhodné ETF pro vaši strategii"
             }
           ]}
           title="Související strategie a nástroje"

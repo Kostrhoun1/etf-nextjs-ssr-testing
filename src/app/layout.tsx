@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
+import { Inter } from 'next/font/google';
 import "./globals.css";
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import AuthorSchema from '@/components/SEO/AuthorSchema';
+
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -77,10 +84,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="cs">
+    <html lang="cs" className={inter.variable}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://nbhwnatadyubiuadfakx.supabase.co" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <link rel="alternate" type="application/rss+xml" title="ETF průvodce.cz RSS" href="/rss.xml" />
@@ -91,7 +96,7 @@ export default function RootLayout({
         {/* Author & Organization Schema - E-E-A-T signals for Google */}
         <AuthorSchema />
       </head>
-      <body className="font-sans antialiased">
+      <body className={`${inter.className} antialiased`}>
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
         <CurrencyProvider>
           {children}

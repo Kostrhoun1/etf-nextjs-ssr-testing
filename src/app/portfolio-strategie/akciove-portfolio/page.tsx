@@ -538,24 +538,24 @@ export default function AkciovPortfolioPage() {
         <InternalLinking
           relatedLinks={[
             {
+              title: "Backtest portfolia",
+              href: "/kalkulacky/backtest-portfolia",
+              description: "Otestujte historickou výkonnost Akciového Portfolia"
+            },
+            {
+              title: "Monte Carlo simulátor",
+              href: "/kalkulacky/monte-carlo-simulator",
+              description: "Prognóza budoucnosti s tisíci scénářů"
+            },
+            {
               title: "Portfolio strategie přehled",
               href: "/portfolio-strategie",
               description: "Porovnejte všech 5 investičních strategií"
             },
             {
               title: "Dividendové Portfolio",
-              href: "/portfolio-strategie/dividendove-portfolio", 
+              href: "/portfolio-strategie/dividendove-portfolio",
               description: "Dividendové akcie s 4% výnosem + růst"
-            },
-            {
-              title: "Ray Dalio All-Weather",
-              href: "/portfolio-strategie/ray-dalio-all-weather",
-              description: "Všepogodní strategie pro snížení volatility"
-            },
-            {
-              title: "Investování pro mladé",
-              href: "/co-jsou-etf/jak-zacit-investovat",
-              description: "Kompletní průvodce pro začínající investory"
             },
             {
               title: "Nejlepší ETF 2025",

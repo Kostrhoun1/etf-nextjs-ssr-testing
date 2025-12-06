@@ -40,7 +40,7 @@ export default function KalkulackyPage() {
     "mainEntity": {
       "@type": "ItemList",
       "name": "Finanční kalkulačky",
-      "numberOfItems": "9",
+      "numberOfItems": "10",
       "itemListElement": [
         {
           "@type": "SoftwareApplication",
@@ -151,7 +151,7 @@ export default function KalkulackyPage() {
                 </div>
                 <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg border border-purple-200">
                   <p className="text-sm font-semibold text-purple-800">
-                    📊 Více než 10 specializovaných nástrojů
+                    📊 10+ specializovaných nástrojů včetně backtestů
                   </p>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export default function KalkulackyPage() {
               },
               {
                 question: "Máte i pokročilé nástroje?",
-                answer: "Ano, nabízíme i Monte Carlo simulace pro analýzu investičních rizik, kalkulátor měnových dopadů na ETF, FIRE kalkulátor pro předčasný důchod a další pokročilé nástroje pro zkušené investory."
+                answer: "Ano, nabízíme backtest portfolia pro historickou analýzu od roku 2000, Monte Carlo simulace pro prognózu budoucnosti, kalkulátor měnových dopadů na ETF, FIRE kalkulátor pro předčasný důchod a další pokročilé nástroje pro zkušené investory."
               }
             ].map((faq, index) => (
               <details key={index} className="group border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
