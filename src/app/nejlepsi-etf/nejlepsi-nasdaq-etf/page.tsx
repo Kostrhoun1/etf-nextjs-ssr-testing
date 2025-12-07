@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší NASDAQ ETF ${currentYear} - CNDX vs ANX vs XNAS | ETF průvodce.cz`,
+    title: `Nejlepší NASDAQ ETF ${currentYear} - CNDX vs ANX vs XNAS`,
     description: `✅ Srovnání nejlepších NASDAQ 100 ETF ${currentYear}. CNDX, ANX, XNAS - poplatky TER, výnosy, expozice k Apple, Microsoft, Tesla. Aktuální data k ${currentDate}.`,
     keywords: `nejlepší NASDAQ ETF ${currentYear}, CNDX ETF, ANX ETF, XNAS ETF, NASDAQ 100 porovnání, technologické ETF, americké tech akcie`,
     openGraph: {

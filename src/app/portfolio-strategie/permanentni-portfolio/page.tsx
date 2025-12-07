@@ -13,7 +13,7 @@ import PermanentniPortfolioPerformance from '@/components/portfolio/PermanentniP
 import { getETFLink } from '@/data/etf-mappings';
 
 export const metadata: Metadata = {
-  title: 'Permanentní Portfolio Strategie 2025 | 4% bezpečně s ETF | ETF průvodce.cz',
+  title: 'Permanentní Portfolio Strategie 2025 | 4% bezpečně s ETF',
   description: 'Kompletní průvodce Permanentní Portfolio strategií Harryho Browna. Očekávaný výnos 4% ročně s minimálním rizikem a ochranou proti všem ekonomickým cyklům pomocí čtyř tříd aktiv.',
   keywords: [
     'permanentní portfolio',

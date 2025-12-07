@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import MortgageCalculatorContent from '@/components/tools/MortgageCalculatorContent';
 
 export const metadata: Metadata = {
-  title: 'Hypoteční kalkulačka 2025 | Výpočet splátky hypotéky | ETF průvodce.cz',
+  title: 'Hypoteční kalkulačka 2025 | Výpočet splátky hypotéky',
   description: 'Přesná hypoteční kalkulačka 2025. Spočítejte si měsíční splátky hypotéky, celkové náklady na úvěr a porovnejte nabídky bank. Aktuální úrokové sazby.',
   keywords: [
     'hypoteční kalkulačka 2025',

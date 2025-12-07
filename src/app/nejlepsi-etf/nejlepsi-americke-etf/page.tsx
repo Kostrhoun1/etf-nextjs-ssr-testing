@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
     day: 'numeric' 
   });
 
-  const title = `Nejlepší americké ETF ${currentYear} - SUSA vs XMUSA vs SPXS | ETF průvodce.cz`;
+  const title = `Nejlepší americké ETF ${currentYear} - SUSA vs XMUSA vs SPXS`;
   const description = `✅ Srovnání nejlepších amerických ETF ${currentYear}. SUSA, XMUSA, SPXS - MSCI USA index, poplatky TER, výnosy. Aktuální data k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-americke-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-americke-etf.jpg';

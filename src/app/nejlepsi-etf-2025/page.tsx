@@ -4,7 +4,7 @@ import StructuredData from '@/components/SEO/StructuredData';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Nejlepší ETF 2025 - Top 10 fondů pro investování | ETF průvodce.cz',
+  title: 'Nejlepší ETF 2025 - Top 10 fondů pro investování',
   description: '✅ Nejlepší ETF fondy 2025: VWCE, IWDA, VUAA a další. Detailní analýza, poplatky, výnosy. Sestavte si ideální portfolio s minimálními náklady!',
   keywords: 'nejlepší ETF 2025, VWCE, IWDA, VUAA, ETF fondy, investování ETF, portfolio ETF, top ETF',
   openGraph: {

@@ -65,7 +65,7 @@ export default function KdeKoupitETF() {
   return (
     <Layout>
       <SEOHead
-        title={`Kde koupit ETF? Srovnání nejlepších brokerů ${currentYear} | ETF průvodce.cz`}
+        title={`Kde koupit ETF? Srovnání nejlepších brokerů ${currentYear}`}
         description={`Kompletní srovnání brokerů pro ETF investice ${currentYear}. DEGIRO, XTB, Trading 212, Interactive Brokers, Fio, Portu. Poplatky, recenze, zkušenosti českých investorů.`}
         canonical="https://www.etfpruvodce.cz/kde-koupit-etf"
         keywords={`kde koupit ETF ${currentYear}, nejlepší brokeři ${currentYear}, DEGIRO recenze ${currentYear}, XTB recenze ${currentYear}, Trading 212 recenze ${currentYear}, Interactive Brokers recenze ${currentYear}, Portu recenze ${currentYear}, srovnání brokerů ${currentYear}, poplatky brokerů, broker pro ETF Česká republika`}

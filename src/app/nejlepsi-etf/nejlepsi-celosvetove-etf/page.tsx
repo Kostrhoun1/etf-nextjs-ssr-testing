@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const lastModified = new Date(new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-15`;
   
-  const title = `Nejlepší světové ETF ${currentYear} - IWDA vs XMWO vs VWCE | ETF průvodce.cz`;
+  const title = `Nejlepší světové ETF ${currentYear} - IWDA vs XMWO vs VWCE`;
   const description = `✅ Srovnání nejlepších světových ETF ${currentYear}. IWDA, XMWO, VWCE - MSCI World vs FTSE All-World, poplatky TER, výnosy. Kompletní analýza k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-celosvetove-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-world-etf.jpg';

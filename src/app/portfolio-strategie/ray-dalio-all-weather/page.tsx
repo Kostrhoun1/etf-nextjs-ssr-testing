@@ -11,7 +11,7 @@ import AllWeatherPortfolioPerformance from '@/components/portfolio/AllWeatherPor
 import { getETFLink } from '@/data/etf-mappings';
 
 export const metadata: Metadata = {
-  title: 'Ray Dalio All-Weather Portfolio 2025 | 5% s ETF | ETF průvodce.cz',
+  title: 'Ray Dalio All-Weather Portfolio 2025 | 5% s ETF',
   description: 'Kompletní průvodce All-Weather strategií Ray Dalia z Bridgewater. Očekávaný výnos 5% ročně s minimální volatilitou ve všech ekonomických podmínkách.',
   keywords: [
     'Ray Dalio',

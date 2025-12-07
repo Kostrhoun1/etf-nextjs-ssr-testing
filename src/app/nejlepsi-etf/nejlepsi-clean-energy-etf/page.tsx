@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší clean energy ETF ${currentYear} - čistá energie a obnovitelné zdroje | ETF průvodce.cz`,
+    title: `Nejlepší clean energy ETF ${currentYear} - čistá energie a obnovitelné zdroje`,
     description: `✅ Srovnání nejlepších clean energy ETF ${currentYear}. Solární, větrná, vodní energie - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'clean energy ETF',

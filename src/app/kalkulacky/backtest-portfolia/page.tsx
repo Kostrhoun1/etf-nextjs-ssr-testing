@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import BacktestContent from '@/components/tools/BacktestContent';
 
 export const metadata: Metadata = {
-  title: 'Backtest portfolia ETF 2025 | Historická simulace | ETF průvodce.cz',
+  title: 'Backtest portfolia ETF 2025 | Historická simulace',
   description: 'Otestujte historickou výkonnost ETF portfolia s reálnými daty od roku 2000. Analyzujte rizika, drawdowny, CAGR a porovnejte různé investiční strategie. Pravidelné investování (DCA) v CZK.',
   keywords: [
     'backtest ETF',

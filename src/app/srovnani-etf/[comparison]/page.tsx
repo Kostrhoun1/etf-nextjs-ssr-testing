@@ -94,7 +94,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   )?.name || ticker2;
 
   return {
-    title: `${ticker1} vs ${ticker2} srovnání ${currentYear} - ${etf1Name} vs ${etf2Name} | ETF průvodce.cz`,
+    title: `${ticker1} vs ${ticker2} srovnání ${currentYear} - ${etf1Name} vs ${etf2Name}`,
     description: `🔍 Detailní srovnání ETF ${ticker1} vs ${ticker2}. Porovnání poplatků, výkonnosti a rizika. ${etf1Name} vs ${etf2Name} - která investice je lepší?`,
     keywords: `${ticker1} vs ${ticker2}, ${ticker1} ${ticker2} srovnání, ETF srovnání ${ticker1}, ETF srovnání ${ticker2}, ${etf1Name}, ${etf2Name}, ETF porovnání ${currentYear}`,
     authors: [{ name: 'ETF průvodce.cz' }],

@@ -9,7 +9,7 @@ import { Metadata } from 'next';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Finanční kalkulačky ${currentYear} - Hypotéka, úvěry, mzda | ETF průvodce.cz`,
+  title: `Finanční kalkulačky ${currentYear} - Hypotéka, úvěry, mzda`,
   description: `✅ Kompletní přehled finančních kalkulaček ${currentYear}. Hypoteční kalkulačka, čistá mzda, spotřebitelské úvěry, investiční nástroje. Vše zdarma s aktuálními daty.`,
   keywords: `finanční kalkulačky ${currentYear}, hypoteční kalkulačka, kalkulačka čisté mzdy, úvěrová kalkulačka, investiční kalkulačky, bezplatné nástroje`,
   openGraph: {

@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
     day: 'numeric' 
   });
 
-  const title = `Nejlepší evropské ETF ${currentYear} - LYP6 vs SMEA vs VERX | ETF průvodce.cz`;
+  const title = `Nejlepší evropské ETF ${currentYear} - LYP6 vs SMEA vs VERX`;
   const description = `✅ Srovnání nejlepších evropských ETF ${currentYear}. LYP6, SMEA, VERX - STOXX 600 vs MSCI Europe vs FTSE, poplatky TER, výnosy. Aktuální data k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-evropske-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-evropske-etf.jpg';

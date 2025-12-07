@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší Growth ETF ${currentYear} - růstové faktory a growth investing | ETF průvodce.cz`,
+    title: `Nejlepší Growth ETF ${currentYear} - růstové faktory a growth investing`,
     description: `✅ Srovnání nejlepších Growth ETF ${currentYear}. Russell Growth, růstové faktory, growth akcie - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'Growth ETF',

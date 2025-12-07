@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší finanční ETF ${currentYear} - banky a finanční sektor | ETF průvodce.cz`,
+    title: `Nejlepší finanční ETF ${currentYear} - banky a finanční sektor`,
     description: `✅ Srovnání nejlepších finančních ETF ${currentYear}. Banky, pojišťovny, REIT - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'finanční ETF',

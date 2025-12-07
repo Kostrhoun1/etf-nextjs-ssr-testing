@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import FIRECalculatorContent from '@/components/tools/FIRECalculatorContent';
 
 export const metadata: Metadata = {
-  title: 'FIRE kalkulačka - Kdy dosáhnu finanční nezávislosti? | ETF průvodce.cz',
+  title: 'FIRE kalkulačka - Kdy dosáhnu finanční nezávislosti?',
   description: '✅ Spočítejte si kdy dosáhnete FIRE podle 4% pravidla. Kalkulačka finanční nezávislosti s Trinity Study analýzou. Lean/Regular/Fat FIRE plánování předčasného důchodu.',
   keywords: 'FIRE kalkulačka, finanční nezávislost, předčasný důchod, 4% pravidlo, trinity study, lean fire, regular fire, fat fire, ETF investice, kdy dosáhnu FIRE',
   alternates: {

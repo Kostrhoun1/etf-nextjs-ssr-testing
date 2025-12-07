@@ -11,7 +11,7 @@ import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Fio e-Broker recenze ${currentYear} - Český broker s optimálním zdaněním | ETF průvodce.cz`,
+  title: `Fio e-Broker recenze ${currentYear} - Český broker s optimálním zdaněním`,
   description: `✅ Fio e-Broker recenze ${currentYear} - hodnocení 75/100. Český broker s lokální podporou a optimálním zdaněním českých dividend (15%).`,
   keywords: `Fio e-Broker recenze, Fio broker, Fio e-Broker test, Fio hodnocení, český broker, 15% zdanění dividend`,
   authors: [{ name: 'ETF průvodce.cz' }],

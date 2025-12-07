@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory | ETF průvodce.cz`,
+    title: `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory`,
     description: `✅ Srovnání nejlepších ESG ETF ${currentYear}. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'ESG ETF',

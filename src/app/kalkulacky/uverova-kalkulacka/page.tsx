@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import ConsumerLoanCalculator from '@/components/tools/ConsumerLoanCalculator';
 
 export const metadata: Metadata = {
-  title: 'Úvěrová kalkulačka 2025 | Spotřebitelský úvěr | ETF průvodce.cz',
+  title: 'Úvěrová kalkulačka 2025 | Spotřebitelský úvěr',
   description: 'Kalkulačka spotřebitelského úvěru 2025. Spočítejte si měsíční splátky, celkové náklady a porovnejte nabídky bank. Aktuální úrokové sazby.',
   keywords: [
     'úvěrová kalkulačka 2025',

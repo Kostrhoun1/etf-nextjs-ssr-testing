@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const lastModified = new Date(new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-25`;
   
-  const title = `Nejlepší MSCI World ETF ${currentYear} - SWDA vs XDWD vs SPPW | ETF průvodce.cz`;
+  const title = `Nejlepší MSCI World ETF ${currentYear} - SWDA vs XDWD vs SPPW`;
   const description = `✅ Srovnání nejlepších MSCI World ETF ${currentYear}. SWDA, XDWD, SPPW - globální diverzifikace 1600+ společností, poplatky TER, výnosy. Aktuální data k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-msci-world-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-msci-world-etf.jpg';

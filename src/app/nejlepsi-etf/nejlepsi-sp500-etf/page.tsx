@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší S&P 500 ETF ${currentYear} - CSPX vs SPXP vs SPY5 | ETF průvodce.cz`,
+    title: `Nejlepší S&P 500 ETF ${currentYear} - CSPX vs SPXP vs SPY5`,
     description: `✅ Srovnání nejlepších S&P 500 ETF ${currentYear}. CSPX, SPXP, SPY5 - poplatky TER, výnosy, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: `nejlepší S&P 500 ETF ${currentYear}, CSPX ETF, SPXP ETF, SPY5 ETF, S&P 500 porovnání, americké ETF, indexové fondy USA`,
     openGraph: {

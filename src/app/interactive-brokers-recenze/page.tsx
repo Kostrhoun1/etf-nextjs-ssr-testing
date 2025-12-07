@@ -11,7 +11,7 @@ import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Interactive Brokers recenze ${currentYear} - Komplexní test a hodnocení | ETF průvodce.cz`,
+  title: `Interactive Brokers recenze ${currentYear} - Komplexní test a hodnocení`,
   description: `✅ Interactive Brokers recenze ${currentYear} - hodnocení 85/100. Americká brokerská společnost s globálním přístupem na 86 burz.`,
   keywords: `Interactive Brokers recenze, IBKR broker, Interactive Brokers test, IBKR hodnocení, Interactive Brokers poplatky, IBKR ETF`,
   authors: [{ name: 'ETF průvodce.cz' }],

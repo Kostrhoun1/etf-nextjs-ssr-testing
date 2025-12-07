@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const lastModified = new Date(new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-25`;
   
-  const title = `Nejlepší DAX ETF ${currentYear} - XDAX vs EXS1 vs DAX | ETF průvodce.cz`;
+  const title = `Nejlepší DAX ETF ${currentYear} - XDAX vs EXS1 vs DAX`;
   const description = `✅ Srovnání nejlepších DAX ETF ${currentYear}. XDAX, EXS1, DAX - německé akcie, poplatky TER, výnosy. Kompletní analýza DAX 40 indexu k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-dax-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-dax-etf.jpg';

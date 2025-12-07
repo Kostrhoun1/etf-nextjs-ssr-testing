@@ -11,7 +11,7 @@ import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Portu recenze ${currentYear} - Česká robo-advisor platforma | ETF průvodce.cz`,
+  title: `Portu recenze ${currentYear} - Česká robo-advisor platforma`,
   description: `✅ Portu recenze ${currentYear} - hodnocení 98/100. Česká automatizovaná investiční platforma s robo-advisor a optimálním zdaněním.`,
   keywords: `Portu recenze, Portu investice, robo-advisor Česka republika, automatické investování, česká investiční platforma`,
   authors: [{ name: 'ETF průvodce.cz' }],

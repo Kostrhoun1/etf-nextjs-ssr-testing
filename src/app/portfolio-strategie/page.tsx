@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `5 Osvědčených Portfolio Strategií pro ETF Investory ${currentYear} | ETF průvodce.cz`,
+  title: `5 Osvědčených Portfolio Strategií pro ETF Investory ${currentYear}`,
   description: `✅ Porovnejte reálnou performance 5 investičních strategií: Permanentní Portfolio, Ray Dalio All-Weather, Nobel Portfolio, Akciové a Dividendové. Včetně aktuálních dat z databáze 4300+ ETF.`,
   keywords: `portfolio strategie, ETF strategie ${currentYear}, investiční portfolio, Ray Dalio All Weather, Nobel portfolio, dividendové portfolio, permanentní portfolio, performance ETF, asset allocation`,
   openGraph: {

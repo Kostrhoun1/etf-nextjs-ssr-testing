@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const lastModified = new Date(new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-20`;
   
-  const title = `Nejlepší FTSE ETF ${currentYear} - VUKE vs ISF vs FTAL | ETF průvodce.cz`;
+  const title = `Nejlepší FTSE ETF ${currentYear} - VUKE vs ISF vs FTAL`;
   const description = `✅ Srovnání nejlepších FTSE ETF ${currentYear}. VUKE, ISF, FTAL - britské akcie, poplatky TER, výnosy. Kompletní analýza FTSE 100 a UK All Share k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-ftse100-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-ftse-etf.jpg';

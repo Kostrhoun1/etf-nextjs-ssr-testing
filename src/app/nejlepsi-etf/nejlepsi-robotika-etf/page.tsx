@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší robotika ETF ${currentYear} - robotics a automatizace | ETF průvodce.cz`,
+    title: `Nejlepší robotika ETF ${currentYear} - robotics a automatizace`,
     description: `✅ Srovnání nejlepších robotika ETF ${currentYear}. Robotics, automatizace, AI - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'robotika ETF',

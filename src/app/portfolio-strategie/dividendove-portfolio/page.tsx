@@ -11,7 +11,7 @@ import DividendPortfolioPerformance from '@/components/portfolio/DividendPortfol
 import { getETFLink } from '@/data/etf-mappings';
 
 export const metadata: Metadata = {
-  title: 'Dividendové Portfolio 2025 | 4% dividendy + růst | ETF průvodce.cz',
+  title: 'Dividendové Portfolio 2025 | 4% dividendy + růst',
   description: 'Kompletní průvodce dividendovým portfoliem s Dividend Aristocrats. Očekávaný dividendový výnos 4% ročně + růst kurzu. Zaměření na kvalitní společnosti s dlouholetou tradicí růstu dividend.',
   keywords: [
     'dividendové portfolio',

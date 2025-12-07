@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší technologické ETF ${currentYear} - NASDAQ 100 a tech sektory | ETF průvodce.cz`,
+    title: `Nejlepší technologické ETF ${currentYear} - NASDAQ 100 a tech sektory`,
     description: `✅ Srovnání nejlepších technologických ETF ${currentYear}. NASDAQ 100, S&P 500 Tech, Information Technology - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'technologické ETF',

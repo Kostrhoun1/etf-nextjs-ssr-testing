@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší Value ETF ${currentYear} - P/E ratio a podhodnocené akcie | ETF průvodce.cz`,
+    title: `Nejlepší Value ETF ${currentYear} - P/E ratio a podhodnocené akcie`,
     description: `✅ Srovnání nejlepších Value ETF ${currentYear}. Podhodnocené akcie, nízké P/E ratio, P/B ratio - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'Value ETF',

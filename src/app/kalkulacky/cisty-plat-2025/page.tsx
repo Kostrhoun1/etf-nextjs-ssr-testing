@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import NetSalaryCalculatorContent from '@/components/tools/NetSalaryCalculatorContent';
 
 export const metadata: Metadata = {
-  title: 'Kalkulačka čisté mzdy 2025 | Výpočet čistého platu | ETF průvodce.cz',
+  title: 'Kalkulačka čisté mzdy 2025 | Výpočet čistého platu',
   description: 'Přesná kalkulačka čisté mzdy 2025. Spočítejte si čistý plat ze superhrubé mzdy podle aktuální české legislativy. Zahrnuje daně, pojistné a slevy.',
   keywords: [
     'kalkulačka čisté mzdy 2025',

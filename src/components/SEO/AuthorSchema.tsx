@@ -119,7 +119,7 @@ export default function AuthorSchema() {
       "height": 60,
       "caption": "ETF průvodce.cz logo"
     },
-    "description": "Největší český průvodce ETF fondy. Srovnání 3,600+ ETF fondů, aktuální výkonnost přepočítaná do českých korun, nezávislé recenze brokerů. Jedinečná databáze ETF pro české investory.",
+    "description": "Největší český průvodce ETF fondy. Srovnání 4300+ ETF fondů, aktuální výkonnost přepočítaná do českých korun, nezávislé recenze brokerů. Jedinečná databáze ETF pro české investory.",
     "foundingDate": "2024",
     "founder": {
       "@id": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"

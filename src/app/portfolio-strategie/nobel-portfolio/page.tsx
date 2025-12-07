@@ -12,7 +12,7 @@ import { getETFLink } from '@/data/etf-mappings';
 import NobelPortfolioHero from '@/components/portfolio/NobelPortfolioHero';
 
 export const metadata: Metadata = {
-  title: 'Nobel Portfolio Strategie 2025 | 6% ročně s ETF | ETF průvodce.cz',
+  title: 'Nobel Portfolio Strategie 2025 | 6% ročně s ETF',
   description: 'Kompletní průvodce Nobel Portfolio strategií založené na vědeckých poznatcích. 55% akcie + 25% dluhopisy + 20% nemovitosti s očekávaným výnosem 6% ročně.',
   keywords: [
     'Nobel portfolio',

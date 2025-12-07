@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `ETF zdarma na DEGIRO ${currentYear} - 65+ komisně bezplatných fondů | ETF průvodce.cz`,
+    title: `ETF zdarma na DEGIRO ${currentYear} - 65+ komisně bezplatných fondů`,
     description: `✅ Kompletní seznam 65+ ETF fondů zdarma na DEGIRO ${currentYear}. CSPX, IWDA, EMIM - nulové komise, poplatky pouze €1 za 2. obchod. Aktuální k ${currentDate}.`,
     keywords: `ETF zdarma DEGIRO ${currentYear}, DEGIRO free ETF, CSPX zdarma, IWDA DEGIRO, komisně bezplatné ETF, DEGIRO poplatky`,
     openGraph: {

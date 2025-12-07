@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika | ETF průvodce.cz`,
+    title: `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika`,
     description: `✅ Srovnání nejlepších healthcare ETF ${currentYear}. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'healthcare ETF',

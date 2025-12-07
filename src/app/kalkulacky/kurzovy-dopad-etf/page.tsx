@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import CurrencyImpactAnalyzerContent from '@/components/tools/CurrencyImpactAnalyzerContent';
 
 export const metadata: Metadata = {
-  title: 'Kalkulačka kurzového dopadu ETF 2025 | Měnové riziko ETF | ETF průvodce.cz',
+  title: 'Kalkulačka kurzového dopadu ETF 2025 | Měnové riziko ETF',
   description: '✅ Bezplatná kalkulačka kurzového dopadu ETF. Analyzujte měnové riziko CSPX, VWCE a hedged ETF. Spočítejte dopad kurzových změn na vaše portfolio za 2 minuty.',
   keywords: 'kalkulačka kurzový dopad ETF, měnové riziko ETF, CSPX hedging, EUR hedged ETF, USD CZK kurz, currency hedging kalkulačka 2025',
   alternates: {

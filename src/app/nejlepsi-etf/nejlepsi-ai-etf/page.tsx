@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší AI ETF ${currentYear} - umělá inteligence a robotika | ETF průvodce.cz`,
+    title: `Nejlepší AI ETF ${currentYear} - umělá inteligence a robotika`,
     description: `✅ Srovnání nejlepších AI ETF ${currentYear}. Umělá inteligence, machine learning, big data - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'AI ETF',

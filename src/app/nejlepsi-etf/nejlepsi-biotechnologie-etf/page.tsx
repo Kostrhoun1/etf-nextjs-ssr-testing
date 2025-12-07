@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika | ETF průvodce.cz`,
+    title: `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika`,
     description: `✅ Srovnání nejlepších biotechnologie ETF ${currentYear}. Biotech, farmaceutika, genomika - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'biotechnologie ETF',

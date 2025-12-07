@@ -11,7 +11,7 @@ import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Trading 212 recenze ${currentYear} - Komplexní test a hodnocení brokera | ETF průvodce.cz`,
+  title: `Trading 212 recenze ${currentYear} - Komplexní test a hodnocení brokera`,
   description: `✅ Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker s moderní mobilní aplikací a frakčním investováním.`,
   keywords: `Trading 212 recenze, Trading 212 broker, Trading 212 test, Trading 212 hodnocení, Trading 212 poplatky, Trading 212 ETF, bezplatný broker`,
   authors: [{ name: 'ETF průvodce.cz' }],

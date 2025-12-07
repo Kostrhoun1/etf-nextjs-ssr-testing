@@ -48,7 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlevnější ETF ${currentYear} - Nejnižší TER poplatky | ETF průvodce.cz`,
+    title: `Nejlevnější ETF ${currentYear} - Nejnižší TER poplatky`,
     description: `✅ Nejlevnější ETF ${currentYear} s nejnižšími TER poplatky. Akciové, dluhopisové a REIT ETF od 0,03%. Srovnání a doporučení k ${currentDate}.`,
     keywords: `nejlevnější ETF ${currentYear}, nejnižší TER poplatky, levné ETF fondy, nízké náklady ETF, UBS S&P 500, JPMorgan dluhopisy, Amundi REIT`,
     openGraph: {

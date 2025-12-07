@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     canonical: 'https://www.etfpruvodce.cz/co-jsou-etf',
   },
   openGraph: {
-    title: 'Co jsou ETF fondy? | ETF průvodce.cz',
+    title: 'Co jsou ETF fondy? | Kompletní průvodce pro české investory 2025',
     description: 'Kompletní průvodce Exchange Traded Funds pro české investory. Naučte se pasivní investování, porovnejte nejlepší ETF a začněte investovat ještě dnes.',
     url: 'https://www.etfpruvodce.cz/co-jsou-etf',
     siteName: 'ETF průvodce.cz',

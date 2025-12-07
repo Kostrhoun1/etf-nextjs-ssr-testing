@@ -11,7 +11,7 @@ import AkcioviPortfolioPerformance from '@/components/portfolio/AkcioviPortfolio
 import { getETFLink } from '@/data/etf-mappings';
 
 export const metadata: Metadata = {
-  title: 'Akciové Portfolio Strategie | 80% akcie + 20% nemovitosti | ETF průvodce.cz',
+  title: 'Akciové Portfolio Strategie | 80% akcie + 20% nemovitosti',
   description: 'Akciová strategie pro zkušené investory. 80% akcie diverzifikované globálně + 20% nemovitosti pro stabilitu. Minimálně 15letý horizont.',
   keywords: [
     'akciové portfolio strategie',

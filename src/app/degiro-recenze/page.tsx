@@ -11,7 +11,7 @@ import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `DEGIRO recenze ${currentYear} - Komplexní test a hodnocení brokera | ETF průvodce.cz`,
+  title: `DEGIRO recenze ${currentYear} - Komplexní test a hodnocení brokera`,
   description: `✅ DEGIRO recenze ${currentYear} - hodnocení 79/100. Součást flatexDEGIRO Bank AG s 3+ miliony klientů. Přístup na 31 světových burz, nízké poplatky.`,
   keywords: `DEGIRO recenze, DEGIRO broker, DEGIRO test, DEGIRO hodnocení, DEGIRO poplatky, DEGIRO ETF, online broker Česká republika`,
   authors: [{ name: 'ETF průvodce.cz' }],

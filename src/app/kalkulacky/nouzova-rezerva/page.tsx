@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import EmergencyFundContent from '@/components/tools/EmergencyFundContent';
 
 export const metadata: Metadata = {
-  title: 'Kalkulačka nouzové rezervy 2025 - Emergency Fund | ETF průvodce.cz',
+  title: 'Kalkulačka nouzové rezervy 2025 - Emergency Fund',
   description: '✅ Spočítejte si optimální velikost nouzové rezervy podle rizikového profilu. Kde držet peníze, strategie spoření a finanční bezpečnost 2025.',
   keywords: 'nouzová rezerva, emergency fund, kalkulačka rezervy, kde držet peníze, finanční bezpečnost 2025, rezervní fond',
   alternates: {

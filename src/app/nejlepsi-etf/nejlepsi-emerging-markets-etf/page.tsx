@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const lastModified = new Date(new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-18`;
   
-  const title = `Nejlepší emerging markets ETF ${currentYear} - EIMI vs C9EM vs HMEF | ETF průvodce.cz`;
+  const title = `Nejlepší emerging markets ETF ${currentYear} - EIMI vs C9EM vs HMEF`;
   const description = `✅ Srovnání nejlepších emerging markets ETF ${currentYear}. EIMI, C9EM, HMEF - rozvíjející se trhy, poplatky TER, výnosy. Analýza EM k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-emerging-markets-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-emerging-markets-etf.jpg';

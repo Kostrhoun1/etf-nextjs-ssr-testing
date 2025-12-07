@@ -11,7 +11,7 @@ import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `XTB recenze ${currentYear} - Komplexní test a hodnocení brokera | ETF průvodce.cz`,
+  title: `XTB recenze ${currentYear} - Komplexní test a hodnocení brokera`,
   description: `✅ XTB recenze ${currentYear} - hodnocení 94/100. Transparentní broker s českou licencí ČNB, bezplatnými ETF obchody a 24/7 podporou.`,
   keywords: `XTB recenze, XTB broker, XTB test, XTB hodnocení, XTB poplatky, XTB ETF, online broker Česká republika, XTB česká licence`,
   authors: [{ name: 'ETF průvodce.cz' }],

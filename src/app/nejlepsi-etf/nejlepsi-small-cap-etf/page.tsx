@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší Small Cap ETF ${currentYear} - malé společnosti a Russell 2000 | ETF průvodce.cz`,
+    title: `Nejlepší Small Cap ETF ${currentYear} - malé společnosti a Russell 2000`,
     description: `✅ Srovnání nejlepších Small Cap ETF ${currentYear}. Russell 2000, MSCI World Small Cap, evropské malé společnosti - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'Small Cap ETF',

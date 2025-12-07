@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší cloud ETF ${currentYear} - cloud computing a SaaS | ETF průvodce.cz`,
+    title: `Nejlepší cloud ETF ${currentYear} - cloud computing a SaaS`,
     description: `✅ Srovnání nejlepších cloud ETF ${currentYear}. Cloud computing, SaaS, digitalizace - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'cloud ETF',

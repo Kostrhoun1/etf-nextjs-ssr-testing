@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší čínské ETF ${currentYear} - MSCI China vs CSI 300 | ETF průvodce.cz`,
+    title: `Nejlepší čínské ETF ${currentYear} - MSCI China vs CSI 300`,
     description: `✅ Srovnání nejlepších čínských ETF ${currentYear}. MSCI China, CSI 300, A-akcie - poplatky TER, výnosy, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'čínské ETF',

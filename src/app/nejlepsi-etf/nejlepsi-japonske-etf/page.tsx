@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší japonské ETF ${currentYear} - MSCI Japan vs Nikkei 225 | ETF průvodce.cz`,
+    title: `Nejlepší japonské ETF ${currentYear} - MSCI Japan vs Nikkei 225`,
     description: `✅ Srovnání nejlepších japonských ETF ${currentYear}. MSCI Japan, Nikkei 225 - poplatky TER, výnosy, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'japonské ETF',

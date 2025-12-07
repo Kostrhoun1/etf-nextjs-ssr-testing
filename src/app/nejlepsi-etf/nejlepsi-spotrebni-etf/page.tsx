@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary | ETF průvodce.cz`,
+    title: `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary`,
     description: `✅ Srovnání nejlepších spotřebních ETF ${currentYear}. Consumer staples, discretionary, retail - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'spotřební ETF',

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: 'Kompletní návod jak začít s ETF investováním. Od výběru brokera po sestavení portfolia. Praktický průvodce pro české investory 2025.',
   keywords: 'jak začít investovat do ETF, ETF pro začátečníky, návod ETF investování, DEGIRO, XTB, Trading212',
   openGraph: {
-    title: 'Jak začít investovat do ETF? | ETF průvodce.cz',
+    title: 'Jak začít investovat do ETF? | Návod krok za krokem 2025',
     description: 'Kompletní návod jak začít s ETF investováním. Od výběru brokera po sestavení portfolia.',
     url: 'https://www.etfpruvodce.cz/co-jsou-etf/jak-zacit-investovat',
     siteName: 'ETF průvodce.cz',

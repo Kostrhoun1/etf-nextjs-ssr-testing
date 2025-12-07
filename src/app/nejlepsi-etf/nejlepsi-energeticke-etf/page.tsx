@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší energetické ETF ${currentYear} - ropa, plyn a čistá energie | ETF průvodce.cz`,
+    title: `Nejlepší energetické ETF ${currentYear} - ropa, plyn a čistá energie`,
     description: `✅ Srovnání nejlepších energetických ETF ${currentYear}. Ropa, plyn, čistá energie, utilities - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'energetické ETF',

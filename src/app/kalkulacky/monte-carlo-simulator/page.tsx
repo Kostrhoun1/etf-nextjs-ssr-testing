@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import MonteCarloContent from '@/components/tools/MonteCarloContent';
 
 export const metadata: Metadata = {
-  title: 'Monte Carlo simulátor ETF portfolia 2025 | Prognóza investic | ETF průvodce.cz',
+  title: 'Monte Carlo simulátor ETF portfolia 2025 | Prognóza investic',
   description: 'Generujte tisíce scénářů budoucího vývoje vašeho ETF portfolia. Monte Carlo simulace ukáže pravděpodobnostní rozsah výsledků na 5-30 let dopředu. Zdarma online nástroj.',
   keywords: [
     'Monte Carlo simulace',

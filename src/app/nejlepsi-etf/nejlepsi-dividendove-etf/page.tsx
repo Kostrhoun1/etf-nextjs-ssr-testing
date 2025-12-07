@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší dividendové ETF ${currentYear} - Dividend Aristocrats vs High Yield | ETF průvodce.cz`,
+    title: `Nejlepší dividendové ETF ${currentYear} - Dividend Aristocrats vs High Yield`,
     description: `✅ Srovnání nejlepších dividendových ETF ${currentYear}. Dividend Aristocrats, High Yield - dividendové výnosy, TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'dividendové ETF',

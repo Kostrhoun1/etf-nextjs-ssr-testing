@@ -10,7 +10,7 @@ import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Crown , Flag, 
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Nejlepší brokeři ${currentYear} - Kompletní srovnání ETF brokerů | ETF průvodce.cz`,
+  title: `Nejlepší brokeři ${currentYear} - Kompletní srovnání ETF brokerů`,
   description: `✅ Objektivní srovnání nejlepších brokerů pro ETF investice v ${currentYear}. Portu 98/100, XTB 94/100, Trading 212, DEGIRO a další. Poplatky, funkce, hodnocení.`,
   keywords: `nejlepší brokeři ${currentYear}, srovnání brokerů, ETF broker, XTB, DEGIRO, Trading 212, Interactive Brokers, Portu, Fio e-Broker`,
   authors: [{ name: 'ETF průvodce.cz' }],

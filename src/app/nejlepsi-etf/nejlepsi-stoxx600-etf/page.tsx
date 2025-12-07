@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const lastModified = new Date(new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-15`;
   
-  const title = `Nejlepší STOXX 600 ETF ${currentYear} - LYP6 vs EXSA vs XESC | ETF průvodce.cz`;
+  const title = `Nejlepší STOXX 600 ETF ${currentYear} - LYP6 vs EXSA vs XESC`;
   const description = `✅ Srovnání nejlepších STOXX 600 ETF ${currentYear}. LYP6, EXSA, XESC - poplatky TER, výnosy, velikost fondů. Kompletní analýza evropských ETF k ${currentDate}.`;
   const canonical = 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-stoxx600-etf';
   const ogImage = 'https://www.etfpruvodce.cz/og-stoxx600-etf.jpg';

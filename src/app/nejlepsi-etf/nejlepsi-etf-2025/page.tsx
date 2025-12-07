@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší ETF ${currentYear} - CSPX vs IWDA vs VWCE | ETF průvodce.cz`,
+    title: `Nejlepší ETF ${currentYear} - CSPX vs IWDA vs VWCE`,
     description: `✅ Top 3 nejlepší ETF fondy pro rok ${currentYear}. CSPX, IWDA, VWCE - srovnání poplatků TER, výnosů, velikosti fondů. Aktuální data k ${currentDate}.`,
     keywords: `nejlepší ETF ${currentYear}, CSPX, IWDA, VWCE, ETF fondy, investování, indexové fondy`,
     alternates: {
