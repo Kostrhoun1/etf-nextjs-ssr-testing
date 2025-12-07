@@ -9,6 +9,9 @@ import { generateBrokerSchema, generateFAQSchema, generateBreadcrumbSchema } fro
 import { generateCanonicalMetadata } from '@/lib/metadata';
 import { Metadata } from 'next';
 
+// ISR: Revalidate every 24 hours to ensure fresh content for crawlers
+export const revalidate = 86400;
+
 export const metadata: Metadata = generateCanonicalMetadata(
   '/kde-koupit-etf',
   'Kde koupit ETF 2025 🏆 Nejlepší brokeři pro české investory',
