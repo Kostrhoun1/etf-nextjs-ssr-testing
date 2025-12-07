@@ -88,7 +88,7 @@ const staticPages = [
   { path: '/infografiky/nejlepsi-etf-vykonnost', priority: 0.8, changefreq: 'weekly' },
   { path: '/infografiky/nejlevnejsi-etf-ter', priority: 0.8, changefreq: 'weekly' },
   { path: '/infografiky/trzni-heatmapa', priority: 0.8, changefreq: 'weekly' },
-  // Removed: /nejlepsi-etf-2025 - redirects to /nejlepsi-etf/nejlepsi-etf-2025
+  { path: '/nejlepsi-etf-2025', priority: 0.9, changefreq: 'weekly' },
   { path: '/o-nas', priority: 0.7, changefreq: 'monthly' },
 ]
 

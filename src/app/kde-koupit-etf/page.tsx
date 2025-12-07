@@ -249,7 +249,7 @@ export default function KdeKoupitETF() {
               };
               
               return (
-                <div key={index} className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover text-center">
+                <div key={index} className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in text-center" style={{animationDelay: `${0.2 + index * 0.1}s`}}>
                   <div className={`flex items-center justify-center rounded-full ${item.color === 'emerald' || item.color === 'purple' ? 'bg-emerald-100 group-hover:bg-emerald-200' : 'bg-violet-100 group-hover:bg-violet-200'} w-16 h-16 mx-auto mb-6 transition-colors hover-scale`}>
                     <Icon className={`w-8 h-8 text-${iconColorMap[item.color as keyof typeof iconColorMap] || 'gray-700'}`} />
                   </div>
@@ -310,7 +310,7 @@ export default function KdeKoupitETF() {
                 icon: "🌱"
               }
             ].map((tip, index) => (
-              <div key={index} className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover">
+              <div key={index} className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: `${0.2 + index * 0.1}s`}}>
                 <div className="flex items-start gap-4">
                   <div className="text-3xl">{tip.icon}</div>
                   <div className="flex-1">
@@ -360,7 +360,7 @@ export default function KdeKoupitETF() {
             </p>
           </div>
 
-          <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-2xl p-8 card-hover">
+          <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-2xl p-8 card-hover animate-fade-in [animation-delay:0.2s]">
             <div className="max-w-4xl mx-auto space-y-6">
             {[
               {

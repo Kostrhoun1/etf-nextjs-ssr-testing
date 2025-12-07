@@ -36,12 +36,6 @@ const nextConfig: NextConfig = {
         destination: '/nejlepsi-etf/:path*',
         permanent: true,
       },
-      // Fix duplicate content: redirect old URL to canonical
-      {
-        source: '/nejlepsi-etf-2025',
-        destination: '/nejlepsi-etf/nejlepsi-etf-2025',
-        permanent: true,
-      },
     ];
   },
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {

@@ -4,24 +4,17 @@ import MarketHeatmap from '@/components/infographics/MarketHeatmap';
 
 export const metadata: Metadata = {
   title: 'Tržní heatmapa 2025 - Výkonnost sektorů a regionů | Infografika',
-  description: '✅ Interaktivní heatmapa trhů 2025. Výkonnost 11 sektorů (tech, healthcare, finance), 7 regionů (USA, Evropa, Asie) a tříd aktiv. Denně aktualizovaná data pro investory.',
-  keywords: 'tržní heatmapa, výkonnost sektorů, výkonnost regionů, akciové trhy, ETF heatmapa, investiční přehled, tech sektor, USA trhy',
+  description: 'Interaktivní heatmapa výkonnosti trhů, sektorů a regionů. Aktuální data pro investory.',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/infografiky/trzni-heatmapa',
   },
   openGraph: {
-    title: 'Tržní heatmapa 2025 - Výkonnost sektorů a regionů',
-    description: 'Interaktivní heatmapa výkonnosti 11 sektorů, 7 regionů a tříd aktiv. Denně aktualizováno.',
+    title: 'Tržní heatmapa 2025',
+    description: 'Výkonnost sektorů, regionů a tříd aktiv v přehledné heatmapě',
     url: 'https://www.etfpruvodce.cz/infografiky/trzni-heatmapa',
     siteName: 'ETF průvodce.cz',
     locale: 'cs_CZ',
     type: 'website',
-    images: ['/og-market-heatmap.jpg'],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Tržní heatmapa 2025 - Výkonnost sektorů',
-    description: 'Interaktivní heatmapa sektorů, regionů a aktiv. Denně aktualizováno.',
     images: ['/og-market-heatmap.jpg'],
   },
   robots: {

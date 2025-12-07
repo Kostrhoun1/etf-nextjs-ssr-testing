@@ -22,12 +22,6 @@ export const metadata: Metadata = {
         alt: 'FIRE kalkulačka - Kdy dosáhnu finanční nezávislosti?'
       }
     ]
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'FIRE kalkulačka - Kdy dosáhnu finanční nezávislosti?',
-    description: 'Spočítejte si kdy dosáhnete FIRE podle 4% pravidla. Lean/Regular/Fat FIRE plánování.',
-    images: ['https://www.etfpruvodce.cz/og-fire-kalkulacka.jpg'],
   }
 };
 
