@@ -283,13 +283,13 @@ export default async function NejlepsiCinskeETF() {
       />
 
       {/* Modern Hero Section */}
-      <section className="relative min-h-[60vh] bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+      <section className="relative py-16 md:py-24 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-50/50 via-red-50/30 to-yellow-50/50"></div>
         <div className="absolute top-20 left-1/4 w-72 h-72 bg-gradient-to-br from-yellow-200 to-red-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
         <div className="absolute top-40 right-1/4 w-72 h-72 bg-gradient-to-br from-red-200 to-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center min-h-[60vh]">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             
             {/* Left Content */}

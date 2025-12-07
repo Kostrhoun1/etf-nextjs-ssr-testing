@@ -309,7 +309,7 @@ export default async function NejlepsiEvropskeETFPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] bg-gradient-to-br from-purple-50 to-indigo-50 overflow-hidden">
+      <section className="relative py-16 md:py-24 bg-gradient-to-br from-purple-50 to-indigo-50 overflow-hidden">
         {/* Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-indigo-50/30 to-blue-50/50"></div>
         
@@ -318,7 +318,7 @@ export default async function NejlepsiEvropskeETFPage() {
         <div className="absolute top-40 right-1/4 w-72 h-72 bg-gradient-to-br from-indigo-200 to-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center min-h-[60vh]">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             {/* Left Column - Content */}
             <div className="space-y-8">
