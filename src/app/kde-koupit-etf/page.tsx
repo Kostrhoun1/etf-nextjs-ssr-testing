@@ -18,7 +18,7 @@ export const metadata: Metadata = generateCanonicalMetadata(
   }
 );
 
-export default function KdeKoupitETF() {
+export default async function KdeKoupitETF() {
   const currentYear = new Date().getFullYear();
   
   const combinedSchema = {
