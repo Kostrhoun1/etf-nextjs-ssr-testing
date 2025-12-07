@@ -22,6 +22,12 @@ export const metadata: Metadata = {
         alt: 'Kalkulačka nouzové rezervy 2025'
       }
     ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kalkulačka nouzové rezervy 2025 - Emergency Fund',
+    description: 'Spočítejte si optimální velikost nouzové rezervy. Kde držet peníze a strategie spoření.',
+    images: ['https://www.etfpruvodce.cz/og-nouzova-rezerva.jpg'],
   }
 };
 

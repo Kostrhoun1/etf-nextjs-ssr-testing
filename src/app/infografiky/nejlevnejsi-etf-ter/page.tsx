@@ -4,17 +4,24 @@ import TwitterVariants from '@/components/infographics/TwitterVariants';
 
 export const metadata: Metadata = {
   title: 'Nejlevnější ETF 2025 - Nejnižší poplatky TER | Infografika pro X/Twitter',
-  description: 'Infografika s ETF fondy s nejnižšími poplatky TER. Optimalizováno pro sdílení na X/Twitter.',
+  description: '✅ TOP 5 ETF fondů s nejnižšími poplatky TER 2025: CSPX (0.07%), SWDA (0.12%), IMEU (0.12%). Infografika srovnání ročních nákladů ETF. Ušetřete na poplatcích!',
+  keywords: 'nejlevnější ETF, nízké TER, ETF poplatky, CSPX TER, SWDA TER, nejnižší náklady ETF, ETF srovnání poplatků',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/infografiky/nejlevnejsi-etf-ter',
   },
   openGraph: {
     title: 'Nejlevnější ETF 2025 - Nejnižší TER',
-    description: 'TOP 5 ETF fondů s nejnižšími poplatky TER',
+    description: 'TOP 5 ETF fondů s nejnižšími poplatky TER. CSPX, SWDA, IMEU srovnání nákladů.',
     url: 'https://www.etfpruvodce.cz/infografiky/nejlevnejsi-etf-ter',
     siteName: 'ETF průvodce.cz',
     locale: 'cs_CZ',
     type: 'website',
+    images: ['/og-etf-ter.jpg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nejlevnější ETF 2025 - Nejnižší TER poplatky',
+    description: 'TOP 5 ETF s nejnižšími poplatky. CSPX 0.07%, SWDA 0.12% srovnání.',
     images: ['/og-etf-ter.jpg'],
   },
   robots: {

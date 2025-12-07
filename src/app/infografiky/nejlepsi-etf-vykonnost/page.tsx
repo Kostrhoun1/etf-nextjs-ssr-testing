@@ -4,17 +4,24 @@ import TwitterVariants from '@/components/infographics/TwitterVariants';
 
 export const metadata: Metadata = {
   title: 'Nejlepší ETF 2025 - Výkonnost | Infografika pro X/Twitter',
-  description: 'Infografika s nejlepšími ETF fondy podle výkonnosti za posledních 3 roky. Optimalizováno pro sdílení na X/Twitter.',
+  description: '✅ TOP 5 ETF fondů s nejvyšší výkonností za 3 roky: IWDA, SWDA, VWCE, CSPX. Infografika optimalizovaná pro X/Twitter. Srovnání výnosů a TER poplatků nejlepších ETF 2025.',
+  keywords: 'nejlepší ETF výkonnost, ETF infografika, IWDA výkonnost, VWCE výkonnost, CSPX výkonnost, ETF srovnání, Twitter infografika',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/infografiky/nejlepsi-etf-vykonnost',
   },
   openGraph: {
     title: 'Nejlepší ETF 2025 - Výkonnost',
-    description: 'TOP 5 ETF fondů s nejvyšší výkonností za posledních 3 roky',
+    description: 'TOP 5 ETF fondů s nejvyšší výkonností za posledních 3 roky. IWDA, SWDA, VWCE, CSPX srovnání.',
     url: 'https://www.etfpruvodce.cz/infografiky/nejlepsi-etf-vykonnost',
     siteName: 'ETF průvodce.cz',
     locale: 'cs_CZ',
     type: 'website',
+    images: ['/og-etf-performance.jpg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nejlepší ETF 2025 - Výkonnost',
+    description: 'TOP 5 ETF fondů s nejvyšší výkonností. IWDA, VWCE, CSPX srovnání.',
     images: ['/og-etf-performance.jpg'],
   },
   robots: {
