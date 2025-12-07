@@ -4,7 +4,6 @@ import Layout from '../../components/Layout';
 import DetailedBrokerComparison from '../../components/home/DetailedBrokerComparison';
 import { Button } from '@/components/ui/button';
 import { Store, ArrowRight, ExternalLink, Award, Shield, Users, DollarSign, TrendingUp } from 'lucide-react';
-import SEOHead from '@/components/SEO/SEOHead';
 import InternalLinking, { BrokerGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 import { generateBrokerSchema, generateFAQSchema, generateBreadcrumbSchema } from '@/components/SEO/BrokerSEO';
 import { generateCanonicalMetadata } from '@/lib/metadata';
@@ -64,17 +63,12 @@ export default function KdeKoupitETF() {
 
   return (
     <Layout>
-      <SEOHead
-        title={`Kde koupit ETF? Srovnání nejlepších brokerů ${currentYear}`}
-        description={`Kompletní srovnání brokerů pro ETF investice ${currentYear}. DEGIRO, XTB, Trading 212, Interactive Brokers, Fio, Portu. Poplatky, recenze, zkušenosti českých investorů.`}
-        canonical="https://www.etfpruvodce.cz/kde-koupit-etf"
-        keywords={`kde koupit ETF ${currentYear}, nejlepší brokeři ${currentYear}, DEGIRO recenze ${currentYear}, XTB recenze ${currentYear}, Trading 212 recenze ${currentYear}, Interactive Brokers recenze ${currentYear}, Portu recenze ${currentYear}, srovnání brokerů ${currentYear}, poplatky brokerů, broker pro ETF Česká republika`}
-        ogImage="https://www.etfpruvodce.cz/og-where-to-buy.jpg"
-        schema={combinedSchema}
-        publishedTime={`${currentYear}-01-01`}
-        modifiedTime={new Date().toISOString()}
-        author="ETF průvodce.cz"
+      {/* JSON-LD Structured Data - Server-side rendered */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(combinedSchema) }}
       />
+
       {/* Modern Hero Section */}
       <section className="relative min-h-[60vh] bg-gradient-to-br from-gray-50 to-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50"></div>
