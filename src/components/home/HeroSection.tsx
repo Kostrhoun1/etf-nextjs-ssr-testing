@@ -9,7 +9,7 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ totalCount }) => {
-  const displayCount = 3500; // Konzistentní zobrazení napříč celou aplikací
+  const displayCount = 4300; // Konzistentní zobrazení napříč celou aplikací
 
   return (
     <section className="bg-gray-900 text-white relative overflow-hidden">

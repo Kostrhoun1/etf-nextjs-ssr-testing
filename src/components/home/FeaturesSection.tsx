@@ -8,7 +8,7 @@ const features = [
   {
     icon: Search,
     title: "Srovnávač ETF fondů",
-    description: "Porovnejte více než 3 500 ETF fondů podle nákladovosti, výkonnosti nebo strategie. Nejkomplexnější český srovnávač ETF.",
+    description: "Porovnejte více než 4 300 ETF fondů podle nákladovosti, výkonnosti nebo strategie. Nejkomplexnější český srovnávač ETF.",
     link: "/srovnani-etf",
     cta: "Porovnat ETF"
   },

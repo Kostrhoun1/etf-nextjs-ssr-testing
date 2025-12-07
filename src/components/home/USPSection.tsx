@@ -10,7 +10,7 @@ const usp = [
   },
   {
     icon: BarChart,
-    title: "3 500+ ETF fondů",
+    title: "4 300+ ETF fondů",
     description: "Kompletní databáze ETF z celého světa se srovnáním výnosů a poplatků.",
   },
   {

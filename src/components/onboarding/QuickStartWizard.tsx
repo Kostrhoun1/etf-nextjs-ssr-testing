@@ -35,7 +35,7 @@ const QuickStartWizard: React.FC<QuickStartWizardProps> = ({ onClose, className 
             Ať už jste začátečník nebo zkušený investor, najdeme pro vás nejlepší ETF fondy
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <Badge variant="secondary">3500+ ETF fondů</Badge>
+            <Badge variant="secondary">4300+ ETF fondů</Badge>
             <Badge variant="secondary">0% poplatky</Badge>
             <Badge variant="secondary">Detailní analýzy</Badge>
           </div>

@@ -298,7 +298,7 @@ const MonteCarloContent: React.FC = () => {
             {
               title: "Srovnání ETF",
               href: "/srovnani-etf",
-              description: "Porovnejte 3500+ ETF fondů"
+              description: "Porovnejte 4300+ ETF fondů"
             }
           ]}
           title="Související kalkulačky a nástroje"

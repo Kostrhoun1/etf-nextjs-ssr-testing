@@ -189,7 +189,7 @@ const FeeCalculatorContent: React.FC = () => {
     fetchCheapestETFs();
   }, []);
 
-  const [etfsCount, setEtfsCount] = useState(3500);
+  const [etfsCount, setEtfsCount] = useState(4300);
 
   // Načtení celkového počtu ETF z databáze  
   useEffect(() => {

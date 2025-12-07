@@ -36,12 +36,12 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "ETF srovnání 2025 - Nejlepší nástroj pro porovnání ETF fondů",
-    "description": "Porovnejte více než 3500 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
+    "description": "Porovnejte více než 4300 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
     "url": "https://www.etfpruvodce.cz/srovnani-etf",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web Browser",
     "featureList": [
-      "Srovnání více než 3500 ETF fondů",
+      "Srovnání více než 4300 ETF fondů",
       "Filtrování podle TER poplatků",
       "Analýza historické výkonnosti", 
       "DEGIRO zdarma ETF filtr",
@@ -164,7 +164,7 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
     <Layout>
       <SEOHead
         title="ETF srovnání 2025 - Nejlepší nástroj pro porovnání ETF fondů České republiky"
-        description="★ ETF srovnání ZDARMA ★ Porovnejte více než 3500 ETF fondů 2025. Filtrování podle TER poplatků, výkonnosti, rizika. Americké ETF, evropské ETF, DEGIRO zdarma ETF. Nejlepší ETF srovnání pro české investory."
+        description="★ ETF srovnání ZDARMA ★ Porovnejte více než 4300 ETF fondů 2025. Filtrování podle TER poplatků, výkonnosti, rizika. Americké ETF, evropské ETF, DEGIRO zdarma ETF. Nejlepší ETF srovnání pro české investory."
         canonical="https://www.etfpruvodce.cz/srovnani-etf"
         keywords="ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF 2025, ETF filtr, ETF search, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze česky"
         ogImage="https://www.etfpruvodce.cz/og-etf-comparison.jpg"
@@ -189,7 +189,7 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
             <div className="prose max-w-none">
               <p className="text-lg text-gray-600 leading-relaxed mb-4">
                 <strong>ETF srovnání</strong> je klíčový nástroj pro každého českého investora, který chce najít <strong>nejlepší ETF fondy</strong> pro své portfolio. 
-                Náš pokročilý nástroj pro <strong>porovnání ETF fondů</strong> umožňuje filtrovat a analyzovat více než <strong>3500 ETF fondů</strong> podle kritérií, 
+                Náš pokročilý nástroj pro <strong>porovnání ETF fondů</strong> umožňuje filtrovat a analyzovat více než <strong>4300 ETF fondů</strong> podle kritérií, 
                 které jsou nejdůležitější pro vaše investiční cíle.
               </p>
               <p className="text-gray-600 mb-4">

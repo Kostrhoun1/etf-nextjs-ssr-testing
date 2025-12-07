@@ -67,7 +67,7 @@ const InternalLinking: React.FC<InternalLinkingProps> = ({
 export const ETFGuideRelatedLinks: RelatedLink[] = [
   {
     title: "Srovnání ETF fondů",
-    description: "Porovnejte více než 3500 ETF fondů podle kategorií, poplatků a výkonnosti",
+    description: "Porovnejte více než 4300 ETF fondů podle kategorií, poplatků a výkonnosti",
     href: "/srovnani-etf",
     icon: <TrendingUp className="h-5 w-5 text-blue-600" />
   },

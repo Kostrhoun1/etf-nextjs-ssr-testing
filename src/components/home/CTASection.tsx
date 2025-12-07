@@ -7,7 +7,7 @@ interface CTASectionProps {
 }
 
 const CTASection: React.FC<CTASectionProps> = ({ totalCount }) => {
-  const displayCount = totalCount > 0 ? Math.floor(totalCount / 100) * 100 : 3500;
+  const displayCount = totalCount > 0 ? Math.floor(totalCount / 100) * 100 : 4300;
 
   return (
     <section className="py-16 bg-violet-700 text-white">

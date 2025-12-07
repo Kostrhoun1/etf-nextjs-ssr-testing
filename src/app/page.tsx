@@ -15,11 +15,11 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'ETF průvodce 2025 🇨🇿 - Nejlepší ETF fondy pro české investory',
-  description: '★ ZDARMA ETF průvodce ★ Najděte nejlepší ETF fondy 2025. Kde koupit ETF, srovnání poplatků, DEGIRO ETF zdarma. Kompletní guide pro české investory s 3500+ ETF databází.',
+  description: '★ ZDARMA ETF průvodce ★ Najděte nejlepší ETF fondy 2025. Kde koupit ETF, srovnání poplatků, DEGIRO ETF zdarma. Kompletní guide pro české investory s 4300+ ETF databází.',
   keywords: 'nejlepší ETF, ETF fondy, kde koupit ETF, co jsou ETF, ETF poplatky, DEGIRO ETF, dividendové ETF, S&P 500 ETF, ETF srovnání, česky investování',
   openGraph: {
     title: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
-    description: 'Kompletní databáze 3500+ ETF fondů s analýzami a kalkulačkami pro české investory.',
+    description: 'Kompletní databáze 4300+ ETF fondů s analýzami a kalkulačkami pro české investory.',
     url: 'https://www.etfpruvodce.cz/',
     siteName: 'ETF průvodce.cz',
     images: [
@@ -141,7 +141,7 @@ export default async function HomePage() {
       {/* Related Content Links */}
       <InternalLinking
         relatedLinks={[
-          { title: "Srovnání ETF fondů", href: "/srovnani-etf", description: "Porovnejte více než 3500 ETF fondů" },
+          { title: "Srovnání ETF fondů", href: "/srovnani-etf", description: "Porovnejte více než 4300 ETF fondů" },
           { title: "Portfolio Strategie", href: "/portfolio-strategie", description: "5 ověřených investičních strategií" },
           { title: "Backtest portfolia", href: "/kalkulacky/backtest-portfolia", description: "Historická simulace výkonnosti od roku 2000" },
           { title: "Kde koupit ETF", href: "/kde-koupit-etf", description: "Nejlepší brokeři pro české investory" },

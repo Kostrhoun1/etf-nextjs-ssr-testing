@@ -18,12 +18,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
   return {
     title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů | ETF průvodce.cz`,
-    description: `🔍 Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER, výkonnosti a rizika. DEGIRO filtry, live databáze, zdarma.`,
+    description: `🔍 Nejpokročilejší ETF srovnání pro české investory. Porovnejte 4300+ ETF podle TER, výkonnosti a rizika. DEGIRO filtry, live databáze, zdarma.`,
     keywords: `ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF ${currentYear}, ETF filtr, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze`,
     authors: [{ name: 'ETF průvodce.cz' }],
     openGraph: {
       title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů`,
-      description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER, výkonnosti a rizika.`,
+      description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 4300+ ETF podle TER, výkonnosti a rizika.`,
       url: canonicalUrl,
       siteName: 'ETF průvodce.cz',
       images: [{
@@ -39,7 +39,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     twitter: {
       card: 'summary_large_image',
       title: `ETF srovnání ${currentYear}`,
-      description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 3500+ ETF podle TER a výkonnosti.`,
+      description: `Nejpokročilejší ETF srovnání pro české investory. Porovnejte 4300+ ETF podle TER a výkonnosti.`,
       images: ['https://www.etfpruvodce.cz/og-etf-comparison.jpg'],
     },
     alternates: {
@@ -123,13 +123,13 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": `ETF srovnání ${currentYear} - Nejlepší nástroj pro porovnání ETF fondů`,
-    "description": "Porovnejte více než 3500 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
+    "description": "Porovnejte více než 4300 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
     "url": "https://www.etfpruvodce.cz/srovnani-etf",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web Browser",
     "browserRequirements": "Moderní webový prohlížeč",
     "featureList": [
-      "Srovnání více než 3500 ETF fondů",
+      "Srovnání více než 4300 ETF fondů",
       "Pokročilé filtrování podle TER poplatků",
       "Analýza historické výkonnosti",
       "DEGIRO zdarma ETF filtr",

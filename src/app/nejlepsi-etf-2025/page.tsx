@@ -1,10 +1,39 @@
-'use client';
-
 import React from 'react';
 import Layout from '@/components/Layout';
-import SEOHead from '@/components/SEO/SEOHead';
-
 import StructuredData from '@/components/SEO/StructuredData';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Nejlepší ETF 2025 - Top 10 fondů pro investování | ETF průvodce.cz',
+  description: '✅ Nejlepší ETF fondy 2025: VWCE, IWDA, VUAA a další. Detailní analýza, poplatky, výnosy. Sestavte si ideální portfolio s minimálními náklady!',
+  keywords: 'nejlepší ETF 2025, VWCE, IWDA, VUAA, ETF fondy, investování ETF, portfolio ETF, top ETF',
+  openGraph: {
+    title: 'Nejlepší ETF 2025 - Top 10 fondů pro investování',
+    description: 'Nejlepší ETF fondy 2025: VWCE, IWDA, VUAA. Detailní analýza, poplatky, výnosy. Sestavte si ideální portfolio!',
+    url: 'https://www.etfpruvodce.cz/nejlepsi-etf-2025',
+    siteName: 'ETF průvodce.cz',
+    images: [{
+      url: 'https://www.etfpruvodce.cz/og-nejlepsi-etf-2025.jpg',
+      width: 1200,
+      height: 630,
+    }],
+    locale: 'cs_CZ',
+    type: 'article',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nejlepší ETF 2025 - Top 10 fondů',
+    description: 'VWCE, IWDA, VUAA - nejlepší ETF fondy pro rok 2025',
+    images: ['https://www.etfpruvodce.cz/og-nejlepsi-etf-2025.jpg'],
+  },
+  alternates: {
+    canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf-2025',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -180,15 +209,8 @@ export default function NejlepsiETF2025Page() {
 
   return (
     <Layout>
-      <SEOHead
-        title="Nejlepší ETF 2025 - Top 10 fondů pro investování | ETF průvodce.cz"
-        description="✅ Nejlepší ETF fondy 2025: VWCE, IWDA, VUAA a další. Detailní analýza, poplatky, výnosy. Sestavte si ideální portfolio s minimálními náklady!"
-        canonical="https://www.etfpruvodce.cz/nejlepsi-etf-2025"
-        keywords="nejlepší ETF 2025, VWCE, IWDA, VUAA, ETF fondy, investování ETF, portfolio ETF"
-        schema={listSchema}
-        ogImage="https://www.etfpruvodce.cz/og-nejlepsi-etf-2025.jpg"
-      />
       <StructuredData data={breadcrumbSchema} />
+      <StructuredData data={listSchema} />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero sekce */}
