@@ -75,52 +75,32 @@ export default function KalkulackyPage() {
         {
           "@type": "ListItem",
           "position": 1,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": `Hypoteční kalkulačka ${currentYear}`,
-            "url": "https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka",
-            "applicationCategory": "FinanceApplication"
-          }
+          "name": `Hypoteční kalkulačka ${currentYear}`,
+          "url": "https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": `Kalkulačka čisté mzdy ${currentYear}`,
-            "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025",
-            "applicationCategory": "FinanceApplication"
-          }
+          "name": `Kalkulačka čisté mzdy ${currentYear}`,
+          "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025"
         },
         {
           "@type": "ListItem",
           "position": 3,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Úvěrová kalkulačka",
-            "url": "https://www.etfpruvodce.cz/kalkulacky/uverova-kalkulacka",
-            "applicationCategory": "FinanceApplication"
-          }
+          "name": "Úvěrová kalkulačka",
+          "url": "https://www.etfpruvodce.cz/kalkulacky/uverova-kalkulacka"
         },
         {
           "@type": "ListItem",
           "position": 4,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Backtest portfolia",
-            "url": "https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia",
-            "applicationCategory": "FinanceApplication"
-          }
+          "name": "Backtest portfolia",
+          "url": "https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia"
         },
         {
           "@type": "ListItem",
           "position": 5,
-          "item": {
-            "@type": "SoftwareApplication",
-            "name": "Monte Carlo simulátor",
-            "url": "https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator",
-            "applicationCategory": "FinanceApplication"
-          }
+          "name": "Monte Carlo simulátor",
+          "url": "https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator"
         }
       ]
     }

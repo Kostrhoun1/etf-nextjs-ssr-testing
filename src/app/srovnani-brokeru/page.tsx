@@ -87,29 +87,32 @@ export default function SrovnaniBrokeruPage() {
         {
           "@type": "ListItem",
           "position": 1,
-          "item": {
-            "@type": "FinancialService",
-            "name": "DEGIRO",
-            "url": "https://www.etfpruvodce.cz/degiro-recenze"
-          }
+          "name": "DEGIRO",
+          "url": "https://www.etfpruvodce.cz/degiro-recenze"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "item": {
-            "@type": "FinancialService",
-            "name": "XTB",
-            "url": "https://www.etfpruvodce.cz/xtb-recenze"
-          }
+          "name": "XTB",
+          "url": "https://www.etfpruvodce.cz/xtb-recenze"
         },
         {
           "@type": "ListItem",
           "position": 3,
-          "item": {
-            "@type": "FinancialService",
-            "name": "Trading 212",
-            "url": "https://www.etfpruvodce.cz/trading212-recenze"
-          }
+          "name": "Trading 212",
+          "url": "https://www.etfpruvodce.cz/trading212-recenze"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Interactive Brokers",
+          "url": "https://www.etfpruvodce.cz/interactive-brokers-recenze"
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "name": "Fio e-Broker",
+          "url": "https://www.etfpruvodce.cz/fio-ebroker-recenze"
         }
       ]
     }

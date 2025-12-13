@@ -65,25 +65,37 @@ export default function NejlepsiETF2025Page() {
     "@type": "ItemList",
     "name": "Nejlepší ETF fondy 2025",
     "description": "Výběr nejlepších ETF fondů pro investování v roce 2025 podle kategorií a investičních cílů",
-    "numberOfItems": "10",
+    "numberOfItems": 5,
     "itemListElement": [
       {
         "@type": "ListItem",
         "position": 1,
         "name": "Vanguard FTSE All-World UCITS ETF (VWCE)",
-        "description": "Nejlepší světový ETF pro dlouhodobé investování"
+        "url": "https://www.etfpruvodce.cz/etf/IE00BK5BQT80"
       },
       {
-        "@type": "ListItem", 
+        "@type": "ListItem",
         "position": 2,
         "name": "iShares Core MSCI World UCITS ETF (IWDA)",
-        "description": "Alternativa k VWCE s nižšími poplatky"
+        "url": "https://www.etfpruvodce.cz/etf/IE00B4L5Y983"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Vanguard S&P 500 UCITS ETF (VUAA)",
-        "description": "Nejlepší USA ETF pro technologický růst"
+        "url": "https://www.etfpruvodce.cz/etf/IE00BFMXXD54"
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "iShares Core Euro Aggregate Bond UCITS ETF (AGGH)",
+        "url": "https://www.etfpruvodce.cz/etf/IE00B3DKXQ41"
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "name": "iShares MSCI Emerging Markets UCITS ETF (IEMA)",
+        "url": "https://www.etfpruvodce.cz/etf/IE00B4L5YC18"
       }
     ]
   };
