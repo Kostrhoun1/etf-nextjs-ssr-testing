@@ -5,7 +5,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Crown , Flag, Shield, Users, Award, TrendingUp} from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, ExternalLinkIcon, StarFilledIcon, StarEmptyIcon, CrownIcon, FlagIcon, ShieldIcon, UsersIcon, AwardIcon, TrendingUpIcon, StarRating } from '@/components/ui/icons';
 
 const currentYear = new Date().getFullYear();
 
@@ -209,7 +209,7 @@ export default function SrovnaniBrokeruPage() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Crown className="h-6 w-6 text-yellow-600" />
+              <CrownIcon className="text-yellow-600" />
               Rychlé srovnání top brokerů
             </CardTitle>
             <CardDescription>Klíčové parametry na jeden pohled</CardDescription>
@@ -238,7 +238,7 @@ export default function SrovnaniBrokeruPage() {
                       </td>
                       <td className="py-4">
                         <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-yellow-600 fill-yellow-600" />
+                          <StarFilledIcon className="text-yellow-600" />
                           <span className="font-semibold">{broker.rating}/5</span>
                         </div>
                       </td>
@@ -279,12 +279,7 @@ export default function SrovnaniBrokeruPage() {
                         <Badge className={broker.badgeColor}>{broker.badge}</Badge>
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`h-4 w-4 ${i < Math.floor(broker.rating) ? 'text-yellow-600 fill-yellow-600' : 'text-gray-300'}`}
-                          />
-                        ))}
+                        <StarRating rating={Math.floor(broker.rating)} />
                         <span className="ml-2 text-lg font-semibold">{broker.rating}/5</span>
                       </div>
                     </div>
@@ -292,7 +287,7 @@ export default function SrovnaniBrokeruPage() {
                   <Button asChild>
                     <a href={broker.link} className="flex items-center gap-2">
                       Detailní recenze
-                      <ExternalLink className="h-4 w-4" />
+                      <ExternalLinkIcon />
                     </a>
                   </Button>
                 </div>
@@ -301,13 +296,13 @@ export default function SrovnaniBrokeruPage() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h4 className="font-semibold mb-3 text-green-600 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckIcon />
                       Výhody
                     </h4>
                     <ul className="space-y-2">
                       {broker.pros.map((pro, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                          <CheckIcon className="flex-shrink-0" />
                           {pro}
                         </li>
                       ))}
@@ -315,13 +310,13 @@ export default function SrovnaniBrokeruPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-3 text-red-600 flex items-center gap-2">
-                      <XCircle className="h-4 w-4" />
+                      <XIcon />
                       Nevýhody
                     </h4>
                     <ul className="space-y-2">
                       {broker.cons.map((con, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm">
-                          <XCircle className="h-3 w-3 text-red-500 flex-shrink-0" />
+                          <XIcon className="flex-shrink-0" />
                           {con}
                         </li>
                       ))}
@@ -351,7 +346,7 @@ export default function SrovnaniBrokeruPage() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Award className="h-6 w-6 text-blue-600" />
+              <AwardIcon className="text-blue-600" />
               Jak si vybrat správného brokera?
             </CardTitle>
           </CardHeader>
@@ -407,7 +402,7 @@ export default function SrovnaniBrokeruPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+                <TrendingUpIcon className="text-green-600" />
                 Nejnižší poplatky
               </CardTitle>
             </CardHeader>
@@ -441,7 +436,7 @@ export default function SrovnaniBrokeruPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
+                <UsersIcon className="text-blue-600" />
                 Nejlepší pro začátečníky
               </CardTitle>
             </CardHeader>
@@ -477,7 +472,7 @@ export default function SrovnaniBrokeruPage() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
+              <AlertIcon className="text-orange-600" />
               Často kladené otázky o výběru brokera
             </CardTitle>
           </CardHeader>
@@ -537,7 +532,7 @@ export default function SrovnaniBrokeruPage() {
         <Card className="mb-12 bg-gradient-to-r from-violet-50 to-purple-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Crown className="h-6 w-6 text-purple-600" />
+              <CrownIcon className="text-purple-600" />
               Naše finální doporučení 2025
             </CardTitle>
           </CardHeader>
@@ -545,7 +540,7 @@ export default function SrovnaniBrokeruPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="p-6 bg-white rounded-xl shadow-sm border-2 border-yellow-200">
                 <div className="text-center mb-4">
-                  <Crown className="h-12 w-12 text-yellow-600 mx-auto mb-2" />
+                  <span className="text-4xl">👑</span>
                   <h3 className="text-xl font-bold">🏆 CELKOVÝ VÍTĚZ</h3>
                   <div className="text-2xl font-bold text-yellow-600 mt-2">DEGIRO</div>
                 </div>
@@ -556,10 +551,10 @@ export default function SrovnaniBrokeruPage() {
                   <a href="/degiro-recenze">Přečíst recenzi</a>
                 </Button>
               </div>
-              
+
               <div className="p-6 bg-white rounded-xl shadow-sm border-2 border-green-200">
                 <div className="text-center mb-4">
-                  <Star className="h-12 w-12 text-green-600 mx-auto mb-2" />
+                  <span className="text-4xl">⭐</span>
                   <h3 className="text-xl font-bold">⭐ PRO ETF</h3>
                   <div className="text-2xl font-bold text-green-600 mt-2">XTB</div>
                 </div>
@@ -570,10 +565,10 @@ export default function SrovnaniBrokeruPage() {
                   <a href="/xtb-recenze">Přečíst recenzi</a>
                 </Button>
               </div>
-              
+
               <div className="p-6 bg-white rounded-xl shadow-sm border-2 border-blue-200">
                 <div className="text-center mb-4">
-                  <Users className="h-12 w-12 text-blue-600 mx-auto mb-2" />
+                  <span className="text-4xl">👶</span>
                   <h3 className="text-xl font-bold">👶 ZAČÁTEČNÍCI</h3>
                   <div className="text-2xl font-bold text-blue-600 mt-2">Trading 212</div>
                 </div>

@@ -106,6 +106,159 @@ export const LoaderIcon: React.FC<IconProps> = ({ className = '' }) => (
   <span className={`animate-spin ${className}`} aria-hidden="true">⏳</span>
 );
 
+// Additional icons for broker pages
+export const CrownIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">👑</span>
+);
+
+export const PieChartIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📊</span>
+);
+
+export const BuildingIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🏢</span>
+);
+
+export const FlagIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🚩</span>
+);
+
+export const ZapIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⚡</span>
+);
+
+export const TargetIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🎯</span>
+);
+
+export const ClockIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🕐</span>
+);
+
+export const WalletIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💰</span>
+);
+
+export const ChartIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📈</span>
+);
+
+export const LockIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🔒</span>
+);
+
+export const HomeIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🏠</span>
+);
+
+export const LayersIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📚</span>
+);
+
+export const FilterIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🔽</span>
+);
+
+export const RefreshIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🔄</span>
+);
+
+export const DownloadIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⬇</span>
+);
+
+export const CopyIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📋</span>
+);
+
+export const TrashIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🗑</span>
+);
+
+export const PlusIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">+</span>
+);
+
+export const MinusIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">−</span>
+);
+
+export const ChevronDownIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">▼</span>
+);
+
+export const ChevronUpIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">▲</span>
+);
+
+export const ChevronLeftIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">‹</span>
+);
+
+export const CloseIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">×</span>
+);
+
+export const DollarIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">$</span>
+);
+
+export const PercentIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">%</span>
+);
+
+export const CalendarIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📅</span>
+);
+
+export const PlayIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">▶</span>
+);
+
+export const PauseIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⏸</span>
+);
+
+export const SettingsIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⚙</span>
+);
+
+export const HelpIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">❓</span>
+);
+
+export const LightbulbIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💡</span>
+);
+
+export const FireIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🔥</span>
+);
+
+export const LeafIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🌿</span>
+);
+
+export const RocketIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🚀</span>
+);
+
+export const HeartIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">❤</span>
+);
+
+export const EyeIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">👁</span>
+);
+
+export const EyeOffIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🙈</span>
+);
+
+export const LinkIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🔗</span>
+);
+
 // Helper component for star ratings
 interface StarRatingProps {
   rating: number;

@@ -38,7 +38,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, PieChart , Flag, Shield, Users, Award, TrendingUp, Building} from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, StarFilledIcon, PieChartIcon, ShieldIcon, UsersIcon, AwardIcon, TrendingUpIcon, StarRating } from '@/components/ui/icons';
 
 export default function NejlepsiETF2025Page() {
   const breadcrumbSchema = {
@@ -239,15 +239,15 @@ export default function NejlepsiETF2025Page() {
           </p>
           <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
+              <AwardIcon />
               <span>Top 10 ETF</span>
             </div>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
+              <TrendingUpIcon />
               <span>Aktuální data 2025</span>
             </div>
             <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
+              <ShieldIcon />
               <span>EU regulované</span>
             </div>
           </div>
@@ -257,7 +257,7 @@ export default function NejlepsiETF2025Page() {
         <Card className="mb-12 bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Star className="h-6 w-6 text-blue-600" />
+              <StarFilledIcon className="text-blue-600" />
               Podle jakých kritérií vybíráme nejlepší ETF?
             </CardTitle>
           </CardHeader>
@@ -326,28 +326,28 @@ export default function NejlepsiETF2025Page() {
                 <div className="grid md:grid-cols-3 gap-6">
                   <div>
                     <h4 className="font-semibold mb-3 text-green-600 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckIcon />
                       Výhody
                     </h4>
                     <ul className="space-y-1">
                       {etf.pros.map((pro, i) => (
                         <li key={i} className="text-sm flex items-center gap-2">
-                          <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                          <CheckIcon className="flex-shrink-0" />
                           {pro}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold mb-3 text-red-600 flex items-center gap-2">
-                      <XCircle className="h-4 w-4" />
+                      <XIcon />
                       Nevýhody
                     </h4>
                     <ul className="space-y-1">
                       {etf.cons.map((con, i) => (
                         <li key={i} className="text-sm flex items-center gap-2">
-                          <XCircle className="h-3 w-3 text-red-500 flex-shrink-0" />
+                          <XIcon className="flex-shrink-0" />
                           {con}
                         </li>
                       ))}
@@ -375,7 +375,7 @@ export default function NejlepsiETF2025Page() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-6 w-6 text-purple-600" />
+              <PieChartIcon className="text-purple-600" />
               Doporučená portfolia podle věku
             </CardTitle>
             <CardDescription>Jak sestavit portfolio z nejlepších ETF podle vašeho věku a rizikového profilu</CardDescription>
@@ -491,7 +491,7 @@ export default function NejlepsiETF2025Page() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-6 w-6 text-orange-600" />
+              <AlertIcon className="text-orange-600" />
               Často kladené otázky o nejlepších ETF
             </CardTitle>
           </CardHeader>
@@ -550,7 +550,7 @@ export default function NejlepsiETF2025Page() {
           <CardContent>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="p-6 bg-white rounded-xl shadow-sm border-2 border-blue-200 text-center">
-                <Users className="h-12 w-12 text-blue-600 mx-auto mb-3" />
+                <span className="text-4xl">👥</span>
                 <h3 className="text-lg font-bold mb-2">Začátečník?</h3>
                 <p className="text-sm text-gray-600 mb-4">Trading 212 - nejjednoduší cesta k ETF</p>
                 <Button asChild className="w-full">
@@ -559,7 +559,7 @@ export default function NejlepsiETF2025Page() {
               </div>
               
               <div className="p-6 bg-white rounded-xl shadow-sm border-2 border-green-200 text-center">
-                <Star className="h-12 w-12 text-green-600 mx-auto mb-3" />
+                <span className="text-4xl">⭐</span>
                 <h3 className="text-lg font-bold mb-2">ETF expert?</h3>
                 <p className="text-sm text-gray-600 mb-4">XTB - 3000+ ETF bez poplatků</p>
                 <Button asChild className="w-full">
@@ -568,7 +568,7 @@ export default function NejlepsiETF2025Page() {
               </div>
               
               <div className="p-6 bg-white rounded-xl shadow-sm border-2 border-yellow-200 text-center">
-                <Shield className="h-12 w-12 text-yellow-600 mx-auto mb-3" />
+                <span className="text-4xl">🛡</span>
                 <h3 className="text-lg font-bold mb-2">Nejnižší náklady?</h3>
                 <p className="text-sm text-gray-600 mb-4">DEGIRO - evropský líder</p>
                 <Button asChild className="w-full">
