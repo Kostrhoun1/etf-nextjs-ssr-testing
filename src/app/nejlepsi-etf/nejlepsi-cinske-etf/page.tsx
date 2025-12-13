@@ -85,7 +85,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-chinese-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etf-pruvodce.cz/nejlepsi-etf/nejlepsi-cinske-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-cinske-etf'
     },
     robots: {
       index: true,

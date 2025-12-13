@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší Growth ETF ${currentYear} - růstové faktory a growth investing`,
+    title: `Nejlepší Growth ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších Growth ETF ${currentYear}. Russell Growth, růstové faktory, growth akcie - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'Growth ETF',
@@ -65,7 +65,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'růst tržeb ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší Growth ETF ${currentYear} - růstové faktory a growth investing`,
+      title: `Nejlepší Growth ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších Growth ETF ${currentYear}. Russell Growth, růstové faktory, growth akcie - TER, velikost fondů.`,
       type: 'article',
       locale: 'cs_CZ',
@@ -81,12 +81,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší Growth ETF ${currentYear} - růstové faktory a growth investing`,
+      title: `Nejlepší Growth ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších Growth ETF ${currentYear}. Russell Growth, růstové faktory, growth akcie - TER, velikost fondů.`,
       images: ['/og-growth-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etf-pruvodce.cz/nejlepsi-etf/nejlepsi-growth-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-growth-etf'
     },
     robots: {
       index: true,

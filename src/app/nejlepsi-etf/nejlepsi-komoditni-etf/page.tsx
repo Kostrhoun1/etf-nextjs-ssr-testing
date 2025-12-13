@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Srovnání nejlepších komoditních ETF pro ochranu před inflací a diverzifikaci portfolia.',
     },
     alternates: {
-      canonical: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-komoditni-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-komoditni-etf',
     },
   };
 }

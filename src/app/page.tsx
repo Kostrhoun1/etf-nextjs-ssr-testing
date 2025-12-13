@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ETF průvodce 2025 🇨🇿 - Nejlepší ETF fondy pro české investory',
+  title: 'ETF průvodce 2025 - Nejlepší ETF fondy pro investory',
   description: '★ ZDARMA ETF průvodce ★ Najděte nejlepší ETF fondy 2025. Kde koupit ETF, srovnání poplatků, DEGIRO ETF zdarma. Kompletní guide pro české investory s 4300+ ETF databází.',
   keywords: 'nejlepší ETF, ETF fondy, kde koupit ETF, co jsou ETF, ETF poplatky, DEGIRO ETF, dividendové ETF, S&P 500 ETF, ETF srovnání, česky investování',
   openGraph: {

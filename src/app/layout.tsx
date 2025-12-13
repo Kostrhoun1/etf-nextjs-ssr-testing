@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     locale: 'cs_CZ',
     url: 'https://www.etfpruvodce.cz',
     siteName: 'ETF průvodce.cz',
-    title: 'ETF průvodce.cz - Srovnání 4300+ ETF fondů s výkonností v CZK',
+    title: 'ETF průvodce.cz | Srovnání 4300+ ETF fondů',
     description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: [
       {
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ETF průvodce.cz - Srovnání 4300+ ETF fondů s výkonností v CZK',
+    title: 'ETF průvodce.cz | Srovnání 4300+ ETF fondů',
     description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: ['/og-image.jpg'],
   },
@@ -87,6 +87,8 @@ export default function RootLayout({
     <html lang="cs" className={inter.variable}>
       <head>
         <link rel="dns-prefetch" href="https://nbhwnatadyubiuadfakx.supabase.co" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <link rel="alternate" type="application/rss+xml" title="ETF průvodce.cz RSS" href="/rss.xml" />
         <meta name="theme-color" content="#2563eb" />

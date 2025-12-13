@@ -85,7 +85,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og-japanese-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etf-pruvodce.cz/nejlepsi-etf/nejlepsi-japonske-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-japonske-etf'
     },
     robots: {
       index: true,

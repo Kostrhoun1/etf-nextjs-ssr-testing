@@ -94,10 +94,10 @@ export const HowToStructuredData: React.FC<{
 export const FinancialProductStructuredData: React.FC<{
   name: string;
   description: string;
-  fees: string;
   provider: string;
   category: string;
-}> = ({ name, description, fees, provider, category }) => {
+  url?: string;
+}> = ({ name, description, provider, category, url }) => {
   const productData = {
     "@context": "https://schema.org",
     "@type": "FinancialProduct",
@@ -108,9 +108,7 @@ export const FinancialProductStructuredData: React.FC<{
       "@type": "Organization",
       "name": provider
     },
-    "fees": fees,
-    // Always use www variant for canonical URL
-    "url": typeof window !== 'undefined' ? `https://www.etfpruvodce.cz${window.location.pathname}` : ''
+    "url": url || ''
   };
 
   return <StructuredData data={productData} id="financial-product-data" />;

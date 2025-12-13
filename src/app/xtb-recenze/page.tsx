@@ -5,7 +5,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Smartphone , Flag, Shield, Users, Award, Globe, TrendingUp} from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, StarRating, ExternalLinkIcon } from '@/components/ui/icons';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 
 const currentYear = new Date().getFullYear();
@@ -87,7 +87,7 @@ export default function XTBRecenzePage() {
       "name": "XTB",
       "description": "Online broker pro obchodování s ETF, akciemi a dalšími finančními instrumenty",
       "url": "https://www.xtb.com/cz",
-      "serviceType": "Online brokerage",
+      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Purkyňova 2121/3",
@@ -145,11 +145,7 @@ export default function XTBRecenzePage() {
                 XTB recenze 2025
               </h1>
               <div className="flex items-center justify-center gap-2">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
+                <StarRating rating={5} size="lg" />
                 <span className="text-lg font-semibold text-gray-700">94/100 bodů</span>
               </div>
             </div>
@@ -171,44 +167,44 @@ export default function XTBRecenzePage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-green-800 mb-3 flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2" />
+                  <CheckIcon className="mr-2" />
                   Hlavní výhody
                 </h3>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Investování do akcií a ETF bez komisí
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Přes 7 000 akcií a 1 600+ ETF
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Česká zákaznická podpora dostupná 24/7
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Moderní obchodní platforma xStation 5 zdarma
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Možnost XTB demo účtu s 200 000 Kč
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Frakční práva pro investice s malým kapitálem
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Rychlé vklady a výběry, většinou zdarma
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Transparentní broker kótovaný na varšavské burze
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Kvalitní vzdělávací sekce a webináře
                   </li>
                 </ul>
@@ -216,20 +212,20 @@ export default function XTBRecenzePage() {
               
               <div>
                 <h3 className="font-semibold text-amber-800 mb-3 flex items-center">
-                  <AlertTriangle className="w-5 h-5 mr-2" />
+                  <AlertIcon className="mr-2" />
                   Na co si dát pozor
                 </h3>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     Nenabízí obchodování opcí a futures kontraktů
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     České akcie mají vysoké zdanění dividend (35 %)
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     Platforma může být pro nováčky zpočátku nepřehledná
                   </li>
                 </ul>
@@ -266,7 +262,7 @@ export default function XTBRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="w-6 h-6 text-blue-600" />
+              <span className="text-blue-600">🌍</span>
               O společnosti XTB
             </CardTitle>
           </CardHeader>
@@ -318,7 +314,7 @@ export default function XTBRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Smartphone className="w-6 h-6 text-green-600" />
+              <span className="text-green-600">📱</span>
               Obchodní platforma xStation 5
             </CardTitle>
           </CardHeader>
@@ -336,23 +332,23 @@ export default function XTBRecenzePage() {
                 <h4 className="font-semibold mb-3 text-gray-900">Klíčové funkce</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Pokročilé charting nástroje
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Technická analýza (80+ indikátorů)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     One-click trading
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Kalkulátor pozic
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Ekonomický kalendář
                   </li>
                 </ul>
@@ -362,19 +358,19 @@ export default function XTBRecenzePage() {
                 <h4 className="font-semibold mb-3 text-gray-900">Dostupnost</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Webová verze (bez stahování)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Desktop verze (Windows, Mac)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Mobilní aplikace (iOS/Android)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Česká lokalizace
                   </li>
                 </ul>
@@ -400,7 +396,7 @@ export default function XTBRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
+              <span className="text-purple-600">📈</span>
               Nabídka instrumentů
             </CardTitle>
           </CardHeader>
@@ -472,7 +468,7 @@ export default function XTBRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-green-600" />
+              <span className="text-green-600">💰</span>
               Struktura poplatků
             </CardTitle>
             <CardDescription>
@@ -574,7 +570,7 @@ export default function XTBRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-amber-600" />
+              <span className="text-amber-600">🛡</span>
               Zdanění pro české investory
             </CardTitle>
           </CardHeader>
@@ -623,7 +619,7 @@ export default function XTBRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="w-6 h-6 text-blue-600" />
+              <span className="text-blue-600">👥</span>
               Zákaznická podpora
             </CardTitle>
           </CardHeader>
@@ -675,7 +671,7 @@ export default function XTBRecenzePage() {
           <CardContent className="text-center">
             <div className="mb-6">
               <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-6 py-3 rounded-full text-lg font-semibold">
-                <Award className="w-6 h-6" />
+                <span>🏆</span>
                 94/100 bodů - VYNIKAJÍCÍ
               </div>
             </div>
@@ -717,7 +713,7 @@ export default function XTBRecenzePage() {
                 className="flex items-center gap-2"
               >
                 Otevřít účet u XTB
-                <ExternalLink className="w-5 h-5" />
+                <ExternalLinkIcon />
               </a>
             </Button>
             
@@ -764,6 +760,16 @@ export default function XTBRecenzePage() {
               title: "Portfolio strategie",
               href: "/portfolio-strategie",
               description: "Vytvořte si optimální investiční portfolio"
+            },
+            {
+              title: "Investiční kalkulačka",
+              href: "/kalkulacky/investicni-kalkulacka",
+              description: "Spočítejte si budoucí hodnotu investic"
+            },
+            {
+              title: "Backtest portfolia",
+              href: "/kalkulacky/backtest-portfolia",
+              description: "Otestujte historickou výkonnost portfolia"
             }
           ]}
           title="Související články a nástroje"

@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší AI ETF ${currentYear} - umělá inteligence a robotika`,
+    title: `Nejlepší AI ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších AI ETF ${currentYear}. Umělá inteligence, machine learning, big data - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'AI ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'NVIDIA ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší AI ETF ${currentYear} - umělá inteligence a robotika`,
+      title: `Nejlepší AI ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších AI ETF ${currentYear}. Umělá inteligence, machine learning, big data - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-ai-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší AI ETF ${currentYear} - umělá inteligence a robotika`,
+      title: `Nejlepší AI ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších AI ETF ${currentYear}. Umělá inteligence, machine learning, big data - TER, velikost fondů.`,
       images: ['/og-ai-etf.jpg']
     },

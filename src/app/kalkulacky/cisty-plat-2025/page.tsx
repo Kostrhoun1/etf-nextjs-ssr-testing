@@ -39,7 +39,7 @@ const jsonLd = {
   description: 'Přesný výpočet čisté mzdy podle aktuální české legislativy s daněmi, pojistným a slevami.',
   url: 'https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025',
   applicationCategory: 'FinanceApplication',
-  operatingSystem: 'Web',
+  browserRequirements: 'Requires JavaScript. Requires HTML5.',
   offers: {
     '@type': 'Offer',
     price: '0',

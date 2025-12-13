@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { formatPercentage } from '@/utils/csvParser';
 import { ETF } from '@/types/etf';
-import { ArrowRight, TrendingUp, Star } from 'lucide-react';
 
 interface RelatedETFSectionProps {
   etfs: ETF[];
@@ -18,7 +17,7 @@ export default function RelatedETFSection({ etfs, title = "Podobné ETF fondy", 
     <Card className="mt-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-blue-600" />
+          <span className="text-blue-600" aria-hidden="true">📈</span>
           {title}
         </CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -46,7 +45,7 @@ export default function RelatedETFSection({ etfs, title = "Podobné ETF fondy", 
                       )}
                       {etf.rating && etf.rating >= 4 && (
                         <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          <span className="text-yellow-400 text-xs">★</span>
                           <span className="text-xs font-medium">{etf.rating}/5</span>
                         </div>
                       )}
@@ -55,7 +54,7 @@ export default function RelatedETFSection({ etfs, title = "Podobné ETF fondy", 
                       {etf.name}
                     </h3>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all flex-shrink-0 ml-2" />
+                  <span className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all flex-shrink-0 ml-2" aria-hidden="true">→</span>
                 </div>
 
                 <div className="text-xs text-gray-500 mb-2">{etf.fund_provider}</div>
@@ -85,7 +84,7 @@ export default function RelatedETFSection({ etfs, title = "Podobné ETF fondy", 
             className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
             Zobrazit všechny ETF fondy
-            <ArrowRight className="h-4 w-4" />
+            <span aria-hidden="true">→</span>
           </Link>
         </div>
       </CardContent>

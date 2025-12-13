@@ -82,25 +82,34 @@ export default function SrovnaniBrokeruPage() {
     "mainEntity": {
       "@type": "ItemList",
       "name": "Nejlepší brokeři 2025",
-      "numberOfItems": "5",
+      "numberOfItems": 5,
       "itemListElement": [
         {
-          "@type": "FinancialService",
+          "@type": "ListItem",
           "position": 1,
-          "name": "DEGIRO",
-          "url": "https://www.etfpruvodce.cz/degiro-recenze"
+          "item": {
+            "@type": "FinancialService",
+            "name": "DEGIRO",
+            "url": "https://www.etfpruvodce.cz/degiro-recenze"
+          }
         },
         {
-          "@type": "FinancialService", 
+          "@type": "ListItem",
           "position": 2,
-          "name": "XTB",
-          "url": "https://www.etfpruvodce.cz/xtb-recenze"
+          "item": {
+            "@type": "FinancialService",
+            "name": "XTB",
+            "url": "https://www.etfpruvodce.cz/xtb-recenze"
+          }
         },
         {
-          "@type": "FinancialService",
+          "@type": "ListItem",
           "position": 3,
-          "name": "Trading 212",
-          "url": "https://www.etfpruvodce.cz/trading212-recenze"
+          "item": {
+            "@type": "FinancialService",
+            "name": "Trading 212",
+            "url": "https://www.etfpruvodce.cz/trading212-recenze"
+          }
         }
       ]
     }

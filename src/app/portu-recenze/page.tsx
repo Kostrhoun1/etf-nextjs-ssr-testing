@@ -5,7 +5,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Smartphone, Users, TrendingUp, Globe } from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, StarRating, ExternalLinkIcon } from '@/components/ui/icons';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 
 const currentYear = new Date().getFullYear();
@@ -87,7 +87,7 @@ export default function PortuRecenzePage() {
       "name": "Portu",
       "description": "Česká automatizovaná investiční platforma založená v roce 2017",
       "url": "https://www.portu.cz/",
-      "serviceType": "Robo-advisor",
+      "category": "Robo-advisor",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Rohanské nábřeží 671/15",
@@ -193,7 +193,7 @@ export default function PortuRecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="h-5 w-5" />
+                <CheckIcon />
                 Výhody Portu
               </CardTitle>
             </CardHeader>
@@ -201,7 +201,7 @@ export default function PortuRecenzePage() {
               <ul className="space-y-2">
                 {pros.map((pro, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     <span className="text-sm">{pro}</span>
                   </li>
                 ))}
@@ -212,7 +212,7 @@ export default function PortuRecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-600">
-                <XCircle className="h-5 w-5" />
+                <XIcon />
                 Nevýhody Portu
               </CardTitle>
             </CardHeader>
@@ -220,7 +220,7 @@ export default function PortuRecenzePage() {
               <ul className="space-y-2">
                 {cons.map((con, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     <span className="text-sm">{con}</span>
                   </li>
                 ))}
@@ -233,7 +233,7 @@ export default function PortuRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
+              <span className="text-blue-600">👥</span>
               Klíčové informace o Portu
             </CardTitle>
           </CardHeader>
@@ -279,7 +279,7 @@ export default function PortuRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <span className="text-green-600">📈</span>
               Struktura poplatků
             </CardTitle>
             <CardDescription>All-inclusive model s ročním poplatkem</CardDescription>
@@ -338,7 +338,7 @@ export default function PortuRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-purple-600" />
+              <span className="text-purple-600">🌍</span>
               Investiční možnosti
             </CardTitle>
           </CardHeader>
@@ -348,19 +348,19 @@ export default function PortuRecenzePage() {
                 <h4 className="font-semibold mb-3">Hlavní produkty</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     ETF portfolia podle rizikového profilu
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Jednotlivé akcie
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     České akcie s optimálním zdaněním
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Krypto portfolia
                   </li>
                 </ul>
@@ -369,19 +369,19 @@ export default function PortuRecenzePage() {
                 <h4 className="font-semibold mb-3">Speciální služby</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-500" />
+                    <CheckIcon className="text-blue-500" />
                     Investiční rezerva (0,25% ročně, konzervativní)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-500" />
+                    <CheckIcon className="text-blue-500" />
                     Portu &lt;26 (50% sleva, min. 100 Kč)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-500" />
+                    <CheckIcon className="text-blue-500" />
                     DIP - daňové výhody (0,5% ročně)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-500" />
+                    <CheckIcon className="text-blue-500" />
                     Portu Crypto (max. 1% ročně)
                   </li>
                 </ul>
@@ -394,7 +394,7 @@ export default function PortuRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5 text-purple-600" />
+              <span className="text-purple-600">📱</span>
               Platformy a dostupnost
             </CardTitle>
           </CardHeader>
@@ -404,19 +404,19 @@ export default function PortuRecenzePage() {
                 <h4 className="font-semibold mb-3">Dostupné platformy</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Webová aplikace
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Mobilní aplikace (Android)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Mobilní aplikace (iOS)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Kompletně v češtině
                   </li>
                 </ul>
@@ -425,19 +425,19 @@ export default function PortuRecenzePage() {
                 <h4 className="font-semibold mb-3">Zákaznická podpora</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Česká zákaznická podpora
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Pracovní doba 9:00-17:00
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Chat, e-mail, telefon
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Investiční konzultace zdarma
                   </li>
                 </ul>
@@ -484,7 +484,7 @@ export default function PortuRecenzePage() {
         <Card className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <span className="text-green-600">📈</span>
               Minimální vklad a očekávané výnosy
             </CardTitle>
           </CardHeader>
@@ -494,15 +494,15 @@ export default function PortuRecenzePage() {
                 <h4 className="font-semibold mb-3">Vstupní požadavky</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     <strong>Minimální vklad: 500 Kč</strong>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Další vklady od 100 Kč
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Bezplatný výběr kdykoliv
                   </li>
                 </ul>
@@ -511,15 +511,15 @@ export default function PortuRecenzePage() {
                 <h4 className="font-semibold mb-3">Očekávané výnosy</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-blue-500" />
+                    <span className="text-blue-500">📈</span>
                     <strong>Historicky 10,5% ročně</strong>
                   </li>
                   <li className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-blue-500" />
+                    <span className="text-blue-500">📈</span>
                     28 miliard Kč spravovaných aktiv
                   </li>
                   <li className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-blue-500" />
+                    <span className="text-blue-500">📈</span>
                     200 000+ spokojenych klientů
                   </li>
                 </ul>
@@ -553,7 +553,7 @@ export default function PortuRecenzePage() {
                   className="flex items-center justify-center gap-2"
                 >
                   Otevřít účet u Portu
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLinkIcon />
                 </a>
               </Button>
             </div>
@@ -582,6 +582,16 @@ export default function PortuRecenzePage() {
               title: "Návod pro začátečníky",
               href: "/co-jsou-etf/jak-zacit-investovat",
               description: "Jak začít s investováním do ETF"
+            },
+            {
+              title: "FIRE kalkulačka",
+              href: "/kalkulacky/fire-kalkulacka",
+              description: "Kdy dosáhnete finanční nezávislosti?"
+            },
+            {
+              title: "Investiční kalkulačka",
+              href: "/kalkulacky/investicni-kalkulacka",
+              description: "Spočítejte budoucí hodnotu investic"
             }
           ]}
           title="Související články"

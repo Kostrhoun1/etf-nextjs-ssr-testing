@@ -6,14 +6,14 @@ import { BookOpen, Calculator, TrendingUp } from 'lucide-react';
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 
 export const metadata: Metadata = {
-  title: 'Co jsou ETF fondy? | Kompletní průvodce pro české investory 2025',
+  title: 'Co jsou ETF fondy? | Průvodce pro investory 2025',
   description: 'Kompletní průvodce Exchange Traded Funds pro české investory. Naučte se pasivní investování, porovnejte nejlepší ETF a začněte investovat ještě dnes.',
   keywords: 'ETF fondy, co jsou ETF, Exchange Traded Fund, pasivní investování, VWCE, CSPX, SWDA',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/co-jsou-etf',
   },
   openGraph: {
-    title: 'Co jsou ETF fondy? | Kompletní průvodce pro české investory 2025',
+    title: 'Co jsou ETF fondy? | Průvodce pro investory 2025',
     description: 'Kompletní průvodce Exchange Traded Funds pro české investory. Naučte se pasivní investování, porovnejte nejlepší ETF a začněte investovat ještě dnes.',
     url: 'https://www.etfpruvodce.cz/co-jsou-etf',
     siteName: 'ETF průvodce.cz',

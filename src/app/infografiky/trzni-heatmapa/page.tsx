@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import MarketHeatmap from '@/components/infographics/MarketHeatmap';
 
 export const metadata: Metadata = {
-  title: 'Tržní heatmapa 2025 - Výkonnost sektorů a regionů | Infografika',
+  title: 'Tržní heatmapa 2025 - Sektory a regiony',
   description: 'Interaktivní heatmapa výkonnosti trhů, sektorů a regionů. Aktuální data pro investory.',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/infografiky/trzni-heatmapa',

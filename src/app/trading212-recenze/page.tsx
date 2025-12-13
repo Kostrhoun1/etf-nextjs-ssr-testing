@@ -5,18 +5,18 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star , Flag, Shield, Users, Award, TrendingUp} from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, StarRating, ExternalLinkIcon } from '@/components/ui/icons';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Trading 212 recenze ${currentYear} - Komplexní test a hodnocení brokera`,
+  title: `Trading 212 recenze ${currentYear} - Test a hodnocení`,
   description: `✅ Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker s moderní mobilní aplikací a frakčním investováním.`,
   keywords: `Trading 212 recenze, Trading 212 broker, Trading 212 test, Trading 212 hodnocení, Trading 212 poplatky, Trading 212 ETF, bezplatný broker`,
   authors: [{ name: 'ETF průvodce.cz' }],
   openGraph: {
-    title: `Trading 212 recenze ${currentYear} - Komplexní test a hodnocení brokera`,
+    title: `Trading 212 recenze ${currentYear} - Test a hodnocení`,
     description: `Trading 212 recenze ${currentYear} - hodnocení 87/100. Zcela bezpoplatkový broker s moderní aplikací.`,
     url: 'https://www.etfpruvodce.cz/trading212-recenze',
     siteName: 'ETF průvodce.cz',
@@ -87,7 +87,7 @@ export default function Trading212RecenzePage() {
       "name": "Trading 212",
       "description": "Online broker s komisí 0% pro akcie a ETF investice",
       "url": "https://www.trading212.com/",
-      "serviceType": "Online brokerage",
+      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "107 Cheapside",
@@ -195,7 +195,7 @@ export default function Trading212RecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="h-5 w-5" />
+                <CheckIcon />
                 Výhody Trading 212
               </CardTitle>
             </CardHeader>
@@ -203,7 +203,7 @@ export default function Trading212RecenzePage() {
               <ul className="space-y-2">
                 {pros.map((pro, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     <span className="text-sm">{pro}</span>
                   </li>
                 ))}
@@ -214,7 +214,7 @@ export default function Trading212RecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-600">
-                <XCircle className="h-5 w-5" />
+                <XIcon />
                 Nevýhody Trading 212
               </CardTitle>
             </CardHeader>
@@ -222,7 +222,7 @@ export default function Trading212RecenzePage() {
               <ul className="space-y-2">
                 {cons.map((con, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     <span className="text-sm">{con}</span>
                   </li>
                 ))}
@@ -235,7 +235,7 @@ export default function Trading212RecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
+              <span className="text-blue-600">👥</span>
               Klíčové informace o Trading 212
             </CardTitle>
           </CardHeader>
@@ -281,7 +281,7 @@ export default function Trading212RecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <span className="text-green-600">📈</span>
               Struktura poplatků
             </CardTitle>
             <CardDescription>Jedny z nejnižších poplatků na trhu</CardDescription>
@@ -338,7 +338,7 @@ export default function Trading212RecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-purple-600" />
+              <span className="text-purple-600">🛡</span>
               Platformy a aplikace
             </CardTitle>
           </CardHeader>
@@ -348,19 +348,19 @@ export default function Trading212RecenzePage() {
                 <h4 className="font-semibold mb-3">Mobilní aplikace</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Velmi intuitivní design
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Fractional shares (část akcie)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     AutoInvest funkce
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Rychlé obchodování
                   </li>
                 </ul>
@@ -369,19 +369,19 @@ export default function Trading212RecenzePage() {
                 <h4 className="font-semibold mb-3">Webová platforma</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Synchronizace s aplikací
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Základní charty
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertIcon />
                     Omezené analytické nástroje
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
+                    <XIcon />
                     Žádné pokročilé obchodní typy
                   </li>
                 </ul>
@@ -394,7 +394,7 @@ export default function Trading212RecenzePage() {
         <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+              <span className="text-blue-600">📈</span>
               AutoInvest - Automatické investování
             </CardTitle>
             <CardDescription>Jedinečná funkce pro pravidelné investování</CardDescription>
@@ -415,19 +415,19 @@ export default function Trading212RecenzePage() {
                 <h4 className="font-semibold mb-3">Výhody AutoInvest</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Pravidelné investování (DCA)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Automatické rebalancování
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Žádné další poplatky
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Možnost úprav kdykoliv
                   </li>
                 </ul>
@@ -474,7 +474,7 @@ export default function Trading212RecenzePage() {
         <Card className="mb-8 border-amber-200 bg-amber-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-700">
-              <AlertTriangle className="h-5 w-5" />
+              <AlertIcon />
               Důležité bezpečnostní informace
             </CardTitle>
           </CardHeader>
@@ -503,7 +503,7 @@ export default function Trading212RecenzePage() {
         <Card className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-700">
-              <AlertTriangle className="h-5 w-5" />
+              <AlertIcon />
               Pozor na lending program
             </CardTitle>
           </CardHeader>
@@ -540,7 +540,7 @@ export default function Trading212RecenzePage() {
                   className="flex items-center justify-center gap-2"
                 >
                   Otevřít účet u Trading 212
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLinkIcon />
                 </a>
               </Button>
             </div>
@@ -569,6 +569,21 @@ export default function Trading212RecenzePage() {
               title: "Návod pro začátečníky",
               href: "/co-jsou-etf/jak-zacit-investovat",
               description: "Jak začít s investováním do ETF"
+            },
+            {
+              title: "Nejlepší ETF 2025",
+              href: "/nejlepsi-etf/nejlepsi-etf-2025",
+              description: "Doporučené ETF pro investování"
+            },
+            {
+              title: "Monte Carlo simulátor",
+              href: "/kalkulacky/monte-carlo-simulator",
+              description: "Prognóza budoucnosti vašeho portfolia"
+            },
+            {
+              title: "Nouzová rezerva",
+              href: "/kalkulacky/nouzova-rezerva",
+              description: "Kolik byste měli mít stranou?"
             }
           ]}
           title="Související články"

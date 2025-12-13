@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, BookOpen, Calculator , Globe, TrendingUp, Building} from 'lucide-react';
 
 interface RelatedLink {
   title: string;
@@ -48,12 +47,12 @@ const InternalLinking: React.FC<InternalLinkingProps> = ({
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <Link 
+              <Link
                 href={link.href}
                 className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm group"
               >
                 Přečíst více
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">→</span>
               </Link>
             </CardContent>
           </Card>
@@ -69,19 +68,19 @@ export const ETFGuideRelatedLinks: RelatedLink[] = [
     title: "Srovnání ETF fondů",
     description: "Porovnejte více než 4300 ETF fondů podle kategorií, poplatků a výkonnosti",
     href: "/srovnani-etf",
-    icon: <TrendingUp className="h-5 w-5 text-blue-600" />
+    icon: <span className="text-blue-600">📈</span>
   },
   {
     title: "Kde koupit ETF",
     description: "Najděte nejlepšího brokera pro investování do ETF fondů",
     href: "/kde-koupit-etf",
-    icon: <BookOpen className="h-5 w-5 text-green-600" />
+    icon: <span className="text-green-600">📖</span>
   },
   {
     title: "Investiční kalkulačky",
     description: "Spočítejte si potenciální výnosy a poplatky u ETF investic",
     href: "/kalkulacky",
-    icon: <Calculator className="h-5 w-5 text-purple-600" />
+    icon: <span className="text-purple-600">🧮</span>
   }
 ];
 
@@ -90,25 +89,37 @@ export const BrokerGuideRelatedLinks: RelatedLink[] = [
     title: "Co jsou ETF fondy?",
     description: "Kompletní průvodce ETF fondy pro začátečníky",
     href: "/co-jsou-etf",
-    icon: <BookOpen className="h-5 w-5 text-blue-600" />
+    icon: <span className="text-blue-600">📖</span>
   },
   {
     title: "Srovnání ETF fondů",
     description: "Najděte nejlepší ETF fondy pro vaši investiční strategii",
     href: "/srovnani-etf",
-    icon: <TrendingUp className="h-5 w-5 text-green-600" />
+    icon: <span className="text-green-600">📈</span>
   },
   {
     title: "DEGIRO recenze",
     description: "Detailní recenze populárního nizozemského brokera",
     href: "/degiro-recenze",
-    icon: <ArrowRight className="h-5 w-5 text-orange-600" />
+    icon: <span className="text-orange-600">🏦</span>
   },
   {
     title: "Portu recenze",
     description: "Recenze českého robo-advisora pro automatizované investování",
     href: "/portu-recenze",
-    icon: <ArrowRight className="h-5 w-5 text-blue-600" />
+    icon: <span className="text-blue-600">🤖</span>
+  },
+  {
+    title: "Investiční kalkulačka",
+    description: "Spočítejte si budoucí hodnotu vašich investic",
+    href: "/kalkulacky/investicni-kalkulacka",
+    icon: <span className="text-purple-600">🧮</span>
+  },
+  {
+    title: "Úvěrová kalkulačka",
+    description: "Kalkulačka splátek spotřebitelského úvěru",
+    href: "/kalkulacky/uverova-kalkulacka",
+    icon: <span className="text-emerald-600">💳</span>
   }
 ];
 
@@ -117,19 +128,19 @@ export const ToolsRelatedLinks: RelatedLink[] = [
     title: "Návod pro začátečníky",
     description: "Kompletní průvodce jak začít investovat do ETF",
     href: "/co-jsou-etf/jak-zacit-investovat",
-    icon: <BookOpen className="h-5 w-5 text-blue-600" />
+    icon: <span className="text-blue-600">📖</span>
   },
   {
     title: "Srovnání ETF fondů",
     description: "Porovnejte ETF fondy podle různých kritérií",
     href: "/srovnani-etf",
-    icon: <TrendingUp className="h-5 w-5 text-green-600" />
+    icon: <span className="text-green-600">📈</span>
   },
   {
     title: "Investiční tipy",
     description: "Užitečné články o investování do ETF fondů",
     href: "/tipy",
-    icon: <ArrowRight className="h-5 w-5 text-purple-600" />
+    icon: <span className="text-purple-600">💡</span>
   }
 ];
 

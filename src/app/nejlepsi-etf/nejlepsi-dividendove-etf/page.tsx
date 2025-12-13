@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší dividendové ETF ${currentYear} - Dividend Aristocrats vs High Yield`,
+    title: `Nejlepší dividendové ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších dividendových ETF ${currentYear}. Dividend Aristocrats, High Yield - dividendové výnosy, TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'dividendové ETF',
@@ -64,7 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'měsíční dividendy'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší dividendové ETF ${currentYear} - Dividend Aristocrats vs High Yield`,
+      title: `Nejlepší dividendové ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších dividendových ETF ${currentYear}. Dividend Aristocrats, High Yield - dividendové výnosy, TER, velikost fondů.`,
       type: 'article',
       locale: 'cs_CZ',
@@ -80,12 +80,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší dividendové ETF ${currentYear} - Dividend Aristocrats vs High Yield`,
+      title: `Nejlepší dividendové ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších dividendových ETF ${currentYear}. Dividend Aristocrats, High Yield - dividendové výnosy, TER, velikost fondů.`,
       images: ['/og-dividend-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etf-pruvodce.cz/nejlepsi-etf/nejlepsi-dividendove-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-dividendove-etf'
     },
     robots: {
       index: true,

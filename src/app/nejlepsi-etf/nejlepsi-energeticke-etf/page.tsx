@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší energetické ETF ${currentYear} - ropa, plyn a čistá energie`,
+    title: `Nejlepší energetické ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších energetických ETF ${currentYear}. Ropa, plyn, čistá energie, utilities - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'energetické ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'sluneční energie ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší energetické ETF ${currentYear} - ropa, plyn a čistá energie`,
+      title: `Nejlepší energetické ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších energetických ETF ${currentYear}. Ropa, plyn, čistá energie, utilities - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-energeticke-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší energetické ETF ${currentYear} - ropa, plyn a čistá energie`,
+      title: `Nejlepší energetické ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších energetických ETF ${currentYear}. Ropa, plyn, čistá energie, utilities - TER, velikost fondů.`,
       images: ['/og-energy-etf.jpg']
     },

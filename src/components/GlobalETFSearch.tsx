@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -101,7 +100,7 @@ const GlobalETFSearch: React.FC<GlobalETFSearchProps> = ({
   return (
     <div ref={searchRef} className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" aria-hidden="true">🔍</span>
         <Input
           ref={inputRef}
           type="text"
@@ -113,7 +112,7 @@ const GlobalETFSearch: React.FC<GlobalETFSearchProps> = ({
           className="pl-10 pr-10 bg-white/90 border-gray-200 focus:border-violet-300 focus:ring-violet-200"
         />
         {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 animate-spin" aria-hidden="true">⏳</span>
         )}
       </div>
 

@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší Value ETF ${currentYear} - P/E ratio a podhodnocené akcie`,
+    title: `Nejlepší Value ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších Value ETF ${currentYear}. Podhodnocené akcie, nízké P/E ratio, P/B ratio - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'Value ETF',
@@ -65,7 +65,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'Graham Buffett strategie'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší Value ETF ${currentYear} - P/E ratio a podhodnocené akcie`,
+      title: `Nejlepší Value ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších Value ETF ${currentYear}. Podhodnocené akcie, nízké P/E ratio, P/B ratio - TER, velikost fondů.`,
       type: 'article',
       locale: 'cs_CZ',
@@ -81,12 +81,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší Value ETF ${currentYear} - P/E ratio a podhodnocené akcie`,
+      title: `Nejlepší Value ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších Value ETF ${currentYear}. Podhodnocené akcie, nízké P/E ratio, P/B ratio - TER, velikost fondů.`,
       images: ['/og-value-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etf-pruvodce.cz/nejlepsi-etf/nejlepsi-value-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-value-etf'
     },
     robots: {
       index: true,

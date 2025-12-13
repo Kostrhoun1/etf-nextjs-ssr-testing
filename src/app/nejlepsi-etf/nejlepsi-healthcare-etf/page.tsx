@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika`,
+    title: `Nejlepší healthcare ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších healthcare ETF ${currentYear}. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'healthcare ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'zdravotní péče ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika`,
+      title: `Nejlepší healthcare ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších healthcare ETF ${currentYear}. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-healthcare-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika`,
+      title: `Nejlepší healthcare ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších healthcare ETF ${currentYear}. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů.`,
       images: ['/og-healthcare-etf.jpg']
     },

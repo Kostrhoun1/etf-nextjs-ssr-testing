@@ -1281,7 +1281,7 @@ export default async function NejlepsiSP500ETF() {
                     <ul className="text-xs text-gray-700 space-y-1">
                       <li>• EUR/USD kurz: <a href="https://www.cnb.cz" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">ČNB.cz</a> (denní fixing)</li>
                       <li>• USA-EU growth differential: <a href="https://tradingeconomics.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">TradingEconomics.com</a></li>
-                      <li>• Makro analýza: <a href="https://en.macromicro.me" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">MacroMicro.me</a> (free)</li>
+                      <li>• Makro analýza: <a href="https://fred.stlouisfed.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">FRED St. Louis Fed</a> (free)</li>
                     </ul>
                   </div>
                   <p className="text-xs text-gray-500 mt-3 italic">

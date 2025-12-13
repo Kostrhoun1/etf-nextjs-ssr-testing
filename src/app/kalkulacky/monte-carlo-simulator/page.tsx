@@ -43,7 +43,7 @@ const jsonLd = {
   description: 'Nástroj pro generování pravděpodobnostních scénářů budoucího vývoje ETF portfolia pomocí Monte Carlo simulace. Analyzujte rizika a možné výsledky investic na horizontu 5-30 let.',
   url: 'https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator',
   applicationCategory: 'FinanceApplication',
-  operatingSystem: 'Web',
+  browserRequirements: 'Requires JavaScript. Requires HTML5.',
   offers: {
     '@type': 'Offer',
     price: '0',

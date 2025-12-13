@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Srovnání nejlepších zlatých ETF pro ochranu před inflací a krizové portfolio.',
     },
     alternates: {
-      canonical: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-zlate-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-zlate-etf',
     },
   };
 }

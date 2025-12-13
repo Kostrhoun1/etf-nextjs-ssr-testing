@@ -126,8 +126,7 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
     "description": "Porovnejte více než 4300 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
     "url": "https://www.etfpruvodce.cz/srovnani-etf",
     "applicationCategory": "FinanceApplication",
-    "operatingSystem": "Web Browser",
-    "browserRequirements": "Moderní webový prohlížeč",
+    "browserRequirements": "Requires JavaScript. Requires HTML5.",
     "featureList": [
       "Srovnání více než 4300 ETF fondů",
       "Pokročilé filtrování podle TER poplatků",

@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import TwitterVariants from '@/components/infographics/TwitterVariants';
 
 export const metadata: Metadata = {
-  title: 'Nejlevnější ETF 2025 - Nejnižší poplatky TER | Infografika pro X/Twitter',
+  title: 'Nejlevnější ETF 2025 - Nejnižší TER | Infografika',
   description: 'Infografika s ETF fondy s nejnižšími poplatky TER. Optimalizováno pro sdílení na X/Twitter.',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/infografiky/nejlevnejsi-etf-ter',

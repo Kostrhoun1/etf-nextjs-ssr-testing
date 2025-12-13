@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary`,
+    title: `Nejlepší spotřební ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších spotřebních ETF ${currentYear}. Consumer staples, discretionary, retail - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'spotřební ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'Nestlé ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary`,
+      title: `Nejlepší spotřební ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších spotřebních ETF ${currentYear}. Consumer staples, discretionary, retail - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-spotrebni-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary`,
+      title: `Nejlepší spotřební ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších spotřebních ETF ${currentYear}. Consumer staples, discretionary, retail - TER, velikost fondů.`,
       images: ['/og-consumer-etf.jpg']
     },

@@ -4,7 +4,6 @@ import { calculateETFRating, getRatingDescription, getRatingColor } from '@/util
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, Star } from 'lucide-react';
 
 interface ETFRatingProps {
   etf: ETF | ETFListItem;
@@ -26,10 +25,11 @@ const ETFRating: React.FC<ETFRatingProps> = ({
     lg: 'text-lg'
   };
 
+  // CSS-based star sizes (unicode stars instead of SVG)
   const starSizeClasses = {
-    sm: 'w-3 h-3',
-    md: 'w-4 h-4',
-    lg: 'w-5 h-5'
+    sm: 'text-sm',
+    md: 'text-base',
+    lg: 'text-lg'
   };
 
   const rating = calculateETFRating(etf);
@@ -37,10 +37,8 @@ const ETFRating: React.FC<ETFRatingProps> = ({
   if (!rating) {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-0.5">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star key={star} className={`${starSizeClasses[size]} text-gray-300`} />
-          ))}
+        <div className={`flex items-center ${starSizeClasses[size]}`} aria-label="Nehodnoceno">
+          <span className="text-gray-300">☆☆☆☆☆</span>
         </div>
         <span className="text-sm text-gray-500">
           Nehodnoceno (fond mladší 3 let)
@@ -49,17 +47,14 @@ const ETFRating: React.FC<ETFRatingProps> = ({
     );
   }
 
-  const renderStars = (rating: number) => {
+  // Generate star string using unicode characters (saves ~3KB per rating vs SVG)
+  const renderStars = (ratingValue: number) => {
+    const filledStars = '★'.repeat(ratingValue);
+    const emptyStars = '☆'.repeat(5 - ratingValue);
     return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`${starSizeClasses[size]} ${
-              star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-            }`}
-          />
-        ))}
+      <div className={`flex items-center ${starSizeClasses[size]}`} aria-label={`Hodnocení ${ratingValue} z 5`}>
+        <span className="text-yellow-400">{filledStars}</span>
+        <span className="text-gray-300">{emptyStars}</span>
       </div>
     );
   };
@@ -76,7 +71,7 @@ const ETFRating: React.FC<ETFRatingProps> = ({
         </Badge>
         <Tooltip>
           <TooltipTrigger>
-            <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+            <span className="text-gray-400 hover:text-gray-600 cursor-help text-sm" aria-label="Více informací">ⓘ</span>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
             <div className="space-y-2 text-sm">

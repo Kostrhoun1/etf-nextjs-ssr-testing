@@ -108,36 +108,27 @@ export async function generateMetadata({ params }: PageProps) {
   const rating = etf.rating || 0;
   const isHighQuality = fundSize >= 100 || rating >= 4;
 
-  // Optimize title for CTR (Click-Through Rate) - include performance data
-  const titleParts = [ticker || etf.isin.substring(0, 6)];
+  // Optimize title for CTR - keep under 60 chars for Google
+  const tickerDisplay = ticker || etf.isin.substring(0, 6);
 
-  // Add performance if positive and significant
-  if (etf.return_1y && typeof etf.return_1y === 'number' && etf.return_1y > 0.05) {
-    titleParts.push(`+${(etf.return_1y * 100).toFixed(1)}% ročně`);
-  } else if (etf.return_1y && typeof etf.return_1y === 'number' && etf.return_1y < -0.05) {
-    titleParts.push(`${(etf.return_1y * 100).toFixed(1)}%`);
-  }
+  // Build short, SEO-friendly title
+  let titleBase = `${tickerDisplay} ETF`;
 
-  // Add TER (always competitive info)
+  // Add TER if available (most important info)
   if (etf.ter_numeric && typeof etf.ter_numeric === 'number') {
-    titleParts.push(`TER ${(etf.ter_numeric * 100).toFixed(2)}%`);
+    titleBase += ` - TER ${(etf.ter_numeric * 100).toFixed(2)}%`;
   }
 
-  // Add rating if 4+ stars (quality signal)
-  if (etf.rating && typeof etf.rating === 'number' && etf.rating >= 4) {
-    const stars = '⭐'.repeat(Math.round(etf.rating));
-    titleParts.push(`${stars}`);
+  // Add 1Y return if significant
+  if (etf.return_1y && typeof etf.return_1y === 'number' && Math.abs(etf.return_1y) > 0.05) {
+    const returnStr = etf.return_1y > 0 ? `+${(etf.return_1y * 100).toFixed(0)}%` : `${(etf.return_1y * 100).toFixed(0)}%`;
+    titleBase += ` ${returnStr}`;
   }
 
-  // Add year for freshness
-  titleParts.push('2025');
-
-  const optimizedTitle = `${titleParts.join(' • ')} | ETF průvodce`;
-
-  // Fallback if too long (Google truncates at ~60 chars)
-  const finalTitle = optimizedTitle.length <= 65
-    ? optimizedTitle
-    : `${ticker || etf.isin.substring(0, 6)} ETF • ${etf.return_1y && typeof etf.return_1y === 'number' ? (etf.return_1y * 100).toFixed(1) + '% ' : ''}TER ${etf.ter_numeric && typeof etf.ter_numeric === 'number' ? (etf.ter_numeric * 100).toFixed(2) + '%' : 'N/A'} • 2025`;
+  // Final title with site name (keep total under 60 chars)
+  const finalTitle = `${titleBase} | ETF pruvodce`.length <= 60
+    ? `${titleBase} | ETF pruvodce`
+    : `${tickerDisplay} ETF | ETF pruvodce`;
 
   return {
     title: finalTitle,
@@ -176,119 +167,10 @@ export async function generateMetadata({ params }: PageProps) {
     },
     other: {
       // Article metadata for freshness signals
-      'article:published_time': etf.inception_date || '2024-01-01T00:00:00Z',
+      'article:published_time': etf.updated_at || new Date().toISOString(),
       'article:modified_time': etf.updated_at || new Date().toISOString(),
       'article:author': 'Tomáš Kostrhoun',
-      'article:section': 'ETF Analysis',
-      'og:updated_time': etf.updated_at || new Date().toISOString(),
-
-      // Add structured data for ETF investment product
-      'structured-data': JSON.stringify({
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": ["FinancialProduct", "InvestmentFund"],
-            "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`,
-            "name": etf.name,
-            "identifier": {
-              "@type": "PropertyValue",
-              "propertyID": "ISIN",
-              "value": etf.isin
-            },
-            "description": etf.description_cs || etf.description_en || `ETF fond ${etf.name} od poskytovatele ${etf.fund_provider}`,
-            "provider": {
-              "@type": "Organization",
-              "name": etf.fund_provider
-            },
-            "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
-            "category": etf.category,
-            "currency": etf.fund_currency,
-            "feesAndCommissionsSpecification": {
-              "@type": "UnitPriceSpecification",
-              "price": etf.ter_numeric,
-              "priceCurrency": "percent",
-              "unitText": "TER (Total Expense Ratio)"
-            },
-            "yields": etf.current_dividend_yield_numeric ? {
-              "@type": "MonetaryAmount",
-              "value": etf.current_dividend_yield_numeric,
-              "currency": "percent"
-            } : undefined,
-            "fundSize": etf.fund_size_numeric,
-            "inceptionDate": etf.inception_date,
-            "trackingError": etf.tracking_error,
-            "distributionPolicy": etf.distribution_policy,
-            "domicile": etf.fund_domicile,
-            "aggregateRating": etf.rating ? {
-              "@type": "AggregateRating",
-              "ratingValue": etf.rating,
-              "bestRating": 5,
-              "worstRating": 1,
-              "ratingCount": 1
-            } : undefined,
-            "offers": {
-              "@type": "Offer",
-              "availability": "https://schema.org/InStock",
-              "priceCurrency": etf.fund_currency
-            }
-          },
-          {
-            "@type": "BreadcrumbList",
-            "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#breadcrumb`,
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Domů",
-                "item": "https://www.etfpruvodce.cz"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Srovnání ETF",
-                "item": "https://www.etfpruvodce.cz/srovnani-etf"
-              },
-              {
-                "@type": "ListItem",
-                "position": 3,
-                "name": etf.name,
-                "item": `https://www.etfpruvodce.cz/etf/${etf.isin}`
-              }
-            ]
-          },
-          {
-            "@type": "WebPage",
-            "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#webpage`,
-            "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
-            "name": `${titleWithTicker} | ETF Průvodce`,
-            "description": descriptionWithTicker,
-            "isPartOf": {
-              "@type": "WebSite",
-              "@id": "https://www.etfpruvodce.cz#website",
-              "name": "ETF průvodce.cz",
-              "url": "https://www.etfpruvodce.cz"
-            },
-            "breadcrumb": {
-              "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#breadcrumb`
-            },
-            "about": {
-              "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`
-            },
-            "author": {
-              "@id": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
-            },
-            "reviewedBy": {
-              "@id": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
-            },
-            "publisher": {
-              "@id": "https://www.etfpruvodce.cz#organization"
-            },
-            "datePublished": etf.inception_date || "2024-01-01",
-            "dateModified": etf.updated_at || new Date().toISOString(),
-            "inLanguage": "cs-CZ"
-          }
-        ]
-      })
+      'article:section': 'ETF Analysis'
     }
   };
 }
@@ -351,12 +233,23 @@ export default async function ETFDetailPage({ params }: PageProps) {
   const topCountries = getTopCountries();
   const topSectors = getTopSectors();
 
+  // Helper to convert date string to ISO format
+  const parseToISODate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return new Date().toISOString().split('T')[0];
+    // Try parsing various date formats
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+    return new Date().toISOString().split('T')[0];
+  };
+
   // Generate structured data for SSR
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": ["FinancialProduct", "InvestmentFund"],
+        "@type": "FinancialProduct",
         "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`,
         "name": etf.name,
         "identifier": {
@@ -370,18 +263,7 @@ export default async function ETFDetailPage({ params }: PageProps) {
           "name": etf.fund_provider
         },
         "url": `https://www.etfpruvodce.cz/etf/${etf.isin}`,
-        "category": etf.category,
-        "currency": etf.fund_currency,
-        "feesAndCommissionsSpecification": etf.ter_numeric ? {
-          "@type": "UnitPriceSpecification",
-          "price": etf.ter_numeric,
-          "priceCurrency": "percent",
-          "unitText": "TER (Total Expense Ratio)"
-        } : undefined,
-        "fundSize": etf.fund_size_numeric,
-        "inceptionDate": etf.inception_date,
-        "distributionPolicy": etf.distribution_policy,
-        "domicile": etf.fund_domicile
+        "category": etf.category
       },
       {
         "@type": "WebPage",
@@ -399,12 +281,16 @@ export default async function ETFDetailPage({ params }: PageProps) {
           "@id": `https://www.etfpruvodce.cz/etf/${etf.isin}#product`
         },
         "author": {
-          "@id": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
+          "@type": "Person",
+          "name": "Tomáš Kostrhoun",
+          "url": "https://www.etfpruvodce.cz/o-nas"
         },
         "publisher": {
-          "@id": "https://www.etfpruvodce.cz#organization"
+          "@type": "Organization",
+          "name": "ETF průvodce.cz",
+          "url": "https://www.etfpruvodce.cz"
         },
-        "datePublished": etf.inception_date || "2024-01-01",
+        "datePublished": parseToISODate(etf.inception_date),
         "dateModified": etf.updated_at || new Date().toISOString(),
         "inLanguage": "cs-CZ"
       }

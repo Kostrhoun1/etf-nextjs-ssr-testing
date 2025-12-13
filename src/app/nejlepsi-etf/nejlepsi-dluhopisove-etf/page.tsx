@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Srovnání nejlepších dluhopisových ETF pro stabilní příjmy a ochranu kapitálu.',
     },
     alternates: {
-      canonical: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-dluhopisove-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-dluhopisove-etf',
     },
   };
 }

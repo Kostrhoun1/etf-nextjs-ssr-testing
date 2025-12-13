@@ -39,7 +39,6 @@ const staticPages = [
   { path: '/kalkulacky/nouzova-rezerva', priority: 0.8, changefreq: 'monthly' },
   { path: '/kalkulacky/kalkulacka-poplatku-etf', priority: 0.8, changefreq: 'monthly' },
   { path: '/kalkulacky/kurzovy-dopad-etf', priority: 0.8, changefreq: 'monthly' },
-  { path: '/kalkulacky/spotrebitelsky-uver', priority: 0.8, changefreq: 'monthly' },
   { path: '/nejlepsi-etf', priority: 0.9, changefreq: 'weekly' },
   { path: '/nejlepsi-etf/nejlepsi-etf-2025', priority: 0.9, changefreq: 'weekly' },
   { path: '/nejlepsi-etf/nejlevnejsi-etf', priority: 0.9, changefreq: 'weekly' },

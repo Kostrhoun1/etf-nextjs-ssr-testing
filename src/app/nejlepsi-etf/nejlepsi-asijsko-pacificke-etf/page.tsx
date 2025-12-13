@@ -7,7 +7,7 @@ import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší asijsko-pacifické ETF 2025 - MSCI Pacific, FTSE Asia Pacific | Bez Japonska',
+    title: 'Nejlepší asijsko-pacifické ETF 2025 | Srovnání',
     description: 'Kompletní průvodce asijsko-pacifickými ETF v roce 2025. Porovnání MSCI Pacific vs FTSE Asia Pacific indexů. TOP 3 doporučení pro investice do Austrálie, Singapuru a dalších asijských trhů.',
     keywords: [
       'asijsko-pacifické ETF',
@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'asijské akcie ETF'
     ].join(', '),
     openGraph: {
-      title: 'Nejlepší asijsko-pacifické ETF 2025 - MSCI Pacific vs FTSE Asia Pacific',
+      title: 'Nejlepší asijsko-pacifické ETF 2025 | Srovnání',
       description: 'Kompletní průvodce asijsko-pacifickými ETF. TOP 3 doporučení, porovnání indexů a analýza asijsko-pacifických trhů bez Japonska.',
       type: 'article',
       locale: 'cs_CZ',
@@ -40,12 +40,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší asijsko-pacifické ETF 2025 - MSCI Pacific vs FTSE Asia Pacific',
+      title: 'Nejlepší asijsko-pacifické ETF 2025 | Srovnání',
       description: 'Kompletní průvodce asijsko-pacifickými ETF. TOP 3 doporučení, porovnání indexů a analýza asijsko-pacifických trhů bez Japonska.',
       images: ['/og-asia-pacific-etf.jpg']
     },
     alternates: {
-      canonical: 'https://etf-pruvodce.cz/nejlepsi-etf/nejlepsi-asijsko-pacificke-etf'
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-asijsko-pacificke-etf'
     },
     robots: {
       index: true,

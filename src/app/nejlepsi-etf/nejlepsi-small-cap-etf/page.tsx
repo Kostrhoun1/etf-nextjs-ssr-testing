@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší Small Cap ETF ${currentYear} - malé společnosti a Russell 2000`,
+    title: `Nejlepší Small Cap ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších Small Cap ETF ${currentYear}. Russell 2000, MSCI World Small Cap, evropské malé společnosti - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'Small Cap ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'volatilita small cap'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší Small Cap ETF ${currentYear} - malé společnosti a Russell 2000`,
+      title: `Nejlepší Small Cap ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších Small Cap ETF ${currentYear}. Russell 2000, MSCI World Small Cap, evropské malé společnosti - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-small-cap-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší Small Cap ETF ${currentYear} - malé společnosti a Russell 2000`,
+      title: `Nejlepší Small Cap ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších Small Cap ETF ${currentYear}. Russell 2000, MSCI World Small Cap, evropské malé společnosti - TER, velikost fondů.`,
       images: ['/og-small-cap-etf.jpg']
     },

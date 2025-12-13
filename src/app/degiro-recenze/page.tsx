@@ -5,7 +5,7 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Star, Smartphone, Globe, TrendingUp, Shield, Users, Award } from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, StarRating, ExternalLinkIcon } from '@/components/ui/icons';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 
 const currentYear = new Date().getFullYear();
@@ -62,7 +62,7 @@ export default function DEGIRORecenzePage() {
       "name": "DEGIRO",
       "description": "Online broker pro obchodování s ETF, akciemi a dalšími finančními instrumenty",
       "url": "https://www.degiro.cz",
-      "serviceType": "Online brokerage",
+      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Rembrandt Tower, Amstelplein 1",
@@ -145,11 +145,7 @@ export default function DEGIRORecenzePage() {
                 DEGIRO recenze 2025
               </h1>
               <div className="flex items-center justify-center gap-2">
-                <div className="flex items-center">
-                  {[...Array(4)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
+                <StarRating rating={4} size="lg" />
                 <span className="text-lg font-semibold text-gray-700">79/100 bodů</span>
               </div>
             </div>
@@ -171,36 +167,36 @@ export default function DEGIRORecenzePage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-green-800 mb-3 flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2" />
+                  <CheckIcon className="mr-2" />
                   Hlavní výhody
                 </h3>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Dostupnost tisíců akcií, ETF, dluhopisů a derivátů
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Vysoká míra finanční bezpečnosti díky začlenění do banky
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Jednoduchá a intuitivní obchodní platforma WebTrader
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Možnost vkladů a výběrů v českých korunách
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Nulový minimální vklad
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Core Selection ETF za 0 EUR + 1 EUR manipulační poplatek
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     Přístup na 31 světových burz
                   </li>
                 </ul>
@@ -208,28 +204,28 @@ export default function DEGIRORecenzePage() {
               
               <div>
                 <h3 className="font-semibold text-amber-800 mb-3 flex items-center">
-                  <AlertTriangle className="w-5 h-5 mr-2" />
+                  <AlertIcon className="mr-2" />
                   Na co si dát pozor
                 </h3>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     Absence demo účtu
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     Zdanění českých dividend 35% sazbou
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     Chybí pokročilé obchodní nástroje
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     Nedostupnost CFD
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     Velmi omezené možnosti prodeje nakrátko
                   </li>
                 </ul>
@@ -266,7 +262,7 @@ export default function DEGIRORecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="w-6 h-6 text-blue-600" />
+              <span className="text-blue-600">🌍</span>
               O společnosti DEGIRO
             </CardTitle>
           </CardHeader>
@@ -316,7 +312,7 @@ export default function DEGIRORecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Smartphone className="w-6 h-6 text-green-600" />
+              <span className="text-green-600">📱</span>
               Obchodní platforma WebTrader
             </CardTitle>
           </CardHeader>
@@ -334,45 +330,45 @@ export default function DEGIRORecenzePage() {
                 <h4 className="font-semibold mb-3 text-gray-900">Klíčové funkce</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Jednoduchá a přehledná
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Základní charting
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Portfolio přehled
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Watchlist
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    <AlertIcon />
                     Omezené analytické nástroje
                   </li>
                 </ul>
               </div>
-              
+
               <div>
                 <h4 className="font-semibold mb-3 text-gray-900">Dostupnost</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Webová verze
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Mobilní aplikace (iOS/Android)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckIcon />
                     Částečná česká lokalizace
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="w-4 h-4 text-red-500" />
+                    <XIcon />
                     Bez demo účtu
                   </li>
                 </ul>
@@ -400,7 +396,7 @@ export default function DEGIRORecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
+              <span className="text-purple-600">📈</span>
               Nabídka instrumentů
             </CardTitle>
           </CardHeader>
@@ -468,7 +464,7 @@ export default function DEGIRORecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-green-600" />
+              <span className="text-green-600">💰</span>
               Struktura poplatků
             </CardTitle>
             <CardDescription>
@@ -574,7 +570,7 @@ export default function DEGIRORecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-amber-600" />
+              <span className="text-amber-600">🛡</span>
               Zdanění pro české investory
             </CardTitle>
           </CardHeader>
@@ -623,7 +619,7 @@ export default function DEGIRORecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="w-6 h-6 text-blue-600" />
+              <span className="text-blue-600">👥</span>
               Zákaznická podpora
             </CardTitle>
           </CardHeader>
@@ -675,7 +671,7 @@ export default function DEGIRORecenzePage() {
           <CardContent className="text-center">
             <div className="mb-6">
               <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-800 px-6 py-3 rounded-full text-lg font-semibold">
-                <Award className="w-6 h-6" />
+                <span>🏆</span>
                 79/100 bodů - DOBRÁ
               </div>
             </div>
@@ -709,14 +705,14 @@ export default function DEGIRORecenzePage() {
             </div>
             
             <Button asChild size="lg" className="bg-orange-600 hover:bg-orange-700">
-              <a 
-                href="https://www.degiro.cz" 
-                target="_blank" 
+              <a
+                href="https://www.degiro.cz"
+                target="_blank"
                 rel="nofollow noopener noreferrer"
                 className="flex items-center gap-2"
               >
                 Otevřít účet u DEGIRO
-                <ExternalLink className="w-5 h-5" />
+                <ExternalLinkIcon />
               </a>
             </Button>
             
@@ -763,6 +759,16 @@ export default function DEGIRORecenzePage() {
               title: "Portfolio strategie",
               href: "/portfolio-strategie",
               description: "Vytvořte si optimální investiční portfolio"
+            },
+            {
+              title: "Investiční kalkulačka",
+              href: "/kalkulacky/investicni-kalkulacka",
+              description: "Spočítejte si budoucí hodnotu investic"
+            },
+            {
+              title: "FIRE kalkulačka",
+              href: "/kalkulacky/fire-kalkulacka",
+              description: "Kdy dosáhnete finanční nezávislosti?"
             }
           ]}
           title="Související články a nástroje"

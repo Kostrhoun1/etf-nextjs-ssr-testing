@@ -43,7 +43,7 @@ const jsonLd = {
   description: 'Nástroj pro historickou simulaci výkonnosti ETF portfolia s reálnými daty od roku 2000. Podpora pravidelných investic (DCA), analýza rizik a Monte Carlo simulace.',
   url: 'https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia',
   applicationCategory: 'FinanceApplication',
-  operatingSystem: 'Web',
+  browserRequirements: 'Requires JavaScript. Requires HTML5.',
   offers: {
     '@type': 'Offer',
     price: '0',

@@ -51,7 +51,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Srovnání nejlepších Defense ETF pro investice do obranného průmyslu a aerospace technologií.',
     },
     alternates: {
-      canonical: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-defense-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-defense-etf',
     },
   };
 }

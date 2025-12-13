@@ -5,18 +5,18 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Users, TrendingUp, Shield } from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, StarRating, ExternalLinkIcon } from '@/components/ui/icons';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Interactive Brokers recenze ${currentYear} - Komplexní test a hodnocení`,
+  title: `Interactive Brokers recenze ${currentYear} - Test IBKR`,
   description: `✅ Interactive Brokers recenze ${currentYear} - hodnocení 85/100. Americká brokerská společnost s globálním přístupem na 86 burz.`,
   keywords: `Interactive Brokers recenze, IBKR broker, Interactive Brokers test, IBKR hodnocení, Interactive Brokers poplatky, IBKR ETF`,
   authors: [{ name: 'ETF průvodce.cz' }],
   openGraph: {
-    title: `Interactive Brokers recenze ${currentYear} - Komplexní test a hodnocení`,
+    title: `Interactive Brokers recenze ${currentYear} - Test IBKR`,
     description: `Interactive Brokers recenze ${currentYear} - hodnocení 85/100. Americká společnost s globálním přístupem.`,
     url: 'https://www.etfpruvodce.cz/interactive-brokers-recenze',
     siteName: 'ETF průvodce.cz',
@@ -87,7 +87,7 @@ export default function InteractiveBrokersRecenzePage() {
       "name": "Interactive Brokers",
       "description": "Americký online broker pro profesionální a pokročilé investory",
       "url": "https://www.interactivebrokers.com/",
-      "serviceType": "Online brokerage",
+      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "One Pickwick Plaza",
@@ -195,7 +195,7 @@ export default function InteractiveBrokersRecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="h-5 w-5" />
+                <CheckIcon />
                 Výhody IBKR
               </CardTitle>
             </CardHeader>
@@ -203,7 +203,7 @@ export default function InteractiveBrokersRecenzePage() {
               <ul className="space-y-2">
                 {pros.map((pro, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     <span className="text-sm">{pro}</span>
                   </li>
                 ))}
@@ -214,7 +214,7 @@ export default function InteractiveBrokersRecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-600">
-                <XCircle className="h-5 w-5" />
+                <XIcon />
                 Nevýhody IBKR
               </CardTitle>
             </CardHeader>
@@ -222,7 +222,7 @@ export default function InteractiveBrokersRecenzePage() {
               <ul className="space-y-2">
                 {cons.map((con, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     <span className="text-sm">{con}</span>
                   </li>
                 ))}
@@ -235,7 +235,7 @@ export default function InteractiveBrokersRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
+              <span className="text-blue-600">👥</span>
               Klíčové informace o Interactive Brokers
             </CardTitle>
           </CardHeader>
@@ -281,7 +281,7 @@ export default function InteractiveBrokersRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <span className="text-green-600">📈</span>
               Struktura poplatků (IBKR Pro)
             </CardTitle>
             <CardDescription>Poplatky se liší podle typu účtu a objemu obchodování</CardDescription>
@@ -336,7 +336,7 @@ export default function InteractiveBrokersRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-purple-600" />
+              <span className="text-purple-600">🛡</span>
               Obchodní platformy
             </CardTitle>
           </CardHeader>
@@ -346,19 +346,19 @@ export default function InteractiveBrokersRecenzePage() {
                 <h4 className="font-semibold mb-3">Trader Workstation (TWS)</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Nejpokročilejší desktopová obchodní platforma
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Komplexní analýzy a nástroje
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Algoritmické obchodování
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertIcon />
                     Složitá pro začátečníky
                   </li>
                 </ul>
@@ -367,19 +367,19 @@ export default function InteractiveBrokersRecenzePage() {
                 <h4 className="font-semibold mb-3">IBKR Mobile & WebTrader</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Zjednodušená mobilní aplikace
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Webová verze bez stahování
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Základní funkce pro běžné obchodování
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertIcon />
                     Omezené možnosti oproti TWS
                   </li>
                 </ul>
@@ -426,7 +426,7 @@ export default function InteractiveBrokersRecenzePage() {
         <Card className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-700">
-              <AlertTriangle className="h-5 w-5" />
+              <AlertIcon />
               Vhodné pouze pro pokročilé investory
             </CardTitle>
           </CardHeader>
@@ -463,7 +463,7 @@ export default function InteractiveBrokersRecenzePage() {
                   className="flex items-center justify-center gap-2"
                 >
                   Otevřít účet u IBKR
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLinkIcon />
                 </a>
               </Button>
             </div>
@@ -497,6 +497,16 @@ export default function InteractiveBrokersRecenzePage() {
               title: "Návod pro začátečníky",
               href: "/co-jsou-etf/jak-zacit-investovat",
               description: "Začněte s investováním do ETF"
+            },
+            {
+              title: "Kurzový dopad ETF",
+              href: "/kalkulacky/kurzovy-dopad-etf",
+              description: "Analýza měnového rizika u ETF"
+            },
+            {
+              title: "ETF poplatky",
+              href: "/kalkulacky/kalkulacka-poplatku-etf",
+              description: "Dopad TER na dlouhodobé výnosy"
             }
           ]}
           title="Související články"

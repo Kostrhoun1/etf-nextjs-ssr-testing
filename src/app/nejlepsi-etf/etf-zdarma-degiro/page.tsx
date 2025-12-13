@@ -47,11 +47,11 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `ETF zdarma na DEGIRO ${currentYear} - 65+ komisně bezplatných fondů`,
+    title: `ETF zdarma na DEGIRO ${currentYear} | Srovnání`,
     description: `✅ Kompletní seznam 65+ ETF fondů zdarma na DEGIRO ${currentYear}. CSPX, IWDA, EMIM - nulové komise, poplatky pouze €1 za 2. obchod. Aktuální k ${currentDate}.`,
     keywords: `ETF zdarma DEGIRO ${currentYear}, DEGIRO free ETF, CSPX zdarma, IWDA DEGIRO, komisně bezplatné ETF, DEGIRO poplatky`,
     openGraph: {
-      title: `ETF zdarma na DEGIRO ${currentYear} - 65+ komisně bezplatných fondů`,
+      title: `ETF zdarma na DEGIRO ${currentYear} | Srovnání`,
       description: `Kompletní seznam 65+ ETF fondů zdarma na DEGIRO ${currentYear}. CSPX, IWDA, EMIM - nulové komise pro první obchod měsíčně.`,
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/etf-zdarma-degiro',
       siteName: 'ETF průvodce.cz',
@@ -68,7 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `ETF zdarma na DEGIRO ${currentYear} - 65+ komisně bezplatných fondů`,
+      title: `ETF zdarma na DEGIRO ${currentYear} | Srovnání`,
       description: `Kompletní seznam 65+ ETF fondů zdarma na DEGIRO ${currentYear}. CSPX, IWDA, EMIM - nulové komise pro první obchod měsíčně.`,
       images: ['https://www.etfpruvodce.cz/og-degiro-free-etf.jpg'],
     },

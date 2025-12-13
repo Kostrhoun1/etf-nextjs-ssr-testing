@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
 
 interface BreadcrumbItem {
   name: string;
@@ -87,7 +86,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ items }) => {
         <ol className="flex items-center space-x-2 text-sm text-gray-600">
           {breadcrumbItems.map((item, index) => (
             <li key={item.href} className="flex items-center">
-              {index > 0 && <ChevronRight className="h-4 w-4 text-gray-400 mx-2" />}
+              {index > 0 && <span className="text-gray-400 mx-2" aria-hidden="true">›</span>}
               {index === breadcrumbItems.length - 1 ? (
                 <span className="text-gray-900 font-medium">{item.name}</span>
               ) : (

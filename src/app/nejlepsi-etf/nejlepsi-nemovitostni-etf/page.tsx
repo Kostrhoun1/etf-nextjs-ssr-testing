@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Srovnání nejlepších nemovitostních ETF pro dividendové příjmy a diverzifikaci portfolia.',
     },
     alternates: {
-      canonical: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-nemovitostni-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-nemovitostni-etf',
     },
   };
 }

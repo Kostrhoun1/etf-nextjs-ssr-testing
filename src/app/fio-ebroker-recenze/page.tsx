@@ -5,18 +5,18 @@ import InternalLinking from '@/components/SEO/InternalLinking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, ExternalLink, Users, TrendingUp, Shield } from 'lucide-react';
+import { CheckIcon, XIcon, AlertIcon, StarRating, ExternalLinkIcon } from '@/components/ui/icons';
 import BrokerRatingGrid from '@/components/broker/BrokerRatingGrid';
 
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Fio e-Broker recenze ${currentYear} - Český broker s optimálním zdaněním`,
+  title: `Fio e-Broker recenze ${currentYear} - Test českého brokera`,
   description: `✅ Fio e-Broker recenze ${currentYear} - hodnocení 75/100. Český broker s lokální podporou a optimálním zdaněním českých dividend (15%).`,
   keywords: `Fio e-Broker recenze, Fio broker, Fio e-Broker test, Fio hodnocení, český broker, 15% zdanění dividend`,
   authors: [{ name: 'ETF průvodce.cz' }],
   openGraph: {
-    title: `Fio e-Broker recenze ${currentYear} - Český broker s optimálním zdaněním`,
+    title: `Fio e-Broker recenze ${currentYear} - Test českého brokera`,
     description: `Fio e-Broker recenze ${currentYear} - hodnocení 75/100. Český broker s lokální podporou.`,
     url: 'https://www.etfpruvodce.cz/fio-ebroker-recenze',
     siteName: 'ETF průvodce.cz',
@@ -87,7 +87,7 @@ export default function FioEbrokerRecenzePage() {
       "name": "Fio e-Broker",
       "description": "Český online broker pro obchodování s ETF, akciemi a dluhopisy",
       "url": "https://www.fio.cz/e-broker",
-      "serviceType": "Online brokerage",
+      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "V Celnici 1028/10",
@@ -195,7 +195,7 @@ export default function FioEbrokerRecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="h-5 w-5" />
+                <CheckIcon />
                 Výhody Fio e-Broker
               </CardTitle>
             </CardHeader>
@@ -203,7 +203,7 @@ export default function FioEbrokerRecenzePage() {
               <ul className="space-y-2">
                 {pros.map((pro, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <CheckIcon className="flex-shrink-0" />
                     <span className="text-sm">{pro}</span>
                   </li>
                 ))}
@@ -214,7 +214,7 @@ export default function FioEbrokerRecenzePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-600">
-                <XCircle className="h-5 w-5" />
+                <XIcon />
                 Nevýhody Fio e-Broker
               </CardTitle>
             </CardHeader>
@@ -222,7 +222,7 @@ export default function FioEbrokerRecenzePage() {
               <ul className="space-y-2">
                 {cons.map((con, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                    <XIcon className="flex-shrink-0" />
                     <span className="text-sm">{con}</span>
                   </li>
                 ))}
@@ -235,7 +235,7 @@ export default function FioEbrokerRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
+              <span className="text-blue-600">👥</span>
               Klíčové informace o Fio e-Broker
             </CardTitle>
           </CardHeader>
@@ -281,7 +281,7 @@ export default function FioEbrokerRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-orange-600" />
+              <span className="text-orange-600">📈</span>
               Struktura poplatků
             </CardTitle>
             <CardDescription>Poplatky jsou vyšší než u zahraničních brokerů</CardDescription>
@@ -336,7 +336,7 @@ export default function FioEbrokerRecenzePage() {
         <Card className="mb-8 border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-700">
-              <XCircle className="h-5 w-5" />
+              <XIcon />
               Omezená nabídka ETF
             </CardTitle>
             <CardDescription>Hlavní nevýhoda pro ETF investory</CardDescription>
@@ -347,19 +347,19 @@ export default function FioEbrokerRecenzePage() {
                 <h4 className="font-semibold mb-3">Dostupné trhy</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Burza cenných papírů Praha (BCPP)
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Některé evropské burzy (omezené)
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
+                    <XIcon />
                     Žádný přístup k USA trhům
                   </li>
                   <li className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
+                    <XIcon />
                     Velmi omezená nabídka ETF
                   </li>
                 </ul>
@@ -383,7 +383,7 @@ export default function FioEbrokerRecenzePage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
+              <span className="text-blue-600">🛡</span>
               Obchodní platforma
             </CardTitle>
           </CardHeader>
@@ -393,19 +393,19 @@ export default function FioEbrokerRecenzePage() {
                 <h4 className="font-semibold mb-3">Vlastní e-Broker platforma</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Plně v českém jazyce
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Jednoduché ovládání
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Základní analýzy a grafy
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertIcon />
                     Starší design a funkcionalita
                   </li>
                 </ul>
@@ -414,19 +414,19 @@ export default function FioEbrokerRecenzePage() {
                 <h4 className="font-semibold mb-3">Mobilní aplikace</h4>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     iOS a Android aplikace
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckIcon />
                     Základní obchodní funkce
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertIcon />
                     Omezené pokročilé funkce
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <AlertIcon />
                     Starší uživatelský zážitek
                   </li>
                 </ul>
@@ -472,7 +472,7 @@ export default function FioEbrokerRecenzePage() {
         <Card className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-700">
-              <AlertTriangle className="h-5 w-5" />
+              <AlertIcon />
               Omezená nabídka pro ETF investory
             </CardTitle>
           </CardHeader>
@@ -510,7 +510,7 @@ export default function FioEbrokerRecenzePage() {
                   className="flex items-center justify-center gap-2"
                 >
                   Otevřít účet u Fio
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLinkIcon />
                 </a>
               </Button>
             </div>
@@ -539,6 +539,16 @@ export default function FioEbrokerRecenzePage() {
               title: "Srovnání ETF fondů",
               href: "/srovnani-etf",
               description: "Najděte nejlepší ETF pro investice"
+            },
+            {
+              title: "Hypoteční kalkulačka",
+              href: "/kalkulacky/hypotecni-kalkulacka",
+              description: "Spočítejte si splátky hypotéky"
+            },
+            {
+              title: "Čistý plat 2025",
+              href: "/kalkulacky/cisty-plat-2025",
+              description: "Výpočet čisté mzdy"
             }
           ]}
           title="Související články"

@@ -37,11 +37,11 @@ const TOP_3_CYBERSECURITY_ETFS_TEMPLATE = [
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší Kyberbezpečnost ETF 2025 | Srovnání a Doporučení',
+    title: 'Nejlepší Kyberbezpečnost ETF 2025 | Srovnání',
     description: 'Najděte nejlepší Kyberbezpečnost ETF pro rok 2025. Srovnání výkonnosti, poplatků a držených aktiv. Investujte do kybernetické bezpečnosti budoucnosti.',
     keywords: 'kyberbezpečnost ETF, nejlepší cyber ETF 2025, kybernetická bezpečnost investice, cyber security ETF, ISPY ETF, SECT ETF, CIBR ETF',
     openGraph: {
-      title: 'Nejlepší Kyberbezpečnost ETF 2025 | Srovnání a Doporučení',
+      title: 'Nejlepší Kyberbezpečnost ETF 2025 | Srovnání',
       description: 'Kompletní průvodce nejlepšími Kyberbezpečnost ETF. Analyzujeme výkonnost, poplatky a portfolia pro investice do kybernetické bezpečnosti.',
       type: 'article',
       url: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf',
@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Srovnání nejlepších Kyberbezpečnost ETF pro investice do kybernetické bezpečnosti a ochrany digitálních dat.',
     },
     alternates: {
-      canonical: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf',
     },
   };
 }

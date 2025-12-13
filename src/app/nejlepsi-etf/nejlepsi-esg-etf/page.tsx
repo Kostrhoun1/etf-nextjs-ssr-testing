@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory`,
+    title: `Nejlepší ESG ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších ESG ETF ${currentYear}. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'ESG ETF',
@@ -67,7 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'Climate ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory`,
+      title: `Nejlepší ESG ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších ESG ETF ${currentYear}. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-esg-etf',
@@ -84,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory`,
+      title: `Nejlepší ESG ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších ESG ETF ${currentYear}. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů.`,
       images: ['/og-esg-etf.jpg']
     },

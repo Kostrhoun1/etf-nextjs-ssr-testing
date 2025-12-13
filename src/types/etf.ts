@@ -5,6 +5,8 @@ export interface ETF {
   url: string;
   description_en: string;
   description_cs: string;
+  updated_at?: string;
+  created_at?: string;
   ter: string;
   ter_numeric: number;
   fund_size: string;

@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Menu, Mail, Settings } from 'lucide-react';
 import Logo from './Logo';
 import BreadcrumbNav from './SEO/BreadcrumbNav';
 import LastUpdatedInfo from './LastUpdatedInfo';
@@ -99,7 +98,7 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="sm">
-                    <Menu className="h-6 w-6" />
+                    <span className="text-2xl" aria-hidden="true">☰</span>
                     <span className="sr-only">Otevřít menu</span>
                   </Button>
                 </SheetTrigger>
@@ -172,7 +171,7 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
               <div className="space-y-3">
                 <h4 className="text-slate-200 font-semibold">Kontakt</h4>
                 <div className="flex items-center gap-3 text-slate-400">
-                  <Mail className="h-4 w-4" />
+                  <span aria-hidden="true">✉</span>
                   <a href="mailto:info@etfpruvodce.cz" className="hover:text-white transition-colors">
                     info@etfpruvodce.cz
                   </a>

@@ -39,7 +39,7 @@ const jsonLd = {
   description: 'Přesná kalkulačka pro výpočet měsíčních splátek hypotéky s aktuálními úrokovými sazbami.',
   url: 'https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka',
   applicationCategory: 'FinanceApplication',
-  operatingSystem: 'Web',
+  browserRequirements: 'Requires JavaScript. Requires HTML5.',
   offers: {
     '@type': 'Offer',
     price: '0',

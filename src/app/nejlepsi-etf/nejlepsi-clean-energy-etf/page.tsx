@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší clean energy ETF ${currentYear} - čistá energie a obnovitelné zdroje`,
+    title: `Nejlepší clean energy ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších clean energy ETF ${currentYear}. Solární, větrná, vodní energie - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'clean energy ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'renewable energy ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší clean energy ETF ${currentYear} - čistá energie a obnovitelné zdroje`,
+      title: `Nejlepší clean energy ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších clean energy ETF ${currentYear}. Solární, větrná, vodní energie - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-clean-energy-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší clean energy ETF ${currentYear} - čistá energie a obnovitelné zdroje`,
+      title: `Nejlepší clean energy ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších clean energy ETF ${currentYear}. Solární, větrná, vodní energie - TER, velikost fondů.`,
       images: ['/og-clean-energy-etf.jpg']
     },

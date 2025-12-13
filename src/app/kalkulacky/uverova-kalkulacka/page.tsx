@@ -39,7 +39,7 @@ const jsonLd = {
   description: 'Kalkulačka pro výpočet měsíčních splátek spotřebitelského úvěru s aktuálními úrokovými sazbami.',
   url: 'https://www.etfpruvodce.cz/kalkulacky/uverova-kalkulacka',
   applicationCategory: 'FinanceApplication',
-  operatingSystem: 'Web',
+  browserRequirements: 'Requires JavaScript. Requires HTML5.',
   offers: {
     '@type': 'Offer',
     price: '0',

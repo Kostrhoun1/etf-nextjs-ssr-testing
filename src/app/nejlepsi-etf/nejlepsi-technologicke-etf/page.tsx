@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší technologické ETF ${currentYear} - NASDAQ 100 a tech sektory`,
+    title: `Nejlepší technologické ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších technologických ETF ${currentYear}. NASDAQ 100, S&P 500 Tech, Information Technology - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'technologické ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'big tech ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší technologické ETF ${currentYear} - NASDAQ 100 a tech sektory`,
+      title: `Nejlepší technologické ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších technologických ETF ${currentYear}. NASDAQ 100, S&P 500 Tech, Information Technology - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-technologicke-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší technologické ETF ${currentYear} - NASDAQ 100 a tech sektory`,
+      title: `Nejlepší technologické ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších technologických ETF ${currentYear}. NASDAQ 100, S&P 500 Tech, Information Technology - TER, velikost fondů.`,
       images: ['/og-technology-etf.jpg']
     },

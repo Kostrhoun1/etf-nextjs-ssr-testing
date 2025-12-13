@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika`,
+    title: `Nejlepší biotechnologie ETF ${currentYear} | Srovnání`,
     description: `✅ Srovnání nejlepších biotechnologie ETF ${currentYear}. Biotech, farmaceutika, genomika - TER, velikost fondů. Aktuální data k ${currentDate}.`,
     keywords: [
       'biotechnologie ETF',
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'personalizovaná medicína ETF'
     ].join(', '),
     openGraph: {
-      title: `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika`,
+      title: `Nejlepší biotechnologie ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších biotechnologie ETF ${currentYear}. Biotech, farmaceutika, genomika - TER, velikost fondů.`,
       type: 'article',
       url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-biotechnologie-etf',
@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika`,
+      title: `Nejlepší biotechnologie ETF ${currentYear} | Srovnání`,
       description: `Srovnání nejlepších biotechnologie ETF ${currentYear}. Biotech, farmaceutika, genomika - TER, velikost fondů.`,
       images: ['/og-biotechnology-etf.jpg']
     },
