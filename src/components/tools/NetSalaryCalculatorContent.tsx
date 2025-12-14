@@ -6,7 +6,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator, Shield, TrendingUp, Users } from 'lucide-react';
+import { CalculatorIcon, TrendingUpIcon, UsersIcon } from '@/components/ui/icons';
 import NetSalaryCalculator from '@/components/tools/NetSalaryCalculator';
 
 const NetSalaryCalculatorContent: React.FC = () => {
@@ -66,7 +66,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
         {/* Hero sekce */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Calculator className="w-4 h-4" />
+            <CalculatorIcon className="w-4 h-4" />
             Kalkulačka čisté mzdy 2025
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -86,7 +86,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
           <div className="grid md:grid-cols-4 gap-6 mb-12">
             <Card>
               <CardContent className="p-6 text-center">
-                <Calculator className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <CalculatorIcon className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Hrubá mzda</h3>
                 <p className="text-gray-600 text-sm">
                   Základní mzda podle pracovní smlouvy
@@ -95,7 +95,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <Shield className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                <CalculatorIcon className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Pojistné</h3>
                 <p className="text-gray-600 text-sm">
                   Sociální 7,1% + zdravotní 4,5% = 11,6%
@@ -104,7 +104,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <TrendingUp className="w-12 h-12 text-red-600 mx-auto mb-4" />
+                <TrendingUpIcon className="w-12 h-12 text-red-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Daň z příjmů</h3>
                 <p className="text-gray-600 text-sm">
                   15% z hrubé mzdy (od roku 2021)
@@ -113,7 +113,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <Users className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <UsersIcon className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Slevy na dani</h3>
                 <p className="text-gray-600 text-sm">
                   2 570 Kč měsíčně základní sleva

@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Smartphone, Cpu , DollarSign, Rocket, Zap, Users, Flag, Building, TrendingUp, Globe} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, SmartphoneIcon, CpuIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, BuildingIcon, TrendingUpIcon, GlobeIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -298,7 +298,7 @@ export default async function NejlepsiNASDAQETF() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-indigo-200/50">
-                <Flag className="w-4 h-4 mr-2" />
+                <FlagIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -340,13 +340,13 @@ export default async function NejlepsiNASDAQETF() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <Link href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Srovnání ETF
                   </Link>
                 </Button>
@@ -360,7 +360,7 @@ export default async function NejlepsiNASDAQETF() {
                 {/* Simple Header */}
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-xl mb-3">
-                    <Smartphone className="w-6 h-6 text-indigo-600" />
+                    <SmartphoneIcon className="w-6 h-6 text-indigo-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">
                     NASDAQ 100 v číslech
@@ -372,7 +372,7 @@ export default async function NejlepsiNASDAQETF() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-indigo-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Building className="w-4 h-4 text-indigo-600" />
+                      <BuildingIcon className="w-4 h-4 text-indigo-600" />
                       <span className="text-xs text-gray-500 font-medium">SLOŽENÍ</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">100</div>
@@ -381,7 +381,7 @@ export default async function NejlepsiNASDAQETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-purple-600" />
+                      <TrendingUpIcon className="w-4 h-4 text-purple-600" />
                       <span className="text-xs text-gray-500 font-medium">VÝNOS</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">~13%</div>
@@ -390,7 +390,7 @@ export default async function NejlepsiNASDAQETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Cpu className="w-4 h-4 text-blue-600" />
+                      <CpuIcon className="w-4 h-4 text-blue-600" />
                       <span className="text-xs text-gray-500 font-medium">TOP HOLDINGS</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">15%</div>
@@ -399,7 +399,7 @@ export default async function NejlepsiNASDAQETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Globe className="w-4 h-4 text-green-600" />
+                      <GlobeIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">VÝBĚR</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">15+</div>
@@ -417,7 +417,7 @@ export default async function NejlepsiNASDAQETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-indigo-100 w-20 h-20 mx-auto mb-8 hover:bg-indigo-200 transition-colors hover-scale">
-              <Cpu className="w-10 h-10 text-indigo-700" />
+              <CpuIcon className="w-10 h-10 text-indigo-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Co je NASDAQ 100 index?
@@ -430,19 +430,19 @@ export default async function NejlepsiNASDAQETF() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: Smartphone,
+                icon: SmartphoneIcon,
                 title: "100 tech gigantů",
                 description: "Index obsahuje 100 největších nefinančních společností z burzy NASDAQ, především z technologického sektoru.",
                 color: "indigo"
               },
               {
-                icon: Cpu,
+                icon: CpuIcon,
                 title: "Apple, Microsoft, Tesla",
                 description: "Největší váhu mají Apple (8%), Microsoft (7%), Amazon, Google, Tesla a NVIDIA. TOP 10 tvoří 50% indexu.",
                 color: "purple"
               },
               {
-                icon: TrendingUp,
+                icon: TrendingUpIcon,
                 title: "Historický výnos ~13%",
                 description: "Průměrný roční výnos za posledních 20 let je přibližně 13%, vyšší než S&P 500 díky tech sektoru.",
                 color: "blue"
@@ -494,7 +494,7 @@ export default async function NejlepsiNASDAQETF() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-indigo-50 rounded-3xl p-12 border border-indigo-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-indigo-600" />
+                <TargetIcon className="w-10 h-10 text-indigo-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 💡 Jak vybrat ten správný NASDAQ ETF?
@@ -1009,7 +1009,7 @@ export default async function NejlepsiNASDAQETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-green-100 w-20 h-20 mx-auto mb-8 hover:bg-green-200 transition-colors hover-scale">
-              <Zap className="w-10 h-10 text-green-700" />
+              <ZapIcon className="w-10 h-10 text-green-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Připraveni investovat do NASDAQ?
@@ -1023,13 +1023,13 @@ export default async function NejlepsiNASDAQETF() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button asChild size="lg" className="hover-scale bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold">
                 <Link href="/kde-koupit-etf">
-                  <Users className="w-5 h-5 mr-2" />
+                  <UsersIcon className="w-5 h-5 mr-2" />
                   Najít brokera pro ETF
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="hover-scale border-2 border-indigo-500 text-indigo-600 hover:bg-indigo-50 px-8 py-4 text-lg font-semibold">
                 <Link href="/srovnani-etf">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Srovnat všechny ETF
                 </Link>
               </Button>

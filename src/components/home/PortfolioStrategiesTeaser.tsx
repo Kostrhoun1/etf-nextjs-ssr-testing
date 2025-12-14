@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart3, History } from 'lucide-react';
+import { ArrowRightIcon, BarChart3Icon, HistoryIcon } from '@/components/ui/icons';
 import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 
@@ -169,7 +169,7 @@ const PortfolioStrategiesTeaser: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-blue-100 p-3 rounded-full">
-              <History className="w-6 h-6 text-blue-600" />
+              <HistoryIcon className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <h3 className="font-bold text-gray-900">Otestujte strategie na historických datech</h3>
@@ -181,7 +181,7 @@ const PortfolioStrategiesTeaser: React.FC = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center gap-2 whitespace-nowrap"
           >
             Spustit backtest
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -224,7 +224,7 @@ const PortfolioStrategiesTeaser: React.FC = () => {
               </div>
 
               <div className="mt-4">
-                <Link 
+                <Link
                   href={
                     strategy.id === 'dividend' ? '/portfolio-strategie/dividendove-portfolio' :
                     strategy.id === 'allweather' ? '/portfolio-strategie/ray-dalio-all-weather' :
@@ -234,7 +234,7 @@ const PortfolioStrategiesTeaser: React.FC = () => {
                   className="w-full bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
                 >
                   Zobrazit detail
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRightIcon className="w-4 h-4" />
                 </Link>
               </div>
             </Card>

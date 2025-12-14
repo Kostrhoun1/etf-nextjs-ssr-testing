@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
 interface ETFComparisonHeaderProps {

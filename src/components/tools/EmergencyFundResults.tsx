@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, AlertTriangle, XCircle, Clock, Lightbulb, Shield, TrendingUp } from 'lucide-react';
+import { CheckIcon, AlertIcon, ClockIcon, ShieldIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { EmergencyFundData } from '@/utils/emergencyFundCalculations';
 
 interface EmergencyFundResultsProps {
@@ -23,25 +23,25 @@ const EmergencyFundResults: React.FC<EmergencyFundResultsProps> = ({ results }) 
     switch (results.recommendations.priorityLevel) {
       case 'critical':
         return {
-          icon: <XCircle className="h-5 w-5 text-red-500" />,
+          icon: <span className="h-5 w-5 text-red-500 flex items-center justify-center">✕</span>,
           text: "Kritická priorita",
           description: "Okamžitě začněte spořit!"
         };
       case 'high':
         return {
-          icon: <AlertTriangle className="h-5 w-5 text-orange-500" />,
+          icon: <AlertIcon className="h-5 w-5 text-orange-500" />,
           text: "Vysoká priorita", 
           description: "Rezerva by měla být vyšší"
         };
       case 'moderate':
         return {
-          icon: <Clock className="h-5 w-5 text-yellow-500" />,
+          icon: <ClockIcon className="h-5 w-5 text-yellow-500" />,
           text: "Střední priorita",
           description: "Jste na dobré cestě"
         };
       case 'sufficient':
         return {
-          icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+          icon: <CheckIcon className="h-5 w-5 text-green-500" />,
           text: "Dostatečná rezerva",
           description: "Máte dobře budovanou rezervu!"
         };
@@ -73,7 +73,7 @@ const EmergencyFundResults: React.FC<EmergencyFundResultsProps> = ({ results }) 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-blue-50 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-5 w-5 text-blue-600" />
+            <ShieldIcon className="h-5 w-5 text-blue-600" />
             <h4 className="font-semibold text-blue-900">Aktuální rezerva</h4>
           </div>
           <p className="text-2xl font-bold text-blue-600">
@@ -84,7 +84,7 @@ const EmergencyFundResults: React.FC<EmergencyFundResultsProps> = ({ results }) 
 
         <div className="bg-green-50 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-5 w-5 text-green-600" />
+            <TrendingUpIcon className="h-5 w-5 text-green-600" />
             <h4 className="font-semibold text-green-900">Doporučená rezerva</h4>
           </div>
           <p className="text-2xl font-bold text-green-600">
@@ -95,7 +95,7 @@ const EmergencyFundResults: React.FC<EmergencyFundResultsProps> = ({ results }) 
 
         <div className="bg-purple-50 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-5 w-5 text-purple-600" />
+            <ClockIcon className="h-5 w-5 text-purple-600" />
             <h4 className="font-semibold text-purple-900">Čas do cíle</h4>
           </div>
           {results.monthsToTarget > 0 ? (
@@ -133,7 +133,7 @@ const EmergencyFundResults: React.FC<EmergencyFundResultsProps> = ({ results }) 
       {results.monthsToTarget > 24 && (
         <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+            <AlertIcon className="h-5 w-5 text-red-500 mt-0.5" />
             <div>
               <h4 className="font-semibold text-red-900 mb-2">Spoření bude trvat více než 2 roky!</h4>
               <p className="text-sm text-red-800 mb-2">Zvažte tyto možnosti:</p>
@@ -151,7 +151,7 @@ const EmergencyFundResults: React.FC<EmergencyFundResultsProps> = ({ results }) 
       {/* Individualizované tipy */}
       <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
         <div className="flex items-start gap-3">
-          <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5" />
+          <span className="h-5 w-5 text-blue-500 mt-0.5 flex items-center justify-center">💡</span>
           <div>
             <h4 className="font-semibold text-blue-900 mb-2">Doporučení pro vás</h4>
             <ul className="text-sm text-blue-800 space-y-1">

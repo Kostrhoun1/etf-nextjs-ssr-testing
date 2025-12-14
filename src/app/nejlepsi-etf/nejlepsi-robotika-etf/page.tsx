@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Bot, Cpu, Cog , DollarSign, Rocket, Zap, Users, Globe, Award, TrendingUp} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, BotIcon, CpuIcon, CogIcon , DollarIcon, RocketIcon, ZapIcon, UsersIcon, GlobeIcon, AwardIcon, TrendingUpIcon} from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -273,7 +273,7 @@ export default async function NejlepsiRobotikaETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-red-100 to-orange-100 text-red-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-red-200/50">
-                <Bot className="w-4 h-4 mr-2" />
+                <BotIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -315,13 +315,13 @@ export default async function NejlepsiRobotikaETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <Bot className="w-5 h-5 mr-2" />
+                    <BotIcon className="w-5 h-5 mr-2" />
                     Industry 4.0
                   </a>
                 </Button>
@@ -332,7 +332,7 @@ export default async function NejlepsiRobotikaETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-xl mb-3">
-                    <Bot className="w-6 h-6 text-red-600" />
+                    <BotIcon className="w-6 h-6 text-red-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">Robotika sektor v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro robotika investice</p>
@@ -341,7 +341,7 @@ export default async function NejlepsiRobotikaETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-red-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Bot className="w-4 h-4 text-red-600" />
+                      <BotIcon className="w-4 h-4 text-red-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ ROBO ETF</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">2,9B</div>
@@ -350,7 +350,7 @@ export default async function NejlepsiRobotikaETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-orange-600" />
+                      <DollarIcon className="w-4 h-4 text-orange-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJNIŽŠÍ TER</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">0,40%</div>
@@ -359,7 +359,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-red-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Cog className="w-4 h-4 text-red-600" />
+                      <CogIcon className="w-4 h-4 text-red-600" />
                       <span className="text-xs text-gray-500 font-medium">TOP HOLDING</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">4%</div>
@@ -368,7 +368,7 @@ export default async function NejlepsiRobotikaETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Cpu className="w-4 h-4 text-orange-600" />
+                      <CpuIcon className="w-4 h-4 text-orange-600" />
                       <span className="text-xs text-gray-500 font-medium">INDUSTRY 4.0</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">+15%</div>
@@ -386,7 +386,7 @@ export default async function NejlepsiRobotikaETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-red-100 w-20 h-20 mx-auto mb-8 hover:bg-red-200 transition-colors hover-scale">
-              <Bot className="w-10 h-10 text-red-700" />
+              <BotIcon className="w-10 h-10 text-red-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou robotika ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -398,7 +398,7 @@ export default async function NejlepsiRobotikaETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-orange-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Cog className="w-8 h-8 text-white" />
+                <CogIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-red-800 transition-colors">Průmyslová automatizace</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -409,7 +409,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-yellow-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Bot className="w-8 h-8 text-white" />
+                <BotIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-orange-800 transition-colors">Industry 4.0</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -420,7 +420,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-yellow-500 to-red-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Zap className="w-8 h-8 text-white" />
+                <ZapIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-yellow-800 transition-colors">Megatrend automatizace</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -453,7 +453,7 @@ export default async function NejlepsiRobotikaETFPage() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-red-50 rounded-3xl p-12 border border-red-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-red-100 to-orange-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-red-600" />
+                <TargetIcon className="w-10 h-10 text-red-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 🤖 Jak vybrat ten správný robotika ETF?
@@ -466,7 +466,7 @@ export default async function NejlepsiRobotikaETFPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="bg-white rounded-xl p-6 shadow-sm border border-red-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-xl mb-4">
-                  <Bot className="w-6 h-6 text-red-600" />
+                  <BotIcon className="w-6 h-6 text-red-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Velikost fondu a likvidita</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -477,7 +477,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-xl mb-4">
-                  <DollarSign className="w-6 h-6 text-orange-600" />
+                  <DollarIcon className="w-6 h-6 text-orange-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">TER a náklady</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -488,7 +488,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-yellow-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl mb-4">
-                  <Cog className="w-6 h-6 text-yellow-600" />
+                  <CogIcon className="w-6 h-6 text-yellow-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Specializace vs. diverzifikace</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -499,7 +499,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-red-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-xl mb-4">
-                  <Globe className="w-6 h-6 text-red-600" />
+                  <GlobeIcon className="w-6 h-6 text-red-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Geografická diverzifikace</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -510,7 +510,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-xl mb-4">
-                  <TrendingUp className="w-6 h-6 text-orange-600" />
+                  <TrendingUpIcon className="w-6 h-6 text-orange-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Výkonnost a volatilita</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -521,7 +521,7 @@ export default async function NejlepsiRobotikaETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-yellow-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl mb-4">
-                  <Award className="w-6 h-6 text-yellow-600" />
+                  <AwardIcon className="w-6 h-6 text-yellow-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Kvalita holdingů</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -650,7 +650,7 @@ export default async function NejlepsiRobotikaETFPage() {
           <div className="bg-white rounded-3xl p-12 shadow-xl border border-red-100">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-red-100 to-orange-100 w-20 h-20 mx-auto mb-6">
-                <Rocket className="w-10 h-10 text-red-600" />
+                <RocketIcon className="w-10 h-10 text-red-600" />
               </div>
               <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 Připraveni investovat do budoucnosti robotiky?
@@ -663,17 +663,17 @@ export default async function NejlepsiRobotikaETFPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <div className="text-center p-6 bg-red-50 rounded-xl border border-red-100">
-                <Bot className="w-8 h-8 text-red-600 mx-auto mb-3" />
+                <BotIcon className="w-8 h-8 text-red-600 mx-auto mb-3" />
                 <h4 className="font-bold text-gray-900 mb-2">Průmyslové roboty</h4>
                 <p className="text-sm text-gray-600">ABB, KUKA, Fanuc a další robotika giganty</p>
               </div>
               <div className="text-center p-6 bg-orange-50 rounded-xl border border-orange-100">
-                <Cog className="w-8 h-8 text-orange-600 mx-auto mb-3" />
+                <CogIcon className="w-8 h-8 text-orange-600 mx-auto mb-3" />
                 <h4 className="font-bold text-gray-900 mb-2">Automatizace</h4>
                 <p className="text-sm text-gray-600">Smart factories a autonomní systémy</p>
               </div>
               <div className="text-center p-6 bg-yellow-50 rounded-xl border border-yellow-100">
-                <Zap className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
+                <ZapIcon className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
                 <h4 className="font-bold text-gray-900 mb-2">Industry 4.0</h4>
                 <p className="text-sm text-gray-600">IoT, AI a coboty nové generace</p>
               </div>
@@ -682,13 +682,13 @@ export default async function NejlepsiRobotikaETFPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
                 <a href="#top3">
-                  <Star className="w-5 h-5 mr-2" />
+                  <StarFilledIcon className="w-5 h-5 mr-2" />
                   Vybrat robotika ETF
                 </a>
               </Button>
               <Button asChild variant="outline" className="border-2 border-red-300 text-red-700 hover:bg-red-50 px-8 py-3 text-lg font-semibold">
                 <a href="/srovnani-etf">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Porovnat všechny ETF
                 </a>
               </Button>

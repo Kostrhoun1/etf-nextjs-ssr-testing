@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Percent, Calendar, PiggyBank , DollarSign, Rocket, Zap, Users, Award, Globe, TrendingUp, Shield, Building} from 'lucide-react';
+import { StarIcon, BarChart3Icon, TargetIcon, PercentIcon, CalendarIcon, PiggyBankIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon, GlobeIcon, TrendingUpIcon, ShieldIcon, BuildingIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFList from '@/components/blog/FilteredETFList';
@@ -295,7 +295,7 @@ export default async function NejlepsiDividendoveETF() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-green-200/50">
-                <PiggyBank className="w-4 h-4 mr-2" />
+                <PiggyBankIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -337,13 +337,13 @@ export default async function NejlepsiDividendoveETF() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <Link href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <Link href="#dividend-yield">
-                    <Percent className="w-5 h-5 mr-2" />
+                    <PercentIcon className="w-5 h-5 mr-2" />
                     Dividendové výnosy
                   </Link>
                 </Button>
@@ -357,7 +357,7 @@ export default async function NejlepsiDividendoveETF() {
                 {/* Simple Header */}
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl mb-3">
-                    <Percent className="w-6 h-6 text-green-600" />
+                    <PercentIcon className="w-6 h-6 text-green-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">
                     Dividendy v číslech
@@ -369,7 +369,7 @@ export default async function NejlepsiDividendoveETF() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-green-600" />
+                      <TrendingUpIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVYŠŠÍ VÝNOS</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">9,5%</div>
@@ -378,7 +378,7 @@ export default async function NejlepsiDividendoveETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Building className="w-4 h-4 text-emerald-600" />
+                      <BuildingIcon className="w-4 h-4 text-emerald-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ FOND</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">5,7B</div>
@@ -387,7 +387,7 @@ export default async function NejlepsiDividendoveETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-4 h-4 text-green-600" />
+                      <CalendarIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">FREKVENCE</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">4x</div>
@@ -396,7 +396,7 @@ export default async function NejlepsiDividendoveETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Award className="w-4 h-4 text-emerald-600" />
+                      <AwardIcon className="w-4 h-4 text-emerald-600" />
                       <span className="text-xs text-gray-500 font-medium">ARISTOCRATS</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">25+</div>
@@ -414,7 +414,7 @@ export default async function NejlepsiDividendoveETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-green-100 w-20 h-20 mx-auto mb-8 hover:bg-green-200 transition-colors hover-scale">
-              <PiggyBank className="w-10 h-10 text-green-700" />
+              <PiggyBankIcon className="w-10 h-10 text-green-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou dividendové ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -426,7 +426,7 @@ export default async function NejlepsiDividendoveETF() {
             
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{"animationDelay": "0.2s"}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Percent className="w-8 h-8 text-white" />
+                <PercentIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-green-800 transition-colors">
                 Vysoký dividendový výnos
@@ -438,7 +438,7 @@ export default async function NejlepsiDividendoveETF() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{"animationDelay": "0.3s"}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-green-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Calendar className="w-8 h-8 text-white" />
+                <CalendarIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-green-800 transition-colors">
                 Pravidelné výplaty
@@ -450,7 +450,7 @@ export default async function NejlepsiDividendoveETF() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{"animationDelay": "0.4s"}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-teal-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Award className="w-8 h-8 text-white" />
+                <AwardIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-green-800 transition-colors">
                 Dividend Aristocrats
@@ -477,7 +477,7 @@ export default async function NejlepsiDividendoveETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center bg-green-100 text-green-700 px-6 py-3 rounded-full text-sm font-medium mb-8">
-              <Percent className="w-4 h-4 mr-2" />
+              <PercentIcon className="w-4 h-4 mr-2" />
               Speciální analýza
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -495,7 +495,7 @@ export default async function NejlepsiDividendoveETF() {
             <div className="bg-green-50 rounded-2xl p-8 border border-green-200">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-xl mb-4 shadow-sm">
-                  <Percent className="w-8 h-8 text-green-600" />
+                  <PercentIcon className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 mb-4">
                   Nejvyšší dividendový výnos
@@ -524,7 +524,7 @@ export default async function NejlepsiDividendoveETF() {
             <div className="bg-blue-50 rounded-2xl p-8 border border-blue-200">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-xl mb-4 shadow-sm">
-                  <Building className="w-8 h-8 text-blue-600" />
+                  <BuildingIcon className="w-8 h-8 text-blue-600" />
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 mb-4">
                   Největší dividendové fondy

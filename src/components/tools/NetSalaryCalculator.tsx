@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calculator, Banknote, GraduationCap, Users } from 'lucide-react';
+import { CalculatorIcon, DollarIcon, UsersIcon } from '@/components/ui/icons';
 import { calculateNetSalary, NetSalaryData } from '@/utils/netSalaryCalculations';
 import NetSalaryResults from './NetSalaryResults';
 
@@ -37,7 +37,7 @@ const NetSalaryCalculator: React.FC = () => {
       <Card className="mb-4">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-violet-600" />
+            <CalculatorIcon className="h-5 w-5 text-violet-600" />
             <CardTitle className="text-2xl">Kalkulačka čisté mzdy 2025</CardTitle>
           </div>
           <CardDescription className="">
@@ -50,7 +50,7 @@ const NetSalaryCalculator: React.FC = () => {
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-                  <Banknote className="h-5 w-5 text-violet-700" />
+                  <DollarIcon className="h-5 w-5 text-violet-700" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Základní údaje</h3>
               </div>
@@ -75,7 +75,7 @@ const NetSalaryCalculator: React.FC = () => {
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.4s]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10 group-hover:bg-emerald-200 transition-colors hover-scale">
-                  <Users className="h-5 w-5 text-emerald-700" />
+                  <UsersIcon className="h-5 w-5 text-emerald-700" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-emerald-800 transition-colors">Slevy a pojištění</h3>
               </div>
@@ -129,7 +129,7 @@ const NetSalaryCalculator: React.FC = () => {
           </div>
 
           <Button onClick={handleCalculate} className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 mb-4 animate-fade-in [animation-delay:0.6s]">
-            <Calculator className="mr-2 h-5 w-5" />
+            <CalculatorIcon className="mr-2 h-5 w-5" />
             Vypočítat čistou mzdu
           </Button>
 

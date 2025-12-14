@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { SearchIcon } from '@/components/ui/icons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
@@ -67,7 +67,7 @@ const ETFSearchSection: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-sm font-medium mb-3">
-            <Search className="w-4 h-4" />
+            <SearchIcon className="w-4 h-4" />
             Interaktivní vyhledávání
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">

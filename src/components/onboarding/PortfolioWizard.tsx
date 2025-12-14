@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { ArrowRight, Sparkles, Target, Clock, Home, GraduationCap, ExternalLink , Globe, TrendingUp, Building, Shield} from 'lucide-react';
+import { ArrowRightIcon, TargetIcon, ClockIcon, ShieldIcon, TrendingUpIcon, SparklesIcon, HomeIcon, GraduationCapIcon, ExternalLinkIcon, GlobeIcon, BuildingIcon } from '@/components/ui/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { portfolioEngine, InvestorProfile, PortfolioRecommendation } from '@/utils/portfolioRecommendationEngine';
@@ -28,7 +28,7 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
       content: (
         <div className="text-center space-y-6">
           <div className="mx-auto w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center">
-            <TrendingUp className="w-10 h-10 text-white" />
+            <TrendingUpIcon className="w-10 h-10 text-white" />
           </div>
           <div>
             <h3 className="text-xl font-semibold mb-2">Individuální portfolio průvodce</h3>
@@ -39,11 +39,11 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
-              <Shield className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+              <ShieldIcon className="w-6 h-6 text-blue-600 mx-auto mb-2" />
               <div className="text-sm font-medium">Řízení rizika</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
-              <Target className="w-6 h-6 text-green-600 mx-auto mb-2" />
+              <TargetIcon className="w-6 h-6 text-green-600 mx-auto mb-2" />
               <div className="text-sm font-medium">Cílené výnosy</div>
             </div>
           </div>
@@ -91,25 +91,25 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
       content: (
         <div className="space-y-4">
           {[
-            { 
-              id: 'conservative', 
-              label: 'Konzervativní', 
+            {
+              id: 'conservative',
+              label: 'Konzervativní',
               desc: 'Preferuji stabilitu, pokles o 5-10% by mě znervóznil',
-              icon: Shield,
+              icon: ShieldIcon,
               color: 'green'
             },
-            { 
-              id: 'moderate', 
-              label: 'Vyvážený', 
+            {
+              id: 'moderate',
+              label: 'Vyvážený',
               desc: 'Akceptuji střední riziko, pokles o 10-20% zvládnu',
-              icon: Target,
+              icon: TargetIcon,
               color: 'blue'
             },
-            { 
-              id: 'aggressive', 
-              label: 'Agresivní', 
+            {
+              id: 'aggressive',
+              label: 'Agresivní',
               desc: 'Chci maximální výnosy, pokles o 20-30% neřeším',
-              icon: TrendingUp,
+              icon: TrendingUpIcon,
               color: 'purple'
             }
           ].map((option) => (
@@ -140,23 +140,23 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
       content: (
         <div className="space-y-4">
           {[
-            { 
-              id: 'short', 
-              label: 'Krátkodobý (do 5 let)', 
+            {
+              id: 'short',
+              label: 'Krátkodobý (do 5 let)',
               desc: 'Budu peníze potřebovat brzo - koupě domu, auto, apod.',
-              icon: Clock
+              icon: ClockIcon
             },
-            { 
-              id: 'medium', 
-              label: 'Střednědobý (5-15 let)', 
+            {
+              id: 'medium',
+              label: 'Střednědobý (5-15 let)',
               desc: 'Plánuji využít za několik let - vzdělání dětí, apod.',
-              icon: Target
+              icon: TargetIcon
             },
-            { 
-              id: 'long', 
-              label: 'Dlouhodobý (15+ let)', 
+            {
+              id: 'long',
+              label: 'Dlouhodobý (15+ let)',
               desc: 'Investuji na důchod nebo obecné budování bohatství',
-              icon: TrendingUp
+              icon: TrendingUpIcon
             }
           ].map((option) => (
             <Card 
@@ -184,23 +184,23 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
       content: (
         <div className="space-y-4">
           {[
-            { 
-              id: 'beginner', 
-              label: 'Začátečník', 
+            {
+              id: 'beginner',
+              label: 'Začátečník',
               desc: 'Začínám s investováním, preferuji jednoduché řešení',
-              icon: GraduationCap
+              icon: GraduationCapIcon
             },
-            { 
-              id: 'intermediate', 
-              label: 'Pokročilý', 
+            {
+              id: 'intermediate',
+              label: 'Pokročilý',
               desc: 'Mám nějaké zkušenosti, rozumím základům investování',
-              icon: Target
+              icon: TargetIcon
             },
-            { 
-              id: 'advanced', 
-              label: 'Expert', 
+            {
+              id: 'advanced',
+              label: 'Expert',
               desc: 'Mám rozsáhlé znalosti a chci sofistikované strategie',
-              icon: TrendingUp
+              icon: TrendingUpIcon
             }
           ].map((option) => (
             <Card 
@@ -228,29 +228,29 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
       content: (
         <div className="space-y-4">
           {[
-            { 
-              id: 'retirement', 
-              label: 'Důchod', 
+            {
+              id: 'retirement',
+              label: 'Důchod',
               desc: 'Dlouhodobé spoření na penzi',
-              icon: Shield
+              icon: ShieldIcon
             },
-            { 
-              id: 'house', 
-              label: 'Koupě nemovitosti', 
+            {
+              id: 'house',
+              label: 'Koupě nemovitosti',
               desc: 'Spoření na vlastní bydlení',
-              icon: Home
+              icon: HomeIcon
             },
-            { 
-              id: 'education', 
-              label: 'Vzdělání', 
+            {
+              id: 'education',
+              label: 'Vzdělání',
               desc: 'Škola pro děti nebo další vzdělání',
-              icon: GraduationCap
+              icon: GraduationCapIcon
             },
-            { 
-              id: 'general_wealth', 
-              label: 'Obecné budování bohatství', 
+            {
+              id: 'general_wealth',
+              label: 'Obecné budování bohatství',
               desc: 'Zhodnocení úspor bez konkrétního cíle',
-              icon: TrendingUp
+              icon: TrendingUpIcon
             }
           ].map((option) => {
             const isSelected = profile.goals?.includes(option.id as any);
@@ -341,7 +341,7 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
                         onClick={() => window.open(`/etf/${etf.isin}?from=portfolio`, '_blank')}
                       >
                         Detail
-                        <ExternalLink className="w-3 h-3 ml-1" />
+                        <ExternalLinkIcon className="w-3 h-3 ml-1" />
                       </Button>
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -457,7 +457,7 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-violet-600" />
+              <SparklesIcon className="w-5 h-5 text-violet-600" />
               {steps[currentStep].title}
             </CardTitle>
             <CardDescription>{steps[currentStep].description}</CardDescription>
@@ -486,7 +486,7 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
           
           {currentStep === steps.length - 1 ? (
             <div className="flex gap-3">
-              <Button 
+              <Button
                 onClick={() => {
                   if (recommendation) {
                     const isins = recommendation.etfs.map(etf => etf.isin).join(',');
@@ -498,10 +498,10 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
                 className="border-violet-500 text-violet-600 hover:bg-violet-50"
               >
                 Porovnat ETF
-                <TrendingUp className="w-4 h-4 ml-2" />
+                <TrendingUpIcon className="w-4 h-4 ml-2" />
               </Button>
               
-              <Button 
+              <Button
                 onClick={() => {
                   if (recommendation && (recommendation as any).detailUrl) {
                     router.push((recommendation as any).detailUrl);
@@ -512,17 +512,17 @@ const PortfolioWizard: React.FC<PortfolioWizardProps> = ({ onClose, className = 
                 className="bg-violet-600 hover:bg-violet-700"
               >
                 Zobrazit strategii
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRightIcon className="w-4 h-4 ml-2" />
               </Button>
             </div>
           ) : (
-            <Button 
+            <Button
               onClick={handleNext}
               disabled={!canProceed() || isLoading}
               className="bg-violet-600 hover:bg-violet-700"
             >
               Pokračovat
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRightIcon className="w-4 h-4 ml-2" />
             </Button>
           )}
         </div>

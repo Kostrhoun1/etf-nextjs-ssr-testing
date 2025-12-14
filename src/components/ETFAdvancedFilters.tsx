@@ -16,7 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Filter, X } from 'lucide-react';
+import { FilterIcon, CloseIcon } from '@/components/ui/icons';
 import { AdvancedFiltersState } from '@/hooks/useETFTableLogic';
 
 interface ETFAdvancedFiltersProps {
@@ -103,7 +103,7 @@ const ETFAdvancedFilters: React.FC<ETFAdvancedFiltersProps> = ({ etfs, filters, 
         <AccordionTrigger className="text-lg font-semibold hover:no-underline py-2">
           <div className="flex items-center justify-between w-full mr-2">
             <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-gray-600" />
+              <FilterIcon />
               <span>Pokročilé filtry</span>
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="bg-violet-100 text-violet-700">
@@ -119,7 +119,7 @@ const ETFAdvancedFilters: React.FC<ETFAdvancedFiltersProps> = ({ etfs, filters, 
                 }}
                 className="inline-flex items-center justify-center h-6 px-2 text-xs hover:bg-red-50 hover:text-red-600 rounded cursor-pointer transition-colors"
               >
-                <X className="h-3 w-3 mr-1" />
+                <CloseIcon />
                 Vymazat vše
               </span>
             )}

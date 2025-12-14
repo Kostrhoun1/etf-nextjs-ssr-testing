@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
-import { ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronUpIcon, ChevronDownIcon, LoaderIcon } from '@/components/ui/icons';
 import { formatPercentage, formatTER } from '@/utils/csvParser';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -200,8 +200,8 @@ const ETFTable: React.FC<ETFTableProps> = ({
   const getSortIcon = (field: string) => {
     if (sortBy === field) {
       return sortOrder === 'asc' ?
-        <ChevronUp className="inline ml-1 h-4 w-4" /> :
-        <ChevronDown className="inline ml-1 h-4 w-4" />;
+        <ChevronUpIcon className="inline ml-1" /> :
+        <ChevronDownIcon className="inline ml-1" />;
     }
     return null;
   };
@@ -317,7 +317,7 @@ const ETFTable: React.FC<ETFTableProps> = ({
                             />
                           )}
                           {loadingETF === etf.isin && (
-                            <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                            <LoaderIcon className="ml-2" />
                           )}
                         </div>
                       )}

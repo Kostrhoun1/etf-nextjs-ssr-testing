@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Sparkles, Target, TrendingUp, DollarSign } from 'lucide-react';
+import { ArrowRightIcon, TargetIcon, TrendingUpIcon, DollarIcon, SparklesIcon } from '@/components/ui/icons';
 import { useRouter } from 'next/navigation';
 import { recommendationEngine, UserProfile } from '@/utils/investmentRecommendationEngine';
 
@@ -29,7 +29,7 @@ const QuickStartWizard: React.FC<QuickStartWizardProps> = ({ onClose, className 
       content: (
         <div className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-violet-600" />
+            <SparklesIcon className="w-8 h-8 text-violet-600" />
           </div>
           <p className="text-gray-600">
             Ať už jste začátečník nebo zkušený investor, najdeme pro vás nejlepší ETF fondy
@@ -74,9 +74,9 @@ const QuickStartWizard: React.FC<QuickStartWizardProps> = ({ onClose, className 
       content: (
         <div className="space-y-3">
           {[
-            { id: 'growth', label: 'Růst kapitálu', desc: 'Dlouhodobé zhodnocení', icon: TrendingUp },
-            { id: 'income', label: 'Pasivní příjem', desc: 'Pravidelné dividendy', icon: DollarSign },
-            { id: 'balanced', label: 'Vyvážený přístup', desc: 'Kombinace růstu a příjmu', icon: Target }
+            { id: 'growth', label: 'Růst kapitálu', desc: 'Dlouhodobé zhodnocení', icon: TrendingUpIcon },
+            { id: 'income', label: 'Pasivní příjem', desc: 'Pravidelné dividendy', icon: DollarIcon },
+            { id: 'balanced', label: 'Vyvážený přístup', desc: 'Kombinace růstu a příjmu', icon: TargetIcon }
           ].map((option) => (
             <Card 
               key={option.id}
@@ -220,7 +220,7 @@ const QuickStartWizard: React.FC<QuickStartWizardProps> = ({ onClose, className 
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-violet-600" />
+              <SparklesIcon className="w-5 h-5 text-violet-600" />
               {steps[currentStep].title}
             </CardTitle>
             <CardDescription>{steps[currentStep].description}</CardDescription>
@@ -247,13 +247,13 @@ const QuickStartWizard: React.FC<QuickStartWizardProps> = ({ onClose, className 
             Zpět
           </Button>
           
-          <Button 
+          <Button
             onClick={handleNext}
             disabled={!canProceed()}
             className="bg-violet-600 hover:bg-violet-700"
           >
             {currentStep === steps.length - 1 ? 'Najít ETF' : 'Pokračovat'}
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <ArrowRightIcon className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </CardContent>

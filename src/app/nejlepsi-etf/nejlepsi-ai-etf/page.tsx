@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Brain, Bot, Cpu , DollarSign, Rocket, Zap, Users} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, BrainIcon, BotIcon, CpuIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -273,7 +273,7 @@ export default async function NejlepsiAIETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-purple-200/50">
-                <Brain className="w-4 h-4 mr-2" />
+                <BrainIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -315,13 +315,13 @@ export default async function NejlepsiAIETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <Brain className="w-5 h-5 mr-2" />
+                    <BrainIcon className="w-5 h-5 mr-2" />
                     AI revoluce
                   </a>
                 </Button>
@@ -332,7 +332,7 @@ export default async function NejlepsiAIETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-xl mb-3">
-                    <Brain className="w-6 h-6 text-purple-600" />
+                    <BrainIcon className="w-6 h-6 text-purple-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">AI sektor v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro AI investice</p>
@@ -341,7 +341,7 @@ export default async function NejlepsiAIETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Brain className="w-4 h-4 text-purple-600" />
+                      <BrainIcon className="w-4 h-4 text-purple-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ AI ETF</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">5,5B</div>
@@ -350,7 +350,7 @@ export default async function NejlepsiAIETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-blue-600" />
+                      <DollarIcon className="w-4 h-4 text-blue-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJNIŽŠÍ TER</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">0,35%</div>
@@ -359,7 +359,7 @@ export default async function NejlepsiAIETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Cpu className="w-4 h-4 text-purple-600" />
+                      <CpuIcon className="w-4 h-4 text-purple-600" />
                       <span className="text-xs text-gray-500 font-medium">TOP HOLDING</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">8%</div>
@@ -368,7 +368,7 @@ export default async function NejlepsiAIETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Rocket className="w-4 h-4 text-blue-600" />
+                      <RocketIcon className="w-4 h-4 text-blue-600" />
                       <span className="text-xs text-gray-500 font-medium">CHATGPT BOOM</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">2023</div>
@@ -386,7 +386,7 @@ export default async function NejlepsiAIETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-purple-100 w-20 h-20 mx-auto mb-8 hover:bg-purple-200 transition-colors hover-scale">
-              <Brain className="w-10 h-10 text-purple-700" />
+              <BrainIcon className="w-10 h-10 text-purple-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou AI ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -398,7 +398,7 @@ export default async function NejlepsiAIETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Brain className="w-8 h-8 text-white" />
+                <BrainIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-purple-800 transition-colors">AI revoluce</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -409,7 +409,7 @@ export default async function NejlepsiAIETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Bot className="w-8 h-8 text-white" />
+                <BotIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-blue-800 transition-colors">Automatizace</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -420,7 +420,7 @@ export default async function NejlepsiAIETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Cpu className="w-8 h-8 text-white" />
+                <CpuIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-indigo-800 transition-colors">Technologičtí lídři</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -454,7 +454,7 @@ export default async function NejlepsiAIETFPage() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-purple-50 rounded-3xl p-12 border border-purple-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-purple-600" />
+                <TargetIcon className="w-10 h-10 text-purple-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 💡 Jak vybrat ten správný AI ETF?
@@ -622,7 +622,7 @@ export default async function NejlepsiAIETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-purple-100 w-20 h-20 mx-auto mb-8 hover:bg-purple-200 transition-colors hover-scale">
-              <Zap className="w-10 h-10 text-purple-700" />
+              <ZapIcon className="w-10 h-10 text-purple-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Připraveni investovat do AI?
@@ -636,13 +636,13 @@ export default async function NejlepsiAIETFPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button asChild size="lg" className="hover-scale bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold">
                 <a href="/kde-koupit-etf">
-                  <Users className="w-5 h-5 mr-2" />
+                  <UsersIcon className="w-5 h-5 mr-2" />
                   Najít brokera pro ETF
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline" className="hover-scale border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg font-semibold">
                 <a href="/srovnani-etf">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Srovnat všechny ETF
                 </a>
               </Button>

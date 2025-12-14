@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calculator, Percent, TrendingUp } from 'lucide-react';
+import { CalculatorIcon, PercentIcon, TrendingUpIcon } from '@/components/ui/icons';
 
 interface InvestmentCalculatorFormProps {
   initialInvestment: number;
@@ -45,7 +45,7 @@ const InvestmentCalculatorForm: React.FC<InvestmentCalculatorFormProps> = ({
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-              <TrendingUp className="h-5 w-5 text-violet-700" />
+              <TrendingUpIcon className="h-5 w-5 text-violet-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Investiční parametry</h3>
           </div>
@@ -91,7 +91,7 @@ const InvestmentCalculatorForm: React.FC<InvestmentCalculatorFormProps> = ({
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.4s]">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10 group-hover:bg-emerald-200 transition-colors hover-scale">
-              <Percent className="h-5 w-5 text-emerald-700" />
+              <PercentIcon className="h-5 w-5 text-emerald-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 group-hover:text-emerald-800 transition-colors">Parametry výnosu a času</h3>
           </div>
@@ -140,7 +140,7 @@ const InvestmentCalculatorForm: React.FC<InvestmentCalculatorFormProps> = ({
       </div>
 
       <Button onClick={onCalculate} className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 animate-fade-in [animation-delay:0.6s]">
-        <Calculator className="mr-2 h-5 w-5" />
+        <CalculatorIcon className="mr-2 h-5 w-5" />
         Vypočítat investiční růst
       </Button>
     </div>

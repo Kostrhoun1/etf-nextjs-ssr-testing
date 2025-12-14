@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, TrendingDown, Banknote, CheckCircle, XCircle, Shield } from 'lucide-react';
+import { AlertIcon, ShieldIcon, CheckIcon } from '@/components/ui/icons';
 import { calculateEmergencyFund, EmergencyFundData } from '@/utils/emergencyFundCalculations';
 import EmergencyFundResults from './EmergencyFundResults';
 
@@ -90,7 +90,7 @@ const EmergencyFundCalculator: React.FC = () => {
       <Card className="mb-4">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-violet-600" />
+            <ShieldIcon className="h-5 w-5 text-violet-600" />
             <CardTitle className="text-2xl">
               Kalkulačka nouzové rezervy
             </CardTitle>
@@ -105,7 +105,7 @@ const EmergencyFundCalculator: React.FC = () => {
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-                  <Banknote className="h-5 w-5 text-violet-700" />
+                  <span className="h-5 w-5 text-violet-700 flex items-center justify-center">💵</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Finanční situace</h3>
               </div>
@@ -165,7 +165,7 @@ const EmergencyFundCalculator: React.FC = () => {
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.4s]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10 group-hover:bg-emerald-200 transition-colors hover-scale">
-                  <AlertTriangle className="h-5 w-5 text-emerald-700" />
+                  <AlertIcon className="h-5 w-5 text-emerald-700" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-emerald-800 transition-colors">Riziková situace</h3>
               </div>
@@ -258,7 +258,7 @@ const EmergencyFundCalculator: React.FC = () => {
             onClick={handleCalculate} 
             className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 mb-4 animate-fade-in [animation-delay:0.6s]"
           >
-            <Shield className="mr-2 h-5 w-5" />
+            <ShieldIcon className="mr-2 h-5 w-5" />
             Vypočítat nouzovou rezervu
           </Button>
 
@@ -267,7 +267,7 @@ const EmergencyFundCalculator: React.FC = () => {
             <Card className="bg-gradient-to-br from-slate-50 to-gray-100 border border-slate-200 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-lg pb-4">
                 <CardTitle className="text-xl font-bold flex items-center gap-2">
-                  <Shield className="h-6 w-6" />
+                  <ShieldIcon className="h-6 w-6" />
                   Analýza vašeho rizikového profilu
                 </CardTitle>
               </CardHeader>
@@ -315,7 +315,7 @@ const EmergencyFundCalculator: React.FC = () => {
                         if (riskPoints <= 1) return (
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                              <CheckCircle className="h-5 w-5 text-white" />
+                              <CheckIcon className="h-5 w-5 text-white" />
                             </div>
                             <span className="text-xl font-bold text-green-600">Nízké riziko</span>
                           </div>
@@ -323,7 +323,7 @@ const EmergencyFundCalculator: React.FC = () => {
                         if (riskPoints <= 4) return (
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                              <AlertTriangle className="h-5 w-5 text-white" />
+                              <AlertIcon className="h-5 w-5 text-white" />
                             </div>
                             <span className="text-xl font-bold text-yellow-600">Střední riziko</span>
                           </div>
@@ -331,7 +331,7 @@ const EmergencyFundCalculator: React.FC = () => {
                         return (
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                              <XCircle className="h-5 w-5 text-white" />
+                              <span className="h-5 w-5 text-white flex items-center justify-center">✕</span>
                             </div>
                             <span className="text-xl font-bold text-red-600">Vysoké riziko</span>
                           </div>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Euro, TrendingDown, Calculator, ChevronDown, ChevronUp, Info, TrendingUp, DollarSign } from 'lucide-react';
+import { CalculatorIcon, TrendingUpIcon, DollarIcon } from '@/components/ui/icons';
 import { calculateCurrencyImpact, CurrencyImpactData } from '@/utils/currencyImpactCalculations';
 import CurrencyImpactResults from './CurrencyImpactResults';
 
@@ -61,7 +61,7 @@ const CurrencyImpactAnalyzer: React.FC = () => {
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-              <TrendingUp className="h-5 w-5 text-violet-700" />
+              <TrendingUpIcon className="h-5 w-5 text-violet-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Portfolio základna</h3>
           </div>
@@ -97,7 +97,7 @@ const CurrencyImpactAnalyzer: React.FC = () => {
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.4s]">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10 group-hover:bg-emerald-200 transition-colors hover-scale">
-              <DollarSign className="h-5 w-5 text-emerald-700" />
+              <DollarIcon className="h-5 w-5 text-emerald-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 group-hover:text-emerald-800 transition-colors">Aktuální kurzy</h3>
           </div>
@@ -141,7 +141,7 @@ const CurrencyImpactAnalyzer: React.FC = () => {
       <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.6s]">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center rounded-full bg-blue-100 w-10 h-10 group-hover:bg-blue-200 transition-colors hover-scale">
-            <Euro className="h-5 w-5 text-blue-700" />
+            <span className="h-5 w-5 text-blue-700 flex items-center justify-center">€</span>
           </div>
           <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-800 transition-colors">Měnová expozice portfolia</h3>
         </div>
@@ -211,7 +211,7 @@ const CurrencyImpactAnalyzer: React.FC = () => {
         onClick={handleCalculate} 
         className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 animate-fade-in [animation-delay:0.8s]"
       >
-        <Calculator className="mr-2 h-5 w-5" />
+        <CalculatorIcon className="mr-2 h-5 w-5" />
         Analyzovat kurzový dopad
       </Button>
       

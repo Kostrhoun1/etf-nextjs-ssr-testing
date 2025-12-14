@@ -2,11 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { Metadata } from 'next';
-import { 
-  Target, CheckCircle, Clock, 
-  Star, Smartphone, ArrowRight, AlertTriangle, 
-  BookOpen, Building, TrendingUp 
-} from 'lucide-react';
+import {
+  TargetIcon, CheckCircleIcon, ClockIcon,
+  StarFilledIcon, SmartphoneIcon, ArrowRightIcon, AlertTriangleIcon,
+  BookOpenIcon, BuildingIcon, TrendingUpIcon
+} from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 
 export const metadata: Metadata = {
@@ -102,7 +102,7 @@ const JakZacitInvestovatPage: React.FC = () => {
         "Rezerva (1-3 roky) - konzervativní portfolio",
         "Určete měsíční částku pro investování"
       ],
-      icon: Target,
+      icon: TargetIcon,
       color: "from-emerald-500 to-teal-600"
     },
     {
@@ -114,7 +114,7 @@ const JakZacitInvestovatPage: React.FC = () => {
         "Trading212 - 0% poplatky, jednoduchá aplikace",
         "Interactive Brokers - největší výběr, pokročilé funkce"
       ],
-      icon: Building,
+      icon: BuildingIcon,
       color: "from-teal-500 to-blue-600"
     },
     {
@@ -126,7 +126,7 @@ const JakZacitInvestovatPage: React.FC = () => {
         "Projděte procesem KYC (Know Your Customer)",
         "Aktivujte účet a proveďte první vklad"
       ],
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       color: "from-blue-500 to-indigo-600"
     },
     {
@@ -138,7 +138,7 @@ const JakZacitInvestovatPage: React.FC = () => {
         "Zvažte geografickou diverzifikaci",
         "Začněte s 2-3 ETF fondy maximum"
       ],
-      icon: TrendingUp,
+      icon: TrendingUpIcon,
       color: "from-emerald-600 to-teal-700"
     },
     {
@@ -150,7 +150,7 @@ const JakZacitInvestovatPage: React.FC = () => {
         "Rebalancujte portfolio jednou ročně",
         "Neprodávejte v panické náladě"
       ],
-      icon: Clock,
+      icon: ClockIcon,
       color: "from-teal-500 to-cyan-600"
     }
   ];
@@ -181,7 +181,7 @@ const JakZacitInvestovatPage: React.FC = () => {
   const brokerComparison = [
     {
       name: "DEGIRO",
-      icon: Star,
+      icon: StarFilledIcon,
       pros: ["Zdarma vybrané ETF", "Nízké poplatky", "Česká podpora"],
       cons: ["Limitovaný výběr zdarma ETF", "Složitější rozhraní"],
       bestFor: "Začátečníci s malými částkami",
@@ -190,7 +190,7 @@ const JakZacitInvestovatPage: React.FC = () => {
     },
     {
       name: "XTB",
-      icon: Building,
+      icon: BuildingIcon,
       pros: ["0% do 100k EUR/měsíc", "Česká pobočka", "Jednoduché rozhraní"],
       cons: ["Poplatky nad limit", "Menší výběr"],
       bestFor: "Střední investoři",
@@ -199,7 +199,7 @@ const JakZacitInvestovatPage: React.FC = () => {
     },
     {
       name: "Trading212",
-      icon: Smartphone,
+      icon: SmartphoneIcon,
       pros: ["Kompletně zdarma", "Skvělá aplikace", "Investiční plány"],
       cons: ["Pouze aplikace", "Čekací lista"],
       bestFor: "Mobilní investoři",
@@ -208,7 +208,7 @@ const JakZacitInvestovatPage: React.FC = () => {
     },
     {
       name: "Interactive Brokers",
-      icon: TrendingUp,
+      icon: TrendingUpIcon,
       pros: ["Největší výběr", "Nízké poplatky", "Pokročilé funkce"],
       cons: ["Složitější", "Vyšší minimální vklad"],
       bestFor: "Pokročilí investoři",
@@ -264,7 +264,7 @@ const JakZacitInvestovatPage: React.FC = () => {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-emerald-200/50">
-                <BookOpen className="w-4 h-4 mr-2" />
+                <BookOpenIcon className="w-4 h-4 mr-2" />
                 Praktický návod {currentYear}
               </div>
               
@@ -285,14 +285,14 @@ const JakZacitInvestovatPage: React.FC = () => {
                   href="/kde-koupit-etf" 
                   className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Building className="w-5 h-5" />
+                  <BuildingIcon className="w-5 h-5" />
                   Vybrat brokera
                 </Link>
                 <Link 
                   href="/nejlepsi-etf" 
                   className="bg-white/80 backdrop-blur-sm border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Star className="w-5 h-5" />
+                  <StarFilledIcon className="w-5 h-5" />
                   Nejlepší ETF
                 </Link>
               </div>
@@ -362,7 +362,7 @@ const JakZacitInvestovatPage: React.FC = () => {
                       <div className="grid sm:grid-cols-2 gap-3">
                         {step.details.map((detail, detailIndex) => (
                           <div key={detailIndex} className="flex items-center gap-3">
-                            <CheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                            <CheckCircleIcon className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                             <span className="text-gray-700">{detail}</span>
                           </div>
                         ))}
@@ -403,7 +403,7 @@ const JakZacitInvestovatPage: React.FC = () => {
                     <h4 className="text-sm font-semibold text-gray-900 mb-2">Výhody:</h4>
                     {broker.pros.map((pro, proIndex) => (
                       <div key={proIndex} className="flex items-center gap-2 text-sm text-gray-600">
-                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                        <CheckCircleIcon className="h-4 w-4 text-emerald-500" />
                         {pro}
                       </div>
                     ))}
@@ -413,7 +413,7 @@ const JakZacitInvestovatPage: React.FC = () => {
                     <h4 className="text-sm font-semibold text-gray-900 mb-2">Nevýhody:</h4>
                     {broker.cons.map((con, conIndex) => (
                       <div key={conIndex} className="flex items-center gap-2 text-sm text-gray-600">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        <AlertTriangleIcon className="h-4 w-4 text-amber-500" />
                         {con}
                       </div>
                     ))}
@@ -435,7 +435,7 @@ const JakZacitInvestovatPage: React.FC = () => {
               className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg inline-flex items-center gap-2"
             >
               Podrobné srovnání brokerů
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRightIcon className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -458,7 +458,7 @@ const JakZacitInvestovatPage: React.FC = () => {
               <div key={index} className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-2xl p-6">
                 <div className="flex items-start gap-4">
                   <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                    <AlertTriangleIcon className="h-6 w-6 text-red-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -545,7 +545,7 @@ const JakZacitInvestovatPage: React.FC = () => {
               href="/kde-koupit-etf"
               className="bg-white text-emerald-600 hover:bg-gray-50 px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg inline-flex items-center gap-2"
             >
-              <Building className="w-5 h-5" />
+              <BuildingIcon className="w-5 h-5" />
               Vybrat brokera
             </Link>
             
@@ -553,7 +553,7 @@ const JakZacitInvestovatPage: React.FC = () => {
               href="/nejlepsi-etf"
               className="border-2 border-white text-white hover:bg-white hover:text-emerald-600 px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:shadow-lg inline-flex items-center gap-2"
             >
-              <Star className="w-5 h-5" />
+              <StarFilledIcon className="w-5 h-5" />
               Najít nejlepší ETF
             </Link>
           </div>

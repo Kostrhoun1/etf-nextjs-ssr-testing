@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Brain, Activity , DollarSign, Rocket, Zap, Users, TrendingUp} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, BrainIcon, ActivityIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -296,7 +296,7 @@ export default async function NejlepsiGrowthETF() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-purple-100 text-purple-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-purple-200/50">
-                <Rocket className="w-4 h-4 mr-2" />
+                <RocketIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -338,13 +338,13 @@ export default async function NejlepsiGrowthETF() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <Link href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <Link href="#srovnani">
-                    <Activity className="w-5 h-5 mr-2" />
+                    <ActivityIcon className="w-5 h-5 mr-2" />
                     Růstové metriky
                   </Link>
                 </Button>
@@ -358,7 +358,7 @@ export default async function NejlepsiGrowthETF() {
                 {/* Simple Header */}
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl mb-3">
-                    <Rocket className="w-6 h-6 text-blue-600" />
+                    <RocketIcon className="w-6 h-6 text-blue-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">
                     Growth investing v číslech
@@ -370,7 +370,7 @@ export default async function NejlepsiGrowthETF() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                      <TrendingUpIcon className="w-4 h-4 text-blue-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVYŠŠÍ RŮST</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">35%</div>
@@ -379,7 +379,7 @@ export default async function NejlepsiGrowthETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Brain className="w-4 h-4 text-purple-600" />
+                      <BrainIcon className="w-4 h-4 text-purple-600" />
                       <span className="text-xs text-gray-500 font-medium">RUSSELL GROWTH</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">569M</div>
@@ -388,7 +388,7 @@ export default async function NejlepsiGrowthETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Activity className="w-4 h-4 text-blue-600" />
+                      <ActivityIcon className="w-4 h-4 text-blue-600" />
                       <span className="text-xs text-gray-500 font-medium">P/E RATIO</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">28x</div>
@@ -397,7 +397,7 @@ export default async function NejlepsiGrowthETF() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Zap className="w-4 h-4 text-purple-600" />
+                      <ZapIcon className="w-4 h-4 text-purple-600" />
                       <span className="text-xs text-gray-500 font-medium">VOLATILITA</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">22%</div>
@@ -415,7 +415,7 @@ export default async function NejlepsiGrowthETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-blue-100 w-20 h-20 mx-auto mb-8 hover:bg-blue-200 transition-colors hover-scale">
-              <Rocket className="w-10 h-10 text-blue-700" />
+              <RocketIcon className="w-10 h-10 text-blue-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou Growth ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -427,7 +427,7 @@ export default async function NejlepsiGrowthETF() {
             
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{"animationDelay": "0.2s"}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-8 h-8 text-white" />
+                <TrendingUpIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-purple-800 transition-colors">
                 Vysoký růst tržeb
@@ -439,7 +439,7 @@ export default async function NejlepsiGrowthETF() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{"animationDelay": "0.3s"}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Brain className="w-8 h-8 text-white" />
+                <BrainIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-purple-800 transition-colors">
                 Inovace a technologie
@@ -451,7 +451,7 @@ export default async function NejlepsiGrowthETF() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{"animationDelay": "0.4s"}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Rocket className="w-8 h-8 text-white" />
+                <RocketIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-purple-800 transition-colors">
                 Reinvestice zisků

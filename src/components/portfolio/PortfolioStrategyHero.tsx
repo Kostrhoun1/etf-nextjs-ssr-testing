@@ -3,11 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Target, LucideIcon } from 'lucide-react';
+import { BarChart3Icon, TargetIcon } from '@/components/ui/icons';
+
+// Type for icon components
+type IconComponent = React.FC<{ className?: string }>;
 
 interface PortfolioStrategyHeroProps {
   badge: {
-    icon: LucideIcon;
+    icon: IconComponent;
     text: string;
     colors: string;
   };
@@ -75,18 +78,18 @@ export default function PortfolioStrategyHero({
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button 
+              <button
                 onClick={() => document.getElementById(scrollTarget)?.scrollIntoView({ behavior: 'smooth' })}
                 className={`${colors.primaryButton} text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 h-12`}
               >
-                <BarChart3 className="w-5 h-5" />
+                <BarChart3Icon className="w-5 h-5" />
                 Zobrazit složení
               </button>
-              <Link 
+              <Link
                 href={calculatorLink}
                 className={`${colors.secondaryButton} px-8 py-3 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2 h-12`}
               >
-                <Target className="w-5 h-5" />
+                <TargetIcon className="w-5 h-5" />
                 Spočítat výnos
               </Link>
             </div>

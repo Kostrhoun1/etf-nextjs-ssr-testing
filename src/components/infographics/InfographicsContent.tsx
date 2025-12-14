@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useETFSearchData } from '@/hooks/useETFSearchData';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Sparkles, TrendingUp, Shield, Bitcoin, Gem, Building } from 'lucide-react';
+import { SparklesIcon, TrendingUpIcon, ShieldIcon, BitcoinIcon, GemIcon, BuildingIcon } from '@/components/ui/icons';
 import MarketHeatmap from '@/components/infographics/MarketHeatmap';
 import TwitterVariants from '@/components/infographics/TwitterVariants';
 
@@ -49,42 +49,42 @@ const getCategoryVisuals = (category: string) => {
   switch (category.toLowerCase()) {
     case 'akcie':
       return {
-        icon: TrendingUp,
+        icon: TrendingUpIcon,
         bgClass: 'from-green-600 via-green-700 to-emerald-800',
         iconBg: 'bg-green-500/20',
         iconColor: 'text-green-100'
       };
     case 'dluhopisy':
       return {
-        icon: Shield,
+        icon: ShieldIcon,
         bgClass: 'from-blue-600 via-blue-700 to-blue-800',
         iconBg: 'bg-blue-500/20',
         iconColor: 'text-blue-100'
       };
     case 'krypto':
       return {
-        icon: Bitcoin,
+        icon: BitcoinIcon,
         bgClass: 'from-orange-600 via-orange-700 to-amber-800',
         iconBg: 'bg-orange-500/20',
         iconColor: 'text-orange-100'
       };
     case 'komodity':
       return {
-        icon: Gem,
+        icon: GemIcon,
         bgClass: 'from-yellow-600 via-yellow-700 to-yellow-800',
         iconBg: 'bg-yellow-500/20',
         iconColor: 'text-yellow-100'
       };
     case 'nemovitosti':
       return {
-        icon: Building,
+        icon: BuildingIcon,
         bgClass: 'from-purple-600 via-purple-700 to-purple-800',
         iconBg: 'bg-purple-500/20',
         iconColor: 'text-purple-100'
       };
     default:
       return {
-        icon: TrendingUp,
+        icon: TrendingUpIcon,
         bgClass: 'from-gray-600 via-gray-700 to-gray-800',
         iconBg: 'bg-gray-500/20',
         iconColor: 'text-gray-100'
@@ -479,7 +479,7 @@ const InfographicsContent: React.FC = () => {
       return (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <Sparkles className="w-8 h-8 text-violet-600 animate-spin mx-auto mb-4" />
+            <SparklesIcon className="w-8 h-8 text-violet-600 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Načítám ETF data...</p>
             <p className="text-xs text-gray-400 mt-2">Debug: loading={String(loading)}</p>
           </div>
@@ -963,7 +963,7 @@ const InfographicsContent: React.FC = () => {
           return (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <Sparkles className="w-8 h-8 text-violet-600 animate-spin mx-auto mb-4" />
+                <SparklesIcon className="w-8 h-8 text-violet-600 animate-spin mx-auto mb-4" />
                 <p className="text-gray-600">Načítám market heatmap...</p>
               </div>
             </div>

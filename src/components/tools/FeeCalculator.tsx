@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Percent } from 'lucide-react';
+import { PercentIcon } from '@/components/ui/icons';
 import FeeCalculatorForm from './FeeCalculatorForm';
 import FeeScenarioManager from './FeeScenarioManager';
 import FeeCalculatorResults from './FeeCalculatorResults';
@@ -72,7 +72,7 @@ const FeeCalculator: React.FC = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Percent className="h-8 w-8 text-blue-600" />
+            <PercentIcon className="h-8 w-8 text-blue-600" />
             <div>
               <CardTitle className="text-2xl">Kalkulačka poplatků</CardTitle>
               <CardDescription>
@@ -101,7 +101,7 @@ const FeeCalculator: React.FC = () => {
           />
 
           <Button onClick={handleCalculate} className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3">
-            <Percent className="mr-2 h-5 w-5" />
+            <PercentIcon className="mr-2 h-5 w-5" />
             Vypočítat dopad poplatků
           </Button>
 

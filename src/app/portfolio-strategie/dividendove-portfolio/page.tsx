@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BarChart3, AlertCircle, CheckCircle, Target, DollarSign, TrendingUp, Users } from 'lucide-react';
+import { BarChart3Icon, AlertIcon, CheckCircleIcon, TargetIcon, DollarIcon, TrendingUpIcon, UsersIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import DividendPortfolioPerformance from '@/components/portfolio/DividendPortfolioPerformance';
 import { getETFLink } from '@/data/etf-mappings';
@@ -61,7 +61,7 @@ export default function DividendPortfolioPage() {
               {/* Left Content */}
               <div className="space-y-8">
                 <div className="inline-flex items-center bg-gradient-to-r from-violet-100 to-purple-100 text-violet-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-violet-200/50">
-                  <DollarSign className="w-4 h-4 mr-2" />
+                  <DollarIcon className="w-4 h-4 mr-2" />
                   Dividendové Portfolio
                 </div>
                 
@@ -77,18 +77,18 @@ export default function DividendPortfolioPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link 
+                  <Link
                     href="#allocation"
                     className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 h-12"
                   >
-                    <BarChart3 className="w-5 h-5" />
+                    <BarChart3Icon className="w-5 h-5" />
                     Zobrazit složení
                   </Link>
-                  <Link 
+                  <Link
                     href="#vykonnost"
                     className="bg-white/80 backdrop-blur-sm border-2 border-violet-300 text-violet-700 hover:bg-violet-50 px-8 py-3 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2 h-12"
                   >
-                    <Target className="w-5 h-5" />
+                    <TargetIcon className="w-5 h-5" />
                     Aktuální výnos
                   </Link>
                 </div>
@@ -161,7 +161,7 @@ export default function DividendPortfolioPage() {
             <Card className="mb-12">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <BarChart3 className="text-violet-600" />
+                  <BarChart3Icon className="text-violet-600" />
                   Složení Dividendového Portfolia
                 </CardTitle>
               </CardHeader>
@@ -203,7 +203,7 @@ export default function DividendPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <TrendingUp className="text-violet-600" />
+                  <TrendingUpIcon className="text-violet-600" />
                   Co jsou Dividend Aristocrats?
                 </CardTitle>
               </CardHeader>
@@ -230,34 +230,34 @@ export default function DividendPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <CheckCircle className="text-green-600" />
+                  <CheckCircleIcon className="text-green-600" />
                   Výhody strategie
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Pravidelný pasivní příjem z dividend</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Dlouhodobý růst hodnoty dividend</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Investice do nejkvalitnějších společností</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Částečná ochrana proti inflaci</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Jednoduchá implementace s 2 ETF</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Vhodné pro konzervativní investory</span>
                   </li>
                 </ul>
@@ -269,7 +269,7 @@ export default function DividendPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Target className="text-violet-600" />
+                <TargetIcon className="text-violet-600" />
                 Jak investovat do Dividendového Portfolia
               </CardTitle>
             </CardHeader>
@@ -313,7 +313,7 @@ export default function DividendPortfolioPage() {
           <Card className="mb-12 border-amber-200 bg-amber-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-amber-800">
-                <AlertCircle className="text-amber-600" />
+                <AlertIcon className="text-amber-600" />
                 Důležitá upozornění
               </CardTitle>
             </CardHeader>
@@ -332,7 +332,7 @@ export default function DividendPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Users className="text-violet-600" />
+                <UsersIcon className="text-violet-600" />
                 Časté otázky o Dividendovém Portfoliu
               </CardTitle>
             </CardHeader>

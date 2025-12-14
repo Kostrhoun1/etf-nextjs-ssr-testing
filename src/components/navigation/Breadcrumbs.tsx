@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRightIcon, HomeIcon } from '@/components/ui/icons';
 
 interface BreadcrumbItem {
   label: string;
@@ -26,12 +26,12 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, className = '' }) => {
         className="flex items-center hover:text-violet-600 transition-colors"
         aria-label="Domů"
       >
-        <Home className="w-4 h-4" />
+        <HomeIcon />
       </Link>
       
       {items.map((item, index) => (
         <React.Fragment key={index}>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <ChevronRightIcon className="text-gray-400" />
           {item.href && index < items.length - 1 ? (
             <Link 
               href={item.href}

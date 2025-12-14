@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, ArrowRight, Target, MapPin, Crown, Landmark , DollarSign, Rocket, Zap, Users, TrendingUp, Building, Shield, Globe, Award, Flag} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, MapPinIcon, CrownIcon, LandmarkIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon, BuildingIcon, ShieldIcon, GlobeIcon, AwardIcon, FlagIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
@@ -312,7 +312,7 @@ export default async function NejlepsiFTSEETFPage() {
             {/* Left Column - Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-red-100 to-orange-100 text-red-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-red-200/50">
-                <Flag className="w-4 h-4 mr-2" />
+                <FlagIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -352,11 +352,11 @@ export default async function NejlepsiFTSEETFPage() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="#top3">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Button>
                 </Link>
@@ -368,7 +368,7 @@ export default async function NejlepsiFTSEETFPage() {
                   asChild
                 >
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Srovnání všech
                   </Link>
                 </Button>
@@ -444,21 +444,21 @@ export default async function NejlepsiFTSEETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: Crown,
+                icon: CrownIcon,
                 title: "100 největších firem UK",
                 description: "FTSE 100 pokrývá největší britské společnosti z různých sektorů - od bank přes těžbu až po technologie.",
                 color: "from-red-500 to-orange-600",
                 delay: "0.2s"
               },
               {
-                icon: MapPin,
+                icon: MapPinIcon,
                 title: "Globální britské firmy",
                 description: "Mnoho společností v FTSE má globální působnost - Shell, BP, Vodafone, British American Tobacco.",
                 color: "from-orange-500 to-yellow-600",
                 delay: "0.3s"
               },
               {
-                icon: Landmark,
+                icon: LandmarkIcon,
                 title: "80% britského trhu",
                 description: "FTSE 100 reprezentuje přibližně 80% celkové tržní kapitalizace britských akcií.",
                 color: "from-yellow-500 to-amber-600",
@@ -546,7 +546,7 @@ export default async function NejlepsiFTSEETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-600 to-orange-600 rounded-full mb-6">
-              <Target className="w-10 h-10 text-white" />
+              <TargetIcon className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               💡 Jak vybrat ten správný FTSE ETF?
@@ -673,7 +673,7 @@ export default async function NejlepsiFTSEETFPage() {
               asChild
             >
               <Link href="/kde-koupit-etf">
-                <Shield className="w-5 h-5 mr-2" />
+                <ShieldIcon className="w-5 h-5 mr-2" />
                 Najít brokera pro ETF
               </Link>
             </Button>
@@ -685,7 +685,7 @@ export default async function NejlepsiFTSEETFPage() {
               asChild
             >
               <Link href="/srovnani-etf">
-                <BarChart3 className="w-5 h-5 mr-2" />
+                <BarChart3Icon className="w-5 h-5 mr-2" />
                 Srovnat všechny ETF
               </Link>
             </Button>

@@ -6,7 +6,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator, PiggyBank, Target, TrendingUp } from 'lucide-react';
+import { CalculatorIcon, PiggyBankIcon, TargetIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InvestmentCalculatorForm from '@/components/tools/InvestmentCalculatorForm';
 import InvestmentResultsSummary from '@/components/tools/InvestmentResultsSummary';
 import InvestmentChart from '@/components/tools/InvestmentChart';
@@ -94,7 +94,7 @@ const InvestmentCalculatorContent: React.FC = () => {
         {/* Hero sekce */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <TrendingUp className="w-4 h-4" />
+            <TrendingUpIcon className="w-4 h-4" />
             Investiční kalkulačka 2025
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -110,7 +110,7 @@ const InvestmentCalculatorContent: React.FC = () => {
           <Card className="mb-4">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
-                <Calculator className="h-5 w-5 text-violet-600" />
+                <CalculatorIcon className="h-5 w-5 text-violet-600" />
                 <CardTitle className="text-2xl">
                   Investiční kalkulačka
                 </CardTitle>
@@ -173,7 +173,7 @@ const InvestmentCalculatorContent: React.FC = () => {
           <div className="grid md:grid-cols-4 gap-6 mb-12">
             <Card>
               <CardContent className="p-6 text-center">
-                <Calculator className="w-12 h-12 text-violet-600 mx-auto mb-4" />
+                <CalculatorIcon className="w-12 h-12 text-violet-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Compound Interest</h3>
                 <p className="text-gray-600 text-sm">
                   Složené úročení - nejsilnější síla v investování
@@ -182,7 +182,7 @@ const InvestmentCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <PiggyBank className="w-12 h-12 text-violet-600 mx-auto mb-4" />
+                <PiggyBankIcon className="w-12 h-12 text-violet-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Pravidelné investování</h3>
                 <p className="text-gray-600 text-sm">
                   Dollar Cost Averaging - snížení rizika časování trhu
@@ -191,7 +191,7 @@ const InvestmentCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <Target className="w-12 h-12 text-violet-600 mx-auto mb-4" />
+                <TargetIcon className="w-12 h-12 text-violet-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Cílové plánování</h3>
                 <p className="text-gray-600 text-sm">
                   Naplánujte si cestu k finanční nezávislosti
@@ -200,7 +200,7 @@ const InvestmentCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <TrendingUp className="w-12 h-12 text-violet-600 mx-auto mb-4" />
+                <TrendingUpIcon className="w-12 h-12 text-violet-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Reálné výnosy</h3>
                 <p className="text-gray-600 text-sm">
                   Výpočty včetně daní a inflace pro ČR

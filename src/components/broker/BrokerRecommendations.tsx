@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, ExternalLink, Crown, Target, TrendingUp, Shield, Zap } from 'lucide-react';
+import { FileTextIcon, ExternalLinkIcon, CrownIcon, TargetIcon, TrendingUpIcon, ShieldIcon, ZapIcon } from '@/components/ui/icons';
 import { brokers } from '../../data/brokerData';
 
 const BrokerRecommendations: React.FC = () => {
@@ -28,7 +28,7 @@ const BrokerRecommendations: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-2xl">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white">
-              <Crown className="w-6 h-6" />
+              <CrownIcon className="text-xl" />
             </div>
             <div>
               <h3>🏆 Nejlepší brokeři 2025</h3>
@@ -85,7 +85,7 @@ const BrokerRecommendations: React.FC = () => {
                   <Link href={`/${broker.id}-recenze`}>
                     <Button className="w-full group-hover:shadow-lg transition-shadow">
                       Detailní recenze
-                      <ExternalLink className="w-4 h-4 ml-2" />
+                      <ExternalLinkIcon className="ml-2" />
                     </Button>
                   </Link>
                 </div>
@@ -102,7 +102,7 @@ const BrokerRecommendations: React.FC = () => {
         <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-800">
-              <Target className="w-5 h-5" />
+              <TargetIcon />
               💚 Pro začátečníky
             </CardTitle>
           </CardHeader>
@@ -147,7 +147,7 @@ const BrokerRecommendations: React.FC = () => {
         <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-purple-800">
-              <TrendingUp className="w-5 h-5" />
+              <TrendingUpIcon />
               🚀 Pro pokročilé
             </CardTitle>
           </CardHeader>
@@ -192,7 +192,7 @@ const BrokerRecommendations: React.FC = () => {
         <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-800">
-              <Shield className="w-5 h-5" />
+              <ShieldIcon />
               🇨🇿 České akcie
             </CardTitle>
           </CardHeader>
@@ -237,7 +237,7 @@ const BrokerRecommendations: React.FC = () => {
         <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-800">
-              <Zap className="w-5 h-5" />
+              <ZapIcon />
               ⚡ Automatizace
             </CardTitle>
           </CardHeader>
@@ -283,7 +283,7 @@ const BrokerRecommendations: React.FC = () => {
       <Card className="bg-amber-50 border-amber-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-amber-800">
-            <FileText className="w-6 h-6" />
+            <FileTextIcon className="text-xl" />
             ⚠️ Důležité upozornění
           </CardTitle>
         </CardHeader>

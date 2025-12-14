@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BarChart3, AlertCircle, CheckCircle, Target, Award, Shield, Users } from 'lucide-react';
+import { BarChart3Icon, AlertIcon, CheckCircleIcon, TargetIcon, AwardIcon, ShieldIcon, UsersIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import NobelPortfolioPerformance from '@/components/portfolio/NobelPortfolioPerformance';
 import { getETFLink } from '@/data/etf-mappings';
@@ -90,7 +90,7 @@ export default function NobelPortfolioPage() {
             <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <BarChart3 className="text-amber-600" />
+                <BarChart3Icon className="text-amber-600" />
                 Složení Nobel Portfolia
               </CardTitle>
             </CardHeader>
@@ -138,7 +138,7 @@ export default function NobelPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Award className="text-amber-600" />
+                  <AwardIcon className="text-amber-600" />
                   Klíčové principy
                 </CardTitle>
               </CardHeader>
@@ -161,30 +161,30 @@ export default function NobelPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Shield className="text-green-600" />
+                  <ShieldIcon className="text-green-600" />
                   Výhody strategie
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Vyvážený poměr růstu a stability</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Nižší volatilita než čistě akciové portfolio</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Vhodné pro střední rizikovou toleranci</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Jednoduchá implementace se 3 ETF</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Diverzifikace napříč třídami aktiv</span>
                   </li>
                 </ul>
@@ -196,7 +196,7 @@ export default function NobelPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Award className="text-amber-600" />
+                <AwardIcon className="text-amber-600" />
                 O Nobelově nadaci
               </CardTitle>
             </CardHeader>
@@ -226,7 +226,7 @@ export default function NobelPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Target className="text-blue-600" />
+                <TargetIcon className="text-blue-600" />
                 Jak implementovat Nobel Portfolio
               </CardTitle>
             </CardHeader>
@@ -260,7 +260,7 @@ export default function NobelPortfolioPage() {
           <Card className="mb-12 border-orange-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-orange-700">
-                <AlertCircle className="text-orange-600" />
+                <AlertIcon className="text-orange-600" />
                 Rizika a nevýhody
               </CardTitle>
             </CardHeader>
@@ -268,19 +268,19 @@ export default function NobelPortfolioPage() {
               <div className="bg-orange-50 p-6 rounded-lg">
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Nižší výnos:</strong> Ve srovnání s 100% akciovým portfoliem v bull marketu</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Úrokové riziko:</strong> Dluhopisy citlivé na změny úrokových sazeb</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Inflační riziko:</strong> V prostředí vysoké inflace může podávat horší výkon</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Korelace aktiv:</strong> V krizích mohou akcie i dluhopisy klesat současně</span>
                   </li>
                 </ul>
@@ -292,7 +292,7 @@ export default function NobelPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Users className="text-purple-600" />
+                <UsersIcon className="text-purple-600" />
                 Pro koho je Nobel Portfolio vhodné?
               </CardTitle>
             </CardHeader>
@@ -327,7 +327,7 @@ export default function NobelPortfolioPage() {
           <section className="py-16">
             <div className="text-center mb-12">
               <div className="inline-flex items-center bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 px-6 py-3 rounded-full text-sm font-medium mb-6">
-                <Award className="w-4 h-4 mr-2" />
+                <AwardIcon className="w-4 h-4 mr-2" />
                 Často kladené otázky
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">

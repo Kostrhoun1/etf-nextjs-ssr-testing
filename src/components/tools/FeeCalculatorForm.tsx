@@ -4,7 +4,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Percent, PiggyBank , Globe, TrendingUp, Building} from 'lucide-react';
+import { PercentIcon, PiggyBankIcon, GlobeIcon, TrendingUpIcon, BuildingIcon } from '@/components/ui/icons';
 
 interface FeeCalculatorFormProps {
   initialInvestment: number;
@@ -37,7 +37,7 @@ const FeeCalculatorForm: React.FC<FeeCalculatorFormProps> = ({
       <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-            <PiggyBank className="h-5 w-5 text-violet-700" />
+            <PiggyBankIcon className="h-5 w-5 text-violet-700" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Investiční parametry</h3>
         </div>
@@ -83,7 +83,7 @@ const FeeCalculatorForm: React.FC<FeeCalculatorFormProps> = ({
       <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.4s]">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10 group-hover:bg-emerald-200 transition-colors hover-scale">
-            <TrendingUp className="h-5 w-5 text-emerald-700" />
+            <TrendingUpIcon className="h-5 w-5 text-emerald-700" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 group-hover:text-emerald-800 transition-colors">Parametry výnosu a času</h3>
         </div>

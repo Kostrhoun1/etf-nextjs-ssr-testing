@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, DollarSign, Rocket, Users, Flag, TrendingUp, Award, Building, Globe, Shield} from 'lucide-react';
+import { StarIcon, BarChart3Icon, TargetIcon, DollarSignIcon, RocketIcon, UsersIcon, FlagIcon, TrendingUpIcon, AwardIcon, BuildingIcon, GlobeIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -257,7 +257,7 @@ export default async function NejlepsiETF2025() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-blue-200/50">
-                <Flag className="w-4 h-4 mr-2" />
+                <FlagIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -299,13 +299,13 @@ export default async function NejlepsiETF2025() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <Link href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Srovnání ETF
                   </Link>
                 </Button>
@@ -315,10 +315,10 @@ export default async function NejlepsiETF2025() {
             {/* Right Content - Stats Grid */}
             <div className="grid grid-cols-2 gap-6 lg:gap-8">
               {[
-                { icon: DollarSign, title: "Nejnižší náklady", value: "0.03% TER", description: "Nejlevnější ETF dostupné v Evropě", color: "green" },
-                { icon: Globe, title: "Globální pokrytí", value: "3,800+ firem", description: "Diverzifikace po celém světě", color: "blue" },
-                { icon: Shield, title: "Největší fondy", value: "95B+ EUR", description: "Nejvyšší likvidita a stabilita", color: "purple" },
-                { icon: TrendingUp, title: "Dlouhodobý růst", value: "9%+ ročně", description: "Historický průměrný výnos", color: "indigo" }
+                { icon: DollarSignIcon, title: "Nejnižší náklady", value: "0.03% TER", description: "Nejlevnější ETF dostupné v Evropě", color: "green" },
+                { icon: GlobeIcon, title: "Globální pokrytí", value: "3,800+ firem", description: "Diverzifikace po celém světě", color: "blue" },
+                { icon: ShieldIcon, title: "Největší fondy", value: "95B+ EUR", description: "Nejvyšší likvidita a stabilita", color: "purple" },
+                { icon: TrendingUpIcon, title: "Dlouhodobý růst", value: "9%+ ročně", description: "Historický průměrný výnos", color: "indigo" }
               ].map((item, index) => {
                 const Icon = item.icon;
                 const colorMap = {
@@ -371,7 +371,7 @@ export default async function NejlepsiETF2025() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-blue-50 rounded-3xl p-12 border border-blue-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-blue-600" />
+                <TargetIcon className="w-10 h-10 text-blue-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 💡 Jak vybrat nejlepší ETF pro rok {currentYear}?
@@ -384,7 +384,7 @@ export default async function NejlepsiETF2025() {
             <div className="grid lg:grid-cols-3 gap-8">
               {[
                 {
-                  icon: Users,
+                  icon: UsersIcon,
                   title: "Pro začátečníky",
                   color: "green",
                   recommendations: [
@@ -395,9 +395,9 @@ export default async function NejlepsiETF2025() {
                   ]
                 },
                 {
-                  icon: Building,
+                  icon: BuildingIcon,
                   title: "Pro pokročilé",
-                  color: "blue", 
+                  color: "blue",
                   recommendations: [
                     "Kombinace CSPX + IWDA",
                     "5-10% rozvíjející se trhy",
@@ -406,7 +406,7 @@ export default async function NejlepsiETF2025() {
                   ]
                 },
                 {
-                  icon: Rocket,
+                  icon: RocketIcon,
                   title: "Pro experty",
                   color: "purple",
                   recommendations: [

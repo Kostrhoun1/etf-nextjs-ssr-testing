@@ -3,9 +3,22 @@ import Link from 'next/link';
 import Layout from '../../components/Layout';
 import { Button } from '@/components/ui/button';
 import {
-  Star, Brain, ArrowRight, BarChart3,
-  Target, ChevronRight, BookOpen, Globe, Building, Shield, Award,
-  DollarSign, Rocket, Zap, Users} from 'lucide-react';
+  StarFilledIcon,
+  BrainIcon,
+  ArrowRightIcon,
+  BarChart3Icon,
+  TargetIcon,
+  ChevronRightIcon,
+  BookOpenIcon,
+  GlobeIcon,
+  BuildingIcon,
+  ShieldIcon,
+  AwardIcon,
+  DollarIcon,
+  RocketIcon,
+  ZapIcon,
+  UsersIcon
+} from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import type { Metadata } from 'next';
 import { generateCanonicalMetadata } from '@/lib/metadata';
@@ -25,7 +38,7 @@ const ETF_CATEGORIES = {
   indexes: {
     title: "Podle indexů",
     description: "ETF sledující konkrétní indexy a benchmarky",
-    icon: BarChart3,
+    icon: BarChart3Icon,
     color: "from-blue-500 to-blue-600",
     articles: [
       { slug: "nejlepsi-sp500-etf", title: "S&P 500 ETF", description: "Americké blue-chip společnosti" },
@@ -41,7 +54,7 @@ const ETF_CATEGORIES = {
   regions: {
     title: "Podle regionů",
     description: "Geografická diverzifikace podle zemí a kontinentů",
-    icon: Globe,
+    icon: GlobeIcon,
     color: "from-green-500 to-green-600",
     articles: [
       { slug: "nejlepsi-celosvetove-etf", title: "Celosvětové ETF", description: "Maximální diverzifikace" },
@@ -57,7 +70,7 @@ const ETF_CATEGORIES = {
   strategies: {
     title: "Podle strategie",
     description: "Investiční styly a přístupy",
-    icon: Target,
+    icon: TargetIcon,
     color: "from-purple-500 to-purple-600",
     articles: [
       { slug: "nejlepsi-dividendove-etf", title: "Dividendové ETF", description: "Pasivní příjem z dividend" },
@@ -72,7 +85,7 @@ const ETF_CATEGORIES = {
   sectors: {
     title: "Podle sektorů",
     description: "Specializace na konkrétní odvětví",
-    icon: Building,
+    icon: BuildingIcon,
     color: "from-orange-500 to-orange-600",
     articles: [
       { slug: "nejlepsi-technologicke-etf", title: "Technologické ETF", description: "IT a software firmy" },
@@ -87,7 +100,7 @@ const ETF_CATEGORIES = {
   modern: {
     title: "Moderní trendy",
     description: "Budoucnost a inovace",
-    icon: Brain,
+    icon: BrainIcon,
     color: "from-pink-500 to-pink-600",
     articles: [
       { slug: "nejlepsi-ai-etf", title: "AI ETF", description: "Umělá inteligence a robotika" },
@@ -104,7 +117,7 @@ const ETF_CATEGORIES = {
   assets: {
     title: "Podle tříd aktiv",
     description: "Různé typy investičních aktiv",
-    icon: Shield,
+    icon: ShieldIcon,
     color: "from-indigo-500 to-indigo-600",
     articles: [
       { slug: "nejlepsi-dluhopisove-etf", title: "Dluhopisové ETF", description: "Stabilní výnosy z dluhopisů" },
@@ -118,7 +131,7 @@ const ETF_CATEGORIES = {
   costs: {
     title: "Podle nákladů",
     description: "Optimalizace podle poplatků a dostupnosti",
-    icon: DollarSign,
+    icon: DollarIcon,
     color: "from-emerald-500 to-emerald-600",
     articles: [
       { slug: "nejlevnejsi-etf", title: "Nejlevnější ETF fondy", description: "ETF s nejnižšími poplatky" },
@@ -145,7 +158,7 @@ export default function NejlepsiETFPage() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-blue-200/50">
-                <Award className="w-4 h-4 mr-2" />
+                <AwardIcon className="w-4 h-4 mr-2" />
                 Kompletní přehled nejlepších ETF {currentYear}
               </div>
               
@@ -161,18 +174,18 @@ export default function NejlepsiETFPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link 
-                  href="/srovnani-etf" 
+                <Link
+                  href="/srovnani-etf"
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <BarChart3 className="w-5 h-5" />
+                  <BarChart3Icon className="w-5 h-5" />
                   Porovnat všechny ETF
                 </Link>
-                <Link 
-                  href="/kde-koupit-etf" 
+                <Link
+                  href="/kde-koupit-etf"
                   className="bg-white/80 backdrop-blur-sm border-2 border-blue-300 text-blue-700 hover:bg-blue-50 px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Shield className="w-5 h-5" />
+                  <ShieldIcon className="w-5 h-5" />
                   Najít brokera
                 </Link>
               </div>
@@ -220,11 +233,11 @@ export default function NejlepsiETFPage() {
             <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 rounded-2xl p-8 border border-blue-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl">
-                  <Star className="h-8 w-8" />
+                  <StarFilledIcon className="h-8 w-8" />
                 </div>
                 <div>
                   <div className="inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium mb-2">
-                    <Rocket className="w-4 h-4 mr-1" />
+                    <RocketIcon className="w-4 h-4 mr-1" />
                     Doporučený článek {currentYear}
                   </div>
                   <h2 className="text-3xl font-bold text-gray-900">Nejlepší ETF {currentYear}</h2>
@@ -237,17 +250,17 @@ export default function NejlepsiETFPage() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link 
+                <Link
                   href="/nejlepsi-etf/nejlepsi-etf-2025"
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Award className="w-5 h-5" />
+                  <AwardIcon className="w-5 h-5" />
                   Zobrazit nejlepší ETF {currentYear}
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRightIcon className="w-5 h-5" />
                 </Link>
                 <div className="bg-white/80 backdrop-blur-sm border border-blue-200 px-6 py-4 rounded-lg">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Users className="w-4 h-4" />
+                    <UsersIcon className="w-4 h-4" />
                     <span>Přečetlo už <span className="font-semibold text-blue-600">15 000+</span> investorů</span>
                   </div>
                 </div>
@@ -256,21 +269,21 @@ export default function NejlepsiETFPage() {
               <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
                   <div className="flex items-center gap-2 mb-2">
-                    <BarChart3 className="w-4 h-4 text-blue-600" />
+                    <BarChart3Icon className="w-4 h-4 text-blue-600" />
                     <span className="font-semibold text-gray-900">TOP 10 ETF</span>
                   </div>
                   <p className="text-sm text-gray-600">Konkrétní doporučení fondů s analýzou</p>
                 </div>
                 <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-4 h-4 text-blue-600" />
+                    <TargetIcon className="w-4 h-4 text-blue-600" />
                     <span className="font-semibold text-gray-900">Pro začátečníky</span>
                   </div>
                   <p className="text-sm text-gray-600">Jednoduché rady a doporučení</p>
                 </div>
                 <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
                   <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-blue-600" />
+                    <ZapIcon className="w-4 h-4 text-blue-600" />
                     <span className="font-semibold text-gray-900">Aktuální data</span>
                   </div>
                   <p className="text-sm text-gray-600">Pravidelně aktualizované informace</p>
@@ -309,7 +322,7 @@ export default function NejlepsiETFPage() {
                       </p>
                       <div className="flex items-center text-blue-600 group-hover:text-blue-700 transition-colors mt-4">
                         <span className="text-sm font-medium mr-2">Zobrazit nejlepší ETF</span>
-                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </Link>
                   ))}

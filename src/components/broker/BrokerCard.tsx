@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Star, CreditCard, Globe, TrendingUp, Shield, Info } from 'lucide-react';
+import { CheckIcon, XIcon, StarRating, CreditCardIcon, GlobeIcon, TrendingUpIcon, ShieldIcon, InfoIcon } from '@/components/ui/icons';
 import { Broker } from '../../types/broker';
 
 interface BrokerCardProps {
@@ -33,9 +33,7 @@ const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle })
               {broker.czSupport && <Badge variant="outline" className="text-xs">CZ</Badge>}
             </CardTitle>
             <div className="flex items-center gap-1 mt-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className={`w-4 h-4 ${i < Math.round(broker.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
-              ))}
+              <StarRating rating={Math.round(broker.rating)} />
               <span className="text-sm text-gray-600 ml-2">({broker.rating})</span>
             </div>
           </div>
@@ -60,30 +58,30 @@ const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle })
         <div className="space-y-2">
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500 flex items-center gap-1">
-              <CreditCard className="w-3 h-3" />
+              <CreditCardIcon className="text-xs" />
               Minimální vklad:
             </span>
             <span className="font-medium">{broker.minDeposit}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500 flex items-center gap-1">
-              <Globe className="w-3 h-3" />
+              <GlobeIcon className="text-xs" />
               Platformy:
             </span>
             <span className="font-medium text-xs">{broker.platforms.join(', ')}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
+              <TrendingUpIcon className="text-xs" />
               Frakční ETF:
             </span>
             <span className="flex items-center">
-              {broker.fractional ? <Check className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-red-500" />}
+              {broker.fractional ? <CheckIcon /> : <XIcon />}
             </span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500 flex items-center gap-1">
-              <Shield className="w-3 h-3" />
+              <ShieldIcon className="text-xs" />
               Regulace:
             </span>
             <span className="font-medium text-xs">{broker.regulation.split(',')[0]}</span>
@@ -110,7 +108,7 @@ const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle })
             <div className="grid grid-cols-1 gap-3">
               <div>
                 <h5 className="font-semibold text-sm mb-2 flex items-center gap-1">
-                  <Info className="w-4 h-4" />
+                  <InfoIcon />
                   Detailní informace
                 </h5>
                 <div className="space-y-2 text-sm">
@@ -137,7 +135,7 @@ const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle })
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-semibold text-green-700 mb-2 flex items-center gap-1">
-                  <Check className="w-4 h-4" />
+                  <CheckIcon />
                   Výhody
                 </h4>
                 <ul className="space-y-1">
@@ -151,7 +149,7 @@ const BrokerCard: React.FC<BrokerCardProps> = ({ broker, isExpanded, onToggle })
               </div>
               <div>
                 <h4 className="font-semibold text-red-700 mb-2 flex items-center gap-1">
-                  <X className="w-4 h-4" />
+                  <XIcon />
                   Nevýhody
                 </h4>
                 <ul className="space-y-1">

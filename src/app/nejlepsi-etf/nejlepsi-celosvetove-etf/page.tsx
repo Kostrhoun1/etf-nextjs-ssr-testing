@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, ArrowRight, Target, Earth, Compass, Map , DollarSign, Rocket, Zap, Users, Globe, Shield, Building, TrendingUp} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, EarthIcon, CompassIcon, MapIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, GlobeIcon, ShieldIcon, BuildingIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
@@ -323,7 +323,7 @@ export default async function NejlepsiSvetoveETFPage() {
             {/* Left Column - Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-blue-200/50">
-                <Globe className="w-4 h-4 mr-2" />
+                <GlobeIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -367,7 +367,7 @@ export default async function NejlepsiSvetoveETFPage() {
                     size="lg" 
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Button>
                 </Link>
@@ -379,7 +379,7 @@ export default async function NejlepsiSvetoveETFPage() {
                   asChild
                 >
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Srovnání všech
                   </Link>
                 </Button>
@@ -455,21 +455,21 @@ export default async function NejlepsiSvetoveETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: Earth,
+                icon: EarthIcon,
                 title: "Globální diverzifikace",
                 description: "Světové ETF pokrývají 23 vyspělých zemí včetně USA, Evropy, Japonska, Kanady a Austrálie pro maximální rozložení rizika.",
                 color: "from-blue-500 to-indigo-600",
                 delay: "0.2s"
               },
               {
-                icon: Compass,
+                icon: CompassIcon,
                 title: "Dva hlavní indexy",
                 description: "MSCI World (1600+ akcií, pouze vyspělé trhy) vs FTSE All-World (3900+ akcií, včetně emerging markets).",
                 color: "from-indigo-500 to-purple-600",
                 delay: "0.3s"
               },
               {
-                icon: Map,
+                icon: MapIcon,
                 title: "Historicky 10% ročně",
                 description: "Světové akcie dosáhly průměrného ročního výnosu ~10% za posledních 30 let při rozumné volatilitě.",
                 color: "from-purple-500 to-pink-600",
@@ -557,7 +557,7 @@ export default async function NejlepsiSvetoveETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-6">
-              <Target className="w-10 h-10 text-white" />
+              <TargetIcon className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               💡 Jak vybrat ten správný světový ETF?
@@ -684,7 +684,7 @@ export default async function NejlepsiSvetoveETFPage() {
               asChild
             >
               <Link href="/kde-koupit-etf">
-                <Shield className="w-5 h-5 mr-2" />
+                <ShieldIcon className="w-5 h-5 mr-2" />
                 Najít brokera pro ETF
               </Link>
             </Button>
@@ -696,7 +696,7 @@ export default async function NejlepsiSvetoveETFPage() {
               asChild
             >
               <Link href="/srovnani-etf">
-                <BarChart3 className="w-5 h-5 mr-2" />
+                <BarChart3Icon className="w-5 h-5 mr-2" />
                 Srovnat všechny ETF
               </Link>
             </Button>

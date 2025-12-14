@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Leaf, Sprout, Heart, CheckCircle , DollarSign, Rocket, Zap, Users, TrendingUp, Globe, Shield} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, LeafIcon, SproutIcon, HeartIcon, CheckCircleIcon , DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon, GlobeIcon, ShieldIcon} from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -274,7 +274,7 @@ export default async function NejlepsiESGETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-green-100 to-emerald-100 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-emerald-200/50">
-                <Leaf className="w-4 h-4 mr-2" />
+                <LeafIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -316,13 +316,13 @@ export default async function NejlepsiESGETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <Leaf className="w-5 h-5 mr-2" />
+                    <LeafIcon className="w-5 h-5 mr-2" />
                     ESG kritéria
                   </a>
                 </Button>
@@ -333,7 +333,7 @@ export default async function NejlepsiESGETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl mb-3">
-                    <Leaf className="w-6 h-6 text-green-600" />
+                    <LeafIcon className="w-6 h-6 text-green-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">ESG investování v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro udržitelné investování</p>
@@ -342,7 +342,7 @@ export default async function NejlepsiESGETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-green-600" />
+                      <TrendingUpIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">RŮST ESG AKTIV</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">350%</div>
@@ -351,7 +351,7 @@ export default async function NejlepsiESGETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Globe className="w-4 h-4 text-emerald-600" />
+                      <GlobeIcon className="w-4 h-4 text-emerald-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ ESG ETF</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">11,4B</div>
@@ -360,7 +360,7 @@ export default async function NejlepsiESGETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Shield className="w-4 h-4 text-green-600" />
+                      <ShieldIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJNIŽŠÍ TER</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">0,07%</div>
@@ -369,7 +369,7 @@ export default async function NejlepsiESGETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Heart className="w-4 h-4 text-emerald-600" />
+                      <HeartIcon className="w-4 h-4 text-emerald-600" />
                       <span className="text-xs text-gray-500 font-medium">CO2 REDUKCE</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">50%</div>
@@ -387,7 +387,7 @@ export default async function NejlepsiESGETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-green-100 w-20 h-20 mx-auto mb-8 hover:bg-green-200 transition-colors hover-scale">
-              <Leaf className="w-10 h-10 text-green-700" />
+              <LeafIcon className="w-10 h-10 text-green-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou ESG ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -399,7 +399,7 @@ export default async function NejlepsiESGETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Sprout className="w-8 h-8 text-white" />
+                <SproutIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-emerald-800 transition-colors">Environmental (E)</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -410,7 +410,7 @@ export default async function NejlepsiESGETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Users className="w-8 h-8 text-white" />
+                <UsersIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-emerald-800 transition-colors">Social (S)</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -421,7 +421,7 @@ export default async function NejlepsiESGETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-teal-500 to-green-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Shield className="w-8 h-8 text-white" />
+                <ShieldIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-emerald-800 transition-colors">Governance (G)</h3>
               <p className="text-gray-600 leading-relaxed text-center">

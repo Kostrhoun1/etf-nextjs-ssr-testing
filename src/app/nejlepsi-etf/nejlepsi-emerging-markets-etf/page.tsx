@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, ArrowRight, Target, TrendingDown , DollarSign, Rocket, Zap, Users, Globe, Shield} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, TrendingDownIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, GlobeIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
@@ -323,7 +323,7 @@ export default async function NejlepsiEmergingMarketsETFPage() {
             {/* Left Column - Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-emerald-200/50">
-                <Rocket className="w-4 h-4 mr-2" />
+                <RocketIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -367,7 +367,7 @@ export default async function NejlepsiEmergingMarketsETFPage() {
                     size="lg" 
                     className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Button>
                 </Link>
@@ -379,7 +379,7 @@ export default async function NejlepsiEmergingMarketsETFPage() {
                   asChild
                 >
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Srovnání všech
                   </Link>
                 </Button>
@@ -455,21 +455,21 @@ export default async function NejlepsiEmergingMarketsETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: Globe,
+                icon: GlobeIcon,
                 title: "24 rozvíjejících se zemí",
                 description: "MSCI Emerging Markets pokrývá největší rozvíjející se ekonomiky včetně Číny (30%), Taiwanu, Indie, Korey, Brazílie a Saúdské Arábie.",
                 color: "from-emerald-500 to-teal-600",
                 delay: "0.2s"
               },
               {
-                icon: Rocket,
+                icon: RocketIcon,
                 title: "Rychlejší ekonomický růst",
                 description: "Emerging markets rostou rychleji než vyspělé ekonomiky díky industrializaci, urbanizaci a rostoucí střední třídě.",
                 color: "from-teal-500 to-cyan-600",
                 delay: "0.3s"
               },
               {
-                icon: TrendingDown,
+                icon: TrendingDownIcon,
                 title: "Vyšší riziko i výnos",
                 description: "EM ETF mají vyšší volatilitu než vyspělé trhy, ale dlouhodobě mohou dosahovat vyšších výnosů.",
                 color: "from-cyan-500 to-blue-600",
@@ -557,7 +557,7 @@ export default async function NejlepsiEmergingMarketsETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full mb-6">
-              <Target className="w-10 h-10 text-white" />
+              <TargetIcon className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               💡 Jak vybrat správný emerging markets ETF?
@@ -688,7 +688,7 @@ export default async function NejlepsiEmergingMarketsETFPage() {
               asChild
             >
               <Link href="/kde-koupit-etf">
-                <Shield className="w-5 h-5 mr-2" />
+                <ShieldIcon className="w-5 h-5 mr-2" />
                 Najít brokera pro ETF
               </Link>
             </Button>
@@ -700,7 +700,7 @@ export default async function NejlepsiEmergingMarketsETFPage() {
               asChild
             >
               <Link href="/srovnani-etf">
-                <BarChart3 className="w-5 h-5 mr-2" />
+                <BarChart3Icon className="w-5 h-5 mr-2" />
                 Srovnat všechny ETF
               </Link>
             </Button>

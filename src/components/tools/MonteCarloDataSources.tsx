@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { InfoIcon } from '@/components/ui/icons';
 
 const MonteCarloDataSources: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -12,7 +12,7 @@ const MonteCarloDataSources: React.FC = () => {
     <Card className="bg-blue-50 border-blue-200">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Info className="h-5 w-5 text-blue-600" />
+          <InfoIcon className="h-5 w-5 text-blue-600" />
           <CardTitle className="text-lg text-blue-900">Zdroje dat pro simulaci</CardTitle>
           <Button
             variant="ghost"
@@ -21,9 +21,9 @@ const MonteCarloDataSources: React.FC = () => {
             className="ml-auto p-1 h-auto"
           >
             {isExpanded ? (
-              <ChevronUp className="h-4 w-4 text-blue-600" />
+              <span className="h-4 w-4 text-blue-600 flex items-center justify-center">▲</span>
             ) : (
-              <ChevronDown className="h-4 w-4 text-blue-600" />
+              <span className="h-4 w-4 text-blue-600 flex items-center justify-center">▼</span>
             )}
           </Button>
         </div>

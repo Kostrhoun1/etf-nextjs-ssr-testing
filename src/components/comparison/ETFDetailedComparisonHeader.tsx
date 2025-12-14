@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeftIcon } from '@/components/ui/icons';
 import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
 interface ETFDetailedComparisonHeaderProps {
@@ -13,7 +13,7 @@ const ETFDetailedComparisonHeader: React.FC<ETFDetailedComparisonHeaderProps> = 
   return (
     <div className="mb-6">
       <Button variant="outline" onClick={onBack} className="mb-4">
-        <ArrowLeft className="h-4 w-4 mr-2" />
+        <ArrowLeftIcon className="h-4 w-4 mr-2" />
         Zpět na seznam
       </Button>
       <div className="flex items-start justify-between">

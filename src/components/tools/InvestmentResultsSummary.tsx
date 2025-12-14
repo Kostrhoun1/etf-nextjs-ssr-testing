@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PiggyBank, Target, TrendingUp } from 'lucide-react';
+import { PiggyBankIcon, TargetIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { CalculationData } from '@/utils/investmentCalculations';
 
 interface InvestmentResultsSummaryProps {
@@ -22,7 +22,7 @@ const InvestmentResultsSummary: React.FC<InvestmentResultsSummaryProps> = ({ res
         <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
           <CardContent className="p-6 text-center">
             <div className="mb-4 flex items-center justify-center rounded-full bg-violet-100 w-12 h-12 mx-auto group-hover:bg-violet-200 transition-colors hover-scale">
-              <PiggyBank className="h-6 w-6 text-violet-700" />
+              <PiggyBankIcon className="h-6 w-6 text-violet-700" />
             </div>
             <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-violet-800 transition-colors">Celkem investováno</h4>
             <p className="text-2xl font-bold text-violet-600">
@@ -33,7 +33,7 @@ const InvestmentResultsSummary: React.FC<InvestmentResultsSummaryProps> = ({ res
         <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
           <CardContent className="p-6 text-center">
             <div className="mb-4 flex items-center justify-center rounded-full bg-emerald-100 w-12 h-12 mx-auto group-hover:bg-emerald-200 transition-colors hover-scale">
-              <TrendingUp className="h-6 w-6 text-emerald-700" />
+              <TrendingUpIcon className="h-6 w-6 text-emerald-700" />
             </div>
             <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-800 transition-colors">Čistý výnos (po dani)</h4>
             <p className="text-2xl font-bold text-emerald-600">
@@ -44,7 +44,7 @@ const InvestmentResultsSummary: React.FC<InvestmentResultsSummaryProps> = ({ res
         <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
           <CardContent className="p-6 text-center">
             <div className="mb-4 flex items-center justify-center rounded-full bg-violet-100 w-12 h-12 mx-auto group-hover:bg-violet-200 transition-colors hover-scale">
-              <Target className="h-6 w-6 text-violet-700" />
+              <TargetIcon className="h-6 w-6 text-violet-700" />
             </div>
             <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-violet-800 transition-colors">Celková hodnota portfolia</h4>
             <p className="text-2xl font-bold text-violet-600">

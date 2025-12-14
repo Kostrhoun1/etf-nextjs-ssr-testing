@@ -6,7 +6,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent } from "@/components/ui/card";
-import { Shuffle, TrendingUp, AlertTriangle, BarChart3, Target, LineChart } from 'lucide-react';
+import { TrendingUpIcon, AlertIcon, BarChart3Icon, TargetIcon } from '@/components/ui/icons';
 import { MonteCarloCalculator } from '@/components/tools/MonteCarloCalculator';
 
 const MonteCarloContent: React.FC = () => {
@@ -43,7 +43,7 @@ const MonteCarloContent: React.FC = () => {
         {/* Hero sekce */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Shuffle className="w-4 h-4" />
+            <span className="w-4 h-4 flex items-center justify-center">🎲</span>
             Monte Carlo simulátor 2025
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -64,7 +64,7 @@ const MonteCarloContent: React.FC = () => {
           <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <Card>
               <CardContent className="p-4 text-center">
-                <Shuffle className="w-10 h-10 text-purple-600 mx-auto mb-3" />
+                <span className="w-10 h-10 text-purple-600 mx-auto mb-3 flex items-center justify-center text-2xl">🎲</span>
                 <h3 className="text-sm font-semibold mb-1">Scénáře</h3>
                 <p className="text-gray-600 text-xs">
                   Stovky možných budoucností
@@ -73,7 +73,7 @@ const MonteCarloContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <TrendingUp className="w-10 h-10 text-green-600 mx-auto mb-3" />
+                <TrendingUpIcon className="w-10 h-10 text-green-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Optimistický</h3>
                 <p className="text-gray-600 text-xs">
                   Nejlepší možný vývoj
@@ -82,7 +82,7 @@ const MonteCarloContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <LineChart className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+                <span className="w-10 h-10 text-blue-600 mx-auto mb-3 flex items-center justify-center text-2xl">📈</span>
                 <h3 className="text-sm font-semibold mb-1">Průměrný</h3>
                 <p className="text-gray-600 text-xs">
                   Nejpravděpodobnější cesta
@@ -91,7 +91,7 @@ const MonteCarloContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <AlertTriangle className="w-10 h-10 text-amber-600 mx-auto mb-3" />
+                <AlertIcon className="w-10 h-10 text-amber-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Pesimistický</h3>
                 <p className="text-gray-600 text-xs">
                   Horší scénáře
@@ -100,7 +100,7 @@ const MonteCarloContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <BarChart3 className="w-10 h-10 text-red-600 mx-auto mb-3" />
+                <BarChart3Icon className="w-10 h-10 text-red-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Volatilita</h3>
                 <p className="text-gray-600 text-xs">
                   Rozptyl výsledků
@@ -109,7 +109,7 @@ const MonteCarloContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <Target className="w-10 h-10 text-indigo-600 mx-auto mb-3" />
+                <TargetIcon className="w-10 h-10 text-indigo-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Percentily</h3>
                 <p className="text-gray-600 text-xs">
                   Pravděpodobnostní pásma

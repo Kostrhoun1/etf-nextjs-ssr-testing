@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Calculator , DollarSign, Rocket, Zap, Users, CreditCard, Building, Banknote, TrendingUp, Shield} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, CalculatorIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, CreditCardIcon, BuildingIcon, BanknoteIcon, TrendingUpIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -273,7 +273,7 @@ export default async function NejlepsiFinancniETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-slate-100 to-gray-100 text-slate-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-slate-200/50">
-                <CreditCard className="w-4 h-4 mr-2" />
+                <CreditCardIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -315,13 +315,13 @@ export default async function NejlepsiFinancniETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <CreditCard className="w-5 h-5 mr-2" />
+                    <CreditCardIcon className="w-5 h-5 mr-2" />
                     Bankovní trendy
                   </a>
                 </Button>
@@ -332,7 +332,7 @@ export default async function NejlepsiFinancniETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-xl mb-3">
-                    <CreditCard className="w-6 h-6 text-slate-600" />
+                    <CreditCardIcon className="w-6 h-6 text-slate-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">Finanční sektor v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro finanční investice</p>
@@ -341,7 +341,7 @@ export default async function NejlepsiFinancniETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-slate-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Building className="w-4 h-4 text-slate-600" />
+                      <BuildingIcon className="w-4 h-4 text-slate-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ BANK ETF</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">2,9B</div>
@@ -350,7 +350,7 @@ export default async function NejlepsiFinancniETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-gray-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-gray-600" />
+                      <DollarIcon className="w-4 h-4 text-gray-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJNIŽŠÍ TER</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">0,15%</div>
@@ -359,7 +359,7 @@ export default async function NejlepsiFinancniETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-slate-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Banknote className="w-4 h-4 text-slate-600" />
+                      <BanknoteIcon className="w-4 h-4 text-slate-600" />
                       <span className="text-xs text-gray-500 font-medium">TOP HOLDING</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">5%</div>
@@ -368,7 +368,7 @@ export default async function NejlepsiFinancniETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-gray-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-gray-600" />
+                      <TrendingUpIcon className="w-4 h-4 text-gray-600" />
                       <span className="text-xs text-gray-500 font-medium">ÚROKOVÉ SAZBY</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">4%+</div>
@@ -386,7 +386,7 @@ export default async function NejlepsiFinancniETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-slate-100 w-20 h-20 mx-auto mb-8 hover:bg-slate-200 transition-colors hover-scale">
-              <CreditCard className="w-10 h-10 text-slate-700" />
+              <CreditCardIcon className="w-10 h-10 text-slate-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou finanční ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -398,7 +398,7 @@ export default async function NejlepsiFinancniETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-slate-500 to-gray-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-8 h-8 text-white" />
+                <TrendingUpIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-slate-800 transition-colors">Citlivost na úroku</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -409,7 +409,7 @@ export default async function NejlepsiFinancniETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-gray-500 to-zinc-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Shield className="w-8 h-8 text-white" />
+                <ShieldIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-gray-800 transition-colors">Cyklický charakter</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -420,7 +420,7 @@ export default async function NejlepsiFinancniETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-zinc-500 to-slate-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <DollarSign className="w-8 h-8 text-white" />
+                <DollarIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-zinc-800 transition-colors">Dividendové výnosy</h3>
               <p className="text-gray-600 leading-relaxed text-center">

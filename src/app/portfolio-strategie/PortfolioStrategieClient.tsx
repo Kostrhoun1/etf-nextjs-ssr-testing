@@ -6,7 +6,7 @@ import PortfolioWizard from '@/components/onboarding/PortfolioWizard';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import { Button } from '@/components/ui/button';
 import { Card } from "@/components/ui/card";
-import { Sparkles, PieChart, Target, Users } from 'lucide-react';
+import { PieChartIcon, TargetIcon, UsersIcon } from '@/components/ui/icons';
 
 interface PortfolioStrategieClientProps {
   currentYear: number;
@@ -34,7 +34,7 @@ const PortfolioStrategieClient: React.FC<PortfolioStrategieClientProps> = ({ cur
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-violet-100 to-purple-100 text-violet-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-violet-200/50">
-                <PieChart className="w-4 h-4 mr-2" />
+                <PieChartIcon className="w-4 h-4 mr-2" />
                 Aktualizováno pro rok {currentYear}
               </div>
 
@@ -55,14 +55,14 @@ const PortfolioStrategieClient: React.FC<PortfolioStrategieClientProps> = ({ cur
                   onClick={() => scrollToSection('strategies')}
                   className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 h-12"
                 >
-                  <Target className="w-5 h-5" />
+                  <TargetIcon className="w-5 h-5" />
                   Zobrazit strategie
                 </button>
                 <button
                   onClick={() => setShowWizard(true)}
                   className="bg-white/80 backdrop-blur-sm border-2 border-violet-300 text-violet-700 hover:bg-violet-50 px-8 py-3 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2 h-12"
                 >
-                  <Sparkles className="w-5 h-5" />
+                  <span className="text-xl">✨</span>
                   Použít průvodce
                 </button>
               </div>
@@ -130,7 +130,7 @@ const PortfolioStrategieClient: React.FC<PortfolioStrategieClientProps> = ({ cur
         <Card className="bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200 p-8">
           <div className="text-center">
             <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="w-8 h-8 text-violet-600" />
+              <span className="text-3xl">✨</span>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Průvodce výběrem portfolia</h3>
             <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
@@ -141,7 +141,7 @@ const PortfolioStrategieClient: React.FC<PortfolioStrategieClientProps> = ({ cur
               onClick={() => setShowWizard(true)}
               className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold"
             >
-              <Target className="w-5 h-5 mr-2" />
+              <TargetIcon className="w-5 h-5 mr-2" />
               Spustit průvodce výběrem
             </Button>
           </div>
@@ -154,7 +154,7 @@ const PortfolioStrategieClient: React.FC<PortfolioStrategieClientProps> = ({ cur
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center">
-                <Users className="w-6 h-6 text-violet-600" />
+                <UsersIcon className="w-6 h-6 text-violet-600" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Nejste si jisti kterou strategii vybrat?</h3>
@@ -165,7 +165,7 @@ const PortfolioStrategieClient: React.FC<PortfolioStrategieClientProps> = ({ cur
               onClick={() => setShowWizard(true)}
               className="bg-violet-600 hover:bg-violet-700"
             >
-              <Sparkles className="w-4 h-4 mr-2" />
+              <span className="text-lg mr-2">✨</span>
               Průvodce modelovými portfolii
             </Button>
           </div>

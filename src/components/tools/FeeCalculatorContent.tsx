@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, TrendingDown, AlertTriangle, Info, ArrowRight, Loader2, DollarSign } from 'lucide-react';
+import { CalculatorIcon, AlertIcon, InfoIcon, DollarIcon, TrendingDownIcon, ArrowRightIcon, LoaderIcon } from '@/components/ui/icons';
 import { supabase } from '@/integrations/supabase/client';
 
 const FeeCalculatorContent: React.FC = () => {
@@ -216,7 +216,7 @@ const FeeCalculatorContent: React.FC = () => {
       {/* Hero sekce */}
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-          <Calculator className="w-4 h-4" />
+          <CalculatorIcon className="w-4 h-4" />
           Kalkulačka poplatků 2025
         </div>
         
@@ -237,7 +237,7 @@ const FeeCalculatorContent: React.FC = () => {
         <Card className="mb-4">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Info className="w-5 h-5" />
+              <InfoIcon className="w-5 h-5" />
               Parametry srovnání
             </CardTitle>
           </CardHeader>
@@ -300,7 +300,7 @@ const FeeCalculatorContent: React.FC = () => {
               {/* ETF fond */}
               <div className="border rounded-lg p-4 bg-violet-25">
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingDown className="w-4 h-4 text-violet-600" />
+                  <TrendingDownIcon className="w-4 h-4 text-violet-600" />
                   <h3 className="font-semibold">ETF fond</h3>
                 </div>
                 
@@ -335,7 +335,7 @@ const FeeCalculatorContent: React.FC = () => {
               {/* Bankovní fond */}
               <div className="border rounded-lg p-4 bg-gray-25">
                 <div className="flex items-center gap-2 mb-3">
-                  <DollarSign className="w-4 h-4 text-violet-600" />
+                  <DollarIcon className="w-4 h-4 text-violet-600" />
                   <h3 className="font-semibold">Bankovní fond</h3>
                 </div>
                 
@@ -497,7 +497,7 @@ const FeeCalculatorContent: React.FC = () => {
                 href="/kde-koupit-etf"
                 className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
               >
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRightIcon className="w-4 h-4" />
                 Podrobné srovnání všech brokerů
               </Link>
             </div>
@@ -523,7 +523,7 @@ const FeeCalculatorContent: React.FC = () => {
         
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <LoaderIcon className="w-8 h-8 animate-spin text-blue-600" />
             <span className="ml-3 text-gray-600">Načítám aktuální data ETF...</span>
           </div>
         ) : cheapestETFs.length === 0 ? (
@@ -580,7 +580,7 @@ const FeeCalculatorContent: React.FC = () => {
             href="/srovnani-etf"
             className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
           >
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
             Zobrazit kompletní srovnání všech {etfsCount}+ ETF fondů
           </Link>
         </div>

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, ShoppingCart, Coffee, Package , DollarSign, Rocket, Zap, Users, TrendingUp} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, ShoppingCartIcon, CoffeeIcon, PackageIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -249,7 +249,7 @@ export default async function NejlepsiSpotrebniETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-pink-200/50">
-                <ShoppingCart className="w-4 h-4 mr-2" />
+                <ShoppingCartIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -291,13 +291,13 @@ export default async function NejlepsiSpotrebniETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    <ShoppingCartIcon className="w-5 h-5 mr-2" />
                     Spotřební trendy
                   </a>
                 </Button>
@@ -308,7 +308,7 @@ export default async function NejlepsiSpotrebniETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-pink-100 rounded-xl mb-3">
-                    <ShoppingCart className="w-6 h-6 text-pink-600" />
+                    <ShoppingCartIcon className="w-6 h-6 text-pink-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">Spotřební sektor v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro spotřební investice</p>
@@ -317,7 +317,7 @@ export default async function NejlepsiSpotrebniETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-pink-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Coffee className="w-4 h-4 text-pink-600" />
+                      <CoffeeIcon className="w-4 h-4 text-pink-600" />
                       <span className="text-xs text-gray-500 font-medium">STAPLES ETF</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">731M</div>
@@ -326,7 +326,7 @@ export default async function NejlepsiSpotrebniETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-rose-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-rose-600" />
+                      <DollarIcon className="w-4 h-4 text-rose-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJNIŽŠÍ TER</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">0,12%</div>
@@ -335,7 +335,7 @@ export default async function NejlepsiSpotrebniETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-pink-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Package className="w-4 h-4 text-pink-600" />
+                      <PackageIcon className="w-4 h-4 text-pink-600" />
                       <span className="text-xs text-gray-500 font-medium">TOP HOLDING</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">3%</div>
@@ -344,7 +344,7 @@ export default async function NejlepsiSpotrebniETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-rose-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Users className="w-4 h-4 text-rose-600" />
+                      <UsersIcon className="w-4 h-4 text-rose-600" />
                       <span className="text-xs text-gray-500 font-medium">DEFENSIVNÍ</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">Staples</div>
@@ -362,7 +362,7 @@ export default async function NejlepsiSpotrebniETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-pink-100 w-20 h-20 mx-auto mb-8 hover:bg-pink-200 transition-colors hover-scale">
-              <ShoppingCart className="w-10 h-10 text-pink-700" />
+              <ShoppingCartIcon className="w-10 h-10 text-pink-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou spotřební ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -374,7 +374,7 @@ export default async function NejlepsiSpotrebniETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-rose-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Coffee className="w-8 h-8 text-white" />
+                <CoffeeIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-pink-800 transition-colors">Consumer Staples</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -385,7 +385,7 @@ export default async function NejlepsiSpotrebniETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-purple-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Package className="w-8 h-8 text-white" />
+                <PackageIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-rose-800 transition-colors">Consumer Discretionary</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -396,7 +396,7 @@ export default async function NejlepsiSpotrebniETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-8 h-8 text-white" />
+                <TrendingUpIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-purple-800 transition-colors">Spotřebitelské trendy</h3>
               <p className="text-gray-600 leading-relaxed text-center">

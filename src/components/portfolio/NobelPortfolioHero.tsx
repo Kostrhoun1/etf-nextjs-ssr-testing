@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Target, Award } from 'lucide-react';
+import { BarChart3Icon, TargetIcon, AwardIcon } from '@/components/ui/icons';
 
 export default function NobelPortfolioHero() {
   return (
@@ -17,7 +17,7 @@ export default function NobelPortfolioHero() {
           {/* Left Content */}
           <div className="space-y-8">
             <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-blue-200/50">
-              <Award className="w-4 h-4 mr-2" />
+              <AwardIcon className="w-4 h-4 mr-2" />
               Nobel Portfolio
             </div>
             
@@ -33,18 +33,18 @@ export default function NobelPortfolioHero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link 
+              <Link
                 href="#allocation"
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 h-12"
               >
-                <BarChart3 className="w-5 h-5" />
+                <BarChart3Icon className="w-5 h-5" />
                 Zobrazit složení
               </Link>
-              <Link 
+              <Link
                 href="#performance"
                 className="bg-white/80 backdrop-blur-sm border-2 border-blue-300 text-blue-700 hover:bg-blue-50 px-8 py-3 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2 h-12"
               >
-                <Target className="w-5 h-5" />
+                <TargetIcon className="w-5 h-5" />
                 Aktuální výnos
               </Link>
             </div>

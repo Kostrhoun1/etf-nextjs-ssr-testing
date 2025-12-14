@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Layout from '../../components/Layout';
 import DetailedBrokerComparison from '../../components/home/DetailedBrokerComparison';
 import { Button } from '@/components/ui/button';
-import { Store, ArrowRight, ExternalLink, Award, Shield, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { BuildingIcon, ArrowRightIcon, ExternalLinkIcon, AwardIcon, ShieldIcon, UsersIcon, WalletIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking, { BrokerGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 import { generateBrokerSchema, generateFAQSchema, generateBreadcrumbSchema } from '@/components/SEO/BrokerSEO';
 import { generateCanonicalMetadata } from '@/lib/metadata';
@@ -35,28 +35,28 @@ export default async function KdeKoupitETF() {
 
   const considerations = [
     {
-      icon: DollarSign,
+      icon: WalletIcon,
       title: 'Poplatky a náklady',
       description: 'Porovnejte transakční poplatky, správní poplatky a poplatky za vedení účtu',
       highlight: 'Od 0€ za transakci',
       color: 'emerald'
     },
     {
-      icon: Shield,
+      icon: ShieldIcon,
       title: 'Regulace a bezpečnost',
       description: 'Vybírejte brokery regulované v EU s ochranou investorů',
       highlight: 'Ochrana do 20 000€',
       color: 'blue'
     },
     {
-      icon: TrendingUp,
+      icon: TrendingUpIcon,
       title: 'Výběr ETF',
       description: 'Ujistěte se, že broker nabízí ETF, které chcete koupit',
       highlight: '3000+ ETF fondů',
       color: 'purple'
     },
     {
-      icon: Users,
+      icon: UsersIcon,
       title: 'Uživatelské rozhraní',
       description: 'Intuitivní platforma je klíčová pro pohodlné investování',
       highlight: 'Mobilní aplikace',
@@ -85,7 +85,7 @@ export default async function KdeKoupitETF() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-blue-200/50">
-                <Store className="w-4 h-4 mr-2" />
+                <BuildingIcon className="w-4 h-4 mr-2" />
                 Srovnání nejlepších brokerů {currentYear}
               </div>
               
@@ -102,18 +102,18 @@ export default async function KdeKoupitETF() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link 
+                <Link
                   href="#porovnani"
                   className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-14"
                 >
-                  <Award className="w-5 h-5 mr-2" />
+                  <AwardIcon className="w-5 h-5 mr-2" />
                   Srovnat brokery
                 </Link>
-                <Link 
+                <Link
                   href="/co-jsou-etf/jak-zacit-investovat"
                   className="inline-flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-semibold rounded-md transition-all h-14"
                 >
-                  <ArrowRight className="w-5 h-5 mr-2" />
+                  <ArrowRightIcon className="w-5 h-5 mr-2" />
                   Jak začít
                 </Link>
               </div>
@@ -146,7 +146,7 @@ export default async function KdeKoupitETF() {
                         <div className="flex items-center gap-2">
                           <div className="text-xl font-bold">Portu</div>
                           <Link href="/portu-recenze">
-                            <ExternalLink className="w-4 h-4 opacity-75 hover:opacity-100 transition-opacity" />
+                            <ExternalLinkIcon className="w-4 h-4 opacity-75 hover:opacity-100 transition-opacity" />
                           </Link>
                         </div>
                       </div>
@@ -168,7 +168,7 @@ export default async function KdeKoupitETF() {
                         <div className="flex items-center gap-2">
                           <div className="text-xl font-bold">Interactive Brokers</div>
                           <Link href="/interactive-brokers-recenze">
-                            <ExternalLink className="w-4 h-4 opacity-75 hover:opacity-100 transition-opacity" />
+                            <ExternalLinkIcon className="w-4 h-4 opacity-75 hover:opacity-100 transition-opacity" />
                           </Link>
                         </div>
                       </div>
@@ -190,7 +190,7 @@ export default async function KdeKoupitETF() {
                         <div className="flex items-center gap-2">
                           <div className="text-xl font-bold">Fio e-Broker</div>
                           <Link href="/fio-ebroker-recenze">
-                            <ExternalLink className="w-4 h-4 opacity-75 hover:opacity-100 transition-opacity" />
+                            <ExternalLinkIcon className="w-4 h-4 opacity-75 hover:opacity-100 transition-opacity" />
                           </Link>
                         </div>
                       </div>
@@ -218,7 +218,7 @@ export default async function KdeKoupitETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-20 h-20 mx-auto mb-8 hover:bg-violet-200 transition-colors hover-scale">
-              <Shield className="w-10 h-10 text-violet-700" />
+              <ShieldIcon className="w-10 h-10 text-violet-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Na co se zaměřit při výběru brokera
@@ -274,7 +274,7 @@ export default async function KdeKoupitETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-emerald-100 w-20 h-20 mx-auto mb-8 hover:bg-emerald-200 transition-colors hover-scale">
-              <Users className="w-10 h-10 text-emerald-700" />
+              <UsersIcon className="w-10 h-10 text-emerald-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Tipy pro začátečníky
@@ -327,13 +327,13 @@ export default async function KdeKoupitETF() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button asChild size="lg" className="hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-8 py-4 text-lg font-semibold">
                 <Link href="/co-jsou-etf/jak-zacit-investovat">
-                  <ArrowRight className="w-5 h-5 mr-2" />
+                  <ArrowRightIcon className="w-5 h-5 mr-2" />
                   Jak začít s ETF investicemi
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="hover-scale border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-8 py-4 text-lg font-semibold">
                 <Link href="#porovnani">
-                  <Award className="w-5 h-5 mr-2" />
+                  <AwardIcon className="w-5 h-5 mr-2" />
                   Srovnání brokerů výše
                 </Link>
               </Button>

@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, BarChart3, Eye } from 'lucide-react';
+import { XIcon, BarChart3Icon, EyeIcon } from '@/components/ui/icons';
 import { ETF } from '@/types/etf';
 import { useRouter } from 'next/navigation';
 
@@ -42,7 +42,7 @@ const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-violet-600" />
+              <BarChart3Icon className="w-4 h-4 text-violet-600" />
               <span className="font-semibold text-gray-900">
                 Porovnání ({selectedETFs.length}/3)
               </span>
@@ -53,7 +53,7 @@ const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
               onClick={onClearAll}
               className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
             >
-              <X className="w-4 h-4" />
+              <XIcon className="w-4 h-4" />
             </Button>
           </div>
 
@@ -81,7 +81,7 @@ const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
                     onClick={() => handleViewETF(etf.isin)}
                     title="Zobrazit detail"
                   >
-                    <Eye className="w-3 h-3" />
+                    <EyeIcon className="w-3 h-3" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -90,7 +90,7 @@ const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
                     onClick={() => onRemoveETF(etf.isin)}
                     title="Odebrat z porovnání"
                   >
-                    <X className="w-3 h-3" />
+                    <XIcon className="w-3 h-3" />
                   </Button>
                 </div>
               </div>
@@ -124,7 +124,7 @@ const ComparisonWidget: React.FC<ComparisonWidgetProps> = ({
               className="w-full bg-violet-600 hover:bg-violet-700 text-white disabled:bg-gray-300 disabled:text-gray-500"
               size="sm"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <BarChart3Icon className="w-4 h-4 mr-2" />
               {selectedETFs.length < 2 ? 'Přidejte další ETF' : 'Porovnat vybrané'}
             </Button>
 

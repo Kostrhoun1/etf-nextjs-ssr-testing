@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { TrendingUp, Star, Trophy, Medal, Crown, Download } from 'lucide-react';
+import { TrendingUpIcon, StarIcon, TrophyIcon, MedalIcon, CrownIcon, DownloadIcon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 
 // Twitter/X Format (1200x675) - Různé grafické varianty
@@ -58,7 +58,7 @@ const TwitterVariant2: React.FC<TwitterVariantProps> = ({ title, subtitle, child
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="bg-violet-600 p-4 rounded-2xl">
-              <Trophy className="w-12 h-12 text-white" />
+              <TrophyIcon className="w-12 h-12 text-white" />
             </div>
             <div>
               <h1 className="text-4xl font-black text-gray-900 leading-tight">{title}</h1>
@@ -93,7 +93,7 @@ const TwitterVariant3: React.FC<TwitterVariantProps> = ({ title, subtitle, child
       <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Crown className="w-10 h-10" />
+            <CrownIcon className="w-10 h-10" />
             <div>
               <h1 className="text-4xl font-black">{title}</h1>
               {subtitle && <p className="text-white/90 text-xl mt-1">{subtitle}</p>}
@@ -128,7 +128,7 @@ const TwitterVariant4: React.FC<TwitterVariantProps> = ({ title, subtitle, child
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 bg-violet-600 rounded-full flex items-center justify-center">
-              <Star className="w-8 h-8 text-white" />
+              <StarIcon className="w-8 h-8 text-white" />
             </div>
             <div>
               <h1 className="text-4xl font-black text-gray-900">{title}</h1>
@@ -170,7 +170,7 @@ const TwitterVariant5: React.FC<TwitterVariantProps> = ({ title, subtitle, child
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="inline-flex items-center bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-emerald-200/50">
-              <TrendingUp className="w-4 h-4 mr-2" />
+              <TrendingUpIcon className="w-4 h-4 mr-2" />
               ETF analýza 2025
             </div>
             <div>

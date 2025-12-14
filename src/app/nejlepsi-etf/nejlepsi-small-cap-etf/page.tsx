@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Gem, Layers, TrendingDown, TrendingUp, Building , DollarSign, Rocket, Zap, Users} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, GemIcon, LayersIcon, TrendingDownIcon, TrendingUpIcon, BuildingIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -249,7 +249,7 @@ export default async function NejlepsiSmallCapETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-orange-100 to-amber-100 text-amber-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-amber-200/50">
-                <Rocket className="w-4 h-4 mr-2" />
+                <RocketIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -291,13 +291,13 @@ export default async function NejlepsiSmallCapETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <Gem className="w-5 h-5 mr-2" />
+                    <GemIcon className="w-5 h-5 mr-2" />
                     Růstový potenciál
                   </a>
                 </Button>
@@ -308,7 +308,7 @@ export default async function NejlepsiSmallCapETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-xl mb-3">
-                    <Gem className="w-6 h-6 text-orange-600" />
+                    <GemIcon className="w-6 h-6 text-orange-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">Small Cap investování v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro malé společnosti</p>
@@ -317,16 +317,16 @@ export default async function NejlepsiSmallCapETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-orange-600" />
+                      <TrendingUpIcon className="w-4 h-4 text-orange-600" />
                       <span className="text-xs text-gray-500 font-medium">SMALL CAP PREMIUM</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">+2%</div>
                     <div className="text-xs text-gray-600">ročně vs large cap</div>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-amber-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Rocket className="w-4 h-4 text-amber-600" />
+                      <RocketIcon className="w-4 h-4 text-amber-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ SMALL CAP</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">5,5B</div>
@@ -335,16 +335,16 @@ export default async function NejlepsiSmallCapETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Building className="w-4 h-4 text-orange-600" />
+                      <BuildingIcon className="w-4 h-4 text-orange-600" />
                       <span className="text-xs text-gray-500 font-medium">TRŽNÍ KAPITALIZACE</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">300M-2B</div>
                     <div className="text-xs text-gray-600">USD typicky</div>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-amber-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <BarChart3 className="w-4 h-4 text-amber-600" />
+                      <BarChart3Icon className="w-4 h-4 text-amber-600" />
                       <span className="text-xs text-gray-500 font-medium">VOLATILITA</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">+5%</div>
@@ -362,7 +362,7 @@ export default async function NejlepsiSmallCapETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-orange-100 w-20 h-20 mx-auto mb-8 hover:bg-orange-200 transition-colors hover-scale">
-              <Gem className="w-10 h-10 text-orange-700" />
+              <GemIcon className="w-10 h-10 text-orange-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou Small Cap ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -374,33 +374,33 @@ export default async function NejlepsiSmallCapETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Rocket className="w-8 h-8 text-white" />
+                <RocketIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-amber-800 transition-colors">Vysoký růstový potenciál</h3>
               <p className="text-gray-600 leading-relaxed text-center">
-                Malé společnosti mají větší prostor pro růst než velké korporace, 
+                Malé společnosti mají větší prostor pro růst než velké korporace,
                 historicky dosahují vyšších výnosů za cenu vyšší volatility.
               </p>
             </div>
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Layers className="w-8 h-8 text-white" />
+                <LayersIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-amber-800 transition-colors">Diverzifikace portfolia</h3>
               <p className="text-gray-600 leading-relaxed text-center">
-                Small cap ETF poskytují přístup k tisícům menších firem, 
+                Small cap ETF poskytují přístup k tisícům menších firem,
                 kterými není možné diverzifikovat jen přes S&P 500 či jiné large cap indexy.
               </p>
             </div>
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-yellow-500 to-orange-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Target className="w-8 h-8 text-white" />
+                <TargetIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-amber-800 transition-colors">Méně efektivní trh</h3>
               <p className="text-gray-600 leading-relaxed text-center">
-                Malé společnosti jsou méně pokryté analytiky, 
+                Malé společnosti jsou méně pokryté analytiky,
                 což vytváří příležitosti pro lepší výkonnost aktivních strategií.
               </p>
             </div>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BarChart3, AlertCircle, CheckCircle, Target, Zap, Users, TrendingUp } from 'lucide-react';
+import { BarChart3Icon, AlertTriangleIcon, CheckCircleIcon, TargetIcon, ZapIcon, UsersIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import AkcioviPortfolioPerformance from '@/components/portfolio/AkcioviPortfolioPerformance';
 import { getETFLink } from '@/data/etf-mappings';
@@ -61,7 +61,7 @@ export default function AkciovPortfolioPage() {
               {/* Left Content */}
               <div className="space-y-8">
                 <div className="inline-flex items-center bg-gradient-to-r from-red-100 to-pink-100 text-red-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-red-200/50">
-                  <Zap className="w-4 h-4 mr-2" />
+                  <ZapIcon className="w-4 h-4 mr-2" />
                   Akciové Portfolio
                 </div>
                 
@@ -77,18 +77,18 @@ export default function AkciovPortfolioPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link 
+                  <Link
                     href="#allocation"
                     className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 h-12"
                   >
-                    <BarChart3 className="w-5 h-5" />
+                    <BarChart3Icon className="w-5 h-5" />
                     Zobrazit složení
                   </Link>
-                  <Link 
+                  <Link
                     href="#vykonnost"
                     className="bg-white/80 backdrop-blur-sm border-2 border-red-300 text-red-700 hover:bg-red-50 px-8 py-3 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2 h-12"
                   >
-                    <Target className="w-5 h-5" />
+                    <TargetIcon className="w-5 h-5" />
                     Aktuální výnos
                   </Link>
                 </div>
@@ -171,7 +171,7 @@ export default function AkciovPortfolioPage() {
             <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <BarChart3 className="text-red-600" />
+                <BarChart3Icon className="text-red-600" />
                 Složení Akciového Portfolia
               </CardTitle>
             </CardHeader>
@@ -217,7 +217,7 @@ export default function AkciovPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Zap className="text-red-600" />
+                  <ZapIcon className="text-red-600" />
                   Filozofie strategie
                 </CardTitle>
               </CardHeader>
@@ -244,34 +244,34 @@ export default function AkciovPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <CheckCircle className="text-green-600" />
+                  <CheckCircleIcon className="text-green-600" />
                   Výhody strategie
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Nejvyšší dlouhodobý růstový potenciál</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Jednoduchost - jen akciové ETF</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Nejnižší náklady na správu</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Ochrana proti inflaci</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Ideální pro mládí</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Transparentnost a likvidita</span>
                   </li>
                 </ul>
@@ -287,7 +287,7 @@ export default function AkciovPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Target className="text-blue-600" />
+                <TargetIcon className="text-blue-600" />
                 Implementace podle životní fáze
               </CardTitle>
             </CardHeader>
@@ -333,7 +333,7 @@ export default function AkciovPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Target className="text-blue-600" />
+                <TargetIcon className="text-blue-600" />
                 Praktická implementace
               </CardTitle>
             </CardHeader>
@@ -377,7 +377,7 @@ export default function AkciovPortfolioPage() {
           <Card className="mb-12 border-orange-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-orange-700">
-                <AlertCircle className="text-orange-600" />
+                <AlertTriangleIcon className="text-orange-600" />
                 Rizika a nevýhody
               </CardTitle>
             </CardHeader>
@@ -385,23 +385,23 @@ export default function AkciovPortfolioPage() {
               <div className="bg-orange-50 p-6 rounded-lg">
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Vysoká volatilita:</strong> Velké výkyvy během krizí (-50%)</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Sequence risk:</strong> Špatné časování na začátku důchodu může zruinovat plán</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Emocionální nápor:</strong> Obtížné držet během bear marketu</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Koncentrace rizika:</strong> Pouze jedna třída aktiv</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Dlouhé recovery:</strong> Návrat na peak může trvat roky</span>
                   </li>
                 </ul>
@@ -413,7 +413,7 @@ export default function AkciovPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Users className="text-purple-600" />
+                <UsersIcon className="text-purple-600" />
                 Pro koho je Akciové Portfolio vhodné?
               </CardTitle>
             </CardHeader>
@@ -452,7 +452,7 @@ export default function AkciovPortfolioPage() {
           <section className="py-16">
             <div className="text-center mb-12">
               <div className="inline-flex items-center bg-gradient-to-r from-red-100 to-orange-100 text-red-700 px-6 py-3 rounded-full text-sm font-medium mb-6">
-                <TrendingUp className="w-4 h-4 mr-2" />
+                <TrendingUpIcon className="w-4 h-4 mr-2" />
                 Často kladené otázky
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">

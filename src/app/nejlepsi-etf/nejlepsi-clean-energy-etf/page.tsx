@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Leaf, Sun, Wind , DollarSign, Rocket, Zap, Users} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, LeafIcon, SunIcon, WindIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -273,7 +273,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-green-200/50">
-                <Leaf className="w-4 h-4 mr-2" />
+                <LeafIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -315,13 +315,13 @@ export default async function NejlepsiCleanEnergyETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <Leaf className="w-5 h-5 mr-2" />
+                    <LeafIcon className="w-5 h-5 mr-2" />
                     Green Deal
                   </a>
                 </Button>
@@ -332,7 +332,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl mb-3">
-                    <Leaf className="w-6 h-6 text-green-600" />
+                    <LeafIcon className="w-6 h-6 text-green-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">Clean energy v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro zelené investice</p>
@@ -341,7 +341,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Leaf className="w-4 h-4 text-green-600" />
+                      <LeafIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ CLEAN ETF</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">2,0B</div>
@@ -350,7 +350,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                      <DollarIcon className="w-4 h-4 text-emerald-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJNIŽŠÍ TER</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">0,49%</div>
@@ -359,7 +359,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Sun className="w-4 h-4 text-green-600" />
+                      <SunIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">TOP HOLDING</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">5%</div>
@@ -368,7 +368,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-emerald-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Wind className="w-4 h-4 text-emerald-600" />
+                      <WindIcon className="w-4 h-4 text-emerald-600" />
                       <span className="text-xs text-gray-500 font-medium">GREEN DEAL EU</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">1T€</div>
@@ -386,7 +386,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-green-100 w-20 h-20 mx-auto mb-8 hover:bg-green-200 transition-colors hover-scale">
-              <Leaf className="w-10 h-10 text-green-700" />
+              <LeafIcon className="w-10 h-10 text-green-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou clean energy ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -398,7 +398,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Sun className="w-8 h-8 text-white" />
+                <SunIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-green-800 transition-colors">Energetická transformace</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -409,7 +409,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Wind className="w-8 h-8 text-white" />
+                <WindIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-emerald-800 transition-colors">Technologické inovace</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -420,7 +420,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-teal-500 to-green-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Zap className="w-8 h-8 text-white" />
+                <ZapIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-teal-800 transition-colors">ESG mandáty</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -454,7 +454,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-green-50 rounded-3xl p-12 border border-green-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-green-100 to-emerald-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-green-600" />
+                <TargetIcon className="w-10 h-10 text-green-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 💡 Jak vybrat ten správný clean energy ETF?
@@ -623,7 +623,7 @@ export default async function NejlepsiCleanEnergyETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-green-100 w-20 h-20 mx-auto mb-8 hover:bg-green-200 transition-colors hover-scale">
-              <Zap className="w-10 h-10 text-green-700" />
+              <ZapIcon className="w-10 h-10 text-green-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Připraveni investovat do čisté energie?
@@ -637,13 +637,13 @@ export default async function NejlepsiCleanEnergyETFPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button asChild size="lg" className="hover-scale bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-4 text-lg font-semibold">
                 <a href="/kde-koupit-etf">
-                  <Users className="w-5 h-5 mr-2" />
+                  <UsersIcon className="w-5 h-5 mr-2" />
                   Najít brokera pro ETF
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline" className="hover-scale border-2 border-green-500 text-green-600 hover:bg-green-50 px-8 py-4 text-lg font-semibold">
                 <a href="/srovnani-etf">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Srovnat všechny ETF
                 </a>
               </Button>

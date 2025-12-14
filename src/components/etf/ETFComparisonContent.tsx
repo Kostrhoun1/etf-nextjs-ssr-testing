@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, X, BarChart3 , Globe, TrendingUp, Building, Shield} from 'lucide-react';
+import { SearchIcon, XIcon, BarChart3Icon, TrendingUpIcon, PlusIcon, GlobeIcon, BuildingIcon, ShieldIcon } from '@/components/ui/icons';
 import Layout from '@/components/Layout';
 
 interface ETF {
@@ -102,7 +102,7 @@ const ETFComparisonContent: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Search className="w-5 h-5" />
+                <SearchIcon className="w-5 h-5" />
                 Vyhledávání ETF fondů
               </CardTitle>
             </CardHeader>
@@ -133,7 +133,7 @@ const ETFComparisonContent: React.FC = () => {
                         onClick={() => addETF(etf)}
                         disabled={selectedETFs.length >= 4 || selectedETFs.some(selected => selected.isin === etf.isin)}
                       >
-                        <Plus className="w-4 h-4" />
+                        <PlusIcon className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -150,12 +150,12 @@ const ETFComparisonContent: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
+                    <BarChart3Icon className="w-5 h-5" />
                     Porovnání vybraných ETF ({selectedETFs.length}/4)
                   </span>
                   {selectedETFs.length > 1 && (
                     <Button>
-                      <TrendingUp className="w-4 h-4 mr-2" />
+                      <TrendingUpIcon className="w-4 h-4 mr-2" />
                       Analyzovat
                     </Button>
                   )}
@@ -202,7 +202,7 @@ const ETFComparisonContent: React.FC = () => {
                               variant="outline"
                               onClick={() => removeETF(etf.isin)}
                             >
-                              <X className="w-4 h-4" />
+                              <XIcon className="w-4 h-4" />
                             </Button>
                           </td>
                         </tr>
@@ -229,7 +229,7 @@ const ETFComparisonContent: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mx-auto mb-4">
-                <TrendingUp className="w-8 h-8" />
+                <TrendingUpIcon className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Poplatky a náklady</h3>
               <p className="text-gray-600">
@@ -239,7 +239,7 @@ const ETFComparisonContent: React.FC = () => {
 
             <div className="text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mx-auto mb-4">
-                <BarChart3 className="w-8 h-8" />
+                <BarChart3Icon className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Výkonnost</h3>
               <p className="text-gray-600">
@@ -249,7 +249,7 @@ const ETFComparisonContent: React.FC = () => {
 
             <div className="text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 text-purple-600 mx-auto mb-4">
-                <Shield className="w-8 h-8" />
+                <ShieldIcon className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Rizika a diverzifikace</h3>
               <p className="text-gray-600">

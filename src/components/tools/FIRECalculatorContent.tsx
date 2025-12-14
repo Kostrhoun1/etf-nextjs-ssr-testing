@@ -5,7 +5,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PiggyBank, Target, AlertTriangle } from 'lucide-react';
+import { PiggyBankIcon } from '@/components/ui/icons';
 import RetirementPlanner from '@/components/tools/RetirementPlanner';
 
 const FIRECalculatorContent: React.FC = () => {
@@ -69,7 +69,7 @@ const FIRECalculatorContent: React.FC = () => {
         {/* Hero sekce */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <PiggyBank className="w-4 h-4" />
+            <PiggyBankIcon className="w-4 h-4" />
             FIRE kalkulačka 2025
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">

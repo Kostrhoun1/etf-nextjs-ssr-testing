@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { TrendingDown, PieChart, Calculator, DollarSign, TrendingUp, Building } from 'lucide-react';
+import { TrendingDownIcon, CalculatorIcon, DollarIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { NetSalaryData, formatCurrency, formatPercentage } from '@/utils/netSalaryCalculations';
 
 interface NetSalaryResultsProps {
@@ -34,7 +34,7 @@ const NetSalaryResults: React.FC<NetSalaryResultsProps> = ({ results }) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Calculator className="h-8 w-8 text-blue-600" />
+              <CalculatorIcon className="h-8 w-8 text-blue-600" />
               <div>
                 <CardTitle className="text-xl text-gray-900">Výsledek výpočtu čisté mzdy</CardTitle>
                 <p className="text-sm text-gray-600">
@@ -83,7 +83,7 @@ const NetSalaryResults: React.FC<NetSalaryResultsProps> = ({ results }) => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <TrendingDownIcon className="h-4 w-4 text-red-600" />
               Odvody zaměstnance
             </CardTitle>
           </CardHeader>
@@ -111,7 +111,7 @@ const NetSalaryResults: React.FC<NetSalaryResultsProps> = ({ results }) => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-orange-600" />
+              <DollarIcon className="h-4 w-4 text-orange-600" />
               Daň z příjmů
             </CardTitle>
           </CardHeader>
@@ -145,7 +145,7 @@ const NetSalaryResults: React.FC<NetSalaryResultsProps> = ({ results }) => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <TrendingUpIcon className="h-4 w-4 text-green-600" />
               Slevy na dani
             </CardTitle>
           </CardHeader>

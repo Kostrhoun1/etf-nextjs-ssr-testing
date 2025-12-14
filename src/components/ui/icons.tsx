@@ -41,6 +41,10 @@ export const ArrowRightIcon: React.FC<IconProps> = ({ className = '' }) => (
   <span className={className} aria-hidden="true">→</span>
 );
 
+export const ArrowLeftIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">←</span>
+);
+
 export const ChevronRightIcon: React.FC<IconProps> = ({ className = '' }) => (
   <span className={className} aria-hidden="true">›</span>
 );
@@ -257,6 +261,196 @@ export const EyeOffIcon: React.FC<IconProps> = ({ className = '' }) => (
 
 export const LinkIcon: React.FC<IconProps> = ({ className = '' }) => (
   <span className={className} aria-hidden="true">🔗</span>
+);
+
+export const CreditCardIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💳</span>
+);
+
+export const FileTextIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📄</span>
+);
+
+// Additional icons for ETF pages
+export const BrainIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🧠</span>
+);
+
+export const BotIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🤖</span>
+);
+
+export const CpuIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💻</span>
+);
+
+export const ActivityIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📊</span>
+);
+
+export const MicroscopeIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🔬</span>
+);
+
+export const FlaskIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🧪</span>
+);
+
+export const SunIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">☀️</span>
+);
+
+export const WindIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💨</span>
+);
+
+export const CoinsIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🪙</span>
+);
+
+export const FuelIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⛽</span>
+);
+
+export const FactoryIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🏭</span>
+);
+
+export const MapPinIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📍</span>
+);
+
+export const LandmarkIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🏛️</span>
+);
+
+export const BriefcaseIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💼</span>
+);
+
+export const CompassIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🧭</span>
+);
+
+export const MapIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🗺️</span>
+);
+
+export const EarthIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🌍</span>
+);
+
+export const BanknoteIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💵</span>
+);
+
+export const PiggyBankIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🐷</span>
+);
+
+export const ServerIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🖥️</span>
+);
+
+export const CloudIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">☁️</span>
+);
+
+export const SproutIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🌱</span>
+);
+
+export const CheckCircleIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">✅</span>
+);
+
+export const GemIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💎</span>
+);
+
+export const TrophyIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🏆</span>
+);
+
+export const AlertTriangleIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⚠️</span>
+);
+
+export const PlaneIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">✈️</span>
+);
+
+export const ScanLineIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📡</span>
+);
+
+export const SmartphoneIconAlt: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📲</span>
+);
+
+export const MonitorIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🖥</span>
+);
+
+export const ShoppingCartIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🛒</span>
+);
+
+export const CoffeeIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">☕</span>
+);
+
+export const PackageIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📦</span>
+);
+
+export const PercentAltIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💹</span>
+);
+
+export const CogIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⚙️</span>
+);
+
+export const BookOpenIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📖</span>
+);
+
+export const BarChart3Icon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📊</span>
+);
+
+// Additional missing icons for nejlepsi-etf pages
+export const ChartBarIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📊</span>
+);
+
+export const HistoryIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🕐</span>
+);
+
+export const DollarSignIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">💵</span>
+);
+
+export const BitcoinIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">₿</span>
+);
+
+export const SparklesIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">✨</span>
+);
+
+export const MedalIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🏅</span>
+);
+
+export const StarIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⭐</span>
+);
+
+export const GraduationCapIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">🎓</span>
 );
 
 // Helper component for star ratings

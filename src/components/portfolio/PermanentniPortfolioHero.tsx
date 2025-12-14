@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Target, Shield } from 'lucide-react';
+import { BarChart3Icon, TargetIcon, ShieldIcon } from '@/components/ui/icons';
 
 export default function PermanentniPortfolioHero() {
   return (
@@ -17,7 +17,7 @@ export default function PermanentniPortfolioHero() {
           {/* Left Content */}
           <div className="space-y-8">
             <div className="inline-flex items-center bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-green-200/50">
-              <Shield className="w-4 h-4 mr-2" />
+              <ShieldIcon className="w-4 h-4 mr-2" />
               Permanentní Portfolio
             </div>
             
@@ -33,18 +33,18 @@ export default function PermanentniPortfolioHero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link 
+              <Link
                 href="#allocation"
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 h-12"
               >
-                <BarChart3 className="w-5 h-5" />
+                <BarChart3Icon className="w-5 h-5" />
                 Zobrazit složení
               </Link>
-              <Link 
+              <Link
                 href="#performance"
                 className="bg-white/80 backdrop-blur-sm border-2 border-green-300 text-green-700 hover:bg-green-50 px-8 py-3 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2 h-12"
               >
-                <Target className="w-5 h-5" />
+                <TargetIcon className="w-5 h-5" />
                 Aktuální výnos
               </Link>
             </div>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PiggyBank, Calendar, AlertTriangle, Calculator, Target, Percent, TrendingUp } from 'lucide-react';
+import { PiggyBankIcon, CalendarIcon, AlertIcon, CalculatorIcon, TargetIcon, PercentIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { calculateFire, FireData, FireCalculationParams, getPortfolioParameters } from '@/utils/retirementCalculations';
 import RetirementChart from './RetirementChart';
 import RetirementResultsSummary from './RetirementResultsSummary';
@@ -60,7 +60,7 @@ const FireCalculator: React.FC = () => {
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-              <Calendar className="h-5 w-5 text-violet-700" />
+              <CalendarIcon className="h-5 w-5 text-violet-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Věk a FIRE cíl</h3>
           </div>
@@ -96,7 +96,7 @@ const FireCalculator: React.FC = () => {
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.4s]">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10 group-hover:bg-emerald-200 transition-colors hover-scale">
-              <TrendingUp className="h-5 w-5 text-emerald-700" />
+              <TrendingUpIcon className="h-5 w-5 text-emerald-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 group-hover:text-emerald-800 transition-colors">Úspory a spoření</h3>
           </div>
@@ -132,7 +132,7 @@ const FireCalculator: React.FC = () => {
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.6s]">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-              <Target className="h-5 w-5 text-violet-700" />
+              <TargetIcon className="h-5 w-5 text-violet-700" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Investiční strategie</h3>
           </div>
@@ -169,7 +169,7 @@ const FireCalculator: React.FC = () => {
 
 
       <Button onClick={handleCalculate} className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 animate-fade-in [animation-delay:0.8s]">
-        <Calculator className="mr-2 h-5 w-5" />
+        <CalculatorIcon className="mr-2 h-5 w-5" />
         Kdy dosáhnu FIRE? (Vypočítat detailní analýzu)
       </Button>
 

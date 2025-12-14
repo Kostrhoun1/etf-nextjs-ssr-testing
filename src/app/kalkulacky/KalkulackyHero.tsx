@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Calculator, TrendingUp } from 'lucide-react';
+import { CalculatorIcon, TrendingUpIcon } from '@/components/ui/icons';
 
 interface KalkulackyHeroProps {
   currentYear: number;
@@ -25,7 +25,7 @@ const KalkulackyHero: React.FC<KalkulackyHeroProps> = ({ currentYear }) => {
           {/* Left Content */}
           <div className="space-y-8">
             <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-violet-100 text-purple-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-purple-200/50">
-              <Calculator className="w-4 h-4 mr-2" />
+              <CalculatorIcon className="w-4 h-4 mr-2" />
               Aktualizováno pro rok {currentYear}
             </div>
 
@@ -46,14 +46,14 @@ const KalkulackyHero: React.FC<KalkulackyHeroProps> = ({ currentYear }) => {
                 onClick={() => scrollToSection('kalkulacky')}
                 className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
               >
-                <Calculator className="w-5 h-5" />
+                <CalculatorIcon className="w-5 h-5" />
                 Zobrazit kalkulačky
               </button>
               <button
                 onClick={() => scrollToSection('faq')}
                 className="bg-white/80 backdrop-blur-sm border-2 border-purple-300 text-purple-700 hover:bg-purple-50 px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2"
               >
-                <TrendingUp className="w-5 h-5" />
+                <TrendingUpIcon className="w-5 h-5" />
                 Jak fungují?
               </button>
             </div>

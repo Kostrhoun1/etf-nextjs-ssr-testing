@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, X, ExternalLink } from 'lucide-react';
+import { CheckIcon, XIcon, ExternalLinkIcon } from '@/components/ui/icons';
 import { brokers } from '../../data/brokerData';
 
 const BrokerOverview: React.FC = () => {
@@ -78,7 +78,7 @@ const BrokerOverview: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
               <div>
                 <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-1">
-                  <Check className="w-4 h-4" />
+                  <CheckIcon />
                   Výhody
                 </h4>
                 <ul className="space-y-2 min-h-[120px]">
@@ -97,7 +97,7 @@ const BrokerOverview: React.FC = () => {
               </div>
               <div>
                 <h4 className="font-semibold text-red-700 mb-3 flex items-center gap-1">
-                  <X className="w-4 h-4" />
+                  <XIcon />
                   Nevýhody
                 </h4>
                 <ul className="space-y-2 min-h-[120px]">
@@ -132,11 +132,11 @@ const BrokerOverview: React.FC = () => {
             {broker.name === 'DEGIRO' && (
               <div className="border-t pt-4 mt-auto">
                 <Link href="/degiro-recenze">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon className="mr-2" />
                     Detailní recenze DEGIRO
                   </Button>
                 </Link>
@@ -145,11 +145,11 @@ const BrokerOverview: React.FC = () => {
             {broker.name === 'XTB' && (
               <div className="border-t pt-4 mt-auto">
                 <Link href="/xtb-recenze">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon className="mr-2" />
                     Detailní recenze XTB
                   </Button>
                 </Link>
@@ -158,11 +158,11 @@ const BrokerOverview: React.FC = () => {
             {broker.name === 'Interactive Brokers' && (
               <div className="border-t pt-4 mt-auto">
                 <Link href="/interactive-brokers-recenze">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon className="mr-2" />
                     Detailní recenze IBKR
                   </Button>
                 </Link>
@@ -171,11 +171,11 @@ const BrokerOverview: React.FC = () => {
             {broker.name === 'Fio e-Broker' && (
               <div className="border-t pt-4 mt-auto">
                 <Link href="/fio-ebroker-recenze">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon className="mr-2" />
                     Detailní recenze Fio
                   </Button>
                 </Link>
@@ -184,11 +184,11 @@ const BrokerOverview: React.FC = () => {
             {broker.name === 'Trading 212' && (
               <div className="border-t pt-4 mt-auto">
                 <Link href="/trading212-recenze">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon className="mr-2" />
                     Detailní recenze Trading 212
                   </Button>
                 </Link>
@@ -197,11 +197,11 @@ const BrokerOverview: React.FC = () => {
             {broker.name === 'Portu' && (
               <div className="border-t pt-4 mt-auto">
                 <Link href="/portu-recenze">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon className="mr-2" />
                     Detailní recenze Portu
                   </Button>
                 </Link>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, ArrowRight, Target, MapPin, Crown, Landmark , DollarSign, Rocket, Zap, Users, Flag, Shield} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, MapPinIcon, CrownIcon, LandmarkIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
@@ -307,7 +307,7 @@ export default async function NejlepsiStoxx600ETFPage() {
             {/* Left Column - Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-purple-200/50">
-                <Flag className="w-4 h-4 mr-2" />
+                <FlagIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -347,11 +347,11 @@ export default async function NejlepsiStoxx600ETFPage() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="#top3">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Button>
                 </Link>
@@ -363,7 +363,7 @@ export default async function NejlepsiStoxx600ETFPage() {
                   asChild
                 >
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Srovnání všech
                   </Link>
                 </Button>
@@ -438,21 +438,21 @@ export default async function NejlepsiStoxx600ETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: Crown,
+                icon: CrownIcon,
                 title: "600 největších firem",
                 description: "Index pokrývá nejkvalitnější evropské společnosti z různých sektorů a zemí pro maximální diverzifikaci.",
                 color: "from-purple-500 to-indigo-600",
                 delay: "0.2s"
               },
               {
-                icon: MapPin,
+                icon: MapPinIcon,
                 title: "17 evropských zemí",
                 description: "Zahrnuje společnosti z Německa, Francie, Švýcarska, Nizozemska, Velké Británie a dalších zemí.",
                 color: "from-indigo-500 to-blue-600",
                 delay: "0.3s"
               },
               {
-                icon: Landmark,
+                icon: LandmarkIcon,
                 title: "90% evropského trhu",
                 description: "Reprezentuje naprostou většinu tržní kapitalizace evropských akcií v rozvinutých zemích.",
                 color: "from-blue-500 to-cyan-600",
@@ -540,7 +540,7 @@ export default async function NejlepsiStoxx600ETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full mb-6">
-              <Target className="w-10 h-10 text-white" />
+              <TargetIcon className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               💡 Jak vybrat ten správný STOXX 600 ETF?
@@ -667,7 +667,7 @@ export default async function NejlepsiStoxx600ETFPage() {
               asChild
             >
               <Link href="/kde-koupit-etf">
-                <Shield className="w-5 h-5 mr-2" />
+                <ShieldIcon className="w-5 h-5 mr-2" />
                 Najít brokera pro ETF
               </Link>
             </Button>
@@ -679,7 +679,7 @@ export default async function NejlepsiStoxx600ETFPage() {
               asChild
             >
               <Link href="/srovnani-etf">
-                <BarChart3 className="w-5 h-5 mr-2" />
+                <BarChart3Icon className="w-5 h-5 mr-2" />
                 Srovnat všechny ETF
               </Link>
             </Button>

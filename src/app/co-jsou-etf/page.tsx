@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { Metadata } from 'next';
-import { BookOpen, Calculator, TrendingUp } from 'lucide-react';
+import { BookOpenIcon, CalculatorIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 
 export const metadata: Metadata = {
@@ -116,7 +116,7 @@ const WhatAreETFs: React.FC = () => {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-emerald-200/50">
-                <BookOpen className="w-4 h-4 mr-2" />
+                <BookOpenIcon className="w-4 h-4 mr-2" />
                 Kompletní průvodce ETF {currentYear}
               </div>
               
@@ -133,18 +133,18 @@ const WhatAreETFs: React.FC = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link 
-                  href="/srovnani-etf" 
+                <Link
+                  href="/srovnani-etf"
                   className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <TrendingUp className="w-5 h-5" />
+                  <TrendingUpIcon className="w-5 h-5" />
                   Srovnat ETF fondy
                 </Link>
-                <Link 
-                  href="/kalkulacky/investicni-kalkulacka" 
+                <Link
+                  href="/kalkulacky/investicni-kalkulacka"
                   className="bg-white/80 backdrop-blur-sm border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Calculator className="w-5 h-5" />
+                  <CalculatorIcon className="w-5 h-5" />
                   Kalkulačka výnosů
                 </Link>
               </div>

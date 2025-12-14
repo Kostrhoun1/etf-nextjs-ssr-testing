@@ -6,7 +6,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, BarChart3, Shield, Clock, Target, RefreshCw } from 'lucide-react';
+import { TrendingUpIcon, BarChart3Icon, ShieldIcon, ClockIcon, TargetIcon, RefreshIcon } from '@/components/ui/icons';
 import { BacktestCalculator } from '@/components/tools/BacktestCalculator';
 
 const BacktestContent: React.FC = () => {
@@ -43,7 +43,7 @@ const BacktestContent: React.FC = () => {
         {/* Hero sekce */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <BarChart3 className="w-4 h-4" />
+            <BarChart3Icon className="w-4 h-4" />
             Backtest portfolia ETF 2025
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -64,7 +64,7 @@ const BacktestContent: React.FC = () => {
           <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <Card>
               <CardContent className="p-4 text-center">
-                <TrendingUp className="w-10 h-10 text-green-600 mx-auto mb-3" />
+                <TrendingUpIcon className="w-10 h-10 text-green-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">CAGR</h3>
                 <p className="text-gray-600 text-xs">
                   Průměrný roční výnos
@@ -73,7 +73,7 @@ const BacktestContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <Shield className="w-10 h-10 text-red-600 mx-auto mb-3" />
+                <ShieldIcon className="w-10 h-10 text-red-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Drawdown</h3>
                 <p className="text-gray-600 text-xs">
                   Maximální pokles
@@ -82,7 +82,7 @@ const BacktestContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <BarChart3 className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+                <BarChart3Icon className="w-10 h-10 text-blue-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Volatilita</h3>
                 <p className="text-gray-600 text-xs">
                   Míra kolísání
@@ -91,7 +91,7 @@ const BacktestContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <Target className="w-10 h-10 text-purple-600 mx-auto mb-3" />
+                <TargetIcon className="w-10 h-10 text-purple-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Sharpe Ratio</h3>
                 <p className="text-gray-600 text-xs">
                   Výnos vs. riziko
@@ -100,7 +100,7 @@ const BacktestContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <Clock className="w-10 h-10 text-orange-600 mx-auto mb-3" />
+                <ClockIcon className="w-10 h-10 text-orange-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Horizont</h3>
                 <p className="text-gray-600 text-xs">
                   Úspěšnost v čase
@@ -109,7 +109,7 @@ const BacktestContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <RefreshCw className="w-10 h-10 text-teal-600 mx-auto mb-3" />
+                <RefreshIcon className="w-10 h-10 text-teal-600 mx-auto mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Rebalancování</h3>
                 <p className="text-gray-600 text-xs">
                   Strategie vyvažování

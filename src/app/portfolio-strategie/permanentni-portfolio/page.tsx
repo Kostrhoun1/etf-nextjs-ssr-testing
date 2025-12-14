@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 // import { Badge } from '@/components/ui/badge'; // unused
 // import { Button } from '@/components/ui/button'; // unused
 import Link from 'next/link';
-import { AlertCircle, CheckCircle, Target, Clock , Flag, Shield, Users, Award} from 'lucide-react';
+import { AlertTriangleIcon, CheckCircleIcon, TargetIcon, ClockIcon, FlagIcon, ShieldIcon, UsersIcon, AwardIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import PortfolioAllocationChart from '@/components/portfolio/PortfolioAllocationChart';
 import PermanentniPortfolioHero from '@/components/portfolio/PermanentniPortfolioHero';
@@ -130,7 +130,7 @@ export default function PermanentniPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Clock className="text-green-600" />
+                <ClockIcon className="text-green-600" />
                 O strategii
               </CardTitle>
             </CardHeader>
@@ -155,7 +155,7 @@ export default function PermanentniPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Clock className="text-green-600" />
+                  <ClockIcon className="text-green-600" />
                   Čtyři ekonomické fáze
                 </CardTitle>
               </CardHeader>
@@ -182,30 +182,30 @@ export default function PermanentniPortfolioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Shield className="text-green-600" />
+                  <ShieldIcon className="text-green-600" />
                   Výhody strategie
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Funguje ve všech ekonomických cyklech</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Nejnižší volatilita ze všech strategií</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Nevyžaduje predikci trhu</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Jednoduchá implementace</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Ochrana před inflací i deflací</span>
                   </li>
                 </ul>
@@ -222,7 +222,7 @@ export default function PermanentniPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Target className="text-blue-600" />
+                <TargetIcon className="text-blue-600" />
                 Jak implementovat Permanentní Portfolio
               </CardTitle>
             </CardHeader>
@@ -275,7 +275,7 @@ export default function PermanentniPortfolioPage() {
           <Card className="mb-12 border-orange-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-orange-700">
-                <AlertCircle className="text-orange-600" />
+                <AlertTriangleIcon className="text-orange-600" />
                 Rizika a nevýhody
               </CardTitle>
             </CardHeader>
@@ -283,19 +283,19 @@ export default function PermanentniPortfolioPage() {
               <div className="bg-orange-50 p-6 rounded-lg">
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Nízký výnos:</strong> Nejnižší očekávaný výnos ze všech strategií</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Komplexnost:</strong> Nutnost držet 4 různé třídy aktiv</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Náklady na rebalancing:</strong> Častější transakce = vyšší poplatky</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Opportunity cost:</strong> V bull marketu zaostává za akciovými portfolii</span>
                   </li>
                 </ul>
@@ -307,7 +307,7 @@ export default function PermanentniPortfolioPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Users className="text-purple-600" />
+                <UsersIcon className="text-purple-600" />
                 Pro koho je Permanentní Portfolio vhodné?
               </CardTitle>
             </CardHeader>

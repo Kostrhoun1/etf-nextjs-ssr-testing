@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator, BarChart, PiggyBank, CreditHome, Target, Home, CreditCard, TrendingUp, Shield, DollarSign, History } from 'lucide-react';
+import { CalculatorIcon, BarChart3Icon, PiggyBankIcon, TargetIcon, TrendingUpIcon, DollarIcon, HomeIcon, CreditCardIcon, ShieldIcon, HistoryIcon } from '@/components/ui/icons';
 import Link from 'next/link';
 
 interface CalculatorItem {
@@ -16,70 +16,70 @@ const CalculatorHub: React.FC = () => {
     {
       title: 'Hypoteční kalkulačka',
       description: 'Spočítejte si hypoteční splátky a celkové náklady na bydlení',
-      icon: <Home className="h-6 w-6 text-violet-700" />,
+      icon: <HomeIcon className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/hypotecni-kalkulacka',
       category: 'finance',
     },
     {
       title: 'Spotřebitelský úvěr',
       description: 'Kalkulačka splátek spotřebitelského úvěru a celkových nákladů',
-      icon: <CreditCard className="h-6 w-6 text-emerald-700" />,
+      icon: <CreditCardIcon className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/uverova-kalkulacka',
       category: 'finance',
     },
     {
       title: 'Čistý plat 2025',
       description: 'Výpočet čisté mzdy podle aktuální české legislativy',
-      icon: <Calculator className="h-6 w-6 text-violet-700" />,
+      icon: <CalculatorIcon className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/cisty-plat-2025',
       category: 'finance',
     },
     {
       title: 'Investiční kalkulačka',
       description: 'DCA strategie a compound interest výpočty pro ETF investice',
-      icon: <TrendingUp className="h-6 w-6 text-emerald-700" />,
+      icon: <TrendingUpIcon className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/investicni-kalkulacka',
       category: 'investment'
     },
     {
       title: 'FIRE kalkulačka',
       description: '4% withdrawal rule a FIRE plánování pro finanční nezávislost',
-      icon: <PiggyBank className="h-6 w-6 text-violet-700" />,
+      icon: <PiggyBankIcon className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/fire-kalkulacka',
       category: 'investment'
     },
     {
       title: 'Nouzová rezerva',
       description: 'Optimální velikost emergency fund podle vaší situace',
-      icon: <Shield className="h-6 w-6 text-emerald-700" />,
+      icon: <ShieldIcon className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/nouzova-rezerva',
       category: 'finance'
     },
     {
       title: 'ETF poplatky',
       description: 'Analýza dopadu TER a dalších poplatků na dlouhodobé výnosy',
-      icon: <Target className="h-6 w-6 text-violet-700" />,
+      icon: <TargetIcon className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/kalkulacka-poplatku-etf',
       category: 'investment'
     },
     {
       title: 'Backtest portfolia',
       description: 'Otestujte historickou výkonnost ETF portfolia od roku 2000',
-      icon: <History className="h-6 w-6 text-blue-700" />,
+      icon: <HistoryIcon className="h-6 w-6 text-blue-700" />,
       href: '/kalkulacky/backtest-portfolia',
       category: 'advanced'
     },
     {
       title: 'Monte Carlo simulátor',
       description: 'Prognóza budoucnosti portfolia s tisíci scénářů',
-      icon: <BarChart className="h-6 w-6 text-emerald-700" />,
+      icon: <BarChart3Icon className="h-6 w-6 text-emerald-700" />,
       href: '/kalkulacky/monte-carlo-simulator',
       category: 'advanced'
     },
     {
       title: 'Měnový dopad',
       description: 'Analýza kurzového rizika a hedging strategií pro ETF',
-      icon: <DollarSign className="h-6 w-6 text-violet-700" />,
+      icon: <DollarIcon className="h-6 w-6 text-violet-700" />,
       href: '/kalkulacky/kurzovy-dopad-etf',
       category: 'advanced'
     }

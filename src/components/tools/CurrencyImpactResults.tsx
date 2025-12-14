@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { TrendingDown, AlertTriangle, Euro, DollarSign, TrendingUp } from 'lucide-react';
+import { DollarIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { CurrencyImpactData } from '@/utils/currencyImpactCalculations';
 
 interface CurrencyImpactResultsProps {
@@ -51,7 +51,7 @@ const CurrencyImpactResults: React.FC<CurrencyImpactResultsProps> = ({ results }
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
+            <DollarIcon className="h-5 w-5" />
             Současná měnová expozice (podle podkladových aktiv)
           </CardTitle>
         </CardHeader>
@@ -60,7 +60,7 @@ const CurrencyImpactResults: React.FC<CurrencyImpactResultsProps> = ({ results }
             <Card className="bg-red-50">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-red-600" />
+                  <DollarIcon className="h-4 w-4 text-red-600" />
                   <h4 className="font-semibold text-red-800">USD expozice</h4>
                 </div>
                 <p className="text-2xl font-bold text-red-600">
@@ -75,7 +75,7 @@ const CurrencyImpactResults: React.FC<CurrencyImpactResultsProps> = ({ results }
             <Card className="bg-blue-50">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Euro className="h-4 w-4 text-blue-600" />
+                  <span className="h-4 w-4 text-blue-600 flex items-center justify-center">€</span>
                   <h4 className="font-semibold text-blue-800">EUR expozice</h4>
                 </div>
                 <p className="text-2xl font-bold text-blue-600">
@@ -123,7 +123,7 @@ const CurrencyImpactResults: React.FC<CurrencyImpactResultsProps> = ({ results }
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+            <TrendingUpIcon className="h-5 w-5" />
             Kurzové scénáře a dopady
           </CardTitle>
         </CardHeader>

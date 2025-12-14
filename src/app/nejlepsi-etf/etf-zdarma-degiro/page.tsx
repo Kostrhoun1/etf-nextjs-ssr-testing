@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, AlertTriangle, Flag, Shield, Building, DollarSign, Globe, Zap, Users, Rocket } from 'lucide-react';
+import { StarIcon, BarChart3Icon, TargetIcon, AlertTriangleIcon, FlagIcon, ShieldIcon, BuildingIcon, DollarSignIcon, GlobeIcon, ZapIcon, UsersIcon, RocketIcon } from '@/components/ui/icons';
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -315,7 +315,7 @@ export default async function DegiroFreeETFPage() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-orange-200/50">
-                <Flag className="w-4 h-4 mr-2" />
+                <FlagIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -357,13 +357,13 @@ export default async function DegiroFreeETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <Link href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Kompletní seznam
                   </Link>
                 </Button>
@@ -377,7 +377,7 @@ export default async function DegiroFreeETFPage() {
                 {/* Simple Header */}
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-xl mb-3">
-                    <Shield className="w-6 h-6 text-orange-600" />
+                    <ShieldIcon className="w-6 h-6 text-orange-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">
                     DEGIRO v číslech
@@ -389,7 +389,7 @@ export default async function DegiroFreeETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Building className="w-4 h-4 text-orange-600" />
+                      <BuildingIcon className="w-4 h-4 text-orange-600" />
                       <span className="text-xs text-gray-500 font-medium">ETF ZDARMA</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">65+</div>
@@ -398,7 +398,7 @@ export default async function DegiroFreeETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-green-600" />
+                      <DollarSignIcon className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-gray-500 font-medium">POPLATEK</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">€1</div>
@@ -407,7 +407,7 @@ export default async function DegiroFreeETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Globe className="w-4 h-4 text-blue-600" />
+                      <GlobeIcon className="w-4 h-4 text-blue-600" />
                       <span className="text-xs text-gray-500 font-medium">POKRYTÍ</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">Globální</div>
@@ -416,7 +416,7 @@ export default async function DegiroFreeETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Shield className="w-4 h-4 text-purple-600" />
+                      <ShieldIcon className="w-4 h-4 text-purple-600" />
                       <span className="text-xs text-gray-500 font-medium">OCHRANA</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">€20k</div>
@@ -434,7 +434,7 @@ export default async function DegiroFreeETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-orange-100 w-20 h-20 mx-auto mb-8 hover:bg-orange-200 transition-colors hover-scale">
-              <Shield className="w-10 h-10 text-orange-700" />
+              <ShieldIcon className="w-10 h-10 text-orange-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Jak funguje Fair Use Policy?
@@ -447,19 +447,19 @@ export default async function DegiroFreeETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: DollarSign,
+                icon: DollarSignIcon,
                 title: "První obchod zdarma",
                 description: "Každý kalendářní měsíc můžete koupit nebo prodat každý ETF jednou zcela zdarma až do €1,000 za transakci.",
                 color: "green"
               },
               {
-                icon: AlertTriangle,
+                icon: AlertTriangleIcon,
                 title: "Druhý obchod za €1",
                 description: "Od druhého obchodu se stejným ETF ve stejném měsíci se účtuje administrativní poplatek €1 + spread.",
                 color: "orange"
               },
               {
-                icon: Target,
+                icon: TargetIcon,
                 title: "Strategie DCA",
                 description: "Pro pravidelné investování doporučujeme provádět pouze jeden nákup každého ETF měsíčně, ideálně vždy ke stejnému datu.",
                 color: "blue"
@@ -511,7 +511,7 @@ export default async function DegiroFreeETFPage() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-orange-50 rounded-3xl p-12 border border-orange-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-orange-100 to-red-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-orange-600" />
+                <TargetIcon className="w-10 h-10 text-orange-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 💡 Jak maximálně využít DEGIRO Fair Use Policy?
@@ -643,7 +643,7 @@ export default async function DegiroFreeETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-orange-100 w-20 h-20 mx-auto mb-8 hover:bg-orange-200 transition-colors hover-scale">
-              <Zap className="w-10 h-10 text-orange-700" />
+              <ZapIcon className="w-10 h-10 text-orange-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Připraveni investovat zdarma na DEGIRO?
@@ -657,13 +657,13 @@ export default async function DegiroFreeETFPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button asChild size="lg" className="hover-scale bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-4 text-lg font-semibold">
                 <Link href="/degiro-recenze">
-                  <Users className="w-5 h-5 mr-2" />
+                  <UsersIcon className="w-5 h-5 mr-2" />
                   Přečíst DEGIRO recenzi
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="hover-scale border-2 border-orange-500 text-orange-600 hover:bg-orange-50 px-8 py-4 text-lg font-semibold">
                 <Link href="/srovnani-brokeru">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Srovnat s jinými brokery
                 </Link>
               </Button>

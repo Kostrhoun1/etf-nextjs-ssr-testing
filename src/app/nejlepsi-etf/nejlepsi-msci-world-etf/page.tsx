@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, ArrowRight, Target, MapPin, Briefcase , DollarSign, Rocket, Zap, Users, Flag, Globe} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, MapPinIcon, BriefcaseIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, GlobeIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
@@ -303,7 +303,7 @@ export default async function NejlepsiMSCIWorldETF() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-purple-200/50">
-                <Flag className="w-4 h-4 mr-2" />
+                <FlagIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
               
@@ -347,13 +347,13 @@ export default async function NejlepsiMSCIWorldETF() {
                   <button 
                     className="inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md"
                   >
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </button>
                 </Link>
                 <Button asChild size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-semibold">
                   <Link href="#srovnani">
-                    <BarChart3 className="w-5 h-5 mr-2" />
+                    <BarChart3Icon className="w-5 h-5 mr-2" />
                     Srovnání všech
                   </Link>
                 </Button>
@@ -421,19 +421,19 @@ export default async function NejlepsiMSCIWorldETF() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: Globe,
+                icon: GlobeIcon,
                 title: "1600+ firem z 23 zemí",
                 description: "Index pokrývá developed markets včetně USA, Evropy, Japonska, Kanady, Austrálie a dalších vyspělých ekonomik.",
                 color: "purple"
               },
               {
-                icon: MapPin,
+                icon: MapPinIcon,
                 title: "Globální diverzifikace",
                 description: "Rozložení rizika napříč kontinenty a ekonomikami. Žádná závislost na jedné zemi nebo regionu.",
                 color: "pink"
               },
               {
-                icon: Briefcase,
+                icon: BriefcaseIcon,
                 title: "Large & mid cap focus",
                 description: "Zaměření na velké a střední společnosti s prokázanou stabilitou a růstovým potenciálem.",
                 color: "rose"
@@ -532,7 +532,7 @@ export default async function NejlepsiMSCIWorldETF() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-purple-50 rounded-3xl p-12 border border-purple-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-purple-100 to-pink-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-purple-600" />
+                <TargetIcon className="w-10 h-10 text-purple-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 💡 Jak vybrat ten správný MSCI World ETF?
@@ -1002,7 +1002,7 @@ export default async function NejlepsiMSCIWorldETF() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-purple-100 w-20 h-20 mx-auto mb-8 hover:bg-purple-200 transition-colors hover-scale">
-              <Zap className="w-10 h-10 text-purple-700" />
+              <ZapIcon className="w-10 h-10 text-purple-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Připraveni investovat globálně?
@@ -1016,13 +1016,13 @@ export default async function NejlepsiMSCIWorldETF() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button asChild size="lg" className="hover-scale bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-8 py-4 text-lg font-semibold">
                 <Link href="/kde-koupit-etf">
-                  <Users className="w-5 h-5 mr-2" />
+                  <UsersIcon className="w-5 h-5 mr-2" />
                   Najít brokera pro ETF
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="hover-scale border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg font-semibold">
                 <Link href="/srovnani-etf">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Srovnat všechny ETF
                 </Link>
               </Button>

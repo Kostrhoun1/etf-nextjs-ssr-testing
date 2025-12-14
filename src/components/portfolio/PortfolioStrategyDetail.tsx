@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BarChart3, CheckCircle, AlertTriangle, ExternalLink, ArrowLeft, Home, Users, TrendingUp } from 'lucide-react';
+import { BarChart3Icon, CheckCircleIcon, AlertTriangleIcon, ExternalLinkIcon, ArrowLeftIcon, HomeIcon, UsersIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ETFData {
@@ -120,7 +120,7 @@ const PortfolioStrategyDetail: React.FC<PortfolioStrategyDetailProps> = ({ strat
         <div className="max-w-4xl mx-auto px-4 py-4">
           <nav className="flex items-center space-x-2 text-sm">
             <Link href="/" className="text-gray-500 hover:text-violet-600 flex items-center gap-1">
-              <Home className="w-4 h-4" />
+              <HomeIcon className="w-4 h-4" />
               Domů
             </Link>
             <span className="text-gray-400">/</span>
@@ -135,7 +135,7 @@ const PortfolioStrategyDetail: React.FC<PortfolioStrategyDetailProps> = ({ strat
           <div className="mt-3">
             <Button asChild variant="outline" size="sm" className="border-gray-300 text-gray-600 hover:bg-gray-100">
               <Link href="/portfolio-strategie">
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeftIcon className="w-4 h-4 mr-2" />
                 Zpět na přehled strategií
               </Link>
             </Button>
@@ -217,7 +217,7 @@ const PortfolioStrategyDetail: React.FC<PortfolioStrategyDetailProps> = ({ strat
                           onClick={() => window.open(`/etf/${allocation.isin}?from=portfolio`, '_blank')}
                         >
                           Detail
-                          <ExternalLink className="w-3 h-3 ml-1" />
+                          <ExternalLinkIcon className="w-3 h-3 ml-1" />
                         </Button>
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
@@ -252,13 +252,13 @@ const PortfolioStrategyDetail: React.FC<PortfolioStrategyDetailProps> = ({ strat
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="p-6">
               <h3 className="text-xl font-semibold text-green-700 mb-4 flex items-center gap-2">
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircleIcon className="w-5 h-5" />
                 Výhody
               </h3>
               <ul className="space-y-2">
                 {strategy.advantages.map((advantage, index) => (
                   <li key={index} className="flex items-start gap-2 text-gray-700">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <CheckCircleIcon className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                     {advantage}
                   </li>
                 ))}
@@ -267,13 +267,13 @@ const PortfolioStrategyDetail: React.FC<PortfolioStrategyDetailProps> = ({ strat
 
             <Card className="p-6">
               <h3 className="text-xl font-semibold text-amber-700 mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5" />
+                <AlertTriangleIcon className="w-5 h-5" />
                 Nevýhody
               </h3>
               <ul className="space-y-2">
                 {strategy.disadvantages.map((disadvantage, index) => (
                   <li key={index} className="flex items-start gap-2 text-gray-700">
-                    <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <AlertTriangleIcon className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                     {disadvantage}
                   </li>
                 ))}
@@ -287,13 +287,13 @@ const PortfolioStrategyDetail: React.FC<PortfolioStrategyDetailProps> = ({ strat
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Pro koho je vhodné</h2>
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Users className="w-5 h-5 text-violet-600" />
+              <UsersIcon className="w-5 h-5 text-violet-600" />
               <h3 className="text-lg font-semibold">Vhodné pro investory, kteří:</h3>
             </div>
             <ul className="grid md:grid-cols-2 gap-2">
               {strategy.suitableFor.map((item, index) => (
                 <li key={index} className="flex items-start gap-2 text-gray-700">
-                  <CheckCircle className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircleIcon className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
                   {item}
                 </li>
               ))}
@@ -334,13 +334,13 @@ const PortfolioStrategyDetail: React.FC<PortfolioStrategyDetailProps> = ({ strat
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild className="bg-violet-600 hover:bg-violet-700">
                 <Link href={`/srovnani-etf?compare=${strategy.allocations.map(a => a.isin).join(',')}&portfolio=${strategy.id}`}>
-                  <BarChart3 className="w-4 h-4 mr-2" />
+                  <BarChart3Icon className="w-4 h-4 mr-2" />
                   Porovnat ETF fondy
                 </Link>
               </Button>
               <Button asChild variant="outline" className="border-violet-300 text-violet-600 hover:bg-violet-50">
                 <Link href="/portfolio-strategie">
-                  <TrendingUp className="w-4 h-4 mr-2" />
+                  <TrendingUpIcon className="w-4 h-4 mr-2" />
                   Porovnat se strategiemi
                 </Link>
               </Button>

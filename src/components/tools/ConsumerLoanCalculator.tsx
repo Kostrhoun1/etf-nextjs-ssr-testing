@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calculator, Calendar, Info, BarChart3, Percent, DollarSign, TrendingUp } from 'lucide-react';
+import { CalculatorIcon, CalendarIcon, InfoIcon, PercentIcon, DollarIcon, TrendingUpIcon, BarChart3Icon } from '@/components/ui/icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface LoanData {
@@ -109,7 +109,7 @@ const ConsumerLoanCalculator: React.FC = () => {
       <Card className="mb-4">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-violet-600" />
+            <CalculatorIcon className="h-5 w-5 text-violet-600" />
             <CardTitle className="text-2xl">
               Kalkulačka spotřebitelského úvěru
             </CardTitle>
@@ -125,7 +125,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-                  <DollarSign className="h-5 w-5 text-violet-700" />
+                  <DollarIcon className="h-5 w-5 text-violet-700" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Parametry úvěru</h3>
               </div>
@@ -190,7 +190,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             {summary && (
               <div className="border rounded-lg p-4 bg-gray-25">
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-violet-600" />
+                  <TrendingUpIcon className="h-4 w-4 text-violet-600" />
                   <h3 className="font-semibold">Výsledky výpočtu</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -231,7 +231,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             onClick={() => {}} 
             className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 mb-4 animate-fade-in [animation-delay:0.6s]"
           >
-            <Calculator className="mr-2 h-5 w-5" />
+            <CalculatorIcon className="mr-2 h-5 w-5" />
             Spočítat úvěr
           </Button>
           
@@ -245,7 +245,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
               <CardContent className="p-6 text-center">
                 <div className="mb-4 flex items-center justify-center rounded-full bg-emerald-100 w-12 h-12 mx-auto group-hover:bg-emerald-200 transition-colors hover-scale">
-                  <DollarSign className="h-6 w-6 text-emerald-700" />
+                  <DollarIcon className="h-6 w-6 text-emerald-700" />
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-800 transition-colors">Měsíční splátka</h4>
                 <p className="text-2xl font-bold text-emerald-600">
@@ -257,7 +257,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
               <CardContent className="p-6 text-center">
                 <div className="mb-4 flex items-center justify-center rounded-full bg-blue-100 w-12 h-12 mx-auto group-hover:bg-blue-200 transition-colors hover-scale">
-                  <Calculator className="h-6 w-6 text-blue-700" />
+                  <CalculatorIcon className="h-6 w-6 text-blue-700" />
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-800 transition-colors">Celkem zaplatíte</h4>
                 <p className="text-2xl font-bold text-blue-600">
@@ -269,7 +269,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
               <CardContent className="p-6 text-center">
                 <div className="mb-4 flex items-center justify-center rounded-full bg-red-100 w-12 h-12 mx-auto group-hover:bg-red-200 transition-colors hover-scale">
-                  <Percent className="h-6 w-6 text-red-700" />
+                  <PercentIcon className="h-6 w-6 text-red-700" />
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-red-800 transition-colors">Přeplatek úvěru</h4>
                 <p className="text-2xl font-bold text-red-600">
@@ -285,7 +285,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             <Card className="shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <CalendarIcon className="h-5 w-5 text-blue-600" />
                   Průběh splácení
                 </CardTitle>
               </CardHeader>
@@ -328,7 +328,7 @@ const ConsumerLoanCalculator: React.FC = () => {
             <Card className="shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-green-600" />
+                  <DollarIcon className="h-5 w-5 text-green-600" />
                   Složení celkové částky
                 </CardTitle>
               </CardHeader>
@@ -361,7 +361,7 @@ const ConsumerLoanCalculator: React.FC = () => {
           <Card className="shadow-lg border-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-purple-600" />
+                <BarChart3Icon className="h-5 w-5 text-purple-600" />
                 Struktura měsíčních splátek
               </CardTitle>
             </CardHeader>

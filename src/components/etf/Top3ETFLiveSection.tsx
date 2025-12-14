@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, ArrowRight, Target } from 'lucide-react';
+import { StarFilledIcon, ArrowRightIcon, TargetIcon } from '@/components/ui/icons';
 import { useETFLiveData } from '@/hooks/useETFLiveData';
 
 interface ETFTemplate {
@@ -127,7 +127,7 @@ export default function Top3ETFLiveSection({ title, description, subtitle, secti
                     <div className="flex items-center">
                       {etf.hasLiveData && etf.rating ? (
                         [...Array(etf.rating)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                          <StarFilledIcon key={i} className="w-4 h-4 text-yellow-400 fill-current" />
                         ))
                       ) : (
                         <span className="text-sm text-gray-400">Rating N/A</span>
@@ -181,12 +181,12 @@ export default function Top3ETFLiveSection({ title, description, subtitle, secti
             {liveETFs.map((etf) => (
               <div key={etf.isin} className="text-center">
                 <Button asChild className={`w-full ${fallbackColors.badgeColor} hover:opacity-90 text-white`}>
-                  <Link 
+                  <Link
                     href={`/etf/${etf.isin}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <ArrowRight className="w-4 h-4 mr-2" />
+                    <ArrowRightIcon className="w-4 h-4 mr-2" />
                     Detail {etf.ticker}
                   </Link>
                 </Button>
@@ -243,7 +243,7 @@ export default function Top3ETFLiveSection({ title, description, subtitle, secti
                   <div className="flex items-center">
                     {etf.hasLiveData && etf.rating ? (
                       [...Array(etf.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                        <StarFilledIcon key={i} className="w-4 h-4 text-yellow-400 fill-current" />
                       ))
                     ) : (
                       <span className="text-sm text-gray-400">Rating N/A</span>
@@ -297,12 +297,12 @@ export default function Top3ETFLiveSection({ title, description, subtitle, secti
           {liveETFs.map((etf) => (
             <div key={etf.isin} className="text-center">
               <Button asChild className={`w-full ${colors.badgeColor} hover:opacity-90 text-white`}>
-                <Link 
+                <Link
                   href={`/etf/${etf.isin}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <ArrowRight className="w-4 h-4 mr-2" />
+                  <ArrowRightIcon className="w-4 h-4 mr-2" />
                   Detail {etf.ticker}
                 </Link>
               </Button>

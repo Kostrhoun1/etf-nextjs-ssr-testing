@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Home, Calendar, Info, PiggyBank, Calculator, Percent, DollarSign } from 'lucide-react';
+import { HomeIcon, CalendarIcon, InfoIcon, PiggyBankIcon, CalculatorIcon, PercentIcon, DollarIcon } from '@/components/ui/icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface MortgageData {
@@ -125,7 +125,7 @@ const MortgageCalculator: React.FC = () => {
       <Card className="mb-4">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Home className="h-5 w-5 text-violet-600" />
+            <HomeIcon className="h-5 w-5 text-violet-600" />
             <CardTitle className="text-2xl">
               Hypoteční kalkulačka
             </CardTitle>
@@ -141,7 +141,7 @@ const MortgageCalculator: React.FC = () => {
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.2s]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center justify-center rounded-full bg-violet-100 w-10 h-10 group-hover:bg-violet-200 transition-colors hover-scale">
-                  <Home className="h-5 w-5 text-violet-700" />
+                  <HomeIcon className="h-5 w-5 text-violet-700" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-violet-800 transition-colors">Parametry hypotéky</h3>
               </div>
@@ -192,7 +192,7 @@ const MortgageCalculator: React.FC = () => {
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in [animation-delay:0.4s]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center justify-center rounded-full bg-emerald-100 w-10 h-10 group-hover:bg-emerald-200 transition-colors hover-scale">
-                  <Percent className="h-5 w-5 text-emerald-700" />
+                  <PercentIcon className="h-5 w-5 text-emerald-700" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 group-hover:text-emerald-800 transition-colors">Parametry úvěru</h3>
               </div>
@@ -234,7 +234,7 @@ const MortgageCalculator: React.FC = () => {
             onClick={() => {}} 
             className="w-full hover-scale bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 mt-4 animate-fade-in [animation-delay:0.6s]"
           >
-            <Calculator className="mr-2 h-5 w-5" />
+            <CalculatorIcon className="mr-2 h-5 w-5" />
             Spočítat hypotéku
           </Button>
           
@@ -286,7 +286,7 @@ const MortgageCalculator: React.FC = () => {
             <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
               <CardContent className="p-6 text-center">
                 <div className="mb-4 flex items-center justify-center rounded-full bg-emerald-100 w-12 h-12 mx-auto group-hover:bg-emerald-200 transition-colors hover-scale">
-                  <DollarSign className="h-6 w-6 text-emerald-700" />
+                  <DollarIcon className="h-6 w-6 text-emerald-700" />
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-800 transition-colors">Měsíční splátka</h4>
                 <p className="text-2xl font-bold text-emerald-600">
@@ -298,7 +298,7 @@ const MortgageCalculator: React.FC = () => {
             <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
               <CardContent className="p-6 text-center">
                 <div className="mb-4 flex items-center justify-center rounded-full bg-blue-100 w-12 h-12 mx-auto group-hover:bg-blue-200 transition-colors hover-scale">
-                  <Calculator className="h-6 w-6 text-blue-700" />
+                  <CalculatorIcon className="h-6 w-6 text-blue-700" />
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-800 transition-colors">Celkem zaplatíte</h4>
                 <p className="text-2xl font-bold text-blue-600">
@@ -310,7 +310,7 @@ const MortgageCalculator: React.FC = () => {
             <Card className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white">
               <CardContent className="p-6 text-center">
                 <div className="mb-4 flex items-center justify-center rounded-full bg-red-100 w-12 h-12 mx-auto group-hover:bg-red-200 transition-colors hover-scale">
-                  <Percent className="h-6 w-6 text-red-700" />
+                  <PercentIcon className="h-6 w-6 text-red-700" />
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-red-800 transition-colors">Celkem úroky</h4>
                 <p className="text-2xl font-bold text-red-600">
@@ -325,7 +325,7 @@ const MortgageCalculator: React.FC = () => {
             <Card className="shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <CalendarIcon className="h-5 w-5 text-blue-600" />
                   Průběh splácení hypotéky
                 </CardTitle>
               </CardHeader>
@@ -368,7 +368,7 @@ const MortgageCalculator: React.FC = () => {
             <Card className="shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <PiggyBank className="h-5 w-5 text-green-600" />
+                  <PiggyBankIcon className="h-5 w-5 text-green-600" />
                   Struktura celkových nákladů
                 </CardTitle>
               </CardHeader>
@@ -528,7 +528,7 @@ const MortgageCalculator: React.FC = () => {
         <Card className="shadow-lg border-0 bg-yellow-50">
           <CardContent className="text-center py-8">
             <div className="text-yellow-600 mb-4">
-              <Info className="h-12 w-12 mx-auto" />
+              <InfoIcon className="h-12 w-12 mx-auto" />
             </div>
             <h3 className="text-xl font-bold text-yellow-800 mb-2">
               Neplatná výše úvěru

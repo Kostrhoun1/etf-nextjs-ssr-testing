@@ -6,7 +6,7 @@ import FAQSection from '@/components/SEO/FAQSection';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import StructuredData from '@/components/SEO/StructuredData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Calculator, TrendingUp, Shield } from 'lucide-react';
+import { HomeIcon, CalculatorIcon, TrendingUpIcon } from '@/components/ui/icons';
 import MortgageCalculator from '@/components/tools/MortgageCalculator';
 
 const MortgageCalculatorContent: React.FC = () => {
@@ -66,7 +66,7 @@ const MortgageCalculatorContent: React.FC = () => {
         {/* Hero sekce */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Home className="w-4 h-4" />
+            <HomeIcon className="w-4 h-4" />
             Hypoteční kalkulačka 2025
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -86,7 +86,7 @@ const MortgageCalculatorContent: React.FC = () => {
           <div className="grid md:grid-cols-4 gap-6 mb-12">
             <Card>
               <CardContent className="p-6 text-center">
-                <Calculator className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <CalculatorIcon className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Anuita</h3>
                 <p className="text-gray-600 text-sm">
                   Rovnoměrné měsíční splátky po celou dobu úvěru
@@ -95,7 +95,7 @@ const MortgageCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <TrendingUpIcon className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Vlastní kapitál</h3>
                 <p className="text-gray-600 text-sm">
                   Minimálně 20% z ceny nemovitosti
@@ -104,7 +104,7 @@ const MortgageCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <Shield className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                <HomeIcon className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Fixace</h3>
                 <p className="text-gray-600 text-sm">
                   Stabilní úroková sazba po stanovenou dobu
@@ -113,7 +113,7 @@ const MortgageCalculatorContent: React.FC = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <Home className="w-12 h-12 text-orange-600 mx-auto mb-4" />
+                <HomeIcon className="w-12 h-12 text-orange-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Daňové úlevy</h3>
                 <p className="text-gray-600 text-sm">
                   Odpočet úroků až 300 000 Kč ročně

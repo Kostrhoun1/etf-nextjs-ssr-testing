@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
-import { DollarSign , Globe, TrendingUp, Building} from 'lucide-react';
+import { TrendingUpIcon, DollarSignIcon, BuildingIcon, GlobeIcon } from '@/components/ui/icons';
 import FilteredETFList from '@/components/blog/FilteredETFList';
 
 // Icon mapping to avoid passing React components as props
 const iconMap = {
-  DollarSign,
-  Building,
-  TrendingUp
+  DollarSign: DollarSignIcon,
+  Building: BuildingIcon,
+  TrendingUp: TrendingUpIcon,
+  Globe: GlobeIcon
 };
 
 // Color scheme mappings
@@ -118,7 +119,7 @@ export default function FilteredETFSections({
           <div className="mb-16">
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-                <DollarSign className="w-8 h-8 text-green-600" />
+                <DollarSignIcon className="w-8 h-8 text-green-600" />
                 Nejnižší poplatky
               </h3>
               <p className="text-gray-600 text-lg">ETF seřazené podle nejnižšího TER - ideální pro minimalizaci nákladů</p>
@@ -140,7 +141,7 @@ export default function FilteredETFSections({
           <div className="mb-16">
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-                <Building className="w-8 h-8 text-blue-600" />
+                <BuildingIcon className="w-8 h-8 text-blue-600" />
                 Největší fondy
               </h3>
               <p className="text-gray-600 text-lg">ETF seřazené podle velikosti fondu - nejvyšší likvidita a nejnižší spread</p>
@@ -162,7 +163,7 @@ export default function FilteredETFSections({
           <div className="mb-16">
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-                <TrendingUp className="w-8 h-8 text-purple-600" />
+                <TrendingUpIcon className="w-8 h-8 text-purple-600" />
                 Nejlepší 1Y výkonnost
               </h3>
               <p className="text-gray-600 text-lg">ETF seřazené podle 1-ročního výnosu - nejlepší recent performance</p>
@@ -190,7 +191,7 @@ export default function FilteredETFSections({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {sections?.map((section, index) => {
           // Get icon component by name
-          const IconComponent = iconMap[section.icon as keyof typeof iconMap] || DollarSign;
+          const IconComponent = iconMap[section.icon as keyof typeof iconMap] || DollarSignIcon;
           const colors = colorSchemes[section.colorScheme] || colorSchemes.blue;
           
           return (

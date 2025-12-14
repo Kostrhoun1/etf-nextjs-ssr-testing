@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Cloud, BarChart3, AlertCircle, CheckCircle, Target, Brain, Users } from 'lucide-react';
+import { CloudIcon, BarChart3Icon, AlertTriangleIcon, CheckCircleIcon, TargetIcon, BrainIcon, UsersIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import AllWeatherPortfolioPerformance from '@/components/portfolio/AllWeatherPortfolioPerformance';
 import { getETFLink } from '@/data/etf-mappings';
@@ -61,7 +61,7 @@ export default function RayDalioAllWeatherPage() {
               {/* Left Content */}
               <div className="space-y-8">
                 <div className="inline-flex items-center bg-gradient-to-r from-slate-100 to-gray-100 text-slate-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-slate-200/50">
-                  <Cloud className="w-4 h-4 mr-2" />
+                  <CloudIcon className="w-4 h-4 mr-2" />
                   All-Weather Portfolio
                 </div>
                 
@@ -77,18 +77,18 @@ export default function RayDalioAllWeatherPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link 
+                  <Link
                     href="#allocation"
                     className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 h-12"
                   >
-                    <BarChart3 className="w-5 h-5" />
+                    <BarChart3Icon className="w-5 h-5" />
                     Zobrazit složení
                   </Link>
-                  <Link 
+                  <Link
                     href="#vykonnost"
                     className="bg-white/80 backdrop-blur-sm border-2 border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2 h-12"
                   >
-                    <Target className="w-5 h-5" />
+                    <TargetIcon className="w-5 h-5" />
                     Aktuální výnos
                   </Link>
                 </div>
@@ -166,7 +166,7 @@ export default function RayDalioAllWeatherPage() {
             <Card className="mb-12">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <BarChart3 className="text-slate-600" />
+                  <BarChart3Icon className="text-slate-600" />
                   Složení All-Weather Portfolia
                 </CardTitle>
               </CardHeader>
@@ -236,7 +236,7 @@ export default function RayDalioAllWeatherPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Brain className="text-slate-600" />
+                  <BrainIcon className="text-slate-600" />
                   Filozofie Ray Dalia
                 </CardTitle>
               </CardHeader>
@@ -263,34 +263,34 @@ export default function RayDalioAllWeatherPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <CheckCircle className="text-green-600" />
+                  <CheckCircleIcon className="text-green-600" />
                   Výhody strategie
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Funguje ve všech ekonomických cyklech</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Nejnižší volatilita ze všech portfolií</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Ochrana proti inflaci i deflaci</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Prověřeno největším hedge fondem světa</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Vysoká diverzifikace napříč třídami aktiv</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
                     <span>Minimální drawdowny</span>
                   </li>
                 </ul>
@@ -305,7 +305,7 @@ export default function RayDalioAllWeatherPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Cloud className="text-slate-600" />
+                <CloudIcon className="text-slate-600" />
                 Čtyři ekonomické scénáře
               </CardTitle>
             </CardHeader>
@@ -363,7 +363,7 @@ export default function RayDalioAllWeatherPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Target className="text-blue-600" />
+                <TargetIcon className="text-blue-600" />
                 Praktická implementace
               </CardTitle>
             </CardHeader>
@@ -423,7 +423,7 @@ export default function RayDalioAllWeatherPage() {
           <Card className="mb-12 border-orange-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-orange-700">
-                <AlertCircle className="text-orange-600" />
+                <AlertTriangleIcon className="text-orange-600" />
                 Rizika a nevýhody
               </CardTitle>
             </CardHeader>
@@ -431,23 +431,23 @@ export default function RayDalioAllWeatherPage() {
               <div className="bg-orange-50 p-6 rounded-lg">
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Komplexnost:</strong> Vyžaduje 5 různých ETF a častý rebalancing</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Nízký očekávaný výnos:</strong> Pouze 5% ročně</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Úrokové riziko:</strong> 55% v dluhopisech citlivých na sazby</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Náklady na rebalancing:</strong> Častější transakce = vyšší poplatky</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-500 mt-0.5" />
                     <span><strong>Opportunity cost:</strong> V dlouhých bull trzích zaostává</span>
                   </li>
                 </ul>
@@ -459,7 +459,7 @@ export default function RayDalioAllWeatherPage() {
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Users className="text-purple-600" />
+                <UsersIcon className="text-purple-600" />
                 Pro koho je All-Weather Portfolio vhodné?
               </CardTitle>
             </CardHeader>
@@ -498,7 +498,7 @@ export default function RayDalioAllWeatherPage() {
           <section className="py-16">
             <div className="text-center mb-12">
               <div className="inline-flex items-center bg-gradient-to-r from-slate-100 to-gray-100 text-slate-700 px-6 py-3 rounded-full text-sm font-medium mb-6">
-                <Cloud className="w-4 h-4 mr-2" />
+                <CloudIcon className="w-4 h-4 mr-2" />
                 Často kladené otázky
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">

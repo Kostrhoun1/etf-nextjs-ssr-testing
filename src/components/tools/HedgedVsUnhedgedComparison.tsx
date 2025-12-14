@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { TrendingDown, ExternalLink, Shield, TrendingUp } from 'lucide-react';
+import { ExternalLinkIcon, ShieldIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ETFComparison {
@@ -107,7 +107,7 @@ const HedgedVsUnhedgedComparison: React.FC = () => {
   return (
     <div className="bg-white rounded-2xl border p-8 mb-8">
       <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <Shield className="h-6 w-6 text-blue-600" />
+        <ShieldIcon className="h-6 w-6 text-blue-600" />
         Srovnání: CSP1 vs IBCF (zajištěné S&P 500 ETF)
       </h2>
       <div className="mb-6">
@@ -154,7 +154,7 @@ const HedgedVsUnhedgedComparison: React.FC = () => {
                       <th className="text-left py-2 font-medium text-gray-700">Metrika</th>
                       <th className="text-center py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <TrendingUp className="h-3 w-3 text-blue-600" />
+                          <TrendingUpIcon className="h-3 w-3 text-blue-600" />
                           <span className="text-blue-800 font-medium">CSP1</span>
                           <a 
                             href={`/etf/${comparison.unhedged.isin}`}
@@ -169,7 +169,7 @@ const HedgedVsUnhedgedComparison: React.FC = () => {
                       </th>
                       <th className="text-center py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <Shield className="h-3 w-3 text-orange-600" />
+                          <ShieldIcon className="h-3 w-3 text-orange-600" />
                           <span className="text-orange-800 font-medium">IBCF</span>
                           <a 
                             href={`/etf/${comparison.hedged.isin}`}

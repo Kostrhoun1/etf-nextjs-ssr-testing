@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, AlertCircle, TrendingDown, Clock, AlertTriangle, Calculator, TrendingUp } from 'lucide-react';
+import { CheckIcon, AlertIcon, TrendingDownIcon, ClockIcon, CalculatorIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { FireData, calculateFire } from '@/utils/retirementCalculations';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -48,7 +48,7 @@ const RetirementResultsSummary: React.FC<RetirementResultsSummaryProps> = ({ res
         <Card className="border-transparent shadow-none hover:shadow-xl transition-all duration-300 group bg-white card-hover animate-fade-in [animation-delay:0.2s]">
           <div className="p-6 text-center">
             <div className="mb-4 flex items-center justify-center rounded-full bg-emerald-100 w-12 h-12 mx-auto group-hover:bg-emerald-200 transition-all duration-300 hover-scale">
-              <TrendingUp className="h-6 w-6 text-emerald-700 transition-transform duration-300 group-hover:scale-110" />
+              <TrendingUpIcon className="h-6 w-6 text-emerald-700 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2 transition-colors group-hover:text-emerald-800">Optimistický scénář</h3>
             <div className="space-y-2">
@@ -73,7 +73,7 @@ const RetirementResultsSummary: React.FC<RetirementResultsSummaryProps> = ({ res
         <Card className="border-transparent shadow-none hover:shadow-xl transition-all duration-300 group bg-white card-hover animate-fade-in [animation-delay:0.3s]">
           <div className="p-6 text-center">
             <div className="mb-4 flex items-center justify-center rounded-full bg-violet-100 w-12 h-12 mx-auto group-hover:bg-violet-200 transition-all duration-300 hover-scale">
-              <Clock className="h-6 w-6 text-violet-700 transition-transform duration-300 group-hover:scale-110" />
+              <ClockIcon className="h-6 w-6 text-violet-700 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2 transition-colors group-hover:text-violet-800">Realistický scénář</h3>
             <div className="space-y-2">
@@ -98,7 +98,7 @@ const RetirementResultsSummary: React.FC<RetirementResultsSummaryProps> = ({ res
         <Card className="border-transparent shadow-none hover:shadow-xl transition-all duration-300 group bg-white card-hover animate-fade-in [animation-delay:0.4s]">
           <div className="p-6 text-center">
             <div className="mb-4 flex items-center justify-center rounded-full bg-red-100 w-12 h-12 mx-auto group-hover:bg-red-200 transition-all duration-300 hover-scale">
-              <TrendingDown className="h-6 w-6 text-red-700 transition-transform duration-300 group-hover:scale-110" />
+              <TrendingDownIcon className="h-6 w-6 text-red-700 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2 transition-colors group-hover:text-red-800">Pesimistický scénář</h3>
             <div className="space-y-2">
@@ -126,7 +126,7 @@ const RetirementResultsSummary: React.FC<RetirementResultsSummaryProps> = ({ res
         <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 bg-white rounded-2xl p-8 animate-fade-in [animation-delay:0.8s]">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-12 h-12">
-              <Calculator className="h-6 w-6 text-violet-700" />
+              <CalculatorIcon className="h-6 w-6 text-violet-700" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900">💡 Jak urychlit FIRE?</h3>
           </div>
@@ -285,7 +285,7 @@ const RetirementResultsSummary: React.FC<RetirementResultsSummaryProps> = ({ res
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent"></div>
           <div className="relative z-10 p-6 text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <CheckCircle className="h-8 w-8 text-white" />
+              <CheckIcon className="h-8 w-8 text-white" />
               <h3 className="text-xl font-bold text-white">Váš FIRE plán je na dobré cestě!</h3>
             </div>
             <p className="text-emerald-100 mb-6">

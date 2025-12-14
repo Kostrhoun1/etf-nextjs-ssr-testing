@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { Target, Clock, TrendingUp } from 'lucide-react';
+import { TargetIcon, ClockIcon, TrendingUpIcon } from '@/components/ui/icons';
 import { calculatePortfolioProjection, formatCurrency, formatPercentage } from '@/utils/portfolioProjectionEngine';
 
 interface PortfolioProjectionChartProps {
@@ -50,7 +50,7 @@ export const PortfolioProjectionChart: React.FC<PortfolioProjectionChartProps> =
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-violet-600" />
+          <TrendingUpIcon className="w-5 h-5 text-violet-600" />
           Projekce růstu portfolia
         </CardTitle>
         <CardDescription>
@@ -62,7 +62,7 @@ export const PortfolioProjectionChart: React.FC<PortfolioProjectionChartProps> =
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
             <div className="flex items-center gap-2 mb-2">
-              <Target className="w-4 h-4 text-green-600" />
+              <TargetIcon className="w-4 h-4 text-green-600" />
               <span className="font-semibold text-green-800">Realistický scénář</span>
             </div>
             <div className="text-2xl font-bold text-green-900">
@@ -75,7 +75,7 @@ export const PortfolioProjectionChart: React.FC<PortfolioProjectionChartProps> =
           
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-blue-600" />
+              <ClockIcon className="w-4 h-4 text-blue-600" />
               <span className="font-semibold text-blue-800">Celkové příspěvky</span>
             </div>
             <div className="text-2xl font-bold text-blue-900">
@@ -88,7 +88,7 @@ export const PortfolioProjectionChart: React.FC<PortfolioProjectionChartProps> =
 
           <div className="bg-violet-50 p-4 rounded-lg border border-violet-200">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-violet-600" />
+              <TrendingUpIcon className="w-4 h-4 text-violet-600" />
               <span className="font-semibold text-violet-800">Zhodnocení</span>
             </div>
             <div className="text-2xl font-bold text-violet-900">

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3 } from 'lucide-react';
+import { BarChart3Icon } from '@/components/ui/icons';
 import { supabase } from '@/integrations/supabase/client';
 import { CurrencyToggle } from '@/components/ui/CurrencyToggle';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -120,7 +120,7 @@ const AkcioviPortfolioPerformance: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-3">
-              <BarChart3 className="text-blue-600" />
+              <BarChart3Icon className="text-blue-600" />
               Reálná výkonnost portfolia
             </CardTitle>
             <CurrencyToggle className="text-sm" />
@@ -143,7 +143,7 @@ const AkcioviPortfolioPerformance: React.FC = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3">
-            <BarChart3 className="text-blue-600" />
+            <BarChart3Icon className="text-blue-600" />
             Reálná výkonnost portfolia
           </CardTitle>
           <CurrencyToggle className="text-sm" />

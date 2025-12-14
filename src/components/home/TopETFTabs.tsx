@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, TrendingUp, DollarSign, Building, Landmark, Bitcoin, Search, Filter } from 'lucide-react';
+import { ArrowRightIcon, TrendingUpIcon, SearchIcon, FilterIcon, DollarSignIcon, BuildingIcon, LandmarkIcon, BitcoinIcon } from '@/components/ui/icons';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ETFItem {
@@ -129,8 +129,8 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
               <SelectValue>
                 {(() => {
                   const activeCategory = categories.find(cat => cat.id === activeTab);
-                  const iconMap = { TrendingUp, DollarSign, Building, Landmark, Bitcoin };
-                  const IconComponent = iconMap[activeCategory?.iconName as keyof typeof iconMap] || TrendingUp;
+                  const iconMap = { TrendingUp: TrendingUpIcon, DollarSign: DollarSignIcon, Building: BuildingIcon, Landmark: LandmarkIcon, Bitcoin: BitcoinIcon };
+                  const IconComponent = iconMap[activeCategory?.iconName as keyof typeof iconMap] || TrendingUpIcon;
                   return (
                     <div className="flex items-center gap-2">
                       <IconComponent className="h-4 w-4" />
@@ -142,8 +142,8 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
             </SelectTrigger>
             <SelectContent>
               {categories.map((category) => {
-                const iconMap = { TrendingUp, DollarSign, Building, Landmark, Bitcoin };
-                const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUp;
+                const iconMap = { TrendingUp: TrendingUpIcon, DollarSign: DollarSignIcon, Building: BuildingIcon, Landmark: LandmarkIcon, Bitcoin: BitcoinIcon };
+                const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUpIcon;
                 return (
                   <SelectItem key={category.id} value={category.id}>
                     <div className="flex items-center gap-2">
@@ -161,8 +161,8 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="hidden md:grid w-full grid-cols-3 lg:grid-cols-5 mb-8 h-auto p-1">
             {categories.map((category) => {
-              const iconMap = { TrendingUp, DollarSign, Building, Landmark, Bitcoin };
-              const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUp;
+              const iconMap = { TrendingUp: TrendingUpIcon, DollarSign: DollarSignIcon, Building: BuildingIcon, Landmark: LandmarkIcon, Bitcoin: BitcoinIcon };
+              const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUpIcon;
               
               return (
                 <TabsTrigger
@@ -321,7 +321,7 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
         {/* Bottom CTA Section */}
         <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <Filter className="w-5 h-5 text-blue-600" />
+            <FilterIcon className="w-5 h-5 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-900">
               Potřebujete detailnější srovnání?
             </h3>
@@ -333,9 +333,9 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
           
           <Link href="/srovnani-etf">
             <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Search className="w-4 h-4 mr-2" />
+              <SearchIcon className="w-4 h-4 mr-2" />
               Srovnat všechny ETF fondy
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRightIcon className="w-4 h-4 ml-2" />
             </Button>
           </Link>
         </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, TrendingDown, BarChart3, Target, Trophy, Calculator, DollarSign, Rocket, Zap, Users, Award} from 'lucide-react';
+import { StarIcon, TrendingDownIcon, BarChart3Icon, TargetIcon, TrophyIcon, CalculatorIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon } from '@/components/ui/icons';
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -185,7 +185,7 @@ export default async function NejlevnejsiETFPage() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="flex items-center justify-center mb-6">
               <div className="flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-                <TrendingDown className="w-4 h-4" />
+                <TrendingDownIcon className="w-4 h-4" />
                 <span>Nejnižší poplatky</span>
               </div>
             </div>
@@ -228,13 +228,13 @@ export default async function NejlevnejsiETFPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3">
                 <a href="#top3" className="flex items-center">
-                  <Trophy className="w-5 h-5 mr-2" />
+                  <TrophyIcon className="w-5 h-5 mr-2" />
                   Top 3 nejlevnější
                 </a>
               </Button>
               <Button variant="outline" size="lg" className="border-green-600 text-green-600 hover:bg-green-50 px-8 py-3">
                 <a href="#tabulky" className="flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Kompletní tabulky
                 </a>
               </Button>
@@ -274,19 +274,19 @@ export default async function NejlevnejsiETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                icon: Calculator,
+                icon: CalculatorIcon,
                 title: "Složené úročení",
                 description: "Každé procento poplatku snižuje konečnou částku. Na investici 100.000 € za 20 let může rozdíl 0,5% znamenat 10.000+ € méně.",
                 color: "green"
               },
               {
-                icon: Target,
+                icon: TargetIcon,
                 title: "Transparentnost",
                 description: "TER je jednoduše srovnatelná metrika. Čím nižší číslo, tím více peněz zůstává ve vašem portfoliu.",
                 color: "blue"
               },
               {
-                icon: Award,
+                icon: AwardIcon,
                 title: "Kontrola nákladů",
                 description: "Poplatky jsou to jediné, co můžete ovlivnit. Výnosy trhu jsou nepředvídatelné, poplatky ETF konstantní.",
                 color: "purple"
@@ -384,7 +384,7 @@ export default async function NejlevnejsiETFPage() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-green-50 rounded-3xl p-12 border border-green-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-green-100 to-emerald-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-green-600" />
+                <TargetIcon className="w-10 h-10 text-green-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 💡 Jak vybrat nejlevnější ETF?

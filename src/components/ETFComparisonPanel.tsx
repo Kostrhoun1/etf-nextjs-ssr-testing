@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, BarChart3 } from 'lucide-react';
+import { CloseIcon, PieChartIcon } from '@/components/ui/icons';
 import { ETF } from '@/types/etf';
 import { formatPercentage } from '@/utils/csvParser';
 
@@ -30,7 +30,7 @@ const ETFComparisonPanel: React.FC<ETFComparisonPanelProps> = ({
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+            <PieChartIcon />
             Porovnání ETF ({selectedETFs.length}/3)
           </span>
           <Button variant="ghost" size="sm" onClick={onClearAll}>
@@ -67,7 +67,7 @@ const ETFComparisonPanel: React.FC<ETFComparisonPanelProps> = ({
                 onClick={() => onRemoveETF(etf.isin)}
                 className="ml-2 h-8 w-8 p-0"
               >
-                <X className="h-4 w-4" />
+                <CloseIcon />
               </Button>
             </div>
           ))}

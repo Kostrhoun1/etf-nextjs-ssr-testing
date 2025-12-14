@@ -1,6 +1,6 @@
 import Layout from '@/components/Layout';
 import { Metadata } from 'next';
-import { Mail, LinkedinIcon } from 'lucide-react';
+import { MailIcon } from '@/components/ui/icons';
 import Link from 'next/link';
 import { generateCanonicalMetadata } from '@/lib/metadata';
 
@@ -74,11 +74,11 @@ export default function AboutPage() {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">Spojte se s námi</h2>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
-              <a 
-                href="mailto:info@etfpruvodce.cz" 
+              <a
+                href="mailto:info@etfpruvodce.cz"
                 className="flex items-center gap-3 bg-violet-100 hover:bg-violet-200 text-violet-700 px-6 py-3 rounded-lg transition-colors"
               >
-                <Mail className="h-5 w-5" />
+                <MailIcon className="h-5 w-5" />
                 info@etfpruvodce.cz
               </a>
               

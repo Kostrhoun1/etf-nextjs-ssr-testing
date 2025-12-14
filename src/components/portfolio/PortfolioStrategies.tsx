@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TrendingDown, BarChart3, Info, ExternalLink } from 'lucide-react';
+import { TrendingDownIcon, BarChart3Icon, InfoIcon, ExternalLinkIcon } from '@/components/ui/icons';
 import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 
@@ -280,7 +280,7 @@ const PortfolioStrategies: React.FC = () => {
                 </Badge>
                 <Button asChild size="sm" variant="outline" className="border-violet-300 text-violet-600 hover:bg-violet-50">
                   <Link href={getStrategyUrl(selectedStrategyData.id)}>
-                    <ExternalLink className="w-4 h-4 mr-1" />
+                    <ExternalLinkIcon className="w-4 h-4 mr-1" />
                     Detail
                   </Link>
                 </Button>
@@ -291,7 +291,7 @@ const PortfolioStrategies: React.FC = () => {
             
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                <Info className="w-4 h-4" />
+                <InfoIcon className="w-4 h-4" />
                 Filosofie
               </h4>
               <p className="text-sm text-gray-600">{selectedStrategyData.philosophy}</p>
@@ -312,7 +312,7 @@ const PortfolioStrategies: React.FC = () => {
           {/* Performance */}
           <Card className="p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
+              <BarChart3Icon className="w-5 h-5" />
               Reálná Performance
             </h3>
 

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Star, BarChart3, Target, Coins, Crown, Gem , DollarSign, Rocket, Zap, Users, TrendingUp, Building, Shield, Globe, Award, Flag} from 'lucide-react';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, CoinsIcon, CrownIcon, GemIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon, BuildingIcon, ShieldIcon, GlobeIcon, AwardIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
 import FilteredETFSections from '@/components/etf/FilteredETFSections';
@@ -214,7 +214,7 @@ export default async function NejlepsiZlateETFPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
             <div className="space-y-8">
               <div className="inline-flex items-center bg-gradient-to-r from-yellow-100 to-gray-100 text-yellow-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-yellow-200/50">
-                <Crown className="w-4 h-4 mr-2" />
+                <CrownIcon className="w-4 h-4 mr-2" />
                 Aktuální k {new Date().toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
               
@@ -256,13 +256,13 @@ export default async function NejlepsiZlateETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-yellow-600 to-gray-600 hover:from-yellow-700 hover:to-gray-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <Star className="w-5 h-5 mr-2" />
+                    <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>
                 <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
                   <a href="#srovnani">
-                    <Crown className="w-5 h-5 mr-2" />
+                    <CrownIcon className="w-5 h-5 mr-2" />
                     Zlaté ETF
                   </a>
                 </Button>
@@ -273,7 +273,7 @@ export default async function NejlepsiZlateETFPage() {
               <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl mb-3">
-                    <Crown className="w-6 h-6 text-yellow-600" />
+                    <CrownIcon className="w-6 h-6 text-yellow-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-1">Zlatý trh v číslech</h3>
                   <p className="text-sm text-gray-600">Klíčové metriky pro zlaté investice</p>
@@ -282,7 +282,7 @@ export default async function NejlepsiZlateETFPage() {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-yellow-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Crown className="w-4 h-4 text-yellow-600" />
+                      <CrownIcon className="w-4 h-4 text-yellow-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJVĚTŠÍ GOLD ETF</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">15,7B</div>
@@ -291,7 +291,7 @@ export default async function NejlepsiZlateETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-amber-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-amber-600" />
+                      <DollarIcon className="w-4 h-4 text-amber-600" />
                       <span className="text-xs text-gray-500 font-medium">NEJNIŽŠÍ TER</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">0,12%</div>
@@ -300,7 +300,7 @@ export default async function NejlepsiZlateETFPage() {
 
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-yellow-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Gem className="w-4 h-4 text-yellow-600" />
+                      <GemIcon className="w-4 h-4 text-yellow-600" />
                       <span className="text-xs text-gray-500 font-medium">FYZICKÉ ZLATO</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">100%</div>
@@ -309,7 +309,7 @@ export default async function NejlepsiZlateETFPage() {
                   
                   <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-amber-200 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <Shield className="w-4 h-4 text-amber-600" />
+                      <ShieldIcon className="w-4 h-4 text-amber-600" />
                       <span className="text-xs text-gray-500 font-medium">KRIZOVÁ OCHRANA</span>
                     </div>
                     <div className="text-2xl font-bold text-gray-900">20+%</div>
@@ -327,7 +327,7 @@ export default async function NejlepsiZlateETFPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-yellow-100 w-20 h-20 mx-auto mb-8 hover:bg-yellow-200 transition-colors hover-scale">
-              <Crown className="w-10 h-10 text-yellow-700" />
+              <CrownIcon className="w-10 h-10 text-yellow-700" />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Co jsou zlaté ETF?</h2>
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -339,7 +339,7 @@ export default async function NejlepsiZlateETFPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-yellow-500 to-gray-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Shield className="w-8 h-8 text-white" />
+                <ShieldIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-yellow-800 transition-colors">Bezpečné útočiště</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -350,7 +350,7 @@ export default async function NejlepsiZlateETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-gray-500 to-amber-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <Gem className="w-8 h-8 text-white" />
+                <GemIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-gray-800 transition-colors">Fyzické zajištění</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -361,7 +361,7 @@ export default async function NejlepsiZlateETFPage() {
 
             <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-lg p-6 card-hover animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 w-16 h-16 mx-auto mb-6 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-8 h-8 text-white" />
+                <TrendingUpIcon className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3 text-center group-hover:text-amber-800 transition-colors">Ochrana před inflací</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -394,7 +394,7 @@ export default async function NejlepsiZlateETFPage() {
           <div id="pruvodce" className="bg-gradient-to-br from-white to-yellow-50 rounded-3xl p-12 border border-yellow-100 shadow-xl">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-yellow-100 to-gray-100 w-20 h-20 mx-auto mb-6">
-                <Target className="w-10 h-10 text-yellow-600" />
+                <TargetIcon className="w-10 h-10 text-yellow-600" />
               </div>
               <h4 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 👑 Jak vybrat ten správný zlatý ETF?
@@ -407,7 +407,7 @@ export default async function NejlepsiZlateETFPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="bg-white rounded-xl p-6 shadow-sm border border-yellow-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl mb-4">
-                  <Crown className="w-6 h-6 text-yellow-600" />
+                  <CrownIcon className="w-6 h-6 text-yellow-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Fyzické vs syntetické</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -418,7 +418,7 @@ export default async function NejlepsiZlateETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-xl mb-4">
-                  <DollarSign className="w-6 h-6 text-amber-600" />
+                  <DollarIcon className="w-6 h-6 text-amber-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">TER a poplatky</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -429,7 +429,7 @@ export default async function NejlepsiZlateETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl mb-4">
-                  <Gem className="w-6 h-6 text-gray-600" />
+                  <GemIcon className="w-6 h-6 text-gray-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Úložiště a audit</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -440,7 +440,7 @@ export default async function NejlepsiZlateETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-yellow-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl mb-4">
-                  <Globe className="w-6 h-6 text-yellow-600" />
+                  <GlobeIcon className="w-6 h-6 text-yellow-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Měnové zajištění</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -451,7 +451,7 @@ export default async function NejlepsiZlateETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-amber-100 rounded-xl mb-4">
-                  <TrendingUp className="w-6 h-6 text-amber-600" />
+                  <TrendingUpIcon className="w-6 h-6 text-amber-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Likvidita a spready</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -462,7 +462,7 @@ export default async function NejlepsiZlateETFPage() {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl mb-4">
-                  <Award className="w-6 h-6 text-gray-600" />
+                  <AwardIcon className="w-6 h-6 text-gray-600" />
                 </div>
                 <h5 className="text-lg font-bold text-gray-900 mb-3">Daňové dopady</h5>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -534,7 +534,7 @@ export default async function NejlepsiZlateETFPage() {
           <div className="bg-white rounded-3xl p-12 shadow-xl border border-yellow-100">
             <div className="text-center mb-12">
               <div className="flex items-center justify-center rounded-full bg-gradient-to-r from-yellow-100 to-gray-100 w-20 h-20 mx-auto mb-6">
-                <Rocket className="w-10 h-10 text-yellow-600" />
+                <RocketIcon className="w-10 h-10 text-yellow-600" />
               </div>
               <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 Připraveni investovat do král kovů?
@@ -547,17 +547,17 @@ export default async function NejlepsiZlateETFPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <div className="text-center p-6 bg-yellow-50 rounded-xl border border-yellow-100">
-                <Crown className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
+                <CrownIcon className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
                 <h4 className="font-bold text-gray-900 mb-2">Fyzické zlato</h4>
                 <p className="text-sm text-gray-600">100% zajištěné skutečným zlatem</p>
               </div>
               <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-100">
-                <Shield className="w-8 h-8 text-gray-600 mx-auto mb-3" />
+                <ShieldIcon className="w-8 h-8 text-gray-600 mx-auto mb-3" />
                 <h4 className="font-bold text-gray-900 mb-2">Krizová ochrana</h4>
                 <p className="text-sm text-gray-600">Bezpečné útočiště během nejistoty</p>
               </div>
               <div className="text-center p-6 bg-amber-50 rounded-xl border border-amber-100">
-                <Gem className="w-8 h-8 text-amber-600 mx-auto mb-3" />
+                <GemIcon className="w-8 h-8 text-amber-600 mx-auto mb-3" />
                 <h4 className="font-bold text-gray-900 mb-2">Inflační hedge</h4>
                 <p className="text-sm text-gray-600">Ochrana před znehodnocením měny</p>
               </div>
@@ -566,13 +566,13 @@ export default async function NejlepsiZlateETFPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild className="bg-gradient-to-r from-yellow-600 to-gray-600 hover:from-yellow-700 hover:to-gray-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
                 <a href="#top3">
-                  <Star className="w-5 h-5 mr-2" />
+                  <StarFilledIcon className="w-5 h-5 mr-2" />
                   Vybrat zlatý ETF
                 </a>
               </Button>
               <Button asChild variant="outline" className="border-2 border-yellow-300 text-yellow-700 hover:bg-yellow-50 px-8 py-3 text-lg font-semibold">
                 <a href="/srovnani-etf">
-                  <BarChart3 className="w-5 h-5 mr-2" />
+                  <BarChart3Icon className="w-5 h-5 mr-2" />
                   Porovnat všechny ETF
                 </a>
               </Button>
