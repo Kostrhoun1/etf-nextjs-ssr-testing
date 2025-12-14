@@ -53,15 +53,15 @@ function ETFCard({ etf, highlight }: { etf: ETFBasicInfo; highlight: string }) {
       </div>
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div>
-          <div className="text-gray-400">TER</div>
+          <div className="text-gray-600">TER</div>
           <div className="font-medium text-gray-900">{formatTER(etf.ter_numeric)}</div>
         </div>
         <div>
-          <div className="text-gray-400">Velikost</div>
+          <div className="text-gray-600">Velikost</div>
           <div className="font-medium text-gray-900">{formatFundSize(etf.fund_size_numeric)}</div>
         </div>
         <div>
-          <div className="text-gray-400">1R výnos</div>
+          <div className="text-gray-600">1R výnos</div>
           <div className={`font-medium ${(etf.return_1y || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {formatReturn(etf.return_1y)}
           </div>
