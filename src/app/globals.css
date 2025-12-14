@@ -95,6 +95,14 @@
   }
 }
 
+/* LCP Optimization - Defer rendering of below-fold content */
+@layer utilities {
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+  }
+}
+
 /* Vizuální efekty pro homepage design */
 @layer utilities {
   .hover-scale {

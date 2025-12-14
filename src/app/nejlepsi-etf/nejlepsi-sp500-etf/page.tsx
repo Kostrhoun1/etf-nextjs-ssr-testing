@@ -347,7 +347,7 @@ export default async function NejlepsiSP500ETF() {
       <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="S&P 500" />
 
       {/* SECTION 0: Co je S&P 500 Index? */}
-      <section id="co-je-sp500" className="py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
+      <section id="co-je-sp500" className="py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -393,7 +393,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 1: Why These TOP 3? - Selection Criteria */}
-      <section id="proc-tyto-tri" className="py-16 bg-white">
+      <section id="proc-tyto-tri" className="py-16 bg-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             🎯 Proč právě tyto TOP 3 ETF?
@@ -422,7 +422,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 2: Is S&P 500 Right For You? */}
-      <section id="je-pro-vas" className="py-16 bg-gradient-to-br from-gray-50 to-white">
+      <section id="je-pro-vas" className="py-16 bg-gradient-to-br from-gray-50 to-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             🤔 Je S&P 500 ETF správná volba pro vás?
@@ -488,7 +488,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 3: Real Cost-Benefit Math */}
-      <section id="naklady-vynosy" className="py-16 bg-white">
+      <section id="naklady-vynosy" className="py-16 bg-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             💰 Reálné náklady a výnosy (s matematikou)
@@ -575,7 +575,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 4: Brutal Honesty About Risks */}
-      <section id="brutalni-rizika" className="py-16 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
+      <section id="brutalni-rizika" className="py-16 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             ⚠️ Brutální upřímnost: Co může jít špatně
@@ -679,7 +679,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 5: Step-by-Step First Purchase */}
-      <section id="prvni-nakup" className="py-16 bg-white">
+      <section id="prvni-nakup" className="py-16 bg-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             🚀 Jak nakoupit první S&P 500 ETF akcii (krok za krokem)
@@ -802,7 +802,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 6: Czech Tax Mastery */}
-      <section id="dane-cr" className="py-16 bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
+      <section id="dane-cr" className="py-16 bg-gradient-to-br from-indigo-50 via-blue-50 to-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             🧾 České daně: Kompletní průvodce pro ETF investory
@@ -911,7 +911,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 7: DCA vs Lump Sum (Vanguard Study) */}
-      <section id="dca-lumpsum" className="py-16 bg-gradient-to-br from-purple-50 via-pink-50 to-white">
+      <section id="dca-lumpsum" className="py-16 bg-gradient-to-br from-purple-50 via-pink-50 to-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             📊 DCA vs Lump Sum: Co ukazuje Vanguard Research?
@@ -975,7 +975,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 8: S&P 500-Specific Pro Optimization Tips */}
-      <section id="pro-tipy" className="py-16 bg-white">
+      <section id="pro-tipy" className="py-16 bg-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
             ⚡ 5 pokročilých tipů specifických pro S&P 500 ETF
@@ -1244,7 +1244,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* SECTION 9: E-E-A-T Footer - Data Sources & Disclaimer */}
-      <section id="eeat-footer" className="py-16 bg-gradient-to-br from-gray-50 to-white">
+      <section id="eeat-footer" className="py-16 bg-gradient-to-br from-gray-50 to-white content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl p-8 border-2 border-gray-300 shadow-lg">
             <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
@@ -1340,7 +1340,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20">
+      <section className="py-20 content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-purple-100 w-20 h-20 mx-auto mb-8 hover:bg-purple-200 transition-colors hover-scale">
@@ -1400,7 +1400,7 @@ export default async function NejlepsiSP500ETF() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section className="py-20 content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-green-100 w-20 h-20 mx-auto mb-8 hover:bg-green-200 transition-colors hover-scale">

@@ -138,7 +138,7 @@ export default function Top10SectionsServer({ etfs, currency = 'EUR', categoryNa
     .slice(0, 10);
 
   return (
-    <section id="top10" className="py-12 bg-white">
+    <section id="top10" className="py-12 bg-white content-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
 
