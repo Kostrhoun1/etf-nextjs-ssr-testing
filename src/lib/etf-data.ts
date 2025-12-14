@@ -2,7 +2,14 @@
  * Server-side data fetching functions for ETF pages
  * These functions are used for SSG/ISR to pre-render pages with data
  */
-import { supabaseAdmin } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Direct Supabase client for build-time data fetching
+// HARDCODED credentials to ensure data is always available during SSG/ISR build
+const SUPABASE_URL = 'https://nbhwnatadyubiuadfakx.supabase.co';
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaHduYXRhZHl1Yml1YWRmYWt4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODg0NDc0NCwiZXhwIjoyMDY0NDIwNzQ0fQ.SI_s72FBMs2qSqhKBsm7ZJSnPOnCEfWn1zQ6nxMtgyo';
+
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // Types
 export interface ETFBasicInfo {
@@ -27,7 +34,7 @@ export interface ETFBasicInfo {
   return_5y_usd: number | null;
   category: string | null;
   distribution_policy: string | null;
-  replication_method: string | null;
+  replication: string | null;
   fund_domicile: string | null;
 }
 
@@ -73,7 +80,7 @@ const ETF_SELECT_FIELDS = `
   return_5y_usd,
   category,
   distribution_policy,
-  replication_method,
+  replication,
   fund_domicile
 `;
 
@@ -87,7 +94,7 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
       .from('etf_funds')
       .select(ETF_SELECT_FIELDS);
 
-    // Apply category filter
+    // Apply category filter (simple eq - works well alone)
     if (config.filters.category) {
       query = query.eq('category', config.filters.category);
     }
@@ -96,7 +103,8 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
       query = query.in('category', config.filters.categories);
     }
 
-    // Apply name contains filter (OR logic)
+    // Apply name contains filter (OR logic between terms)
+    // This uses ilike for case-insensitive matching
     if (config.filters.nameContains && config.filters.nameContains.length > 0) {
       const nameFilters = config.filters.nameContains.map(term => `name.ilike.%${term}%`).join(',');
       query = query.or(nameFilters);

@@ -10,7 +10,7 @@ import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/
 import type { Metadata } from 'next';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// ISR: Revalidate every 24 hours
+// ISR revalidation every 24 hours
 export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
