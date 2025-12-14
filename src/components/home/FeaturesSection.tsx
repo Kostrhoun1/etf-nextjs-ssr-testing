@@ -1,47 +1,47 @@
 import React from "react";
 import Link from "next/link";
-import { BarChart, Search, BookOpen, Calculator, FileText, TrendingUp } from "lucide-react";
+import { BarChartIcon, SearchIcon, BookOpenIcon, CalculatorIcon, FileTextIcon, TrendingUpIcon } from "@/components/ui/icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const features = [
   {
-    icon: Search,
+    icon: SearchIcon,
     title: "Srovnávač ETF fondů",
     description: "Porovnejte více než 4 300 ETF fondů podle nákladovosti, výkonnosti nebo strategie. Nejkomplexnější český srovnávač ETF.",
     link: "/srovnani-etf",
     cta: "Porovnat ETF"
   },
   {
-    icon: BarChart,
+    icon: BarChartIcon,
     title: "Srovnání brokerů",
     description: "Detailní srovnání 6 hlavních brokerů z pohledu českého investora. Přehled poplatků, platformy a vhodnosti pro ETF investování.",
     link: "/kde-koupit-etf",
     cta: "Srovnat brokery"
   },
   {
-    icon: Calculator,
+    icon: CalculatorIcon,
     title: "Investiční nástroje a kalkulačky",
     description: "Zkuste investiční kalkulačku, vizualizaci složeného úročení, porovnejte náklady a simulujte vývoj portfolia pomocí Monte Carlo.",
     link: "/kalkulacky",
     cta: "Otevřít nástroje"
   },
   {
-    icon: BookOpen,
+    icon: BookOpenIcon,
     title: "Vzdělávací obsah a blog",
     description: "Tipy pro začátečníky i pokročilé. Průvodci, srovnávací články a odpovědi na nejčastější otázky o ETF investování.",
     link: "/tipy",
     cta: "Číst články"
   },
   {
-    icon: FileText,
+    icon: FileTextIcon,
     title: "Nejlepší ETF v roce 2025",
     description: "Pravidelně aktualizovaný žebříček nejlepších českých ETF podle různých kritérií - zařaďte se mezi úspěšné investory.",
     link: "/nejlepsi-etf/nejlepsi-etf-2025",
     cta: "Zjistit více"
   },
   {
-    icon: TrendingUp,
+    icon: TrendingUpIcon,
     title: "Newsletter & novinky",
     description: "Získejte aktuální investiční tipy, novinky a nejnovější články pohodlně do e-mailu. Jednou měsíčně, bez spamu.",
     link: "#newsletter",

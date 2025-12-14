@@ -199,6 +199,18 @@ export const ChevronLeftIcon: React.FC<IconProps> = ({ className = '' }) => (
   <span className={className} aria-hidden="true">‹</span>
 );
 
+export const MoreHorizontalIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⋯</span>
+);
+
+export const GripVerticalIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⋮</span>
+);
+
+export const PanelLeftIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⬅</span>
+);
+
 export const CloseIcon: React.FC<IconProps> = ({ className = '' }) => (
   <span className={className} aria-hidden="true">×</span>
 );
@@ -451,6 +463,22 @@ export const StarIcon: React.FC<IconProps> = ({ className = '' }) => (
 
 export const GraduationCapIcon: React.FC<IconProps> = ({ className = '' }) => (
   <span className={className} aria-hidden="true">🎓</span>
+);
+
+export const ChevronsUpDownIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">⇅</span>
+);
+
+export const CircleIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">●</span>
+);
+
+export const DotIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">•</span>
+);
+
+export const BarChartIcon: React.FC<IconProps> = ({ className = '' }) => (
+  <span className={className} aria-hidden="true">📊</span>
 );
 
 // Helper component for star ratings

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,7 +68,7 @@ export function SearchableSelect({
           {value && value !== "all"
             ? options.find((option) => option === value) || placeholder
             : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" style={{ width: "var(--radix-popover-trigger-width)" }}>
@@ -90,7 +90,7 @@ export function SearchableSelect({
                     setOpen(false);
                   }}
                 >
-                  <Check
+                  <CheckIcon
                     className={cn(
                       "mr-2 h-4 w-4",
                       value === "all" ? "opacity-100" : "opacity-0"
@@ -108,7 +108,7 @@ export function SearchableSelect({
                     setOpen(false);
                   }}
                 >
-                  <Check
+                  <CheckIcon
                     className={cn(
                       "mr-2 h-4 w-4",
                       value === option ? "opacity-100" : "opacity-0"

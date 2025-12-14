@@ -1,25 +1,25 @@
 import React from "react";
-import { BarChart, BookOpen, Calculator, DollarSign } from "lucide-react";
+import { BarChartIcon, BookOpenIcon, CalculatorIcon, DollarSignIcon } from "@/components/ui/icons";
 import { Card } from "@/components/ui/card";
 
 const usp = [
   {
-    icon: DollarSign,
+    icon: DollarSignIcon,
     title: "Výkonnost v CZK",
     description: "Jako jediní zobrazujeme reálné výnosy ETF přepočítané do českých korun.",
   },
   {
-    icon: BarChart,
+    icon: BarChartIcon,
     title: "4 300+ ETF fondů",
     description: "Kompletní databáze ETF z celého světa se srovnáním výnosů a poplatků.",
   },
   {
-    icon: Calculator,
+    icon: CalculatorIcon,
     title: "Srovnání brokerů",
     description: "Přehledný výběr brokerů podle poplatků a nabídky ETF zdarma.",
   },
   {
-    icon: BookOpen,
+    icon: BookOpenIcon,
     title: "Investiční nástroje",
     description: "Kalkulačky, simulace portfolia a tipy na nejlepší ETF fondy.",
   },
