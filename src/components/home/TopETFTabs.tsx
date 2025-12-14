@@ -2,10 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowRightIcon, TrendingUpIcon, SearchIcon, FilterIcon, DollarSignIcon, BuildingIcon, LandmarkIcon, BitcoinIcon } from '@/components/ui/icons';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -45,6 +41,14 @@ interface TopETFTabsProps {
   totalETFCount?: number;
 }
 
+const iconMap: Record<string, React.FC<{ className?: string }>> = {
+  TrendingUp: TrendingUpIcon,
+  DollarSign: DollarSignIcon,
+  Building: BuildingIcon,
+  Landmark: LandmarkIcon,
+  Bitcoin: BitcoinIcon,
+};
+
 const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }) => {
   const [activeTab, setActiveTab] = useState(categories[0]?.id || '');
   const { selectedCurrency: currency, setCurrency } = useCurrency();
@@ -56,38 +60,16 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
 
   const formatPercentage = (num: number | null | undefined): string => {
     if (num === null || num === undefined) return 'N/A';
-    const formatted = (num > 0 ? '+' : '') + num.toFixed(1) + '%';
-    return formatted;
+    return (num > 0 ? '+' : '') + num.toFixed(1) + '%';
   };
 
   const getReturnValue = (etf: ETFItem, period: 'ytd' | '1y' | '3y' | '5y'): number | null => {
-    switch (currency) {
-      case 'CZK':
-        switch (period) {
-          case 'ytd': return etf.return_ytd_czk || null;
-          case '1y': return etf.return_1y_czk || null;
-          case '3y': return etf.return_3y_czk || null;
-          case '5y': return etf.return_5y_czk || null;
-        }
-        break;
-      case 'USD':
-        switch (period) {
-          case 'ytd': return etf.return_ytd_usd || null;
-          case '1y': return etf.return_1y_usd || null;
-          case '3y': return etf.return_3y_usd || null;
-          case '5y': return etf.return_5y_usd || null;
-        }
-        break;
-      default:
-        switch (period) {
-          case 'ytd': return etf.return_ytd || null;
-          case '1y': return etf.return_1y || null;
-          case '3y': return etf.return_3y || null;
-          case '5y': return etf.return_5y || null;
-        }
-    }
-    return null;
+    const key = `return_${period}${currency === 'EUR' ? '' : `_${currency.toLowerCase()}`}` as keyof ETFItem;
+    const value = etf[key];
+    return typeof value === 'number' ? value : null;
   };
+
+  const activeCategory = categories.find(cat => cat.id === activeTab);
 
   return (
     <section className="py-8 bg-white">
@@ -100,7 +82,7 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
           <p className="text-base text-gray-600 max-w-2xl mx-auto mb-4">
             Top hodnocené ETF fondy z databáze {formatNumber(totalETFCount)} fondů
           </p>
-          
+
           {/* Currency Toggle */}
           <div className="flex justify-center">
             <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
@@ -124,199 +106,174 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
 
         {/* Mobile Dropdown */}
         <div className="md:hidden mb-6">
-          <Select value={activeTab} onValueChange={setActiveTab}>
-            <SelectTrigger className="w-full">
-              <SelectValue>
-                {(() => {
-                  const activeCategory = categories.find(cat => cat.id === activeTab);
-                  const iconMap = { TrendingUp: TrendingUpIcon, DollarSign: DollarSignIcon, Building: BuildingIcon, Landmark: LandmarkIcon, Bitcoin: BitcoinIcon };
-                  const IconComponent = iconMap[activeCategory?.iconName as keyof typeof iconMap] || TrendingUpIcon;
-                  return (
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4" />
-                      <span>{activeCategory?.name}</span>
-                    </div>
-                  );
-                })()}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => {
-                const iconMap = { TrendingUp: TrendingUpIcon, DollarSign: DollarSignIcon, Building: BuildingIcon, Landmark: LandmarkIcon, Bitcoin: BitcoinIcon };
-                const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUpIcon;
-                return (
-                  <SelectItem key={category.id} value={category.id}>
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-4 w-4" />
-                      <span>{category.name}</span>
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Desktop Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="hidden md:grid w-full grid-cols-3 lg:grid-cols-5 mb-8 h-auto p-1">
-            {categories.map((category) => {
-              const iconMap = { TrendingUp: TrendingUpIcon, DollarSign: DollarSignIcon, Building: BuildingIcon, Landmark: LandmarkIcon, Bitcoin: BitcoinIcon };
-              const IconComponent = iconMap[category.iconName as keyof typeof iconMap] || TrendingUpIcon;
-              
-              return (
-                <TabsTrigger
-                  key={category.id}
-                  value={category.id}
-                  className="flex items-center gap-2 p-3 data-[state=active]:bg-violet-100 data-[state=active]:text-violet-700"
-                >
-                  <IconComponent className="h-4 w-4" />
-                  <span>{category.name}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+        <div className="hidden md:grid w-full grid-cols-3 lg:grid-cols-5 mb-8 gap-1 bg-gray-100 p-1 rounded-lg">
+          {categories.map((category) => {
+            const IconComponent = iconMap[category.iconName] || TrendingUpIcon;
+            const isActive = activeTab === category.id;
 
-        {/* Content for both mobile dropdown and desktop tabs */}
-        <div className="mt-0">
-          {(() => {
-            const activeCategory = categories.find(cat => cat.id === activeTab);
-            if (!activeCategory) return null;
-            
             return (
-              <div className="overflow-x-auto">
-                {/* Desktop Table */}
-                <table className="hidden md:table w-full border-collapse bg-white rounded-lg shadow-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="text-left p-4 font-semibold text-gray-900">ETF fond</th>
-                      <th className="text-center p-4 font-semibold text-gray-900">TER</th>
-                      <th className="text-center p-4 font-semibold text-gray-900">YTD</th>
-                      <th className="text-center p-4 font-semibold text-gray-900">1Y</th>
-                      <th className="text-center p-4 font-semibold text-gray-900">3Y</th>
-                      <th className="text-center p-4 font-semibold text-gray-900">5Y</th>
-                      <th className="text-center p-4 font-semibold text-gray-900">Velikost</th>
-                      <th className="text-center p-4 font-semibold text-gray-900">Detail</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeCategory.etfs.slice(0, 10).map((etf, index) => (
-                      <tr key={etf.isin} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="p-4">
-                          <div className="flex flex-col">
-                            <Link href={`/etf/${etf.isin}`} className="font-medium text-gray-900 hover:text-violet-600 transition-colors">
-                              {etf.name}
-                            </Link>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                              <span className="font-mono">{etf.isin}</span>
-                              {etf.primary_ticker && (
-                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
-                                  {etf.primary_ticker}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4 text-center text-sm font-medium">
-                          {etf.ter_numeric?.toFixed(2)}%
-                        </td>
-                        <td className="p-4 text-center text-sm">
-                          <span className={`font-medium ${
-                            getReturnValue(etf, 'ytd') && getReturnValue(etf, 'ytd')! > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {formatPercentage(getReturnValue(etf, 'ytd'))}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center text-sm">
-                          <span className={`font-medium ${
-                            getReturnValue(etf, '1y') && getReturnValue(etf, '1y')! > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {formatPercentage(getReturnValue(etf, '1y'))}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center text-sm">
-                          <span className={`font-medium ${
-                            getReturnValue(etf, '3y') && getReturnValue(etf, '3y')! > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {formatPercentage(getReturnValue(etf, '3y'))}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center text-sm">
-                          <span className={`font-medium ${
-                            getReturnValue(etf, '5y') && getReturnValue(etf, '5y')! > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {formatPercentage(getReturnValue(etf, '5y'))}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center text-sm font-medium">
-                          {formatNumber(etf.fund_size_numeric)} mil. EUR
-                        </td>
-                        <td className="p-4 text-center">
-                          <Link href={`/etf/${etf.isin}`}>
-                            <Button variant="outline" size="sm">
-                              Detail
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden space-y-3">
-                  {activeCategory.etfs.slice(0, 5).map((etf, index) => (
-                    <Card key={etf.isin} className="shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1 min-w-0 pr-3">
-                            <Link href={`/etf/${etf.isin}`} className="font-medium text-gray-900 hover:text-violet-600 transition-colors block">
-                              {etf.name}
-                            </Link>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                              <span className="font-mono text-xs">{etf.isin}</span>
-                              {etf.primary_ticker && (
-                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
-                                  {etf.primary_ticker}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <Link href={`/etf/${etf.isin}`}>
-                            <Button variant="outline" size="sm" className="shrink-0">
-                              Detail
-                            </Button>
-                          </Link>
-                        </div>
-                        
-                        {/* Mobile metrics grid */}
-                        <div className="grid grid-cols-3 gap-3 text-sm">
-                          <div className="text-center">
-                            <div className="text-gray-500 text-xs mb-1">TER</div>
-                            <div className="font-medium">{etf.ter_numeric?.toFixed(2)}%</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-gray-500 text-xs mb-1">1Y</div>
-                            <div className={`font-medium ${
-                              getReturnValue(etf, '1y') && getReturnValue(etf, '1y')! > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {formatPercentage(getReturnValue(etf, '1y'))}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-gray-500 text-xs mb-1">Velikost</div>
-                            <div className="font-medium text-xs">{formatNumber(etf.fund_size_numeric)} mil.</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+              <button
+                key={category.id}
+                onClick={() => setActiveTab(category.id)}
+                className={`flex items-center justify-center gap-2 p-3 rounded-md font-medium transition-colors ${
+                  isActive
+                    ? 'bg-white text-violet-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <IconComponent className="h-4 w-4" />
+                <span>{category.name}</span>
+              </button>
             );
-          })()}
+          })}
         </div>
-        </Tabs>
+
+        {/* Content */}
+        {activeCategory && (
+          <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <table className="hidden md:table w-full border-collapse bg-white rounded-lg shadow-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left p-4 font-semibold text-gray-900">ETF fond</th>
+                  <th className="text-center p-4 font-semibold text-gray-900">TER</th>
+                  <th className="text-center p-4 font-semibold text-gray-900">YTD</th>
+                  <th className="text-center p-4 font-semibold text-gray-900">1Y</th>
+                  <th className="text-center p-4 font-semibold text-gray-900">3Y</th>
+                  <th className="text-center p-4 font-semibold text-gray-900">5Y</th>
+                  <th className="text-center p-4 font-semibold text-gray-900">Velikost</th>
+                  <th className="text-center p-4 font-semibold text-gray-900">Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeCategory.etfs.slice(0, 10).map((etf) => (
+                  <tr key={etf.isin} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <Link href={`/etf/${etf.isin}`} className="font-medium text-gray-900 hover:text-violet-600 transition-colors">
+                          {etf.name}
+                        </Link>
+                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                          <span className="font-mono">{etf.isin}</span>
+                          {etf.primary_ticker && (
+                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
+                              {etf.primary_ticker}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center text-sm font-medium">
+                      {etf.ter_numeric?.toFixed(2)}%
+                    </td>
+                    <td className="p-4 text-center text-sm">
+                      <span className={`font-medium ${
+                        (getReturnValue(etf, 'ytd') ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatPercentage(getReturnValue(etf, 'ytd'))}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center text-sm">
+                      <span className={`font-medium ${
+                        (getReturnValue(etf, '1y') ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatPercentage(getReturnValue(etf, '1y'))}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center text-sm">
+                      <span className={`font-medium ${
+                        (getReturnValue(etf, '3y') ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatPercentage(getReturnValue(etf, '3y'))}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center text-sm">
+                      <span className={`font-medium ${
+                        (getReturnValue(etf, '5y') ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatPercentage(getReturnValue(etf, '5y'))}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center text-sm font-medium">
+                      {formatNumber(etf.fund_size_numeric)} mil. EUR
+                    </td>
+                    <td className="p-4 text-center">
+                      <Link
+                        href={`/etf/${etf.isin}`}
+                        className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                      >
+                        Detail
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+              {activeCategory.etfs.slice(0, 5).map((etf) => (
+                <div key={etf.isin} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1 min-w-0 pr-3">
+                      <Link href={`/etf/${etf.isin}`} className="font-medium text-gray-900 hover:text-violet-600 transition-colors block">
+                        {etf.name}
+                      </Link>
+                      <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                        <span className="font-mono text-xs">{etf.isin}</span>
+                        {etf.primary_ticker && (
+                          <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
+                            {etf.primary_ticker}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Link
+                      href={`/etf/${etf.isin}`}
+                      className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors shrink-0"
+                    >
+                      Detail
+                    </Link>
+                  </div>
+
+                  {/* Mobile metrics grid */}
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="text-center">
+                      <div className="text-gray-500 text-xs mb-1">TER</div>
+                      <div className="font-medium">{etf.ter_numeric?.toFixed(2)}%</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-xs mb-1">1Y</div>
+                      <div className={`font-medium ${
+                        (getReturnValue(etf, '1y') ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatPercentage(getReturnValue(etf, '1y'))}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-xs mb-1">Velikost</div>
+                      <div className="font-medium text-xs">{formatNumber(etf.fund_size_numeric)} mil.</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Bottom CTA Section */}
         <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
@@ -326,17 +283,18 @@ const TopETFTabs: React.FC<TopETFTabsProps> = ({ categories, totalETFCount = 0 }
               Potřebujete detailnější srovnání?
             </h3>
           </div>
-          
+
           <p className="text-gray-600 text-sm mb-4 max-w-2xl mx-auto">
             Prozkoumejte všech {formatNumber(totalETFCount)} ETF fondů s pokročilými filtry a detailními analýzami.
           </p>
-          
-          <Link href="/srovnani-etf">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              <SearchIcon className="w-4 h-4 mr-2" />
-              Srovnat všechny ETF fondy
-              <ArrowRightIcon className="w-4 h-4 ml-2" />
-            </Button>
+
+          <Link
+            href="/srovnani-etf"
+            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
+          >
+            <SearchIcon className="w-4 h-4 mr-2" />
+            Srovnat všechny ETF fondy
+            <ArrowRightIcon className="w-4 h-4 ml-2" />
           </Link>
         </div>
       </div>
