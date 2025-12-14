@@ -146,7 +146,29 @@ export const useETFComparison = () => {
           return_2022,
           return_2023,
           return_2024,
-          return_inception
+          return_inception,
+          return_1m_czk,
+          return_3m_czk,
+          return_6m_czk,
+          return_ytd_czk,
+          return_1y_czk,
+          return_3y_czk,
+          return_5y_czk,
+          return_2021_czk,
+          return_2022_czk,
+          return_2023_czk,
+          return_2024_czk,
+          return_1m_usd,
+          return_3m_usd,
+          return_6m_usd,
+          return_ytd_usd,
+          return_1y_usd,
+          return_3y_usd,
+          return_5y_usd,
+          return_2021_usd,
+          return_2022_usd,
+          return_2023_usd,
+          return_2024_usd
         `)
         .eq('isin', isin)
         .single();
