@@ -6,15 +6,15 @@ import { BookOpenIcon, CalculatorIcon, TrendingUpIcon } from '@/components/ui/ic
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 
 export const metadata: Metadata = {
-  title: 'Co jsou ETF fondy? | Průvodce pro investory 2025',
-  description: 'Kompletní průvodce Exchange Traded Funds pro české investory. Naučte se pasivní investování, porovnejte nejlepší ETF a začněte investovat ještě dnes.',
-  keywords: 'ETF fondy, co jsou ETF, Exchange Traded Fund, pasivní investování, VWCE, CSPX, SWDA',
+  title: 'Co jsou ETF | Co je ETF fond - Kompletní průvodce 2025',
+  description: 'Co jsou ETF fondy? Vše o ETF jednoduše vysvětleno. Co je ETF, jak funguje, výhody a nevýhody ETF fondů. Průvodce pro začátečníky i pokročilé investory.',
+  keywords: 'co jsou ETF, co je ETF, ETF fondy, co jsou ETF fondy, ETF vysvětlení, ETF pro začátečníky, jak funguje ETF, výhody ETF, nevýhody ETF, Exchange Traded Fund',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/co-jsou-etf',
   },
   openGraph: {
-    title: 'Co jsou ETF fondy? | Průvodce pro investory 2025',
-    description: 'Kompletní průvodce Exchange Traded Funds pro české investory. Naučte se pasivní investování, porovnejte nejlepší ETF a začněte investovat ještě dnes.',
+    title: 'Co jsou ETF fondy? - Kompletní průvodce pro investory',
+    description: 'Co jsou ETF fondy? Vše o ETF jednoduše vysvětleno. Jak ETF funguje, výhody, nevýhody, nejlepší ETF pro začátečníky.',
     url: 'https://www.etfpruvodce.cz/co-jsou-etf',
     siteName: 'ETF průvodce.cz',
     locale: 'cs_CZ',
@@ -126,10 +126,10 @@ const WhatAreETFs: React.FC = () => {
                   ETF fondy?
                 </span>
               </h1>
-              
+
               <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
-                Naučte se pasivní investování s nejpopulárnějším investičním nástrojem. 
-                ETF fondy jednoduše vysvětleny pro české investory.
+                Co je ETF a jak do něj investovat? ETF fondy jednoduše vysvětleny
+                pro začátečníky i pokročilé české investory.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">

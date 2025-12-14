@@ -9,12 +9,12 @@ import { Metadata } from 'next';
 const currentYear = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Finanční kalkulačky ${currentYear} - Hypotéka, úvěry, mzda`,
-  description: `✅ Kompletní přehled finančních kalkulaček ${currentYear}. Hypoteční kalkulačka, čistá mzda, spotřebitelské úvěry, investiční nástroje. Vše zdarma s aktuálními daty.`,
-  keywords: `finanční kalkulačky ${currentYear}, hypoteční kalkulačka, kalkulačka čisté mzdy, úvěrová kalkulačka, investiční kalkulačky, bezplatné nástroje`,
+  title: `Investiční kalkulačky | ETF kalkulačka a finanční nástroje ${currentYear}`,
+  description: `Investiční kalkulačky zdarma: ETF kalkulačka, backtest portfolia, Monte Carlo simulace, FIRE kalkulačka. Spočítejte si výnosy z investic do ETF.`,
+  keywords: `investiční kalkulačka, ETF kalkulačka, kalkulačka výnosů, backtest portfolia, Monte Carlo simulace, FIRE kalkulačka, investiční nástroje, finanční kalkulačky ${currentYear}`,
   openGraph: {
-    title: `Finanční kalkulačky ${currentYear} - Hypotéka, úvěry, mzda`,
-    description: `Kompletní přehled finančních kalkulaček ${currentYear}. Hypoteční kalkulačka, čistá mzda, spotřebitelské úvěry, investiční nástroje. Vše zdarma.`,
+    title: `Investiční kalkulačky - ETF kalkulačka a finanční nástroje`,
+    description: `Investiční kalkulačky zdarma: ETF kalkulačka, backtest portfolia, Monte Carlo simulace. Spočítejte si výnosy z investic.`,
     url: 'https://www.etfpruvodce.cz/kalkulacky',
     siteName: 'ETF průvodce.cz',
     images: [{

@@ -18,10 +18,10 @@ import { generateCanonicalMetadata } from '@/lib/metadata';
 
 export const metadata: Metadata = generateCanonicalMetadata(
   '/nejlepsi-etf',
-  'Nejlepší ETF 2025 - Kompletní přehled podle kategorií',
-  'Přehled nejlepších ETF fondů 2025: indexy, regiony, sektory, strategie. S&P 500, MSCI World, dividendové, technologické ETF pro české investory.',
+  'Nejlepší ETF | TOP ETF fondy 2025 pro české investory',
+  'Nejlepší ETF fondy 2025: S&P 500, MSCI World, dividendové, technologické ETF. Kompletní přehled TOP ETF podle kategorií, výkonnosti a poplatků.',
   {
-    keywords: 'nejlepší ETF 2025, top ETF, S&P 500 ETF, MSCI World ETF, dividendové ETF, technologické ETF'
+    keywords: 'nejlepší ETF, nejlepší ETF fondy, TOP ETF 2025, nejlepší ETF 2025, doporučené ETF, S&P 500 ETF, MSCI World ETF, dividendové ETF, technologické ETF, nejlepší ETF pro začátečníky'
   }
 );
 

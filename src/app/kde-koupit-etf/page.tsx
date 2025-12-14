@@ -14,10 +14,10 @@ export const revalidate = 86400;
 
 export const metadata: Metadata = generateCanonicalMetadata(
   '/kde-koupit-etf',
-  'Kde koupit ETF 2025 🏆 Nejlepší brokeři pro české investory',
-  'Porovnání nejlepších brokerů pro nákup ETF v ČR: Portu, XTB, Trading212, DEGIRO. Poplatky, regulace, výběr ETF. Kompletní průvodce 2025.',
+  'Kde koupit ETF | Nejlepší brokeři pro ETF v ČR 2025',
+  'Kde koupit ETF v České republice? Srovnání brokerů pro nákup ETF: Portu, XTB, Trading212, DEGIRO, Interactive Brokers. Poplatky, bezpečnost, recenze.',
   {
-    keywords: 'kde koupit ETF, broker ETF, DEGIRO, XTB, Trading212, Portu, poplatky broker, nákup ETF Česko'
+    keywords: 'kde koupit ETF, kde nakoupit ETF, ETF broker, broker pro ETF, nákup ETF Česko, ETF Česká republika, XTB, DEGIRO, Portu, Trading212, nejlepší broker ETF'
   }
 );
 

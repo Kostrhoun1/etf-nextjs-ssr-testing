@@ -22,9 +22,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   }
 
   return {
-    title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů`,
-    description: `🔍 Nejpokročilejší ETF srovnání pro české investory. Porovnejte 4300+ ETF podle TER, výkonnosti a rizika. DEGIRO filtry, live databáze, zdarma.`,
-    keywords: `ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF ${currentYear}, ETF filtr, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze`,
+    title: `Srovnání ETF | ETF srovnávač - Porovnání 4300+ fondů ${currentYear}`,
+    description: `Srovnání ETF fondů online zdarma. Porovnejte 4300+ ETF podle TER, výkonnosti, velikosti a rizika. Nejlepší ETF srovnávač pro české investory.`,
+    keywords: `srovnání ETF, ETF srovnání, porovnání ETF, ETF srovnávač, srovnat ETF fondy, ETF porovnání, nejlepší ETF ${currentYear}, ETF filtr, TER poplatky ETF, výkonnost ETF, ETF databáze`,
     authors: [{ name: 'ETF průvodce.cz' }],
     openGraph: {
       title: `ETF srovnání ${currentYear} - Porovnání všech ETF fondů`,
