@@ -135,6 +135,11 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
     const sortOrder = config.sortOrder || 'desc';
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
+    // Secondary sort by fund size when sorting by rating (to prefer larger funds at same rating)
+    if (sortBy === 'rating') {
+      query = query.order('fund_size_numeric', { ascending: false });
+    }
+
     // Apply limit
     const limit = config.limit || 50;
     query = query.limit(limit);
@@ -286,7 +291,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       minFundSize: 100,
     },
-    sortBy: 'fund_size_numeric',
+    sortBy: 'rating',
     sortOrder: 'desc',
     limit: 200,
   },
