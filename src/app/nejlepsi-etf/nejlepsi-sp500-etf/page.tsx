@@ -226,26 +226,21 @@ export default async function NejlepsiSP500ETF() {
         }}
       />
 
-      {/* Modern Hero Section */}
-      <section className="relative py-16 md:py-24 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50"></div>
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute top-40 right-1/4 w-72 h-72 bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Hero Section - Optimized for LCP */}
+      <section className="relative py-16 md:py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
-            
+
             {/* Left Content */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-blue-200/50">
+            <div className="space-y-6">
+              <div className="inline-flex items-center bg-white text-blue-700 px-5 py-2.5 rounded-full text-sm font-medium shadow-sm border border-blue-100">
                 <FlagIcon className="w-4 h-4 mr-2" />
                 Aktuální k {currentDate}
               </div>
-              
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
+
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                 Nejlepší{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                   S&P 500 ETF
                 </span>
               </h1>
@@ -279,72 +274,51 @@ export default async function NejlepsiSP500ETF() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
+                <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-lg font-semibold shadow-md hover:shadow-lg transition-shadow rounded-xl h-12">
                   <Link href="#top3">
                     <StarFilledIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold h-12">
-                  <Link href="#srovnani">
+                <Button asChild variant="outline" className="bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50 px-8 py-3 text-lg font-semibold rounded-xl h-12 transition-colors">
+                  <Link href="#top10">
                     <BarChart3Icon className="w-5 h-5 mr-2" />
-                    Srovnání ETF
+                    Top 10 srovnání
                   </Link>
                 </Button>
               </div>
             </div>
             
-            {/* Right Content - Subtle Market Stats */}
-            <div className="relative mt-12">
-              <div className="bg-white rounded-2xl p-6 border border-gray-300 shadow-lg">
-                
-                {/* Simple Header */}
+            {/* Right Content - S&P 500 Stats Card */}
+            <div className="hidden lg:block">
+              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-xl">
                 <div className="text-center mb-6">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-xl mb-3">
-                    <TrendingUpIcon className="w-6 h-6 text-blue-600" />
+                  <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl mb-4 shadow-lg">
+                    <TrendingUpIcon className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                    S&P 500 v číslech
-                  </h3>
-                  <p className="text-sm text-gray-600">Klíčová fakta o indexu</p>
+                  <h3 className="text-xl font-bold text-gray-900">S&P 500 v číslech</h3>
+                  <p className="text-sm text-gray-500 mt-1">Klíčové informace o indexu</p>
                 </div>
-                
-                {/* Subtle Stats Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-200 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BuildingIcon className="w-4 h-4 text-blue-600" />
-                      <span className="text-xs text-gray-500 font-medium">SLOŽENÍ</span>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                    <BuildingIcon className="w-5 h-5 text-blue-600 mx-auto mb-2" />
                     <div className="text-2xl font-bold text-gray-900">500</div>
-                    <div className="text-xs text-gray-600">největších firem</div>
+                    <div className="text-xs text-gray-600 font-medium">největších firem</div>
                   </div>
-                  
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-green-200 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BarChart3Icon className="w-4 h-4 text-green-600" />
-                      <span className="text-xs text-gray-500 font-medium">VÝNOS</span>
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">~10%</div>
-                    <div className="text-xs text-gray-600">ročně historicky</div>
+                  <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                    <BarChart3Icon className="w-5 h-5 text-green-600 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-green-600">~10%</div>
+                    <div className="text-xs text-gray-600 font-medium">ročně historicky</div>
                   </div>
-                  
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-200 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                      <GlobeIcon className="w-4 h-4 text-purple-600" />
-                      <span className="text-xs text-gray-500 font-medium">POKRYTÍ</span>
-                    </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-100">
+                    <GlobeIcon className="w-5 h-5 text-purple-600 mx-auto mb-2" />
                     <div className="text-2xl font-bold text-gray-900">80%</div>
-                    <div className="text-xs text-gray-600">amerického trhu</div>
+                    <div className="text-xs text-gray-600 font-medium">amerického trhu</div>
                   </div>
-                  
-                  <div className="bg-white rounded-lg p-4 border border-gray-200 hover:border-orange-200 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ShieldIcon className="w-4 h-4 text-orange-600" />
-                      <span className="text-xs text-gray-500 font-medium">VÝBĚR</span>
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">20+</div>
-                    <div className="text-xs text-gray-600">ETF k dispozici</div>
+                  <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                    <ShieldIcon className="w-5 h-5 text-orange-600 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-blue-600">{etfs.length}+</div>
+                    <div className="text-xs text-gray-600 font-medium">ETF k dispozici</div>
                   </div>
                 </div>
               </div>
