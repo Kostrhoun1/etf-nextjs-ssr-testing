@@ -87,7 +87,6 @@ export default function InteractiveBrokersRecenzePage() {
       "name": "Interactive Brokers",
       "description": "Americký online broker pro profesionální a pokročilé investory",
       "url": "https://www.interactivebrokers.com/",
-      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "One Pickwick Plaza",

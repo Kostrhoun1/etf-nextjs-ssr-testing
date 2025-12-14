@@ -87,7 +87,6 @@ export default function FioEbrokerRecenzePage() {
       "name": "Fio e-Broker",
       "description": "Český online broker pro obchodování s ETF, akciemi a dluhopisy",
       "url": "https://www.fio.cz/e-broker",
-      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "V Celnici 1028/10",

@@ -87,7 +87,6 @@ export default function Trading212RecenzePage() {
       "name": "Trading 212",
       "description": "Online broker s komisí 0% pro akcie a ETF investice",
       "url": "https://www.trading212.com/",
-      "category": "Online Brokerage",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "107 Cheapside",

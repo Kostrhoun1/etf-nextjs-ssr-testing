@@ -130,8 +130,7 @@ export default function AuthorSchema() {
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "email": "info@etfpruvodce.cz",
-      "availableLanguage": "Czech"
+      "email": "info@etfpruvodce.cz"
     },
     "areaServed": {
       "@type": "Country",

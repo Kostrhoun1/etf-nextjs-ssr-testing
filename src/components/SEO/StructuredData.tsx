@@ -36,8 +36,7 @@ export const OrganizationStructuredData: React.FC = () => {
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer service",
-      "email": "info@etfpruvodce.cz",
-      "availableLanguage": "Czech"
+      "email": "info@etfpruvodce.cz"
     },
     "sameAs": [
       "https://www.etfpruvodce.cz"
