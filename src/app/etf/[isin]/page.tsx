@@ -5,22 +5,37 @@ import { notFound } from 'next/navigation';
 // ISR: Revalidate every 24 hours (86400 seconds)
 export const revalidate = 86400;
 
-// Generate static params for top 500 ETFs at build time
-// Others will be generated on-demand (ISR)
+// Generate static params for ALL ETFs at build time
+// Supabase has 1000 row limit per query, so we paginate
 export async function generateStaticParams() {
   try {
-    const { data: etfs, error } = await supabaseAdmin
-      .from('etf_funds')
-      .select('isin')
-      .order('fund_size_numeric', { ascending: false })
-      .limit(500);
+    const allIsins: { isin: string }[] = [];
+    const pageSize = 1000;
+    let page = 0;
+    let hasMore = true;
 
-    if (error || !etfs) {
-      console.error('Error in generateStaticParams:', error);
-      return [];
+    while (hasMore) {
+      const { data: etfs, error } = await supabaseAdmin
+        .from('etf_funds')
+        .select('isin')
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      if (error) {
+        console.error('Error in generateStaticParams:', error);
+        break;
+      }
+
+      if (etfs && etfs.length > 0) {
+        allIsins.push(...etfs);
+        page++;
+        hasMore = etfs.length === pageSize;
+      } else {
+        hasMore = false;
+      }
     }
 
-    return etfs.map((etf) => ({
+    console.log(`generateStaticParams: Found ${allIsins.length} ETFs`);
+    return allIsins.map((etf) => ({
       isin: etf.isin,
     }));
   } catch (error) {
