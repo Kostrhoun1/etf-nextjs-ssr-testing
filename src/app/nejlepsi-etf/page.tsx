@@ -1,143 +1,126 @@
 import React from 'react';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
-import { Button } from '@/components/ui/button';
 import {
   StarFilledIcon,
-  BrainIcon,
   ArrowRightIcon,
   BarChart3Icon,
-  TargetIcon,
-  ChevronRightIcon,
-  BookOpenIcon,
   GlobeIcon,
+  TargetIcon,
   BuildingIcon,
+  BrainIcon,
   ShieldIcon,
-  AwardIcon,
   DollarIcon,
-  RocketIcon,
-  ZapIcon,
-  UsersIcon
+  AwardIcon
 } from '@/components/ui/icons';
-import InternalLinking from '@/components/SEO/InternalLinking';
 import type { Metadata } from 'next';
 import { generateCanonicalMetadata } from '@/lib/metadata';
 
 export const metadata: Metadata = generateCanonicalMetadata(
   '/nejlepsi-etf',
-  'Nejlepší ETF 2025 🏆 TOP doporučení pro české investory',
-  'Komplexní přehled nejlepších ETF fondů 2025 podle kategorií: S&P 500, MSCI World, technologie, dividendy, ESG. Expertní doporučení a analýzy.',
+  'Nejlepší ETF 2025 - Kompletní přehled podle kategorií',
+  'Přehled nejlepších ETF fondů 2025: indexy, regiony, sektory, strategie. S&P 500, MSCI World, dividendové, technologické ETF pro české investory.',
   {
-    keywords: 'nejlepší ETF 2025, top ETF, doporučené ETF, S&P 500 ETF, MSCI World ETF, technologické ETF, dividendové ETF, ESG ETF'
+    keywords: 'nejlepší ETF 2025, top ETF, S&P 500 ETF, MSCI World ETF, dividendové ETF, technologické ETF'
   }
 );
 
-// Kompletní ETF kategorie pro rok 2025
-const ETF_CATEGORIES = {
-  // Podle indexů - nejpopulárnější
-  indexes: {
+const categories = [
+  {
     title: "Podle indexů",
-    description: "ETF sledující konkrétní indexy a benchmarky",
     icon: BarChart3Icon,
-    color: "from-blue-500 to-blue-600",
-    articles: [
-      { slug: "nejlepsi-sp500-etf", title: "S&P 500 ETF", description: "Americké blue-chip společnosti" },
-      { slug: "nejlepsi-nasdaq-etf", title: "NASDAQ ETF", description: "Technologické a růstové tituly" },
-      { slug: "nejlepsi-msci-world-etf", title: "MSCI World ETF", description: "Celosvětová diverzifikace" },
-      { slug: "nejlepsi-stoxx600-etf", title: "STOXX 600 ETF", description: "Největší evropské firmy" },
-      { slug: "nejlepsi-ftse100-etf", title: "FTSE 100 ETF", description: "Britské blue-chip akcie" },
-      { slug: "nejlepsi-dax-etf", title: "DAX ETF", description: "Německé dividend aristokraty" }
+    color: "blue",
+    links: [
+      { href: "/nejlepsi-etf/nejlepsi-sp500-etf", label: "S&P 500 ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-nasdaq-etf", label: "NASDAQ ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-msci-world-etf", label: "MSCI World ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-stoxx600-etf", label: "STOXX 600 ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-ftse100-etf", label: "FTSE 100 ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-dax-etf", label: "DAX ETF" },
     ]
   },
-
-  // Podle regionů
-  regions: {
+  {
     title: "Podle regionů",
-    description: "Geografická diverzifikace podle zemí a kontinentů",
     icon: GlobeIcon,
-    color: "from-green-500 to-green-600",
-    articles: [
-      { slug: "nejlepsi-celosvetove-etf", title: "Celosvětové ETF", description: "Maximální diverzifikace" },
-      { slug: "nejlepsi-evropske-etf", title: "Evropské ETF", description: "Evropské akciové trhy" },
-      { slug: "nejlepsi-americke-etf", title: "Americké ETF", description: "USA akciové indexy" },
-      { slug: "nejlepsi-emerging-markets-etf", title: "Emerging Markets ETF", description: "Rozvíjející se ekonomiky" },
-      { slug: "nejlepsi-cinske-etf", title: "Čínské ETF", description: "Čínský růstový potenciál" },
-      { slug: "nejlepsi-japonske-etf", title: "Japonské ETF", description: "Japonský akciový trh" }
+    color: "green",
+    links: [
+      { href: "/nejlepsi-etf/nejlepsi-celosvetove-etf", label: "Celosvětové ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-americke-etf", label: "Americké ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-evropske-etf", label: "Evropské ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-emerging-markets-etf", label: "Emerging Markets" },
+      { href: "/nejlepsi-etf/nejlepsi-cinske-etf", label: "Čínské ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-japonske-etf", label: "Japonské ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-asijsko-pacificke-etf", label: "Asijsko-pacifické" },
     ]
   },
-
-  // Podle strategie
-  strategies: {
+  {
     title: "Podle strategie",
-    description: "Investiční styly a přístupy",
     icon: TargetIcon,
-    color: "from-purple-500 to-purple-600",
-    articles: [
-      { slug: "nejlepsi-dividendove-etf", title: "Dividendové ETF", description: "Pasivní příjem z dividend" },
-      { slug: "nejlepsi-value-etf", title: "Value ETF", description: "Podhodnocené kvalitní firmy" },
-      { slug: "nejlepsi-growth-etf", title: "Growth ETF", description: "Rychle rostoucí společnosti" },
-      { slug: "nejlepsi-esg-etf", title: "ESG ETF", description: "Udržitelné investování" },
-      { slug: "nejlepsi-small-cap-etf", title: "Small Cap ETF", description: "Malé perspektivní firmy" }
+    color: "purple",
+    links: [
+      { href: "/nejlepsi-etf/nejlepsi-dividendove-etf", label: "Dividendové ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-value-etf", label: "Value ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-growth-etf", label: "Growth ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-esg-etf", label: "ESG ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-small-cap-etf", label: "Small Cap ETF" },
     ]
   },
-
-  // Podle sektorů - tradiční
-  sectors: {
-    title: "Podle sektorů",
-    description: "Specializace na konkrétní odvětví",
+  {
+    title: "Tradiční sektory",
     icon: BuildingIcon,
-    color: "from-orange-500 to-orange-600",
-    articles: [
-      { slug: "nejlepsi-technologicke-etf", title: "Technologické ETF", description: "IT a software firmy" },
-      { slug: "nejlepsi-healthcare-etf", title: "Healthcare ETF", description: "Zdravotnictví a farmacie" },
-      { slug: "nejlepsi-financni-etf", title: "Finanční ETF", description: "Banky a pojišťovny" },
-      { slug: "nejlepsi-energeticke-etf", title: "Energetické ETF", description: "Ropný a plynárenský sektor" },
-      { slug: "nejlepsi-spotrebni-etf", title: "Spotřební ETF", description: "Konzumní zboží a služby" }
+    color: "orange",
+    links: [
+      { href: "/nejlepsi-etf/nejlepsi-technologicke-etf", label: "Technologické ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-healthcare-etf", label: "Healthcare ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-financni-etf", label: "Finanční ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-energeticke-etf", label: "Energetické ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-spotrebni-etf", label: "Spotřební ETF" },
     ]
   },
-
-  // Moderní sektory
-  modern: {
+  {
     title: "Moderní trendy",
-    description: "Budoucnost a inovace",
     icon: BrainIcon,
-    color: "from-pink-500 to-pink-600",
-    articles: [
-      { slug: "nejlepsi-ai-etf", title: "AI ETF", description: "Umělá inteligence a robotika" },
-      { slug: "nejlepsi-clean-energy-etf", title: "Čistá energie ETF", description: "Obnovitelné zdroje energie" },
-      { slug: "nejlepsi-biotechnologie-etf", title: "Biotechnologie ETF", description: "Moderní medicína a výzkum" },
-      { slug: "nejlepsi-robotika-etf", title: "Robotika ETF", description: "Automatizace a robotika" },
-      { slug: "nejlepsi-cloud-etf", title: "Cloud Computing ETF", description: "Cloudové služby a SaaS" },
-      { slug: "nejlepsi-kyberbezpecnost-etf", title: "Kyberbezpečnost ETF", description: "Digitální zabezpečení" },
-      { slug: "nejlepsi-defense-etf", title: "Defense ETF", description: "Obranný průmysl" }
+    color: "pink",
+    links: [
+      { href: "/nejlepsi-etf/nejlepsi-ai-etf", label: "AI & Umělá inteligence" },
+      { href: "/nejlepsi-etf/nejlepsi-clean-energy-etf", label: "Čistá energie" },
+      { href: "/nejlepsi-etf/nejlepsi-biotechnologie-etf", label: "Biotechnologie" },
+      { href: "/nejlepsi-etf/nejlepsi-robotika-etf", label: "Robotika" },
+      { href: "/nejlepsi-etf/nejlepsi-cloud-etf", label: "Cloud Computing" },
+      { href: "/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf", label: "Kyberbezpečnost" },
+      { href: "/nejlepsi-etf/nejlepsi-defense-etf", label: "Defense & Obrana" },
     ]
   },
-
-  // Podle asset class
-  assets: {
-    title: "Podle tříd aktiv",
-    description: "Různé typy investičních aktiv",
+  {
+    title: "Třídy aktiv",
     icon: ShieldIcon,
-    color: "from-indigo-500 to-indigo-600",
-    articles: [
-      { slug: "nejlepsi-dluhopisove-etf", title: "Dluhopisové ETF", description: "Stabilní výnosy z dluhopisů" },
-      { slug: "nejlepsi-zlate-etf", title: "Zlato ETF", description: "Investice do drahých kovů" },
-      { slug: "nejlepsi-komoditni-etf", title: "Komoditní ETF", description: "Suroviny a komodity" },
-      { slug: "nejlepsi-nemovitostni-etf", title: "REIT ETF", description: "Nemovitostní investice" }
+    color: "indigo",
+    links: [
+      { href: "/nejlepsi-etf/nejlepsi-dluhopisove-etf", label: "Dluhopisové ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-zlate-etf", label: "Zlato ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-komoditni-etf", label: "Komoditní ETF" },
+      { href: "/nejlepsi-etf/nejlepsi-nemovitostni-etf", label: "REIT / Nemovitosti" },
     ]
   },
-
-  // Podle nákladů
-  costs: {
+  {
     title: "Podle nákladů",
-    description: "Optimalizace podle poplatků a dostupnosti",
     icon: DollarIcon,
-    color: "from-emerald-500 to-emerald-600",
-    articles: [
-      { slug: "nejlevnejsi-etf", title: "Nejlevnější ETF fondy", description: "ETF s nejnižšími poplatky" },
-      { slug: "etf-zdarma-degiro", title: "ETF zdarma na Degiro", description: "Nákup ETF bez poplatků" }
+    color: "emerald",
+    links: [
+      { href: "/nejlepsi-etf/nejlevnejsi-etf", label: "Nejlevnější ETF" },
+      { href: "/nejlepsi-etf/etf-zdarma-degiro", label: "ETF zdarma (DEGIRO)" },
     ]
-  }
+  },
+];
+
+const colorStyles: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
+  blue: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", iconBg: "bg-blue-100" },
+  green: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", iconBg: "bg-green-100" },
+  purple: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", iconBg: "bg-purple-100" },
+  orange: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", iconBg: "bg-orange-100" },
+  pink: { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", iconBg: "bg-pink-100" },
+  indigo: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", iconBg: "bg-indigo-100" },
+  emerald: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", iconBg: "bg-emerald-100" },
 };
 
 const currentYear = new Date().getFullYear();
@@ -145,247 +128,118 @@ const currentYear = new Date().getFullYear();
 export default function NejlepsiETFPage() {
   return (
     <Layout>
-      {/* Modern Hero Section - matching /co-jsou-etf style */}
-      <section className="relative py-16 md:py-24 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-violet-50/50"></div>
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute top-40 right-1/4 w-72 h-72 bg-gradient-to-br from-violet-200 to-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-indigo-200 to-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
-            
-            {/* Left Content */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-sm border border-blue-200/50">
-                <AwardIcon className="w-4 h-4 mr-2" />
-                Kompletní přehled nejlepších ETF {currentYear}
-              </div>
-              
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
-                Nejlepší{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
-                  ETF {currentYear}
-                </span>
-              </h1>
-              
-              <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
-                Kompletní průvodce nejlepšími ETF podle kategorií. Indexy, regiony, sektory a strategie pro české investory.
-              </p>
+      {/* Compact Hero */}
+      <section className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Nejlepší ETF {currentYear}
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-8">
+              Kompletní přehled ETF fondů podle kategorií pro české investory
+            </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/srovnani-etf"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
-                >
-                  <BarChart3Icon className="w-5 h-5" />
-                  Porovnat všechny ETF
-                </Link>
-                <Link
-                  href="/kde-koupit-etf"
-                  className="bg-white/80 backdrop-blur-sm border-2 border-blue-300 text-blue-700 hover:bg-blue-50 px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2"
-                >
-                  <ShieldIcon className="w-5 h-5" />
-                  Najít brokera
-                </Link>
-              </div>
-            </div>
-            
-            {/* Right Content - Visual Element */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-violet-400/20 rounded-3xl transform rotate-3"></div>
-              <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">7 kategorií ETF</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-gray-700">Podle indexů (S&P 500, NASDAQ, MSCI World)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
-                    <span className="text-gray-700">Podle regionů (USA, Evropa, Asie)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-violet-500 rounded-full"></div>
-                    <span className="text-gray-700">Podle sektorů (Tech, Healthcare, Finance)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                    <span className="text-gray-700">Podle strategie (Value, Growth, ESG)</span>
-                  </div>
-                </div>
-                <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                  <p className="text-sm font-semibold text-blue-800">
-                    💡 Přes 60 detailních článků o ETF fondech
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Featured CTA */}
+            <Link
+              href="/nejlepsi-etf/nejlepsi-etf-2025"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-4 rounded-xl font-bold text-lg hover:from-yellow-300 hover:to-orange-400 transition-all shadow-lg hover:shadow-xl"
+            >
+              <StarFilledIcon className="w-6 h-6" />
+              TOP 10 nejlepších ETF {currentYear}
+              <ArrowRightIcon className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <article className="prose prose-lg max-w-none">
-          
-          {/* Featured Article - Nejlepší ETF 2025 */}
-          <section className="mb-16">
-            <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 rounded-2xl p-8 border border-blue-200">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl">
-                  <StarFilledIcon className="h-8 w-8" />
-                </div>
-                <div>
-                  <div className="inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium mb-2">
-                    <RocketIcon className="w-4 h-4 mr-1" />
-                    Doporučený článek {currentYear}
-                  </div>
-                  <h2 className="text-3xl font-bold text-gray-900">Nejlepší ETF {currentYear}</h2>
-                </div>
+      {/* Compact Category Grid */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            {[
+              { label: "Kategorií", value: "7" },
+              { label: "ETF článků", value: "36+" },
+              { label: "Analyzovaných fondů", value: "4300+" },
+              { label: "Aktualizace", value: "Denně" },
+            ].map((stat, i) => (
+              <div key={i} className="bg-white rounded-lg p-4 text-center border border-gray-200">
+                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
               </div>
-              
-              <p className="text-xl text-gray-700 mb-6 leading-relaxed">
-                Kompletní přehled nejlepších ETF fondů pro rok {currentYear} s konkrétními doporučeními, 
-                analýzou výkonnosti a tipy pro české investory. Ideální startovní bod pro vaše ETF investice.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/nejlepsi-etf/nejlepsi-etf-2025"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
+            ))}
+          </div>
+
+          {/* Category Columns */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const styles = colorStyles[category.color];
+
+              return (
+                <div
+                  key={category.title}
+                  className={`${styles.bg} ${styles.border} border rounded-xl p-5`}
                 >
-                  <AwardIcon className="w-5 h-5" />
-                  Zobrazit nejlepší ETF {currentYear}
-                  <ArrowRightIcon className="w-5 h-5" />
-                </Link>
-                <div className="bg-white/80 backdrop-blur-sm border border-blue-200 px-6 py-4 rounded-lg">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <UsersIcon className="w-4 h-4" />
-                    <span>Přečetlo už <span className="font-semibold text-blue-600">15 000+</span> investorů</span>
+                  {/* Category Header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`${styles.iconBg} p-2 rounded-lg`}>
+                      <Icon className={`w-5 h-5 ${styles.text}`} />
+                    </div>
+                    <h2 className={`font-bold ${styles.text}`}>{category.title}</h2>
                   </div>
+
+                  {/* Links */}
+                  <ul className="space-y-2">
+                    {category.links.map((link) => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="flex items-center gap-2 text-gray-700 hover:text-gray-900 group py-1"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400 group-hover:bg-gray-600 transition-colors"></span>
+                          <span className="text-sm group-hover:underline">{link.label}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-              
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BarChart3Icon className="w-4 h-4 text-blue-600" />
-                    <span className="font-semibold text-gray-900">TOP 10 ETF</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Konkrétní doporučení fondů s analýzou</p>
-                </div>
-                <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TargetIcon className="w-4 h-4 text-blue-600" />
-                    <span className="font-semibold text-gray-900">Pro začátečníky</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Jednoduché rady a doporučení</p>
-                </div>
-                <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ZapIcon className="w-4 h-4 text-blue-600" />
-                    <span className="font-semibold text-gray-900">Aktuální data</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Pravidelně aktualizované informace</p>
-                </div>
-              </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="py-12 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-center text-white">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              Nevíte, které ETF vybrat?
+            </h2>
+            <p className="text-blue-100 mb-6 max-w-xl mx-auto">
+              Použijte náš interaktivní nástroj pro srovnání všech ETF nebo se podívejte na doporučení brokerů.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/srovnani-etf"
+                className="inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              >
+                <BarChart3Icon className="w-5 h-5" />
+                Srovnat ETF
+              </Link>
+              <Link
+                href="/kde-koupit-etf"
+                className="inline-flex items-center justify-center gap-2 border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors"
+              >
+                <AwardIcon className="w-5 h-5" />
+                Kde koupit ETF
+              </Link>
             </div>
-          </section>
-
-          {/* Categories Sections */}
-          {Object.entries(ETF_CATEGORIES).map(([key, category]) => {
-            const IconComponent = category.icon;
-            return (
-              <section key={key} className="mb-16">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <IconComponent className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{category.title}</h2>
-                    <p className="text-gray-600 text-lg">{category.description}</p>
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {category.articles.map((article) => (
-                    <Link
-                      key={article.slug}
-                      href={`/nejlepsi-etf/${article.slug}`}
-                      className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all group"
-                    >
-                      <h3 className="font-bold text-xl mb-3 group-hover:text-blue-600 transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        {article.description}
-                      </p>
-                      <div className="flex items-center text-blue-600 group-hover:text-blue-700 transition-colors mt-4">
-                        <span className="text-sm font-medium mr-2">Zobrazit nejlepší ETF</span>
-                        <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-
-          {/* CTA Section */}
-          <section className="mb-12">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl p-8 text-center">
-              <h2 className="text-3xl font-bold mb-4">Začněte investovat do ETF fondů ještě dnes</h2>
-              <p className="text-xl mb-8 opacity-90">
-                ETF fondy jsou nejjednodušší způsob, jak začít s pasivním investováním. 
-                Nízké poplatky, automatická diverzifikace a dlouhodobé zhodnocení.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/srovnani-etf" className="bg-white text-blue-600 px-8 py-4 text-lg font-semibold rounded-lg hover:bg-gray-100 transition-all">
-                  Srovnat všechny ETF
-                </Link>
-                <Link href="/kde-koupit-etf" className="border-2 border-white text-white px-8 py-4 text-lg font-semibold rounded-lg hover:bg-white/10 transition-all">
-                  Kde koupit ETF
-                </Link>
-              </div>
-            </div>
-          </section>
-        </article>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Internal Linking */}
-        <InternalLinking 
-          relatedLinks={[
-            {
-              title: "Kde koupit ETF",
-              description: "Srovnání brokerů pro nákup ETF",
-              href: "/kde-koupit-etf",
-              category: "Praktické tipy"
-            },
-            {
-              title: "Srovnání ETF",
-              description: "Porovnejte všechny ETF podle kritérií",
-              href: "/srovnani-etf",
-              category: "Nástroje"
-            },
-            {
-              title: "Portfolio strategie",
-              description: "Jak sestavit ETF portfolio",
-              href: "/portfolio-strategie",
-              category: "Investiční strategie"
-            },
-            {
-              title: "Co jsou ETF",
-              description: "Základní průvodce ETF pro začátečníky",
-              href: "/co-jsou-etf",
-              category: "Vzdělání"
-            }
-          ]}
-          title="Další užitečné stránky"
-          className="bg-gray-50"
-        />
-      </div>
+          </div>
+        </div>
+      </section>
     </Layout>
   );
 }
