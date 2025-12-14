@@ -286,9 +286,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       minFundSize: 100,
     },
-    sortBy: 'rating',
+    sortBy: 'fund_size_numeric',
     sortOrder: 'desc',
-    limit: 50,
+    limit: 200,
   },
   'nejlepsi-akciove-etf': {
     slug: 'nejlepsi-akciove-etf',
