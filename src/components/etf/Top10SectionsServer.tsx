@@ -119,9 +119,9 @@ export default function Top10SectionsServer({ etfs, currency = 'EUR', categoryNa
     return null;
   }
 
-  // Top 10 by lowest TER
+  // Top 10 by lowest TER (exclude 0% TER as these are data errors)
   const top10ByTER = [...etfs]
-    .filter(etf => etf.ter_numeric !== null)
+    .filter(etf => etf.ter_numeric !== null && etf.ter_numeric > 0)
     .sort((a, b) => (a.ter_numeric ?? 999) - (b.ter_numeric ?? 999))
     .slice(0, 10);
 
