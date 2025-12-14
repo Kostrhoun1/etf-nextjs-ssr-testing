@@ -14,12 +14,12 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ETF průvodce 2025 - Nejlepší ETF fondy pro investory',
-  description: '★ ZDARMA ETF průvodce ★ Najděte nejlepší ETF fondy 2025. Kde koupit ETF, srovnání poplatků, DEGIRO ETF zdarma. Kompletní guide pro české investory s 4300+ ETF databází.',
-  keywords: 'nejlepší ETF, ETF fondy, kde koupit ETF, co jsou ETF, ETF poplatky, DEGIRO ETF, dividendové ETF, S&P 500 ETF, ETF srovnání, česky investování',
+  title: 'ETF | ETF fondy 2025 - Kompletní průvodce pro české investory',
+  description: 'ETF fondy pro začátečníky i pokročilé. Co je ETF, jak investovat do ETF, nejlepší ETF 2025. Srovnání 4300+ ETF fondů, kde koupit ETF v ČR. Vše o ETF na jednom místě.',
+  keywords: 'ETF fondy, ETF, co je ETF, co jsou ETF, jak investovat do ETF, nejlepší ETF 2025, kde koupit ETF, ETF pro začátečníky, ETF srovnání, ETF poplatky, DEGIRO ETF, dividendové ETF, S&P 500 ETF',
   openGraph: {
-    title: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
-    description: 'Kompletní databáze 4300+ ETF fondů s analýzami a kalkulačkami pro české investory.',
+    title: 'ETF fondy - Kompletní průvodce pro české investory',
+    description: 'Co je ETF a jak do něj investovat? Srovnání 4300+ ETF fondů, kde koupit ETF v ČR, nejlepší ETF 2025. Vše o ETF fondech na jednom místě.',
     url: 'https://www.etfpruvodce.cz/',
     siteName: 'ETF průvodce.cz',
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
         url: 'https://www.etfpruvodce.cz/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
+        alt: 'ETF fondy - Kompletní průvodce pro české investory',
       },
     ],
     locale: 'cs_CZ',
