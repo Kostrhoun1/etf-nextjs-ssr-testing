@@ -36,42 +36,10 @@ export const metadata: Metadata = {
   }
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'Monte Carlo simulátor ETF portfolia 2025',
-  description: 'Nástroj pro generování pravděpodobnostních scénářů budoucího vývoje ETF portfolia pomocí Monte Carlo simulace. Analyzujte rizika a možné výsledky investic na horizontu 5-30 let.',
-  url: 'https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator',
-  applicationCategory: 'FinanceApplication',
-  browserRequirements: 'Requires JavaScript. Requires HTML5.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'CZK'
-  },
-  featureList: [
-    'Generování stovek náhodných scénářů',
-    'Pravděpodobnostní pásma (percentily)',
-    'Nastavitelný počet simulací (100-1000)',
-    'Prognóza na 5-30 let',
-    'Přednastavená portfolia',
-    'Podpora více měn (CZK, EUR, USD)',
-    'Vizualizace výsledků',
-    'Statistiky z historických dat'
-  ]
-};
-
 export default function MonteCarloSimulatorPage() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      <Layout>
-        <MonteCarloContent />
-      </Layout>
-    </>
+    <Layout>
+      <MonteCarloContent />
+    </Layout>
   );
 }

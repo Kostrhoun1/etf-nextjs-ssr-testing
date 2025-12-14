@@ -119,47 +119,6 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
       }
     }
   }
-  const webAppSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": `ETF srovnání ${currentYear} - Nejlepší nástroj pro porovnání ETF fondů`,
-    "description": "Porovnejte více než 4300 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
-    "url": "https://www.etfpruvodce.cz/srovnani-etf",
-    "applicationCategory": "FinanceApplication",
-    "browserRequirements": "Requires JavaScript. Requires HTML5.",
-    "featureList": [
-      "Srovnání více než 4300 ETF fondů",
-      "Pokročilé filtrování podle TER poplatků",
-      "Analýza historické výkonnosti",
-      "DEGIRO zdarma ETF filtr",
-      "Porovnání amerických a evropských ETF",
-      "Detailní rizikové metriky",
-      "Export dat a srovnání",
-      "Real-time databáze ETF"
-    ],
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "CZK",
-      "description": "Bezplatné ETF srovnání"
-    },
-    "provider": {
-      "@type": "Organization",
-      "name": "ETF průvodce.cz",
-      "url": "https://www.etfpruvodce.cz",
-      "logo": "https://www.etfpruvodce.cz/logo.png"
-    },
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "Čeští investoři a investorky",
-      "geographicArea": "Česká republika"
-    },
-    "inLanguage": "cs",
-    "availableLanguage": ["cs"],
-    "softwareVersion": "2025.1",
-    "applicationSubCategory": "Investment Analysis Tool"
-  };
-
   const datasetSchema = {
     "@context": "https://schema.org",
     "@type": "Dataset",
@@ -211,12 +170,6 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(webAppSchema),
-        }}
-      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

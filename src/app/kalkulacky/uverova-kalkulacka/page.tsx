@@ -32,37 +32,9 @@ export const metadata: Metadata = {
   }
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'Úvěrová kalkulačka 2025',
-  description: 'Kalkulačka pro výpočet měsíčních splátek spotřebitelského úvěru s aktuálními úrokovými sazbami.',
-  url: 'https://www.etfpruvodce.cz/kalkulacky/uverova-kalkulacka',
-  applicationCategory: 'FinanceApplication',
-  browserRequirements: 'Requires JavaScript. Requires HTML5.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'CZK'
-  },
-  featureList: [
-    'Výpočet měsíční splátky úvěru',
-    'Analýza celkových nákladů úvěru',
-    'Porovnání RPSN různých nabídek',
-    'Splátkový kalendář',
-    'Aktuální sazby pro rok 2025'
-  ]
-};
-
 export default function UverovaKalkulackaPage() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      
-      <Layout>
+    <Layout>
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           {/* Header */}
           <div className="text-center mb-12">
@@ -234,6 +206,5 @@ export default function UverovaKalkulackaPage() {
           </div>
         </div>
       </Layout>
-    </>
   );
 }

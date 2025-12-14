@@ -32,39 +32,10 @@ export const metadata: Metadata = {
   }
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'Hypoteční kalkulačka 2025',
-  description: 'Přesná kalkulačka pro výpočet měsíčních splátek hypotéky s aktuálními úrokovými sazbami.',
-  url: 'https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka',
-  applicationCategory: 'FinanceApplication',
-  browserRequirements: 'Requires JavaScript. Requires HTML5.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'CZK'
-  },
-  featureList: [
-    'Výpočet měsíční splátky hypotéky',
-    'Analýza celkových nákladů úvěru',
-    'Porovnání různých úrokových sazeb',
-    'Graf vývoje zůstatku dluhu',
-    'Aktuální data pro rok 2025'
-  ]
-};
-
 export default function HypotecniKalkulackaPage() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      
-      <Layout>
-        <MortgageCalculatorContent />
-      </Layout>
-    </>
+    <Layout>
+      <MortgageCalculatorContent />
+    </Layout>
   );
 }

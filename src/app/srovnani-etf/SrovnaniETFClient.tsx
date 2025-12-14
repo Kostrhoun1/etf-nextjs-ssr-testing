@@ -46,38 +46,6 @@ function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModifi
   const [showDetailedComparison, setShowDetailedComparison] = useState(hasISINs);
   const [selectedETFsForComparison, setSelectedETFsForComparison] = useState<ETF[]>([]);
 
-  const webAppSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "ETF srovnání 2025 - Nejlepší nástroj pro porovnání ETF fondů",
-    "description": "Porovnejte více než 4300 ETF fondů podle TER poplatků, výkonnosti a rizika. ETF srovnání zdarma pro české investory s DEGIRO ETF filtery.",
-    "url": "https://www.etfpruvodce.cz/srovnani-etf",
-    "applicationCategory": "FinanceApplication",
-    "operatingSystem": "Web Browser",
-    "featureList": [
-      "Srovnání více než 4300 ETF fondů",
-      "Filtrování podle TER poplatků",
-      "Analýza historické výkonnosti", 
-      "DEGIRO zdarma ETF filtr",
-      "Porovnání amerických a evropských ETF",
-      "Detailní rizikové metriky"
-    ],
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "CZK"
-    },
-    "provider": {
-      "@type": "Organization",
-      "name": "ETF průvodce.cz",
-      "url": "https://www.etfpruvodce.cz"
-    },
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "Čeští investoři"
-    }
-  };
-
   const handleShowDetailedComparison = (selectedETFs: ETF[]) => {
     console.log('ETFComparison - handleShowDetailedComparison called with:', selectedETFs.length, 'ETFs');
     setSelectedETFsForComparison(selectedETFs);
@@ -182,7 +150,6 @@ function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModifi
         canonical="https://www.etfpruvodce.cz/srovnani-etf"
         keywords="ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF 2025, ETF filtr, ETF search, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze česky"
         ogImage="https://www.etfpruvodce.cz/og-etf-comparison.jpg"
-        schema={webAppSchema}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Server-rendered featured ETFs for SEO */}

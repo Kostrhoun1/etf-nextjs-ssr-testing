@@ -36,42 +36,10 @@ export const metadata: Metadata = {
   }
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'Backtest portfolia ETF 2025',
-  description: 'Nástroj pro historickou simulaci výkonnosti ETF portfolia s reálnými daty od roku 2000. Podpora pravidelných investic (DCA), analýza rizik a Monte Carlo simulace.',
-  url: 'https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia',
-  applicationCategory: 'FinanceApplication',
-  browserRequirements: 'Requires JavaScript. Requires HTML5.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'CZK'
-  },
-  featureList: [
-    'Historická simulace od roku 2000',
-    'Pravidelné investování (DCA)',
-    'Podpora CZK, EUR a USD',
-    'Analýza rizika a drawdownů',
-    'Monte Carlo simulace budoucnosti',
-    'Porovnání různých strategií',
-    'Přednastavená portfolia (60/40, All Weather, Permanent)',
-    'Výpočet CAGR, Sharpe Ratio, volatility'
-  ]
-};
-
 export default function BacktestPortfoliaPage() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      <Layout>
-        <BacktestContent />
-      </Layout>
-    </>
+    <Layout>
+      <BacktestContent />
+    </Layout>
   );
 }

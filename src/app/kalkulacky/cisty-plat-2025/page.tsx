@@ -32,39 +32,10 @@ export const metadata: Metadata = {
   }
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'Kalkulačka čisté mzdy 2025',
-  description: 'Přesný výpočet čisté mzdy podle aktuální české legislativy s daněmi, pojistným a slevami.',
-  url: 'https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025',
-  applicationCategory: 'FinanceApplication',
-  browserRequirements: 'Requires JavaScript. Requires HTML5.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'CZK'
-  },
-  featureList: [
-    'Výpočet čisté mzdy podle legislativy 2025',
-    'Zahrnutí všech daní a odvodů',
-    'Slevy na dani a daňové zvýhodnění',
-    'Porovnání různých platových kategorií',
-    'Výpočet ročních odvodů'
-  ]
-};
-
 export default function CistyPlat2025Page() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      
-      <Layout>
-        <NetSalaryCalculatorContent />
-      </Layout>
-    </>
+    <Layout>
+      <NetSalaryCalculatorContent />
+    </Layout>
   );
 }
