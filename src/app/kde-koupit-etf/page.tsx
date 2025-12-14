@@ -75,9 +75,9 @@ export default async function KdeKoupitETF() {
       {/* Modern Hero Section - using py padding instead of vh units for Googlebot compatibility */}
       <section className="relative py-16 md:py-24 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50"></div>
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute top-40 right-1/4 w-72 h-72 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-1/4 w-72 h-72 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-30"></div>
+        <div className="absolute top-40 right-1/4 w-72 h-72 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30"></div>
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
@@ -214,7 +214,7 @@ export default async function KdeKoupitETF() {
       </section>
 
       {/* Key Factors Section */}
-      <section className="py-8">
+      <section className="py-8 content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-20 h-20 mx-auto mb-8 hover:bg-violet-200 transition-colors hover-scale">
@@ -265,12 +265,12 @@ export default async function KdeKoupitETF() {
       </section>
 
       {/* Detailní srovnání brokerů */}
-      <div id="porovnani">
+      <div id="porovnani" className="content-auto">
         <DetailedBrokerComparison />
       </div>
 
       {/* Tips Section */}
-      <section className="py-20">
+      <section className="py-20 content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-emerald-100 w-20 h-20 mx-auto mb-8 hover:bg-emerald-200 transition-colors hover-scale">
@@ -343,7 +343,7 @@ export default async function KdeKoupitETF() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20">
+      <section className="py-20 content-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="flex items-center justify-center rounded-full bg-violet-100 w-20 h-20 mx-auto mb-8 hover:bg-violet-200 transition-colors hover-scale">
@@ -403,10 +403,10 @@ export default async function KdeKoupitETF() {
       </section>
 
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 content-auto">
         {/* Internal Linking */}
-        <InternalLinking 
-          relatedLinks={BrokerGuideRelatedLinks} 
+        <InternalLinking
+          relatedLinks={BrokerGuideRelatedLinks}
         />
       </div>
     </Layout>

@@ -57,19 +57,24 @@ export default async function HomePage() {
       <HeroSection totalCount={totalETFCount} />
 
       {/* USP sekce - kompaktní */}
-      <USPSection />
+      <div className="content-auto">
+        <USPSection />
+      </div>
 
       {/* TOP ETF PODLE KATEGORIÍ - RYCHLÝ NÁHLED */}
       <TopETFTabs categories={topETFCategories} totalETFCount={totalETFCount} />
 
       {/* SROVNÁNÍ BROKERŮ */}
-      <BrokerComparisonSection />
+      <div className="content-auto">
+        <BrokerComparisonSection />
+      </div>
 
 
       {/* FAQ sekce */}
-      <FAQSection 
-        title="Často kladené otázky o ETF fondech"
-        faqs={[
+      <div className="content-auto">
+        <FAQSection
+          title="Často kladené otázky o ETF fondech"
+          faqs={[
           {
             question: "Co jsou ETF fondy a proč investovat do ETF?",
             answer: "ETF (Exchange-Traded Fund) jsou indexové fondy obchodované na burze. Nabízejí nízké poplatky, širokou diverzifikaci a jednoduchost investování. Jsou ideální pro začátečníky i pokročilé investory."
@@ -131,26 +136,31 @@ export default async function HomePage() {
             answer: "Vaše ETF jsou v bezpečí! ETF jsou ze zákona odděleny od majetku brokera (segregace aktiv). V případě krachu brokera jsou vaše ETF převedena k jinému brokerovi nebo můžete požádat o jejich prodej. ETF v EU jsou navíc chráněny direktivou UCITS a kompenzačním fondem investorů (do 20 000 EUR). Proto volte pouze regulované brokery s licencí ČNB/ECB."
           }
         ]}
-        className="mt-16 bg-gray-50"
-      />
+          className="mt-16 bg-gray-50"
+        />
+      </div>
 
       {/* Portfolio Strategies Teaser */}
-      <PortfolioStrategiesTeaser />
+      <div className="content-auto">
+        <PortfolioStrategiesTeaser />
+      </div>
 
 
       {/* Related Content Links */}
-      <InternalLinking
-        relatedLinks={[
-          { title: "Srovnání ETF fondů", href: "/srovnani-etf", description: "Porovnejte více než 4300 ETF fondů" },
-          { title: "Portfolio Strategie", href: "/portfolio-strategie", description: "5 ověřených investičních strategií" },
-          { title: "Backtest portfolia", href: "/kalkulacky/backtest-portfolia", description: "Historická simulace výkonnosti od roku 2000" },
-          { title: "Kde koupit ETF", href: "/kde-koupit-etf", description: "Nejlepší brokeři pro české investory" },
-          { title: "Investiční kalkulačky", href: "/kalkulacky", description: "10+ bezplatných nástrojů a kalkulaček" },
-          { title: "Nejlepší ETF 2025", href: "/nejlepsi-etf/nejlepsi-etf-2025", description: "Doporučené ETF fondy pro rok 2025" }
-        ]}
-        title="Další užitečné stránky"
-        className="mt-16"
-      />
+      <div className="content-auto">
+        <InternalLinking
+          relatedLinks={[
+            { title: "Srovnání ETF fondů", href: "/srovnani-etf", description: "Porovnejte více než 4300 ETF fondů" },
+            { title: "Portfolio Strategie", href: "/portfolio-strategie", description: "5 ověřených investičních strategií" },
+            { title: "Backtest portfolia", href: "/kalkulacky/backtest-portfolia", description: "Historická simulace výkonnosti od roku 2000" },
+            { title: "Kde koupit ETF", href: "/kde-koupit-etf", description: "Nejlepší brokeři pro české investory" },
+            { title: "Investiční kalkulačky", href: "/kalkulacky", description: "10+ bezplatných nástrojů a kalkulaček" },
+            { title: "Nejlepší ETF 2025", href: "/nejlepsi-etf/nejlepsi-etf-2025", description: "Doporučené ETF fondy pro rok 2025" }
+          ]}
+          title="Další užitečné stránky"
+          className="mt-16"
+        />
+      </div>
 
     </Layout>
   );
