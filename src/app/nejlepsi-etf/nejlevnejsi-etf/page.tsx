@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { StarIcon, TrendingDownIcon, BarChart3Icon, TargetIcon, TrophyIcon, CalculatorIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon } from '@/components/ui/icons';
+import { TrendingDownIcon, BarChart3Icon, TargetIcon, TrophyIcon, CalculatorIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon } from '@/components/ui/icons';
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 import Top3ETFServer from '@/components/etf/Top3ETFServer';
 import Top10SectionsServer from '@/components/etf/Top10SectionsServer';

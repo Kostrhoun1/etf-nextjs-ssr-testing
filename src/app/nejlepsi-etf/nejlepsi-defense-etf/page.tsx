@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { StarIcon, BarChart3Icon, TargetIcon, PlaneIcon, ScanLineIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon, BuildingIcon, ShieldIcon, GlobeIcon, AwardIcon, FlagIcon } from '@/components/ui/icons';
+import { BarChart3Icon, TargetIcon, PlaneIcon, ScanLineIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon, BuildingIcon, ShieldIcon, GlobeIcon, AwardIcon, FlagIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFServer from '@/components/etf/Top3ETFServer';
 import Top10SectionsServer from '@/components/etf/Top10SectionsServer';
@@ -195,7 +195,7 @@ export default async function NejlepsiDefenseETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-gray-600 to-blue-600 hover:from-gray-700 hover:to-blue-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <a href="#top3">
-                    <StarIcon className="w-5 h-5 mr-2" />
+                    <ShieldIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </a>
                 </Button>

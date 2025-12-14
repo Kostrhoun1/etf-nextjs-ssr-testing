@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { StarIcon, BarChart3Icon, TargetIcon, AlertTriangleIcon, FlagIcon, ShieldIcon, BuildingIcon, DollarSignIcon, GlobeIcon, ZapIcon, UsersIcon, RocketIcon } from '@/components/ui/icons';
+import { BarChart3Icon, TargetIcon, AlertTriangleIcon, FlagIcon, ShieldIcon, BuildingIcon, DollarSignIcon, GlobeIcon, ZapIcon, UsersIcon, RocketIcon } from '@/components/ui/icons';
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
 import Top3ETFServer from '@/components/etf/Top3ETFServer';
 import Top10SectionsServer from '@/components/etf/Top10SectionsServer';
@@ -365,7 +365,7 @@ export default async function DegiroFreeETFPage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-md h-12">
                   <Link href="#top3">
-                    <StarIcon className="w-5 h-5 mr-2" />
+                    <ShieldIcon className="w-5 h-5 mr-2" />
                     Top 3 doporučení
                   </Link>
                 </Button>

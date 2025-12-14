@@ -2,8 +2,8 @@ import { Metadata } from 'next'
 import Layout from '../../../components/Layout'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Top3ETFServer from '@/components/etf/Top3ETFServer';
-import ETFTableServer from '@/components/etf/ETFTableServer';
-import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
+import Top10SectionsServer from '@/components/etf/Top10SectionsServer';
+import { getTopETFsForCategory, categoryConfigs } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 import { Button } from '@/components/ui/button';
 
@@ -178,10 +178,9 @@ const breadcrumbJsonLd = {
 export default async function NejlepsiAsijskoPacifickeETFPage() {
   // Server-side data fetching - data is included in HTML at build time
   const config = categoryConfigs['nejlepsi-asijsko-pacificke-etf'];
-  const [etfs, lastModified, totalCount] = await Promise.all([
+  const [etfs, lastModified] = await Promise.all([
     getTopETFsForCategory(config),
     getLastModifiedDate(),
-    getTotalETFCount(),
   ]);
 
   const breadcrumbItems = [
@@ -440,27 +439,7 @@ export default async function NejlepsiAsijskoPacifickeETFPage() {
         </div>
       </section>
 
-      {/* Full ETF Table - Server-side rendered */}
-      <section id="srovnani" className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Kompletní srovnání ETF fondů
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Top {Math.min(50, etfs.length)} ETF fondů seřazených podle velikosti
-            </p>
-          </div>
-          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
-          <div className="text-center mt-8">
-            <Button asChild variant="outline" className="border-2">
-              <a href="/srovnani-etf">
-                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
-              </a>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="asijsko-pacifické" />
 
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-12 border border-teal-100">
               <h2 className="text-3xl font-bold mb-6 text-gray-900 border-b-4 border-teal-500 pb-3">

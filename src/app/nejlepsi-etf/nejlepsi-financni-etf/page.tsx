@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, CalculatorIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, CreditCardIcon, BuildingIcon, BanknoteIcon, TrendingUpIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
 import Top3ETFServer from '@/components/etf/Top3ETFServer';
-import ETFTableServer from '@/components/etf/ETFTableServer';
-import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
+import Top10SectionsServer from '@/components/etf/Top10SectionsServer';
+import { getTopETFsForCategory, categoryConfigs } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
 // ISR: Revalidate every 24 hours
@@ -71,10 +71,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NejlepsiFinancniETFPage() {
   // Server-side data fetching - data is included in HTML at build time
   const config = categoryConfigs['nejlepsi-financni-etf'];
-  const [etfs, lastModified, totalCount] = await Promise.all([
+  const [etfs, lastModified] = await Promise.all([
     getTopETFsForCategory(config),
     getLastModifiedDate(),
-    getTotalETFCount(),
   ]);
 
   const currentYear = new Date().getFullYear();
@@ -428,29 +427,7 @@ export default async function NejlepsiFinancniETFPage() {
         </div>
       </section>
 
-      {/* Full ETF Table - Server-side rendered */}
-      <section id="srovnani" className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Kompletní srovnání finančních ETF
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Top {Math.min(30, etfs.length)} finančních ETF seřazených podle velikosti fondu
-            </p>
-          </div>
-
-          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={30} />
-
-          <div className="text-center mt-8">
-            <Button asChild variant="outline" className="border-2">
-              <a href="/srovnani-etf">
-                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
-              </a>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="finanční" />
 
       {/* FAQ Section */}
       <section className="py-20">
