@@ -4,37 +4,13 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, StarIcon, BarChart3Icon, TargetIcon, FuelIcon, LeafIcon, SunIcon, DollarIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené Energy ETF - editoriální výběr s live daty z databáze
-const TOP_3_ENERGY_ETFS_TEMPLATE = [
-  {
-    name: "iShares Global Clean Energy Transition UCITS ETF USD (Dist)",
-    ticker: "ICLN",
-    isin: "IE00B1XNHC34",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší čistá energie ETF s 2,0 mld. EUR a TER 0,65%. Globální exposure k obnovitelným zdrojům energie a energetické transformaci.",
-  },
-  {
-    name: "Xtrackers MSCI World Energy UCITS ETF 1C",
-    ticker: "XMWE",
-    isin: "IE00BM67HM91",
-    provider: "Xtrackers",
-    degiroFree: false,
-    reason: "Tradiční energetický ETF s 785 mil. EUR a TER 0,25%. Globální diverzifikace napříč ropnými a plynárenskými giganty.",
-  },
-  {
-    name: "SPDR MSCI Europe Energy UCITS ETF",
-    ticker: "STN",
-    isin: "IE00BKWQ0F09",
-    provider: "SPDR ETF",
-    degiroFree: false,
-    reason: "Evropský energetický ETF s 693 mil. EUR a TER 0,18%. Zaměření na evropské energetické společnosti jako Shell, TotalEnergies.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -94,8 +70,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiEnergetickeETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-energeticke-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -432,20 +413,37 @@ export default async function NejlepsiEnergetickeETFPage() {
         </div>
       </section>
 
-      {/* Top 3 ETF Section */}
-      <Top3ETFLiveSection 
-        sectionId="top3"
-        title="🏆 Top 3 nejlepší energetické ETF"
-        subtitle="Naše doporučení na základě analýzy velikosti fondů a diverzifikace energetického sektoru"
-        etfTemplates={TOP_3_ENERGY_ETFS_TEMPLATE}
-        colorScheme="red"
-      />
+      {/* Top 3 ETF Section - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🏆 Top 3 nejlepší energetické ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy velikosti fondů a diverzifikace energetického sektoru
+            </p>
+          </div>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["Energy", "Oil", "Gas", "Utilities", "Clean"]}
-        excludeKeywords={["China", "KraneShares", "Leveraged", "2x", "3x", "Short", "Bear", "Technology"]}
-      />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání energetických ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Všechny energetické ETF seřazené podle ratingu a velikosti
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+        </div>
+      </section>
 
       {/* FAQ Section */}
       <section className="py-20">

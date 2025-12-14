@@ -4,37 +4,13 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, LeafIcon, SproutIcon, HeartIcon, CheckCircleIcon , DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon, GlobeIcon, ShieldIcon} from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené ESG ETF - editoriální výběr s live daty z databáze
-const TOP_3_ESG_ETFS_TEMPLATE = [
-  {
-    name: "iShares MSCI USA ESG Enhanced CTB UCITS ETF",
-    ticker: "USAG",
-    isin: "IE00BHZPJ890",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší ESG ETF s 11,4 mld. EUR a nejnižší TER 0,07%. Sleduje MSCI USA ESG Enhanced index s Paris-aligned klimatickými cíli.",
-  },
-  {
-    name: "JPMorgan US Research Enhanced Index Equity (ESG) UCITS ETF",
-    ticker: "JGRE",
-    isin: "IE00BF4G7076",
-    provider: "JPMorgan",
-    degiroFree: false,
-    reason: "Druhý největší ESG ETF s 9,6 mld. EUR a TER 0,20%. Research-enhanced přístup kombinuje ESG faktory s kvantitativní analýzou.",
-  },
-  {
-    name: "Xtrackers MSCI USA ESG UCITS ETF",
-    ticker: "XSRD", 
-    isin: "IE00BFMNPS42",
-    provider: "Xtrackers",
-    degiroFree: false,
-    reason: "Třetí největší ESG ETF s 7,9 mld. EUR a kompetitivní TER 0,15%. Zaměření na US ESG screened akcie s vyloučením kontroverzních sektorů.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -95,8 +71,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiESGETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-esg-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -433,20 +414,45 @@ export default async function NejlepsiESGETFPage() {
         </div>
       </section>
 
-      {/* Top 3 ETF Section */}
-      <Top3ETFLiveSection 
-        sectionId="top3"
-        title="🏆 Top 3 nejlepší ESG ETF"
-        subtitle="Naše doporučení na základě analýzy ESG kritérií a velikosti fondů"
-        etfTemplates={TOP_3_ESG_ETFS_TEMPLATE}
-        colorScheme="green"
-      />
+      {/* Top 3 ETF Section - Server-side rendered */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 nejlepší ESG ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy ESG kritérií a velikosti fondů
+            </p>
+          </div>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["ESG", "SRI", "Sustainable", "Green", "Climate"]}
-        excludeKeywords={["Leveraged", "2x", "3x", "Short", "Bear", "Bond", "Corporate"]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání ESG ETF fondů
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} ESG ETF fondů seřazených podle velikosti
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* FAQ Section */}
       <section className="py-20">

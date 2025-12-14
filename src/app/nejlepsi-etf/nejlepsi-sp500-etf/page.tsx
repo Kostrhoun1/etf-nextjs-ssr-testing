@@ -4,38 +4,14 @@ import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, TrendingUpIcon, BuildingIcon, GlobeIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import type { Metadata } from 'next';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené S&P 500 ETF - editoriální výběr s live daty z databáze
-const TOP_3_SP500_ETFS_TEMPLATE = [
-  {
-    name: "iShares Core S&P 500 UCITS ETF USD (Acc)",
-    ticker: "CSPX",
-    isin: "IE00B5BMR087",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší S&P 500 ETF v Evropě s nejvyšší likviditou. Ideální volba pro začátečníky díky spolehlivosti a velikosti.",
-  },
-  {
-    name: "Invesco S&P 500 UCITS ETF Acc",
-    ticker: "SPXP", 
-    isin: "IE00B3YCGJ38",
-    provider: "Invesco",
-    degiroFree: false,
-    reason: "Nejnižší TER mezi většími S&P 500 ETF. Perfektní volba pro investory, kteří chtějí minimalizovat náklady.",
-  },
-  {
-    name: "SPDR S&P 500 UCITS ETF (Dist)",
-    ticker: "SPY5",
-    isin: "IE00B6YX5C33", 
-    provider: "SPDR ETF",
-    degiroFree: false,
-    reason: "Unikátně nízký TER a distribuční polítika. Ideální pro investory preferující pravidelné dividendy.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -100,16 +76,20 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiSP500ETF() {
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-sp500-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
+
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
-
-  // Get last modified date from database (based on S&P 500 ETF updates)
-  const sp500Isins = ['IE00B5BMR087', 'IE00B3YCGJ38', 'IE00B6YX5C33']; // CSPX, SPXP, SPY5
-  const lastModified = await getLastModifiedDate(sp500Isins);
 
   // Enhanced structured data with FAQs and more products
   const articleSchema = {
@@ -147,21 +127,11 @@ export default async function NejlepsiSP500ETF() {
         "name": "S&P 500 ETF",
         "description": "Exchange-traded funds tracking the S&P 500 index"
       },
-      {
+      ...(etfs.slice(0, 3).map(etf => ({
         "@type": "FinancialProduct",
-        "name": "iShares Core S&P 500 UCITS ETF",
-        "identifier": "IE00B5BMR087"
-      },
-      {
-        "@type": "FinancialProduct", 
-        "name": "Invesco S&P 500 UCITS ETF Acc",
-        "identifier": "IE00B3YCGJ38"
-      },
-      {
-        "@type": "FinancialProduct",
-        "name": "SPDR S&P 500 UCITS ETF", 
-        "identifier": "IE00B6YX5C33"
-      }
+        "name": etf.name,
+        "identifier": etf.isin
+      })))
     ],
     "mentions": [
       {
@@ -384,19 +354,45 @@ export default async function NejlepsiSP500ETF() {
         </div>
       </section>
 
-      {/* Top 3 Recommendations - Client Component with Live Data */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlepší S&P 500 ETF"
-        description="Naše doporučení na základě analýzy všech dostupných S&P 500 ETF"
-        etfTemplates={TOP_3_SP500_ETFS_TEMPLATE}
-        colorScheme="blue"
-      />
+      {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 nejlepší S&P 500 ETF {currentYear}
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení nejlepších S&P 500 ETF fondů na základě analýzy {etfs.length} fondů
+            </p>
+          </div>
 
-      {/* FilteredETF Sections - Client Component with Database Queries */}
-      <FilteredETFSections
-        indexKeywords={["S&P 500"]}
-        excludeKeywords={["China", "KraneShares", "Sector"]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání S&P 500 ETF fondů
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} S&P 500 ETF fondů seřazených podle ratingu a velikosti
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <Link href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* SECTION 0: Co je S&P 500 Index? (MOVED FROM BEFORE TOP 3) */}
       <section id="co-je-sp500" className="py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-white">

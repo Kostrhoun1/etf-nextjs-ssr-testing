@@ -1,39 +1,15 @@
 import { Metadata } from 'next'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { StarFilledIcon, BarChart3Icon, TargetIcon, CoinsIcon, CrownIcon, GemIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon, BuildingIcon, ShieldIcon, GlobeIcon, AwardIcon } from '@/components/ui/icons';
+import { StarFilledIcon, BarChart3Icon, TargetIcon, CrownIcon, GemIcon, DollarIcon, RocketIcon, TrendingUpIcon, ShieldIcon, GlobeIcon, AwardIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-const TOP_3_GOLD_ETFS_TEMPLATE = [
-  {
-    name: "iShares Physical Gold ETC",
-    ticker: "SGLD",
-    isin: "IE00B4ND3602",
-    provider: "iShares",
-    reason: "Největší fyzicky zajištěný zlatý ETF v Evropě s 15,7 mld. EUR. 100% zajištěn fyzickým zlatem uloženým v bezpečných trezorech s auditovanou transparentností.",
-    degiroFree: false,
-  },
-  {
-    name: "Xtrackers Physical Gold ETC EUR Hedged",
-    ticker: "4GLD",
-    isin: "DE000A1E0HR8", 
-    provider: "Xtrackers",
-    reason: "Fyzicky zajištěný zlatý ETF s EUR hedgingem eliminující měnové riziko. 8,2 mld. EUR s optimálním poměrem cena/výkon pro české investory.",
-    degiroFree: false,
-  },
-  {
-    name: "WisdomTree Physical Gold ETC",
-    ticker: "PHGP",
-    isin: "JE00B1VS3333",
-    provider: "WisdomTree", 
-    reason: "Prémiový fyzicky zajištěný zlatý ETF s 7,8 mld. EUR. Nízký TER 0,39% a vysoká likvidita pro efektivní obchodování se zlatem.",
-    degiroFree: false,
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -59,8 +35,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export default async function NejlepsiZlateETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-zlate-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -373,20 +354,45 @@ export default async function NejlepsiZlateETFPage() {
         </div>
       </section>
 
-      {/* Top 3 ETF Section */}
-      <Top3ETFLiveSection 
-        sectionId="top3"
-        title="🏆 Top 3 nejlepší zlaté ETF"
-        subtitle="Naše doporučení na základě analýzy velikosti fondů, fyzického zajištění a nákladů na správu"
-        etfTemplates={TOP_3_GOLD_ETFS_TEMPLATE}
-        colorScheme="yellow"
-      />
+      {/* Top 3 ETF Section - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🏆 Top 3 nejlepší zlaté ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy {etfs.length} zlatých ETF fondů - velikost, fyzické zajištění a náklady
+            </p>
+          </div>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["Gold", "Physical Gold", "Precious Metals"]}
-        excludeKeywords={["Equity", "Stock", "Bond", "Commodity", "Leveraged", "2x", "3x", "Short", "Bear", "Silver", "Mining"]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání zlatých ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(30, etfs.length)} zlatých ETF fondů seřazených podle velikosti a ratingu
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={30} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide Section */}
       <section className="py-20">

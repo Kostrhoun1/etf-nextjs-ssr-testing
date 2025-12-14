@@ -4,38 +4,14 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarIcon, BarChart3Icon, TargetIcon, PercentIcon, CalendarIcon, PiggyBankIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon, GlobeIcon, TrendingUpIcon, ShieldIcon, BuildingIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFList from '@/components/blog/FilteredETFList';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import type { Metadata } from 'next';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené dividendové ETF - editoriální výběr s live daty z databáze
-const TOP_3_DIVIDEND_ETFS_TEMPLATE = [
-  {
-    name: "Vanguard FTSE All-World High Dividend Yield UCITS ETF",
-    ticker: "VHYL",
-    isin: "IE00B8GKDB10",
-    provider: "Vanguard",
-    degiroFree: false,
-    reason: "Největší dividendový ETF s expozicí k celosvětovým vysokodividendovým akciím. Nízký TER 0,29% a quarterly výplaty.",
-  },
-  {
-    name: "VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF", 
-    ticker: "TDIV",
-    isin: "NL0011683594",
-    provider: "VanEck",
-    degiroFree: false,
-    reason: "Zaměřuje se na dividendové lídry z vyspělých trhů s důrazem na kvalitu a udržitelnost dividend.",
-  },
-  {
-    name: "SPDR S&P US Dividend Aristocrats UCITS ETF",
-    ticker: "SPYD", 
-    isin: "IE00B6YX5D40",
-    provider: "SPDR ETF",
-    degiroFree: false,
-    reason: "Investice do amerických Dividend Aristocrats - společností, které zvyšovaly dividendy minimálně 25 let v řadě.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -102,14 +78,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiDividendoveETF() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-dividendove-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
-  const currentDate = new Date().toLocaleDateString('cs-CZ', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const currentDate = new Date().toLocaleDateString('cs-CZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 
   // Article structured data for SEO
@@ -464,91 +445,46 @@ export default async function NejlepsiDividendoveETF() {
         </div>
       </section>
 
-      {/* Top 3 Recommendations - Client Component with Live Data */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlepší dividendové ETF"
-        description="Naše doporučení na základě analýzy dividendových výnosů, velikosti fondů a poplatků"
-        etfTemplates={TOP_3_DIVIDEND_ETFS_TEMPLATE}
-        colorScheme="green"
-      />
-
-      {/* Speciální sekce - Dividendové výnosy */}
-      <section id="dividend-yield" className="py-20 bg-gradient-to-br from-green-50 to-white">
+      {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center bg-green-100 text-green-700 px-6 py-3 rounded-full text-sm font-medium mb-8">
-              <PercentIcon className="w-4 h-4 mr-2" />
-              Speciální analýza
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              💰 Srovnání podle dividendových výnosů
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🏆 Top 3 nejlepší dividendové ETF
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Detailní přehled ETF podle dividendového výnosu, velikosti fondu a poplatků
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy dividendových výnosů, velikosti fondů a poplatků
             </p>
           </div>
 
-          {/* Custom dividend sections using FilteredETFSections */}
-          <div className="space-y-16">
-            
-            {/* Highest Dividend Yield */}
-            <div className="bg-green-50 rounded-2xl p-8 border border-green-200">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-xl mb-4 shadow-sm">
-                  <PercentIcon className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                  Nejvyšší dividendový výnos
-                </h3>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  ETF s nejvyššími dividendovými výnosy - ideální pro maximální pasivní příjem
-                </p>
-              </div>
-              
-              <FilteredETFList 
-                filter={{
-                  hasDividendYield: true,
-                  minDividendYield: 3.0,
-                  excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "ex-US", "ex US"],
-                  excludeLeveraged: true,
-                  top: 15,
-                  sortBy: "current_dividend_yield_numeric",
-                  sortOrder: "desc",
-                  minFundSize: 10
-                }}
-                showDividendYield={true}
-              />
-            </div>
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+        </div>
+      </section>
 
-            {/* Largest Dividend Funds */}
-            <div className="bg-blue-50 rounded-2xl p-8 border border-blue-200">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-xl mb-4 shadow-sm">
-                  <BuildingIcon className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                  Největší dividendové fondy
-                </h3>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  ETF seřazené podle velikosti fondu - nejvyšší likvidita a stabilita
-                </p>
-              </div>
-              
-              <FilteredETFList 
-                filter={{
-                  hasDividendYield: true,
-                  minDividendYield: 1.0,
-                  excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "ex-US", "ex US"],
-                  excludeLeveraged: true,
-                  top: 15,
-                  sortBy: "fund_size_numeric",
-                  sortOrder: "desc",
-                  minFundSize: 50
-                }}
-                showDividendYield={true}
-              />
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="dividend-yield" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center bg-green-100 text-green-700 px-6 py-3 rounded-full text-sm font-medium mb-8">
+              <PercentIcon className="w-4 h-4 mr-2" />
+              Kompletní přehled
             </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Srovnání dividendových ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} dividendových ETF seřazených podle dividendového výnosu a velikosti
+            </p>
+          </div>
 
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <Link href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

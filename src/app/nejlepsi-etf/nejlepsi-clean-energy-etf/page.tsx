@@ -4,9 +4,13 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, LeafIcon, SunIcon, WindIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
+
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Top 3 doporučené Clean Energy ETF - editoriální výběr s live daty z databáze
 const TOP_3_CLEAN_ENERGY_ETFS_TEMPLATE = [
@@ -94,8 +98,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiCleanEnergyETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-clean-energy-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -432,20 +441,42 @@ export default async function NejlepsiCleanEnergyETFPage() {
         </div>
       </section>
 
-      {/* Top 3 ETF Section */}
-      <Top3ETFLiveSection 
-        sectionId="top3"
-        title="🏆 Top 3 nejlepší clean energy ETF"
-        subtitle="Naše doporučení na základě analýzy velikosti fondů a exposure k čisté energii"
-        etfTemplates={TOP_3_CLEAN_ENERGY_ETFS_TEMPLATE}
-        colorScheme="green"
-      />
+            {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 ETF v této kategorii
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy {etfs.length} ETF fondů
+            </p>
+          </div>
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["Clean Energy", "Renewable", "Solar", "Wind", "Water", "Green Energy", "Clean Water"]}
-        excludeKeywords={["China", "KraneShares", "Leveraged", "2x", "3x", "Short", "Bear", "Currency", "Bond", "Sustainable", "ESG", "UBS BBG", "Liquid Corp", "MSCI US", "MSCI Euro", "Euro Area"]}
-      />
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání ETF fondů
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} ETF fondů seřazených podle velikosti
+            </p>
+          </div>
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide Section */}
       <section className="py-20">

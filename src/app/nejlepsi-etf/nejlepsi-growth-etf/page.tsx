@@ -4,38 +4,14 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, BrainIcon, ActivityIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import type { Metadata } from 'next';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené Growth ETF - editoriální výběr s live daty z databáze
-const TOP_3_GROWTH_ETFS_TEMPLATE = [
-  {
-    name: "Amundi Russell 1000 Growth UCITS ETF",
-    ticker: "RS1G", 
-    isin: "IE0005E8B9S4",
-    provider: "Amundi ETF",
-    degiroFree: false,
-    reason: "Největší pure growth factor ETF s 569 mil. EUR a TER 0,19%. Sleduje Russell 1000 Growth index s high-growth americkými akciemi.",
-  },
-  {
-    name: "iShares Russell 1000 Growth UCITS ETF",
-    ticker: "IUSG",
-    isin: "IE000NITTFF2",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Druhý největší Russell Growth ETF s 414 mil. EUR a solidní TER. Zaměření na velké US growth společnosti s vysokým růstovým potenciálem.",
-  },
-  {
-    name: "JPMorgan Active US Growth UCITS ETF",
-    ticker: "JGRO", 
-    isin: "IE0005CH3U28",
-    provider: "JPMorgan",
-    degiroFree: false,
-    reason: "Aktivně řízený growth ETF s 337 mil. EUR. Profesionální stock picking zaměřený na high-quality growth akcie s dlouhodobým potenciálem.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -103,14 +79,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiGrowthETF() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-growth-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
-  const currentDate = new Date().toLocaleDateString('cs-CZ', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const currentDate = new Date().toLocaleDateString('cs-CZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 
   // Article structured data for SEO
@@ -465,19 +446,45 @@ export default async function NejlepsiGrowthETF() {
         </div>
       </section>
 
-      {/* Top 3 Recommendations - Client Component with Live Data */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlepší Growth ETF"
-        description="Naše doporučení na základě analýzy růstových metrik a velikosti fondů"
-        etfTemplates={TOP_3_GROWTH_ETFS_TEMPLATE}
-        colorScheme="blue"
-      />
+      {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 nejlepší Growth ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy růstových metrik a velikosti fondů
+            </p>
+          </div>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["Growth"]}
-        excludeKeywords={["Value", "Momentum", "Leveraged", "2x", "3x", "Short", "Bear", "Consumer", "NASDAQ", "Technology", "Dividend"]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání Growth ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} Growth ETF seřazených podle ratingu a velikosti
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <Link href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* FAQ Section */}
       <section className="py-20">

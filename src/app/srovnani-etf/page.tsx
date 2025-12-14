@@ -1,6 +1,11 @@
 import React from 'react';
 import { Metadata } from 'next';
 import SrovnaniETFClient from './SrovnaniETFClient';
+import FeaturedETFSection from '@/components/etf/FeaturedETFSection';
+import { getFeaturedETFs, getTotalETFCount, getLastModifiedDate, ETFBasicInfo } from '@/lib/etf-data';
+
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 const currentYear = new Date().getFullYear();
 
@@ -66,22 +71,27 @@ interface PageProps {
 
 export default async function SrovnaniETFPage({ searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
-  console.log('SrovnaniETFPage - resolved searchParams:', resolvedSearchParams);
-  
+
+  // Fetch featured ETFs and metadata server-side for SSG
+  const [featuredETFs, totalCount, lastModified] = await Promise.all([
+    getFeaturedETFs(),
+    getTotalETFCount(),
+    getLastModifiedDate(),
+  ]);
+
   // Handle ticker-to-ISIN conversion on server side
   let finalSearchParams = resolvedSearchParams;
   const compareParam = resolvedSearchParams?.compare;
   if (compareParam) {
     const compareString = Array.isArray(compareParam) ? compareParam[0] : compareParam;
     const symbols = compareString.split(',').filter(s => s.trim() !== '');
-    
+
     // Check if these are tickers (not ISINs) - ISINs start with 2 letters and are 12+ chars
-    const areTickers = symbols.every(symbol => 
+    const areTickers = symbols.every(symbol =>
       symbol.length < 12 || !/^[A-Z]{2}/.test(symbol)
     );
-    
+
     if (areTickers) {
-      console.log('🔄 Server-side ticker conversion for:', symbols);
       try {
         const { supabaseAdmin } = await import('@/lib/supabase');
         // Find ETFs by any ticker field (primary or exchange tickers 1-10)
@@ -90,32 +100,22 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
           'exchange_1_ticker', 'exchange_2_ticker', 'exchange_3_ticker', 'exchange_4_ticker', 'exchange_5_ticker',
           'exchange_6_ticker', 'exchange_7_ticker', 'exchange_8_ticker', 'exchange_9_ticker', 'exchange_10_ticker'
         ];
-        
-        const orConditions = symbols.map(symbol => 
+
+        const orConditions = symbols.map(symbol =>
           tickerFields.map(field => `${field}.eq.${symbol}`).join(',')
         ).join(',');
-        
-        console.log('🔍 OR conditions:', orConditions);
-        
+
         const { data: etfs, error } = await supabaseAdmin
           .from('etf_funds')
           .select(`isin, ${tickerFields.join(', ')}`)
           .or(orConditions);
-          
-        if (error) {
-          console.error('❌ Database error:', error);
-        } else {
-          console.log('🔍 Found ETFs in database:', etfs);
-          if (etfs && etfs.length > 0) {
-            const isins = etfs.map((etf: any) => etf.isin);
-            console.log('✅ Converted tickers to ISINs:', symbols, '→', isins);
-            finalSearchParams = { ...resolvedSearchParams, compare: isins.join(',') };
-          } else {
-            console.log('⚠️ No ETFs found for tickers:', symbols);
-          }
+
+        if (!error && etfs && etfs.length > 0) {
+          const isins = etfs.map((etf: any) => etf.isin);
+          finalSearchParams = { ...resolvedSearchParams, compare: isins.join(',') };
         }
       } catch (error) {
-        console.error('❌ Server-side ticker conversion failed:', error);
+        console.error('Server-side ticker conversion failed:', error);
       }
     }
   }
@@ -223,7 +223,18 @@ export default async function SrovnaniETFPage({ searchParams }: PageProps) {
           __html: JSON.stringify(datasetSchema),
         }}
       />
-      <SrovnaniETFClient searchParams={finalSearchParams} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
+      <SrovnaniETFClient
+        searchParams={finalSearchParams}
+        featuredETFs={featuredETFs}
+        totalCount={totalCount}
+        lastModified={lastModified}
+      />
     </>
   );
 }

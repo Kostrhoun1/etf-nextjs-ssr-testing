@@ -4,36 +4,13 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, BanknoteIcon, PiggyBankIcon, TrendingDownIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon, GlobeIcon, TrendingUpIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-const TOP_3_BOND_ETFS_TEMPLATE = [
-  {
-    name: "iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)",
-    ticker: "AGGH",
-    isin: "IE00BDBRDM35",
-    provider: "iShares",
-    reason: "Největší globální dluhopisový ETF s EUR zajištěním proti měnovému riziku. Diverzifikace napříč světovými státními a firemními dluhopisy s 25,8 mld. EUR.",
-    degiroFree: false,
-  },
-  {
-    name: "Xtrackers Global Government Bond UCITS ETF 1C EUR Hedged",
-    ticker: "XGLE",
-    isin: "LU0378818131", 
-    provider: "Xtrackers",
-    reason: "Specializovaný státní dluhopisový ETF s EUR zajištěním a TER 0,25%. Fokus na vysoce kvalitní vládní dluhopisy s 18,4 mld. EUR.",
-    degiroFree: false,
-  },
-  {
-    name: "Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Accumulating",
-    ticker: "VAGF",
-    isin: "IE00BG47KH54",
-    provider: "Vanguard", 
-    reason: "Výjimečně nízký TER 0,10% pro globální dluhopisový ETF. Široká diverzifikace států i korporátních dluhopisů s 12,1 mld. EUR.",
-    degiroFree: false,
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -59,8 +36,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export default async function NejlepsiDluhopisoveETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-dluhopisove-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -100,21 +82,11 @@ export default async function NejlepsiDluhopisoveETFPage() {
         "name": "Bond ETF",
         "description": "Exchange-traded funds focused on government and corporate bonds"
       },
-      {
+      ...(etfs.slice(0, 3).map(etf => ({
         "@type": "FinancialProduct",
-        "name": "iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)",
-        "identifier": "IE00BDBRDM35"
-      },
-      {
-        "@type": "FinancialProduct", 
-        "name": "Xtrackers Global Government Bond UCITS ETF 1C EUR Hedged",
-        "identifier": "LU0378818131"
-      },
-      {
-        "@type": "FinancialProduct",
-        "name": "Vanguard Global Aggregate Bond UCITS ETF EUR Hedged Accumulating", 
-        "identifier": "IE00BG47KH54"
-      }
+        "name": etf.name,
+        "identifier": etf.isin
+      })))
     ],
     "mentions": [
       {
@@ -139,7 +111,7 @@ export default async function NejlepsiDluhopisoveETFPage() {
         "name": "Jaké jsou nejlepší dluhopisové ETF v roce 2025?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Nejlepší dluhopisové ETF jsou: iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (IE00BDBRDM35) největší globální bond ETF s 25,8 mld. EUR, Xtrackers Global Government Bond UCITS ETF EUR Hedged (LU0378818131) s TER 0,25%, a Vanguard Global Aggregate Bond UCITS ETF EUR Hedged (IE00BG47KH54) s nejnižším TER 0,10%."
+          "text": `Nejlepší dluhopisové ETF jsou: ${etfs[0]?.name || 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged'} (${etfs[0]?.isin || 'IE00BDBRDM35'}), ${etfs[1]?.name || 'Xtrackers Global Government Bond UCITS ETF EUR Hedged'} (${etfs[1]?.isin || 'LU0378818131'}), a ${etfs[2]?.name || 'Vanguard Global Aggregate Bond UCITS ETF EUR Hedged'} (${etfs[2]?.isin || 'IE00BG47KH54'}). Tyto ETF nabízejí optimální poměr nákladů, výkonnosti a rizika.`
         }
       },
       {
@@ -373,20 +345,45 @@ export default async function NejlepsiDluhopisoveETFPage() {
         </div>
       </section>
 
-      {/* Top 3 ETF Section */}
-      <Top3ETFLiveSection 
-        sectionId="top3"
-        title="🏆 Top 3 nejlepší dluhopisové ETF"
-        subtitle="Naše doporučení na základě analýzy velikosti fondů, poplatků a exposure k dluhopisovému trhu"
-        etfTemplates={TOP_3_BOND_ETFS_TEMPLATE}
-        colorScheme="blue"
-      />
+      {/* Top 3 ETF Section - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 nejlepší dluhopisové ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy {etfs.length} dluhopisových ETF fondů
+            </p>
+          </div>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["Government", "Bond", "Treasury", "Corporate Bond", "Aggregate"]}
-        excludeKeywords={["Equity", "Stock", "REIT", "Commodity", "Leveraged", "2x", "3x", "Short", "Bear", "Emerging", "High Yield"]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání dluhopisových ETF fondů
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} dluhopisových ETF fondů seřazených podle velikosti
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -492,10 +489,10 @@ export default async function NejlepsiDluhopisoveETFPage() {
                 </svg>
               </summary>
               <div className="px-6 py-4 text-gray-700 leading-relaxed bg-white rounded-b-lg">
-                Nejlepší dluhopisové ETF jsou: <strong>iShares Core Global Aggregate Bond UCITS ETF EUR Hedged</strong> (IE00BDBRDM35) 
-                největší globální bond ETF s 25,8 mld. EUR, <strong>Xtrackers Global Government Bond UCITS ETF EUR Hedged</strong> (LU0378818131) 
-                s TER 0,25%, a <strong>Vanguard Global Aggregate Bond UCITS ETF EUR Hedged</strong> 
-                (IE00BG47KH54) s nejnižším TER 0,10%.
+                Nejlepší dluhopisové ETF jsou: <strong>{etfs[0]?.name || 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged'}</strong> ({etfs[0]?.isin || 'IE00BDBRDM35'})
+                {etfs[0]?.fund_size_numeric ? ` s velikostí ${(etfs[0].fund_size_numeric / 1000).toFixed(1)} mld. EUR` : ''}, <strong>{etfs[1]?.name || 'Xtrackers Global Government Bond UCITS ETF EUR Hedged'}</strong> ({etfs[1]?.isin || 'LU0378818131'})
+                {etfs[1]?.ter_numeric ? ` s TER ${etfs[1].ter_numeric.toFixed(2)}%` : ''}, a <strong>{etfs[2]?.name || 'Vanguard Global Aggregate Bond UCITS ETF EUR Hedged'}</strong>
+                ({etfs[2]?.isin || 'IE00BG47KH54'}){etfs[2]?.ter_numeric ? ` s TER ${etfs[2].ter_numeric.toFixed(2)}%` : ''}.
               </div>
             </details>
 
@@ -533,9 +530,11 @@ export default async function NejlepsiDluhopisoveETFPage() {
                 </svg>
               </summary>
               <div className="px-6 py-4 text-gray-700 leading-relaxed bg-white rounded-b-lg">
-                <strong>TER (celkové náklady) dluhopisových ETF</strong> se pohybují mezi 0,10% až 0,50% ročně. Naše TOP 3 má velmi konkurenční poplatky: 
-                Vanguard Global Aggregate (IE00BG47KH54) má nejnižší TER 0,10%, Xtrackers Government Bond (LU0378818131) má TER 0,25% a 
-                iShares Global Aggregate (IE00BDBRDM35) má TER 0,15%. Dluhopisové ETF mají obecně nižší poplatky než akciové.
+                <strong>TER (celkové náklady) dluhopisových ETF</strong> se pohybují mezi 0,10% až 0,50% ročně. Naše TOP 3 má velmi konkurenční poplatky:
+                {etfs[0] && ` ${etfs[0].name} (${etfs[0].isin}) má TER ${etfs[0].ter_numeric?.toFixed(2)}%`},
+                {etfs[1] && ` ${etfs[1].name} (${etfs[1].isin}) má TER ${etfs[1].ter_numeric?.toFixed(2)}%`},
+                {etfs[2] && ` a ${etfs[2].name} (${etfs[2].isin}) má TER ${etfs[2].ter_numeric?.toFixed(2)}%`}.
+                Dluhopisové ETF mají obecně nižší poplatky než akciové.
               </div>
             </details>
 
@@ -561,8 +560,8 @@ export default async function NejlepsiDluhopisoveETFPage() {
                 </svg>
               </summary>
               <div className="px-6 py-4 text-gray-700 leading-relaxed bg-white rounded-b-lg">
-                Naše TOP 3 dluhopisové ETF můžete koupit u většiny českých brokerů. <strong>iShares Global Aggregate</strong> (IE00BDBRDM35), 
-                <strong>Xtrackers Government Bond</strong> (LU0378818131) a <strong>Vanguard Global Aggregate</strong> (IE00BG47KH54) 
+                Naše TOP 3 dluhopisové ETF můžete koupit u většiny českých brokerů. <strong>{etfs[0]?.name || 'iShares Global Aggregate'}</strong> ({etfs[0]?.isin || 'IE00BDBRDM35'}),
+                <strong>{etfs[1]?.name || 'Xtrackers Government Bond'}</strong> ({etfs[1]?.isin || 'LU0378818131'}) a <strong>{etfs[2]?.name || 'Vanguard Global Aggregate'}</strong> ({etfs[2]?.isin || 'IE00BG47KH54'})
                 najdete u Degiro, Interactive Brokers, XTB, Trading212, Portu nebo Fio e-Broker. Porovnejte si transakční poplatky.
               </div>
             </details>

@@ -2,40 +2,16 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
-import { StarIcon, BarChart3Icon, TargetIcon, MapPinIcon, CrownIcon, LandmarkIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, ShieldIcon, AwardIcon } from '@/components/ui/icons';
+import { StarIcon, BarChart3Icon, TargetIcon, MapPinIcon, CrownIcon, LandmarkIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, ShieldIcon, AwardIcon, BuildingIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import type { Metadata } from 'next';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené americké ETF - editoriální výběr s live daty z databáze
-const TOP_3_AMERICAN_ETFS_TEMPLATE = [
-  {
-    name: "iShares MSCI USA Screened UCITS ETF USD (Acc)",
-    ticker: "SUSA",
-    isin: "IE00BFNM3G45",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší americký ETF s 11+ mld. EUR a nejnižší TER 0,07%. Pokrývá široký americký trh s vyloučením kontroverzních sektorů.",
-  },
-  {
-    name: "Xtrackers MSCI USA UCITS ETF 1C", 
-    ticker: "XMUSA",
-    isin: "IE00BJ0KDR00",
-    provider: "Xtrackers",
-    degiroFree: false,
-    reason: "Vynikající TER pouze 0,07% a velikost 9+ mld. EUR. Čistá expozice k americkému trhu bez ESG screeningu.",
-  },
-  {
-    name: "Invesco MSCI USA UCITS ETF",
-    ticker: "SPXS",
-    isin: "IE00B60SX170", 
-    provider: "Invesco",
-    degiroFree: false,
-    reason: "Nejnižší TER pouze 0,05% mezi velkými americkými ETF a velikost 6+ mld. EUR. Ideální pro nákladově uvědomělé investory.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -269,14 +245,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiAmerickeETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-americke-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
-  const currentDate = new Date().toLocaleDateString('cs-CZ', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const currentDate = new Date().toLocaleDateString('cs-CZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
   
   const relatedLinks = [
@@ -492,65 +473,45 @@ export default async function NejlepsiAmerickeETFPage() {
         </div>
       </section>
 
-      {/* Top 3 Recommendations */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlepší americké ETF"
-        description="Naše doporučení na základě analýzy všech dostupných amerických ETF"
-        etfTemplates={TOP_3_AMERICAN_ETFS_TEMPLATE}
-        colorScheme="red"
-      />
+      {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🏆 Top 3 nejlepší americké ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy všech dostupných amerických ETF
+            </p>
+          </div>
 
-      {/* Top 10 Database Sections */}
-      <FilteredETFSections 
-        sectionId="srovnani"
-        sections={[
-          {
-            title: "💰 TOP 10 amerických ETF podle TER",
-            description: "Nejlevnější americké ETF s nejnižšími ročními poplatky",
-            icon: "DollarSign",
-            colorScheme: "red",
-            filter: {
-              nameKeywords: ["USA", "US ", "America"],
-              excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "Sector", "Value", "Growth", "Quality", "Small Cap", "ESG", "SRI", "Enhanced", "Volatility", "Dividend", "Factor", "Mining", "Gold", "Silver", "Crypto", "Bitcoin", "Blockchain", "Energy", "Water", "Aerospace", "Defence", "Defense", "Climate", "Technology", "Healthcare", "Financials", "Utilities", "Materials", "Consumer", "Industrials", "Bond", "Government", "Semiconductors", "Software", "Banks", "Insurance", "REIT", "Infrastructure", "Biotech", "Pharmaceutical"],
-              excludeLeveraged: true,
-              sortBy: "ter_numeric",
-              sortOrder: "asc",
-              top: 10,
-              minFundSize: 1000
-            }
-          },
-          {
-            title: "🏢 TOP 10 amerických ETF podle velikosti fondu",
-            description: "Největší a nejlikvidnější americké ETF na trhu",
-            icon: "Building",
-            colorScheme: "blue", 
-            filter: {
-              nameKeywords: ["USA", "US ", "America"],
-              excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "Sector", "Value", "Growth", "Quality", "Small Cap", "ESG", "SRI", "Enhanced", "Volatility", "Dividend", "Factor", "Mining", "Gold", "Silver", "Crypto", "Bitcoin", "Blockchain", "Energy", "Water", "Aerospace", "Defence", "Defense", "Climate", "Technology", "Healthcare", "Financials", "Utilities", "Materials", "Consumer", "Industrials", "Bond", "Government", "Semiconductors", "Software", "Banks", "Insurance", "REIT", "Infrastructure", "Biotech", "Pharmaceutical"],
-              excludeLeveraged: true,
-              sortBy: "fund_size_numeric",
-              sortOrder: "desc", 
-              top: 10,
-              minFundSize: 1000
-            }
-          },
-          {
-            title: "📈 TOP 10 amerických ETF podle výkonu 1Y",
-            description: "Nejlépe performující americké ETF za poslední rok",
-            icon: "TrendingUp",
-            colorScheme: "red",
-            filter: {
-              nameKeywords: ["USA", "US ", "America"],
-              excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "Sector", "Value", "Growth", "Quality", "Small Cap", "ESG", "SRI", "Enhanced", "Volatility", "Dividend", "Factor", "Mining", "Gold", "Silver", "Crypto", "Bitcoin", "Blockchain", "Energy", "Water", "Aerospace", "Defence", "Defense", "Climate", "Technology", "Healthcare", "Financials", "Utilities", "Materials", "Consumer", "Industrials", "Bond", "Government", "Semiconductors", "Software", "Banks", "Insurance", "REIT", "Infrastructure", "Biotech", "Pharmaceutical"],
-              excludeLeveraged: true,
-              sortBy: "return_1y",
-              sortOrder: "desc",
-              top: 10,
-              minFundSize: 1000
-            }
-          }
-        ]}
-      />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání amerických ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} amerických ETF seřazených podle ratingu a velikosti
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <Link href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-red-50 to-blue-50">

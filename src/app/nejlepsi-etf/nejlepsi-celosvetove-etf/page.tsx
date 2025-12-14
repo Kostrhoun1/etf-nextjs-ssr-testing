@@ -5,37 +5,13 @@ import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, EarthIcon, CompassIcon, MapIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, GlobeIcon, ShieldIcon, BuildingIcon, TrendingUpIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 světové ETF založené na databázových datech
-const TOP_3_WORLD_ETFS_TEMPLATE = [
-  {
-    name: "iShares Core MSCI World UCITS ETF USD (Acc)",
-    ticker: "IWDA",
-    isin: "IE00B4L5Y983",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší světový ETF s objemem 100+ mld. EUR. Sleduje MSCI World index s 1600+ akcií z vyspělých trhů. Nejvyšší likvidita a nejnižší spread.",
-  },
-  {
-    name: "Xtrackers MSCI World UCITS ETF 1C",
-    ticker: "XMWO",
-    isin: "IE00BJ0KDQ92",
-    provider: "Xtrackers",
-    degiroFree: false,
-    reason: "Nejnižší TER pouze 0,12% mezi velkými světovými ETF. Vynikající tracking error a fyzická replikace pro minimální náklady na dlouhodobé investování.",
-  },
-  {
-    name: "Vanguard FTSE All-World UCITS ETF (USD) Accumulating",
-    ticker: "VWCE",
-    isin: "IE00BK5BQT80",
-    provider: "Vanguard",
-    degiroFree: false,
-    reason: "Nejširší pokrytí s 3900+ akcií včetně emerging markets. FTSE All-World kombinuje vyspělé i rozvíjející se trhy v jednom fondu za nízký TER.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Generate enhanced metadata for world ETF comparison page
 export async function generateMetadata(): Promise<Metadata> {
@@ -269,14 +245,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiSvetoveETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-celosvetove-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
-  const currentDate = new Date().toLocaleDateString('cs-CZ', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const currentDate = new Date().toLocaleDateString('cs-CZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
   
   const relatedLinks = [
@@ -287,7 +268,7 @@ export default async function NejlepsiSvetoveETFPage() {
       category: "Regionální ETF"
     },
     {
-      title: "Nejlepší evropské ETF", 
+      title: "Nejlepší evropské ETF",
       description: "Evropské ETF na STOXX 600 a další indexy",
       href: "/nejlepsi-etf/nejlepsi-evropske-etf",
       category: "Regionální ETF"
@@ -295,7 +276,7 @@ export default async function NejlepsiSvetoveETFPage() {
     {
       title: "Kde koupit světové ETF",
       description: "Srovnání brokerů pro světové investice",
-      href: "/kde-koupit-etf", 
+      href: "/kde-koupit-etf",
       category: "Praktické tipy"
     },
     {
@@ -306,8 +287,119 @@ export default async function NejlepsiSvetoveETFPage() {
     }
   ];
 
+  // Enhanced structured data with actual ETF data
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": `Nejlepší světové ETF ${currentYear} - IWDA vs XMWO vs VWCE`,
+    "description": `Kompletní srovnání nejlepších světových ETF ${currentYear}. MSCI World vs FTSE All-World analýza.`,
+    "image": "https://www.etfpruvodce.cz/og-world-etf.jpg",
+    "author": {
+      "@type": "Person",
+      "name": "Tomáš Kostrhoun",
+      "url": "https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "ETF průvodce.cz",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.etfpruvodce.cz/logo.png"
+      }
+    },
+    "datePublished": `${currentYear}-01-15`,
+    "dateModified": lastModified,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-celosvetove-etf"
+    },
+    "articleSection": "Investment Guides",
+    "keywords": `nejlepší světové ETF ${currentYear}, IWDA, XMWO, VWCE, MSCI World`,
+    "wordCount": 2800,
+    "inLanguage": "cs-CZ",
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Světové ETF",
+        "description": "Exchange-traded funds tracking global stock market indices"
+      },
+      ...(etfs.slice(0, 3).map(etf => ({
+        "@type": "FinancialProduct",
+        "name": etf.name,
+        "identifier": etf.isin
+      })))
+    ]
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Jaký je rozdíl mezi MSCI World a FTSE All-World?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "MSCI World pokrývá pouze vyspělé trhy (1600+ akcií), zatímco FTSE All-World zahrnuje i rozvíjející se trhy (3900+ akcií). FTSE All-World je tedy širší a diverzifikovanější."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Který světový ETF má nejnižší poplatky?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `${etfs[0]?.name || 'Top světové ETF'} patří mezi nejlevnější s TER ${etfs[0]?.ter_numeric || '0.12'}%.`
+        }
+      }
+    ]
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "ETF průvodce.cz",
+        "item": "https://www.etfpruvodce.cz"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Nejlepší ETF",
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Nejlepší světové ETF",
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-celosvetove-etf"
+      }
+    ]
+  };
+
   return (
     <Layout>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(articleSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
       {/* Hero Section */}
       <section className="relative py-16 md:py-24 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
         {/* Gradient Background */}
@@ -492,65 +584,45 @@ export default async function NejlepsiSvetoveETFPage() {
         </div>
       </section>
 
-      {/* Top 3 Recommendations */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlepší světové ETF"
-        description="Naše doporučení na základě analýzy všech dostupných světových ETF"
-        etfTemplates={TOP_3_WORLD_ETFS_TEMPLATE}
-        colorScheme="blue"
-      />
+      {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🏆 Top 3 nejlepší světové ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy všech dostupných světových ETF
+            </p>
+          </div>
 
-      {/* Top 10 Database Sections */}
-      <FilteredETFSections 
-        sectionId="srovnani"
-        sections={[
-          {
-            title: "💰 TOP 10 světových ETF podle TER",
-            description: "Nejlevnější světové ETF s nejnižšími ročními poplatky",
-            icon: "DollarSign",
-            colorScheme: "blue",
-            filter: {
-              nameKeywords: ["World", "Global"],
-              excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "Sector", "Value", "Growth", "Quality", "Small Cap", "ESG", "SRI", "Enhanced", "Volatility", "Dividend", "Factor", "Mining", "Gold", "Silver", "Crypto", "Bitcoin", "Blockchain", "Energy", "Water", "Aerospace", "Defence", "Defense", "Climate", "Technology", "Healthcare", "Financials", "Utilities", "Materials", "Consumer", "Industrials", "Bond", "Government", "Semiconductors", "Software", "Banks", "Insurance", "REIT", "Infrastructure", "Biotech", "Pharmaceutical"],
-              excludeLeveraged: true,
-              sortBy: "ter_numeric",
-              sortOrder: "asc",
-              top: 10,
-              minFundSize: 500
-            }
-          },
-          {
-            title: "🏢 TOP 10 světových ETF podle velikosti fondu",
-            description: "Největší a nejlikvidnější světové ETF na trhu",
-            icon: "Building",
-            colorScheme: "indigo", 
-            filter: {
-              nameKeywords: ["World", "Global"],
-              excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "Sector", "Value", "Growth", "Quality", "Small Cap", "ESG", "SRI", "Enhanced", "Volatility", "Dividend", "Factor", "Mining", "Gold", "Silver", "Crypto", "Bitcoin", "Blockchain", "Energy", "Water", "Aerospace", "Defence", "Defense", "Climate", "Technology", "Healthcare", "Financials", "Utilities", "Materials", "Consumer", "Industrials", "Bond", "Government", "Semiconductors", "Software", "Banks", "Insurance", "REIT", "Infrastructure", "Biotech", "Pharmaceutical"],
-              excludeLeveraged: true,
-              sortBy: "fund_size_numeric",
-              sortOrder: "desc", 
-              top: 10,
-              minFundSize: 500
-            }
-          },
-          {
-            title: "📈 TOP 10 světových ETF podle výkonu 1Y",
-            description: "Nejlépe performující světové ETF za poslední rok",
-            icon: "TrendingUp",
-            colorScheme: "purple",
-            filter: {
-              nameKeywords: ["World", "Global"],
-              excludeNameKeywords: ["Leveraged", "2x", "3x", "Short", "Bear", "Sector", "Value", "Growth", "Quality", "Small Cap", "ESG", "SRI", "Enhanced", "Volatility", "Dividend", "Factor", "Mining", "Gold", "Silver", "Crypto", "Bitcoin", "Blockchain", "Energy", "Water", "Aerospace", "Defence", "Defense", "Climate", "Technology", "Healthcare", "Financials", "Utilities", "Materials", "Consumer", "Industrials", "Bond", "Government", "Semiconductors", "Software", "Banks", "Insurance", "REIT", "Infrastructure", "Biotech", "Pharmaceutical"],
-              excludeLeveraged: true,
-              sortBy: "return_1y",
-              sortOrder: "desc",
-              top: 10,
-              minFundSize: 500
-            }
-          }
-        ]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání světových ETF fondů
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} světových ETF fondů seřazených podle velikosti a výkonnosti
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <Link href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">

@@ -4,13 +4,27 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Layout from '@/components/Layout';
 import ETFDetailedComparison from '@/components/ETFDetailedComparison';
 import ETFComparisonContainer from '@/components/comparison/ETFComparisonContainer';
+import FeaturedETFSection from '@/components/etf/FeaturedETFSection';
 import { ETF } from '@/types/etf';
 import SEOHead from '@/components/SEO/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
+import { ETFBasicInfo } from '@/lib/etf-data';
 
-function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-  console.log('🚀 SrovnaniETFContent MOUNT - typeof window:', typeof window);
-  console.log('SrovnaniETF page - received searchParams:', searchParams);
+interface FeaturedETFs {
+  bySize: ETFBasicInfo[];
+  byPerformance: ETFBasicInfo[];
+  byRating: ETFBasicInfo[];
+  lowCost: ETFBasicInfo[];
+}
+
+interface SrovnaniETFContentProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+  featuredETFs: FeaturedETFs;
+  totalCount: number;
+  lastModified: string | null;
+}
+
+function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModified }: SrovnaniETFContentProps) {
   
   // Read URL parameters for pre-selected ETFs
   const compareParam = searchParams?.compare;
@@ -171,8 +185,18 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
         schema={webAppSchema}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ETFComparisonContainer 
-          onShowDetailedComparison={handleShowDetailedComparison} 
+        {/* Server-rendered featured ETFs for SEO */}
+        <FeaturedETFSection
+          bySize={featuredETFs.bySize}
+          byPerformance={featuredETFs.byPerformance}
+          byRating={featuredETFs.byRating}
+          lowCost={featuredETFs.lowCost}
+          totalCount={totalCount}
+        />
+
+        {/* Interactive comparison tool */}
+        <ETFComparisonContainer
+          onShowDetailedComparison={handleShowDetailedComparison}
           preSelectedISINs={preSelectedISINs}
         />
         
@@ -250,10 +274,22 @@ function SrovnaniETFContent({ searchParams }: { searchParams: { [key: string]: s
   );
 }
 
-export default function SrovnaniETFClient({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+interface SrovnaniETFClientProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+  featuredETFs: FeaturedETFs;
+  totalCount: number;
+  lastModified: string | null;
+}
+
+export default function SrovnaniETFClient({ searchParams, featuredETFs, totalCount, lastModified }: SrovnaniETFClientProps) {
   return (
     <Suspense fallback={<div>Načítání ETF srovnání...</div>}>
-      <SrovnaniETFContent searchParams={searchParams} />
+      <SrovnaniETFContent
+        searchParams={searchParams}
+        featuredETFs={featuredETFs}
+        totalCount={totalCount}
+        lastModified={lastModified}
+      />
     </Suspense>
   );
 }

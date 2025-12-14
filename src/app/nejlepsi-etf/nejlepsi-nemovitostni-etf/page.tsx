@@ -4,36 +4,13 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, HomeIcon, MapPinIcon, FactoryIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon, GlobeIcon, TrendingUpIcon, ShieldIcon, BuildingIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-const TOP_3_REIT_ETFS_TEMPLATE = [
-  {
-    name: "iShares Developed Markets Property Yield UCITS ETF",
-    ticker: "IWDP",
-    isin: "IE00B1FZS350",
-    provider: "iShares",
-    reason: "Největší globální REIT ETF s 882 mil. EUR a vysokou dividendovou výnosností 3,19%. Diverzifikace napříč vyspělými trhy včetně USA, Japonska a Evropy s quarterly dividendami.",
-    degiroFree: false,
-  },
-  {
-    name: "HSBC FTSE EPRA NAREIT Developed UCITS ETF USD",
-    ticker: "HPROP",
-    isin: "IE00B5L01S80", 
-    provider: "HSBC ETF",
-    reason: "Největší REIT ETF s 1,37 mld. EUR a atraktivním dividendovým výnosem 3,34%. Nízký TER 0,24% a quarterly výplaty dividend pro pravidelný příjem.",
-    degiroFree: false,
-  },
-  {
-    name: "SPDR Dow Jones Global Real Estate UCITS ETF",
-    ticker: "RWX",
-    isin: "IE00B8GF1M35",
-    provider: "SPDR", 
-    reason: "Globální nemovitostní ETF s 1,76 mld. EUR sledující Dow Jones Global Select Real Estate Securities Index. Dividendový výnos 2,85% s quarterly výplatami.",
-    degiroFree: false,
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -59,8 +36,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export default async function NejlepsiNemovitostniETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-nemovitostni-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -397,20 +379,45 @@ export default async function NejlepsiNemovitostniETFPage() {
         </div>
       </section>
 
-      {/* Top 3 ETF Section */}
-      <Top3ETFLiveSection 
-        sectionId="top3"
-        title="🏆 Top 3 nejlepší nemovitostní ETF"
-        subtitle="Naše doporučení na základě analýzy velikosti fondů, dividendových výnosů a geografické diverzifikace"
-        etfTemplates={TOP_3_REIT_ETFS_TEMPLATE}
-        colorScheme="orange"
-      />
+      {/* Top 3 ETF Section - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🏆 Top 3 nejlepší nemovitostní ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy velikosti fondů, dividendových výnosů a geografické diverzifikace
+            </p>
+          </div>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["Real Estate", "REIT", "Property", "Immobilien"]}
-        excludeKeywords={["Equity", "Stock", "Bond", "Commodity", "Leveraged", "2x", "3x", "Short", "Bear", "China"]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Comprehensive ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání nemovitostních ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} nemovitostních ETF seřazených podle ratingu a dividendových výnosů
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide Section */}
       <section className="py-20">

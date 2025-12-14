@@ -5,37 +5,13 @@ import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, MapPinIcon, BriefcaseIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, GlobeIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené MSCI World ETF - editoriální výběr s live daty z databáze
-const TOP_3_MSCI_WORLD_ETFS_TEMPLATE = [
-  {
-    name: "iShares Core MSCI World UCITS ETF USD (Acc)",
-    ticker: "SWDA",
-    isin: "IE00B4L5Y983",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší a nejlikvidnější globální ETF s přístupem k 1600+ společnostem z rozvinutých trhů. Ideální jako základ portfolia pro dlouhodobé investory.",
-  },
-  {
-    name: "Xtrackers MSCI World UCITS ETF 1C",
-    ticker: "XDWD",
-    isin: "IE00BJ0KDQ92",
-    provider: "Xtrackers",
-    degiroFree: false,
-    reason: "Konkurenceschopný TER 0.19% a solidní velikost fondu 8+ mld. EUR. Výborná volba pro nákladově uvědomělé investory hledající globální expozici.",
-  },
-  {
-    name: "SPDR MSCI World UCITS ETF",
-    ticker: "SPPW",
-    isin: "IE00BFY0GT14",
-    provider: "SPDR",
-    degiroFree: false,
-    reason: "Vyváženě nízké náklady 0.12% TER s rozumnou velikostí 6+ mld. EUR. Spolehlivá alternativa od renomovaného providera s dlouhým track record.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Generate enhanced metadata for MSCI World ETF comparison page
 export async function generateMetadata(): Promise<Metadata> {
@@ -277,14 +253,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiMSCIWorldETF() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-msci-world-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
-  const currentDate = new Date().toLocaleDateString('cs-CZ', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const currentDate = new Date().toLocaleDateString('cs-CZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 
   return (
@@ -464,65 +445,45 @@ export default async function NejlepsiMSCIWorldETF() {
         </div>
       </section>
 
-      {/* Top 3 Recommendations */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlepší MSCI World ETF"
-        description="Naše doporučení na základě analýzy všech dostupných MSCI World ETF"
-        etfTemplates={TOP_3_MSCI_WORLD_ETFS_TEMPLATE}
-        colorScheme="purple"
-      />
+      {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              🏆 Top 3 nejlepší MSCI World ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy všech dostupných MSCI World ETF
+            </p>
+          </div>
 
-      {/* TOP 10 Database Sections */}
-      <FilteredETFSections 
-        sectionId="srovnani"
-        sections={[
-          {
-            title: "🏅 TOP 10 MSCI World ETF podle TER",
-            description: "Nejlevnější MSCI World ETF s nejnižšími ročními poplatky",
-            icon: "DollarSign",
-            colorScheme: "purple",
-            filter: {
-              indexNameKeywords: ["MSCI World"],
-              excludeNameKeywords: ["Emerging", "Small Cap", "Value", "Growth", "Quality", "Momentum", "SRI", "ESG", "Information Technology", "Communication Services", "Health Care", "Consumer", "Financials", "Energy", "Materials", "Utilities", "Real Estate", "Industrials", "Screened", "Enhanced", "Socially", "EUR Hedged", "USD Hedged", "GBP Hedged"],
-              excludeLeveraged: true,
-              sortBy: "ter_numeric",
-              sortOrder: "asc",
-              top: 10,
-              minFundSize: 100
-            }
-          },
-          {
-            title: "🏢 TOP 10 MSCI World ETF podle velikosti fondu",
-            description: "Největší a nejlikvidnější MSCI World ETF na trhu",
-            icon: "Building",
-            colorScheme: "pink", 
-            filter: {
-              indexNameKeywords: ["MSCI World"],
-              excludeNameKeywords: ["Emerging", "Small Cap", "Value", "Growth", "Quality", "Momentum", "SRI", "ESG", "Information Technology", "Communication Services", "Health Care", "Consumer", "Financials", "Energy", "Materials", "Utilities", "Real Estate", "Industrials", "Screened", "Enhanced", "Socially", "EUR Hedged", "USD Hedged", "GBP Hedged"],
-              excludeLeveraged: true,
-              sortBy: "fund_size_numeric",
-              sortOrder: "desc", 
-              top: 10,
-              minFundSize: 100
-            }
-          },
-          {
-            title: "📈 TOP 10 MSCI World ETF podle výkonu 1Y",
-            description: "Nejlépe performující MSCI World ETF za poslední rok",
-            icon: "TrendingUp",
-            colorScheme: "rose",
-            filter: {
-              indexNameKeywords: ["MSCI World"],
-              excludeNameKeywords: ["Emerging", "Small Cap", "Value", "Growth", "Quality", "Momentum", "SRI", "ESG", "Information Technology", "Communication Services", "Health Care", "Consumer", "Financials", "Energy", "Materials", "Utilities", "Real Estate", "Industrials", "Screened", "Enhanced", "Socially", "EUR Hedged", "USD Hedged", "GBP Hedged"],
-              excludeLeveraged: true,
-              sortBy: "return_1y",
-              sortOrder: "desc",
-              top: 10,
-              minFundSize: 100
-            }
-          }
-        ]}
-      />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full MSCI World ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání MSCI World ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(30, etfs.length)} MSCI World ETF seřazených podle velikosti fondu a ratingu
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={30} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <Link href="/srovnani-etf">
+                Zobrazit všechny ETF fondy
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide Section */}
       <section className="py-20 bg-gradient-to-br from-gray-50 to-white">

@@ -5,9 +5,13 @@ import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, ArrowRightIcon, TargetIcon, MapPinIcon, CrownIcon, LandmarkIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, FlagIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
+
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Top 3 doporučené STOXX 600 ETF na základě dat z databáze
 const TOP_3_STOXX600_ETFS_TEMPLATE = [
@@ -254,8 +258,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export default async function NejlepsiStoxx600ETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-stoxx600-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
   const currentDate = new Date().toLocaleDateString('cs-CZ', { 
@@ -476,64 +485,45 @@ export default async function NejlepsiStoxx600ETFPage() {
       </section>
 
       {/* Top 3 Recommendations */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlepší STOXX 600 ETF"
-        description="Naše doporučení na základě analýzy všech dostupných STOXX 600 ETF"
-        etfTemplates={TOP_3_STOXX600_ETFS_TEMPLATE}
-        colorScheme="purple"
-      />
+      
 
       {/* Top 10 Database Sections */}
-      <FilteredETFSections 
-        sectionId="srovnani"
-        sections={[
-          {
-            title: "💰 TOP 10 STOXX 600 ETF podle TER",
-            description: "Nejlevnější STOXX 600 ETF s nejnižšími ročními poplatky",
-            icon: "DollarSign",
-            colorScheme: "purple",
-            filter: {
-              indexNameKeywords: ["STOXX 600", "Stoxx 600", "STOXX Europe 600", "Stoxx Europe 600"],
-              excludeNameKeywords: ["Emerging", "Small Cap", "Value", "Growth", "Quality", "Momentum", "SRI", "ESG", "Information Technology", "Communication Services", "Health Care", "Consumer", "Financials", "Energy", "Materials", "Utilities", "Real Estate", "Industrials", "Screened", "Enhanced", "Socially", "Defence", "Defense", "EUR Hedged", "USD Hedged", "GBP Hedged", "Crypto", "Cryptocurrency", "Bitcoin", "Ethereum", "Sector", "Banking", "Insurance", "Technology", "Healthcare", "Telecommunications", "Media", "Biotechnology", "Pharmaceutical", "Automotive", "Construction", "Mining", "Oil", "Gas", "Food", "Beverage", "Retail", "Dividend", "High Dividend"],
-              excludeLeveraged: true,
-              sortBy: "ter_numeric",
-              sortOrder: "asc",
-              top: 10,
-              minFundSize: 100
-            }
-          },
-          {
-            title: "🏢 TOP 10 STOXX 600 ETF podle velikosti fondu",
-            description: "Největší a nejlikvidnější STOXX 600 ETF na trhu",
-            icon: "Building",
-            colorScheme: "indigo", 
-            filter: {
-              indexNameKeywords: ["STOXX 600", "Stoxx 600", "STOXX Europe 600", "Stoxx Europe 600"],
-              excludeNameKeywords: ["Emerging", "Small Cap", "Value", "Growth", "Quality", "Momentum", "SRI", "ESG", "Information Technology", "Communication Services", "Health Care", "Consumer", "Financials", "Energy", "Materials", "Utilities", "Real Estate", "Industrials", "Screened", "Enhanced", "Socially", "Defence", "Defense", "EUR Hedged", "USD Hedged", "GBP Hedged", "Crypto", "Cryptocurrency", "Bitcoin", "Ethereum", "Sector", "Banking", "Insurance", "Technology", "Healthcare", "Telecommunications", "Media", "Biotechnology", "Pharmaceutical", "Automotive", "Construction", "Mining", "Oil", "Gas", "Food", "Beverage", "Retail", "Dividend", "High Dividend"],
-              excludeLeveraged: true,
-              sortBy: "fund_size_numeric",
-              sortOrder: "desc", 
-              top: 10,
-              minFundSize: 100
-            }
-          },
-          {
-            title: "📈 TOP 10 STOXX 600 ETF podle výkonu 1Y",
-            description: "Nejlépe performující STOXX 600 ETF za poslední rok",
-            icon: "TrendingUp",
-            colorScheme: "blue",
-            filter: {
-              indexNameKeywords: ["STOXX 600", "Stoxx 600", "STOXX Europe 600", "Stoxx Europe 600"],
-              excludeNameKeywords: ["Emerging", "Small Cap", "Value", "Growth", "Quality", "Momentum", "SRI", "ESG", "Information Technology", "Communication Services", "Health Care", "Consumer", "Financials", "Energy", "Materials", "Utilities", "Real Estate", "Industrials", "Screened", "Enhanced", "Socially", "Defence", "Defense", "EUR Hedged", "USD Hedged", "GBP Hedged", "Crypto", "Cryptocurrency", "Bitcoin", "Ethereum", "Sector", "Banking", "Insurance", "Technology", "Healthcare", "Telecommunications", "Media", "Biotechnology", "Pharmaceutical", "Automotive", "Construction", "Mining", "Oil", "Gas", "Food", "Beverage", "Retail", "Dividend", "High Dividend"],
-              excludeLeveraged: true,
-              sortBy: "return_1y",
-              sortOrder: "desc",
-              top: 10,
-              minFundSize: 100
-            }
-          }
-        ]}
-      />
+            {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 ETF v této kategorii
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy {etfs.length} ETF fondů
+            </p>
+          </div>
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání ETF fondů
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} ETF fondů seřazených podle velikosti
+            </p>
+          </div>
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-purple-50 to-indigo-50">

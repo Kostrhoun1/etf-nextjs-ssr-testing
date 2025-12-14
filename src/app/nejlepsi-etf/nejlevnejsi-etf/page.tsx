@@ -4,10 +4,14 @@ import Layout from '../../../components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarIcon, TrendingDownIcon, BarChart3Icon, TargetIcon, TrophyIcon, CalculatorIcon, DollarSignIcon, RocketIcon, ZapIcon, UsersIcon, AwardIcon } from '@/components/ui/icons';
 import InternalLinking, { ETFGuideRelatedLinks } from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import type { Metadata } from 'next';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
+
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Top 3 nejlevnější ETF - editoriální výběr s live daty z databáze
 const TOP_3_CHEAPEST_ETFS_TEMPLATE = [
@@ -101,8 +105,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlevnejsiETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlevnejsi-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -318,64 +327,46 @@ export default async function NejlevnejsiETFPage() {
       </section>
 
       {/* Top 3 Recommendations - Client Component with Live Data */}
-      <Top3ETFLiveSection 
-        title="🏆 Top 3 nejlevnější ETF celkově"
-        description="Naše doporučení ETF s nejnižšími TER poplatky pro maximální úspory nákladů"
-        etfTemplates={TOP_3_CHEAPEST_ETFS_TEMPLATE}
-        colorScheme="green"
-      />
+      
 
 
       {/* FilteredETF Sections - Client Component with Database Queries */}
-      <FilteredETFSections 
-        sectionId="cheapest-categories"
-        sections={[
-          {
-            title: "🏢 Nejlevnější akciové ETF",
-            description: "ETF sledující akciové indexy s nejnižšími TER poplatky",
-            icon: "TrendingUp",
-            colorScheme: "green" as const,
-            filter: {
-              excludeLeveraged: true,
-              top: 10,
-              sortBy: "ter_numeric",
-              sortOrder: "asc",
-              minFundSize: 100,
-              excludeNameKeywords: ["gold", "silver", "crypto", "bitcoin", "ethereum", "bond", "treasury", "government", "REIT", "Real Estate"]
-            }
-          },
-          {
-            title: "📄 Nejlevnější dluhopisové ETF",
-            description: "ETF investující do dluhopisů s nejnižšími náklady",
-            icon: "DollarSign",
-            colorScheme: "blue" as const,
-            filter: {
-              nameKeywords: ["bond", "treasury", "government", "corporate"],
-              excludeLeveraged: true,
-              top: 10,
-              sortBy: "ter_numeric",
-              sortOrder: "asc",
-              minFundSize: 100,
-              excludeNameKeywords: ["REIT", "equity", "stock"]
-            }
-          },
-          {
-            title: "🏗️ Nejlevnější REIT ETF",
-            description: "ETF zaměřené na realitní trh s nejnižšími poplatky",
-            icon: "Building",
-            colorScheme: "purple" as const,
-            filter: {
-              nameKeywords: ["REIT", "Real Estate", "Property"],
-              excludeLeveraged: true,
-              top: 10,
-              sortBy: "ter_numeric",
-              sortOrder: "asc",
-              minFundSize: 100,
-              excludeNameKeywords: ["bond", "treasury"]
-            }
-          }
-        ]}
-      />
+            {/* Top 3 Recommendations - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 ETF v této kategorii
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení na základě analýzy {etfs.length} ETF fondů
+            </p>
+          </div>
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání ETF fondů
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(50, etfs.length)} ETF fondů seřazených podle velikosti
+            </p>
+          </div>
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Selection Guide Section - Same as SP500 style */}
       <section className="py-20">

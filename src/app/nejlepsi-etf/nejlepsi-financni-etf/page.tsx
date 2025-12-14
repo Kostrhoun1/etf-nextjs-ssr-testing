@@ -1,40 +1,15 @@
 import { Metadata } from 'next'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { StarFilledIcon, BarChart3Icon, TargetIcon, CalculatorIcon, DollarIcon, RocketIcon, ZapIcon, UsersIcon, CreditCardIcon, BuildingIcon, BanknoteIcon, TrendingUpIcon, ShieldIcon } from '@/components/ui/icons';
 import InternalLinking from '@/components/SEO/InternalLinking';
-import Top3ETFLiveSection from '@/components/etf/Top3ETFLiveSection';
-import FilteredETFSections from '@/components/etf/FilteredETFSections';
+import Top3ETFServer from '@/components/etf/Top3ETFServer';
+import ETFTableServer from '@/components/etf/ETFTableServer';
+import { getTopETFsForCategory, categoryConfigs, getTotalETFCount } from '@/lib/etf-data';
 import { getLastModifiedDate } from '@/utils/getLastModifiedDate';
 
-// Top 3 doporučené Financial ETF - editoriální výběr s live daty z databáze
-const TOP_3_FINANCIAL_ETFS_TEMPLATE = [
-  {
-    name: "iShares STOXX Europe 600 Banks UCITS ETF (DE)",
-    ticker: "EXS1",
-    isin: "DE000A0F5UJ7",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší evropský bankovní ETF s 2,9 mld. EUR a TER 0,47%. Přístup k evropským bankám jako ING, Santander, BNP Paribas.",
-  },
-  {
-    name: "Amundi Euro Stoxx Banks UCITS ETF Acc",
-    ticker: "CB7",
-    isin: "LU1829219390",
-    provider: "Amundi ETF",
-    degiroFree: false,
-    reason: "Druhý největší s 2,9 mld. EUR a TER 0,30%. Zaměření na eurozonové banky s vysokou likviditou a nízkou concentrací.",
-  },
-  {
-    name: "iShares S&P 500 Financials Sector UCITS ETF (Acc)",
-    ticker: "IUFS",
-    isin: "IE00B4JNQZ49",
-    provider: "iShares",
-    degiroFree: false,
-    reason: "Největší americký finanční ETF s 2,1 mld. EUR a nejnižší TER 0,15%. Obsahuje JPMorgan, Bank of America, Wells Fargo.",
-  }
-];
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 // Next.js Metadata API for SSR SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -94,8 +69,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NejlepsiFinancniETFPage() {
-  // Get last modified date from database (all ETF updates)
-  const lastModified = await getLastModifiedDate();
+  // Server-side data fetching - data is included in HTML at build time
+  const config = categoryConfigs['nejlepsi-financni-etf'];
+  const [etfs, lastModified, totalCount] = await Promise.all([
+    getTopETFsForCategory(config),
+    getLastModifiedDate(),
+    getTotalETFCount(),
+  ]);
 
   const currentYear = new Date().getFullYear();
 
@@ -432,20 +412,45 @@ export default async function NejlepsiFinancniETFPage() {
         </div>
       </section>
 
-      {/* Top 3 ETF Section */}
-      <Top3ETFLiveSection 
-        sectionId="top3"
-        title="🏆 Top 3 nejlepší finanční ETF"
-        subtitle="Naše doporučení na základě analýzy velikosti fondů a diverzifikace finančního sektoru"
-        etfTemplates={TOP_3_FINANCIAL_ETFS_TEMPLATE}
-        colorScheme="gray"
-      />
+      {/* Top 3 ETF Section - Server-side rendered with real data */}
+      <section id="top3" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Top 3 nejlepší finanční ETF {currentYear}
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Naše doporučení nejlepších finančních ETF na základě analýzy {etfs.length} fondů
+            </p>
+          </div>
 
-      {/* Comprehensive ETF Sections */}
-      <FilteredETFSections 
-        indexKeywords={["Financial", "Finance", "Bank", "REIT", "Real Estate"]}
-        excludeKeywords={["China", "KraneShares", "Leveraged", "2x", "3x", "Short", "Bear", "Technology"]}
-      />
+          <Top3ETFServer etfs={etfs} currency="EUR" />
+        </div>
+      </section>
+
+      {/* Full ETF Table - Server-side rendered */}
+      <section id="srovnani" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Kompletní srovnání finančních ETF
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top {Math.min(30, etfs.length)} finančních ETF seřazených podle velikosti fondu
+            </p>
+          </div>
+
+          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={30} />
+
+          <div className="text-center mt-8">
+            <Button asChild variant="outline" className="border-2">
+              <a href="/srovnani-etf">
+                Zobrazit všech {totalCount.toLocaleString('cs-CZ')} ETF fondů
+              </a>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* FAQ Section */}
       <section className="py-20">

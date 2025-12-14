@@ -1,7 +1,11 @@
 import { Metadata } from 'next';
-import { redirect, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
 import SrovnaniETFClient from '../SrovnaniETFClient';
+import { getFeaturedETFs, getTotalETFCount, getLastModifiedDate } from '@/lib/etf-data';
+
+// ISR: Revalidate every 24 hours
+export const revalidate = 86400;
 
 const currentYear = new Date().getFullYear();
 
@@ -141,8 +145,14 @@ export default async function StaticComparisonPage({ params }: PageProps) {
 
   const { ticker1, ticker2 } = parsed;
 
-  // Verify ETFs exist in database
-  const etfs = await getETFData(ticker1, ticker2);
+  // Verify ETFs exist in database and fetch featured ETFs in parallel
+  const [etfs, featuredETFs, totalCount, lastModified] = await Promise.all([
+    getETFData(ticker1, ticker2),
+    getFeaturedETFs(),
+    getTotalETFCount(),
+    getLastModifiedDate(),
+  ]);
+
   if (!etfs) {
     notFound();
   }
@@ -152,5 +162,12 @@ export default async function StaticComparisonPage({ params }: PageProps) {
     compare: `${ticker1},${ticker2}`
   };
 
-  return <SrovnaniETFClient searchParams={searchParams} />;
+  return (
+    <SrovnaniETFClient
+      searchParams={searchParams}
+      featuredETFs={featuredETFs}
+      totalCount={totalCount}
+      lastModified={lastModified}
+    />
+  );
 }
