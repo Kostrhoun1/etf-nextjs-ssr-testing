@@ -136,7 +136,9 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
     // Secondary sort by fund size when sorting by rating (to prefer larger funds at same rating)
+    // Also exclude ETFs without rating when sorting by rating
     if (sortBy === 'rating') {
+      query = query.not('rating', 'is', null);
       query = query.order('fund_size_numeric', { ascending: false });
     }
 
