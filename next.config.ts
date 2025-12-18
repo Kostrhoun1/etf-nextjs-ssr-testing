@@ -12,6 +12,34 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  async headers() {
+    return [
+      {
+        source: '/sitemap.xml',
+        headers: [
+          { key: 'Content-Type', value: 'application/xml' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=3600' },
+          { key: 'Vary', value: 'Accept-Encoding' },
+        ],
+      },
+      {
+        source: '/sitemap-static.xml',
+        headers: [
+          { key: 'Content-Type', value: 'application/xml' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=3600' },
+          { key: 'Vary', value: 'Accept-Encoding' },
+        ],
+      },
+      {
+        source: '/sitemap-etf.xml',
+        headers: [
+          { key: 'Content-Type', value: 'application/xml' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=3600' },
+          { key: 'Vary', value: 'Accept-Encoding' },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       // Redirect non-www to www
