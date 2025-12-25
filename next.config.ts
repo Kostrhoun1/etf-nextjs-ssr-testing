@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
+    // Eliminates invalid meta tags in head - helps with SEO
+    strictNextHead: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -42,6 +44,18 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Strip _rsc query parameter to fix Google indexing issues
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'query',
+            key: '_rsc',
+          },
+        ],
+        destination: '/:path*',
+        permanent: true,
+      },
       // Redirect non-www to www
       {
         source: '/:path*',
