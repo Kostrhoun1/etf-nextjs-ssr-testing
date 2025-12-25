@@ -116,7 +116,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // Create response and override Vary header to fix Google indexing issues
+  // Next.js App Router adds problematic Vary headers (rsc, next-router-state-tree, etc.)
+  // that can confuse Google's crawler
+  const response = NextResponse.next();
+
+  // Override the Vary header to only include Accept-Encoding (standard for compression)
+  // This helps Google see consistent content
+  response.headers.set('Vary', 'Accept-Encoding');
+
+  return response;
 }
 
 // Configure which routes should trigger the middleware
