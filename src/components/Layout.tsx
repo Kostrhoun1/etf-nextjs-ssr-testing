@@ -11,6 +11,7 @@ import Logo from './Logo';
 import BreadcrumbNav from './SEO/BreadcrumbNav';
 import LastUpdatedInfo from './LastUpdatedInfo';
 import GlobalETFSearch from './GlobalETFSearch';
+import InvestmentDisclaimer from './SEO/InvestmentDisclaimer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -223,11 +224,16 @@ const Layout: React.FC<LayoutProps> = ({ children, lastUpdated }) => {
             </div>
           </div>
 
+          {/* Investiční disclaimer (YMYL trust signál na všech stránkách) */}
+          <div className="pt-8 border-t border-gray-800">
+            <InvestmentDisclaimer variant="inline" className="text-slate-500 mb-6" />
+          </div>
+
           {/* Bottom footer */}
           <div className="pt-8 border-t border-gray-800">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="flex flex-col sm:flex-row items-center gap-2 text-slate-500">
-                <span>&copy; 2025 ETF průvodce.cz. Všechna práva vyhrazena.</span>
+                <span>&copy; {new Date().getFullYear()} ETF průvodce.cz. Všechna práva vyhrazena.</span>
                 <span className="hidden sm:inline">•</span>
                 <span>
                   Autor: 

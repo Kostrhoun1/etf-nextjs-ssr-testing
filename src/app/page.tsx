@@ -7,6 +7,7 @@ import BrokerComparisonSection from '@/components/home/BrokerComparisonSection';
 import FAQSection from '@/components/SEO/FAQSection';
 import PortfolioStrategiesTeaser from '@/components/home/PortfolioStrategiesTeaser';
 import InternalLinking from '@/components/SEO/InternalLinking';
+import HomepageTopicHub from '@/components/home/HomepageTopicHub';
 import SEOHead from '@/components/SEO/SEOHead';
 import GlobalSEO from '@/components/SEO/GlobalSEO';
 import { getTopETFsByCategories } from '@/lib/getTopETFsByCategories';
@@ -146,6 +147,11 @@ export default async function HomePage() {
       </div>
 
 
+      {/* Rozcestník – husté interní prolinkování do indexovatelných sekcí */}
+      <div className="content-auto max-w-7xl mx-auto px-4 mt-16">
+        <HomepageTopicHub />
+      </div>
+
       {/* Related Content Links */}
       <div className="content-auto">
         <InternalLinking
@@ -155,7 +161,7 @@ export default async function HomePage() {
             { title: "Backtest portfolia", href: "/kalkulacky/backtest-portfolia", description: "Historická simulace výkonnosti od roku 2000" },
             { title: "Kde koupit ETF", href: "/kde-koupit-etf", description: "Nejlepší brokeři pro české investory" },
             { title: "Investiční kalkulačky", href: "/kalkulacky", description: "10+ bezplatných nástrojů a kalkulaček" },
-            { title: "Nejlepší ETF 2025", href: "/nejlepsi-etf/nejlepsi-etf-2025", description: "Doporučené ETF fondy pro rok 2025" }
+            { title: "Nejlepší ETF", href: "/nejlepsi-etf", description: "Žebříčky ETF podle indexu, regionu i sektoru" }
           ]}
           title="Další užitečné stránky"
           className="mt-16"

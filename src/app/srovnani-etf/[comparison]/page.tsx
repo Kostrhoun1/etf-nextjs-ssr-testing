@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { supabaseAdmin } from '@/lib/supabase';
 import SrovnaniETFClient from '../SrovnaniETFClient';
-import { getFeaturedETFs, getTotalETFCount, getLastModifiedDate } from '@/lib/etf-data';
+import { getFeaturedETFs, getTotalETFCount, getLastModifiedDate, getComparisonETFData } from '@/lib/etf-data';
+import ComparisonSEOSection from '@/components/etf/ComparisonSEOSection';
 
 // ISR: Revalidate every 24 hours
 export const revalidate = 86400;
@@ -40,30 +40,6 @@ function parseComparison(comparison: string): { ticker1: string; ticker2: string
   };
 }
 
-// Helper to get ETF data for tickers
-async function getETFData(ticker1: string, ticker2: string) {
-  const tickerFields = [
-    'primary_ticker',
-    'exchange_1_ticker', 'exchange_2_ticker', 'exchange_3_ticker', 'exchange_4_ticker', 'exchange_5_ticker',
-    'exchange_6_ticker', 'exchange_7_ticker', 'exchange_8_ticker', 'exchange_9_ticker', 'exchange_10_ticker'
-  ];
-  
-  const orConditions = [ticker1, ticker2].map(symbol => 
-    tickerFields.map(field => `${field}.eq.${symbol}`).join(',')
-  ).join(',');
-  
-  const { data: etfs, error } = await supabaseAdmin
-    .from('etf_funds')
-    .select(`isin, name, ${tickerFields.join(', ')}`)
-    .or(orConditions);
-    
-  if (error || !etfs || etfs.length < 2) {
-    return null;
-  }
-  
-  return etfs;
-}
-
 export async function generateStaticParams() {
   return POPULAR_COMPARISONS.map((comparison) => ({
     comparison,
@@ -81,21 +57,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   
   const { ticker1, ticker2 } = parsed;
-  const etfs = await getETFData(ticker1, ticker2);
-  
-  if (!etfs) {
+  const data = await getComparisonETFData(ticker1, ticker2);
+
+  if (!data) {
     return {
       title: `${ticker1} vs ${ticker2} - ETF srovnání`,
     };
   }
-  
-  const etf1Name = etfs.find(etf => 
-    Object.values(etf).some(value => value === ticker1)
-  )?.name || ticker1;
-  
-  const etf2Name = etfs.find(etf => 
-    Object.values(etf).some(value => value === ticker2)
-  )?.name || ticker2;
+
+  const etf1Name = data.etf1.name || ticker1;
+  const etf2Name = data.etf2.name || ticker2;
 
   return {
     title: `${ticker1} vs ${ticker2} srovnání ${currentYear} - ${etf1Name} vs ${etf2Name}`,
@@ -145,15 +116,16 @@ export default async function StaticComparisonPage({ params }: PageProps) {
 
   const { ticker1, ticker2 } = parsed;
 
-  // Verify ETFs exist in database and fetch featured ETFs in parallel
-  const [etfs, featuredETFs, totalCount, lastModified] = await Promise.all([
-    getETFData(ticker1, ticker2),
+  // Fetch rich comparison metrics + featured ETFs in parallel
+  const [comparisonData, featuredETFs, totalCount, lastModified] = await Promise.all([
+    getComparisonETFData(ticker1, ticker2),
     getFeaturedETFs(),
     getTotalETFCount(),
     getLastModifiedDate(),
   ]);
 
-  if (!etfs) {
+  // comparisonData is the source of truth; if either ETF is missing → 404
+  if (!comparisonData) {
     notFound();
   }
 
@@ -163,11 +135,25 @@ export default async function StaticComparisonPage({ params }: PageProps) {
   };
 
   return (
-    <SrovnaniETFClient
-      searchParams={searchParams}
-      featuredETFs={featuredETFs}
-      totalCount={totalCount}
-      lastModified={lastModified}
-    />
+    <>
+      {/* Obohacený unikátní SSR obsah (text, tabulka metrik, FAQ, JSON-LD) –
+          řeší thin-content problém srovnávacích stránek pro indexaci */}
+      {comparisonData && (
+        <ComparisonSEOSection
+          etf1={comparisonData.etf1}
+          etf2={comparisonData.etf2}
+          ticker1={ticker1}
+          ticker2={ticker2}
+          comparison={comparison}
+          lastModified={lastModified}
+        />
+      )}
+      <SrovnaniETFClient
+        searchParams={searchParams}
+        featuredETFs={featuredETFs}
+        totalCount={totalCount}
+        lastModified={lastModified}
+      />
+    </>
   );
 }

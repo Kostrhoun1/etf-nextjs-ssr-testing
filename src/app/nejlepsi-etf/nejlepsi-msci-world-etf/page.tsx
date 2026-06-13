@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
   
   // SEO optimalized dates - modified time only changes monthly to signal fresh content
-  const lastModified = new Date(new Date().getMonth(), 1).toISOString();
+  const lastModified = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-25`;
   
   const title = `Nejlepší MSCI World ETF ${currentYear} - SWDA vs XDWD vs SPPW`;

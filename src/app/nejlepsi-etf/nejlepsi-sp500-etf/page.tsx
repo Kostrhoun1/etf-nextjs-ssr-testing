@@ -65,7 +65,7 @@ export async function generateMetadata(): Promise<Metadata> {
     other: {
       'article:author': 'ETF průvodce.cz',
       'article:published_time': `${currentYear}-01-15T10:00:00.000Z`,
-      'article:modified_time': new Date(new Date().getMonth(), 1).toISOString(),
+      'article:modified_time': new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
       'article:section': 'Investment Guides',
       'article:tag': 'S&P 500 ETF, CSPX, SPXP, SPY5, investování',
       'theme-color': '#3B82F6',

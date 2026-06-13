@@ -4,12 +4,19 @@
  */
 import { createClient } from '@supabase/supabase-js';
 
-// Direct Supabase client for build-time data fetching
-// HARDCODED credentials to ensure data is always available during SSG/ISR build
+// Direct Supabase client for build-time data fetching (SSG/ISR).
+// Modern publishable key (sb_publishable_...) – nahrazuje starý legacy service_role
+// JWT, který Supabase zakázal 2026-04-26 ("Legacy API keys are disabled") a kvůli
+// kterému se kategorie/srovnání renderovaly s PRÁZDNÝMI daty (= thin content).
+// Publishable klíč má read-only přístup k veřejné tabulce etf_funds, což pro SSG stačí.
 const SUPABASE_URL = 'https://nbhwnatadyubiuadfakx.supabase.co';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaHduYXRhZHl1Yml1YWRmYWt4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODg0NDc0NCwiZXhwIjoyMDY0NDIwNzQ0fQ.SI_s72FBMs2qSqhKBsm7ZJSnPOnCEfWn1zQ6nxMtgyo';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_IrdFtruv53Z2RbXNRRWCcw_K0TD4_ml';
+// Použij env klíč JEN pokud je v novém formátu (sb_secret_/sb_publishable_);
+// starý legacy JWT (eyJ...) je od 2026-04-26 zakázaný, proto ho ignorujeme.
+const envKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/\s+/g, '');
+const SUPABASE_READ_KEY = envKey?.startsWith('sb_') ? envKey : SUPABASE_PUBLISHABLE_KEY;
 
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_READ_KEY);
 
 // Types
 export interface ETFBasicInfo {
@@ -277,6 +284,87 @@ export async function getTotalETFCount(): Promise<number> {
   } catch (error) {
     console.error('Error in getTotalETFCount:', error);
     return 0;
+  }
+}
+
+/**
+ * Plné metriky ETF pro detailní srovnávací stránky /srovnani-etf/[x-vs-y].
+ */
+export interface ComparisonETF {
+  isin: string;
+  name: string;
+  fund_provider: string | null;
+  primary_ticker: string | null;
+  ter_numeric: number | null;
+  fund_size_numeric: number | null;
+  return_1y: number | null;
+  return_3y: number | null;
+  return_5y: number | null;
+  return_ytd: number | null;
+  current_dividend_yield_numeric: number | null;
+  distribution_policy: string | null;
+  replication: string | null;
+  index_name: string | null;
+  region: string | null;
+  fund_currency: string | null;
+  fund_domicile: string | null;
+  total_holdings: number | null;
+  inception_date: string | null;
+  is_leveraged: boolean | null;
+  category: string | null;
+}
+
+const COMPARISON_TICKER_FIELDS = [
+  'primary_ticker',
+  'exchange_1_ticker', 'exchange_2_ticker', 'exchange_3_ticker', 'exchange_4_ticker', 'exchange_5_ticker',
+  'exchange_6_ticker', 'exchange_7_ticker', 'exchange_8_ticker', 'exchange_9_ticker', 'exchange_10_ticker',
+] as const;
+
+/**
+ * Načte plné metriky pro dvojici ETF podle tickerů (pro obohacený SSR obsah
+ * srovnávacích stránek). Vrací etf1/etf2 namapované přesně na zadané tickery.
+ */
+export async function getComparisonETFData(
+  ticker1: string,
+  ticker2: string
+): Promise<{ etf1: ComparisonETF; etf2: ComparisonETF } | null> {
+  try {
+    const orConditions = [ticker1, ticker2]
+      .map(symbol => COMPARISON_TICKER_FIELDS.map(field => `${field}.eq.${symbol}`).join(','))
+      .join(',');
+
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select(`
+        isin, name, fund_provider, primary_ticker,
+        ter_numeric, fund_size_numeric,
+        return_1y, return_3y, return_5y, return_ytd,
+        current_dividend_yield_numeric,
+        distribution_policy, replication, index_name, region,
+        fund_currency, fund_domicile, total_holdings, inception_date,
+        is_leveraged, category,
+        ${COMPARISON_TICKER_FIELDS.join(', ')}
+      `)
+      .or(orConditions);
+
+    if (error || !data || data.length < 2) {
+      return null;
+    }
+
+    const matches = (etf: Record<string, unknown>, ticker: string) =>
+      COMPARISON_TICKER_FIELDS.some(f => (etf[f] as string)?.toUpperCase() === ticker.toUpperCase());
+
+    const etf1 = data.find(e => matches(e, ticker1)) as ComparisonETF | undefined;
+    const etf2 = data.find(e => matches(e, ticker2)) as ComparisonETF | undefined;
+
+    if (!etf1 || !etf2 || etf1.isin === etf2.isin) {
+      return null;
+    }
+
+    return { etf1, etf2 };
+  } catch (error) {
+    console.error('Error in getComparisonETFData:', error);
+    return null;
   }
 }
 

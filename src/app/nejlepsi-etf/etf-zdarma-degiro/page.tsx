@@ -93,7 +93,7 @@ export async function generateMetadata(): Promise<Metadata> {
     other: {
       'article:author': 'ETF průvodce.cz',
       'article:published_time': `${currentYear}-01-30T10:00:00.000Z`,
-      'article:modified_time': new Date(new Date().getMonth(), 1).toISOString(),
+      'article:modified_time': new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
       'article:section': 'Investment Guides',
       'article:tag': 'DEGIRO, ETF zdarma, CSPX, IWDA, investování',
       'theme-color': '#FF6600',

@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogImage = 'https://www.etfpruvodce.cz/og-evropske-etf.jpg';
   
   // SEO optimalizované datum - updated pouze jednou za měsíc
-  const lastModified = new Date(new Date().getMonth(), 1).toISOString();
+  const lastModified = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-22`;
   
   // Enhanced keywords for better discoverability

@@ -51,7 +51,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
   
   // SEO optimalizované datum - updated pouze jednou za měsíc
-  const lastModified = new Date(new Date().getMonth(), 1).toISOString();
+  const lastModified = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const publishedDate = `${currentYear}-01-20`;
   
   const title = `Nejlepší FTSE ETF ${currentYear} - VUKE vs ISF vs FTAL`;

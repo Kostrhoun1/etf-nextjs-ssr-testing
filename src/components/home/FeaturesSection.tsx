@@ -35,9 +35,9 @@ const features = [
   },
   {
     icon: FileTextIcon,
-    title: "Nejlepší ETF v roce 2025",
-    description: "Pravidelně aktualizovaný žebříček nejlepších českých ETF podle různých kritérií - zařaďte se mezi úspěšné investory.",
-    link: "/nejlepsi-etf/nejlepsi-etf-2025",
+    title: "Nejlepší ETF",
+    description: "Pravidelně aktualizovaný žebříček nejlepších ETF podle různých kritérií - zařaďte se mezi úspěšné investory.",
+    link: "/nejlepsi-etf",
     cta: "Zjistit více"
   },
   {
