@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/accordion";
 import { FilterIcon, CloseIcon } from '@/components/ui/icons';
 import { AdvancedFiltersState } from '@/hooks/useETFTableLogic';
+import { buildIndexOptions } from '@/utils/indexNormalization';
+import { buildRegionOptions } from '@/utils/regionClassification';
 
 interface ETFAdvancedFiltersProps {
   etfs: ETFListItem[];
@@ -31,35 +33,17 @@ interface ETFAdvancedFiltersProps {
 }
 
 const ETFAdvancedFilters: React.FC<ETFAdvancedFiltersProps> = ({ etfs, filters, onFilterChange, ranges }) => {
-  // Group indexes by lowercase version but keep the most common case
-  const indexGroups = etfs.reduce((acc, etf) => {
-    if (etf.index_name) {
-      const lowerCase = etf.index_name.toLowerCase();
-      if (!acc[lowerCase]) {
-        acc[lowerCase] = [];
-      }
-      acc[lowerCase].push(etf.index_name);
-    }
-    return acc;
-  }, {} as Record<string, string[]>);
-  
-  const uniqueIndexes = Object.entries(indexGroups)
-    .map(([, variants]) => {
-      // Return the most common variant, or if tied, the first one alphabetically
-      const counts = variants.reduce((acc, variant) => {
-        acc[variant] = (acc[variant] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      return Object.entries(counts)
-        .sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))
-        [0][0];
-    })
-    .sort();
+  // Indexy: normalizace (odstranění tříd akcií) + seskupení dle poskytovatele
+  const { groups: indexGroups, flat: uniqueIndexes } = React.useMemo(
+    () => buildIndexOptions(etfs),
+    [etfs]
+  );
+  // Regiony: jemnější klasifikace z investment_focus (USA / Japonsko / Čína / …)
+  const uniqueRegions = React.useMemo(() => buildRegionOptions(etfs), [etfs]);
+
   const uniqueCurrencies = [...new Set(etfs.map(etf => etf.fund_currency).filter(Boolean))].sort();
   const uniqueReplications = [...new Set(etfs.map(etf => etf.replication).filter(Boolean))].sort();
-  const uniqueRegions = [...new Set(etfs.map(etf => etf.region).filter(Boolean))].sort();
-  
+
 
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -226,6 +210,7 @@ const ETFAdvancedFilters: React.FC<ETFAdvancedFiltersProps> = ({ etfs, filters, 
                 id="index-filter-adv"
                 className="mt-2"
                 options={uniqueIndexes}
+                groups={indexGroups}
                 value={filters.indexName}
                 onValueChange={(value) => onFilterChange('indexName', value)}
                 placeholder="Všechny indexy"

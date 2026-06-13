@@ -3,7 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const SUPABASE_URL = "https://nbhwnatadyubiuadfakx.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaHduYXRhZHl1Yml1YWRmYWt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NDQ3NDQsImV4cCI6MjA2NDQyMDc0NH0.yQgSv0JMi6ebwIu7fQHIXE4VblkQ3pJfy-lXvFgd_CY";
+// Modern publishable key (sb_publishable_...). Nahrazuje starý legacy anon JWT
+// klíč, který Supabase zakázal ("Legacy API keys are disabled") – ten už vracel
+// chybu při všech dotazech z prohlížeče.
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_IrdFtruv53Z2RbXNRRWCcw_K0TD4_ml";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
