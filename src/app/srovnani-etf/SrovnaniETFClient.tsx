@@ -146,6 +146,7 @@ function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModifi
 
   return (
     <Layout>
+      {seoContent}
       <SEOHead
         title="ETF srovnání 2025 - Nejlepší nástroj pro porovnání ETF fondů České republiky"
         description="★ ETF srovnání ZDARMA ★ Porovnejte více než 4300 ETF fondů 2025. Filtrování podle TER poplatků, výkonnosti, rizika. Americké ETF, evropské ETF, DEGIRO zdarma ETF. Nejlepší ETF srovnání pro české investory."

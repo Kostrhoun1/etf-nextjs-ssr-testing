@@ -150,8 +150,6 @@ export default function ComparisonSEOSection({ etf1, etf2, ticker1, ticker2, com
         {better3y && `Za poslední 3 roky vynesl více ${better3y.win} (o ${better3y.diff.toFixed(1)} p.b.).`}
       </p>
 
-      <InvestmentDisclaimer variant="box" className="mb-8" />
-
       {/* Tabulka metrik */}
       <h2 className="text-2xl font-bold text-gray-900 mb-4">Srovnání klíčových parametrů</h2>
       <div className="overflow-x-auto mb-8">
@@ -213,6 +211,8 @@ export default function ComparisonSEOSection({ etf1, etf2, ticker1, ticker2, com
           </div>
         ))}
       </div>
+
+      <InvestmentDisclaimer variant="box" className="mb-6" />
 
       <p className="text-sm text-gray-500">
         Data o fondech se aktualizují denně z naší databáze přes 4 300 ETF.
