@@ -22,9 +22,10 @@ interface SrovnaniETFContentProps {
   featuredETFs: FeaturedETFs;
   totalCount: number;
   lastModified: string | null;
+  seoContent?: React.ReactNode;
 }
 
-function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModified }: SrovnaniETFContentProps) {
+function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModified, seoContent }: SrovnaniETFContentProps) {
   
   // Read URL parameters for pre-selected ETFs
   const compareParam = searchParams?.compare;
@@ -134,6 +135,7 @@ function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModifi
   if (showDetailedComparison) {
     return (
       <Layout>
+        {seoContent}
         <ETFDetailedComparison
           selectedETFs={selectedETFsForComparison}
           onBack={handleBackToList}
@@ -246,9 +248,10 @@ interface SrovnaniETFClientProps {
   featuredETFs: FeaturedETFs;
   totalCount: number;
   lastModified: string | null;
+  seoContent?: React.ReactNode;
 }
 
-export default function SrovnaniETFClient({ searchParams, featuredETFs, totalCount, lastModified }: SrovnaniETFClientProps) {
+export default function SrovnaniETFClient({ searchParams, featuredETFs, totalCount, lastModified, seoContent }: SrovnaniETFClientProps) {
   return (
     <Suspense fallback={<div>Načítání ETF srovnání...</div>}>
       <SrovnaniETFContent
@@ -256,6 +259,7 @@ export default function SrovnaniETFClient({ searchParams, featuredETFs, totalCou
         featuredETFs={featuredETFs}
         totalCount={totalCount}
         lastModified={lastModified}
+        seoContent={seoContent}
       />
     </Suspense>
   );

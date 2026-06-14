@@ -135,15 +135,7 @@ export default function ComparisonSEOSection({ etf1, etf2, ticker1, ticker2, com
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
 
-      {/* Breadcrumb */}
-      <nav aria-label="Drobečková navigace" className="text-sm text-gray-500 mb-4">
-        <a href="/" className="hover:text-violet-700">Domů</a>
-        <span aria-hidden="true"> › </span>
-        <a href="/srovnani-etf" className="hover:text-violet-700">Srovnání ETF</a>
-        <span aria-hidden="true"> › </span>
-        <span className="text-gray-700">{ticker1} vs {ticker2}</span>
-      </nav>
-
+      {/* Vizuální breadcrumb dodává Layout; tady zůstává jen JSON-LD výše. */}
       <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
         {ticker1} vs {ticker2}: které ETF je lepší?
       </h1>

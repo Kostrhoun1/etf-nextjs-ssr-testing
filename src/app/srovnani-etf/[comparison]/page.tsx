@@ -134,26 +134,27 @@ export default async function StaticComparisonPage({ params }: PageProps) {
     compare: `${ticker1},${ticker2}`
   };
 
+  // Obohacený unikátní SSR obsah (text, tabulka metrik, FAQ, JSON-LD) –
+  // řeší thin-content problém srovnávacích stránek pro indexaci.
+  // Předává se do klienta jako prop, aby se vykreslil UVNITŘ Layoutu (pod hlavičkou).
+  const seoContent = (
+    <ComparisonSEOSection
+      etf1={comparisonData.etf1}
+      etf2={comparisonData.etf2}
+      ticker1={ticker1}
+      ticker2={ticker2}
+      comparison={comparison}
+      lastModified={lastModified}
+    />
+  );
+
   return (
-    <>
-      {/* Obohacený unikátní SSR obsah (text, tabulka metrik, FAQ, JSON-LD) –
-          řeší thin-content problém srovnávacích stránek pro indexaci */}
-      {comparisonData && (
-        <ComparisonSEOSection
-          etf1={comparisonData.etf1}
-          etf2={comparisonData.etf2}
-          ticker1={ticker1}
-          ticker2={ticker2}
-          comparison={comparison}
-          lastModified={lastModified}
-        />
-      )}
-      <SrovnaniETFClient
-        searchParams={searchParams}
-        featuredETFs={featuredETFs}
-        totalCount={totalCount}
-        lastModified={lastModified}
-      />
-    </>
+    <SrovnaniETFClient
+      searchParams={searchParams}
+      featuredETFs={featuredETFs}
+      totalCount={totalCount}
+      lastModified={lastModified}
+      seoContent={seoContent}
+    />
   );
 }
