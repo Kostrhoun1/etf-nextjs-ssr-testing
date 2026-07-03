@@ -596,14 +596,17 @@ const SCREENER_COLUMNS = `
  */
 export async function getScreenerETFData(): Promise<ScreenerETF[]> {
   try {
+    // Načítáme ÚPLNĚ VŠECHNY ETF (i fondy bez uvedené velikosti), aby filtry
+    // pracovaly nad celou databází. Řadíme podle velikosti sestupně, fondy bez
+    // velikosti (NULL) až na konec (nullsFirst: false).
     const PAGE = 1000;
     const all: ScreenerETF[] = [];
-    for (let from = 0; from < 8000; from += PAGE) {
+    for (let from = 0; from < 20000; from += PAGE) {
       const { data, error } = await supabaseAdmin
         .from('etf_funds')
         .select(SCREENER_COLUMNS)
-        .not('fund_size_numeric', 'is', null)
-        .order('fund_size_numeric', { ascending: false })
+        .order('fund_size_numeric', { ascending: false, nullsFirst: false })
+        .order('isin', { ascending: true })
         .range(from, from + PAGE - 1);
       if (error || !data || data.length === 0) break;
       all.push(...(data as unknown as ScreenerETF[]));
