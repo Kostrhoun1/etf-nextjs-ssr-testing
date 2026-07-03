@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { PiggyBank, TrendingUp, Wallet, AlertTriangle, Sparkles } from 'lucide-react';
+import { PiggyBank, TrendingUp, Wallet, AlertTriangle, Sparkles, ChevronUp, ChevronDown } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 
 /**
@@ -127,24 +127,42 @@ function NumberField({
       <label htmlFor={id} className="block text-sm text-slate-600 mb-1">
         {label}
       </label>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="decimal"
-          step={step}
-          min={min}
-          max={max}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
-        />
-        {suffix && (
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-            {suffix}
-          </span>
-        )}
-      </div>
+      {(() => {
+        const stepNum = parseFloat(step ?? '1') || 1;
+        const clamp = (v: number) => {
+          if (min != null && v < min) v = min;
+          if (max != null && v > max) v = max;
+          return Number(v.toFixed(6));
+        };
+        return (
+          <div className="relative">
+            <input
+              id={id}
+              type="number"
+              inputMode="decimal"
+              step={step}
+              min={min}
+              max={max}
+              value={value}
+              onChange={(e) => onChange(Number(e.target.value))}
+              className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
+              <div className="flex flex-col">
+                <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => onChange(clamp(value + stepNum))}
+                  className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300">
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </button>
+                <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => onChange(clamp(value - stepNum))}
+                  className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px">
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -239,6 +257,7 @@ export default function InvesticniKalkulackaWidget() {
             value={initialInvestment}
             min={0}
             max={50000000}
+            step="10000"
             onChange={(v) => setInitialInvestment(Math.max(0, v))}
             suffix="Kč"
           />
@@ -258,11 +277,21 @@ export default function InvesticniKalkulackaWidget() {
                   max={1000000}
                   value={recurringInvestment}
                   onChange={(e) => setRecurringInvestment(Math.max(0, Number(e.target.value)))}
-                  className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                  className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-                  Kč
-                </span>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  <span className="pointer-events-none text-sm text-slate-400">Kč</span>
+                  <div className="flex flex-col">
+                    <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => setRecurringInvestment(Math.min(1000000, recurringInvestment + 500))}
+                      className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300">
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => setRecurringInvestment(Math.max(0, recurringInvestment - 500))}
+                      className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px">
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
               <select
                 aria-label="Frekvence pravidelného vkladu"
