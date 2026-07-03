@@ -53,6 +53,15 @@ export default async function CategoryDetailPreview(
 
   const row = (e: ETFBasicInfo, value: React.ReactNode) => ({ isin: e.isin, label: shortName(e.name), sub: e.primary_ticker ?? undefined, value });
 
+  // Doporučené fondy – vlajková loď + varianty (bez duplicit).
+  const recos: { tag: string; icon: typeof Trophy; etf: ETFBasicInfo; note: string }[] = [];
+  const pushReco = (tag: string, icon: typeof Trophy, etf: ETFBasicInfo | undefined, note: string) => {
+    if (etf && !recos.some((r) => r.etf.isin === etf.isin)) recos.push({ tag, icon, etf, note });
+  };
+  pushReco('Vlajková loď', Trophy, bySize[0], 'Největší a nejlikvidnější fond v kategorii – bezpečná výchozí volba.');
+  pushReco('Nejnižší poplatek', Wallet, byTer[0], byTer[0] ? `Nejlevnější v kategorii, TER ${ter(byTer[0].ter_numeric)}.` : '');
+  pushReco('Nejvyšší výnos (1R)', TrendingUp, byPerf[0], byPerf[0] ? `Za posledních 12 měsíců ${pct(byPerf[0].return_1y_czk)} v Kč.` : '');
+
   const faqSchema = content ? {
     '@context': 'https://schema.org', '@type': 'FAQPage',
     mainEntity: content.faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
@@ -115,12 +124,41 @@ export default async function CategoryDetailPreview(
           </section>
         )}
 
-        {/* VERDIKT */}
+        {/* NAŠE DOPORUČENÉ ETF – grafické, proklikávací */}
+        {recos.length > 0 && (
+          <section className="pb-8">
+            <SectionHead title="Naše doporučené ETF" desc="Konkrétní fondy z kategorie – klikněte pro detail s výnosem v Kč, složením a riziky." />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {recos.map(({ tag, icon: Icon, etf, note }, i) => (
+                <Link
+                  key={etf.isin}
+                  href={`/design-preview/etf/${etf.isin}`}
+                  className={`group flex flex-col min-w-0 rounded-xl border bg-white p-5 transition-all hover:shadow-sm ${i === 0 ? 'border-teal-300 ring-1 ring-teal-100' : 'border-slate-200 hover:border-teal-300'}`}
+                >
+                  <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700">
+                    <Icon className="w-3.5 h-3.5" /> {tag}
+                  </span>
+                  <span className="mt-3 text-lg font-bold text-slate-900">{etf.primary_ticker ?? shortName(etf.name)}</span>
+                  <span className="text-xs text-slate-500 leading-snug line-clamp-2">{shortName(etf.name)}</span>
+                  <p className="mt-2 text-xs text-slate-600 leading-snug">{note}</p>
+                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs">
+                    <span className="text-slate-500">TER <span className="font-semibold text-slate-800 tabular-nums">{ter(etf.ter_numeric)}</span></span>
+                    <span className="text-slate-500">1R <span className={`font-semibold tabular-nums ${(etf.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(etf.return_1y_czk)}</span></span>
+                    <span className="text-slate-500">Velikost <span className="font-semibold text-slate-800 tabular-nums">{money(etf.fund_size_numeric)}</span></span>
+                  </div>
+                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Detail fondu <ArrowRight className="w-4 h-4" /></span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* VERDIKT – proč (text) */}
         {content && content.verdict.length > 0 && (
           <section className="pb-8">
-            <div className="rounded-xl border border-teal-200 bg-teal-50 p-5">
-              <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-700 mb-2"><Trophy className="w-4 h-4" /> Náš verdikt</p>
-              <div className="space-y-2 text-sm text-teal-900/90 leading-relaxed">
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-700 mb-2"><Trophy className="w-4 h-4" /> Proč právě tyto fondy</p>
+              <div className="space-y-2 text-sm text-slate-700 leading-relaxed max-w-3xl">
                 {content.verdict.map((p, i) => <p key={i}>{p}</p>)}
               </div>
             </div>
