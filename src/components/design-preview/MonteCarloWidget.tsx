@@ -553,7 +553,7 @@ export default function MonteCarloWidget() {
                   setInitialInvestment(Math.max(0, Number(e.target.value)));
                   setResults(null);
                 }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                 Kč
@@ -577,7 +577,7 @@ export default function MonteCarloWidget() {
                   setMonthlyContribution(Math.max(0, Number(e.target.value)));
                   setResults(null);
                 }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                 Kč
@@ -601,7 +601,7 @@ export default function MonteCarloWidget() {
                   setInvestmentPeriod(Math.max(1, Math.min(50, Number(e.target.value))));
                   setResults(null);
                 }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                 let
@@ -625,7 +625,7 @@ export default function MonteCarloWidget() {
                   setGoalAmount(Math.max(0, Number(e.target.value)));
                   setResults(null);
                 }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                 Kč
