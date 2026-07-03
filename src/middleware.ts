@@ -9,11 +9,13 @@ function isISIN(str: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
-  // Redirect non-www to www (canonical domain)
+  // Redirect non-www to www POUZE pro ostrou doménu (apex).
+  // NEsmí platit pro vercel.app preview/deploy URL ani localhost –
+  // jinak by se preview přesměroval na neexistující www.<hash>.vercel.app.
   const host = request.headers.get('host');
-  if (host && !host.startsWith('www.') && !host.startsWith('localhost')) {
+  if (host === 'etfpruvodce.cz') {
     const newUrl = request.nextUrl.clone();
-    newUrl.host = 'www.' + host;
+    newUrl.host = 'www.etfpruvodce.cz';
     return NextResponse.redirect(newUrl, 301);
   }
 
