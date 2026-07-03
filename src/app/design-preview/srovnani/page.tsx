@@ -582,8 +582,8 @@ export default async function SrovnaniPreview() {
           <p className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-2">Kategorie a nástroje</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
-              ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', Landmark],
-              ['/nejlepsi-etf/nejlepsi-celosvetove-etf', 'Celosvětové ETF', Globe2],
+              ['/design-preview/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', Landmark],
+              ['/design-preview/nejlepsi-etf/nejlepsi-celosvetove-etf', 'Celosvětové ETF', Globe2],
               [`/design-preview/etf/${etf1.isin}`, `Detail ${t1}`, BookOpen],
               [`/design-preview/etf/${etf2.isin}`, `Detail ${t2}`, BookOpen],
               ['/design-preview/kde-koupit', 'Kde koupit ETF', Wallet],

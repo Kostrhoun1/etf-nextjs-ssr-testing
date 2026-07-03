@@ -446,10 +446,10 @@ export default async function FeeCalculatorPreview() {
           <SectionHead title="Pokračujte dál" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
-              ['/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
+              ['/design-preview/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
               ['/design-preview/srovnani', 'Srovnání ETF', Scale],
               ['/design-preview/kde-koupit', 'Kde koupit ETF', Landmark],
-              ['/nejlepsi-etf/nejlepsi-etf-2026', 'Nejlepší ETF 2026', TrendingUp],
+              ['/design-preview/nejlepsi-etf/nejlepsi-etf-2026', 'Nejlepší ETF 2026', TrendingUp],
               ['/design-preview/pruvodce', 'Co jsou ETF', BookOpen],
               ['/design-preview/kalkulacky', 'Další kalkulačky', Calculator],
             ] as [string, string, typeof Wallet][]).map(([href, label, Icon]) => (

@@ -635,7 +635,7 @@ export default async function ETFDetailPreview(
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {([
               ['/design-preview/srovnani', 'Porovnat s jiným fondem', Scale, 'Postavte tento fond proti VUAA, SPY5 nebo jinému S&P 500 ETF.'],
-              ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', TrendingUp, 'Žebříček nejlepších fondů sledujících S&P 500.'],
+              ['/design-preview/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', TrendingUp, 'Žebříček nejlepších fondů sledujících S&P 500.'],
               ['/design-preview/kde-koupit', 'Kde fond koupit', Banknote, 'Srovnání brokerů, u kterých tento fond pořídíte.'],
             ] as [string, string, typeof Scale, string][]).map(([href, label, Icon, desc]) => (
               <Link key={href} href={href} className="group rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
@@ -651,7 +651,7 @@ export default async function ETFDetailPreview(
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {([
               ['/design-preview/pruvodce', 'Co jsou ETF', BookOpen],
-              ['/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
+              ['/design-preview/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
               ['/design-preview/portfolio-strategie', 'Modelová portfolia', Landmark],
               ['/design-preview/kalkulacka', 'Kalkulačka poplatků', Calculator],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 /* Cílová routa na ostrém webu. */
-const catHref = (slug: string) => `/nejlepsi-etf/${slug}`;
+const catHref = (slug: string) => `/design-preview/nejlepsi-etf/${slug}`;
 
 /* Skupiny žebříčků. Každá nese jen slugy, které REÁLNĚ existují v
    categoryConfigs (filtrujeme níže) – žádné mrtvé odkazy. Co se nevejde

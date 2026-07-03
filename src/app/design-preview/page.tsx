@@ -42,14 +42,14 @@ const STARTER_META: Record<string, { tag: string; icon: typeof Globe; why: strin
 };
 
 const CATEGORIES = [
-  { href: '/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'Celosvětové', icon: Globe },
-  { href: '/nejlepsi-etf/nejlepsi-sp500-etf', label: 'S&P 500', icon: LineChart },
-  { href: '/nejlepsi-etf/nejlepsi-americke-etf', label: 'Americké', icon: Landmark },
-  { href: '/nejlepsi-etf/nejlepsi-evropske-etf', label: 'Evropské', icon: Building2 },
-  { href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf', label: 'Rozvíjející se', icon: Globe },
-  { href: '/nejlepsi-etf/nejlepsi-dividendove-etf', label: 'Dividendové', icon: Banknote },
-  { href: '/nejlepsi-etf/nejlepsi-technologicke-etf', label: 'Technologické', icon: Sparkles },
-  { href: '/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější', icon: Wallet },
+  { href: '/design-preview/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'Celosvětové', icon: Globe },
+  { href: '/design-preview/nejlepsi-etf/nejlepsi-sp500-etf', label: 'S&P 500', icon: LineChart },
+  { href: '/design-preview/nejlepsi-etf/nejlepsi-americke-etf', label: 'Americké', icon: Landmark },
+  { href: '/design-preview/nejlepsi-etf/nejlepsi-evropske-etf', label: 'Evropské', icon: Building2 },
+  { href: '/design-preview/nejlepsi-etf/nejlepsi-emerging-markets-etf', label: 'Rozvíjející se', icon: Globe },
+  { href: '/design-preview/nejlepsi-etf/nejlepsi-dividendove-etf', label: 'Dividendové', icon: Banknote },
+  { href: '/design-preview/nejlepsi-etf/nejlepsi-technologicke-etf', label: 'Technologické', icon: Sparkles },
+  { href: '/design-preview/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější', icon: Wallet },
 ];
 
 /* Jen nástroje relevantní k výběru ETF a portfoliu (osekáno z 12). */
@@ -231,9 +231,9 @@ export default async function DesignPreviewV2() {
                 </div>
                 <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
                   <span className="text-slate-400">Hledané:</span>
-                  <Link href="/nejlepsi-etf/nejlepsi-celosvetove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">MSCI World</Link>
-                  <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">S&P 500</Link>
-                  <Link href="/nejlepsi-etf/nejlepsi-dividendove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">Dividendové</Link>
+                  <Link href="/design-preview/nejlepsi-etf/nejlepsi-celosvetove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">MSCI World</Link>
+                  <Link href="/design-preview/nejlepsi-etf/nejlepsi-sp500-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">S&P 500</Link>
+                  <Link href="/design-preview/nejlepsi-etf/nejlepsi-dividendove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">Dividendové</Link>
                 </div>
               </form>
             </div>
@@ -255,7 +255,7 @@ export default async function DesignPreviewV2() {
                 const v = m.return_1y_czk;
                 const posM = (v ?? 0) >= 0;
                 return (
-                  <Link key={m.slug} href={`/nejlepsi-etf/${m.slug}`} className="group rounded-lg border border-slate-200 bg-white px-3 py-3 hover:border-teal-300 hover:shadow-sm transition-all">
+                  <Link key={m.slug} href={`/design-preview/nejlepsi-etf/${m.slug}`} className="group rounded-lg border border-slate-200 bg-white px-3 py-3 hover:border-teal-300 hover:shadow-sm transition-all">
                     <span className="block text-xs text-slate-500 leading-snug">{m.label}</span>
                     <span className={`mt-1 block text-lg font-bold tabular-nums ${posM ? 'text-emerald-600' : 'text-red-600'}`}>{pct(v)}</span>
                   </Link>
@@ -269,7 +269,7 @@ export default async function DesignPreviewV2() {
         <section className="grid md:grid-cols-3 gap-4">
           <DataPanel title="Největší fondy" href="/design-preview/zebricky" etfs={featured.bySize || []} metric="size" />
           <DataPanel title="Nejvýkonnější (1R)" href="/design-preview/zebricky" etfs={featured.byPerformance || []} metric="return" />
-          <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
+          <DataPanel title="Nejlevnější (TER)" href="/design-preview/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
         </section>
 
         {/* 4. KTERÝM ETF ZAČÍT – konkrétní odpověď s reálnými daty */}

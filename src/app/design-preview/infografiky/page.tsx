@@ -63,7 +63,7 @@ async function getHeatmapTiles(): Promise<InfografikyHeatTile[]> {
         const top = etfs[0];
         if (!top) return null;
         const value = top.return_1y_czk ?? top.return_1y ?? null;
-        return { label: c.label, value, href: `/nejlepsi-etf/${c.slug}` } as InfografikyHeatTile;
+        return { label: c.label, value, href: `/design-preview/nejlepsi-etf/${c.slug}` } as InfografikyHeatTile;
       } catch {
         return null;
       }
@@ -185,7 +185,7 @@ export default async function InfografikyRozcestnik() {
               icon={Wallet}
               title="Nejlevnější ETF (TER)"
               desc="Fondy s nejnižším ročním poplatkem za správu. Nižší TER znamená méně nákladů."
-              href="/nejlepsi-etf/nejlevnejsi-etf"
+              href="/design-preview/nejlepsi-etf/nejlevnejsi-etf"
               hrefLabel="Otevřít přehled poplatků"
             >
               <InfografikyMiniTer etfs={lowCost} />
@@ -287,7 +287,7 @@ export default async function InfografikyRozcestnik() {
             links={[
               { href: '/design-preview/zebricky', label: 'Žebříčky ETF' },
               { href: '/design-preview/srovnani', label: 'Srovnání fondů' },
-              { href: '/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější ETF' },
+              { href: '/design-preview/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější ETF' },
               { href: '/design-preview/kde-koupit', label: 'Kde koupit ETF' },
             ]}
           />

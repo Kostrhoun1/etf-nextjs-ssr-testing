@@ -481,8 +481,8 @@ export default async function CategoryPreview({
               <h3 className="font-semibold text-red-700 flex items-center gap-2"><X className="w-4 h-4" /> Spíš nevhodné, pokud</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate-600">
                 <li className="flex items-start gap-2"><X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />Potřebujete peníze do 5 let</li>
-                <li className="flex items-start gap-2"><X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />Chcete globální diverzifikaci → <Link href="/nejlepsi-etf/nejlepsi-msci-world-etf" className="text-teal-700 hover:underline ml-1">MSCI World</Link></li>
-                <li className="flex items-start gap-2"><X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />Hledáte pravidelný příjem → <Link href="/nejlepsi-etf/nejlepsi-dividendove-etf" className="text-teal-700 hover:underline ml-1">dividendové ETF</Link></li>
+                <li className="flex items-start gap-2"><X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />Chcete globální diverzifikaci → <Link href="/design-preview/nejlepsi-etf/nejlepsi-msci-world-etf" className="text-teal-700 hover:underline ml-1">MSCI World</Link></li>
+                <li className="flex items-start gap-2"><X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />Hledáte pravidelný příjem → <Link href="/design-preview/nejlepsi-etf/nejlepsi-dividendove-etf" className="text-teal-700 hover:underline ml-1">dividendové ETF</Link></li>
                 <li className="flex items-start gap-2"><X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />Máte velmi nízkou toleranci k riziku</li>
               </ul>
             </div>
@@ -586,10 +586,10 @@ export default async function CategoryPreview({
           <SectionHead title="Pokračujte dál" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
-              ['/nejlepsi-etf/nejlepsi-msci-world-etf', 'MSCI World ETF', BookOpen],
-              ['/nejlepsi-etf/nejlepsi-nasdaq-etf', 'NASDAQ 100 ETF', TrendingUp],
-              ['/nejlepsi-etf/nejlepsi-dividendove-etf', 'Dividendové ETF', Banknote],
-              ['/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
+              ['/design-preview/nejlepsi-etf/nejlepsi-msci-world-etf', 'MSCI World ETF', BookOpen],
+              ['/design-preview/nejlepsi-etf/nejlepsi-nasdaq-etf', 'NASDAQ 100 ETF', TrendingUp],
+              ['/design-preview/nejlepsi-etf/nejlepsi-dividendove-etf', 'Dividendové ETF', Banknote],
+              ['/design-preview/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
               ['/design-preview/kde-koupit', 'Kde koupit ETF', Landmark],
               ['/design-preview/kalkulacka', 'Kalkulačka poplatků', Calculator],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
