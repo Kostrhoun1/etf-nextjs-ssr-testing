@@ -283,18 +283,18 @@ export default async function InfografikyRozcestnik() {
           </h2>
           <InfografikyLinkRow
             links={[
-              { href: '/nejlepsi-etf', label: 'Žebříčky ETF' },
-              { href: '/srovnani-etf', label: 'Srovnání fondů' },
+              { href: '/design-preview/zebricky', label: 'Žebříčky ETF' },
+              { href: '/design-preview/srovnani', label: 'Srovnání fondů' },
               { href: '/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější ETF' },
-              { href: '/kde-koupit-etf', label: 'Kde koupit ETF' },
+              { href: '/design-preview/kde-koupit', label: 'Kde koupit ETF' },
             ]}
           />
 
           <div className="mt-6 grid sm:grid-cols-3 gap-4">
             {[
-              [ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/o-nas'],
-              [Star, '12 let praxe ve financích', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/o-nas'],
-              [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/kde-koupit-etf'],
+              [ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/design-preview/o-nas'],
+              [Star, '12 let praxe ve financích', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/design-preview/o-nas'],
+              [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/design-preview/kde-koupit'],
             ].map(([Icon, t, d, href]: any) => (
               <Link
                 key={t}

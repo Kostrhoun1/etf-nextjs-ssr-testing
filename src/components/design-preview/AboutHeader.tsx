@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { TrendingUp, Menu, X } from 'lucide-react';
 
 const NAV = [
-  { href: '/co-jsou-etf', label: 'Co jsou ETF' },
-  { href: '/nejlepsi-etf', label: 'Žebříčky' },
-  { href: '/srovnani-etf', label: 'Srovnání' },
-  { href: '/portfolio-strategie', label: 'Portfolia' },
-  { href: '/kalkulacky', label: 'Kalkulačky' },
-  { href: '/kde-koupit-etf', label: 'Kde koupit' },
+  { href: '/design-preview/pruvodce', label: 'Co jsou ETF' },
+  { href: '/design-preview/zebricky', label: 'Žebříčky' },
+  { href: '/design-preview/srovnani', label: 'Srovnání' },
+  { href: '/design-preview/portfolio-strategie', label: 'Portfolia' },
+  { href: '/design-preview/kalkulacky', label: 'Kalkulačky' },
+  { href: '/design-preview/kde-koupit', label: 'Kde koupit' },
 ];
 
 /** Sdílená hlavička (vzor homepage) s mobilním hamburgerem. */

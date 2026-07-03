@@ -445,11 +445,11 @@ export default async function FeeCalculatorPreview() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
               ['/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
-              ['/srovnani-etf', 'Srovnání ETF', Scale],
-              ['/kde-koupit-etf', 'Kde koupit ETF', Landmark],
+              ['/design-preview/srovnani', 'Srovnání ETF', Scale],
+              ['/design-preview/kde-koupit', 'Kde koupit ETF', Landmark],
               ['/nejlepsi-etf/nejlepsi-etf-2026', 'Nejlepší ETF 2026', TrendingUp],
-              ['/co-jsou-etf', 'Co jsou ETF', BookOpen],
-              ['/kalkulacky', 'Další kalkulačky', Calculator],
+              ['/design-preview/pruvodce', 'Co jsou ETF', BookOpen],
+              ['/design-preview/kalkulacky', 'Další kalkulačky', Calculator],
             ] as [string, string, typeof Wallet][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>

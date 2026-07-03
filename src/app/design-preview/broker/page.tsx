@@ -625,15 +625,15 @@ export default function BrokerReviewPreview() {
           <SectionHead title="Pokračujte dál" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
-              ['/srovnani-brokeru', 'Srovnání brokerů', Scale],
-              ['/kde-koupit-etf', 'Kde koupit ETF', Landmark],
+              ['/design-preview/srovnani-brokeru', 'Srovnání brokerů', Scale],
+              ['/design-preview/kde-koupit', 'Kde koupit ETF', Landmark],
               ['/xtb-recenze', 'Recenze XTB', BadgeCheck],
               ['/fio-ebroker-recenze', 'Recenze Fio e-Broker', BadgeCheck],
               ['/trading212-recenze', 'Recenze Trading 212', BadgeCheck],
               ['/interactive-brokers-recenze', 'Recenze Interactive Brokers', BadgeCheck],
               ['/portu-recenze', 'Recenze Portu', BadgeCheck],
-              ['/nejlepsi-etf', 'Nejlepší ETF (co koupit)', TrendingUp],
-              ['/co-jsou-etf', 'Jak začít investovat', BookOpen],
+              ['/design-preview/zebricky', 'Nejlepší ETF (co koupit)', TrendingUp],
+              ['/design-preview/pruvodce', 'Jak začít investovat', BookOpen],
             ] as [string, string, typeof Scale][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>

@@ -81,10 +81,10 @@ export default function PortfolioStrategieDesignPreview() {
   };
 
   const TOOLS = [
-    { href: '/kalkulacky/backtest-portfolia', label: 'Backtest portfolia', desc: 'Historická simulace strategie od roku 2000', icon: History },
-    { href: '/kalkulacky/monte-carlo-simulator', label: 'Monte Carlo simulátor', desc: 'Pravděpodobnostní výhled vývoje portfolia', icon: Activity },
-    { href: '/srovnani-etf', label: 'Srovnávač ETF', desc: 'Porovnejte konkrétní fondy do portfolia', icon: Search },
-    { href: '/kde-koupit-etf', label: 'Kde koupit ETF', desc: 'Výběr brokera pro české investory', icon: Landmark },
+    { href: '/design-preview/backtest', label: 'Backtest portfolia', desc: 'Historická simulace strategie od roku 2000', icon: History },
+    { href: '/design-preview/monte-carlo', label: 'Monte Carlo simulátor', desc: 'Pravděpodobnostní výhled vývoje portfolia', icon: Activity },
+    { href: '/design-preview/srovnani', label: 'Srovnávač ETF', desc: 'Porovnejte konkrétní fondy do portfolia', icon: Search },
+    { href: '/design-preview/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera pro české investory', icon: Landmark },
     { href: '/co-jsou-etf/jak-zacit-investovat', label: 'Jak začít investovat', desc: 'Krok za krokem k prvnímu nákupu', icon: BookOpen },
   ];
 

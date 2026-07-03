@@ -395,8 +395,8 @@ export default async function HowToStartPreview() {
           {/* Akční rozcestník navázaný na kroky 4–5 */}
           <div className="mt-5 grid sm:grid-cols-3 gap-2.5">
             {([
-              ['/srovnani-etf', 'Srovnat ETF', Search],
-              ['/nejlepsi-etf', 'Žebříčky fondů', ListChecks],
+              ['/design-preview/srovnani', 'Srovnat ETF', Search],
+              ['/design-preview/zebricky', 'Žebříčky fondů', ListChecks],
               ['/design-preview/srovnani-brokeru', 'Srovnání brokerů', Building2],
             ] as [string, string, typeof Search][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3.5 py-3 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
@@ -453,12 +453,12 @@ export default async function HowToStartPreview() {
           <SectionHead title="Kam dál" desc="Podle toho, u kterého kroku zrovna jste." />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
-              ['/co-jsou-etf', 'Co jsou ETF (základ)', BookOpen],
-              ['/portfolio-strategie', 'Modelová portfolia', Boxes],
-              ['/srovnani-etf', 'Srovnání ETF', Search],
-              ['/nejlepsi-etf', 'Nejlepší ETF', ListChecks],
+              ['/design-preview/pruvodce', 'Co jsou ETF (základ)', BookOpen],
+              ['/design-preview/portfolio-strategie', 'Modelová portfolia', Boxes],
+              ['/design-preview/srovnani', 'Srovnání ETF', Search],
+              ['/design-preview/zebricky', 'Nejlepší ETF', ListChecks],
               ['/design-preview/etf', 'Ukázka detailu fondu', Globe],
-              ['/kde-koupit-etf', 'Kde koupit ETF', Landmark],
+              ['/design-preview/kde-koupit', 'Kde koupit ETF', Landmark],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>

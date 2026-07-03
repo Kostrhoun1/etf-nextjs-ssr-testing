@@ -632,9 +632,9 @@ export default async function ETFDetailPreview(
           <SectionHead title="Kam dál" desc="Porovnejte fond s konkurencí nebo se podívejte na žebříčky." />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {([
-              ['/srovnani-etf', 'Porovnat s jiným fondem', Scale, 'Postavte tento fond proti VUAA, SPY5 nebo jinému S&P 500 ETF.'],
+              ['/design-preview/srovnani', 'Porovnat s jiným fondem', Scale, 'Postavte tento fond proti VUAA, SPY5 nebo jinému S&P 500 ETF.'],
               ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', TrendingUp, 'Žebříček nejlepších fondů sledujících S&P 500.'],
-              ['/kde-koupit-etf', 'Kde fond koupit', Banknote, 'Srovnání brokerů, u kterých tento fond pořídíte.'],
+              ['/design-preview/kde-koupit', 'Kde fond koupit', Banknote, 'Srovnání brokerů, u kterých tento fond pořídíte.'],
             ] as [string, string, typeof Scale, string][]).map(([href, label, Icon, desc]) => (
               <Link key={href} href={href} className="group rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span className="flex items-center justify-between">
@@ -648,10 +648,10 @@ export default async function ETFDetailPreview(
           </div>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {([
-              ['/co-jsou-etf', 'Co jsou ETF', BookOpen],
+              ['/design-preview/pruvodce', 'Co jsou ETF', BookOpen],
               ['/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
-              ['/portfolio-strategie', 'Modelová portfolia', Landmark],
-              ['/kalkulacky/kalkulacka-poplatku-etf', 'Kalkulačka poplatků', Calculator],
+              ['/design-preview/portfolio-strategie', 'Modelová portfolia', Landmark],
+              ['/design-preview/kalkulacka', 'Kalkulačka poplatků', Calculator],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>

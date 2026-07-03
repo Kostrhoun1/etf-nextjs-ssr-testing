@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description:
     '6 brokerů pro ETF se skóre /100: srovnání poplatků za nákup, konverze měn a zdanění českých dividend 15 vs 35 %. Redakční hodnocení pro české investory.',
   robots: { index: false, follow: false },
-  alternates: { canonical: '/srovnani-brokeru' },
+  alternates: { canonical: '/design-preview/srovnani-brokeru' },
 };
 
 /* Pořadí dle skóre pro schema i profilové karty. */
@@ -282,10 +282,10 @@ export default function SrovnaniBrokeruPage() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Pokračujte dál</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { href: '/kde-koupit-etf', label: 'Kde koupit ETF', desc: 'Výběr brokera v ČR krok za krokem.', icon: Landmark },
-              { href: '/srovnani-etf', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 300+ fondů podle kritérií.', icon: BarChart3 },
+              { href: '/design-preview/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera v ČR krok za krokem.', icon: Landmark },
+              { href: '/design-preview/srovnani', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 300+ fondů podle kritérií.', icon: BarChart3 },
               { href: '/co-jsou-etf/jak-zacit-investovat', label: 'Jak začít investovat', desc: 'Od základů k prvnímu nákupu.', icon: BookOpen },
-              { href: '/kalkulacky', label: 'Kalkulačky', desc: 'Poplatky, výnosy i daně spočítané.', icon: Calculator },
+              { href: '/design-preview/kalkulacky', label: 'Kalkulačky', desc: 'Poplatky, výnosy i daně spočítané.', icon: Calculator },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="group flex flex-col rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3 group-hover:bg-teal-100 transition-colors">

@@ -584,8 +584,8 @@ export default async function SrovnaniPreview() {
               ['/nejlepsi-etf/nejlepsi-celosvetove-etf', 'Celosvětové ETF', Globe2],
               [`/design-preview/etf/${etf1.isin}`, `Detail ${t1}`, BookOpen],
               [`/design-preview/etf/${etf2.isin}`, `Detail ${t2}`, BookOpen],
-              ['/kde-koupit-etf', 'Kde koupit ETF', Wallet],
-              ['/kalkulacky/kalkulacka-poplatku-etf', 'Kalkulačka poplatků', Calculator],
+              ['/design-preview/kde-koupit', 'Kde koupit ETF', Wallet],
+              ['/design-preview/kalkulacka', 'Kalkulačka poplatků', Calculator],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>

@@ -53,12 +53,12 @@ const CATEGORIES = [
 
 /* Jen nástroje relevantní k výběru ETF a portfoliu (osekáno z 12). */
 const TOOLS = [
-  { href: '/kalkulacky/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Budoucí hodnota investice', icon: Calculator },
-  { href: '/kalkulacky/kalkulacka-poplatku-etf', label: 'Kalkulačka poplatků', desc: 'Kolik vás stojí TER za 30 let', icon: PieChart },
-  { href: '/kalkulacky/backtest-portfolia', label: 'Backtest portfolia', desc: 'Historická simulace od roku 2000', icon: History },
-  { href: '/kalkulacky/fire-kalkulacka', label: 'FIRE kalkulačka', desc: 'Kdy dosáhnete nezávislosti', icon: Flame },
-  { href: '/kalkulacky/kurzovy-dopad-etf', label: 'Kurzový dopad', desc: 'Vliv kurzu na korunový výnos', icon: RefreshCw },
-  { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: '5 ověřených strategií', icon: LayoutGrid },
+  { href: '/design-preview/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Budoucí hodnota investice', icon: Calculator },
+  { href: '/design-preview/kalkulacka', label: 'Kalkulačka poplatků', desc: 'Kolik vás stojí TER za 30 let', icon: PieChart },
+  { href: '/design-preview/backtest', label: 'Backtest portfolia', desc: 'Historická simulace od roku 2000', icon: History },
+  { href: '/design-preview/fire-kalkulacka', label: 'FIRE kalkulačka', desc: 'Kdy dosáhnete nezávislosti', icon: Flame },
+  { href: '/design-preview/kurzovy-dopad', label: 'Kurzový dopad', desc: 'Vliv kurzu na korunový výnos', icon: RefreshCw },
+  { href: '/design-preview/portfolio-strategie', label: 'Modelová portfolia', desc: '5 ověřených strategií', icon: LayoutGrid },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
@@ -66,37 +66,37 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
     q: 'Co je vlastně ETF?',
     a: <>ETF je fond, který jedním nákupem investuje do desítek až tisíců firem najednou. Pasivně kopíruje nějaký index (třeba S&P 500), a proto má výrazně nižší poplatky než aktivně řízené fondy. Místo vybírání jednotlivých akcií koupíte rovnou celý trh.</>,
     plain: 'ETF je fond, který jedním nákupem investuje do desítek až tisíců firem najednou. Pasivně kopíruje index (např. S&P 500), a proto má výrazně nižší poplatky než aktivně řízené fondy. Místo vybírání jednotlivých akcií koupíte celý trh.',
-    href: '/co-jsou-etf',
+    href: '/design-preview/pruvodce',
   },
   {
     q: 'Jak se ETF v Česku daní?',
     a: <>Zisk z prodeje je osvobozen, pokud fond držíte déle než 3 roky (<InfoTip label="Časový test: po 3 letech držení je zisk z prodeje cenných papírů v ČR osvobozen od daně z příjmu. Od roku 2026 bez horního limitu.">časový test</InfoTip>), nebo když <strong>úhrn vašich prodejů</strong> za rok nepřekročí 100 000 Kč (hodnotový test – jde o hrubé příjmy, ne zisk). Jinak se zisk daní 15 % (u vysokých příjmů 23 %). Dividendy se daní 15 % – u akumulačních fondů to ale řešit nemusíte, reinvestují se uvnitř fondu.</>,
     plain: 'Zisk z prodeje ETF je v ČR osvobozen po 3 letech držení (časový test, od 2026 bez limitu) nebo když úhrn prodejů za rok nepřekročí 100 000 Kč hrubých příjmů (ne zisku). Jinak se daní 15 %, u vysokých příjmů 23 %. Dividendy se daní 15 %; u akumulačních fondů se reinvestují uvnitř fondu a daň neřešíte.',
-    href: '/co-jsou-etf',
+    href: '/design-preview/pruvodce',
   },
   {
     q: 'Akumulační, nebo distribuční fond?',
     a: <>Akumulační (<InfoTip label="Acc – Accumulating. Dividendy se automaticky reinvestují uvnitř fondu, na účet vám nechodí.">Acc</InfoTip>) dividendy automaticky reinvestuje uvnitř fondu – vhodné pro dlouhodobý růst a bez daňové starosti. Distribuční (<InfoTip label="Dist – Distributing. Dividendy fond pravidelně vyplácí na váš účet.">Dist</InfoTip>) je vyplácí na účet – vhodné, když chcete pravidelný příjem.</>,
     plain: 'Akumulační fond (Acc) dividendy automaticky reinvestuje uvnitř fondu – vhodné pro dlouhodobý růst a bez daňové starosti. Distribuční fond (Dist) je vyplácí na účet – vhodné, když chcete pravidelný příjem.',
-    href: '/co-jsou-etf',
+    href: '/design-preview/pruvodce',
   },
   {
     q: 'Kolik peněz stačí na začátek?',
     a: <>Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek akcie, takže limituje spíš poplatek za nákup než cena fondu. Důležitější než výše první investice je začít a investovat pravidelně.</>,
     plain: 'Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek akcie, takže limituje spíš poplatek za nákup než cena fondu. Důležitější než výše první investice je začít a investovat pravidelně.',
-    href: '/kde-koupit-etf',
+    href: '/design-preview/kde-koupit',
   },
   {
     q: 'Kde ETF koupit?',
     a: <>Přes brokera nebo <InfoTip label="Robo-poradce sestaví a spravuje portfolio za vás podle zvoleného profilu. Vyšší poplatek za pohodlí.">robo-poradce</InfoTip> dostupného v ČR. Liší se hlavně poplatky za nákup a konverzí měn – kompletní srovnání najdete v sekci Kde koupit.</>,
     plain: 'ETF koupíte přes brokera nebo robo-poradce dostupného v ČR. Liší se hlavně poplatky za nákup a konverzí měn – kompletní srovnání najdete v sekci Kde koupit.',
-    href: '/kde-koupit-etf',
+    href: '/design-preview/kde-koupit',
   },
   {
     q: 'Proč ukazujete výnosy v korunách?',
     a: <>Protože jako český investor utrácíte koruny. Fondy sice kotují v dolarech nebo eurech, ale váš reálný výnos ovlivňuje i pohyb kurzu. Výnos přepočtený do Kč proto ukazuje, kolik byste reálně vydělali – ne jen kolik vydělal fond ve své měně.</>,
     plain: 'Protože jako český investor utrácíte koruny. Fond kotuje v cizí měně, ale váš reálný výnos ovlivňuje i pohyb kurzu. Výnos přepočtený do Kč ukazuje, kolik byste reálně vydělali, ne jen kolik vydělal fond ve své měně.',
-    href: '/srovnani-etf',
+    href: '/design-preview/srovnani',
   },
 ];
 
@@ -221,7 +221,7 @@ export default async function DesignPreviewV2() {
                   </Link>
                 </div>
               </div>
-              <form action="/srovnani-etf" className="mt-6 md:mt-1 md:w-80 shrink-0">
+              <form action="/design-preview/srovnani" className="mt-6 md:mt-1 md:w-80 shrink-0">
                 <label className="block text-xs font-medium text-slate-400 mb-1.5">Hledáte konkrétní fond?</label>
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 h-11">
                   <Search className="w-4 h-4 text-slate-400" />
@@ -423,7 +423,7 @@ export default async function DesignPreviewV2() {
         </section>
 
         <section className="grid sm:grid-cols-3 gap-4 pb-12">
-          {[[ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/o-nas'], [Star, '12 let praxe ve financích', 'Obsah od experta, ne anonymně.', '/o-nas'], [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/kde-koupit-etf']].map(([Icon, t, d, href]: any) => (
+          {[[ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/design-preview/o-nas'], [Star, '12 let praxe ve financích', 'Obsah od experta, ne anonymně.', '/design-preview/o-nas'], [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/design-preview/kde-koupit']].map(([Icon, t, d, href]: any) => (
             <Link key={t} href={href} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-all">
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
               <span><span className="block font-semibold text-sm">{t}</span><span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{d}</span></span>

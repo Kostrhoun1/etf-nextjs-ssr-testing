@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     'Rozcestník kalkulaček pro investory: složené úročení, poplatky ETF, kurzový dopad do korun, Monte Carlo, FIRE, hypotéka i čistá mzda 2025. Vše přehledně na jednom místě.',
   robots: { index: false, follow: false },
-  alternates: { canonical: '/kalkulacky' },
+  alternates: { canonical: '/design-preview/kalkulacky' },
 };
 
 /* Cílové routy v náhledové větvi (na ostrém webu se přemapují 1:1). */
@@ -108,9 +108,9 @@ const GROUPS: Group[] = [
 const toolCount = GROUPS.reduce((n, g) => n + g.tools.length, 0);
 
 const KAM_DAL: { href: string; label: string; desc: string; icon: typeof Calculator }[] = [
-  { href: '/srovnani-etf', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 300+ fondů podle vlastních kritérií.', icon: BarChart3 },
-  { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
-  { href: '/co-jsou-etf', label: 'Co jsou ETF', desc: 'Základy fungování ETF srozumitelně pro začátečníky.', icon: BookOpen },
+  { href: '/design-preview/srovnani', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 300+ fondů podle vlastních kritérií.', icon: BarChart3 },
+  { href: '/design-preview/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
+  { href: '/design-preview/pruvodce', label: 'Co jsou ETF', desc: 'Základy fungování ETF srozumitelně pro začátečníky.', icon: BookOpen },
 ];
 
 export default function KalkulackyPage() {

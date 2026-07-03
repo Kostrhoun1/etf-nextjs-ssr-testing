@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description:
     'Rozcestník všech žebříčků ETF: nejlepší akciové, dluhopisové, S&P 500, světové i tematické fondy. Řazení podle velikosti, hodnocení a výnosů přepočtených do korun.',
   robots: { index: false, follow: false },
-  alternates: { canonical: '/nejlepsi-etf' },
+  alternates: { canonical: '/design-preview/zebricky' },
 };
 
 /* Cílová routa na ostrém webu. */
@@ -398,9 +398,9 @@ export default async function ZebrickyPage() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Kam dál</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { href: '/srovnani-etf', label: 'Srovnání ETF fondů', desc: `Porovnejte ${fmtNum(total)}+ fondů podle vlastních kritérií.`, icon: BarChart3 },
-              { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
-              { href: '/kde-koupit-etf', label: 'Kde koupit ETF', desc: 'Výběr brokera v ČR krok za krokem.', icon: ShoppingCart },
+              { href: '/design-preview/srovnani', label: 'Srovnání ETF fondů', desc: `Porovnejte ${fmtNum(total)}+ fondů podle vlastních kritérií.`, icon: BarChart3 },
+              { href: '/design-preview/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
+              { href: '/design-preview/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera v ČR krok za krokem.', icon: ShoppingCart },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="group flex flex-col rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3 group-hover:bg-teal-100 transition-colors">
