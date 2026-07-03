@@ -475,15 +475,15 @@ export default function BrokerReviewPreview() {
               <ul className="mt-3 space-y-2.5 text-sm text-slate-600">
                 <li className="flex items-start gap-2">
                   <X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span>Chcete frakční investování malých částek → <Link href="/trading212-recenze" className="text-teal-700 hover:underline">Trading 212</Link> nebo <Link href="/xtb-recenze" className="text-teal-700 hover:underline">XTB</Link></span>
+                  <span>Chcete frakční investování malých částek → <Link href="/design-preview/recenze/trading212" className="text-teal-700 hover:underline">Trading 212</Link> nebo <Link href="/design-preview/recenze/xtb" className="text-teal-700 hover:underline">XTB</Link></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span>Potřebujete českou podporu 24/7 → <Link href="/xtb-recenze" className="text-teal-700 hover:underline">XTB</Link></span>
+                  <span>Potřebujete českou podporu 24/7 → <Link href="/design-preview/recenze/xtb" className="text-teal-700 hover:underline">XTB</Link></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span>Investujete do CZ dividendových akcií (kvůli 35% srážce) → <Link href="/fio-ebroker-recenze" className="text-teal-700 hover:underline">Fio e-Broker</Link> (15 %)</span>
+                  <span>Investujete do CZ dividendových akcií (kvůli 35% srážce) → <Link href="/design-preview/recenze/fio" className="text-teal-700 hover:underline">Fio e-Broker</Link> (15 %)</span>
                 </li>
               </ul>
             </div>
@@ -629,11 +629,11 @@ export default function BrokerReviewPreview() {
             {([
               ['/design-preview/srovnani-brokeru', 'Srovnání brokerů', Scale],
               ['/design-preview/kde-koupit', 'Kde koupit ETF', Landmark],
-              ['/xtb-recenze', 'Recenze XTB', BadgeCheck],
-              ['/fio-ebroker-recenze', 'Recenze Fio e-Broker', BadgeCheck],
-              ['/trading212-recenze', 'Recenze Trading 212', BadgeCheck],
-              ['/interactive-brokers-recenze', 'Recenze Interactive Brokers', BadgeCheck],
-              ['/portu-recenze', 'Recenze Portu', BadgeCheck],
+              ['/design-preview/recenze/xtb', 'Recenze XTB', BadgeCheck],
+              ['/design-preview/recenze/fio', 'Recenze Fio e-Broker', BadgeCheck],
+              ['/design-preview/recenze/trading212', 'Recenze Trading 212', BadgeCheck],
+              ['/design-preview/recenze/ibkr', 'Recenze Interactive Brokers', BadgeCheck],
+              ['/design-preview/recenze/portu', 'Recenze Portu', BadgeCheck],
               ['/design-preview/zebricky', 'Nejlepší ETF (co koupit)', TrendingUp],
               ['/design-preview/pruvodce', 'Jak začít investovat', BookOpen],
             ] as [string, string, typeof Scale][]).map(([href, label, Icon]) => (
