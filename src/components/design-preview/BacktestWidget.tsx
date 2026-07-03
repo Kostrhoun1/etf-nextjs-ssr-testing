@@ -153,7 +153,8 @@ export default function BacktestWidget() {
     setSelectedETFs((prev) => prev.map((e) => (e.indexCode === indexCode ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
-  const runBacktest = async () => {
+  const runBacktest = async (overrideCurrency?: Currency) => {
+    const cur = overrideCurrency ?? currency;
     if (totalWeight !== 100) {
       setError(`Rozdělení musí být přesně 100 %. Aktuálně: ${totalWeight} %`);
       return;
@@ -177,7 +178,7 @@ export default function BacktestWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           portfolio, startDate, endDate, initialAmount,
-          rebalancingStrategy: 'yearly', currency, contributions,
+          rebalancingStrategy: 'yearly', currency: cur, contributions,
         }),
       });
       if (!response.ok) {
@@ -186,7 +187,7 @@ export default function BacktestWidget() {
       }
       const data = await response.json();
       setResult(data);
-      setResultCurrency(currency);
+      setResultCurrency(cur);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Neznámá chyba.');
     } finally {
@@ -350,8 +351,9 @@ export default function BacktestWidget() {
           </label>
           <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
             {CURRENCIES.map((c) => (
-              <button key={c.code} onClick={() => setCurrency(c.code)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors min-h-[40px] ${currency === c.code ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
+              <button key={c.code} disabled={loading}
+                onClick={() => { setCurrency(c.code); if (result) runBacktest(c.code); }}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors min-h-[40px] disabled:opacity-60 ${currency === c.code ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
                 {c.label} {c.code}
               </button>
             ))}
