@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import InfoTip from '@/components/design-preview/InfoTip';
 import StructuredData from '@/components/SEO/StructuredData';
 import {
@@ -107,6 +108,7 @@ export default function PortfolioStrategieDesignPreview() {
             <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>

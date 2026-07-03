@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import { notFound } from 'next/navigation';
 import {
   TrendingUp, ArrowRight, ArrowLeft, ShieldCheck, Target, CalendarDays,
@@ -86,6 +87,7 @@ export default async function PortfolioDetailPreview(
             <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
@@ -156,8 +158,8 @@ export default async function PortfolioDetailPreview(
           </div>
 
           {/* Holdings tabulka */}
-          <div className="mt-4 rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white overflow-x-auto">
+            <table className="w-full min-w-[34rem] text-sm">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-left text-xs uppercase tracking-wide">
                   <th className="py-2.5 px-4 font-medium">Fond</th>

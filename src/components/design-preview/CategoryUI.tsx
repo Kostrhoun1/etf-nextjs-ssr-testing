@@ -69,7 +69,7 @@ export function RankPanel({
   rows: { isin: string; label: string; sub?: string; value: React.ReactNode; flagged?: boolean }[];
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-white">
       <div className="px-4 py-3 border-b border-slate-100">
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
         {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
@@ -83,7 +83,7 @@ export function RankPanel({
             >
               <span className="text-xs text-slate-400 tabular-nums w-4 shrink-0">{i + 1}</span>
               <span className="flex-1 min-w-0">
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 min-w-0">
                   <span className="text-sm font-medium text-slate-900 truncate">{r.label}</span>
                   {r.flagged && (
                     <span className="shrink-0 rounded-full bg-amber-50 text-amber-700 text-[10px] font-medium px-1.5 py-0.5 border border-amber-200">

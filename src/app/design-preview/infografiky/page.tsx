@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   getFeaturedETFs,
   getTotalETFCount,
@@ -136,6 +137,7 @@ export default async function InfografikyRozcestnik() {
             </span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
@@ -203,7 +205,7 @@ export default async function InfografikyRozcestnik() {
 
         {/* Mini-žebříček + plná heatmapa – reálná data, okamžitá hodnota */}
         <section id="trzni-heatmapa" className="scroll-mt-20 py-10 grid lg:grid-cols-2 gap-6">
-          <div>
+          <div className="min-w-0">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
               Nejvýkonnější za 12 měsíců
             </h2>
@@ -215,7 +217,7 @@ export default async function InfografikyRozcestnik() {
               etfs={byPerf}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
               Výkonnost regionů a sektorů
             </h2>

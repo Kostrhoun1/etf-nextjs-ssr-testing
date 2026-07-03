@@ -114,7 +114,7 @@ export function InfografikyCard({
   return (
     <Link
       href={href}
-      className="group flex flex-col rounded-lg border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all"
+      className="group flex flex-col min-w-0 rounded-lg border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all"
     >
       <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3 group-hover:bg-teal-100 transition-colors shrink-0">
         <Icon className="w-5 h-5" strokeWidth={2} />
@@ -174,9 +174,9 @@ export function InfografikyRankPanel({
   const rows = etfs.slice(0, 5);
   const max = Math.max(1, ...rows.map((e) => Math.abs(e.return_1y_czk ?? e.return_1y ?? 0)));
   return (
-    <div className="rounded-lg border border-slate-200 bg-white">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-        <div>
+        <div className="min-w-0">
           <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
           {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
         </div>

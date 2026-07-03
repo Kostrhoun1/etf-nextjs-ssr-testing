@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
   Coins, Wallet, Scale, Landmark, ShieldCheck, Crown, HelpCircle, BookOpen,
@@ -83,6 +84,7 @@ export default function BacktestPreview() {
             </span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>

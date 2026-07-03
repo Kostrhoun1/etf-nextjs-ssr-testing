@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { ETF } from '@/types/etf';
@@ -295,6 +296,7 @@ export default async function ETFDetailPreview(
             </span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
   Wallet, Receipt, BadgePercent, HelpCircle, BookOpen, Scale, Landmark,
@@ -81,6 +82,7 @@ export default function CistyPlatPreview() {
             </span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>

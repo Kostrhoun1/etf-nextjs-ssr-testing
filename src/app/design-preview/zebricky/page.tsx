@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   TrendingUp, ArrowRight, Layers, BarChart3, Globe2, Factory,
   Sparkles, Coins, Compass, Star, Trophy, Tag, BadgePercent,
@@ -221,6 +222,7 @@ export default async function ZebrickyPage() {
             <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="font-medium text-teal-700">Žebříčky</Link>
@@ -284,7 +286,7 @@ export default async function ZebrickyPage() {
           <section className="pb-10">
             <div className="grid gap-4 lg:grid-cols-2">
               {/* Nejvýkonnější za 12 měsíců (v Kč) */}
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700"><Trophy className="w-5 h-5" /></span>
@@ -295,7 +297,7 @@ export default async function ZebrickyPage() {
                 <ul className="mt-4 divide-y divide-slate-100">
                   {topPerf.map((etf) => (
                     <li key={etf.isin} className="flex items-center justify-between gap-3 py-2.5">
-                      <span className="min-w-0">
+                      <span className="flex-1 min-w-0">
                         <span className="block truncate text-sm font-medium text-slate-900">{etf.name}</span>
                         <span className="block text-xs text-slate-500">{etf.fund_provider}</span>
                       </span>
@@ -311,7 +313,7 @@ export default async function ZebrickyPage() {
               </div>
 
               {/* Nejlevnější podle TER */}
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700"><BadgePercent className="w-5 h-5" /></span>
@@ -324,7 +326,7 @@ export default async function ZebrickyPage() {
                 <ul className="mt-4 divide-y divide-slate-100">
                   {cheapest.map((etf) => (
                     <li key={etf.isin} className="flex items-center justify-between gap-3 py-2.5">
-                      <span className="min-w-0">
+                      <span className="flex-1 min-w-0">
                         <span className="block truncate text-sm font-medium text-slate-900">{etf.name}</span>
                         <span className="block text-xs text-slate-500">{etf.fund_provider}</span>
                       </span>
@@ -357,7 +359,7 @@ export default async function ZebrickyPage() {
                   href={catHref(c.slug)}
                   className="group flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
                 >
-                  <span className="min-w-0">
+                  <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold text-slate-900">{c.title}</span>
                     <span className="block text-xs text-slate-500 mt-0.5 leading-snug">{c.description}</span>
                   </span>
@@ -382,7 +384,7 @@ export default async function ZebrickyPage() {
                   href={catHref(c.slug)}
                   className="group flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
                 >
-                  <span className="min-w-0">
+                  <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold text-slate-900">{c.title}</span>
                     <span className="block text-xs text-slate-500 mt-0.5 leading-snug">{c.description}</span>
                   </span>

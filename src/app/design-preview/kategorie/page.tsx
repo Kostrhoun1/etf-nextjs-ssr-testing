@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import { getTopETFsForCategory, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, Trophy, Coins, Layers, Banknote, Scale, ShieldCheck,
@@ -142,6 +143,7 @@ export default async function CategoryPreview({
             </span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   getFeaturedETFs, getTotalETFCount, getMarketSnapshot, getReturnsByIsins,
   getETFsByIsins, type ETFBasicInfo,
@@ -190,6 +191,7 @@ export default async function DesignPreviewV2() {
             <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
             ETF průvodce
           </Link>
+          <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
