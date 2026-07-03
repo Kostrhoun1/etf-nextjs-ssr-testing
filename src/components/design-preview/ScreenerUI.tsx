@@ -75,8 +75,20 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${e.primary_ticker ?? ''} ${e.exchange_1_ticker ?? ''} ${e.exchange_2_ticker ?? ''} ${e.exchange_3_ticker ?? ''} ${e.exchange_4_ticker ?? ''} ${e.exchange_5_ticker ?? ''}`.toLowerCase(),
     })), [etfs]);
 
-  // Možnosti filtrů z dat.
-  const categories = useMemo(() => [...new Set(etfs.map((e) => e.category).filter(Boolean))].sort((a, b) => a!.localeCompare(b!)) as string[], [etfs]);
+  // Kategorie jako taby (nejvyšší dělení). Řazení dle preferovaného pořadí,
+  // neznámé kategorie na konec; „Ostatní“ (1 fond) vynecháme jako původní web.
+  const CATEGORY_ORDER = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto'];
+  const categories = useMemo(() => {
+    const present = [...new Set(etfs.map((e) => e.category).filter((c): c is string => !!c && c !== 'Ostatní'))];
+    const ordered = CATEGORY_ORDER.filter((c) => present.includes(c));
+    const extra = present.filter((c) => !CATEGORY_ORDER.includes(c)).sort((a, b) => a.localeCompare(b));
+    return [...ordered, ...extra];
+  }, [etfs]);
+  const catCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of etfs) if (e.category) m.set(e.category, (m.get(e.category) ?? 0) + 1);
+    return m;
+  }, [etfs]);
   const regions = useMemo(() => buildRegionOptions(etfs), [etfs]);
   const indexOpts = useMemo(() => buildIndexOptions(etfs), [etfs]);
   const currencies = useMemo(() => [...new Set(etfs.map((e) => e.fund_currency).filter(Boolean))].sort() as string[], [etfs]);
@@ -155,12 +167,13 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
     setRepl('all'); setCurrency('all'); setHedging('all'); setSizeCat('all'); setMinRating(0);
     setLeveraged(false); setTerMax(''); setSizeMin(''); setDivMin(''); setShown(PAGE);
   };
+  // Kategorie je samostatný tab, do odznaku „Pokročilé filtry“ ji nepočítáme.
   const activeCount =
-    (category !== 'all' ? 1 : 0) + (dist !== 'all' ? 1 : 0) + (region !== 'all' ? 1 : 0) +
+    (dist !== 'all' ? 1 : 0) + (region !== 'all' ? 1 : 0) +
     (indexName !== 'all' ? 1 : 0) + (repl !== 'all' ? 1 : 0) + (currency !== 'all' ? 1 : 0) +
     (hedging !== 'all' ? 1 : 0) + (sizeCat !== 'all' ? 1 : 0) + (minRating > 0 ? 1 : 0) +
     (leveraged ? 1 : 0) + (terMax !== '' ? 1 : 0) + (sizeMin !== '' ? 1 : 0) + (divMin !== '' ? 1 : 0);
-  const anyFilter = activeCount > 0 || q !== '';
+  const anyFilter = activeCount > 0 || q !== '' || category !== 'all';
 
   const bump = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => { setter(e.target.value); setShown(PAGE); };
   const bumpN = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => { setter(e.target.value); setShown(PAGE); };
@@ -181,6 +194,24 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
 
   return (
     <div>
+      {/* KATEGORIE JAKO TABY – nejvyšší dělení, vždy na jeden klik */}
+      <div className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto pb-1">
+        {[{ v: 'all', label: 'Vše' }, ...categories.map((c) => ({ v: c, label: c }))].map(({ v, label }) => {
+          const active = category === v;
+          const count = v === 'all' ? etfs.length : (catCounts.get(v) ?? 0);
+          return (
+            <button
+              key={v}
+              onClick={() => { setCategory(v); setShown(PAGE); }}
+              className={`shrink-0 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${active ? 'bg-teal-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-700'}`}
+            >
+              {label}
+              <span className={`ml-1.5 tabular-nums text-xs ${active ? 'text-teal-100' : 'text-slate-400'}`}>{count.toLocaleString('cs-CZ')}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* TOOLBAR */}
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <div className="relative">
@@ -194,13 +225,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
         </div>
 
         {/* Primární filtry – vždy vidět */}
-        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Field label="Kategorie">
-            <select aria-label="Kategorie" value={category} onChange={bump(setCategory)} className={selCls}>
-              <option value="all">Všechny kategorie</option>
-              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </Field>
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
           <Field label="Region">
             <select aria-label="Region" value={region} onChange={bump(setRegion)} className={selCls}>
               <option value="all">Všechny regiony</option>
