@@ -514,6 +514,35 @@ export async function getComparisonETFData(
 }
 
 /**
+ * Seznam ETF pro screener (nový design) – největší fondy s poli pro filtrování/řazení.
+ * Omezeno na N největších podle velikosti, aby byl klientský filtr svižný.
+ */
+export async function getScreenerETFData(limit = 600): Promise<ComparisonETF[]> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select(`
+        isin, name, fund_provider, primary_ticker,
+        ter_numeric, fund_size_numeric,
+        return_1y, return_3y, return_5y, return_ytd,
+        return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
+        volatility_1y, max_drawdown_1y,
+        current_dividend_yield_numeric,
+        distribution_policy, replication, index_name, region,
+        fund_currency, fund_domicile, total_holdings, inception_date
+      `)
+      .not('fund_size_numeric', 'is', null)
+      .order('fund_size_numeric', { ascending: false })
+      .limit(limit);
+    if (error || !data) return [];
+    return data as ComparisonETF[];
+  } catch (error) {
+    console.error('Error in getScreenerETFData:', error);
+    return [];
+  }
+}
+
+/**
  * Category configurations for all /nejlepsi-etf/* pages
  * This maps each page slug to its filter configuration
  */
