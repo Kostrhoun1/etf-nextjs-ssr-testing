@@ -339,6 +339,7 @@ export type IsinMetrics = {
   return_3y_czk: number | null;
   volatility_1y: number | null;
   max_drawdown_1y: number | null;
+  max_drawdown_all: number | null;
 };
 export async function getMetricsByIsins(
   isins: string[],
@@ -346,7 +347,7 @@ export async function getMetricsByIsins(
   try {
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('isin, return_1y_czk, return_3y_czk, volatility_1y, max_drawdown_1y')
+      .select('isin, return_1y_czk, return_3y_czk, volatility_1y, max_drawdown_1y, max_drawdown_inception')
       .in('isin', isins);
     if (error || !data) return {};
     const num = (v: unknown) => (v != null ? Number(v) : null);
@@ -357,6 +358,7 @@ export async function getMetricsByIsins(
         return_3y_czk: num(row.return_3y_czk),
         volatility_1y: num(row.volatility_1y),
         max_drawdown_1y: num(row.max_drawdown_1y),
+        max_drawdown_all: num(row.max_drawdown_inception),
       };
     }
     return map;

@@ -5,7 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import { notFound } from 'next/navigation';
 import {
   TrendingUp, ArrowRight, ArrowLeft, ShieldCheck, Target, CalendarDays,
-  Layers, Wallet,
+  Layers, Wallet, BookOpen, Settings2, ThumbsUp, TrendingDown,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
@@ -13,6 +13,7 @@ import { PortfolioBar } from '@/components/design-preview/portfolioComponents';
 import {
   portfolioModels, ASSET_COLORS, RISK_PILL,
 } from '@/components/design-preview/portfolioData';
+import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
 import { getMetricsByIsins } from '@/lib/etf-data';
 
 /* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
@@ -47,6 +48,9 @@ export default async function PortfolioDetailPreview(
   const { slug } = await params;
   const model = portfolioModels.find((p) => p.slug === slug);
   if (!model) notFound();
+  const content = getPortfolioContent(slug);
+  // Kurátorský max. pokles strategie (číslo z „do −15 %").
+  const pfMaxDD = -(parseInt(model.maxDrawdown.replace(/[^0-9]/g, ''), 10) || 0);
 
   const today = new Date();
   const dateStr = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -90,19 +94,25 @@ export default async function PortfolioDetailPreview(
     ret1y: { pf: perf1y, sp: sp.return_1y_czk },
     ret3y: { pf: perf3y, sp: sp.return_3y_czk },
     vol: { pf: pfVol, sp: sp.volatility_1y },
+    maxdd: { pf: pfMaxDD, sp: sp.max_drawdown_all },
   } : null;
   const fmtVol = (v: number | null) =>
     v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  const fmtDD = (v: number | null) =>
+    v == null ? '—' : `${Math.round(v)} %`;
   const cmpNarrative = (() => {
     if (!cmp) return '';
     const parts: string[] = [];
     if (cmp.vol.pf != null && cmp.vol.sp != null) {
-      parts.push(`Kolísavost tohoto portfolia byla za poslední rok ${fmtVol(cmp.vol.pf)} oproti ${fmtVol(cmp.vol.sp)} u čistě akciového S&P 500 – ${cmp.vol.pf < cmp.vol.sp ? 'tedy klidnější průběh s menšími výkyvy' : 'srovnatelný průběh'}.`);
+      parts.push(`Kolísavost tohoto portfolia je ${fmtVol(cmp.vol.pf)} oproti ${fmtVol(cmp.vol.sp)} u čistě akciového S&P 500 – ${cmp.vol.pf < cmp.vol.sp ? 'tedy klidnější průběh s menšími výkyvy' : 'srovnatelný průběh'}.`);
+    }
+    if (cmp.maxdd.pf != null && cmp.maxdd.sp != null) {
+      parts.push(`Nejhorší historický propad portfolia je zhruba ${fmtDD(cmp.maxdd.pf)} proti ${fmtDD(cmp.maxdd.sp)} u S&P 500 – ${cmp.maxdd.pf > cmp.maxdd.sp + 3 ? 'v krizích tedy ztrácí méně a rychleji se vzpamatuje' : cmp.maxdd.pf < cmp.maxdd.sp - 3 ? 'toto portfolio tedy padá v krizích ještě hlouběji než samotný index' : 'propady jsou podobně hluboké jako u čistě akciového indexu'}.`);
     }
     if (cmp.ret1y.pf != null && cmp.ret1y.sp != null) {
-      parts.push(`Ve výnosu ale ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostalo' : 'nezaostalo'}: ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)} za rok.`);
+      parts.push(`Ve výnosu za poslední rok ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostává za' : 'vede nad'} S&P 500: ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)}.`);
     }
-    parts.push('To je podstata diverzifikace – menší výkyvy výměnou za nižší růst. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní vzájemné korelaci 0,3; protože se aktiva nehýbou stejně, je celková kolísavost nižší než u jednotlivých složek.');
+    parts.push('To je jádro diverzifikace – menší výkyvy a mělčí propady výměnou za nižší růst. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní korelaci 0,3; protože se aktiva nehýbou stejně, je skutečná ještě nižší.');
     return parts.join(' ');
   })();
 
@@ -165,6 +175,23 @@ export default async function PortfolioDetailPreview(
             </div>
           </div>
         </section>
+
+        {/* O STRATEGII – úvod */}
+        {content && (
+          <section className="pb-8">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1 flex items-center gap-2"><BookOpen className="w-5 h-5 text-teal-700" /> O strategii</h2>
+            <div className="mt-3 space-y-3 text-sm md:text-[15px] text-slate-700 leading-relaxed max-w-3xl">
+              {content.intro.map((p, i) => <p key={i}>{p}</p>)}
+            </div>
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 max-w-3xl">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Settings2 className="w-4 h-4" /></span>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Jak funguje</p>
+                <p className="mt-0.5 text-sm text-slate-700 leading-relaxed">{content.howItWorks}</p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* STATISTIKY */}
         <section className="pb-8">
@@ -237,15 +264,16 @@ export default async function PortfolioDetailPreview(
         {cmp && (
           <section className="pb-8">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie (S&amp;P 500)</h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu i v kolísavosti.</p>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu, kolísavosti i nejhorším propadu.</p>
             <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5">
               {[
                 { label: 'Výnos za 1 rok (Kč)', pf: cmp.ret1y.pf, sp: cmp.ret1y.sp, kind: 'ret' as const },
                 { label: 'Výnos za 3 roky (Kč)', pf: cmp.ret3y.pf, sp: cmp.ret3y.sp, kind: 'ret' as const },
                 { label: 'Kolísavost za 1 rok (odhad)', pf: cmp.vol.pf, sp: cmp.vol.sp, kind: 'vol' as const },
+                { label: 'Nejhorší historický propad', pf: cmp.maxdd.pf, sp: cmp.maxdd.sp, kind: 'dd' as const },
               ].filter((r) => r.pf != null && r.sp != null).map((r, i) => {
                 const max = Math.max(Math.abs(r.pf as number), Math.abs(r.sp as number), 1);
-                const fmt = r.kind === 'ret' ? pct : fmtVol;
+                const fmt = r.kind === 'ret' ? pct : r.kind === 'dd' ? fmtDD : fmtVol;
                 const rows = [
                   { who: 'Toto portfolio', v: r.pf as number, bar: 'bg-teal-600' },
                   { who: 'S&P 500', v: r.sp as number, bar: 'bg-slate-400' },
@@ -268,6 +296,22 @@ export default async function PortfolioDetailPreview(
                 );
               })}
               <p className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700 leading-relaxed">{cmpNarrative}</p>
+            </div>
+          </section>
+        )}
+
+        {/* SILNÉ / SLABÉ STRÁNKY */}
+        {content && (
+          <section className="pb-8">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="min-w-0 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-emerald-700 mb-2"><ThumbsUp className="w-4 h-4" /> Kdy září</p>
+                <p className="text-sm text-emerald-900/90 leading-relaxed">{content.strengths}</p>
+              </div>
+              <div className="min-w-0 rounded-xl border border-amber-200 bg-amber-50 p-5">
+                <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-amber-700 mb-2"><TrendingDown className="w-4 h-4" /> Slabina</p>
+                <p className="text-sm text-amber-900/90 leading-relaxed">{content.weakness}</p>
+              </div>
             </div>
           </section>
         )}
