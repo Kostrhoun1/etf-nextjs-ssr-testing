@@ -13,18 +13,18 @@ export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší Zlaté ETF 2025 | Srovnání a Doporučení',
-    description: 'Najděte nejlepší zlaté ETF pro rok 2025. Srovnání fyzicky zajištěných Gold ETF, ochrana před inflací a diverzifikace portfolia.',
-    keywords: 'zlaté ETF, nejlepší gold ETF 2025, fyzické zlato, investice do zlata, SGLD ETF, 4GLD ETF, PHGP ETF',
+    title: 'Nejlepší Zlaté ETF 2026 | Srovnání a Doporučení',
+    description: 'Najděte nejlepší zlaté ETF pro rok 2026. Srovnání fyzicky zajištěných Gold ETF, ochrana před inflací a diverzifikace portfolia.',
+    keywords: 'zlaté ETF, nejlepší gold ETF 2026, fyzické zlato, investice do zlata, SGLD ETF, 4GLD ETF, PHGP ETF',
     openGraph: {
-      title: 'Nejlepší Zlaté ETF 2025 | Srovnání a Doporučení',
+      title: 'Nejlepší Zlaté ETF 2026 | Srovnání a Doporučení',
       description: 'Kompletní průvodce nejlepšími zlatými ETF. Analyzujeme fyzicky zajištěné Gold ETF pro ochranu před inflací.',
       type: 'article',
       url: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-zlate-etf',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší Zlaté ETF 2025',
+      title: 'Nejlepší Zlaté ETF 2026',
       description: 'Srovnání nejlepších zlatých ETF pro ochranu před inflací a krizové portfolio.',
     },
     alternates: {
@@ -49,7 +49,7 @@ export default async function NejlepsiZlateETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší zlaté ETF ${currentYear} - fyzické zlato a ochrana před inflací`,
-    "description": "Srovnání nejlepších zlatých ETF 2025. Fyzicky zajištěné Gold ETF, ochrana před inflací, krize - TER, velikost fondů.",
+    "description": "Srovnání nejlepších zlatých ETF 2026. Fyzicky zajištěné Gold ETF, ochrana před inflací, krize - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-gold-etf.jpg",
     "author": {
       "@type": "Person",
@@ -116,7 +116,7 @@ export default async function NejlepsiZlateETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší zlaté ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší zlaté ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší zlaté ETF jsou: iShares Physical Gold ETC (IE00B4ND3602) největší fyzicky zajištěný zlatý ETF s 15,7 mld. EUR, Xtrackers Physical Gold ETC EUR Hedged (DE000A1E0HR8) s 8,2 mld. EUR a EUR hedgingem, a WisdomTree Physical Gold ETC (JE00B1VS3333) s 7,8 mld. EUR a TER 0,39%."
@@ -365,11 +365,11 @@ export default async function NejlepsiZlateETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="zlaté" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="zlaté" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -469,7 +469,7 @@ export default async function NejlepsiZlateETFPage() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-yellow-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-yellow-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-yellow-800">Jaké jsou nejlepší zlaté ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-yellow-800">Jaké jsou nejlepší zlaté ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-yellow-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

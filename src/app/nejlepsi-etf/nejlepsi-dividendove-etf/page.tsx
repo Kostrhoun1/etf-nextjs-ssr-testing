@@ -165,7 +165,7 @@ export default async function NejlepsiDividendoveETF() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší dividendové ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší dividendové ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší dividendové ETF jsou: Vanguard FTSE All-World High Dividend Yield UCITS ETF (IE00B8GKDB10) s dividendovým výnosem 3,01% a TER 0,29%, VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF (NL0011683594) s výnosem 3,24%, a SPDR S&P US Dividend Aristocrats UCITS ETF (IE00B6YX5D40) s výnosem 2,20%."
@@ -456,11 +456,11 @@ export default async function NejlepsiDividendoveETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="dividendové" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="dividendové" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -477,7 +477,7 @@ export default async function NejlepsiDividendoveETF() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-green-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-green-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-green-800">Jaké jsou nejlepší dividendové ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-green-800">Jaké jsou nejlepší dividendové ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

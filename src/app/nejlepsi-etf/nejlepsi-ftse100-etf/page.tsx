@@ -504,12 +504,12 @@ export default async function NejlepsiFTSEETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Database Sections */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="FTSE 100" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="FTSE 100" />
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-red-50 to-orange-50">

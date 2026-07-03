@@ -14,18 +14,18 @@ export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší Dluhopisové ETF 2025 | Srovnání a Doporučení',
-    description: 'Najděte nejlepší dluhopisové ETF pro rok 2025. Srovnání státních a korporátních bondů, EUR zajištění, výnosnosti a diverzifikace.',
-    keywords: 'dluhopisové ETF, nejlepší bond ETF 2025, státní dluhopisy, korporátní dluhopisy, AGGH ETF, XGLE ETF, VAGF ETF',
+    title: 'Nejlepší Dluhopisové ETF 2026 | Srovnání a Doporučení',
+    description: 'Najděte nejlepší dluhopisové ETF pro rok 2026. Srovnání státních a korporátních bondů, EUR zajištění, výnosnosti a diverzifikace.',
+    keywords: 'dluhopisové ETF, nejlepší bond ETF 2026, státní dluhopisy, korporátní dluhopisy, AGGH ETF, XGLE ETF, VAGF ETF',
     openGraph: {
-      title: 'Nejlepší Dluhopisové ETF 2025 | Srovnání a Doporučení',
+      title: 'Nejlepší Dluhopisové ETF 2026 | Srovnání a Doporučení',
       description: 'Kompletní průvodce nejlepšími dluhopisovými ETF. Analyzujeme výnosy, rizika a diverzifikaci státních i korporátních dluhopisů.',
       type: 'article',
       url: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-dluhopisove-etf',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší Dluhopisové ETF 2025',
+      title: 'Nejlepší Dluhopisové ETF 2026',
       description: 'Srovnání nejlepších dluhopisových ETF pro stabilní příjmy a ochranu kapitálu.',
     },
     alternates: {
@@ -50,7 +50,7 @@ export default async function NejlepsiDluhopisoveETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší dluhopisové ETF ${currentYear} - státní a korporátní dluhopisy`,
-    "description": "Srovnání nejlepších dluhopisových ETF 2025. Státní a korporátní dluhopisy, EUR zajištění, výnosy - TER, velikost fondů.",
+    "description": "Srovnání nejlepších dluhopisových ETF 2026. Státní a korporátní dluhopisy, EUR zajištění, výnosy - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-bond-etf.jpg",
     "author": {
       "@type": "Person",
@@ -107,7 +107,7 @@ export default async function NejlepsiDluhopisoveETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší dluhopisové ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší dluhopisové ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": `Nejlepší dluhopisové ETF jsou: ${etfs[0]?.name || 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged'} (${etfs[0]?.isin || 'IE00BDBRDM35'}), ${etfs[1]?.name || 'Xtrackers Global Government Bond UCITS ETF EUR Hedged'} (${etfs[1]?.isin || 'LU0378818131'}), a ${etfs[2]?.name || 'Vanguard Global Aggregate Bond UCITS ETF EUR Hedged'} (${etfs[2]?.isin || 'IE00BG47KH54'}). Tyto ETF nabízejí optimální poměr nákladů, výkonnosti a rizika.`
@@ -356,11 +356,11 @@ export default async function NejlepsiDluhopisoveETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="dluhopisové" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="dluhopisové" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -460,7 +460,7 @@ export default async function NejlepsiDluhopisoveETFPage() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-blue-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-blue-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-blue-800">Jaké jsou nejlepší dluhopisové ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-blue-800">Jaké jsou nejlepší dluhopisové ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

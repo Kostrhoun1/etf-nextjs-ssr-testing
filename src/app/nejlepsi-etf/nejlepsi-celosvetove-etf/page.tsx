@@ -595,12 +595,12 @@ export default async function NejlepsiSvetoveETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Sections - by TER, AUM, Performance */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="celosvětové" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="celosvětové" />
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">

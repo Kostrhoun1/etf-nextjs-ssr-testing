@@ -38,10 +38,10 @@ const NetSalaryCalculator: React.FC = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <CalculatorIcon className="h-5 w-5 text-violet-600" />
-            <CardTitle className="text-2xl">Kalkulačka čisté mzdy 2025</CardTitle>
+            <CardTitle className="text-2xl">Kalkulačka čisté mzdy 2026</CardTitle>
           </div>
           <CardDescription className="">
-            Spočítejte si čistou mzdu podle aktuální české legislativy pro rok 2025
+            Spočítejte si čistou mzdu podle aktuální české legislativy pro rok 2026
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -66,7 +66,7 @@ const NetSalaryCalculator: React.FC = () => {
                   className="mt-1 h-9"
                 />
                 <p className="text-xs text-gray-600 mt-1">
-                  Min. mzda 2025: 20 800 Kč
+                  Min. mzda 2026: 22 400 Kč
                 </p>
               </div>
             </div>
@@ -139,7 +139,7 @@ const NetSalaryCalculator: React.FC = () => {
               <span className="font-semibold text-gray-900 text-sm">📋 Předpoklady kalkulačky mzdy</span>
             </summary>
             <div className="p-3 border-t border-gray-200">
-              <h4 className="font-semibold mb-2 text-gray-900 text-sm">📊 Aktuální sazby pro rok 2025</h4>
+              <h4 className="font-semibold mb-2 text-gray-900 text-sm">📊 Aktuální sazby pro rok 2026</h4>
               <div className="grid md:grid-cols-2 gap-3 mb-3 text-xs">
                 <div>
                   <h5 className="font-semibold mb-1">Pojistné zaměstnance:</h5>
@@ -153,7 +153,7 @@ const NetSalaryCalculator: React.FC = () => {
                   <h5 className="font-semibold mb-1">Daň z příjmů:</h5>
                   <ul className="space-y-0.5 text-gray-700">
                     <li>• Základní sazba: 15%</li>
-                    <li>• Nad 139 671 Kč/měsíc: 23%</li>
+                    <li>• Nad 146 901 Kč/měsíc: 23%</li>
                     <li>• Sleva na poplatníka: 2 570 Kč/měsíc</li>
                   </ul>
                 </div>
@@ -161,7 +161,7 @@ const NetSalaryCalculator: React.FC = () => {
               
               <h4 className="font-semibold mb-2 text-gray-900 text-sm">⚙️ Předpoklady výpočtu</h4>
               <ul className="text-xs text-gray-700 space-y-1">
-                <li>• <strong>Daň z příjmu:</strong> Počítá se z hrubé mzdy, progresivní zdanění od 139 671 Kč/měsíc</li>
+                <li>• <strong>Daň z příjmu:</strong> Počítá se z hrubé mzdy, progresivní zdanění od 146 901 Kč/měsíc</li>
                 <li>• <strong>Důchodci:</strong> Sleva na důchodovém (6,5%), platí nemocenské (0,6%) + zdravotní (4,5%)</li>
                 <li>• <strong>Slevy na děti:</strong> Progresivní - 1. dítě 1 267 Kč, 2. dítě 1 860 Kč, 3.+ dítě 2 320 Kč</li>
                 <li>• <strong>Superhrubá mzda:</strong> Zrušena od roku 2021, daň se počítá z hrubé mzdy</li>

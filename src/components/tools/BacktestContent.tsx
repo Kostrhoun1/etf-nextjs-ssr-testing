@@ -29,7 +29,7 @@ const BacktestContent: React.FC = () => {
       {
         "@type": "ListItem",
         "position": 3,
-        "name": "Backtest portfolia ETF 2025",
+        "name": "Backtest portfolia ETF 2026",
         "item": "https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia"
       }
     ]
@@ -44,7 +44,7 @@ const BacktestContent: React.FC = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <BarChart3Icon className="w-4 h-4" />
-            Backtest portfolia ETF 2025
+            Backtest portfolia ETF 2026
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Backtest portfolia ETF

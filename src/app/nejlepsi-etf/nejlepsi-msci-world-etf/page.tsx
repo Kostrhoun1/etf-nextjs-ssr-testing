@@ -120,7 +120,7 @@ export async function generateMetadata(): Promise<Metadata> {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší MSCI World ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší MSCI World ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší MSCI World ETF jsou: iShares Core MSCI World UCITS ETF (SWDA, IE00B4L5Y983) největší a nejlikvidnější s 75+ mld. EUR, Xtrackers MSCI World UCITS ETF (XDWD, IE00BJ0KDQ92) s konkurenceschopným TER 0,19% a 8+ mld. EUR, a SPDR MSCI World UCITS ETF (SPPW, IE00BFY0GT14) s nízkým TER 0,12% a 6+ mld. EUR."
@@ -456,12 +456,12 @@ export default async function NejlepsiMSCIWorldETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Sections - by TER, AUM, Performance */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="MSCI World" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="MSCI World" />
 
       {/* Selection Guide Section */}
       <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
@@ -557,7 +557,7 @@ export default async function NejlepsiMSCIWorldETF() {
             <div className="max-w-4xl mx-auto space-y-6">
             {[
               {
-                question: "Jaké jsou nejlepší MSCI World ETF v roce 2025?",
+                question: "Jaké jsou nejlepší MSCI World ETF v roce 2026?",
                 answer: "Nejlepší MSCI World ETF jsou: iShares Core MSCI World UCITS ETF (SWDA, IE00B4L5Y983) největší a nejlikvidnější s 75+ mld. EUR, Xtrackers MSCI World UCITS ETF (XDWD, IE00BJ0KDQ92) s konkurenceschopným TER 0,19% a 8+ mld. EUR, a SPDR MSCI World UCITS ETF (SPPW, IE00BFY0GT14) s nízkým TER 0,12% a 6+ mld. EUR."
               },
               {

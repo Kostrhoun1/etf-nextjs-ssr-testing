@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     'nemovitosti ETF',
     'komodity ETF',
     'ochrana proti inflaci',
-    'všepogodní portfolio',
+    'všepočasové portfolio',
     'ekonomické cykly'
   ],
   openGraph: {
@@ -382,7 +382,7 @@ export default function PermanentniPortfolioPage() {
               },
               {
                 question: "Jak se liší od Ray Dalio All-Weather strategie?",
-                answer: "Obě jsou 'všepogodní', ale liší se složitostí. Permanentní Portfolio je jednodušší (4 aktiva po 25%), All-Weather složitější (5 aktiv v různých poměrech). Permanentní má nižší očekávaný výnos (4% vs 5-8%), ale jednodušší správu. All-Weather vyžaduje častější rebalancing."
+                answer: "Obě jsou navržené pro každé počasí trhu, ale liší se složitostí. Permanentní portfolio je jednodušší (4 aktiva po 25%), All-Weather složitější (5 aktiv v různých poměrech). Permanentní má nižší očekávaný výnos (4% vs 5-8%), ale jednodušší správu. All-Weather vyžaduje častější rebalancing."
               }
             ].map((faq, index) => (
               <details key={index} className="group border border-gray-200 rounded-lg hover:border-green-200 transition-colors">
@@ -443,7 +443,7 @@ export default function PermanentniPortfolioPage() {
             {
               title: "Ray Dalio All-Weather",
               href: "/portfolio-strategie/ray-dalio-all-weather",
-              description: "Pokročilejší všepogodní strategie"
+              description: "Pokročilejší všepočasová strategie"
             }
           ]}
           title="Související strategie a nástroje"

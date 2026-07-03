@@ -151,7 +151,7 @@ function SrovnaniETFContent({ searchParams, featuredETFs, totalCount, lastModifi
         title="ETF srovnání 2025 - Nejlepší nástroj pro porovnání ETF fondů České republiky"
         description="★ ETF srovnání ZDARMA ★ Porovnejte více než 4300 ETF fondů 2025. Filtrování podle TER poplatků, výkonnosti, rizika. Americké ETF, evropské ETF, DEGIRO zdarma ETF. Nejlepší ETF srovnání pro české investory."
         canonical="https://www.etfpruvodce.cz/srovnani-etf"
-        keywords="ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF 2025, ETF filtr, ETF search, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze česky"
+        keywords="ETF srovnání, srovnání ETF fondů, ETF porovnání, nejlepší ETF 2026, ETF filtr, ETF search, DEGIRO ETF zdarma, americké ETF, evropské ETF, TER poplatky ETF, výkonnost ETF, ETF databáze česky"
         ogImage="https://www.etfpruvodce.cz/og-etf-comparison.jpg"
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

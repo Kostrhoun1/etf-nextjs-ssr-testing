@@ -231,7 +231,7 @@ const JakZacitInvestovatPage: React.FC = () => {
       category: "Praktické tipy"
     },
     {
-      title: "Nejlepší ETF 2025",
+      title: "Nejlepší ETF 2026",
       description: "Doporučené ETF podle kategorií",
       href: "/nejlepsi-etf",
       category: "Doporučení"

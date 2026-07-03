@@ -14,18 +14,18 @@ export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší Komoditní ETF 2025 | Srovnání a Doporučení',
-    description: 'Najděte nejlepší komoditní ETF pro rok 2025. Srovnání investic do zlata, ropy, zemědělských komodit a diverzifikace.',
-    keywords: 'komoditní ETF, nejlepší commodity ETF 2025, zlato ETF, ropa ETF, zemědělské komodity, ICOM ETF, XCOM ETF, GCOM ETF',
+    title: 'Nejlepší Komoditní ETF 2026 | Srovnání a Doporučení',
+    description: 'Najděte nejlepší komoditní ETF pro rok 2026. Srovnání investic do zlata, ropy, zemědělských komodit a diverzifikace.',
+    keywords: 'komoditní ETF, nejlepší commodity ETF 2026, zlato ETF, ropa ETF, zemědělské komodity, ICOM ETF, XCOM ETF, GCOM ETF',
     openGraph: {
-      title: 'Nejlepší Komoditní ETF 2025 | Srovnání a Doporučení',
+      title: 'Nejlepší Komoditní ETF 2026 | Srovnání a Doporučení',
       description: 'Kompletní průvodce nejlepšími komoditními ETF. Analyzujeme zlato, ropu, zemědělské komodity a ochranu před inflací.',
       type: 'article',
       url: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-komoditni-etf',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší Komoditní ETF 2025',
+      title: 'Nejlepší Komoditní ETF 2026',
       description: 'Srovnání nejlepších komoditních ETF pro ochranu před inflací a diverzifikaci portfolia.',
     },
     alternates: {
@@ -50,7 +50,7 @@ export default async function NejlepsiKomoditniETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší komoditní ETF ${currentYear} - zlato, ropa a diverzifikace`,
-    "description": "Srovnání nejlepších komoditních ETF 2025. Zlato, ropa, zemědělské komodity, inflační ochrana - TER, velikost fondů.",
+    "description": "Srovnání nejlepších komoditních ETF 2026. Zlato, ropa, zemědělské komodity, inflační ochrana - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-commodity-etf.jpg",
     "author": {
       "@type": "Person",
@@ -117,7 +117,7 @@ export default async function NejlepsiKomoditniETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší komoditní ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší komoditní ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší komoditní ETF jsou: iShares Diversified Commodity Swap UCITS ETF (ICOM, IE00BDQZRK82) největší diverzifikovaný commodity ETF s 2,81 mld. EUR, Xtrackers DBLCI Optimum Yield Commodity UCITS ETF (XCOM, LU0292106167) s 1,47 mld. EUR, a WisdomTree Broad Commodities UCITS ETF (GCOM, IE00B8CRQX21) s 1,12 mld. EUR."
@@ -390,11 +390,11 @@ export default async function NejlepsiKomoditniETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="komoditní" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="komoditní" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -494,7 +494,7 @@ export default async function NejlepsiKomoditniETFPage() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-yellow-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-yellow-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-yellow-800">Jaké jsou nejlepší komoditní ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-yellow-800">Jaké jsou nejlepší komoditní ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-yellow-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

@@ -84,7 +84,7 @@ export default async function NejlepsiHealthcareETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší healthcare ETF ${currentYear} - zdravotnictví a farmaceutika`,
-    "description": "Srovnání nejlepších healthcare ETF 2025. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů.",
+    "description": "Srovnání nejlepších healthcare ETF 2026. Zdravotnictví, farmaceutika, biotechnologie - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-healthcare-etf.jpg",
     "author": {
       "@type": "Person",
@@ -151,7 +151,7 @@ export default async function NejlepsiHealthcareETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší healthcare ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší healthcare ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší healthcare ETF jsou: Xtrackers MSCI World Health Care UCITS ETF (XDWH, IE00BM67HK77) největší globální healthcare ETF s 2,4 mld. EUR a TER 0,25%, iShares S&P 500 Health Care Sector UCITS ETF (IUHC, IE00B43HR379) s 1,9 mld. EUR a TER 0,15%, a iShares MSCI Europe Health Care Sector UCITS ETF (IEUR, IE00BMW42181) s 1,1 mld. EUR a TER 0,18%."
@@ -424,12 +424,12 @@ export default async function NejlepsiHealthcareETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Database Sections */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="Healthcare" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="Healthcare" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -442,7 +442,7 @@ export default async function NejlepsiHealthcareETFPage() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-green-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-green-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-green-800">Jaké jsou nejlepší healthcare ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-green-800">Jaké jsou nejlepší healthcare ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

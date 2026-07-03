@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     'Ray Dalio',
     'All-Weather portfolio',
     'Bridgewater',
-    'všepogodní strategie',
+    'všepočasová strategie',
     'risk parity',
     'ETF investování',
     'diverzifikace rizika',
@@ -474,7 +474,7 @@ export default function RayDalioAllWeatherPage() {
                     <li>• Ty, kdo se bojí krizí</li>
                     <li>• Pokročilé investory</li>
                     <li>• Lidi s velkým kapitálem (100k+ Kč)</li>
-                    <li>• Ty, kdo chtějí "všepogodní" strategii</li>
+                    <li>• Ty, kdo chtějí strategii pro každé počasí trhu</li>
                   </ul>
                 </div>
                 

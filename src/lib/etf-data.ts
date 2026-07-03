@@ -58,6 +58,7 @@ export interface CategoryConfig {
     minFundSize?: number;
     distribution_policy?: string;
     regions?: string[];
+    minTer?: number;
   };
   sortBy?: keyof ETFBasicInfo;
   sortOrder?: 'asc' | 'desc';
@@ -133,6 +134,12 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
       query = query.eq('distribution_policy', config.filters.distribution_policy);
     }
 
+    // Apply minimum TER filter (např. žebříček nejlevnějších vyloučí 0% zlaté
+    // ETC a crypto staking ETP, které sice mají TER 0, ale nejsou klasické ETF)
+    if (config.filters.minTer !== undefined) {
+      query = query.gt('ter_numeric', config.filters.minTer);
+    }
+
     // Default: filter out very small funds
     query = query.not('fund_size_numeric', 'is', null);
     query = query.gte('fund_size_numeric', 10);
@@ -194,6 +201,11 @@ export async function getFeaturedETFs(): Promise<{
       .not('return_1y', 'is', null)
       .not('fund_size_numeric', 'is', null)
       .gte('fund_size_numeric', 50)
+      // Vyloučit páková ETP – jinak žebříček "nejvýkonnější" ovládnou produkty
+      // s +200 % (násobná expozice), což pro běžného investora není relevantní.
+      // Pozn.: vysoké 1Y výnosy nepákových fondů (např. MSCI Korea ~+210 %) jsou
+      // REÁLNÉ (korejský chip-supercyklus 2025–2026, ověřeno proti justETF) – NEfiltrovat.
+      .not('is_leveraged', 'is', true)
       .order('return_1y', { ascending: false })
       .limit(20);
 
@@ -215,6 +227,10 @@ export async function getFeaturedETFs(): Promise<{
       .not('ter_numeric', 'is', null)
       .not('fund_size_numeric', 'is', null)
       .gte('fund_size_numeric', 100)
+      // TER musí být > 0: hodnota 0 mají jen zlaté ETC (Xetra-Gold) a crypto
+      // staking ETP (CoinShares) – legitimně 0 %, ale do žebříčku "nejlevnější
+      // ETF" nepatří (nejsou to klasické ETF a mají jiné náklady – spread/storage).
+      .gt('ter_numeric', 0)
       .lte('ter_numeric', 0.15)
       .order('ter_numeric', { ascending: true })
       .limit(20);
@@ -288,6 +304,89 @@ export async function getTotalETFCount(): Promise<number> {
 }
 
 /**
+ * Korunové výnosy (1R/3R) pro sadu ISINů – pro výpočet výnosu modelových portfolií
+ * (vážený průměr výnosů složek). Vrací mapu isin → { return_1y_czk, return_3y_czk }.
+ */
+export async function getReturnsByIsins(
+  isins: string[],
+): Promise<Record<string, { return_1y_czk: number | null; return_3y_czk: number | null }>> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select('isin, return_1y_czk, return_3y_czk')
+      .in('isin', isins);
+    if (error || !data) return {};
+    const map: Record<string, { return_1y_czk: number | null; return_3y_czk: number | null }> = {};
+    for (const row of data as Array<{ isin: string; return_1y_czk: number | null; return_3y_czk: number | null }>) {
+      map[row.isin] = {
+        return_1y_czk: row.return_1y_czk != null ? Number(row.return_1y_czk) : null,
+        return_3y_czk: row.return_3y_czk != null ? Number(row.return_3y_czk) : null,
+      };
+    }
+    return map;
+  } catch (e) {
+    console.error('Error in getReturnsByIsins:', e);
+    return {};
+  }
+}
+
+/**
+ * Načte vybrané ETF podle ISINů (zachová pořadí vstupu) – pro kurátorské sekce
+ * jako „kterým ETF začít".
+ */
+export async function getETFsByIsins(isins: string[]): Promise<ETFBasicInfo[]> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select(ETF_SELECT_FIELDS)
+      .in('isin', isins);
+    if (error || !data) return [];
+    const byIsin = new Map((data as ETFBasicInfo[]).map((e) => [e.isin, e]));
+    return isins.map((i) => byIsin.get(i)).filter((e): e is ETFBasicInfo => Boolean(e));
+  } catch (e) {
+    console.error('Error in getETFsByIsins:', e);
+    return [];
+  }
+}
+
+export interface MarketSnapshotItem {
+  label: string;
+  slug: string;
+  return_1y_czk: number | null;
+}
+
+/**
+ * Přehled „jak si vedou trhy" – pro klíčové trhy vrací korunový roční výnos
+ * největšího fondu v dané kategorii (reálná data, žádné hardcoded číslo).
+ */
+export async function getMarketSnapshot(): Promise<MarketSnapshotItem[]> {
+  const MARKETS: { slug: string; label: string }[] = [
+    { slug: 'nejlepsi-celosvetove-etf', label: 'Celý svět' },
+    { slug: 'nejlepsi-sp500-etf', label: 'USA (S&P 500)' },
+    { slug: 'nejlepsi-evropske-etf', label: 'Evropa' },
+    { slug: 'nejlepsi-emerging-markets-etf', label: 'Rozvíjející se' },
+    { slug: 'nejlepsi-technologicke-etf', label: 'Technologie' },
+    { slug: 'nejlepsi-zlato-etf', label: 'Zlato' },
+    { slug: 'nejlepsi-dluhopisove-etf', label: 'Dluhopisy' },
+  ];
+  const results = await Promise.all(
+    MARKETS.map(async (m) => {
+      const cfg = categoryConfigs[m.slug];
+      if (!cfg) return null;
+      try {
+        const etfs = await getTopETFsForCategory({ ...cfg, limit: 1 });
+        const top = etfs[0];
+        const v = top?.return_1y_czk ?? top?.return_1y ?? null;
+        return { label: m.label, slug: m.slug, return_1y_czk: v != null ? Number(v) : null };
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return results.filter((x): x is MarketSnapshotItem => x != null);
+}
+
+/**
  * Plné metriky ETF pro detailní srovnávací stránky /srovnani-etf/[x-vs-y].
  */
 export interface ComparisonETF {
@@ -301,6 +400,12 @@ export interface ComparisonETF {
   return_3y: number | null;
   return_5y: number | null;
   return_ytd: number | null;
+  return_1y_czk: number | null;
+  return_3y_czk: number | null;
+  return_5y_czk: number | null;
+  return_ytd_czk: number | null;
+  volatility_1y: number | null;
+  max_drawdown_1y: number | null;
   current_dividend_yield_numeric: number | null;
   distribution_policy: string | null;
   replication: string | null;
@@ -339,6 +444,8 @@ export async function getComparisonETFData(
         isin, name, fund_provider, primary_ticker,
         ter_numeric, fund_size_numeric,
         return_1y, return_3y, return_5y, return_ytd,
+        return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
+        volatility_1y, max_drawdown_1y,
         current_dividend_yield_numeric,
         distribution_policy, replication, index_name, region,
         fund_currency, fund_domicile, total_holdings, inception_date,
@@ -373,11 +480,11 @@ export async function getComparisonETFData(
  * This maps each page slug to its filter configuration
  */
 export const categoryConfigs: Record<string, CategoryConfig> = {
-  'nejlepsi-etf-2025': {
-    slug: 'nejlepsi-etf-2025',
-    title: 'Nejlepší ETF 2025',
-    description: 'Top ETF fondy pro rok 2025 podle výkonnosti a ratingu',
-    metaDescription: 'Nejlepší ETF fondy pro rok 2025 - kompletní přehled top hodnocených ETF s nejnižšími poplatky a nejvyšší výkonností.',
+  'nejlepsi-etf-2026': {
+    slug: 'nejlepsi-etf-2026',
+    title: 'Nejlepší ETF 2026',
+    description: 'Top ETF fondy pro rok 2026 podle výkonnosti a ratingu',
+    metaDescription: 'Nejlepší ETF fondy pro rok 2026 - kompletní přehled top hodnocených ETF s nejnižšími poplatky a nejvyšší výkonností.',
     filters: {
       minFundSize: 100,
     },
@@ -1095,6 +1202,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlevnější ETF fondy - přehled ETF s nejnižšími náklady a poplatky (TER).',
     filters: {
       minFundSize: 100,
+      minTer: 0,
     },
     sortBy: 'ter_numeric',
     sortOrder: 'asc',

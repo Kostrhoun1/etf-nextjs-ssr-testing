@@ -112,7 +112,7 @@ export default async function NejlepsiSpotrebniETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší spotřební ETF ${currentYear} - consumer staples a discretionary`,
-    "description": "Srovnání nejlepších spotřebních ETF 2025. Consumer staples, discretionary, retail - TER, velikost fondů.",
+    "description": "Srovnání nejlepších spotřebních ETF 2026. Consumer staples, discretionary, retail - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-consumer-etf.jpg",
     "author": {
       "@type": "Person",
@@ -179,7 +179,7 @@ export default async function NejlepsiSpotrebniETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší spotřební ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší spotřební ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší spotřební ETF jsou: Xtrackers MSCI World Consumer Staples UCITS ETF (IE00BM67HK77) největší globální consumer staples ETF s 731 mil. EUR a TER 0,25%, iShares S&P 500 Consumer Discretionary Sector UCITS ETF (IE00B3WJKD61) s 645 mil. EUR a TER 0,15%, a iShares MSCI Europe Consumer Staples Sector UCITS ETF (IE00B4K6BW65) s 571 mil. EUR a TER 0,18%."
@@ -427,11 +427,11 @@ export default async function NejlepsiSpotrebniETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="spotřební" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="spotřební" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -444,7 +444,7 @@ export default async function NejlepsiSpotrebniETFPage() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-pink-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-pink-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-pink-800">Jaké jsou nejlepší spotřební ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-pink-800">Jaké jsou nejlepší spotřební ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-pink-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

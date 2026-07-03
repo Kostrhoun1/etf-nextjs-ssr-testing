@@ -362,7 +362,7 @@ export default function NobelPortfolioPage() {
               },
               {
                 question: "Jak Nobel Portfolio reaguje na ekonomické krize?",
-                answer: "Portfolio je navrženo k zvládání různých ekonomických podmínek. V recesi pomohou dluhopisy, během inflace nemovitosti a akcie, v deflaci dlouhodobé dluhopisy. Během krize 2008 podobná portfolia ztratila méně než čistě akciová. Není 'všepogodní' jako Permanent Portfolio, ale je odolnější než agresivní strategie."
+                answer: "Portfolio je navrženo k zvládání různých ekonomických podmínek. V recesi pomohou dluhopisy, během inflace nemovitosti a akcie, v deflaci dlouhodobé dluhopisy. Během krize 2008 podobná portfolia ztratila méně než čistě akciová. Není odolné pro každé počasí trhu jako Permanentní portfolio, ale je odolnější než agresivní strategie."
               },
               {
                 question: "Mohu upravit alokaci podle svého věku?",

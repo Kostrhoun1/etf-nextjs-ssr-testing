@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // List of all nejlepsi-etf category pages for bulk revalidation
 const NEJLEPSI_ETF_PAGES = [
-  '/nejlepsi-etf/nejlepsi-etf-2025',
+  '/nejlepsi-etf/nejlepsi-etf-2026',
   '/nejlepsi-etf/nejlepsi-akciove-etf',
   '/nejlepsi-etf/nejlepsi-dividendove-etf',
   '/nejlepsi-etf/nejlepsi-dluhopisove-etf',

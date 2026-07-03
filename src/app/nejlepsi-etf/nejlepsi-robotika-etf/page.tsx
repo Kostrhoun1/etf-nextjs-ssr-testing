@@ -112,7 +112,7 @@ export default async function NejlepsiRobotikaETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší robotika ETF ${currentYear} - robotics a automatizace`,
-    "description": "Srovnání nejlepších robotika ETF 2025. Robotics, automatizace, AI - TER, velikost fondů.",
+    "description": "Srovnání nejlepších robotika ETF 2026. Robotics, automatizace, AI - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-robotics-etf.jpg",
     "author": {
       "@type": "Person",
@@ -179,7 +179,7 @@ export default async function NejlepsiRobotikaETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší robotika ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší robotika ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší robotika ETF jsou: iShares Automation & Robotics UCITS ETF (RBOT, IE00BYZK4552) největší robotika ETF s 2,9 mld. EUR a TER 0,40%, Amundi MSCI Robotics & AI UCITS ETF (ROAI, LU1861132840) s 997 mil. EUR a TER 0,40%, a L&G ROBO Global Robotics and Automation UCITS ETF (ROBO, IE00BMW3QX54) s 624 mil. EUR a TER 0,80%."
@@ -451,11 +451,11 @@ export default async function NejlepsiRobotikaETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="robotika" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="robotika" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -556,7 +556,7 @@ export default async function NejlepsiRobotikaETFPage() {
             <details className="group border border-gray-200 rounded-lg hover:border-red-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-red-50 rounded-lg group-open:rounded-b-none transition-colors">
                 <span className="font-semibold text-lg text-gray-900 group-hover:text-red-800">
-                  Jaké jsou nejlepší robotika ETF v roce 2025?
+                  Jaké jsou nejlepší robotika ETF v roce 2026?
                 </span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-red-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

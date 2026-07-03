@@ -484,11 +484,11 @@ export default async function NejlepsiEmergingMarketsETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="Emerging Markets" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="Emerging Markets" />
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-emerald-50 to-teal-50">
@@ -565,7 +565,7 @@ export default async function NejlepsiEmergingMarketsETFPage() {
           <div className="space-y-8">
             {[
               {
-                question: "Jaké jsou nejlepší emerging markets ETF pro rok 2025?",
+                question: "Jaké jsou nejlepší emerging markets ETF pro rok 2026?",
                 answer: "Naše TOP 3 doporučení: iShares Core MSCI Emerging Markets IMI ETF (EIMI, IE00BKM4GZ66) největší s 25+ mld. EUR, Amundi Core MSCI Emerging Markets ETF (C9EM, LU2573966905) s nejnižším TER 0,14%, a HSBC MSCI Emerging Markets ETF (HMEF, IE00B5SSQT16) s vynikajícím poměrem TER 0,15% a velikostí 2,4 mld. EUR."
               },
               {

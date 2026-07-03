@@ -570,8 +570,8 @@ export default function Trading212RecenzePage() {
               description: "Jak začít s investováním do ETF"
             },
             {
-              title: "Nejlepší ETF 2025",
-              href: "/nejlepsi-etf/nejlepsi-etf-2025",
+              title: "Nejlepší ETF 2026",
+              href: "/nejlepsi-etf/nejlepsi-etf-2026",
               description: "Doporučené ETF pro investování"
             },
             {

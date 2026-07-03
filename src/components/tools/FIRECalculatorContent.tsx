@@ -70,7 +70,7 @@ const FIRECalculatorContent: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <PiggyBankIcon className="w-4 h-4" />
-            FIRE kalkulačka 2025
+            FIRE kalkulačka 2026
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             FIRE kalkulačka - Kdy dosáhnu finanční nezávislosti?

@@ -29,8 +29,8 @@ const NetSalaryCalculatorContent: React.FC = () => {
       {
         "@type": "ListItem",
         "position": 3,
-        "name": "Kalkulačka čisté mzdy 2025",
-        "item": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025"
+        "name": "Kalkulačka čisté mzdy 2026",
+        "item": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2026"
       }
     ]
   };
@@ -38,9 +38,9 @@ const NetSalaryCalculatorContent: React.FC = () => {
   const calculatorSchema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Kalkulačka čisté mzdy 2025 - Výpočet čisté mzdy ČR",
-    "description": "Bezplatná kalkulačka čisté mzdy podle aktuální české legislativy 2025. Výpočet pojistného, daní, slev na dani pro zaměstnance i důchodce.",
-    "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025",
+    "name": "Kalkulačka čisté mzdy 2026 - Výpočet čisté mzdy ČR",
+    "description": "Bezplatná kalkulačka čisté mzdy podle aktuální české legislativy 2026. Výpočet pojistného, daní, slev na dani pro zaměstnance i důchodce.",
+    "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2026",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web Browser",
     "offers": {
@@ -49,7 +49,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
       "priceCurrency": "CZK"
     },
     "featureList": [
-      "Výpočet čisté mzdy podle legislativy 2025",
+      "Výpočet čisté mzdy podle legislativy 2026",
       "Sociální a zdravotní pojištění",
       "Daň z příjmů a slevy na dani",
       "Kalkulace pro pracující důchodce",
@@ -67,13 +67,13 @@ const NetSalaryCalculatorContent: React.FC = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <CalculatorIcon className="w-4 h-4" />
-            Kalkulačka čisté mzdy 2025
+            Kalkulačka čisté mzdy 2026
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Kalkulačka čisté mzdy 2025
+            Kalkulačka čisté mzdy 2026
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-            Spočítejte si čistou mzdu podle aktuální české legislativy pro rok 2025.
+            Spočítejte si čistou mzdu podle aktuální české legislativy pro rok 2026.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
 
         {/* Jak funguje výpočet mzdy */}
         <div className="mt-16">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Jak se počítá čistá mzda v ČR 2025?</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Jak se počítá čistá mzda v ČR 2026?</h2>
           <div className="grid md:grid-cols-4 gap-6 mb-12">
             <Card>
               <CardContent className="p-6 text-center">
@@ -165,12 +165,12 @@ const NetSalaryCalculatorContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Důležité změny v roce 2025 */}
+        {/* Důležité změny v roce 2026 */}
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Důležité změny v roce 2025</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Důležité změny v roce 2026</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-green-800">Aktuální sazby 2025</h3>
+              <h3 className="text-lg font-semibold mb-4 text-green-800">Aktuální sazby 2026</h3>
               <ul className="space-y-2 text-gray-700">
                 <li>• <strong>Daň z příjmů:</strong> 15% z hrubé mzdy (superhrubá mzda zrušena)</li>
                 <li>• <strong>Sociální pojištění:</strong> zaměstnanec 7,1%, zaměstnavatel 24,8%</li>
@@ -199,8 +199,8 @@ const NetSalaryCalculatorContent: React.FC = () => {
               answer: "Čistá mzda = Hrubá mzda - pojistné na sociální zabezpečení (7,1%) - pojistné na zdravotní pojištění (4,5%) - daň z příjmů (15% z hrubé mzdy) + slevy na dani. Od roku 2021 se daň počítá přímo z hrubé mzdy, superhrubá mzda byla zrušena."
             },
             {
-              question: "Jaké jsou aktuální sazby pojistného a daní pro rok 2025?",
-              answer: "Pro rok 2025: sociální pojištění zaměstnanec 7,1% (6,5% důchodové + 0,6% nemocenské), zdravotní pojištění zaměstnanec 4,5%, daň z příjmů 15%. Zaměstnavatel platí navíc 24,8% na sociální + 9% na zdravotní pojištění. Sleva na poplatníka je 30 840 Kč ročně (2 570 Kč měsíčně)."
+              question: "Jaké jsou aktuální sazby pojistného a daní pro rok 2026?",
+              answer: "Pro rok 2026: sociální pojištění zaměstnanec 7,1% (6,5% důchodové + 0,6% nemocenské), zdravotní pojištění zaměstnanec 4,5%, daň z příjmů 15%. Zaměstnavatel platí navíc 24,8% na sociální + 9% na zdravotní pojištění. Sleva na poplatníka je 30 840 Kč ročně (2 570 Kč měsíčně)."
             },
             {
               question: "Jak funguje sleva na dani na poplatníka?",
@@ -208,7 +208,7 @@ const NetSalaryCalculatorContent: React.FC = () => {
             },
             {
               question: "Jak se liší výpočet mzdy u pracujících důchodců?",
-              answer: "Pracující důchodci mají od roku 2025 slevu na důchodovém pojištění (6,5%), platí pouze nemocenské pojištění (0,6%) a zdravotní pojištění (4,5%). Celkem tedy 5,1% místo standardních 11,6%. Daň z příjmů a slevy na dani zůstávají stejné."
+              answer: "Pracující důchodci mají od roku 2026 slevu na důchodovém pojištění (6,5%), platí pouze nemocenské pojištění (0,6%) a zdravotní pojištění (4,5%). Celkem tedy 5,1% místo standardních 11,6%. Daň z příjmů a slevy na dani zůstávají stejné."
             },
             {
               question: "Co je to superhrubá mzda?",

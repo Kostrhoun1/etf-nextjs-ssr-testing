@@ -165,7 +165,7 @@ export default async function NejlepsiJaponskeETF() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší japonské ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší japonské ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší japonské ETF jsou: iShares Core MSCI Japan IMI UCITS ETF (JPNA, IE00B4L5YX21) s TER 0,12% a velikostí 5,7 mld EUR, Amundi Core MSCI Japan UCITS ETF (AMJP, LU1781541252) s TER 0,12% a velikostí 4,2 mld EUR, a UBS MSCI Japan Climate Paris Aligned UCITS ETF (UBSJ, IE000JHYO4T6) s TER 0,15%."
@@ -456,11 +456,11 @@ export default async function NejlepsiJaponskeETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="japonské" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="japonské" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -477,7 +477,7 @@ export default async function NejlepsiJaponskeETF() {
           <div className="space-y-8">
             <details className="group border border-gray-200 rounded-lg hover:border-red-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-red-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-red-800">Jaké jsou nejlepší japonské ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-red-800">Jaké jsou nejlepší japonské ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-red-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

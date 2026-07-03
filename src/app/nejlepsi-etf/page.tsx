@@ -21,7 +21,7 @@ export const metadata: Metadata = generateCanonicalMetadata(
   'Nejlepší ETF | TOP ETF fondy 2025 pro české investory',
   'Nejlepší ETF fondy 2025: S&P 500, MSCI World, dividendové, technologické ETF. Kompletní přehled TOP ETF podle kategorií, výkonnosti a poplatků.',
   {
-    keywords: 'nejlepší ETF, nejlepší ETF fondy, TOP ETF 2025, nejlepší ETF 2025, doporučené ETF, S&P 500 ETF, MSCI World ETF, dividendové ETF, technologické ETF, nejlepší ETF pro začátečníky'
+    keywords: 'nejlepší ETF, nejlepší ETF fondy, TOP ETF 2026, nejlepší ETF 2026, doporučené ETF, S&P 500 ETF, MSCI World ETF, dividendové ETF, technologické ETF, nejlepší ETF pro začátečníky'
   }
 );
 
@@ -141,7 +141,7 @@ export default function NejlepsiETFPage() {
 
             {/* Featured CTA */}
             <Link
-              href="/nejlepsi-etf/nejlepsi-etf-2025"
+              href="/nejlepsi-etf/nejlepsi-etf-2026"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-4 rounded-xl font-bold text-lg hover:from-yellow-300 hover:to-orange-400 transition-all shadow-lg hover:shadow-xl"
             >
               <StarFilledIcon className="w-6 h-6" />

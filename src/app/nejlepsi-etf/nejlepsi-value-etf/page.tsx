@@ -166,7 +166,7 @@ export default async function NejlepsiValueETF() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší Value ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší Value ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší Value ETF jsou: iShares Edge MSCI World Value Factor UCITS ETF (IE00BP3QZB59) s globálním pokrytím a TER 0,25%, Xtrackers MSCI World Value UCITS ETF (IE00BL25JM42) s 2,3 mld. EUR, a iShares Edge MSCI Europe Value Factor UCITS ETF (IE00BQN1K901) specializovaný na evropské value faktory."
@@ -433,12 +433,12 @@ export default async function NejlepsiValueETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Database Sections */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="Value" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="Value" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -455,7 +455,7 @@ export default async function NejlepsiValueETF() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-amber-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-amber-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-amber-800">Jaké jsou nejlepší Value ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-amber-800">Jaké jsou nejlepší Value ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -505,7 +505,7 @@ export default async function NejlepsiValueETF() {
         links={[
           { href: "/nejlepsi-etf/nejlepsi-growth-etf", text: "Nejlepší Growth ETF", description: "Kompletní průvodce růstovými ETF fondy" },
           { href: "/nejlepsi-etf/nejlepsi-dividendove-etf", text: "Nejlepší dividendové ETF", description: "Srovnání nejlepších dividendových ETF" },
-          { href: "/nejlepsi-etf/nejlepsi-etf-2025", text: "Nejlepší ETF 2025", description: "Top 3 doporučení pro rok 2025" },
+          { href: "/nejlepsi-etf/nejlepsi-etf-2026", text: "Nejlepší ETF 2026", description: "Top 3 doporučení pro rok 2026" },
           { href: "/srovnani-etf", text: "Srovnání ETF", description: "Interaktivní nástroj pro porovnání" },
           { href: "/kde-koupit-etf", text: "Kde koupit ETF", description: "Přehled brokerů a platforem" }
         ]}

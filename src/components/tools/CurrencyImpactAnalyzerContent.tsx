@@ -39,7 +39,7 @@ const CurrencyImpactAnalyzerContent: React.FC = () => {
   const calculatorSchema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Analýza kurzového dopadu ETF 2025 - Currency Hedging",
+    "name": "Analýza kurzového dopadu ETF 2026 - Currency Hedging",
     "description": "Analyzujte vliv kurzových změn na ETF portfolio. Měnové riziko, hedging strategie a optimalizace pro české investory.",
     "url": "https://www.etfpruvodce.cz/kalkulacky/kurzovy-dopad-etf",
     "applicationCategory": "FinanceApplication",
@@ -241,7 +241,7 @@ const CurrencyImpactAnalyzerContent: React.FC = () => {
               description: "Analýza portfoliových rizik"
             },
             {
-              title: "Nejlepší ETF 2025",
+              title: "Nejlepší ETF 2026",
               href: "/tipy/nejlepsi-etf-na-americke-akcie",
               description: "Doporučené ETF fondy pro české investory"
             },

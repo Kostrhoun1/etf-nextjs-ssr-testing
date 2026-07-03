@@ -50,9 +50,9 @@ function Top10Table({ etfs, currency, highlightColumn }: Top10TableProps) {
             <th className="text-left py-3 px-2 font-semibold text-gray-600">Poskytovatel</th>
             <th className={`text-right py-3 px-2 font-semibold ${highlightColumn === 'ter' ? 'text-emerald-600' : 'text-gray-600'}`}>TER</th>
             <th className={`text-right py-3 px-2 font-semibold ${highlightColumn === 'aum' ? 'text-blue-600' : 'text-gray-600'}`}>AUM (mil. €)</th>
-            <th className="text-right py-3 px-2 font-semibold text-gray-600">YTD</th>
-            <th className={`text-right py-3 px-2 font-semibold ${highlightColumn === 'performance' ? 'text-purple-600' : 'text-gray-600'}`}>1R výnos</th>
-            <th className="text-right py-3 px-2 font-semibold text-gray-600">3R výnos</th>
+            <th className="text-right py-3 px-2 font-semibold text-gray-600">YTD{currency === 'CZK' ? ' (Kč)' : ''}</th>
+            <th className={`text-right py-3 px-2 font-semibold ${highlightColumn === 'performance' ? 'text-purple-600' : 'text-gray-600'}`}>1R výnos{currency === 'CZK' ? ' (Kč)' : ''}</th>
+            <th className="text-right py-3 px-2 font-semibold text-gray-600">3R výnos{currency === 'CZK' ? ' (Kč)' : ''}</th>
             <th className="text-center py-3 px-2 font-semibold text-gray-600">Typ</th>
           </tr>
         </thead>
@@ -178,7 +178,7 @@ export default function Top10SectionsServer({ etfs, currency = 'EUR', categoryNa
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Top 10 podle výkonnosti</h3>
-                <p className="text-sm text-gray-600">Nejlepší 1R výnos ({currency})</p>
+                <p className="text-sm text-gray-600">Nejlepší 1R výnos ({currency === 'CZK' ? 'v Kč' : currency})</p>
               </div>
             </div>
             <Top10Table etfs={top10ByPerformance} currency={currency} highlightColumn="performance" />

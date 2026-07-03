@@ -498,11 +498,11 @@ export default async function NejlepsiStoxx600ETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="STOXX 600" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="STOXX 600" />
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-purple-50 to-indigo-50">

@@ -14,18 +14,18 @@ export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší Nemovitostní ETF 2025 | Srovnání a Doporučení',
-    description: 'Najděte nejlepší nemovitostní ETF pro rok 2025. Srovnání REIT fondů, dividendové výnosnosti a geografické diverzifikace.',
-    keywords: 'nemovitostní ETF, nejlepší REIT ETF 2025, nemovitosti investice, REIT fondy, IWDP ETF, XDER ETF, RWX ETF',
+    title: 'Nejlepší Nemovitostní ETF 2026 | Srovnání a Doporučení',
+    description: 'Najděte nejlepší nemovitostní ETF pro rok 2026. Srovnání REIT fondů, dividendové výnosnosti a geografické diverzifikace.',
+    keywords: 'nemovitostní ETF, nejlepší REIT ETF 2026, nemovitosti investice, REIT fondy, IWDP ETF, XDER ETF, RWX ETF',
     openGraph: {
-      title: 'Nejlepší Nemovitostní ETF 2025 | Srovnání a Doporučení',
+      title: 'Nejlepší Nemovitostní ETF 2026 | Srovnání a Doporučení',
       description: 'Kompletní průvodce nejlepšími nemovitostními ETF. Analyzujeme REIT fondy, dividendové výnosy a diverzifikaci.',
       type: 'article',
       url: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-nemovitostni-etf',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší Nemovitostní ETF 2025',
+      title: 'Nejlepší Nemovitostní ETF 2026',
       description: 'Srovnání nejlepších nemovitostních ETF pro dividendové příjmy a diverzifikaci portfolia.',
     },
     alternates: {
@@ -50,7 +50,7 @@ export default async function NejlepsiNemovitostniETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší nemovitostní ETF ${currentYear} - REIT fondy a dividendy`,
-    "description": "Srovnání nejlepších nemovitostních ETF 2025. REIT fondy, dividendové výnosy, geografická diverzifikace - TER, velikost fondů.",
+    "description": "Srovnání nejlepších nemovitostních ETF 2026. REIT fondy, dividendové výnosy, geografická diverzifikace - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-reit-etf.jpg",
     "author": {
       "@type": "Person",
@@ -117,7 +117,7 @@ export default async function NejlepsiNemovitostniETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší nemovitostní ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší nemovitostní ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší nemovitostní ETF jsou: iShares Developed Markets Property Yield UCITS ETF (IWDP, IE00B1FZS350) největší globální REIT ETF s vysokou dividendovou výnosností 3,19%, HSBC FTSE EPRA NAREIT Developed UCITS ETF (HPROP, IE00B5L01S80) s 1,37 mld. EUR a diverzifikovanou expozicí, a SPDR Dow Jones Global Real Estate UCITS ETF (RWX, IE00B8GF1M35) s 1,76 mld. EUR a quarterly dividendami."
@@ -390,11 +390,11 @@ export default async function NejlepsiNemovitostniETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="nemovitostní" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="nemovitostní" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -495,7 +495,7 @@ export default async function NejlepsiNemovitostniETFPage() {
             <details className="group border border-gray-200 rounded-lg hover:border-orange-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-orange-50 rounded-lg group-open:rounded-b-none transition-colors">
                 <span className="font-semibold text-lg text-gray-900 group-hover:text-orange-800">
-                  Jaké jsou nejlepší nemovitostní ETF v roce 2025?
+                  Jaké jsou nejlepší nemovitostní ETF v roce 2026?
                 </span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-orange-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

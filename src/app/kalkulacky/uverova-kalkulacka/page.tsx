@@ -4,10 +4,10 @@ import Layout from '@/components/Layout';
 import ConsumerLoanCalculator from '@/components/tools/ConsumerLoanCalculator';
 
 export const metadata: Metadata = {
-  title: 'Úvěrová kalkulačka 2025 | Spotřebitelský úvěr',
-  description: 'Kalkulačka spotřebitelského úvěru 2025. Spočítejte si měsíční splátky, celkové náklady a porovnejte nabídky bank. Aktuální úrokové sazby.',
+  title: 'Úvěrová kalkulačka 2026 | Spotřebitelský úvěr',
+  description: 'Kalkulačka spotřebitelského úvěru 2026. Spočítejte si měsíční splátky, celkové náklady a porovnejte nabídky bank. Aktuální úrokové sazby.',
   keywords: [
-    'úvěrová kalkulačka 2025',
+    'úvěrová kalkulačka 2026',
     'spotřebitelský úvěr',
     'osobní půjčka kalkulačka',
     'měsíční splátka úvěru',
@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     'bankovní úvěr'
   ],
   openGraph: {
-    title: 'Úvěrová kalkulačka 2025 - Spotřebitelský úvěr',
+    title: 'Úvěrová kalkulačka 2026 - Spotřebitelský úvěr',
     description: 'Spočítejte si přesnou výši měsíčních splátek spotřebitelského úvěru s aktuálními úrokovými sazbami.',
     type: 'website',
     locale: 'cs_CZ'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Úvěrová kalkulačka 2025',
+    title: 'Úvěrová kalkulačka 2026',
     description: 'Výpočet splátek spotřebitelského úvěru s aktuálními sazbami.'
   },
   alternates: {
@@ -39,10 +39,10 @@ export default function UverovaKalkulackaPage() {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-              💳 Aktualizováno pro rok 2025
+              💳 Aktualizováno pro rok 2026
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Úvěrová kalkulačka 2025
+              Úvěrová kalkulačka 2026
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Spočítejte si přesnou výši měsíčních splátek spotřebitelského úvěru 

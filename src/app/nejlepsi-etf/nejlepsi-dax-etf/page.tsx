@@ -504,11 +504,11 @@ export default async function NejlepsiDAXETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="DAX" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="DAX" />
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-gray-50 to-slate-50">

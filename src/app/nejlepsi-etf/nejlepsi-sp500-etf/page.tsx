@@ -339,12 +339,12 @@ export default async function NejlepsiSP500ETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Sections - by TER, AUM, Performance */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="S&P 500" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="S&P 500" />
 
       {/* SECTION 0: Co je S&P 500 Index? */}
       <section id="co-je-sp500" className="py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-white content-auto">

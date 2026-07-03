@@ -28,7 +28,7 @@ const EmergencyFundContent: React.FC = () => {
       {
         "@type": "ListItem",
         "position": 3,
-        "name": "Kalkulačka nouzové rezervy 2025",
+        "name": "Kalkulačka nouzové rezervy 2026",
         "item": "https://www.etfpruvodce.cz/kalkulacky/nouzova-rezerva"
       }
     ]
@@ -37,7 +37,7 @@ const EmergencyFundContent: React.FC = () => {
   const calculatorSchema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Kalkulačka nouzové rezervy 2025 - Emergency Fund",
+    "name": "Kalkulačka nouzové rezervy 2026 - Emergency Fund",
     "description": "Spočítejte si optimální velikost nouzové rezervy podle rizikového profilu. Kde držet peníze a strategie spoření na emergency fund.",
     "url": "https://www.etfpruvodce.cz/kalkulacky/nouzova-rezerva",
     "applicationCategory": "FinanceApplication",
@@ -66,10 +66,10 @@ const EmergencyFundContent: React.FC = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <ShieldIcon className="w-4 h-4" />
-            Kalkulačka nouzové rezervy 2025
+            Kalkulačka nouzové rezervy 2026
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Kalkulačka nouzové rezervy 2025
+            Kalkulačka nouzové rezervy 2026
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Spočítejte si optimální velikost nouzové rezervy podle vašeho rizikového profilu. 
@@ -143,7 +143,7 @@ const EmergencyFundContent: React.FC = () => {
 
         {/* Kde držet nouzovou rezervu */}
         <div className="bg-white rounded-2xl border p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Kde držet nouzovou rezervu v roce 2025</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Kde držet nouzovou rezervu v roce 2026</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-semibold mb-4 text-green-800">✅ Vhodné možnosti</h3>
@@ -237,7 +237,7 @@ const EmergencyFundContent: React.FC = () => {
               answer: "Závisí na vaší situaci: 3 měsíce pro stabilní zaměstnání bez závazků, 6 měsíců pro většinu lidí s rodinou/hypotékou, 12+ měsíců pro OSVČ nebo nestabilní příjmy. Rezerva má pokrýt neočekávané situace jako ztráta práce nebo zdravotní problémy."
             },
             {
-              question: "Kde mám držet nouzovou rezervu v roce 2025?",
+              question: "Kde mám držet nouzovou rezervu v roce 2026?",
               answer: "Nejlepší jsou spořicí účty s vysokým úrokem (2-4% p.a.) pro okamžitou dostupnost, termínované vklady na 3-6 měsíců (3-5% p.a.), nebo konzervativní peněžní trh ETF. NIKDY v akciích, kryptoměnách nebo P2P půjčkách - ty mohou klesnout právě když peníze potřebujete."
             },
             {
@@ -269,7 +269,7 @@ const EmergencyFundContent: React.FC = () => {
           relatedLinks={[
             {
               title: "Kalkulačka čisté mzdy",
-              href: "/kalkulacky/cisty-plat-2025",
+              href: "/kalkulacky/cisty-plat-2026",
               description: "Spočítejte si disponibilní příjem pro spoření"
             },
             {

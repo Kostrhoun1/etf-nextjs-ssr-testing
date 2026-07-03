@@ -68,6 +68,22 @@ const nextConfig: NextConfig = {
         destination: 'https://www.etfpruvodce.cz/:path*',
         permanent: true,
       },
+      // Rok 2025 → 2026 (sjednocení s ostrým webem)
+      {
+        source: '/nejlepsi-etf/nejlepsi-etf-2025',
+        destination: '/nejlepsi-etf/nejlepsi-etf-2026',
+        permanent: true,
+      },
+      {
+        source: '/kalkulacky/cisty-plat-2025',
+        destination: '/kalkulacky/cisty-plat-2026',
+        permanent: true,
+      },
+      {
+        source: '/nejlepsi-etf-2025',
+        destination: '/nejlepsi-etf/nejlepsi-etf-2026',
+        permanent: true,
+      },
       {
         source: '/tipy',
         destination: '/nejlepsi-etf',

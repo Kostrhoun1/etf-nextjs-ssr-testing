@@ -16,11 +16,11 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'ETF | ETF fondy 2025 - Kompletní průvodce pro české investory',
-  description: 'ETF fondy pro začátečníky i pokročilé. Co je ETF, jak investovat do ETF, nejlepší ETF 2025. Srovnání 4300+ ETF fondů, kde koupit ETF v ČR. Vše o ETF na jednom místě.',
-  keywords: 'ETF fondy, ETF, co je ETF, co jsou ETF, jak investovat do ETF, nejlepší ETF 2025, kde koupit ETF, ETF pro začátečníky, ETF srovnání, ETF poplatky, DEGIRO ETF, dividendové ETF, S&P 500 ETF',
+  description: 'ETF fondy pro začátečníky i pokročilé. Co je ETF, jak investovat do ETF, nejlepší ETF 2026. Srovnání 4300+ ETF fondů, kde koupit ETF v ČR. Vše o ETF na jednom místě.',
+  keywords: 'ETF fondy, ETF, co je ETF, co jsou ETF, jak investovat do ETF, nejlepší ETF 2026, kde koupit ETF, ETF pro začátečníky, ETF srovnání, ETF poplatky, DEGIRO ETF, dividendové ETF, S&P 500 ETF',
   openGraph: {
     title: 'ETF fondy - Kompletní průvodce pro české investory',
-    description: 'Co je ETF a jak do něj investovat? Srovnání 4300+ ETF fondů, kde koupit ETF v ČR, nejlepší ETF 2025. Vše o ETF fondech na jednom místě.',
+    description: 'Co je ETF a jak do něj investovat? Srovnání 4300+ ETF fondů, kde koupit ETF v ČR, nejlepší ETF 2026. Vše o ETF fondech na jednom místě.',
     url: 'https://www.etfpruvodce.cz/',
     siteName: 'ETF průvodce.cz',
     images: [
@@ -85,7 +85,7 @@ export default async function HomePage() {
             answer: "Nejlepším brokerem je Portu (98/100 bodů) pro automatizované investování. Pro aktivní obchodování je výborný XTB (94/100) s 0% poplatky, Trading212 (87/100) či DEGIRO (79/100) s nízkými poplatky."
           },
           {
-            question: "Jaké jsou nejlepší ETF fondy pro rok 2025?",
+            question: "Jaké jsou nejlepší ETF fondy pro rok 2026?",
             answer: "Pro dlouhodobé investování doporučujeme: VWCE (celý svět), CSPX (S&P 500), EUNL (evropské akcie) a VFEM (rozvíjející se trhy). Tyto ETF nabízejí širokou diverzifikaci a nízké poplatky."
           },
           {

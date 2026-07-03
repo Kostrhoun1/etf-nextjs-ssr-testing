@@ -29,7 +29,7 @@ const MortgageCalculatorContent: React.FC = () => {
       {
         "@type": "ListItem",
         "position": 3,
-        "name": "Hypoteční kalkulačka 2025",
+        "name": "Hypoteční kalkulačka 2026",
         "item": "https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka"
       }
     ]
@@ -38,7 +38,7 @@ const MortgageCalculatorContent: React.FC = () => {
   const calculatorSchema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Hypoteční kalkulačka 2025 - Výpočet hypotéky",
+    "name": "Hypoteční kalkulačka 2026 - Výpočet hypotéky",
     "description": "Bezplatná hypoteční kalkulačka pro výpočet měsíčních splátek hypotéky. Spočítejte si celkové náklady na bydlení, vlastní kapitál a úročení.",
     "url": "https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka",
     "applicationCategory": "FinanceApplication",
@@ -67,13 +67,13 @@ const MortgageCalculatorContent: React.FC = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <HomeIcon className="w-4 h-4" />
-            Hypoteční kalkulačka 2025
+            Hypoteční kalkulačka 2026
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Hypoteční kalkulačka 2025
+            Hypoteční kalkulačka 2026
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-            Spočítejte si přesnou výši měsíční splátky hypotéky a celkové náklady úvěru s aktuálními úrokovými sazbami pro rok 2025.
+            Spočítejte si přesnou výši měsíční splátky hypotéky a celkové náklady úvěru s aktuálními úrokovými sazbami pro rok 2026.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ const MortgageCalculatorContent: React.FC = () => {
 
         {/* Klíčové informace o hypotékách */}
         <div className="mt-16">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Klíčové informace o hypotékách 2025</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Klíčové informace o hypotékách 2026</h2>
           <div className="grid md:grid-cols-4 gap-6 mb-12">
             <Card>
               <CardContent className="p-6 text-center">
@@ -125,7 +125,7 @@ const MortgageCalculatorContent: React.FC = () => {
 
         {/* Praktické rady pro hypotéky */}
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Jak získat nejlepší hypotéku v roce 2025?</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Jak získat nejlepší hypotéku v roce 2026?</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-semibold mb-4 text-purple-800">Příprava na hypotéku</h3>
@@ -170,7 +170,7 @@ const MortgageCalculatorContent: React.FC = () => {
               answer: "Doporučuje se mít alespoň 20% vlastního kapitálu z ceny nemovitosti. To snižuje úrokovou sazbu a eliminuje nutnost platit pojištění hypotéky. S vyšším vlastním kapitálem (30-40%) získáte ještě lepší úrokové sazby od bank."
             },
             {
-              question: "Jaké jsou průměrné úrokové sazby hypotéky v roce 2025?",
+              question: "Jaké jsou průměrné úrokové sazby hypotéky v roce 2026?",
               answer: "Úrokové sazby hypotéky se průběžně mění podle situace na trhu. Závisí na bance, výši vlastního kapitálu a době fixace. Kratší fixace (3-5 let) mívají obvykle nižší sazby než dlouhé fixace (15-20 let). Pro aktuální sazby doporučujeme oslovit více bank."
             },
             {
@@ -231,7 +231,7 @@ const MortgageCalculatorContent: React.FC = () => {
             },
             {
               title: "Kalkulačka čisté mzdy",
-              href: "/kalkulacky/cisty-plat-2025",
+              href: "/kalkulacky/cisty-plat-2026",
               description: "Zjistěte si disponibilní příjem pro hypotéku"
             },
             {

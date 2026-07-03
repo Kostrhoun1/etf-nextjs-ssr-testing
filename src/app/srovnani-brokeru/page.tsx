@@ -76,7 +76,7 @@ export default function SrovnaniBrokeruPage() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "Nejlepší brokeři 2025 - Kompletní srovnání",
-    "description": "Objektivní srovnání nejlepších brokerů pro ETF investice v roce 2025. XTB 4.7/5, DEGIRO, Interactive Brokers, Trading 212 a další.",
+    "description": "Objektivní srovnání nejlepších brokerů pro ETF investice v roce 2026. XTB 4.7/5, DEGIRO, Interactive Brokers, Trading 212 a další.",
     "url": "https://www.etfpruvodce.cz/srovnani-brokeru",
     "breadcrumb": breadcrumbSchema,
     "mainEntity": {
@@ -194,7 +194,7 @@ export default function SrovnaniBrokeruPage() {
         {/* Hero sekce */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            🏆 Aktualizováno pro rok 2025
+            🏆 Aktualizováno pro rok 2026
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Nejlepší brokeři 2025

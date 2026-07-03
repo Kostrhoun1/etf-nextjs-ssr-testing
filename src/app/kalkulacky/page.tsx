@@ -82,7 +82,7 @@ export default function KalkulackyPage() {
           "@type": "ListItem",
           "position": 2,
           "name": `Kalkulačka čisté mzdy ${currentYear}`,
-          "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2025"
+          "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2026"
         },
         {
           "@type": "ListItem",
@@ -213,7 +213,7 @@ export default function KalkulackyPage() {
               description: "Najděte nejlepší ETF pro investice"
             },
             {
-              title: "Nejlepší brokeři 2025",
+              title: "Nejlepší brokeři 2026",
               href: "/srovnani-brokeru",
               description: "Kde nejlépe investovat a obchodovat"
             },
@@ -223,7 +223,7 @@ export default function KalkulackyPage() {
               description: "Jak začít s investováním do ETF"
             },
             {
-              title: "Investiční tipy 2025",
+              title: "Investiční tipy 2026",
               href: "/tipy",
               description: "Aktuální investiční strategie a rady"
             }

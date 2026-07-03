@@ -107,7 +107,7 @@ export default function Top3ETFServer({ etfs, currency = 'EUR' }: Top3ETFServerP
                   </div>
                 </div>
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm">
-                  <div className="text-xs text-gray-500 mb-1">1R výnos ({currency})</div>
+                  <div className="text-xs text-gray-500 mb-1">1R výnos ({currency === 'CZK' ? 'v Kč' : currency})</div>
                   <div className={`font-semibold ${return1y !== null && return1y > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatPercentage(return1y)}
                   </div>

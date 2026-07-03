@@ -40,18 +40,18 @@ const TOP_3_DEFENSE_ETFS_TEMPLATE = [
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší Defense ETF 2025 | Srovnání a Doporučení',
-    description: 'Najděte nejlepší Defense ETF pro rok 2025. Srovnání výkonnosti, poplatků a držených aktiv. Investujte do obranného průmyslu budoucnosti.',
-    keywords: 'defense ETF, nejlepší defense ETF 2025, obranný průmysl investice, aerospace ETF, DFEN ETF, NATO ETF, vojenské technologie ETF',
+    title: 'Nejlepší Defense ETF 2026 | Srovnání a Doporučení',
+    description: 'Najděte nejlepší Defense ETF pro rok 2026. Srovnání výkonnosti, poplatků a držených aktiv. Investujte do obranného průmyslu budoucnosti.',
+    keywords: 'defense ETF, nejlepší defense ETF 2026, obranný průmysl investice, aerospace ETF, DFEN ETF, NATO ETF, vojenské technologie ETF',
     openGraph: {
-      title: 'Nejlepší Defense ETF 2025 | Srovnání a Doporučení',
+      title: 'Nejlepší Defense ETF 2026 | Srovnání a Doporučení',
       description: 'Kompletní průvodce nejlepšími Defense ETF. Analyzujeme výkonnost, poplatky a portfolia pro investice do obranného průmyslu.',
       type: 'article',
       url: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-defense-etf',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší Defense ETF 2025',
+      title: 'Nejlepší Defense ETF 2026',
       description: 'Srovnání nejlepších Defense ETF pro investice do obranného průmyslu a aerospace technologií.',
     },
     alternates: {
@@ -62,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const defenseFaqData = [
   {
-    question: "Který Defense ETF je nejlepší pro rok 2025?",
+    question: "Který Defense ETF je nejlepší pro rok 2026?",
     answer: "Naše TOP 3 doporučení: VanEck Defense UCITS ETF (DFEN, IE000YYE6WK5) s největšími aktivy 6,38 mld. EUR, WisdomTree Europe Defence ETF (DEFN, IE0002Y8CX98) s 3,40 mld. EUR pro evropskou expozici, a HANetf Future of Defence ETF (NATO, IE000OJ5TQP4) s 2,59 mld. EUR zaměřený na budoucí vojenské technologie."
   },
   {
@@ -90,8 +90,8 @@ const defenseFaqData = [
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": "Nejlepší Defense ETF 2025 | Srovnání a Doporučení",
-  "description": "Kompletní průvodce nejlepšími Defense ETF pro rok 2025. Srovnání výkonnosti, poplatků a držených aktiv.",
+  "headline": "Nejlepší Defense ETF 2026 | Srovnání a Doporučení",
+  "description": "Kompletní průvodce nejlepšími Defense ETF pro rok 2026. Srovnání výkonnosti, poplatků a držených aktiv.",
   "author": {
     "@type": "Person",
     "name": "Tomáš Kostrhoun",
@@ -110,7 +110,7 @@ const structuredData = {
   "mainEntityOfPage": "https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-defense-etf",
   "image": "https://etf-srovnani.cz/og-defense-etf.jpg",
   "articleSection": "ETF Investice",
-  "keywords": "defense ETF, nejlepší defense ETF 2025, obranný průmysl investice, aerospace ETF",
+  "keywords": "defense ETF, nejlepší defense ETF 2026, obranný průmysl investice, aerospace ETF",
   "mainEntity": {
     "@type": "FAQPage",
     "mainEntity": defenseFaqData.map(faq => ({
@@ -343,11 +343,11 @@ export default async function NejlepsiDefenseETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="Defense" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="Defense" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -542,17 +542,17 @@ export default async function NejlepsiDefenseETFPage() {
         relatedLinks={[
           {
             href: "/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf",
-            title: "Nejlepší Kyberbezpečnost ETF 2025",
+            title: "Nejlepší Kyberbezpečnost ETF 2026",
             description: "Investice do kybernetické bezpečnosti a defense technologií"
           },
           {
             href: "/nejlepsi-etf/nejlepsi-ai-etf", 
-            title: "Nejlepší AI ETF 2025",
+            title: "Nejlepší AI ETF 2026",
             description: "ETF zaměřené na umělou inteligenci a vojenské AI systémy"
           },
           {
             href: "/nejlepsi-etf/nejlepsi-tech-etf",
-            title: "Nejlepší Tech ETF 2025", 
+            title: "Nejlepší Tech ETF 2026", 
             description: "Širší technologický sektor včetně defense tech"
           }
         ]}

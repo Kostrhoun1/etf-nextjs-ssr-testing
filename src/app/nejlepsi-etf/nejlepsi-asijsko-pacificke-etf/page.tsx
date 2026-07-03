@@ -12,13 +12,13 @@ export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší asijsko-pacifické ETF 2025 | Srovnání',
-    description: 'Kompletní průvodce asijsko-pacifickými ETF v roce 2025. Porovnání MSCI Pacific vs FTSE Asia Pacific indexů. TOP 3 doporučení pro investice do Austrálie, Singapuru a dalších asijských trhů.',
+    title: 'Nejlepší asijsko-pacifické ETF 2026 | Srovnání',
+    description: 'Kompletní průvodce asijsko-pacifickými ETF v roce 2026. Porovnání MSCI Pacific vs FTSE Asia Pacific indexů. TOP 3 doporučení pro investice do Austrálie, Singapuru a dalších asijských trhů.',
     keywords: [
       'asijsko-pacifické ETF',
       'MSCI Pacific ETF',
       'FTSE Asia Pacific ETF',
-      'nejlepší asijské ETF 2025',
+      'nejlepší asijské ETF 2026',
       'Asia Pacific ex Japan ETF',
       'australské ETF',
       'singapurské ETF',
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'asijské akcie ETF'
     ].join(', '),
     openGraph: {
-      title: 'Nejlepší asijsko-pacifické ETF 2025 | Srovnání',
+      title: 'Nejlepší asijsko-pacifické ETF 2026 | Srovnání',
       description: 'Kompletní průvodce asijsko-pacifickými ETF. TOP 3 doporučení, porovnání indexů a analýza asijsko-pacifických trhů bez Japonska.',
       type: 'article',
       locale: 'cs_CZ',
@@ -39,13 +39,13 @@ export async function generateMetadata(): Promise<Metadata> {
           url: '/og-asia-pacific-etf.jpg',
           width: 1200,
           height: 630,
-          alt: 'Nejlepší asijsko-pacifické ETF 2025 - průvodce a porovnání'
+          alt: 'Nejlepší asijsko-pacifické ETF 2026 - průvodce a porovnání'
         }
       ]
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší asijsko-pacifické ETF 2025 | Srovnání',
+      title: 'Nejlepší asijsko-pacifické ETF 2026 | Srovnání',
       description: 'Kompletní průvodce asijsko-pacifickými ETF. TOP 3 doporučení, porovnání indexů a analýza asijsko-pacifických trhů bez Japonska.',
       images: ['/og-asia-pacific-etf.jpg']
     },
@@ -69,8 +69,8 @@ export async function generateMetadata(): Promise<Metadata> {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: 'Nejlepší asijsko-pacifické ETF 2025 - MSCI Pacific, FTSE Asia Pacific',
-  description: 'Kompletní průvodce asijsko-pacifickými ETF v roce 2025. Porovnání MSCI Pacific vs FTSE Asia Pacific indexů s TOP 3 doporučeními.',
+  headline: 'Nejlepší asijsko-pacifické ETF 2026 - MSCI Pacific, FTSE Asia Pacific',
+  description: 'Kompletní průvodce asijsko-pacifickými ETF v roce 2026. Porovnání MSCI Pacific vs FTSE Asia Pacific indexů s TOP 3 doporučeními.',
   author: {
     '@type': 'Person',
     name: 'Tomáš Kostrhoun',
@@ -101,10 +101,10 @@ const faqJsonLd = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: 'Jaké jsou nejlepší asijsko-pacifické ETF v roce 2025?',
+      name: 'Jaké jsou nejlepší asijsko-pacifické ETF v roce 2026?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Nejlepší asijsko-pacifické ETF v roce 2025 jsou: 1) iShares Core MSCI Pacific ex Japan UCITS ETF (IE00B52MJY50) s TER 0,20% a velikostí 2,9 mld EUR, 2) Vanguard FTSE Developed Asia Pacific ex Japan UCITS ETF (IE00B9F5YL18) s TER 0,15% a velikostí 1,2 mld EUR, 3) UBS MSCI Pacific Socially Responsible UCITS ETF (LU0629460832) s TER 0,28% a velikostí 894 mil EUR.'
+        text: 'Nejlepší asijsko-pacifické ETF v roce 2026 jsou: 1) iShares Core MSCI Pacific ex Japan UCITS ETF (IE00B52MJY50) s TER 0,20% a velikostí 2,9 mld EUR, 2) Vanguard FTSE Developed Asia Pacific ex Japan UCITS ETF (IE00B9F5YL18) s TER 0,15% a velikostí 1,2 mld EUR, 3) UBS MSCI Pacific Socially Responsible UCITS ETF (LU0629460832) s TER 0,28% a velikostí 894 mil EUR.'
       }
     },
     {
@@ -247,7 +247,7 @@ export default async function NejlepsiAsijskoPacifickeETFPage() {
           <div className="max-w-4xl mx-auto">
             <header className="text-center mb-12">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
-                Nejlepší asijsko-pacifické ETF 2025
+                Nejlepší asijsko-pacifické ETF 2026
               </h1>
 
               {/* Author byline - E-E-A-T signal */}
@@ -435,11 +435,11 @@ export default async function NejlepsiAsijskoPacifickeETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="asijsko-pacifické" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="asijsko-pacifické" />
 
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-12 border border-teal-100">
               <h2 className="text-3xl font-bold mb-6 text-gray-900 border-b-4 border-teal-500 pb-3">
@@ -448,7 +448,7 @@ export default async function NejlepsiAsijskoPacifickeETFPage() {
               <div className="space-y-6">
                 <details className="group border border-gray-200 rounded-lg hover:border-teal-200 transition-colors">
                   <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-teal-50 rounded-lg group-open:rounded-b-none transition-colors">
-                    <span className="font-semibold text-lg text-gray-900 group-hover:text-teal-800">Jaké jsou nejlepší asijsko-pacifické ETF v roce 2025?</span>
+                    <span className="font-semibold text-lg text-gray-900 group-hover:text-teal-800">Jaké jsou nejlepší asijsko-pacifické ETF v roce 2026?</span>
                     <svg className="w-5 h-5 text-gray-500 group-hover:text-teal-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>

@@ -31,7 +31,7 @@ const CalculatorHub: React.FC = () => {
       title: 'Čistý plat 2025',
       description: 'Výpočet čisté mzdy podle aktuální české legislativy',
       icon: <CalculatorIcon className="h-6 w-6 text-violet-700" />,
-      href: '/kalkulacky/cisty-plat-2025',
+      href: '/kalkulacky/cisty-plat-2026',
       category: 'finance',
     },
     {
@@ -174,7 +174,7 @@ const CalculatorHub: React.FC = () => {
             </div>
             <p className="text-gray-600 mb-4">
               Všechny naše kalkulačky používají nejnovější sazby, daňové změny a legislativní úpravy 
-              platné pro rok 2025. Hypoteční sazby, daně z příjmů, pojistné - vše je aktuální.
+              platné pro rok 2026. Hypoteční sazby, daně z příjmů, pojistné - vše je aktuální.
             </p>
             <ul className="space-y-2 text-gray-600">
               <li>• <strong>Daňové sazby:</strong> Aktuální slevy a sazby daně z příjmů</li>

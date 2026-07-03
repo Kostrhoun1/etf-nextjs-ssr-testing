@@ -3,13 +3,13 @@ import Layout from '@/components/Layout';
 import TwitterVariants from '@/components/infographics/TwitterVariants';
 
 export const metadata: Metadata = {
-  title: 'Nejlepší ETF 2025 - Výkonnost | Infografika pro X/Twitter',
+  title: 'Nejlepší ETF 2026 - Výkonnost | Infografika pro X/Twitter',
   description: 'Infografika s nejlepšími ETF fondy podle výkonnosti za posledních 3 roky. Optimalizováno pro sdílení na X/Twitter.',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/infografiky/nejlepsi-etf-vykonnost',
   },
   openGraph: {
-    title: 'Nejlepší ETF 2025 - Výkonnost',
+    title: 'Nejlepší ETF 2026 - Výkonnost',
     description: 'TOP 5 ETF fondů s nejvyšší výkonností za posledních 3 roky',
     url: 'https://www.etfpruvodce.cz/infografiky/nejlepsi-etf-vykonnost',
     siteName: 'ETF průvodce.cz',
@@ -72,7 +72,7 @@ export default function NejlepsiETFVykonnost() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Nejlepší ETF 2025 - Výkonnost
+              Nejlepší ETF 2026 - Výkonnost
             </h1>
             <p className="text-xl text-gray-600 mb-6">
               TOP 5 ETF fondů s nejvyšší výkonností za posledních 3 roky
@@ -85,7 +85,7 @@ export default function NejlepsiETFVykonnost() {
           </div>
 
           <TwitterVariants 
-            title="Nejlepší ETF 2025"
+            title="Nejlepší ETF 2026"
             subtitle="TOP 5 podle výkonnosti za 3 roky"
             data={topPerformanceETFs}
             mode="performance"

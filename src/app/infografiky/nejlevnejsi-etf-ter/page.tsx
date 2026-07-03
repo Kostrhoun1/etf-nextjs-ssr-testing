@@ -3,13 +3,13 @@ import Layout from '@/components/Layout';
 import TwitterVariants from '@/components/infographics/TwitterVariants';
 
 export const metadata: Metadata = {
-  title: 'Nejlevnější ETF 2025 - Nejnižší TER | Infografika',
+  title: 'Nejlevnější ETF 2026 - Nejnižší TER | Infografika',
   description: 'Infografika s ETF fondy s nejnižšími poplatky TER. Optimalizováno pro sdílení na X/Twitter.',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/infografiky/nejlevnejsi-etf-ter',
   },
   openGraph: {
-    title: 'Nejlevnější ETF 2025 - Nejnižší TER',
+    title: 'Nejlevnější ETF 2026 - Nejnižší TER',
     description: 'TOP 5 ETF fondů s nejnižšími poplatky TER',
     url: 'https://www.etfpruvodce.cz/infografiky/nejlevnejsi-etf-ter',
     siteName: 'ETF průvodce.cz',
@@ -72,7 +72,7 @@ export default function NejlevnejsiETFTER() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Nejlevnější ETF 2025 - Nejnižší TER
+              Nejlevnější ETF 2026 - Nejnižší TER
             </h1>
             <p className="text-xl text-gray-600 mb-6">
               TOP 5 ETF fondů s nejnižšími ročními poplatky
@@ -85,7 +85,7 @@ export default function NejlevnejsiETFTER() {
           </div>
 
           <TwitterVariants 
-            title="Nejlevnější ETF 2025"
+            title="Nejlevnější ETF 2026"
             subtitle="TOP 5 s nejnižšími poplatky TER"
             data={lowTERETFs}
             mode="ter"

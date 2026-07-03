@@ -44,7 +44,7 @@ const MonteCarloContent: React.FC = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <span className="w-4 h-4 flex items-center justify-center">🎲</span>
-            Monte Carlo simulátor 2025
+            Monte Carlo simulátor 2026
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Monte Carlo simulace portfolia

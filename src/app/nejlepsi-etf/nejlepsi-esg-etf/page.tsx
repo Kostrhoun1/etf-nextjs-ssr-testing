@@ -85,7 +85,7 @@ export default async function NejlepsiESGETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší ESG ETF ${currentYear} - udržitelné investování a ESG faktory`,
-    "description": "Srovnání nejlepších ESG ETF 2025. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů.",
+    "description": "Srovnání nejlepších ESG ETF 2026. Udržitelné investování, ESG screening, klimatické cíle - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-esg-etf.jpg",
     "author": {
       "@type": "Person",
@@ -152,7 +152,7 @@ export default async function NejlepsiESGETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší ESG ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší ESG ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší ESG ETF jsou: iShares MSCI USA ESG Enhanced CTB UCITS ETF (IE00BHZPJ890) největší ESG ETF s 11,4 mld. EUR a TER 0,07%, JPMorgan US Research Enhanced Index Equity (ESG) UCITS ETF (IE00BF4G7076) s 9,6 mld. EUR a TER 0,20%, a Xtrackers MSCI USA ESG UCITS ETF (IE00BFMNPS42) s 7,9 mld. EUR a TER 0,15%."
@@ -425,11 +425,11 @@ export default async function NejlepsiESGETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="ESG" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="ESG" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -442,7 +442,7 @@ export default async function NejlepsiESGETFPage() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-green-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-green-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-green-800">Jaké jsou nejlepší ESG ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-green-800">Jaké jsou nejlepší ESG ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

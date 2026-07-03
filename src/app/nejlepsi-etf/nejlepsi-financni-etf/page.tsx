@@ -83,7 +83,7 @@ export default async function NejlepsiFinancniETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší finanční ETF ${currentYear} - banky a finanční sektor`,
-    "description": "Srovnání nejlepších finančních ETF 2025. Banky, pojišťovny, REIT - TER, velikost fondů.",
+    "description": "Srovnání nejlepších finančních ETF 2026. Banky, pojišťovny, REIT - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-financial-etf.jpg",
     "author": {
       "@type": "Person",
@@ -150,7 +150,7 @@ export default async function NejlepsiFinancniETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší finanční ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší finanční ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší finanční ETF jsou: iShares STOXX Europe 600 Banks UCITS ETF (EXS1, DE000A0F5UJ7) největší evropský bankovní ETF s 2,9 mld. EUR a TER 0,47%, Amundi Euro Stoxx Banks UCITS ETF (CB7, LU1829219390) s 2,9 mld. EUR a TER 0,30%, a iShares S&P 500 Financials Sector UCITS ETF (IUFS, IE00B4JNQZ49) s 2,1 mld. EUR a TER 0,15%."
@@ -423,11 +423,11 @@ export default async function NejlepsiFinancniETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="finanční" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="finanční" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -440,7 +440,7 @@ export default async function NejlepsiFinancniETFPage() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-slate-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-slate-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-slate-800">Jaké jsou nejlepší finanční ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-slate-800">Jaké jsou nejlepší finanční ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-slate-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

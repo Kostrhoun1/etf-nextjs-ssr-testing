@@ -231,7 +231,7 @@ export default function CategoryPageTemplate({
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
@@ -246,7 +246,7 @@ export default function CategoryPageTemplate({
               Top {Math.min(50, etfs.length)} ETF fondů seřazených podle velikosti a ratingu
             </p>
           </div>
-          <ETFTableServer etfs={etfs} showRank={true} currency="EUR" maxRows={50} />
+          <ETFTableServer etfs={etfs} showRank={true} currency="CZK" maxRows={50} />
           <div className="text-center mt-8">
             <Button asChild variant="outline" className="border-2">
               <Link href="/srovnani-etf">

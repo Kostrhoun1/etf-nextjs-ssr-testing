@@ -371,7 +371,7 @@ const EmergencyFundCalculator: React.FC = () => {
                 </div>
               </div>
               
-              <h4 className="font-semibold mb-2 text-orange-900">💰 Doporučené umístění rezervy (2025)</h4>
+              <h4 className="font-semibold mb-2 text-orange-900">💰 Doporučené umístění rezervy (2026)</h4>
               <div className="grid md:grid-cols-2 gap-3 mb-3 text-sm">
                 <div>
                   <h5 className="font-semibold mb-1">Spořicí účty CZK (70%):</h5>
@@ -397,7 +397,7 @@ const EmergencyFundCalculator: React.FC = () => {
               <ul className="text-sm text-gray-700 space-y-1">
                 <li>• <strong>Maximální rezerva:</strong> Omezeno na 12 měsíců (i když výpočet dává více)</li>
                 <li>• <strong>Minimální rezerva:</strong> Minimálně 3 měsíce ve všech případech</li>
-                <li>• <strong>Výnosy:</strong> Aktuální sazby k roku 2025, mohou se měnit</li>
+                <li>• <strong>Výnosy:</strong> Aktuální sazby k roku 2026, mohou se měnit</li>
                 <li>• <strong>Nezahrnuje:</strong> Inflaci, daně z výnosů, specifické životní situace</li>
                 <li>• <strong>Měsíční výdaje:</strong> Pouze nezbytné výdaje, ne luxus nebo spoření</li>
               </ul>

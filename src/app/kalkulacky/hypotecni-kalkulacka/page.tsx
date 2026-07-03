@@ -4,27 +4,27 @@ import Layout from '@/components/Layout';
 import MortgageCalculatorContent from '@/components/tools/MortgageCalculatorContent';
 
 export const metadata: Metadata = {
-  title: 'Hypoteční kalkulačka 2025 | Výpočet splátky hypotéky',
-  description: 'Přesná hypoteční kalkulačka 2025. Spočítejte si měsíční splátky hypotéky, celkové náklady na úvěr a porovnejte nabídky bank. Aktuální úrokové sazby.',
+  title: 'Hypoteční kalkulačka 2026 | Výpočet splátky hypotéky',
+  description: 'Přesná hypoteční kalkulačka 2026. Spočítejte si měsíční splátky hypotéky, celkové náklady na úvěr a porovnejte nabídky bank. Aktuální úrokové sazby.',
   keywords: [
-    'hypoteční kalkulačka 2025',
+    'hypoteční kalkulačka 2026',
     'výpočet hypotéky',
     'měsíční splátka hypotéky',
     'úrokové sazby hypotéky',
     'kalkulačka úvěru na bydlení',
-    'hypotéka 2025',
+    'hypotéka 2026',
     'refinancování hypotéky',
     'srovnání hypoték'
   ],
   openGraph: {
-    title: 'Hypoteční kalkulačka 2025 - Přesný výpočet splátky',
-    description: 'Spočítejte si přesnou výši měsíční splátky hypotéky s aktuálními úrokovými sazbami pro rok 2025.',
+    title: 'Hypoteční kalkulačka 2026 - Přesný výpočet splátky',
+    description: 'Spočítejte si přesnou výši měsíční splátky hypotéky s aktuálními úrokovými sazbami pro rok 2026.',
     type: 'website',
     locale: 'cs_CZ'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hypoteční kalkulačka 2025',
+    title: 'Hypoteční kalkulačka 2026',
     description: 'Přesný výpočet měsíční splátky hypotéky s aktuálními sazbami.'
   },
   alternates: {

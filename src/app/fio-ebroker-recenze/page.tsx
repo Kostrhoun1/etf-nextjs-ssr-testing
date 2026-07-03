@@ -546,7 +546,7 @@ export default function FioEbrokerRecenzePage() {
             },
             {
               title: "Čistý plat 2025",
-              href: "/kalkulacky/cisty-plat-2025",
+              href: "/kalkulacky/cisty-plat-2026",
               description: "Výpočet čisté mzdy"
             }
           ]}

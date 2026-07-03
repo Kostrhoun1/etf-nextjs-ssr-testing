@@ -341,11 +341,11 @@ export default async function NejlevnejsiETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="nejlevnější" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="nejlevnější" />
 
       {/* Selection Guide Section - Same as SP500 style */}
       <section className="py-20">

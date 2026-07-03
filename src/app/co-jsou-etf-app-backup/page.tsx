@@ -279,7 +279,7 @@ const WhatAreETFs: React.FC = () => {
 
           {/* 3. Nejlepší ETF pro začátečníky */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Nejlepší ETF fondy pro začátečníky v roce 2025</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Nejlepší ETF fondy pro začátečníky v roce 2026</h2>
             
             <p className="text-lg text-gray-700 mb-8">
               Pro začátečníky doporučujeme začít s jedním <strong>celosvětovým ETF</strong>, který poskytuje okamžitou diverzifikaci 

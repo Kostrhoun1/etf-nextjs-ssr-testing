@@ -112,7 +112,7 @@ export default async function NejlepsiBiotechnologyETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší biotechnologie ETF ${currentYear} - biotech a farmaceutika`,
-    "description": "Srovnání nejlepších biotechnologie ETF 2025. Biotech, farmaceutika, genomika - TER, velikost fondů.",
+    "description": "Srovnání nejlepších biotechnologie ETF 2026. Biotech, farmaceutika, genomika - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-biotechnology-etf.jpg",
     "author": {
       "@type": "Person",
@@ -179,7 +179,7 @@ export default async function NejlepsiBiotechnologyETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší biotechnologie ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší biotechnologie ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší biotechnologie ETF jsou: iShares Healthcare Innovation UCITS ETF (IE00BYZK4776) největší healthcare innovation ETF s 807 mil. EUR a TER 0,40%, iShares Nasdaq US Biotechnology UCITS ETF (IE00BYXG2H39) s 488 mil. EUR a TER 0,35%, a Invesco Nasdaq Biotech UCITS ETF (IE00BQ70R696) s 287 mil. EUR a TER 0,40%."
@@ -451,11 +451,11 @@ export default async function NejlepsiBiotechnologyETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="biotechnologie" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="biotechnologie" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -543,7 +543,7 @@ export default async function NejlepsiBiotechnologyETFPage() {
             <details className="group border border-gray-200 rounded-lg hover:border-blue-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-blue-50 rounded-lg group-open:rounded-b-none transition-colors">
                 <span className="font-semibold text-lg text-gray-900 group-hover:text-blue-800">
-                  Jaké jsou nejlepší biotechnologie ETF v roce 2025?
+                  Jaké jsou nejlepší biotechnologie ETF v roce 2026?
                 </span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

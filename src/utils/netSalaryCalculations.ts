@@ -29,7 +29,7 @@ export interface NetSalaryData {
   };
 }
 
-// Konstanty pro rok 2025
+// Konstanty pro rok 2026
 const SOCIAL_INSURANCE_RATE = 0.071; // 7.1% (6.5% důchodové + 0.6% nemocenské)
 const HEALTH_INSURANCE_RATE = 0.045; // 4.5%
 const PENSIONER_SOCIAL_INSURANCE_RATE = 0.006; // 0.6% nemocenské pro důchodce (po slevě na důchodovém)
@@ -38,8 +38,8 @@ const SICKNESS_INSURANCE_RATE = 0.006; // 0.6% nemocenské (součást sociální
 
 const INCOME_TAX_RATE_BASIC = 0.15; // 15%
 const INCOME_TAX_RATE_HIGH = 0.23; // 23%
-const AVERAGE_SALARY_2025 = 46557; // Kč
-const HIGH_TAX_THRESHOLD_MONTHLY = AVERAGE_SALARY_2025 * 36; // 1,676,052 Kč ročně = 139,671 Kč měsíčně
+const AVERAGE_SALARY_2026 = 48967; // Kč (průměrná mzda pro daňové účely 2026)
+const HIGH_TAX_THRESHOLD_MONTHLY = AVERAGE_SALARY_2026 * 36 / 12; // 146 901 Kč měsíčně (36× průměrné mzdy ročně = 1 762 812 Kč)
 
 const MONTHLY_TAX_CREDIT = 2570; // Kč
 const CHILD_TAX_CREDIT_FIRST = 1267; // Kč za 1. dítě

@@ -484,12 +484,12 @@ export default async function NejlepsiAmerickeETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Sections - by TER, AUM, Performance */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="americké" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="americké" />
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-red-50 to-blue-50">

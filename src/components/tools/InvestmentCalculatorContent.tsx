@@ -57,7 +57,7 @@ const InvestmentCalculatorContent: React.FC = () => {
       {
         "@type": "ListItem",
         "position": 3,
-        "name": "Investiční kalkulačka 2025",
+        "name": "Investiční kalkulačka 2026",
         "item": "https://www.etfpruvodce.cz/kalkulacky/investicni-kalkulacka"
       }
     ]
@@ -66,7 +66,7 @@ const InvestmentCalculatorContent: React.FC = () => {
   const calculatorSchema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Investiční kalkulačka 2025 - Pravidelné investování",
+    "name": "Investiční kalkulačka 2026 - Pravidelné investování",
     "description": "Bezplatná investiční kalkulačka pro výpočet výnosů z pravidelného měsíčního investování do ETF fondů. Včetně daní, inflace a složeného úročení.",
     "url": "https://www.etfpruvodce.cz/kalkulacky/investicni-kalkulacka",
     "applicationCategory": "FinanceApplication",
@@ -95,10 +95,10 @@ const InvestmentCalculatorContent: React.FC = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <TrendingUpIcon className="w-4 h-4" />
-            Investiční kalkulačka 2025
+            Investiční kalkulačka 2026
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Investiční kalkulačka 2025
+            Investiční kalkulačka 2026
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
             Spočítejte si výnosy z pravidelného měsíčního investování s efektem složeného úročení.
@@ -263,7 +263,7 @@ const InvestmentCalculatorContent: React.FC = () => {
             },
             {
               question: "Co je časový test a jak funguje v praxi?",
-              answer: "Časový test znamená, že pokud držíte ETF déle než 3 roky, zisky z prodeje se nezdaňují vůbec (0% daň). Test se počítá od data nákupu do data prodeje. Příklad: koupíte ETF 1.1.2025, prodáte 2.1.2028 = 3 roky a 1 den = 0% daň. Prodáte 31.12.2027 = méně než 3 roky = 15% daň."
+              answer: "Časový test znamená, že pokud držíte ETF déle než 3 roky, zisky z prodeje se nezdaňují vůbec (0% daň). Test se počítá od data nákupu do data prodeje. Příklad: koupíte ETF 1.1.2026, prodáte 2.1.2028 = 3 roky a 1 den = 0% daň. Prodáte 31.12.2027 = méně než 3 roky = 15% daň."
             },
             {
               question: "Kolik bych měl investovat měsíčně?",
@@ -321,8 +321,8 @@ const InvestmentCalculatorContent: React.FC = () => {
               description: "Analýza rizik vašeho portfolia"
             },
             {
-              title: "Nejlepší ETF 2025",
-              href: "/nejlepsi-etf/nejlepsi-etf-2025",
+              title: "Nejlepší ETF 2026",
+              href: "/nejlepsi-etf/nejlepsi-etf-2026",
               description: "Doporučené ETF fondy pro pravidelné investování"
             }
           ]}

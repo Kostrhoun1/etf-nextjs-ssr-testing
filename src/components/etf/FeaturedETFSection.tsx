@@ -139,7 +139,7 @@ export default function FeaturedETFSection({
         icon="📊"
         etfs={bySize}
         highlight="Top podle velikosti"
-        linkHref="/nejlepsi-etf/nejlepsi-etf-2025"
+        linkHref="/nejlepsi-etf/nejlepsi-etf-2026"
         linkText="Všechny nejlepší ETF"
       />
 
@@ -157,7 +157,7 @@ export default function FeaturedETFSection({
         icon="⭐"
         etfs={byRating}
         highlight="5★ rating"
-        linkHref="/nejlepsi-etf/nejlepsi-etf-2025"
+        linkHref="/nejlepsi-etf/nejlepsi-etf-2026"
         linkText="Top hodnocená ETF"
       />
 

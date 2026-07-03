@@ -217,7 +217,7 @@ const FeeCalculatorContent: React.FC = () => {
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 bg-violet-100 text-violet-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
           <CalculatorIcon className="w-4 h-4" />
-          Kalkulačka poplatků 2025
+          Kalkulačka poplatků 2026
         </div>
         
         <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
@@ -608,7 +608,7 @@ const FeeCalculatorContent: React.FC = () => {
               <div>
                 <h3 className="font-semibold text-lg mb-2">Kde najdu nejlevnější ETF s nejnižším TER?</h3>
                 <p className="text-gray-700">
-                  Nejlevnější ETF mají TER již od 0.03%. Nejlepší volby pro rok 2025: SPDR Core S&P 500 (0.03%), Vanguard S&P 500 (0.07%), iShares Core EURO STOXX 50 (0.10%). Použijte naše srovnání ETF pro nalezení fondů s nejnižšími poplatky seřazených podle TER.
+                  Nejlevnější ETF mají TER již od 0.03%. Nejlepší volby pro rok 2026: SPDR Core S&P 500 (0.03%), Vanguard S&P 500 (0.07%), iShares Core EURO STOXX 50 (0.10%). Použijte naše srovnání ETF pro nalezení fondů s nejnižšími poplatky seřazených podle TER.
                 </p>
               </div>
               
@@ -671,8 +671,8 @@ const FeeCalculatorContent: React.FC = () => {
                 <p className="text-sm text-gray-600">Brokeři s nejlevnějšími poplatky</p>
               </Link>
               
-              <Link href="/nejlepsi-etf/nejlepsi-etf-2025" className="block p-4 border rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors">
-                <h3 className="font-semibold mb-2">Nejlepší ETF 2025</h3>
+              <Link href="/nejlepsi-etf/nejlepsi-etf-2026" className="block p-4 border rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors">
+                <h3 className="font-semibold mb-2">Nejlepší ETF 2026</h3>
                 <p className="text-sm text-gray-600">Top ETF s nízkými náklady</p>
               </Link>
               

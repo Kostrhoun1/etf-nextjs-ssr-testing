@@ -558,8 +558,8 @@ export default function AkciovPortfolioPage() {
               description: "Dividendové akcie s 4% výnosem + růst"
             },
             {
-              title: "Nejlepší ETF 2025",
-              href: "/nejlepsi-etf/nejlepsi-etf-2025",
+              title: "Nejlepší ETF 2026",
+              href: "/nejlepsi-etf/nejlepsi-etf-2026",
               description: "Najděte nejlepší akciové ETF pro vaši strategii"
             }
           ]}

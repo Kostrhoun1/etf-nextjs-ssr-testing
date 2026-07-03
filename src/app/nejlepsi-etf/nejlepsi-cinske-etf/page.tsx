@@ -165,7 +165,7 @@ export default async function NejlepsiCinskeETF() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší čínské ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší čínské ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší čínské ETF jsou: iShares MSCI China UCITS ETF (IE00BJ5JPG56) s TER 0,28% a velikostí 3,5 mld EUR, Franklin FTSE China UCITS ETF (IE00BHZRR147) s TER 0,19% a velikostí 1,8 mld EUR, a iShares MSCI China A UCITS ETF (IE00BQT3WG13) s TER 0,40%."
@@ -456,11 +456,11 @@ export default async function NejlepsiCinskeETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="čínské" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="čínské" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -477,7 +477,7 @@ export default async function NejlepsiCinskeETF() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-yellow-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-yellow-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-yellow-800">Jaké jsou nejlepší čínské ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-yellow-800">Jaké jsou nejlepší čínské ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-yellow-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

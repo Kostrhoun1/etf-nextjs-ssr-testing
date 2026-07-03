@@ -41,18 +41,18 @@ const TOP_3_CYBERSECURITY_ETFS_TEMPLATE = [
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Nejlepší Kyberbezpečnost ETF 2025 | Srovnání',
-    description: 'Najděte nejlepší Kyberbezpečnost ETF pro rok 2025. Srovnání výkonnosti, poplatků a držených aktiv. Investujte do kybernetické bezpečnosti budoucnosti.',
-    keywords: 'kyberbezpečnost ETF, nejlepší cyber ETF 2025, kybernetická bezpečnost investice, cyber security ETF, ISPY ETF, SECT ETF, CIBR ETF',
+    title: 'Nejlepší Kyberbezpečnost ETF 2026 | Srovnání',
+    description: 'Najděte nejlepší Kyberbezpečnost ETF pro rok 2026. Srovnání výkonnosti, poplatků a držených aktiv. Investujte do kybernetické bezpečnosti budoucnosti.',
+    keywords: 'kyberbezpečnost ETF, nejlepší cyber ETF 2026, kybernetická bezpečnost investice, cyber security ETF, ISPY ETF, SECT ETF, CIBR ETF',
     openGraph: {
-      title: 'Nejlepší Kyberbezpečnost ETF 2025 | Srovnání',
+      title: 'Nejlepší Kyberbezpečnost ETF 2026 | Srovnání',
       description: 'Kompletní průvodce nejlepšími Kyberbezpečnost ETF. Analyzujeme výkonnost, poplatky a portfolia pro investice do kybernetické bezpečnosti.',
       type: 'article',
       url: 'https://etf-srovnani.cz/nejlepsi-etf/nejlepsi-kyberbezpecnost-etf',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Nejlepší Kyberbezpečnost ETF 2025',
+      title: 'Nejlepší Kyberbezpečnost ETF 2026',
       description: 'Srovnání nejlepších Kyberbezpečnost ETF pro investice do kybernetické bezpečnosti a ochrany digitálních dat.',
     },
     alternates: {
@@ -77,7 +77,7 @@ export default async function NejlepsiCybersecurityETFPage() {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `Nejlepší kyberbezpečnost ETF ${currentYear} - cybersecurity a ochrana dat`,
-    "description": "Srovnání nejlepších kyberbezpečnost ETF 2025. Cybersecurity, ochrana dat, L&G Cyber Security - TER, velikost fondů.",
+    "description": "Srovnání nejlepších kyberbezpečnost ETF 2026. Cybersecurity, ochrana dat, L&G Cyber Security - TER, velikost fondů.",
     "image": "https://www.etfpruvodce.cz/og-cybersecurity-etf.jpg",
     "author": {
       "@type": "Person",
@@ -144,7 +144,7 @@ export default async function NejlepsiCybersecurityETFPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší kyberbezpečnost ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší kyberbezpečnost ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší kyberbezpečnost ETF jsou: L&G Cyber Security UCITS ETF (ISPY, IE00BYPLS672) největší pure-play cybersecurity ETF s 2,42 mld. EUR, iShares Digital Security UCITS ETF (SECT, IE00BG0J4C88) s 1,46 mld. EUR a TER 0,40%, a First Trust Nasdaq Cybersecurity UCITS ETF (CIBR, IE00BF16M727) s 1,11 mld. EUR."
@@ -416,11 +416,11 @@ export default async function NejlepsiCybersecurityETFPage() {
               Naše doporučení na základě analýzy {etfs.length} ETF fondů
             </p>
           </div>
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="kybernetická bezpečnost" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="kybernetická bezpečnost" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -521,7 +521,7 @@ export default async function NejlepsiCybersecurityETFPage() {
             <details className="group border border-gray-200 rounded-lg hover:border-red-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-red-50 rounded-lg group-open:rounded-b-none transition-colors">
                 <span className="font-semibold text-lg text-gray-900 group-hover:text-red-800">
-                  Jaké jsou nejlepší kyberbezpečnost ETF v roce 2025?
+                  Jaké jsou nejlepší kyberbezpečnost ETF v roce 2026?
                 </span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-red-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

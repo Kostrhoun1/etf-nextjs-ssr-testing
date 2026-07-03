@@ -168,7 +168,7 @@ export default async function NejlepsiNASDAQETF() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší NASDAQ ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší NASDAQ ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší NASDAQ ETF jsou: iShares Nasdaq 100 UCITS ETF (CNDX, IE00B53SZB19) největší s nejvyšší likviditou, Amundi Nasdaq-100 UCITS ETF (ANX, LU1681038243) s efektivní swap replikací a nízkým TER, a Xtrackers Nasdaq 100 UCITS ETF (XNAS, IE00BMFKG444) se spolehlivou fyzickou replikací."
@@ -465,12 +465,12 @@ export default async function NejlepsiNASDAQETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Sections - by TER, AUM, Performance */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="Nasdaq" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="Nasdaq" />
 
       {/* Selection Guide Section */}
       <section className="py-20">
@@ -565,7 +565,7 @@ export default async function NejlepsiNASDAQETF() {
             <div className="max-w-4xl mx-auto space-y-6">
             {[
               {
-                question: "Jaké jsou nejlepší NASDAQ ETF v roce 2025?",
+                question: "Jaké jsou nejlepší NASDAQ ETF v roce 2026?",
                 answer: "Nejlepší NASDAQ ETF jsou: iShares Nasdaq 100 UCITS ETF (CNDX, IE00B53SZB19) největší s nejvyšší likviditou, Amundi Nasdaq-100 UCITS ETF (ANX, LU1681038243) s efektivní swap replikací a nízkým TER, a Xtrackers Nasdaq 100 UCITS ETF (XNAS, IE00BMFKG444) se spolehlivou fyzickou replikací."
               },
               {

@@ -484,12 +484,12 @@ export default async function NejlepsiEvropskeETFPage() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="EUR" />
+          <Top3ETFServer etfs={etfs.slice(0, 3)} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Sections - by TER, AUM, Performance */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="evropské" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="evropské" />
 
       {/* Selection Guide */}
       <section id="pruvodce" className="py-20 bg-gradient-to-br from-purple-50 to-indigo-50">
@@ -566,7 +566,7 @@ export default async function NejlepsiEvropskeETFPage() {
           <div className="space-y-8">
             {[
               {
-                question: "Jaké jsou nejlepší evropské ETF v roce 2025?",
+                question: "Jaké jsou nejlepší evropské ETF v roce 2026?",
                 answer: "Naše TOP 3 doporučení: Amundi Core Stoxx Europe 600 UCITS ETF (LYP6, LU0908500753) s rekordně nízkým TER 0,07% a velikostí 13+ mld. EUR, iShares Core MSCI Europe UCITS ETF (SMEA, IE00B4K48X80) s 12+ mld. EUR a TER 0,12%, a Vanguard FTSE Developed Europe UCITS ETF (VERX, IE00B945VV12) s TER 0,10% a distribucí dividend."
               },
               {

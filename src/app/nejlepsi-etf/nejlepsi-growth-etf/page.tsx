@@ -166,7 +166,7 @@ export default async function NejlepsiGrowthETF() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Jaké jsou nejlepší Growth ETF v roce 2025?",
+        "name": "Jaké jsou nejlepší Growth ETF v roce 2026?",
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Nejlepší Growth ETF jsou: Amundi Russell 1000 Growth UCITS ETF (RS1G, IE0005E8B9S4) největší pure growth factor ETF s 569 mil. EUR a TER 0,19%, iShares Russell 1000 Growth UCITS ETF (IUSG, IE000NITTFF2) s 414 mil. EUR, a JPMorgan Active US Growth UCITS ETF (JGRO, IE0005CH3U28) aktivně řízený growth ETF s 337 mil. EUR."
@@ -457,12 +457,12 @@ export default async function NejlepsiGrowthETF() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
       {/* Top 10 Database Sections */}
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="Growth" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="Growth" />
 
       {/* FAQ Section */}
       <section className="py-20">
@@ -479,7 +479,7 @@ export default async function NejlepsiGrowthETF() {
           <div className="space-y-6">
             <details className="group border border-gray-200 rounded-lg hover:border-blue-200 transition-colors">
               <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-blue-50 rounded-lg group-open:rounded-b-none transition-colors">
-                <span className="font-semibold text-lg text-gray-900 group-hover:text-blue-800">Jaké jsou nejlepší Growth ETF v roce 2025?</span>
+                <span className="font-semibold text-lg text-gray-900 group-hover:text-blue-800">Jaké jsou nejlepší Growth ETF v roce 2026?</span>
                 <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>

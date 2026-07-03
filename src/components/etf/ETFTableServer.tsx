@@ -76,10 +76,10 @@ export default function ETFTableServer({
             {showRank && <th className="text-center p-3 font-semibold text-gray-900 w-12">#</th>}
             <th className="text-left p-3 font-semibold text-gray-900">ETF fond</th>
             <th className="text-center p-3 font-semibold text-gray-900 w-20">TER</th>
-            <th className="text-center p-3 font-semibold text-gray-900 w-20">YTD</th>
-            <th className="text-center p-3 font-semibold text-gray-900 w-20">1R</th>
-            <th className="text-center p-3 font-semibold text-gray-900 w-20">3R</th>
-            <th className="text-center p-3 font-semibold text-gray-900 w-20">5R</th>
+            <th className="text-center p-3 font-semibold text-gray-900 w-20">YTD{currency === 'CZK' ? ' (Kč)' : ''}</th>
+            <th className="text-center p-3 font-semibold text-gray-900 w-20">1R{currency === 'CZK' ? ' (Kč)' : ''}</th>
+            <th className="text-center p-3 font-semibold text-gray-900 w-20">3R{currency === 'CZK' ? ' (Kč)' : ''}</th>
+            <th className="text-center p-3 font-semibold text-gray-900 w-20">5R{currency === 'CZK' ? ' (Kč)' : ''}</th>
             <th className="text-center p-3 font-semibold text-gray-900 w-28">Velikost</th>
           </tr>
         </thead>

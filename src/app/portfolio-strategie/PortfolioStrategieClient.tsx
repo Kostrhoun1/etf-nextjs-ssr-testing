@@ -258,8 +258,8 @@ const PortfolioStrategieClient: React.FC<PortfolioStrategieClientProps> = ({ cur
             description: "Kompletní průvodce pro začátečníky"
           },
           {
-            title: "Nejlepší ETF 2025",
-            href: "/nejlepsi-etf/nejlepsi-etf-2025",
+            title: "Nejlepší ETF 2026",
+            href: "/nejlepsi-etf/nejlepsi-etf-2026",
             description: "Doporučené ETF fondy pro jednotlivé strategie"
           }
         ]}

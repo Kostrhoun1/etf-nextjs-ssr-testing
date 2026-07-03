@@ -27,16 +27,16 @@ export async function generateMetadata(): Promise<Metadata> {
     description: `Top 3 nejlepší ETF fondy pro rok ${currentYear}. CSPX, IWDA, VWCE - srovnání poplatků TER, výnosů, velikosti fondů. Aktuální data k ${currentDate}.`,
     keywords: `nejlepší ETF ${currentYear}, CSPX, IWDA, VWCE, ETF fondy, investování, indexové fondy`,
     alternates: {
-      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-etf-2025',
+      canonical: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-etf-2026',
     },
     openGraph: {
       title: `Nejlepší ETF ${currentYear} - Top 3 doporučení pro české investory`,
       description: `Kompletní srovnání nejlepších ETF fondů pro rok ${currentYear}. Analýza CSPX, IWDA, VWCE - poplatky, výnosy, rizika.`,
-      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-etf-2025',
+      url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-etf-2026',
       siteName: 'ETF průvodce.cz',
       images: [
         {
-          url: 'https://www.etfpruvodce.cz/og-best-etf-2025.jpg',
+          url: 'https://www.etfpruvodce.cz/og-best-etf-2026.jpg',
           width: 1200,
           height: 630,
           alt: `Nejlepší ETF ${currentYear} - srovnání VWCE vs CSPX vs IWDA`,
@@ -49,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `Nejlepší ETF ${currentYear} - Top 3 doporučení`,
       description: `Srovnání nejlepších ETF fondů ${currentYear}: CSPX, IWDA, VWCE. Poplatky, výnosy, praktické tipy.`,
-      images: ['https://www.etfpruvodce.cz/og-best-etf-2025.jpg'],
+      images: ['https://www.etfpruvodce.cz/og-best-etf-2026.jpg'],
     },
     robots: {
       index: true,
@@ -75,9 +75,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function NejlepsiETF2025() {
+export default async function NejlepsiETF2026() {
   // Server-side data fetching - data is included in HTML at build time
-  const config = categoryConfigs['nejlepsi-etf-2025'];
+  const config = categoryConfigs['nejlepsi-etf-2026'];
   const [etfs, lastModified] = await Promise.all([
     getTopETFsForCategory(config),
     getLastModifiedDate(),
@@ -96,7 +96,7 @@ export default async function NejlepsiETF2025() {
     "@type": "Article",
     "headline": `Nejlepší ETF ${currentYear} - Top 3 doporučení pro české investory`,
     "description": `Kompletní srovnání nejlepších ETF fondů pro rok ${currentYear}. CSPX, IWDA, VWCE - poplatky TER, výnosy, velikost fondů.`,
-    "image": "https://www.etfpruvodce.cz/og-best-etf-2025.jpg",
+    "image": "https://www.etfpruvodce.cz/og-best-etf-2026.jpg",
     "author": {
       "@type": "Person",
       "name": "Tomáš Kostrhoun",
@@ -114,7 +114,7 @@ export default async function NejlepsiETF2025() {
     "dateModified": lastModified,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf-2025"
+      "@id": "https://www.etfpruvodce.cz/nejlepsi-etf-2026"
     },
     "articleSection": "Investment Guides",
     "keywords": `nejlepší ETF ${currentYear}, CSPX, IWDA, VWCE, ETF fondy, investování`,
@@ -187,7 +187,7 @@ export default async function NejlepsiETF2025() {
         "@type": "ListItem",
         "position": 3,
         "name": `Nejlepší ETF ${currentYear}`,
-        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-etf-2025"
+        "item": "https://www.etfpruvodce.cz/nejlepsi-etf/nejlepsi-etf-2026"
       }
     ]
   };
@@ -332,11 +332,11 @@ export default async function NejlepsiETF2025() {
             </p>
           </div>
 
-          <Top3ETFServer etfs={etfs} currency="EUR" />
+          <Top3ETFServer etfs={etfs} currency="CZK" />
         </div>
       </section>
 
-      <Top10SectionsServer etfs={etfs} currency="EUR" categoryName="ETF 2025" />
+      <Top10SectionsServer etfs={etfs} currency="CZK" categoryName="ETF 2026" />
 
       {/* Selection Guide Section */}
       <section className="py-20">

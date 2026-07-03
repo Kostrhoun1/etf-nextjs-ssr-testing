@@ -4,8 +4,8 @@ import Layout from '@/components/Layout';
 import FeeCalculatorContent from '@/components/tools/FeeCalculatorContent';
 
 export const metadata: Metadata = {
-  title: 'Kalkulačka poplatků ETF 2025 - TER a dopad na výnosy',
-  description: '✅ Spočítejte si dopad poplatků ETF na dlouhodobé výnosy. Srovnání TER, transakčních poplatků a jejich vliv na investice do ETF fondů. Zdarma 2025.',
+  title: 'Kalkulačka poplatků ETF 2026 - TER a dopad na výnosy',
+  description: '✅ Spočítejte si dopad poplatků ETF na dlouhodobé výnosy. Srovnání TER, transakčních poplatků a jejich vliv na investice do ETF fondů. Zdarma 2026.',
   alternates: {
     canonical: 'https://www.etfpruvodce.cz/kalkulacky/kalkulacka-poplatku-etf'
   }
