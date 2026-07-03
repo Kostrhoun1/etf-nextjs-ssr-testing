@@ -146,7 +146,7 @@ export const brokers: Broker[] = [
     description: 'Americká brokerská společnost založená v roce 1977 s 2,7+ miliony účtů. Profesionální řešení pro zkušené investory.',
     rating: 85,
     regulation: 'CBI (IE pro CZ klienty), SEC (US)',
-    protection: '20 000 EUR (ICF), 500 000 USD (SIPC)',
+    protection: '20 000 EUR (ICF, IE); SIPC jen US entita',
     etfFee: '$0.005/akcii (min. $1)',
     managementFee: '0 EUR (zrušen od 2021)',
     fxFee: '0,002% (min. $2)',
