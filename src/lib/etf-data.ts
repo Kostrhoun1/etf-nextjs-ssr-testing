@@ -331,6 +331,42 @@ export async function getReturnsByIsins(
 }
 
 /**
+ * Metriky pro sadu ISINů – výnos (1R/3R v Kč), kolísavost (1R) a max. pokles (1R).
+ * Pro srovnání modelových portfolií se 100% akciovým benchmarkem (S&P 500).
+ */
+export type IsinMetrics = {
+  return_1y_czk: number | null;
+  return_3y_czk: number | null;
+  volatility_1y: number | null;
+  max_drawdown_1y: number | null;
+};
+export async function getMetricsByIsins(
+  isins: string[],
+): Promise<Record<string, IsinMetrics>> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select('isin, return_1y_czk, return_3y_czk, volatility_1y, max_drawdown_1y')
+      .in('isin', isins);
+    if (error || !data) return {};
+    const num = (v: unknown) => (v != null ? Number(v) : null);
+    const map: Record<string, IsinMetrics> = {};
+    for (const row of data as Array<Record<string, unknown>>) {
+      map[row.isin as string] = {
+        return_1y_czk: num(row.return_1y_czk),
+        return_3y_czk: num(row.return_3y_czk),
+        volatility_1y: num(row.volatility_1y),
+        max_drawdown_1y: num(row.max_drawdown_1y),
+      };
+    }
+    return map;
+  } catch (e) {
+    console.error('Error in getMetricsByIsins:', e);
+    return {};
+  }
+}
+
+/**
  * Načte vybrané ETF podle ISINů (zachová pořadí vstupu) – pro kurátorské sekce
  * jako „kterým ETF začít".
  */

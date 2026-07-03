@@ -13,7 +13,10 @@ import { PortfolioBar } from '@/components/design-preview/portfolioComponents';
 import {
   portfolioModels, ASSET_COLORS, RISK_PILL,
 } from '@/components/design-preview/portfolioData';
-import { getReturnsByIsins } from '@/lib/etf-data';
+import { getMetricsByIsins } from '@/lib/etf-data';
+
+/* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
+const SP500_ISIN = 'IE00B5BMR087';
 
 export const revalidate = 86400;
 
@@ -49,10 +52,11 @@ export default async function PortfolioDetailPreview(
   const dateStr = new Date(today.getFullYear(), today.getMonth(), 1)
     .toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  // Reálná vážená výkonnost v Kč z držených fondů.
+  // Reálné metriky z DB pro složky portfolia + benchmark S&P 500.
   const isins = model.allocations.map((a) => a.isin);
-  const ret = await getReturnsByIsins(isins);
-  const weighted = (key: 'return_1y_czk' | 'return_3y_czk') => {
+  const ret = await getMetricsByIsins([...isins, SP500_ISIN]);
+  const sp = ret[SP500_ISIN];
+  const weighted = (key: 'return_1y_czk' | 'return_3y_czk' | 'volatility_1y') => {
     let sum = 0, w = 0;
     for (const a of model.allocations) {
       const v = ret[a.isin]?.[key];
@@ -62,6 +66,45 @@ export default async function PortfolioDetailPreview(
   };
   const perf1y = weighted('return_1y_czk');
   const perf3y = weighted('return_3y_czk');
+
+  // Kolísavost portfolia: vážený průměr přeceňuje riziko (ignoruje diverzifikaci).
+  // Počítáme přes kovarianční vzorec s konzervativní cross-asset korelací 0,3,
+  // takže je vidět reálný efekt diverzifikace (nižší vol než u čistě akciového indexu).
+  const RHO = 0.3;
+  const pfVol = (() => {
+    const parts = model.allocations
+      .map((a) => ({ w: a.percentage / 100, s: ret[a.isin]?.volatility_1y }))
+      .filter((x): x is { w: number; s: number } => x.s != null);
+    if (parts.length === 0) return null;
+    const wsum = parts.reduce((s, x) => s + x.w, 0);
+    const p = parts.map((x) => ({ w: x.w / wsum, s: x.s }));
+    let v = 0;
+    for (let i = 0; i < p.length; i++)
+      for (let j = 0; j < p.length; j++)
+        v += p[i].w * p[j].w * p[i].s * p[j].s * (i === j ? 1 : RHO);
+    return Math.sqrt(v);
+  })();
+
+  // Srovnání se S&P 500 (jen když máme obě strany).
+  const cmp = (sp && (perf1y != null || pfVol != null)) ? {
+    ret1y: { pf: perf1y, sp: sp.return_1y_czk },
+    ret3y: { pf: perf3y, sp: sp.return_3y_czk },
+    vol: { pf: pfVol, sp: sp.volatility_1y },
+  } : null;
+  const fmtVol = (v: number | null) =>
+    v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  const cmpNarrative = (() => {
+    if (!cmp) return '';
+    const parts: string[] = [];
+    if (cmp.vol.pf != null && cmp.vol.sp != null) {
+      parts.push(`Kolísavost tohoto portfolia byla za poslední rok ${fmtVol(cmp.vol.pf)} oproti ${fmtVol(cmp.vol.sp)} u čistě akciového S&P 500 – ${cmp.vol.pf < cmp.vol.sp ? 'tedy klidnější průběh s menšími výkyvy' : 'srovnatelný průběh'}.`);
+    }
+    if (cmp.ret1y.pf != null && cmp.ret1y.sp != null) {
+      parts.push(`Ve výnosu ale ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostalo' : 'nezaostalo'}: ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)} za rok.`);
+    }
+    parts.push('To je podstata diverzifikace – menší výkyvy výměnou za nižší růst. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní vzájemné korelaci 0,3; protože se aktiva nehýbou stejně, je celková kolísavost nižší než u jednotlivých složek.');
+    return parts.join(' ');
+  })();
 
   const stats: { icon: typeof Target; label: ReactNode; value: string }[] = [
     {
@@ -189,6 +232,45 @@ export default async function PortfolioDetailPreview(
             </table>
           </div>
         </section>
+
+        {/* SROVNÁNÍ SE S&P 500 */}
+        {cmp && (
+          <section className="pb-8">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie (S&amp;P 500)</h2>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu i v kolísavosti.</p>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5">
+              {[
+                { label: 'Výnos za 1 rok (Kč)', pf: cmp.ret1y.pf, sp: cmp.ret1y.sp, kind: 'ret' as const },
+                { label: 'Výnos za 3 roky (Kč)', pf: cmp.ret3y.pf, sp: cmp.ret3y.sp, kind: 'ret' as const },
+                { label: 'Kolísavost za 1 rok (odhad)', pf: cmp.vol.pf, sp: cmp.vol.sp, kind: 'vol' as const },
+              ].filter((r) => r.pf != null && r.sp != null).map((r, i) => {
+                const max = Math.max(Math.abs(r.pf as number), Math.abs(r.sp as number), 1);
+                const fmt = r.kind === 'ret' ? pct : fmtVol;
+                const rows = [
+                  { who: 'Toto portfolio', v: r.pf as number, bar: 'bg-teal-600' },
+                  { who: 'S&P 500', v: r.sp as number, bar: 'bg-slate-400' },
+                ];
+                return (
+                  <div key={i}>
+                    <p className="text-sm font-medium text-slate-700 mb-1.5">{r.label}</p>
+                    <div className="space-y-1.5">
+                      {rows.map((x) => (
+                        <div key={x.who} className="flex items-center gap-2">
+                          <span className="w-24 shrink-0 text-xs text-slate-500">{x.who}</span>
+                          <span className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                            <span className={`block h-full rounded-full ${x.bar}`} style={{ width: `${(Math.abs(x.v) / max) * 100}%` }} />
+                          </span>
+                          <span className="w-16 shrink-0 text-right text-sm font-semibold tabular-nums text-slate-800">{fmt(x.v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              <p className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700 leading-relaxed">{cmpNarrative}</p>
+            </div>
+          </section>
+        )}
 
         {/* PRO KOHO */}
         <section className="pb-8">
