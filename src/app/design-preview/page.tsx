@@ -246,7 +246,7 @@ export default async function DesignPreviewV2() {
                 <h2 className="text-lg font-bold tracking-tight">Jak si vedou trhy</h2>
                 <p className="text-sm text-slate-500 mt-0.5">Výnos největšího fondu v dané oblasti za posledních 12 měsíců, přepočtený do korun.</p>
               </div>
-              <Link href="/infografiky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">tržní heatmapa <ArrowRight className="w-4 h-4" /></Link>
+              <Link href="/design-preview/infografiky#trzni-heatmapa" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">tržní heatmapa <ArrowRight className="w-4 h-4" /></Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
               {markets.map((m) => {
