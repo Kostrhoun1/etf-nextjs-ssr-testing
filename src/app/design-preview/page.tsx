@@ -318,7 +318,7 @@ export default async function DesignPreviewV2() {
               const Icon = PORTFOLIO_ICON[p.id] ?? LayoutGrid;
               const pos1 = (p.return1y ?? 0) >= 0;
               return (
-                <Link key={p.slug} href={`/portfolio-strategie/${p.slug}`} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
+                <Link key={p.slug} href={`/design-preview/portfolio-strategie/${p.slug}`} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 group-hover:bg-teal-100 transition-colors shrink-0"><Icon className="w-5 h-5" /></span>
                     <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium leading-none ${RISK_PILL[p.risk]}`}>{p.risk}</span>
