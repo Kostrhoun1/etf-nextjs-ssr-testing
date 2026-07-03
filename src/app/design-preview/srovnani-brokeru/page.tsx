@@ -98,7 +98,11 @@ const FAQ = [
 
 export default function SrovnaniBrokeruPage() {
   const published = '2026-01-10T08:00:00+01:00';
-  const modified = '2026-06-14T08:00:00+02:00';
+  // Datum aktualizace = 1. den aktuálního měsíce (viz MAINTENANCE-mesicni-kontrola.md).
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const modified = firstOfMonth.toISOString();
+  const dateStr = firstOfMonth.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -181,7 +185,7 @@ export default function SrovnaniBrokeruPage() {
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
             <span>6 brokerů</span>
             <span aria-hidden>·</span>
-            <span>aktualizováno 6/2026</span>
+            <span>aktualizováno {dateStr}</span>
             <span aria-hidden>·</span>
             <span>redakční skóre /100</span>
           </p>
