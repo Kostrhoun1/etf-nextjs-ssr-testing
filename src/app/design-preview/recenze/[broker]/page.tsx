@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import { notFound } from 'next/navigation';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
@@ -79,6 +80,7 @@ export default async function BrokerReviewPreview(
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="text-teal-700 font-medium">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
         </div>
       </header>

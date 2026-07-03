@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import InfoTip from '@/components/design-preview/InfoTip';
 import StructuredData from '@/components/SEO/StructuredData';
@@ -86,7 +87,7 @@ export default function PortfolioStrategieDesignPreview() {
     { href: '/design-preview/monte-carlo', label: 'Monte Carlo simulátor', desc: 'Pravděpodobnostní výhled vývoje portfolia', icon: Activity },
     { href: '/design-preview/srovnani', label: 'Srovnávač ETF', desc: 'Porovnejte konkrétní fondy do portfolia', icon: Search },
     { href: '/design-preview/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera pro české investory', icon: Landmark },
-    { href: '/co-jsou-etf/jak-zacit-investovat', label: 'Jak začít investovat', desc: 'Krok za krokem k prvnímu nákupu', icon: BookOpen },
+    { href: '/design-preview/jak-zacit', label: 'Jak začít investovat', desc: 'Krok za krokem k prvnímu nákupu', icon: BookOpen },
   ];
 
   const EDU = [
@@ -117,6 +118,7 @@ export default function PortfolioStrategieDesignPreview() {
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>

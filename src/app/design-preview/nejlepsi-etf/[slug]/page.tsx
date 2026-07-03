@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import { notFound } from 'next/navigation';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
@@ -9,6 +10,7 @@ import {
 import { getTopETFsForCategory, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
 import { ter, money, pct, shortName, RankPanel, SectionHead } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent } from '@/components/design-preview/categoryContent';
+import CompareButton from '@/components/design-preview/CompareButton';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
 export const revalidate = 86400;
@@ -87,6 +89,7 @@ export default async function CategoryDetailPreview(
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
@@ -130,24 +133,28 @@ export default async function CategoryDetailPreview(
             <SectionHead title="Naše doporučené ETF" desc="Konkrétní fondy z kategorie – klikněte pro detail s výnosem v Kč, složením a riziky." />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {recos.map(({ tag, icon: Icon, etf, note }, i) => (
-                <Link
+                <div
                   key={etf.isin}
-                  href={`/design-preview/etf/${etf.isin}`}
-                  className={`group flex flex-col min-w-0 rounded-xl border bg-white p-5 transition-all hover:shadow-sm ${i === 0 ? 'border-teal-300 ring-1 ring-teal-100' : 'border-slate-200 hover:border-teal-300'}`}
+                  className={`group relative flex flex-col min-w-0 rounded-xl border bg-white p-5 transition-all hover:shadow-sm ${i === 0 ? 'border-teal-300 ring-1 ring-teal-100' : 'border-slate-200 hover:border-teal-300'}`}
                 >
-                  <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700">
-                    <Icon className="w-3.5 h-3.5" /> {tag}
-                  </span>
-                  <span className="mt-3 text-lg font-bold text-slate-900">{etf.primary_ticker ?? shortName(etf.name)}</span>
-                  <span className="text-xs text-slate-500 leading-snug line-clamp-2">{shortName(etf.name)}</span>
-                  <p className="mt-2 text-xs text-slate-600 leading-snug">{note}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs">
-                    <span className="text-slate-500">TER <span className="font-semibold text-slate-800 tabular-nums">{ter(etf.ter_numeric)}</span></span>
-                    <span className="text-slate-500">1R <span className={`font-semibold tabular-nums ${(etf.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(etf.return_1y_czk)}</span></span>
-                    <span className="text-slate-500">Velikost <span className="font-semibold text-slate-800 tabular-nums">{money(etf.fund_size_numeric)}</span></span>
+                  <div className="absolute right-3 top-3 z-10">
+                    <CompareButton isin={etf.isin} label={etf.primary_ticker ?? shortName(etf.name)} variant="chip" />
                   </div>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Detail fondu <ArrowRight className="w-4 h-4" /></span>
-                </Link>
+                  <Link href={`/design-preview/etf/${etf.isin}`} className="flex flex-col min-w-0">
+                    <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700">
+                      <Icon className="w-3.5 h-3.5" /> {tag}
+                    </span>
+                    <span className="mt-3 text-lg font-bold text-slate-900">{etf.primary_ticker ?? shortName(etf.name)}</span>
+                    <span className="text-xs text-slate-500 leading-snug line-clamp-2">{shortName(etf.name)}</span>
+                    <p className="mt-2 text-xs text-slate-600 leading-snug">{note}</p>
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs">
+                      <span className="text-slate-500">TER <span className="font-semibold text-slate-800 tabular-nums">{ter(etf.ter_numeric)}</span></span>
+                      <span className="text-slate-500">1R <span className={`font-semibold tabular-nums ${(etf.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(etf.return_1y_czk)}</span></span>
+                      <span className="text-slate-500">Velikost <span className="font-semibold text-slate-800 tabular-nums">{money(etf.fund_size_numeric)}</span></span>
+                    </div>
+                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Detail fondu <ArrowRight className="w-4 h-4" /></span>
+                  </Link>
+                </div>
               ))}
             </div>
           </section>

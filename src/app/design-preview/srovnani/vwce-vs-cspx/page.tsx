@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { getComparisonETFData, type ComparisonETF } from '@/lib/etf-data';
 import {
@@ -143,6 +144,7 @@ export default async function SrovnaniPreview() {
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
@@ -562,13 +564,13 @@ export default async function SrovnaniPreview() {
           <p className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-2">Další oblíbené souboje</p>
           <div className="grid sm:grid-cols-2 gap-3 mb-5">
             {[
-              { slug: 'iwda-vs-cspx', label: 'IWDA vs CSPX', verdict: 'MSCI World (vyspělý svět) vs S&P 500 (jen USA).' },
-              { slug: 'vwce-vs-iwda', label: 'VWCE vs IWDA', verdict: 'All-World (i rozvíjející se trhy) vs MSCI World.' },
-              { slug: 'cspx-vs-vuaa', label: 'CSPX vs VUAA', verdict: 'Dva akumulační S&P 500 fondy – rozhoduje velikost.' },
-              { slug: 'cspx-vs-eunl', label: 'CSPX vs EUNL', verdict: 'USA vs vyspělý svět včetně Evropy a Japonska.' },
-              { slug: 'vwce-vs-vwrl', label: 'VWCE vs VWRL', verdict: 'Stejný index All-World: akumulační vs distribuční.' },
+              { slug: 'iwda-vs-cspx', href: '/design-preview/srovnani?q=IWDA', label: 'IWDA vs CSPX', verdict: 'MSCI World (vyspělý svět) vs S&P 500 (jen USA).' },
+              { slug: 'vwce-vs-iwda', href: '/design-preview/srovnani?q=VWCE', label: 'VWCE vs IWDA', verdict: 'All-World (i rozvíjející se trhy) vs MSCI World.' },
+              { slug: 'cspx-vs-vuaa', href: '/design-preview/srovnani?q=VUAA', label: 'CSPX vs VUAA', verdict: 'Dva akumulační S&P 500 fondy – rozhoduje velikost.' },
+              { slug: 'cspx-vs-eunl', href: '/design-preview/srovnani?q=EUNL', label: 'CSPX vs EUNL', verdict: 'USA vs vyspělý svět včetně Evropy a Japonska.' },
+              { slug: 'vwce-vs-vwrl', href: '/design-preview/srovnani?q=VWRL', label: 'VWCE vs VWRL', verdict: 'Stejný index All-World: akumulační vs distribuční.' },
             ].map((d) => (
-              <Link key={d.slug} href={`/srovnani-etf/${d.slug}`} className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
+              <Link key={d.slug} href={d.href} className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span>
                   <span className="block font-semibold text-slate-900">{d.label}</span>
                   <span className="block text-sm text-slate-600 mt-0.5 leading-snug">{d.verdict}</span>

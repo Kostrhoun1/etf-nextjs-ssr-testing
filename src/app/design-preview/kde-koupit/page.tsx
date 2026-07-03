@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   TrendingUp, ArrowRight, Trophy, Info, ShieldCheck,
@@ -157,6 +158,7 @@ export default function KdeKoupitPreview() {
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="text-slate-900 font-medium">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
         </div>
       </header>
@@ -498,7 +500,7 @@ export default function KdeKoupitPreview() {
             {([
               ['/design-preview/srovnani-brokeru', 'Recenze brokerů', BadgeCheck],
               ['/design-preview/pruvodce', 'Co jsou ETF', BookOpen],
-              ['/co-jsou-etf/jak-zacit-investovat', 'Jak začít investovat', ArrowDownToLine],
+              ['/design-preview/jak-zacit', 'Jak začít investovat', ArrowDownToLine],
               ['/design-preview/zebricky', 'Nejlepší ETF', Trophy],
               ['/design-preview/srovnani', 'Srovnávač ETF', Layers],
               ['/design-preview/kalkulacka', 'Kalkulačka poplatků', Calculator],

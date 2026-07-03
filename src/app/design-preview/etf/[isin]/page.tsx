@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import CompareButton from '@/components/design-preview/CompareButton';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -305,6 +307,7 @@ export default async function ETFDetailPreview(
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
@@ -358,9 +361,9 @@ export default async function ETFDetailPreview(
                 <Link href="/design-preview/kde-koupit" className="flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 w-full">
                   Kde koupit tento fond <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link href="/design-preview/srovnani" className="mt-2.5 flex items-center justify-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 w-full">
-                  Porovnat s jiným fondem
-                </Link>
+                <div className="mt-2.5">
+                  <CompareButton isin={etf.isin} label={ticker !== '—' ? ticker : shortName} variant="hero" />
+                </div>
               </div>
             </div>
           </div>

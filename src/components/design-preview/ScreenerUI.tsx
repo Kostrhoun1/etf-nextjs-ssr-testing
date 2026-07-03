@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from 'lucide-react';
 import type { ComparisonETF } from '@/lib/etf-data';
+import CompareButton from '@/components/design-preview/CompareButton';
 
 type SortKey = 'name' | 'ter' | 'size' | 'r1' | 'r3' | 'div';
 type SortDir = 'asc' | 'desc';
@@ -149,6 +150,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
               <SortH k="r3" right>3R (Kč)</SortH>
               <SortH k="div" right>Div.</SortH>
               <th className="py-2.5 px-3 font-medium text-center">Typ</th>
+              <th className="py-2.5 px-3 font-medium text-center"><span className="sr-only">Porovnat</span></th>
             </tr>
           </thead>
           <tbody>
@@ -170,10 +172,13 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
                     {isAcc(e.distribution_policy) ? 'ACC' : 'DIST'}
                   </span>
                 </td>
+                <td className="py-3 px-3">
+                  <div className="flex justify-center"><CompareButton isin={e.isin} label={e.primary_ticker ?? e.name.slice(0, 8)} variant="chip" /></div>
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan={7} className="py-10 text-center text-sm text-slate-400">Žádný fond neodpovídá filtrům. <button onClick={resetFilters} className="text-teal-700 hover:underline">Zrušit filtry</button></td></tr>
+              <tr><td colSpan={8} className="py-10 text-center text-sm text-slate-400">Žádný fond neodpovídá filtrům. <button onClick={resetFilters} className="text-teal-700 hover:underline">Zrušit filtry</button></td></tr>
             )}
           </tbody>
         </table>

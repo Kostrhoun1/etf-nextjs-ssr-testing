@@ -514,6 +514,35 @@ export async function getComparisonETFData(
 }
 
 /**
+ * Načte ETF pro detailní porovnání dle ISINů (nový design – stránka „porovnání").
+ * Zachovává pořadí vstupu.
+ */
+export async function getComparisonETFsByIsins(isins: string[]): Promise<ComparisonETF[]> {
+  if (!isins.length) return [];
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select(`
+        isin, name, fund_provider, primary_ticker,
+        ter_numeric, fund_size_numeric,
+        return_1y, return_3y, return_5y, return_ytd,
+        return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
+        volatility_1y, max_drawdown_1y,
+        current_dividend_yield_numeric,
+        distribution_policy, replication, index_name, region,
+        fund_currency, fund_domicile, total_holdings, inception_date
+      `)
+      .in('isin', isins.slice(0, 4));
+    if (error || !data) return [];
+    const byIsin = new Map((data as ComparisonETF[]).map((e) => [e.isin, e]));
+    return isins.map((i) => byIsin.get(i)).filter((e): e is ComparisonETF => !!e);
+  } catch (error) {
+    console.error('Error in getComparisonETFsByIsins:', error);
+    return [];
+  }
+}
+
+/**
  * Seznam ETF pro screener (nový design) – největší fondy s poli pro filtrování/řazení.
  * Omezeno na N největších podle velikosti, aby byl klientský filtr svižný.
  */

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   getFeaturedETFs, getTotalETFCount, getMarketSnapshot, getReturnsByIsins,
@@ -200,6 +201,7 @@ export default async function DesignPreviewV2() {
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
@@ -417,8 +419,8 @@ export default async function DesignPreviewV2() {
               <Link href="/design-preview/srovnani" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">srovnat <ArrowRight className="w-4 h-4" /></Link>
             </div>
             <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-              {[['vwce-vs-cspx', 'VWCE vs CSPX'], ['iwda-vs-cspx', 'IWDA vs CSPX'], ['vwce-vs-iwda', 'VWCE vs IWDA'], ['swrd-vs-iwda', 'SWRD vs IWDA'], ['cspx-vs-vuaa', 'CSPX vs VUAA'], ['vwce-vs-vwrl', 'VWCE vs VWRL']].map(([slug, label]) => (
-                <li key={slug}><Link href={`/srovnani-etf/${slug}`} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 hover:border-teal-300 hover:bg-teal-50/40 transition-all"><span className="font-medium text-slate-700">{label}</span><ArrowUpRight className="w-3.5 h-3.5 text-slate-400" /></Link></li>
+              {[['/design-preview/srovnani/vwce-vs-cspx', 'VWCE vs CSPX'], ['/design-preview/srovnani?q=IWDA', 'IWDA vs CSPX'], ['/design-preview/srovnani?q=VWCE', 'VWCE vs IWDA'], ['/design-preview/srovnani?q=SWRD', 'SWRD vs IWDA'], ['/design-preview/srovnani?q=VUAA', 'CSPX vs VUAA'], ['/design-preview/srovnani?q=VWRL', 'VWCE vs VWRL']].map(([href, label]) => (
+                <li key={label}><Link href={href} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 hover:border-teal-300 hover:bg-teal-50/40 transition-all"><span className="font-medium text-slate-700">{label}</span><ArrowUpRight className="w-3.5 h-3.5 text-slate-400" /></Link></li>
               ))}
             </ul>
           </div>

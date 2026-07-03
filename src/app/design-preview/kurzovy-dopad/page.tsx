@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
@@ -91,6 +92,7 @@ export default function KurzovyDopadPreview() {
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/design-preview/srovnani" className="hidden sm:inline-flex rounded-lg border border-slate-200 px-3.5 py-1.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">Srovnávač</Link>
+            <HeaderSearch />
             <Link href="/design-preview/kalkulacky" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Kalkulačky</Link>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords } from 'lucide-react';
 import { getScreenerETFData } from '@/lib/etf-data';
@@ -40,6 +41,7 @@ export default async function SrovnaniScreenerPreview(
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="#screener" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Filtrovat</Link>
         </div>
       </header>

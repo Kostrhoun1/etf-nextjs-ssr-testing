@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { getTopETFsForCategory, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
 import {
@@ -151,6 +152,7 @@ export default async function CategoryPreview({
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
+          <HeaderSearch />
           <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
@@ -408,14 +410,14 @@ export default async function CategoryPreview({
           <SectionHead title="Přímé souboje fondů" desc="Kdo vyhrává v populárních dvojicích a proč." href="/design-preview/srovnani" hrefLabel="všechna srovnání" />
           <div className="grid sm:grid-cols-2 gap-3">
             {[
-              { slug: 'cspx-vs-vuaa', label: 'CSPX vs VUAA', verdict: 'CSPX – stejný TER, výrazně větší fond a likvidita.' },
-              { slug: 'vusa-vs-vuaa', label: 'VUSA vs VUAA', verdict: 'VUAA pro růst (akum), VUSA pro výplatu dividend.' },
-              { slug: 'cspx-vs-spy5', label: 'CSPX vs SPY5', verdict: 'SPY5 levnější (TER 0,03 %), CSPX větší a akumulační.' },
-              { slug: 'cspx-vs-vusa', label: 'CSPX vs VUSA', verdict: 'CSPX akumulační, VUSA distribuční – rozhoduje politika.' },
+              { slug: 'cspx-vs-vuaa', href: '/design-preview/srovnani?q=VUAA', label: 'CSPX vs VUAA', verdict: 'CSPX – stejný TER, výrazně větší fond a likvidita.' },
+              { slug: 'vusa-vs-vuaa', href: '/design-preview/srovnani?q=VUSA', label: 'VUSA vs VUAA', verdict: 'VUAA pro růst (akum), VUSA pro výplatu dividend.' },
+              { slug: 'cspx-vs-spy5', href: '/design-preview/srovnani?q=SPY5', label: 'CSPX vs SPY5', verdict: 'SPY5 levnější (TER 0,03 %), CSPX větší a akumulační.' },
+              { slug: 'cspx-vs-vusa', href: '/design-preview/srovnani?q=VUSA', label: 'CSPX vs VUSA', verdict: 'CSPX akumulační, VUSA distribuční – rozhoduje politika.' },
             ].map((d) => (
               <Link
                 key={d.slug}
-                href={`/srovnani-etf/${d.slug}`}
+                href={d.href}
                 className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
               >
                 <span>
