@@ -542,29 +542,74 @@ export async function getComparisonETFsByIsins(isins: string[]): Promise<Compari
   }
 }
 
+/** Řádek pro screener (nový design) – pole potřebná pro plné filtrování/řazení/hledání. */
+export interface ScreenerETF {
+  isin: string;
+  name: string;
+  fund_provider: string | null;
+  primary_ticker: string | null;
+  exchange_1_ticker: string | null;
+  exchange_2_ticker: string | null;
+  exchange_3_ticker: string | null;
+  exchange_4_ticker: string | null;
+  exchange_5_ticker: string | null;
+  ter_numeric: number | null;
+  fund_size_numeric: number | null;
+  return_ytd: number | null;
+  return_1y: number | null;
+  return_3y: number | null;
+  return_5y: number | null;
+  return_1y_czk: number | null;
+  return_3y_czk: number | null;
+  return_5y_czk: number | null;
+  return_ytd_czk: number | null;
+  volatility_1y: number | null;
+  current_dividend_yield_numeric: number | null;
+  distribution_policy: string | null;
+  replication: string | null;
+  index_name: string | null;
+  region: string | null;
+  investment_focus: string | null;
+  fund_currency: string | null;
+  currency_risk: string | null;
+  category: string | null;
+  is_leveraged: boolean | null;
+  rating: number | null;
+  inception_date: string | null;
+}
+
+const SCREENER_COLUMNS = `
+  isin, name, fund_provider, primary_ticker,
+  exchange_1_ticker, exchange_2_ticker, exchange_3_ticker, exchange_4_ticker, exchange_5_ticker,
+  ter_numeric, fund_size_numeric,
+  return_ytd, return_1y, return_3y, return_5y,
+  return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
+  volatility_1y, current_dividend_yield_numeric,
+  distribution_policy, replication, index_name, region, investment_focus,
+  fund_currency, currency_risk, category, is_leveraged, rating, inception_date
+`;
+
 /**
- * Seznam ETF pro screener (nový design) – největší fondy s poli pro filtrování/řazení.
- * Omezeno na N největších podle velikosti, aby byl klientský filtr svižný.
+ * Seznam ETF pro screener (nový design) – VŠECHNY fondy (dávkově, Supabase vrací
+ * max 1000/dotaz) s poli pro plné pokročilé filtrování jako na původním webu:
+ * index, region, měna, měnové zajištění, páková, rating, velikost, dividendy…
  */
-export async function getScreenerETFData(limit = 600): Promise<ComparisonETF[]> {
+export async function getScreenerETFData(): Promise<ScreenerETF[]> {
   try {
-    const { data, error } = await supabaseAdmin
-      .from('etf_funds')
-      .select(`
-        isin, name, fund_provider, primary_ticker,
-        ter_numeric, fund_size_numeric,
-        return_1y, return_3y, return_5y, return_ytd,
-        return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
-        volatility_1y, max_drawdown_1y,
-        current_dividend_yield_numeric,
-        distribution_policy, replication, index_name, region,
-        fund_currency, fund_domicile, total_holdings, inception_date
-      `)
-      .not('fund_size_numeric', 'is', null)
-      .order('fund_size_numeric', { ascending: false })
-      .limit(limit);
-    if (error || !data) return [];
-    return data as ComparisonETF[];
+    const PAGE = 1000;
+    const all: ScreenerETF[] = [];
+    for (let from = 0; from < 8000; from += PAGE) {
+      const { data, error } = await supabaseAdmin
+        .from('etf_funds')
+        .select(SCREENER_COLUMNS)
+        .not('fund_size_numeric', 'is', null)
+        .order('fund_size_numeric', { ascending: false })
+        .range(from, from + PAGE - 1);
+      if (error || !data || data.length === 0) break;
+      all.push(...(data as unknown as ScreenerETF[]));
+      if (data.length < PAGE) break;
+    }
+    return all;
   } catch (error) {
     console.error('Error in getScreenerETFData:', error);
     return [];

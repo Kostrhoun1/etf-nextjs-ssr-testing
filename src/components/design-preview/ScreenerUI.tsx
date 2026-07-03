@@ -2,11 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X } from 'lucide-react';
-import type { ComparisonETF } from '@/lib/etf-data';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star } from 'lucide-react';
+import type { ScreenerETF } from '@/lib/etf-data';
 import CompareButton from '@/components/design-preview/CompareButton';
+import { buildIndexOptions, canonicalIndexLabel } from '@/utils/indexNormalization';
+import { buildRegionOptions, classifyRegion } from '@/utils/regionClassification';
+import { detectHedging } from '@/utils/hedgingDetection';
+import { calculateETFRating } from '@/utils/etfRating';
+import type { ETFListItem } from '@/types/etf';
 
-type SortKey = 'name' | 'ter' | 'size' | 'r1' | 'r3' | 'div';
+type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div';
 type SortDir = 'asc' | 'desc';
 
 const num = (v: number | null | undefined) => (v == null || Number.isNaN(v) ? null : Number(v));
@@ -21,53 +26,115 @@ const isAcc = (p: string | null) => !/distribut/i.test(p || '');
 const replLabel = (r: string | null) => {
   const s = (r || '').toLowerCase();
   if (s.includes('synth') || s.includes('swap')) return 'Syntetická';
-  if (s) return 'Fyzická';
-  return '—';
+  if (s.includes('physical') || s.includes('full') || s.includes('sampl') || s.includes('optim')) return 'Fyzická';
+  return r || '—';
 };
 
 const PAGE = 25;
 
-export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonETF[]; initialQ?: string }) {
+/* Předpočítané odvozené hodnoty (region/hedging/index/rating) – jednou, ať filtr
+   nemusí pouštět regexy přes 4 300 řádků při každém stisku klávesy. */
+interface Enriched {
+  e: ScreenerETF;
+  region: string | null;
+  hedge: string;          // hedgingType
+  indexLabel: string;
+  ratingVal: number | null;
+  blob: string;           // text pro fulltext (name/isin/provider/tickery)
+}
+
+export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[]; initialQ?: string }) {
   const [q, setQ] = useState(initialQ);
-  const [dist, setDist] = useState<'all' | 'acc' | 'dist'>('all');
-  const [repl, setRepl] = useState<'all' | 'fyz' | 'syn'>('all');
+  const [category, setCategory] = useState('all');
+  const [dist, setDist] = useState('all');
   const [region, setRegion] = useState('all');
-  const [maxTer, setMaxTer] = useState(1);
+  const [indexName, setIndexName] = useState('all');
+  const [repl, setRepl] = useState('all');
+  const [currency, setCurrency] = useState('all');
+  const [hedging, setHedging] = useState('all');
+  const [sizeCat, setSizeCat] = useState('all');
+  const [minRating, setMinRating] = useState(0);
+  const [leveraged, setLeveraged] = useState(false);
+  const [terMax, setTerMax] = useState<string>('');
+  const [sizeMin, setSizeMin] = useState<string>('');
+  const [divMin, setDivMin] = useState<string>('');
+  const [advOpen, setAdvOpen] = useState(false);
+
   const [sortKey, setSortKey] = useState<SortKey>('size');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [shown, setShown] = useState(PAGE);
 
-  const regions = useMemo(() => {
-    const set = new Map<string, number>();
-    for (const e of etfs) if (e.region) set.set(e.region, (set.get(e.region) ?? 0) + 1);
-    return [...set.entries()].sort((a, b) => b[1] - a[1]).slice(0, 14).map(([r]) => r);
+  // Předpočítej odvozené hodnoty jednou pro celou sadu.
+  const enriched = useMemo<Enriched[]>(() =>
+    etfs.map((e) => ({
+      e,
+      region: classifyRegion(e),
+      hedge: detectHedging(e.name, e.currency_risk ?? undefined).hedgingType,
+      indexLabel: canonicalIndexLabel(e.index_name),
+      ratingVal: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
+      blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${e.primary_ticker ?? ''} ${e.exchange_1_ticker ?? ''} ${e.exchange_2_ticker ?? ''} ${e.exchange_3_ticker ?? ''} ${e.exchange_4_ticker ?? ''} ${e.exchange_5_ticker ?? ''}`.toLowerCase(),
+    })), [etfs]);
+
+  // Možnosti filtrů z dat.
+  const categories = useMemo(() => [...new Set(etfs.map((e) => e.category).filter(Boolean))].sort((a, b) => a!.localeCompare(b!)) as string[], [etfs]);
+  const regions = useMemo(() => buildRegionOptions(etfs), [etfs]);
+  const indexOpts = useMemo(() => buildIndexOptions(etfs), [etfs]);
+  const currencies = useMemo(() => [...new Set(etfs.map((e) => e.fund_currency).filter(Boolean))].sort() as string[], [etfs]);
+  const replications = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of etfs) { const l = replLabel(e.replication); if (l !== '—') set.add(l); }
+    return [...set].sort();
   }, [etfs]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const rows = etfs.filter((e) => {
-      if (term && !(`${e.name} ${e.primary_ticker ?? ''} ${e.isin}`.toLowerCase().includes(term))) return false;
+    const terMaxN = terMax === '' ? null : parseFloat(terMax.replace(',', '.'));
+    const sizeMinN = sizeMin === '' ? null : parseFloat(sizeMin.replace(/\s/g, '').replace(',', '.'));
+    const divMinN = divMin === '' ? null : parseFloat(divMin.replace(',', '.'));
+
+    const rows = enriched.filter(({ e, region: reg, hedge, indexLabel, ratingVal, blob }) => {
+      if (term && !blob.includes(term)) return false;
+      if (category !== 'all' && e.category !== category) return false;
+      if (!leveraged && e.is_leveraged) return false;
       if (dist === 'acc' && !isAcc(e.distribution_policy)) return false;
       if (dist === 'dist' && isAcc(e.distribution_policy)) return false;
-      const rl = replLabel(e.replication);
-      if (repl === 'fyz' && rl !== 'Fyzická') return false;
-      if (repl === 'syn' && rl !== 'Syntetická') return false;
-      if (region !== 'all' && e.region !== region) return false;
-      if (num(e.ter_numeric) != null && num(e.ter_numeric)! > maxTer) return false;
+      if (region !== 'all' && reg !== region) return false;
+      if (indexName !== 'all' && indexLabel !== indexName) return false;
+      if (repl !== 'all' && replLabel(e.replication) !== repl) return false;
+      if (currency !== 'all' && e.fund_currency !== currency) return false;
+      if (hedging !== 'all') {
+        if (hedging === 'unhedged' && hedge !== 'unhedged') return false;
+        if (hedging === 'hedged' && hedge === 'unhedged') return false;
+        if (hedging !== 'unhedged' && hedging !== 'hedged' && hedge !== hedging) return false;
+      }
+      if (minRating > 0 && (ratingVal == null || ratingVal < minRating)) return false;
+      const size = num(e.fund_size_numeric);
+      if (sizeCat !== 'all' && size != null) {
+        if (sizeCat === 'small' && !(size < 100)) return false;
+        if (sizeCat === 'medium' && !(size >= 100 && size < 1000)) return false;
+        if (sizeCat === 'large' && !(size >= 1000 && size < 10000)) return false;
+        if (sizeCat === 'xlarge' && !(size >= 10000)) return false;
+      }
+      if (terMaxN != null && num(e.ter_numeric) != null && num(e.ter_numeric)! > terMaxN) return false;
+      if (sizeMinN != null && (size == null || size < sizeMinN)) return false;
+      if (divMinN != null) { const d = num(e.current_dividend_yield_numeric); if (d == null || d < divMinN) return false; }
       return true;
     });
-    const get = (e: ComparisonETF): number | string | null => {
+
+    const get = (e: ScreenerETF): number | string | null => {
       switch (sortKey) {
         case 'name': return e.name?.toLowerCase() ?? '';
         case 'ter': return num(e.ter_numeric);
         case 'size': return num(e.fund_size_numeric);
+        case 'ytd': return num(e.return_ytd_czk);
         case 'r1': return num(e.return_1y_czk);
         case 'r3': return num(e.return_3y_czk);
+        case 'r5': return num(e.return_5y_czk);
         case 'div': return num(e.current_dividend_yield_numeric);
       }
     };
-    rows.sort((a, b) => {
-      const va = get(a), vb = get(b);
+    rows.sort((A, B) => {
+      const va = get(A.e), vb = get(B.e);
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
       if (vb == null) return -1;
@@ -75,7 +142,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return rows;
-  }, [etfs, q, dist, repl, region, maxTer, sortKey, sortDir]);
+  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, minRating, leveraged, terMax, sizeMin, divMin, sortKey, sortDir]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -83,8 +150,20 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
     setShown(PAGE);
   };
 
-  const resetFilters = () => { setQ(''); setDist('all'); setRepl('all'); setRegion('all'); setMaxTer(1); setShown(PAGE); };
-  const anyFilter = q || dist !== 'all' || repl !== 'all' || region !== 'all' || maxTer < 1;
+  const reset = () => {
+    setQ(''); setCategory('all'); setDist('all'); setRegion('all'); setIndexName('all');
+    setRepl('all'); setCurrency('all'); setHedging('all'); setSizeCat('all'); setMinRating(0);
+    setLeveraged(false); setTerMax(''); setSizeMin(''); setDivMin(''); setShown(PAGE);
+  };
+  const activeCount =
+    (category !== 'all' ? 1 : 0) + (dist !== 'all' ? 1 : 0) + (region !== 'all' ? 1 : 0) +
+    (indexName !== 'all' ? 1 : 0) + (repl !== 'all' ? 1 : 0) + (currency !== 'all' ? 1 : 0) +
+    (hedging !== 'all' ? 1 : 0) + (sizeCat !== 'all' ? 1 : 0) + (minRating > 0 ? 1 : 0) +
+    (leveraged ? 1 : 0) + (terMax !== '' ? 1 : 0) + (sizeMin !== '' ? 1 : 0) + (divMin !== '' ? 1 : 0);
+  const anyFilter = activeCount > 0 || q !== '';
+
+  const bump = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => { setter(e.target.value); setShown(PAGE); };
+  const bumpN = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => { setter(e.target.value); setShown(PAGE); };
 
   const SortH = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`py-2.5 px-3 font-medium ${right ? 'text-right' : 'text-left'}`}>
@@ -95,7 +174,10 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
     </th>
   );
 
-  const selCls = 'min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none';
+  const selCls = 'min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none';
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <label className="block"><span className="block mb-1 text-xs font-medium text-slate-500">{label}</span>{children}</label>
+  );
 
   return (
     <div>
@@ -106,46 +188,127 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
           <input
             value={q}
             onChange={(e) => { setQ(e.target.value); setShown(PAGE); }}
-            placeholder="Hledat podle názvu, tickeru nebo ISIN…"
+            placeholder="Hledat podle názvu, ISIN, poskytovatele nebo tickeru…"
             className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
           />
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400"><SlidersHorizontal className="w-3.5 h-3.5" /> Filtry</span>
-          <select aria-label="Typ výplaty" value={dist} onChange={(e) => { setDist(e.target.value as typeof dist); setShown(PAGE); }} className={selCls}>
-            <option value="all">Akum. i distrib.</option>
-            <option value="acc">Akumulační</option>
-            <option value="dist">Distribuční</option>
-          </select>
-          <select aria-label="Replikace" value={repl} onChange={(e) => { setRepl(e.target.value as typeof repl); setShown(PAGE); }} className={selCls}>
-            <option value="all">Každá replikace</option>
-            <option value="fyz">Fyzická</option>
-            <option value="syn">Syntetická</option>
-          </select>
-          <select aria-label="Region" value={region} onChange={(e) => { setRegion(e.target.value); setShown(PAGE); }} className={selCls}>
-            <option value="all">Všechny regiony</option>
-            {regions.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-            Max. TER <span className="tabular-nums font-medium text-slate-800">{maxTer.toFixed(2)} %</span>
-            <input type="range" min={0.03} max={1} step={0.01} value={maxTer} onChange={(e) => { setMaxTer(Number(e.target.value)); setShown(PAGE); }} className="accent-teal-600" />
-          </label>
+
+        {/* Primární filtry – vždy vidět */}
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Field label="Kategorie">
+            <select aria-label="Kategorie" value={category} onChange={bump(setCategory)} className={selCls}>
+              <option value="all">Všechny kategorie</option>
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </Field>
+          <Field label="Region">
+            <select aria-label="Region" value={region} onChange={bump(setRegion)} className={selCls}>
+              <option value="all">Všechny regiony</option>
+              {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </Field>
+          <Field label="Sledovaný index">
+            <select aria-label="Sledovaný index" value={indexName} onChange={bump(setIndexName)} className={selCls}>
+              <option value="all">Všechny indexy</option>
+              {indexOpts.groups.map((g) => (
+                <optgroup key={g.heading} label={g.heading}>
+                  {g.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </Field>
+          <Field label="Typ výplaty">
+            <select aria-label="Typ výplaty" value={dist} onChange={bump(setDist)} className={selCls}>
+              <option value="all">Akum. i distrib.</option>
+              <option value="acc">Akumulační</option>
+              <option value="dist">Distribuční</option>
+            </select>
+          </Field>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button onClick={() => setAdvOpen((o) => !o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:border-teal-300 hover:text-teal-700">
+            <SlidersHorizontal className="w-3.5 h-3.5" /> Pokročilé filtry
+            {activeCount > 0 && <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-teal-600 text-white text-[11px] font-semibold">{activeCount}</span>}
+          </button>
           {anyFilter && (
-            <button onClick={resetFilters} className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"><X className="w-3.5 h-3.5" /> Zrušit</button>
+            <button onClick={reset} className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-red-600"><X className="w-3.5 h-3.5" /> Vymazat vše</button>
           )}
         </div>
+
+        {/* Pokročilé filtry – rozbalovací */}
+        {advOpen && (
+          <div className="mt-4 border-t border-slate-100 pt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <Field label="Replikace">
+              <select aria-label="Replikace" value={repl} onChange={bump(setRepl)} className={selCls}>
+                <option value="all">Každá replikace</option>
+                {replications.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </Field>
+            <Field label="Měna fondu">
+              <select aria-label="Měna fondu" value={currency} onChange={bump(setCurrency)} className={selCls}>
+                <option value="all">Všechny měny</option>
+                {currencies.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </Field>
+            <Field label="Měnové zajištění">
+              <select aria-label="Měnové zajištění" value={hedging} onChange={bump(setHedging)} className={selCls}>
+                <option value="all">Všechny typy</option>
+                <option value="unhedged">Nezajištěné</option>
+                <option value="hedged">Zajištěné (všechny)</option>
+                <option value="eur_hedged">EUR zajištěné</option>
+                <option value="usd_hedged">USD zajištěné</option>
+                <option value="gbp_hedged">GBP zajištěné</option>
+                <option value="chf_hedged">CHF zajištěné</option>
+              </select>
+            </Field>
+            <Field label="Velikost fondu">
+              <select aria-label="Velikost fondu" value={sizeCat} onChange={bump(setSizeCat)} className={selCls}>
+                <option value="all">Všechny velikosti</option>
+                <option value="small">Malé (&lt; 100 mil.)</option>
+                <option value="medium">Střední (100 mil.–1 mld.)</option>
+                <option value="large">Velké (1–10 mld.)</option>
+                <option value="xlarge">Velmi velké (&gt; 10 mld.)</option>
+              </select>
+            </Field>
+            <Field label="Minimální hodnocení">
+              <select aria-label="Minimální hodnocení" value={minRating} onChange={(e) => { setMinRating(Number(e.target.value)); setShown(PAGE); }} className={selCls}>
+                <option value={0}>Všechna hodnocení</option>
+                <option value={1}>★ 1+</option>
+                <option value={2}>★★ 2+</option>
+                <option value={3}>★★★ 3+</option>
+                <option value={4}>★★★★ 4+</option>
+                <option value={5}>★★★★★ 5</option>
+              </select>
+            </Field>
+            <Field label="Max. TER (%)">
+              <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="např. 0,20" value={terMax} onChange={bumpN(setTerMax)} className={selCls} />
+            </Field>
+            <Field label="Min. velikost (mil. €)">
+              <input type="number" inputMode="numeric" step="10" min="0" placeholder="např. 500" value={sizeMin} onChange={bumpN(setSizeMin)} className={selCls} />
+            </Field>
+            <Field label="Min. dividendový výnos (%)">
+              <input type="number" inputMode="decimal" step="0.1" min="0" placeholder="např. 2,0" value={divMin} onChange={bumpN(setDivMin)} className={selCls} />
+            </Field>
+            <label className="flex items-end gap-2 pb-1.5">
+              <input type="checkbox" checked={leveraged} onChange={(e) => { setLeveraged(e.target.checked); setShown(PAGE); }} className="w-4 h-4 rounded accent-teal-600" />
+              <span className="text-sm text-slate-700">Zobrazit i páková ETF</span>
+            </label>
+          </div>
+        )}
       </div>
 
-      <p className="mt-3 text-sm text-slate-500">Nalezeno <span className="font-semibold text-slate-800">{filtered.length}</span> fondů z {etfs.length} největších. Klikněte na fond pro detail.</p>
+      <p className="mt-3 text-sm text-slate-500">Nalezeno <span className="font-semibold text-slate-800">{filtered.length}</span> z {etfs.length} fondů. Klikněte na fond pro detail, tlačítkem <span className="font-medium text-slate-700">+</span> přidáte do porovnání.</p>
 
       {/* TABULKA */}
       <div className="mt-3 rounded-xl border border-slate-200 bg-white overflow-x-auto">
-        <table className="w-full min-w-[46rem] text-sm">
+        <table className="w-full min-w-[52rem] text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
               <SortH k="name">Fond</SortH>
               <SortH k="ter" right>TER</SortH>
               <SortH k="size" right>Velikost</SortH>
+              <SortH k="ytd" right>YTD (Kč)</SortH>
               <SortH k="r1" right>1R (Kč)</SortH>
               <SortH k="r3" right>3R (Kč)</SortH>
               <SortH k="div" right>Div.</SortH>
@@ -154,16 +317,21 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
             </tr>
           </thead>
           <tbody>
-            {filtered.slice(0, shown).map((e) => (
+            {filtered.slice(0, shown).map(({ e, region: reg, ratingVal }) => (
               <tr key={e.isin} className="border-b border-slate-100 hover:bg-slate-50/60 transition-colors">
                 <td className="py-3 px-3">
                   <Link href={`/design-preview/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800">
                     {e.name.length > 44 ? e.name.slice(0, 44) + '…' : e.name}
                   </Link>
-                  <span className="block text-xs text-slate-400">{e.primary_ticker ?? e.isin}{e.region ? ` · ${e.region}` : ''}</span>
+                  <span className="flex items-center gap-1.5 text-xs text-slate-400">
+                    {e.primary_ticker ?? e.isin}{reg ? ` · ${reg}` : ''}
+                    {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
+                    {ratingVal != null && <span className="inline-flex items-center gap-0.5 text-amber-500"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{ratingVal}</span>}
+                  </span>
                 </td>
                 <td className="py-3 px-3 text-right tabular-nums font-medium text-slate-800">{ter(num(e.ter_numeric))}</td>
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{money(num(e.fund_size_numeric))}</td>
+                <td className={`py-3 px-3 text-right tabular-nums ${(num(e.return_ytd_czk) ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(num(e.return_ytd_czk))}</td>
                 <td className={`py-3 px-3 text-right tabular-nums font-medium ${(num(e.return_1y_czk) ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(num(e.return_1y_czk))}</td>
                 <td className={`py-3 px-3 text-right tabular-nums ${(num(e.return_3y_czk) ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(num(e.return_3y_czk))}</td>
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{e.current_dividend_yield_numeric != null ? `${Number(e.current_dividend_yield_numeric).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}</td>
@@ -178,7 +346,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ComparisonET
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan={8} className="py-10 text-center text-sm text-slate-400">Žádný fond neodpovídá filtrům. <button onClick={resetFilters} className="text-teal-700 hover:underline">Zrušit filtry</button></td></tr>
+              <tr><td colSpan={9} className="py-10 text-center text-sm text-slate-400">Žádný fond neodpovídá filtrům. <button onClick={reset} className="text-teal-700 hover:underline">Vymazat filtry</button></td></tr>
             )}
           </tbody>
         </table>

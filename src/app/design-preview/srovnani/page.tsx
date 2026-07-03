@@ -19,7 +19,7 @@ export default async function SrovnaniScreenerPreview(
   { searchParams }: { searchParams: Promise<{ q?: string }> },
 ) {
   const { q } = await searchParams;
-  const etfs = await getScreenerETFData(600);
+  const etfs = await getScreenerETFData();
   const today = new Date();
   const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
