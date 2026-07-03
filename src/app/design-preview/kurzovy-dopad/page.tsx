@@ -80,16 +80,16 @@ export default function KurzovyDopadPreview() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="text-teal-700 font-medium">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
+            <Link href="/design-preview/kalkulacky" className="text-teal-700 font-medium">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Link href="/srovnani-etf" className="hidden sm:inline-flex rounded-lg border border-slate-200 px-3.5 py-1.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">Srovnávač</Link>
-            <Link href="/kalkulacky" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Kalkulačky</Link>
+            <Link href="/design-preview/srovnani" className="hidden sm:inline-flex rounded-lg border border-slate-200 px-3.5 py-1.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">Srovnávač</Link>
+            <Link href="/design-preview/kalkulacky" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Kalkulačky</Link>
           </div>
         </div>
       </header>
@@ -97,9 +97,9 @@ export default function KurzovyDopadPreview() {
       <main className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
-          <Link href="/kalkulacky" className="hover:text-slate-600">Kalkulačky</Link>
+          <Link href="/design-preview/kalkulacky" className="hover:text-slate-600">Kalkulačky</Link>
           <span>/</span>
           <span className="text-slate-600">Kalkulačka kurzového dopadu</span>
         </nav>
@@ -117,14 +117,14 @@ export default function KurzovyDopadPreview() {
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
+                    <Link href="/design-preview/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                   <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výsledky v korunách</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   <Link href="#kalkulacka" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Spustit kalkulačku</Link>
-                  <Link href="/srovnani-etf" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít vhodný ETF</Link>
+                  <Link href="/design-preview/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít vhodný ETF</Link>
                 </div>
               </div>
 
@@ -228,7 +228,7 @@ export default function KurzovyDopadPreview() {
               koruny vůči dolaru a euru a jsou orientační.
             </p>
             <p className="mt-3">
-              <Link href="/co-jsou-etf" className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 font-medium text-sm">
+              <Link href="/design-preview/pruvodce" className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 font-medium text-sm">
                 Více o tom, jak ETF fungují <ArrowRight className="w-4 h-4" />
               </Link>
             </p>
@@ -298,7 +298,7 @@ export default function KurzovyDopadPreview() {
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačku stavíme nezávisle – výpočet vychází z ověřené metodiky kurzového dopadu na korunovou hodnotu portfolia.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  <Link href="/design-preview/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>

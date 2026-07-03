@@ -287,7 +287,7 @@ export function SrovnaniShodne() {
 /* Odkaz na detail fondu (teal, sjednocený jazyk). */
 export function SrovnaniDetailLink({ isin, children }: { isin: string; children: React.ReactNode }) {
   return (
-    <Link href={`/etf/${isin}`} className="text-teal-700 hover:text-teal-800 font-medium">
+    <Link href={`/design-preview/etf/${isin}`} className="text-teal-700 hover:text-teal-800 font-medium">
       {children}
     </Link>
   );

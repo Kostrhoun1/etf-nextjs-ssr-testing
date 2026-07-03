@@ -135,22 +135,22 @@ export default async function SrovnaniPreview() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
-          <Link href="/srovnani-etf" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
+          <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb (v produkci dodá Layout) */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
-          <Link href="/srovnani-etf" className="hover:text-slate-600">Srovnání ETF</Link>
+          <Link href="/design-preview/srovnani" className="hover:text-slate-600">Srovnání ETF</Link>
           <span>/</span>
           <span className="text-slate-600">{t1} vs {t2}</span>
         </nav>
@@ -170,7 +170,7 @@ export default async function SrovnaniPreview() {
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                 <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                  <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
+                  <Link href="/design-preview/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                 </span>
                 <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                 <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroj: justETF / vlastní databáze</span>
@@ -222,7 +222,7 @@ export default async function SrovnaniPreview() {
                 Maximální diverzifikace – nemusíte hádat, který region zrovna poroste. Vyšší TER {ter(etf1.ter_numeric)} je
                 cena za globální záběr. Vhodné jako jediný, „nech a zapomeň“ fond.
               </p>
-              <Link href={`/etf/${etf1.isin}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+              <Link href={`/design-preview/etf/${etf1.isin}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
                 Detail fondu {t1} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -241,7 +241,7 @@ export default async function SrovnaniPreview() {
                 Nižší TER {ter(etf2.ter_numeric)} a historicky vyšší výnos – ale 100 % v jedné zemi a měně.
                 Vhodné, když cíleně věříte americkému trhu a unesete vyšší koncentraci.
               </p>
-              <Link href={`/etf/${etf2.isin}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+              <Link href={`/design-preview/etf/${etf2.isin}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
                 Detail fondu {t2} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -489,7 +489,7 @@ export default async function SrovnaniPreview() {
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Jak {t1} nebo {t2} koupit</h2>
               <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">Čtyři kroky od registrace k první akcii.</p>
             </div>
-            <Link href="/kde-koupit-etf" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">
+            <Link href="/design-preview/kde-koupit" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">
               srovnání brokerů <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -509,7 +509,7 @@ export default async function SrovnaniPreview() {
           </div>
           <div className="mt-3 flex flex-wrap gap-2.5">
             {['DEGIRO', 'XTB', 'Interactive Brokers'].map((b) => (
-              <Link key={b} href="/kde-koupit-etf" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">{b}</Link>
+              <Link key={b} href="/design-preview/kde-koupit" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">{b}</Link>
             ))}
           </div>
         </section>
@@ -582,8 +582,8 @@ export default async function SrovnaniPreview() {
             {([
               ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', Landmark],
               ['/nejlepsi-etf/nejlepsi-celosvetove-etf', 'Celosvětové ETF', Globe2],
-              [`/etf/${etf1.isin}`, `Detail ${t1}`, BookOpen],
-              [`/etf/${etf2.isin}`, `Detail ${t2}`, BookOpen],
+              [`/design-preview/etf/${etf1.isin}`, `Detail ${t1}`, BookOpen],
+              [`/design-preview/etf/${etf2.isin}`, `Detail ${t2}`, BookOpen],
               ['/kde-koupit-etf', 'Kde koupit ETF', Wallet],
               ['/kalkulacky/kalkulacka-poplatku-etf', 'Kalkulačka poplatků', Calculator],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
@@ -604,7 +604,7 @@ export default async function SrovnaniPreview() {
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz s 12 lety praxe ve financích. Srovnání píšeme nezávisle, na základě veřejných dat – bez placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  <Link href="/design-preview/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>

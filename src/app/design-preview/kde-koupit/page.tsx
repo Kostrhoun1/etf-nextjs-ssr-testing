@@ -149,20 +149,20 @@ export default function KdeKoupitPreview() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="text-slate-900 font-medium">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="text-slate-900 font-medium">Kde koupit</Link>
           </nav>
-          <Link href="/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
+          <Link href="/design-preview/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">Kde koupit ETF</span>
         </nav>
@@ -179,7 +179,7 @@ export default function KdeKoupitPreview() {
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
+                    <Link href="/design-preview/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                   <span className="inline-flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5" /> {brokers.length} hodnocených platforem</span>
@@ -358,7 +358,7 @@ export default function KdeKoupitPreview() {
 
         {/* SROVNÁVACÍ TABULKA */}
         <section id="srovnani" className="pb-10 scroll-mt-16">
-          <SectionHead title="Srovnání brokerů pro ETF" desc="Šest platforem na jednom místě. Pod 768px se tabulka mění na karty." href="/srovnani-brokeru" hrefLabel="detailní srovnání" />
+          <SectionHead title="Srovnání brokerů pro ETF" desc="Šest platforem na jednom místě. Pod 768px se tabulka mění na karty." href="/design-preview/srovnani-brokeru" hrefLabel="detailní srovnání" />
 
           {/* Desktop tabulka */}
           <div className="hidden md:block rounded-lg border border-slate-200 bg-white overflow-hidden">
@@ -439,7 +439,7 @@ export default function KdeKoupitPreview() {
 
         {/* 3 KROKY K NÁKUPU */}
         <section className="pb-10">
-          <SectionHead title="Tři kroky k nákupu ETF" desc="Od výběru brokera k první koupi." href="/co-jsou-etf/jak-zacit-investovat" hrefLabel="jak začít investovat" />
+          <SectionHead title="Tři kroky k nákupu ETF" desc="Od výběru brokera k první koupi." href="/design-preview/jak-zacit" hrefLabel="jak začít investovat" />
           <div className="grid sm:grid-cols-3 gap-3">
             {[
               ['1', 'Vyberte brokera', 'Podle tabulky výše – třeba XTB pro nulové komise nebo DEGIRO pro širokou nabídku.'],
@@ -518,7 +518,7 @@ export default function KdeKoupitPreview() {
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz s 12 lety praxe ve financích. Brokery srovnáváme nezávisle, na základě veřejných ceníků – bez placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  <Link href="/design-preview/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>

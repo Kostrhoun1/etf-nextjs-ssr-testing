@@ -166,22 +166,22 @@ export default function BrokerReviewPreview() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
-          <Link href="/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
+          <Link href="/design-preview/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
-          <Link href="/kde-koupit-etf" className="hover:text-slate-600">Kde koupit ETF</Link>
+          <Link href="/design-preview/kde-koupit" className="hover:text-slate-600">Kde koupit ETF</Link>
           <span>/</span>
           <span className="text-slate-600">Recenze DEGIRO</span>
         </nav>
@@ -207,7 +207,7 @@ export default function BrokerReviewPreview() {
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
+                    <Link href="/design-preview/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                   <span className="inline-flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5" /> Jednotná metodika pro všechny brokery</span>
@@ -266,7 +266,7 @@ export default function BrokerReviewPreview() {
               <p className="mt-1">
                 Pokud si přes náš odkaz založíte účet, můžeme dostat provizi. Neovlivňuje to hodnocení ani výši poplatků
                 pro vás – skóre stavíme na datech a stejnou metodikou hodnotíme všechny brokery.{' '}
-                <Link href="/srovnani-brokeru" className="text-teal-700 hover:underline">Jak hodnotíme brokery</Link>.
+                <Link href="/design-preview/srovnani-brokeru" className="text-teal-700 hover:underline">Jak hodnotíme brokery</Link>.
               </p>
             </div>
           </div>
@@ -575,7 +575,7 @@ export default function BrokerReviewPreview() {
               >
                 Otevřít účet u DEGIRO <ArrowUpRight className="w-4 h-4" />
               </a>
-              <Link href="/srovnani-brokeru" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">
+              <Link href="/design-preview/srovnani-brokeru" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">
                 Srovnat s ostatními brokery <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -652,7 +652,7 @@ export default function BrokerReviewPreview() {
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz. Recenze brokerů píšeme nezávisle a stejnou metodikou – bez placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  <Link href="/design-preview/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>

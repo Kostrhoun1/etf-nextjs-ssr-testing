@@ -124,7 +124,7 @@ function DataPanel({ title, href, etfs, metric }: { title: string; href: string;
       <ul className="divide-y divide-slate-50">
         {etfs.slice(0, 5).map((etf, i) => (
           <li key={etf.isin}>
-            <Link href={`/etf/${etf.isin}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors">
+            <Link href={`/design-preview/etf/${etf.isin}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors">
               <span className="text-xs text-slate-400 tabular-nums w-4">{i + 1}</span>
               <span className="flex-1 min-w-0">
                 <span className="block text-sm font-medium text-slate-900 truncate">{short(etf.name)}</span>
@@ -191,14 +191,14 @@ export default async function DesignPreviewV2() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
-          <Link href="/srovnani-etf" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
+          <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
 
@@ -213,10 +213,10 @@ export default async function DesignPreviewV2() {
                   Nezávislá data {totalCount.toLocaleString('cs-CZ')}+ fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2.5">
-                  <Link href="/srovnani-etf" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+                  <Link href="/design-preview/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
                     Porovnat fondy <ArrowRight className="w-4 h-4" />
                   </Link>
-                  <Link href="/co-jsou-etf" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                  <Link href="/design-preview/pruvodce" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                     <BookOpen className="w-4 h-4" /> Průvodce pro začátečníky
                   </Link>
                 </div>
@@ -265,8 +265,8 @@ export default async function DesignPreviewV2() {
 
         {/* 3. DATOVÉ PANELY */}
         <section className="grid md:grid-cols-3 gap-4">
-          <DataPanel title="Největší fondy" href="/nejlepsi-etf" etfs={featured.bySize || []} metric="size" />
-          <DataPanel title="Nejvýkonnější (1R)" href="/nejlepsi-etf" etfs={featured.byPerformance || []} metric="return" />
+          <DataPanel title="Největší fondy" href="/design-preview/zebricky" etfs={featured.bySize || []} metric="size" />
+          <DataPanel title="Nejvýkonnější (1R)" href="/design-preview/zebricky" etfs={featured.byPerformance || []} metric="return" />
           <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
         </section>
 
@@ -285,7 +285,7 @@ export default async function DesignPreviewV2() {
                 const Icon = meta?.icon ?? Globe;
                 const r = isinReturns[etf.isin]?.return_1y_czk ?? etf.return_1y_czk ?? etf.return_1y;
                 return (
-                  <Link key={etf.isin} href={`/etf/${etf.isin}`} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all">
+                  <Link key={etf.isin} href={`/design-preview/etf/${etf.isin}`} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all">
                     <div className="flex items-center justify-between">
                       <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 group-hover:bg-teal-100 transition-colors"><Icon className="w-5 h-5" /></span>
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">{meta?.tag}</span>
@@ -311,7 +311,7 @@ export default async function DesignPreviewV2() {
               <h2 className="text-lg font-bold tracking-tight">Hotová modelová portfolia</h2>
               <p className="text-sm text-slate-500 mt-0.5">Ověřené strategie z ETF – i s tím, jak si vedly v korunách.</p>
             </div>
-            <Link href="/portfolio-strategie" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všechna portfolia <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/design-preview/portfolio-strategie" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všechna portfolia <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             {portfolioPerf.map((p) => {
@@ -348,7 +348,7 @@ export default async function DesignPreviewV2() {
               <h2 className="text-lg font-bold tracking-tight">Časté otázky o ETF</h2>
               <p className="text-sm text-slate-500 mt-0.5">To nejdůležitější, než koupíte první fond.</p>
             </div>
-            <Link href="/co-jsou-etf" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">celý průvodce <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/design-preview/pruvodce" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">celý průvodce <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid md:grid-cols-2 gap-3">
             {FAQ.map((f) => (
@@ -372,7 +372,7 @@ export default async function DesignPreviewV2() {
         <section className="pb-10">
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-lg font-bold tracking-tight">Žebříčky podle kategorií</h2>
-            <Link href="/nejlepsi-etf" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všech 38 kategorií <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/design-preview/zebricky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všech 38 kategorií <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {CATEGORIES.map((c) => (
@@ -391,7 +391,7 @@ export default async function DesignPreviewV2() {
               <h2 className="text-lg font-bold tracking-tight">Nástroje a kalkulačky</h2>
               <p className="text-sm text-slate-500 mt-0.5">Bezplatné nástroje pro výběr ETF a plánování portfolia.</p>
             </div>
-            <Link href="/kalkulacky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všechny <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/design-preview/kalkulacky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všechny <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {TOOLS.map((t) => (
@@ -412,7 +412,7 @@ export default async function DesignPreviewV2() {
                 <h2 className="text-base font-bold">Populární srovnání</h2>
                 <p className="text-sm text-slate-500">Která dvojice fondů je lepší volba?</p>
               </div>
-              <Link href="/srovnani-etf" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">srovnat <ArrowRight className="w-4 h-4" /></Link>
+              <Link href="/design-preview/srovnani" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">srovnat <ArrowRight className="w-4 h-4" /></Link>
             </div>
             <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
               {[['vwce-vs-cspx', 'VWCE vs CSPX'], ['iwda-vs-cspx', 'IWDA vs CSPX'], ['vwce-vs-iwda', 'VWCE vs IWDA'], ['swrd-vs-iwda', 'SWRD vs IWDA'], ['cspx-vs-vuaa', 'CSPX vs VUAA'], ['vwce-vs-vwrl', 'VWCE vs VWRL']].map(([slug, label]) => (

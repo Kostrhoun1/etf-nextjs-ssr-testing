@@ -133,7 +133,7 @@ export default async function GuidePreview() {
           hodnoty – nic neplatíte zvlášť. U široce diverzifikovaných indexových fondů bývá velmi nízký (řádově desetiny
           procenta ročně), zatímco aktivně řízené fondy si často účtují výrazně víc. Aktuální poplatky konkrétních fondů
           najdete v našem{' '}
-          <Link href="/srovnani-etf" className="text-teal-700 hover:underline">
+          <Link href="/design-preview/srovnani" className="text-teal-700 hover:underline">
             srovnání ETF
           </Link>
           .
@@ -209,20 +209,20 @@ export default async function GuidePreview() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
-          <Link href="/srovnani-etf" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
+          <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">Co jsou ETF</span>
         </nav>
@@ -242,7 +242,7 @@ export default async function GuidePreview() {
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
+                    <Link href="/design-preview/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                   <span className="inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> Čtení ~12 min</span>
@@ -250,7 +250,7 @@ export default async function GuidePreview() {
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   <Link href="#jak-koupit" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Jak vybrat fond</Link>
-                  <Link href="/srovnani-etf" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Srovnat ETF</Link>
+                  <Link href="/design-preview/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Srovnat ETF</Link>
                 </div>
               </div>
 
@@ -397,7 +397,7 @@ export default async function GuidePreview() {
           </div>
           <p className="mt-3 text-xs text-slate-400">
             Konkrétní hodnoty (TER, výnosy) u jednotlivých fondů najdete vždy aktuální v{' '}
-            <Link href="/srovnani-etf" className="text-teal-700 hover:underline">srovnání ETF</Link>.
+            <Link href="/design-preview/srovnani" className="text-teal-700 hover:underline">srovnání ETF</Link>.
           </p>
         </GuideSection>
 
@@ -471,7 +471,7 @@ export default async function GuidePreview() {
             <GuideCallout icon={Calculator} title="Síla nízkých poplatků se počítá v desítkách let">
               Rozdíl mezi 0,2 % a 1,5 % ročně vypadá malý, ale za 20–30 let může jít o značnou část výnosu. Místo
               vymyšleného čísla si raději na vlastní částku spočítejte dopad v naší{' '}
-              <Link href="/kalkulacky/kalkulacka-poplatku-etf" className="text-teal-700 hover:underline font-medium">
+              <Link href="/design-preview/kalkulacka" className="text-teal-700 hover:underline font-medium">
                 kalkulačce poplatků ETF
               </Link>
               .
@@ -484,7 +484,7 @@ export default async function GuidePreview() {
           <SectionHead
             title="První ETF pro českého investora"
             desc="Tři populární široké fondy, které začátečníci nejčastěji zvažují. Data jsou živá z naší databáze."
-            href="/srovnani-etf"
+            href="/design-preview/srovnani"
             hrefLabel="srovnat vše"
           />
           {sampleEtfs.length > 0 ? (
@@ -495,7 +495,7 @@ export default async function GuidePreview() {
                 return (
                   <Link
                     key={etf.isin}
-                    href={`/etf/${etf.isin}`}
+                    href={`/design-preview/etf/${etf.isin}`}
                     className="rounded-lg border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all flex flex-col"
                   >
                     <span className="flex items-center gap-2 text-xs font-medium text-teal-700">
@@ -524,7 +524,7 @@ export default async function GuidePreview() {
           ) : (
             <div className="rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-600">
               Konkrétní fondy a jejich aktuální data najdete ve{' '}
-              <Link href="/srovnani-etf" className="text-teal-700 hover:underline">srovnání ETF</Link>.
+              <Link href="/design-preview/srovnani" className="text-teal-700 hover:underline">srovnání ETF</Link>.
             </div>
           )}
 
@@ -592,7 +592,7 @@ export default async function GuidePreview() {
 
         {/* 9. JAK KOUPIT */}
         <GuideSection id="jak-koupit">
-          <SectionHead title="Jak koupit ETF" desc="Čtyři kroky od rozhodnutí k první koupi." href="/kde-koupit-etf" hrefLabel="srovnání brokerů" />
+          <SectionHead title="Jak koupit ETF" desc="Čtyři kroky od rozhodnutí k první koupi." href="/design-preview/kde-koupit" hrefLabel="srovnání brokerů" />
           <div className="grid sm:grid-cols-4 gap-3">
             {[
               ['1', 'Vyberte brokera', 'Obchodníka s cennými papíry – např. DEGIRO, XTB nebo Trading 212.'],
@@ -609,9 +609,9 @@ export default async function GuidePreview() {
           </div>
           <div className="mt-3 flex flex-wrap gap-2.5">
             {['DEGIRO', 'XTB', 'Trading 212'].map((b) => (
-              <Link key={b} href="/kde-koupit-etf" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">Recenze {b}</Link>
+              <Link key={b} href="/design-preview/kde-koupit" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">Recenze {b}</Link>
             ))}
-            <Link href="/kde-koupit-etf" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors inline-flex items-center gap-1">
+            <Link href="/design-preview/kde-koupit" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors inline-flex items-center gap-1">
               Všichni brokeři <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -670,7 +670,7 @@ export default async function GuidePreview() {
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz. Edukační obsah píšeme srozumitelně a nezávisle, na základě veřejných dat – bez
                   placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  <Link href="/design-preview/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>

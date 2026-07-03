@@ -90,7 +90,7 @@ export default function AboutPage() {
       <main className="max-w-4xl mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">O nás</span>
         </nav>
@@ -189,10 +189,10 @@ export default function AboutPage() {
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-            <Link href="/co-jsou-etf" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
+            <Link href="/design-preview/pruvodce" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
               Jak fungují ETF <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link href="/srovnani-etf" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
+            <Link href="/design-preview/srovnani" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
               Srovnat fondy podle dat <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -215,7 +215,7 @@ export default function AboutPage() {
                   Provize ale neovlivňuje pořadí ani hodnocení. Brokeři i fondy se řadí výhradně
                   podle reálných parametrů – poplatků, podmínek a nabídky.
                 </p>
-                <Link href="/kde-koupit-etf" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
+                <Link href="/design-preview/kde-koupit" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
                   Srovnání brokerů pro české investory <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

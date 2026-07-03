@@ -137,15 +137,15 @@ export default async function InfografikyRozcestnik() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
           <Link
-            href="/srovnani-etf"
+            href="/design-preview/srovnani"
             className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800"
           >
             Srovnávač
@@ -173,7 +173,7 @@ export default async function InfografikyRozcestnik() {
               icon={TrendingUp}
               title="Nejvýkonnější ETF"
               desc="Fondy s nejvyšším výnosem za posledních 12 měsíců, přepočteno do korun."
-              href="/nejlepsi-etf"
+              href="/design-preview/zebricky"
               hrefLabel="Otevřít přehled výkonnosti"
             >
               <InfografikyMiniPerf etfs={byPerf} />
@@ -210,7 +210,7 @@ export default async function InfografikyRozcestnik() {
             <InfografikyRankPanel
               title="Výnos za 12 měsíců (v přepočtu na Kč)"
               subtitle="Bez pákových produktů"
-              href="/nejlepsi-etf"
+              href="/design-preview/zebricky"
               hrefLabel="celý žebříček"
               etfs={byPerf}
             />

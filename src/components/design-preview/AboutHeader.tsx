@@ -34,7 +34,7 @@ export default function AboutHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link href="/srovnani-etf" className="hidden sm:inline-flex rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
+          <Link href="/design-preview/srovnani" className="hidden sm:inline-flex rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
           <button
             type="button"
             aria-label={open ? 'Zavřít menu' : 'Otevřít menu'}
@@ -61,7 +61,7 @@ export default function AboutHeader() {
               </Link>
             ))}
             <Link
-              href="/srovnani-etf"
+              href="/design-preview/srovnani"
               onClick={() => setOpen(false)}
               className="mt-2 mb-1 inline-flex justify-center rounded-lg bg-teal-700 px-3.5 py-2 text-sm font-medium text-white hover:bg-teal-800"
             >

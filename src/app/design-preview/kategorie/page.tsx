@@ -143,13 +143,13 @@ export default async function CategoryPreview({
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
-          <Link href="/srovnani-etf" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
+          <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
 
@@ -158,9 +158,9 @@ export default async function CategoryPreview({
       <main className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb (v produkci dodá Layout) */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
-          <Link href="/nejlepsi-etf" className="hover:text-slate-600">Nejlepší ETF</Link>
+          <Link href="/design-preview/zebricky" className="hover:text-slate-600">Nejlepší ETF</Link>
           <span>/</span>
           <span className="text-slate-600">S&amp;P 500 ETF</span>
         </nav>
@@ -177,7 +177,7 @@ export default async function CategoryPreview({
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
+                    <Link href="/design-preview/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                   <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroj: justETF / vlastní databáze</span>
@@ -224,7 +224,7 @@ export default async function CategoryPreview({
                   Největší fond na trhu ({money(cspx?.fund_size_numeric ?? null)}), akumulační, plně fyzická replikace a nízký TER {ter(cspx?.ter_numeric ?? null)}.
                   Kombinace likvidity, nízkých nákladů a jednoduché daňové evidence z něj dělá bezpečnou výchozí volbu pro dlouhodobé držení.
                 </p>
-                <Link href={`/etf/${cspx?.isin ?? 'IE00B5BMR087'}`} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+                <Link href={`/design-preview/etf/${cspx?.isin ?? 'IE00B5BMR087'}`} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
                   Detail fondu <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -238,7 +238,7 @@ export default async function CategoryPreview({
               ].filter(({ etf }) => etf?.isin).map(({ icon: Icon, label, etf, reason }) => (
                 <Link
                   key={label}
-                  href={`/etf/${etf!.isin}`}
+                  href={`/design-preview/etf/${etf!.isin}`}
                   className="rounded-lg border border-slate-200 p-4 hover:border-teal-300 hover:shadow-sm transition-all"
                 >
                   <span className="flex items-center gap-2 text-xs font-medium text-slate-500">
@@ -355,7 +355,7 @@ export default async function CategoryPreview({
 
         {/* HLAVNÍ SROVNÁVACÍ TABULKA */}
         <section id="srovnani" className="pb-10 scroll-mt-16">
-          <SectionHead title="Srovnání hlavních S&P 500 ETF" desc="Největší a nejvýznamnější fondy sledující čistý index S&P 500. Přepněte měnu výnosů." href="/srovnani-etf" hrefLabel="srovnat vše" />
+          <SectionHead title="Srovnání hlavních S&P 500 ETF" desc="Největší a nejvýznamnější fondy sledující čistý index S&P 500. Přepněte měnu výnosů." href="/design-preview/srovnani" hrefLabel="srovnat vše" />
           <CompareTable etfs={mainTable} cur={cur} />
         </section>
 
@@ -403,7 +403,7 @@ export default async function CategoryPreview({
 
         {/* PŘÍMÉ SOUBOJE */}
         <section className="pb-10">
-          <SectionHead title="Přímé souboje fondů" desc="Kdo vyhrává v populárních dvojicích a proč." href="/srovnani-etf" hrefLabel="všechna srovnání" />
+          <SectionHead title="Přímé souboje fondů" desc="Kdo vyhrává v populárních dvojicích a proč." href="/design-preview/srovnani" hrefLabel="všechna srovnání" />
           <div className="grid sm:grid-cols-2 gap-3">
             {[
               { slug: 'cspx-vs-vuaa', label: 'CSPX vs VUAA', verdict: 'CSPX – stejný TER, výrazně větší fond a likvidita.' },
@@ -523,7 +523,7 @@ export default async function CategoryPreview({
 
         {/* JAK KOUPIT */}
         <section className="pb-10">
-          <SectionHead title="Jak koupit" desc="Čtyři kroky od registrace k první akcii." href="/kde-koupit-etf" hrefLabel="srovnání brokerů" />
+          <SectionHead title="Jak koupit" desc="Čtyři kroky od registrace k první akcii." href="/design-preview/kde-koupit" hrefLabel="srovnání brokerů" />
           <div className="grid sm:grid-cols-4 gap-3">
             {[
               ['1', 'Vyberte brokera', 'DEGIRO, XTB nebo Interactive Brokers.'],
@@ -540,7 +540,7 @@ export default async function CategoryPreview({
           </div>
           <div className="mt-3 flex flex-wrap gap-2.5">
             {['DEGIRO', 'XTB', 'Interactive Brokers'].map((b) => (
-              <Link key={b} href="/kde-koupit-etf" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">{b}</Link>
+              <Link key={b} href="/design-preview/kde-koupit" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">{b}</Link>
             ))}
           </div>
         </section>
@@ -608,7 +608,7 @@ export default async function CategoryPreview({
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz s 12 lety praxe ve financích. Srovnání píšeme nezávisle, na základě veřejných dat – bez placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  <Link href="/design-preview/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>

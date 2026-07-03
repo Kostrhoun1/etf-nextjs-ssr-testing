@@ -122,22 +122,22 @@ export default async function FeeCalculatorPreview() {
             ETF průvodce
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/co-jsou-etf" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/nejlepsi-etf" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani-etf" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit-etf" className="hover:text-slate-900">Kde koupit</Link>
+            <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
+            <Link href="/design-preview/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
           </nav>
-          <Link href="/srovnani-etf" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
+          <Link href="/design-preview/srovnani" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
-          <Link href="/kalkulacky" className="hover:text-slate-600">Kalkulačky</Link>
+          <Link href="/design-preview/kalkulacky" className="hover:text-slate-600">Kalkulačky</Link>
           <span>/</span>
           <span className="text-slate-600">Kalkulačka poplatků ETF</span>
         </nav>
@@ -155,14 +155,14 @@ export default async function FeeCalculatorPreview() {
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
+                    <Link href="/design-preview/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                   <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   <Link href="#kalkulacka" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Spustit kalkulačku</Link>
-                  <Link href="/srovnani-etf" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít levný ETF</Link>
+                  <Link href="/design-preview/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít levný ETF</Link>
                 </div>
               </div>
 
@@ -299,7 +299,7 @@ export default async function FeeCalculatorPreview() {
               {' '}ETF.
             </p>
             <p className="mt-3">
-              <Link href="/co-jsou-etf" className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 font-medium text-sm">
+              <Link href="/design-preview/pruvodce" className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 font-medium text-sm">
                 Více o daních a fungování ETF <ArrowRight className="w-4 h-4" />
               </Link>
             </p>
@@ -308,7 +308,7 @@ export default async function FeeCalculatorPreview() {
 
         {/* POPLATKY BROKERŮ */}
         <section className="pb-10">
-          <SectionHead title="Poplatky brokerů" desc="Navazující náklad – kde ETF nakoupíte za nejméně." href="/kde-koupit-etf" hrefLabel="srovnání brokerů" />
+          <SectionHead title="Poplatky brokerů" desc="Navazující náklad – kde ETF nakoupíte za nejméně." href="/design-preview/kde-koupit" hrefLabel="srovnání brokerů" />
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {brokerCards.map((b) => {
               const recommended = b.id === 'portu' || b.id === 'xtb' || b.id === 'trading212';
@@ -345,7 +345,7 @@ export default async function FeeCalculatorPreview() {
 
         {/* NEJLEVNĚJŠÍ ETF Z DB */}
         <section className="pb-10">
-          <SectionHead title="Nejlevnější ETF" desc="Reálně seřazené podle TER vzestupně z naší databáze – už víte, že poplatek bolí, tady jsou ty nejlevnější." href="/srovnani-etf" hrefLabel="srovnat vše" />
+          <SectionHead title="Nejlevnější ETF" desc="Reálně seřazené podle TER vzestupně z naší databáze – už víte, že poplatek bolí, tady jsou ty nejlevnější." href="/design-preview/srovnani" hrefLabel="srovnat vše" />
 
           {cheapest.length === 0 ? (
             <div className="rounded-lg border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
@@ -369,7 +369,7 @@ export default async function FeeCalculatorPreview() {
                       <tr key={e.isin} className="hover:bg-slate-50 transition-colors">
                         <td className="py-2.5 px-4 text-slate-400 tabular-nums">{i + 1}</td>
                         <td className="py-2.5 px-4">
-                          <Link href={`/etf/${e.isin}`} className="block group">
+                          <Link href={`/design-preview/etf/${e.isin}`} className="block group">
                             <span className="font-medium text-slate-900 group-hover:text-teal-700">{e.primary_ticker ?? shortName(e.name)}</span>
                             <span className="block text-xs text-slate-400 truncate max-w-xs">{shortName(e.name)}</span>
                           </Link>
@@ -385,7 +385,7 @@ export default async function FeeCalculatorPreview() {
               {/* Mobil karty */}
               <div className="sm:hidden space-y-2">
                 {cheapest.map((e, i) => (
-                  <Link key={e.isin} href={`/etf/${e.isin}`} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+                  <Link key={e.isin} href={`/design-preview/etf/${e.isin}`} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
                     <span className="text-xs text-slate-400 tabular-nums w-4 shrink-0">{i + 1}</span>
                     <span className="flex-1 min-w-0">
                       <span className="block font-medium text-slate-900 truncate">{e.primary_ticker ?? shortName(e.name)}</span>
@@ -399,7 +399,7 @@ export default async function FeeCalculatorPreview() {
           )}
 
           <div className="mt-4">
-            <Link href="/srovnani-etf" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-800">
+            <Link href="/design-preview/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-800">
               Zobrazit všech {totalCount > 0 ? `${totalCount}+ ` : ''}ETF <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -468,7 +468,7 @@ export default async function FeeCalculatorPreview() {
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačku i srovnání stavíme nezávisle, na základě veřejných dat – bez placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  <Link href="/design-preview/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
