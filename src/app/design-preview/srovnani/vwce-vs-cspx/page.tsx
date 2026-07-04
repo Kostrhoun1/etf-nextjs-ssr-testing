@@ -565,7 +565,7 @@ export default async function SrovnaniPreview() {
               { slug: 'cspx-vs-eunl', href: '/design-preview/srovnani?q=EUNL', label: 'CSPX vs EUNL', verdict: 'USA vs vyspělý svět včetně Evropy a Japonska.' },
               { slug: 'vwce-vs-vwrl', href: '/design-preview/srovnani?q=VWRL', label: 'VWCE vs VWRL', verdict: 'Stejný index All-World: akumulační vs distribuční.' },
             ].map((d) => (
-              <Link key={d.slug} href={d.href} className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
+              <Link key={d.slug} href={`/design-preview/srovnani/${d.slug}`} className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span>
                   <span className="block font-semibold text-slate-900">{d.label}</span>
                   <span className="block text-sm text-slate-600 mt-0.5 leading-snug">{d.verdict}</span>

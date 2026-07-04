@@ -407,7 +407,7 @@ export default async function CategoryPreview() {
             ].map((d) => (
               <Link
                 key={d.slug}
-                href={d.href}
+                href={`/design-preview/srovnani/${d.slug}`}
                 className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
               >
                 <span>
