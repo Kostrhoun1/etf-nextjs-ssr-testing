@@ -1676,6 +1676,753 @@ export const categoryContent: Record<string, CategoryContent> = {
       }
     ]
   },
+  "nejlepsi-akciove-etf": {
+    "introTitle": "Akciové ETF: jak si mezi tisíci fondů vybrat ten svůj",
+    "intro": [
+      "\"Akciové ETF\" je nejširší dotaz, jaký může český investor zadat, a zároveň ten nejméně konkrétní. Akcie jsou třída aktiv, ne fond. Než se rozhodnete pro nějaký ticker, musíte odpovědět na dvě otázky: kolik akcií vs. dalších tříd aktiv (dluhopisy, komodity) chcete držet a jaký kus akciového světa chcete vlastnit. Tahle stránka je rozcestník, ne konkurent stránce o S&P 500 nebo o celosvětových fondech. Cílem je pomoct vám zvolit správnou vrstvu, ne vnutit jeden konkrétní produkt.",
+      "Akcie jsou motor dlouhodobého výnosu portfolia. Historicky nabízejí nejvyšší reálný výnos ze všech běžných tříd aktiv, ale za cenu největšího kolísání: široký akciový trh umí během medvědího trhu ztratit 30 až 50 % a několik let se z toho vzpamatovávat. Proto se akciové ETF hodí především na dlouhý horizont (ideálně 10 a více let), kde má čas vyhladit propady. Dluhopisové ETF slouží jako tlumič výkyvů, komodity jako pojistka proti inflaci, ale růst obstarávají akcie.",
+      "Jakmile víte, že chcete akcie, přichází druhá volba: šířka expozice. Nejvýše stojí celosvětové fondy jedním nákupem (FTSE All-World, MSCI ACWI) přes rozvinutý svět (MSCI World, S&P 500) až po regionální (Evropa, USA, rozvíjející se trhy) a sektorové sázky (technologie, energetika). Čím užší fond, tím vyšší koncentrace a riziko. Naprostá většina drobných investorů udělá nejlíp, když jádro postaví na jednom širokém globálním fondu a případné regionální nebo sektorové ETF přidá jen jako menšinový satelit.",
+      "Pro Čecha platí jedno navíc: skoro všechny tyhle fondy jsou vedené v USD nebo EUR a vy je nakupujete za koruny. Výnosy si vždycky přepočítáváte zpět do CZK, takže nesete měnové riziko vůči koruně vždycky. To není důvod se akciím vyhýbat, jen důvod nedívat se na výnos v dolarech jako na výnos ve vaší peněžence."
+    ],
+    "verdict": [
+      "Pro drtivou většinu lidí je nejlepší \"akciové ETF\" jeden široký globální fond jako celé jádro. Nejlevnější celosvětovou variantou je Vanguard FTSE All-World (VWCE, ISIN IE00BK5BQT80, TER 0,19 %, přes 43 mld. EUR) nebo iShares MSCI ACWI (SSAC, IE00B6R52259, TER 0,20 %, přes 29 mld. EUR) — oba drží tisíce firem z rozvinutých i rozvíjejících se trhů v jednom nákupu. Kdo chce jen rozvinutý svět bez emerging markets, sáhne po iShares Core MSCI World (SWDA, IE00B4L5Y983, TER 0,20 %, přes 123 mld. EUR) nebo levnějším Xtrackers MSCI World (XDWD, IE00BJ0KDQ92, TER 0,12 %). Detailní srovnání těchhle úhlů najdete na stránkách o celosvětových fondech a MSCI World — tady je zmiňujeme jen jako výchozí bod.",
+      "Pokud věříte hlavně americkému trhu, jádrem bývá S&P 500. Nejlevnější jsou dnes State Street SPDR S&P 500 (SPYL, IE000XZSV718, TER 0,03 %) a Invesco S&P 500 (SPXP, IE00B3YCGJ38, TER 0,05 %), z osvědčených pak iShares Core S&P 500 (CSP1, IE00B5BMR087, TER 0,07 %, přes 131 mld. EUR). Regionální nebo růstový doplněk můžete přidat jako satelit: iShares Core MSCI Europe (SMEA, IE00B4K48X80, TER 0,12 %) pro Evropu, iShares Core MSCI Emerging Markets IMI (EMIM, IE00BKM4GZ66, TER 0,18 %) pro rozvíjející se trhy nebo iShares Nasdaq 100 (IE00B53SZB19, TER 0,30 %) pro americké technologie. Tyhle fondy ale nepatří do jádra — jsou to vědomé sázky navrch.",
+      "Poplatky u širokých akciových fondů dnes klesly tak nízko, že rozdíl mezi TER 0,03 % a 0,20 % je pár korun ročně z každých investovaných deseti tisíc. Důležitější než honba za nejnižším TER je vybrat správnou šířku expozice, zvolit akumulační nebo distribuční třídu podle toho, jestli chcete růst nebo příjem, a pak fond roky držet. Kdo přeskakuje mezi fondy podle loňské výkonnosti, obvykle prodělá víc na daních a spreadech než ušetří na poplatku."
+    ],
+    "forWhom": "Široké akciové ETF se hodí každému, kdo staví dlouhodobé portfolio na horizont 10 a více let a chce, aby růst obstaraly akcie — od úplného začátečníka (jeden globální fond) po zkušenějšího investora, který k jádru přidává regionální nebo sektorové satelity. Sedne pravidelnému měsíčnímu investorovi i tomu, kdo jednorázově ukládá větší částku a má klid ji nechat pracovat. Nehodí se pro peníze, které budete potřebovat za pár let (na ty patří spíš dluhopisy nebo spořicí účet), pro člověka, který by při 30 až 40% propadu panicky prodával, a pro toho, kdo hledá jistotu nominální hodnoty. Kdo chce jen tlumit výkyvy nebo pravidelný příjem, měl by akciové jádro doplnit dluhopisovou nebo dividendovou složkou, ne ho jimi nahradit.",
+    "risks": [
+      "Tržní riziko a volatilita: čistě akciové portfolio umí během medvědího trhu spadnout o 30 až 50 % a roky se z toho zotavovat. Bez dostatečně dlouhého horizontu a klidné hlavy vás propad donutí prodat na dně.",
+      "Měnové riziko vůči koruně: fondy jsou v USD nebo EUR a vy investujete koruny. I když firma vyroste, posílení koruny vůči dolaru vám část výnosu v přepočtu do CZK ubere. Měnově zajištěné (hedged) třídy zajišťují maximálně do EUR nebo USD, riziko vůči CZK vám neodstraní a zajištění navíc stojí na úrokovém diferenciálu.",
+      "Falešný pocit diverzifikace: mnoho lidí si myslí, že drží \"celý svět\", ale ve skutečnosti mají jen S&P 500 nebo dokonce Nasdaq 100. I globální fondy mají dnes přes 60 % v USA a velkou váhu hrstky technologických gigantů. Kombinovat tři americké fondy neznamená být diverzifikovaný.",
+      "Překrývání a přeplácání satelitů: kdo k celosvětovému jádru přidá americký, technologický i Nasdaq fond, si jen zdvojuje stejné firmy (Apple, Microsoft, Nvidia) a zvyšuje koncentraci místo diverzifikace. Každý přidaný fond by měl přinášet něco, co jádro nemá."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi akciovým ETF a konkrétním fondem jako S&P 500?",
+        "a": "\"Akciové ETF\" je zastřešující pojem pro všechny fondy investující do akcií — patří sem globální (VWCE, SWDA), americké (S&P 500 přes CSP1 nebo SPYL), regionální (evropský SMEA) i sektorové. S&P 500 je jen jedna konkrétní volba uvnitř téhle kategorie: 500 největších amerických firem. Tahle stránka je rozcestník, který vám pomůže zvolit správnou vrstvu; detaily ke konkrétním indexům najdete na jejich vlastních stránkách."
+      },
+      {
+        "q": "Kolik akciových ETF bych měl mít v portfoliu?",
+        "a": "Pro naprostou většinu lidí stačí jeden široký globální fond (například VWCE nebo SSAC), který sám drží tisíce firem. Kdo chce vědomě posílit nějaký region nebo sektor, přidá jeden až dva satelity (třeba EMIM na rozvíjející se trhy), ale ty by měly tvořit menšinu. Deset různých akciových ETF obvykle znamená hlavně vyšší náklady a překrývání, ne lepší diverzifikaci."
+      },
+      {
+        "q": "Mám vybírat akumulační, nebo distribuční třídu?",
+        "a": "Záleží na cíli. Akumulační třída (například VWCE, SWDA) dividendy automaticky reinvestuje uvnitř fondu — vy je neřešíte v daňovém přiznání a naplno využijete složené úročení, což se hodí ve fázi budování majetku. Distribuční třída (VWRL, IUSA) vám dividendy vyplácí na účet; ty se v ČR daní 15 %, hodí se ale pro pravidelný příjem v rentierské fázi. Podrobnosti řeší stránky o akumulačních a distribučních fondech a daňový hub."
+      },
+      {
+        "q": "Jak se v ČR v roce 2026 daní zisk z akciových ETF?",
+        "a": "U klasických akciových ETF (jsou to cenné papíry-fondy) platí dva testy pro osvobození. Časový test: pokud fond držíte déle než 3 roky, je zisk z prodeje osvobozen — od roku 2026 bez horního limitu. Hodnotový test: pokud úhrn vašich prodejů cenných papírů nepřesáhne 100 000 Kč za rok, je zisk osvobozen bez ohledu na dobu držby. Vyplacené dividendy z distribučních tříd se daní 15 %. U akumulačních fondů se reinvestice uvnitř fondu neřeší. Konkrétní situaci si ověřte na daňovém hubu nebo s daňovým poradcem."
+      },
+      {
+        "q": "Proč je většina těchhle fondů domicilovaná v Irsku (ISIN začínající IE)?",
+        "a": "Irský domicil (ISIN začíná IE00) je pro Čecha daňově výhodný u fondů s americkými akciemi: Irsko má s USA smlouvu, která snižuje srážkovou daň z amerických dividend uvnitř fondu z 30 % na 15 %. Proto najdete většinu velkých ETF (CSP1, SWDA, VWCE) domicilovaných tam. Lucemburský domicil (LU) je běžný také a pro akciové fondy funguje obdobně."
+      },
+      {
+        "q": "Nesu měnové riziko, i když kupuji přes českého brokera v korunách?",
+        "a": "Ano. To, že u brokera zadáte příkaz v korunách, neznamená, že je fond v korunách. Podkladová aktiva jsou v dolarech, eurech a dalších měnách a jejich hodnotu si vždycky přepočítáváte zpět do CZK. Když koruna posílí, část výnosu v přepočtu ztratíte, i kdyby akcie samy vyrostly. Měnově zajištěné třídy zajišťují maximálně do EUR nebo USD, riziko vůči koruně vám neodstraní a zajištění stojí peníze."
+      }
+    ]
+  },
+  "nejlepsi-akumulacni-etf": {
+    "introTitle": "Akumulační ETF: reinvestice dividend uvnitř fondu a proč to Čecha zajímá",
+    "intro": [
+      "Akumulační ETF (v názvech značené jako „Acc\", „Accumulating\" nebo „C\") je fond, který dividendy z držených akcií nebo kupony z dluhopisů nevyplácí na váš účet, ale automaticky je reinvestuje zpět dovnitř fondu. Vy dostanete stejný počet podílů jako předtím, jen jejich hodnota postupně roste i o zadržený a znovu investovaný příjem. Opakem je distribuční třída, která tytéž dividendy pravidelně posílá na váš brokerský účet – rozdíl není v indexu ani ve složení portfolia, ale výhradně ve způsobu nakládání s příjmem. Většina velkých ETF existuje v obou variantách současně: iShares Core S&P 500 nebo Vanguard FTSE All-World mají akumulační i distribuční verzi se shodným podkladem.",
+      "Pro českého drobného investora je akumulace zajímavá hlavně ze dvou důvodů. Za prvé kvůli efektu složeného úročení bez tření: fond reinvestuje dividendu okamžitě a bez transakčního poplatku, zatímco kdybyste stejnou dividendu dostali na účet distribučně, museli byste ji ručně doinvestovat, často za poplatek a s prodlevou. Za druhé kvůli daňové administrativě – a to je pro Čecha ten hlavní hák. U akumulačního fondu se totiž reinvestice dividend odehrává uvnitř fondu a vám žádný zdanitelný dividendový příjem na účet nepřiteče, takže v daňovém přiznání za rok nemusíte řešit patnáctiprocentní daň z dividend. Danit budete až případný zisk z prodeje podílů, na který se ovšem vztahuje časový a hodnotový test (viz níže).",
+      "Tato stránka není o konkrétním regionu ani indexu – akumulační ETF najdete na S&P 500, MSCI World, FTSE All-World i na dluhopisy nebo zlato. Jde čistě o rozhodnutí, jakou třídu podílů zvolit. Pokud řešíte, do čeho vlastně investovat, zamiřte na kategorie podle regionu či strategie; tady vám vysvětlíme, kdy akumulace dává smysl a kdy sáhnout po distribuci.",
+      "Zásadní upozornění na měnu, které platí bez ohledu na typ výplaty: akumulační ETF nekoupíte „v korunách\". Fondy jsou denominované v USD nebo EUR a broker vám nákup přepočítá z CZK. Výnosy, které vidíte přepočtené do korun, tedy vždy nesou kurzové riziko dolaru či eura vůči koruně – to akumulace neodstraní, jen v ní není vidět formou výplat."
+    ],
+    "verdict": [
+      "Pro naprostou většinu dlouhodobých investorů, kteří ještě nečerpají rentu, je akumulační třída výchozí volbou – a je jedno, jestli stavíte portfolio na jednom globálním fondu, nebo na kombinaci. Jako jádro se nabízí Vanguard FTSE All-World UCITS ETF Accumulating (ISIN IE00BK5BQT80, ticker VWCE, TER 0,19 %, jmění přes 43 mld. EUR), který jedním nákupem pokryje rozvinuté i rozvíjející se trhy a dividendy z tisíců firem řeší za vás. Kdo chce jen rozvinutý svět, sáhne po iShares Core MSCI World UCITS ETF Acc (IE00B4L5Y983, SWDA, TER 0,20 %, přes 123 mld. EUR) nebo levnějším Amundi Core MSCI World UCITS ETF Acc (IE000BI8OT95, MWRE, TER 0,12 %). Pro čistě americkou expozici je nejlevnější akumulační cestou State Street SPDR S&P 500 UCITS ETF Acc (IE000XZSV718, SPYL, TER pouhých 0,03 %), za ním iShares Core S&P 500 Acc (IE00B5BMR087, CSP1, TER 0,07 %) a Vanguard S&P 500 Acc (IE00BFMXXD54, VUAA, TER 0,07 %).",
+      "Klíčové je, že všechny jmenované fondy mají irský domicil (ISIN začíná IE), což u portfolia plného amerických akcií reálně zvyšuje výnos – Irsko má s USA daňovou smlouvu, takže srážková daň z amerických dividend uvnitř fondu je 15 % místo 30 %. U akumulační třídy se tento efekt projeví tiše zvýšeným růstem hodnoty podílu, aniž byste cokoli řešili. Mezi hlavními S&P 500 a World fondy jsou rozdíly v TER malé (0,03 až 0,20 %); u nákladově citlivého jádra rozhoduje spíš likvidita a měna obchodování u vašeho brokera než setiny procenta.",
+      "Naopak akumulaci nevolte automaticky, pokud jste ve fázi čerpání a chcete z portfolia žít – tam bývá čistší distribuční fond, který vám příjem posílá sám (viz kategorie distribučních ETF). A pozor na jeden detail: existují i akumulační ne-akciové produkty jako Amundi Physical Gold ETC (C) (FR0013416716, TER 0,12 %). To ovšem není fond-cenný papír jako akciové ETF, ale ETC krytý zlatem, a jeho daňový režim se od klasického akciového ETF liší – nespoléhejte u něj automaticky na stejný časový test."
+    ],
+    "forWhom": "Akumulační ETF se hodí pro každého, kdo dlouhodobě spoří a majetek buduje – tedy investory v akumulační fázi s horizontem mnoha let, kteří příjem z portfolia teď nepotřebují a chtějí maximum výnosu nechat pracovat dál bez ročního papírování s daní z dividend. Ideální jsou pro pravidelné měsíční investování do širokého indexu. Nehodí se naopak pro toho, kdo z portfolia chce žít a potřebuje pravidelný hotovostní příjem (renta, FIRE fáze) – pro něj je přirozenější distribuční třída. A pro tuzemské portfolio zaměřené na komodity či zlato pozor na to, že akumulační ETC není totéž co akumulační akciové ETF a daňově se chová jinak.",
+    "risks": [
+      "Iluze, že akumulace řeší daně navždy. Reinvestice dividend uvnitř fondu skutečně odpadá z přiznání, ale zisk z prodeje podílů daníte. Osvobodí ho až časový test (drženo déle než 3 roky, od roku 2026 bez horního limitu) nebo hodnotový test (úhrn všech prodejů cenných papírů do 100 000 Kč za rok). Kdo prodá dřív a nad limit, zdaní zisk běžnou sazbou.",
+      "Měnové riziko zůstává skryté, ne zrušené. Fondy jako VWCE nebo SWDA drží aktiva v USD; výnos přepočtený do korun kolísá s kurzem USD/CZK i EUR/CZK. Ani měnově zajištěná (hedged) akumulační třída Čechovi CZK riziko neodstraní – zajištění jde nanejvýš do EUR nebo USD, stojí na úrokovém diferenciálu a vůči koruně vás nechrání.",
+      "Záměna produktů. Do akumulačního filtru spadají i ETC krytá zlatem (Amundi Physical Gold ETC C) nebo jiné ne-akciové produkty. Nejsou to fondy-cenné papíry jako klasické ETF a jejich daňový režim v ČR se může lišit – neaplikujte na ně bez ověření tříletý časový test.",
+      "Horší přehled o skutečném dividendovém výnosu. Protože žádná výplata nechodí na účet, snáze ztratíte přehled o tom, kolik vám portfolio reálně vydělává na dividendách a jak roste. Pro sledování výnosu se musíte spolehnout na výpisy a hodnotu podílu, ne na příjem v hotovosti."
+    ],
+    "faqs": [
+      {
+        "q": "Jak poznám akumulační ETF podle názvu?",
+        "a": "Hledejte v názvu nebo třídě zkratky „Acc\", „Accumulating\" nebo někdy „C\" (capitalising). Například Vanguard FTSE All-World UCITS ETF (USD) Accumulating (VWCE) nebo iShares Core MSCI World UCITS ETF USD (Acc) (SWDA). Distribuční třída téhož fondu bývá značená „Dist\", „Distributing\" nebo „D\" a má často jiný ISIN. Vždy si ISIN ověřte, ať nekoupíte omylem opačnou variantu."
+      },
+      {
+        "q": "Musím u akumulačního ETF danit reinvestované dividendy?",
+        "a": "Ne. U akumulačního fondu se dividendy reinvestují uvnitř fondu a na váš účet žádný dividendový příjem nepřiteče, takže v přiznání 15% daň z dividend neřešíte. Danit budete až případný zisk z prodeje podílů – ten je ale osvobozený po splnění časového testu (držení déle než 3 roky, od roku 2026 bez horního limitu) nebo hodnotového testu (úhrn prodejů cenných papírů do 100 000 Kč ročně). Konkrétní situaci si ověřte v daňovém přehledu."
+      },
+      {
+        "q": "Je akumulační, nebo distribuční ETF pro Čecha lepší?",
+        "a": "Pro fázi budování majetku je obvykle jednodušší akumulační – reinvestuje sám, bez tření a bez ročního danění dividend, a naplno využije složené úročení. Distribuční dává smysl, když chcete z portfolia pravidelný příjem (renta, FIRE), byť vyplacené dividendy podléhají 15% dani. Podrobné srovnání obou přístupů najdete v kategorii distribučních ETF a v daňovém přehledu."
+      },
+      {
+        "q": "Odstraní akumulační ETF měnové riziko vůči koruně?",
+        "a": "Ne. Akumulace řeší jen nakládání s dividendami, ne měnu. Fondy jako VWCE nebo SWDA drží aktiva v dolarech a výnos přepočtený do korun kolísá s kurzem USD/CZK i EUR/CZK. Ani měnově zajištěná (hedged) akumulační třída vás vůči koruně neochrání – zajištění jde maximálně do EUR nebo USD."
+      },
+      {
+        "q": "Které akumulační ETF je nejlevnější?",
+        "a": "Mezi širokými akumulačními fondy patří k nejlevnějším State Street SPDR S&P 500 UCITS ETF Acc (SPYL) s TER 0,03 % a Amundi Core S&P 500 Swap Acc (LU1135865084) či iShares S&P 500 Swap Acc (I500) kolem 0,05 %. U globálních je levný Amundi Core MSCI World Acc (MWRE) s TER 0,12 %. Aktuální pořadí podle nákladovosti najdete v žebříčku na této stránce."
+      },
+      {
+        "q": "Je akumulační zlaté ETC (třeba Amundi Physical Gold C) totéž co akumulační akciové ETF?",
+        "a": "Není. Amundi Physical Gold ETC (C) sice v názvu nese kapitalizační třídu, ale jde o ETC krytý fyzickým zlatem, ne o klasický fond-cenný papír jako akciové ETF. Jeho daňový režim se v ČR může lišit a nemusí se na něj vztahovat stejný časový test jako u akciových fondů. Před nákupem si daňové zacházení ověřte v daňovém přehledu a neaplikujte pravidla akciových ETF automaticky."
+      }
+    ]
+  },
+  "nejlepsi-bitcoin-etf": {
+    "introTitle": "Bitcoin ETF v Evropě neexistuje – co si tedy Čech reálně koupí",
+    "intro": [
+      "Začněme rovnou tím nejdůležitějším, co většina článků zamlčuje: klasický „Bitcoin ETF\", jaký od roku 2024 znají Američané (spot bitcoin ETF typu iShares Bitcoin Trust), v Evropě koupit nejde. Evropská regulace UCITS totiž fondu zakazuje držet jediné podkladové aktivum bez diverzifikace – a jeden bitcoin diverzifikaci nesplní. Evropský investor si proto nekupuje ETF, ale ETP (Exchange Traded Product), nejčastěji v podobě ETN nebo ETC. Je to burzovně obchodovaný dluhový cenný papír fyzicky krytý reálnými bitcoiny uloženými v regulované custody. Cenově se chová skoro stejně jako spotový bitcoin, ale právně je to něco jiného – a ten rozdíl má pro Čecha praktické dopady v riziku i v daních.",
+      "Nabídka je dnes široká a poplatkově velmi levná. Největší produkty na evropských burzách (Xetra, SIX, Euronext) drží řádově miliardu eur: CoinShares Physical Bitcoin (ticker BITC, ISIN GB00BLD4ZL17, TER 0,15 %), WisdomTree Physical Bitcoin (BTCW, GB00BJYDH287, 0,15 %) a iShares Bitcoin ETP od BlackRocku (BTCN, XS2940466316, 0,15 %). Poplatkově nejlevnější jsou 21shares Bitcoin Core (CBTC, CH1199067674) s TER 0,10 %, Invesco Physical Bitcoin (BTIC, XS2376095068) také 0,10 % a Bitwise Core Bitcoin (BTC2, DE000A4AER62) s pouhými 0,05 %. Pro srovnání – americká spot ETF berou 0,15–0,25 %, český investor tu tedy nic nepřeplácí.",
+      "Proč vůbec ETP a ne přímý nákup bitcoinu na burze typu Coinbase nebo Kraken? Kvůli jednoduchosti a úschově. ETP koupíte přes běžného brokera (DEGIRO, XTB, Trading 212, Interactive Brokers) stejně jako akcii, drží ho váš standardní obchodní účet, neřešíte privátní klíče ani hardwarovou peněženku a nehrozí, že o vše přijdete zapomenutým seedem. Platíte za to TER a nesete riziko emitenta (viz rizika níže). Tahle stránka je čistě o produktech na samotný bitcoin (a okrajově ether); pokud vás zajímají akcie firem kolem kryptoměn a blockchainu, to je jiná kategorie – k tomu slouží akciové UCITS ETF jako VanEck Crypto and Blockchain Innovators (DAVV, IE00BMDKNW35, TER 0,65 %), které drží těžaře a burzy, ne přímo minci."
+    ],
+    "verdict": [
+      "Pokud chcete čistou, levnou a fyzicky krytou expozici na samotný bitcoin, dávají dnes největší smysl tři jména. Bitwise Core Bitcoin ETP (BTC2, DE000A4AER62) má vůbec nejnižší TER 0,05 % a je fyzicky krytý – u dlouhodobého držení je nákladově těžko porazitelný. 21shares Bitcoin Core (CBTC, CH1199067674) a Invesco Physical Bitcoin (BTIC, XS2376095068) drží TER 0,10 % a stojí za nimi zavedení emitenti s dostatečnou likviditou. Kdo upřednostní co největší fond a jméno správce, sáhne po iShares Bitcoin ETP od BlackRocku (BTCN, XS2940466316) nebo CoinShares Physical Bitcoin (BITC, GB00BLD4ZL17); oba mají TER 0,15 % a patří k největším na trhu, což znamená užší spread při nákupu.",
+      "Pozor na starší, drahé produkty. Bitwise Physical Bitcoin ETP (BTCE, DE000A27Z304) byl historicky nejznámější evropský bitcoin produkt, ale nese TER 2,0 % ročně – to je při dlouhém držení obrovský rozdíl oproti verzi Core za 0,05 %. Podobně 21shares Bitcoin ETP (ABTC, CH0454664001) s 1,49 % nebo Virtune Bitcoin ETP s 1,49 % jsou dnes zbytečně drahé, když stejné podkladové aktivum koupíte desetkrát levněji. Jméno „Bitcoin ETP\" samo o sobě nic negarantuje; vždy srovnejte TER a velikost fondu v tabulce níže.",
+      "Chcete-li mírně diverzifikovat i mimo samotný bitcoin, existují košové produkty – 21shares Crypto Basket Index ETP (HODL, CH0445689208, TER 0,99 %) drží více největších kryptoměn, nebo 21shares Bitcoin Gold ETP (BOLD, CH1146882308), který kombinuje bitcoin se zlatem. To už je ale spekulativnější a dražší; pro naprostou většinu investorů je rozumnější držet levný čistý bitcoin ETP jako malou satelitní pozici a případnou expozici do zlata řešit samostatně."
+    ],
+    "forWhom": "Bitcoin ETP se hodí pro investora, který už má postavené jádro portfolia (široký akciový a dluhopisový základ), rozumí tomu, že jde o vysoce volatilní a spekulativní aktivum, a chce mu vyhradit malou satelitní pozici – rozumně v řádu jednotek procent portfolia, o které nepřijde spánek, kdyby spadla o 70 %. Oceníte ho, když nechcete řešit kryptoburzu, privátní klíče ani hardwarovou peněženku a preferujete držení u jednoho brokera s ostatními ETF. Nehodí se pro konzervativní investory, pro každého s krátkým horizontem, pro toho, kdo by po prudkém propadu panicky prodával, ani jako náhrada jádra portfolia. Kdo chce naopak plnou kontrolu nad mincemi a samostatnou úschovu, je lépe obsloužen přímým nákupem na burze než ETP.",
+    "risks": [
+      "Extrémní volatilita. Bitcoin běžně kolísá o desítky procent za měsíce; propady o 70–80 % od vrcholu se v jeho historii opakovaly. Ročním výnosům nevěřte jako trendu – produkty na této stránce mají za poslední rok podle přepočtu do korun rozpětí zhruba od −40 % po +25 % podle toho, kam do období spadl vrchol a dno cyklu.",
+      "Riziko emitenta a protistrany. ETP/ETN je dluhový cenný papír, ne fond s odděleným majetkem jako klasické UCITS ETF. I u fyzicky krytých produktů (kde reálné bitcoiny leží v custody) nesete riziko emitenta a custodiana. Sledujte, zda je produkt fyzicky krytý a kdo drží podklad; nekryté syntetické konstrukce mají riziko vyšší.",
+      "Měnové riziko vůči koruně. Bitcoin se kotuje a oceňuje v dolarech, produkty obchodujete v EUR nebo USD. Výnos přepočtený do korun tak nese pohyb USD/CZK vždy – žádný z těchto ETP není a nemůže být zajištěný do koruny. Broker vám navíc při nákupu z korun účtuje měnovou konverzi.",
+      "Daňová nejistota. Bitcoin ETP nejsou cenné papíry-fondy jako akciová ETF, takže na ně tříletý časový test ani limit 100 000 Kč/rok nemusí dopadat stejně jako na klasické ETF. Pravidla pro zdanění krypto ETP nejsou tak ustálená a mohou se lišit podle typu produktu (ETC vs. ETN) i výkladu. Před prodejem konzultujte aktuální stav a náš daňový hub, nespoléhejte na analogii s akciovými ETF."
+    ],
+    "faqs": [
+      {
+        "q": "Existuje v Evropě opravdový spot Bitcoin ETF jako v USA?",
+        "a": "Ne. Americké spot bitcoin ETF (např. iShares Bitcoin Trust) v Evropě nekoupíte a evropská regulace UCITS ani neumožňuje vytvořit ETF na jediné aktivum bez diverzifikace. Evropský investor kupuje fyzicky krytý ETP (ETN/ETC), který se cenově chová jako bitcoin, ale právně je to burzovně obchodovaný dluhový cenný papír, ne fond."
+      },
+      {
+        "q": "Který bitcoin ETP je nejlevnější?",
+        "a": "Aktuálně má nejnižší TER Bitwise Core Bitcoin ETP (ticker BTC2, ISIN DE000A4AER62) s pouhými 0,05 % ročně. Následují 21shares Bitcoin Core (CBTC, CH1199067674) a Invesco Physical Bitcoin (BTIC, XS2376095068) s TER 0,10 %. Pozor na starší produkty jako Bitwise Physical Bitcoin (BTCE) s TER 2,0 % nebo 21shares Bitcoin ETP (ABTC) s 1,49 % – za stejný podklad zbytečně přeplatíte."
+      },
+      {
+        "q": "Jaký je rozdíl mezi ETF a ETP/ETN u bitcoinu?",
+        "a": "Klasické ETF je fond s odděleným majetkem investorů. ETP (a jeho podoby ETN a ETC) je burzovně obchodovaný dluhový cenný papír vydaný emitentem, obvykle fyzicky krytý reálným aktivem v custody. Rozdíl je hlavně v právní struktuře a rizikovém profilu: u ETP nesete riziko emitenta a custodiana, byť u fyzicky krytých produktů leží skutečné bitcoiny v úschově."
+      },
+      {
+        "q": "Jak se v ČR daní zisk z bitcoin ETP?",
+        "a": "Opatrně – bitcoin ETP nejsou cenné papíry-fondy jako akciová ETF, takže tříletý časový test ani hodnotový limit 100 000 Kč/rok se na ně nemusí vztahovat stejně a výklad se může lišit podle typu produktu. Nespoléhejte na analogii s akciovými ETF; před prodejem si ověřte aktuální pravidla a projděte náš daňový hub, případně konzultujte daňového poradce."
+      },
+      {
+        "q": "Mám raději koupit bitcoin ETP, nebo bitcoin přímo na burze?",
+        "a": "ETP je jednodušší a bezpečnější na úschovu – držíte ho u běžného brokera vedle ostatních ETF, neřešíte privátní klíče ani hardwarovou peněženku a platíte za to jen TER. Přímý nákup na kryptoburze (Coinbase, Kraken) vám dá plnou kontrolu nad mincemi a možnost vlastní custody, ale nesete odpovědnost za bezpečnost klíčů. Pro pasivního investora, který nechce spravovat peněženku, bývá ETP pohodlnější volba."
+      },
+      {
+        "q": "Nese bitcoin ETP měnové riziko vůči koruně?",
+        "a": "Ano, vždy. Bitcoin se oceňuje v dolarech a ETP obchodujete v EUR nebo USD, takže výnos přepočtený do korun ovlivňuje i pohyb kurzu USD/CZK. Žádný z těchto produktů není zajištěný do koruny (měnové zajištění u ETP obecně chybí) a broker vám navíc při nákupu z korun účtuje měnovou konverzi. To je náklad a riziko navíc k volatilitě samotného bitcoinu."
+      }
+    ]
+  },
+  "nejlepsi-distribucni-etf": {
+    "introTitle": "Distribuční ETF: fondy, které vám dividendy posílají na účet",
+    "intro": [
+      "Distribuční ETF je ta samá věc jako kterýkoli jiný burzovně obchodovaný fond – jen s jedním rozdílem v „třídě\": dividendy, které firmy nebo dluhopisy v portfoliu vyplatí, fond nechává protéct k vám a několikrát ročně je pošle jako hotovost na váš brokerský účet. Nejde tedy o samostatný typ indexu ani o dividendovou strategii, ale o způsob, jak s výnosem naložit. Naprostá většina velkých indexů (S&P 500, FTSE All-World, MSCI World, evropské akcie i dluhopisy) existuje ve dvou verzích: distribuční (Dist / Distributing) a akumulační (Acc). Poznáte je podle přípony v názvu a podle jiného ISINu, i když sledují úplně stejný podklad.",
+      "Pozor na časté zmatení: distribuční ETF není totéž co „dividendové ETF\". Dividendové fondy jako Vanguard FTSE All-World High Dividend Yield (VHYL) cíleně vybírají firmy s vysokým výnosem – to je investiční strategie a řešíme ji zvlášť na stránce dividendových ETF. Naproti tomu distribuční verze běžného světového indexu drží stejné firmy jako akumulační, jen vám hotovost posílá ven místo aby ji reinvestovala uvnitř. Tahle stránka je o třídě výplaty, ne o výběru firem.",
+      "Pro českého investora, který utrácí koruny, má distribuční verze jedno velké „ale\": vyplacené dividendy se v Česku daní 15 %, a to bez ohledu na to, jak dlouho fond držíte. Časový test (osvobození po třech letech) se totiž vztahuje na zisk z prodeje podílů, ne na průběžně vyplácené dividendy. Právě tady se distribuční třída rozchází s akumulační, kde reinvestice probíhá uvnitř fondu a v přiznání ji neřešíte vůbec. Protože fondy kotují v USD, EUR nebo GBP, každá výplata k vám navíc přichází v cizí měně a nesete kurzové riziko vůči koruně – i samotná dividenda se do korun teprve přepočítává."
+    ],
+    "verdict": [
+      "Pokud jde o čistě široké jádro portfolia s výplatou, sáhněte po zavedených distribučních verzích velkých indexů. Nejlikvidnější volbou na celý svět je Vanguard FTSE All-World UCITS ETF (USD) Distributing (ISIN IE00B3RBWM25, ticker VWRL, TER 0,19 %, jmění přes 22 mld. EUR) – jeden fond, přes 3 600 firem z rozvinutých i rozvíjejících se trhů a čtvrtletní výplata. Kdo chce jen USA, má levné a obří VUSA (Vanguard S&P 500 Dist, IE00B3XXRP09, TER 0,07 %, přes 45 mld. EUR) nebo prakticky identické iShares Core S&P 500 (Dist) IUSA (IE0031442068, TER 0,07 %). Evropu pokryje iShares Core MSCI Europe (Dist) IMEU (IE00B1YZSC51, TER 0,12 %). Tyhle fondy nevybírají „vysokodividendové\" firmy, jen vyplácejí to, co běžný trh přirozeně přinese – dividendový výnos u nich bývá zhruba 1,5–2,5 % ročně.",
+      "Chcete-li z výplat postavit stabilnější příjem, přidejte dluhopisovou nohu, kde jsou kupóny hlavním smyslem: iShares Core EUR Corporate Bond UCITS ETF (Dist) (IE00B3F81R35, TER 0,09 %) pro podnikové dluhopisy nebo iShares Core Euro Government Bond UCITS ETF (Dist) (IE00B4WXJJ64, TER 0,07 %) pro státní. Dluhopisové ETF vyplácejí častěji a rovnoměrněji než akciové, ovšem jejich kurz kolísá s úrokovými sazbami – v roce 2026 to není zanedbatelné (roční výnosy v Kč se u nich pohybovaly kolem nuly, protože pohyb sazeb ukrojil z kupónů).",
+      "Rovnou dodejme protipól: pro dlouhodobé budování majetku, kde příjem teď nepotřebujete, je většinou lepší akumulační verze téhož fondu – ušetří vám 15% daň z každé dividendy a zapne složené úročení uvnitř fondu. Distribuční třída dává smysl hlavně tehdy, když peníze reálně chcete vidět na účtu (fáze renty / FIRE, doplněk příjmu). Srovnání obou přístupů řešíme na stránce akumulačních ETF a v daňovém rozcestníku."
+    ],
+    "forWhom": "Distribuční ETF se hodí investorům, kteří chtějí z portfolia reálný peněžní tok: lidé v penzijní nebo FIRE fázi žijící z majetku, ti kdo si přivydělávají pravidelnou rentou, nebo prostě každý, komu psychologicky pomáhá vidět hotovost přicházet na účet. Naopak se nehodí pro mladší investory ve fázi budování majetku – ti platí 15% daň z každé dividendy zbytečně a přicházejí o efekt reinvestice; pro ně je lepší akumulační třída stejného indexu. Nevýhodná je distribuční verze i pro každého, kdo dividendy stejně obratem ručně reinvestuje – daní je a znovu platí poplatek za nákup.",
+    "risks": [
+      "Zdanění dividend 15 % každý rok. Vyplacené dividendy z distribučních tříd se v Česku daní vždy a časový test je neosvobozuje – ten platí jen pro zisk z prodeje podílů. U akumulačního fondu tuhle starost nemáte. U zahraničních fondů navíc někdy řešíte srážkovou daň v domicilu a zápočet v přiznání.",
+      "Měnové riziko i u samotné výplaty. Fondy jako VWRL nebo VUSA kotují a vyplácejí v USD, evropské a dluhopisové v EUR či GBP. Každá dividenda k vám přijde v cizí měně a přepočítává se do korun; broker si k tomu účtuje měnovou konverzi. I „hedged\" třídy zajišťují maximálně do EUR/USD, korunové riziko za vás nikdo neodstraní.",
+      "Nižší dlouhodobé zhodnocení než u akumulace. Tím, že fond hotovost posílá ven místo aby ji reinvestoval, a vy z ní ještě odvedete daň, roste distribuční verze na dlouhém horizontu pomaleji než akumulační dvojče se stejným podkladem. Rozdíl je o to větší, čím delší je horizont.",
+      "U dluhopisových distribučních ETF úrokové riziko. Fondy jako iShares Core EUR Corporate Bond (Dist) nebo Euro Government Bond (Dist) vyplácejí stabilní kupóny, ale jejich kurz klesá při růstu sazeb – v roce 2026 se roční výnosy v korunách u některých držely kolem nuly či v mírném mínusu. Pravidelná výplata neznamená, že hodnota jistiny neklesá."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi distribučním a dividendovým ETF?",
+        "a": "Distribuční ETF je způsob výplaty – fond vám posílá dividendy na účet místo aby je reinvestoval. Dividendové ETF je naopak strategie výběru firem s vysokým výnosem (např. Vanguard FTSE All-World High Dividend Yield, VHYL). Distribuční verze běžného světového indexu drží ty samé firmy jako akumulační, jen s výplatou navenek. Dividendovým strategiím se věnujeme na samostatné stránce."
+      },
+      {
+        "q": "Které distribuční ETF jsou pro Čecha nejrozumnější jádro?",
+        "a": "Na celý svět Vanguard FTSE All-World UCITS ETF (USD) Distributing (VWRL, IE00B3RBWM25, TER 0,19 %) s více než 3 600 firmami a čtvrtletní výplatou. Jen na USA levné VUSA (Vanguard S&P 500 Dist, IE00B3XXRP09, TER 0,07 %) nebo iShares Core S&P 500 (Dist) IUSA (IE0031442068). Pro stabilnější výplatu se přidává dluhopisová noha, třeba iShares Core EUR Corporate Bond (Dist) (IE00B3F81R35)."
+      },
+      {
+        "q": "Jak se v Česku daní dividendy z distribučního ETF?",
+        "a": "Vyplacené dividendy se daní sazbou 15 %, a to každý rok bez ohledu na to, jak dlouho fond držíte – tříletý časový test se na dividendy nevztahuje, jen na zisk z prodeje podílů. U zahraničních fondů může být část daně sražena už v domicilu; podrobnosti a příklady najdete v daňovém rozcestníku. Konkrétní situaci raději ověřte s daňovým poradcem."
+      },
+      {
+        "q": "Je lepší distribuční, nebo akumulační verze?",
+        "a": "Pro fázi budování majetku bývá lepší akumulační – reinvestuje dividendy uvnitř fondu, ušetří vám 15% daň z každé výplaty a zapne složené úročení. Distribuční dává smysl, když příjem reálně chcete čerpat (renta, FIRE, doplněk příjmu). Přímé srovnání obou tříd řešíme na stránce akumulačních ETF."
+      },
+      {
+        "q": "Jak často distribuční ETF vyplácejí dividendy?",
+        "a": "Nejčastěji čtvrtletně (VWRL, VUSA i IUSA vyplácejí zpravidla 4× ročně), některé pololetně nebo ročně. Dluhopisové fondy jako iShares Core Euro Government Bond (Dist) vyplácejí obvykle rovnoměrněji. Přesnou frekvenci a historii výplat najdete na detailu konkrétního fondu."
+      },
+      {
+        "q": "Přijdou mi dividendy v korunách?",
+        "a": "Ne. Fondy kotují a vyplácejí v měně třídy – VWRL a VUSA v USD, evropské a dluhopisové většinou v EUR nebo GBP. Dividenda k vám přijde v cizí měně a teprve se přepočítává do korun, přičemž broker si účtuje měnovou konverzi. Korunové riziko nesete i u samotných výplat, žádné ETF ho nezajistí."
+      }
+    ]
+  },
+  "nejlepsi-globalni-etf": {
+    "introTitle": "Jeden fond na celý svět: co znamená „globální ETF“ a proč je to nejčastější první krok",
+    "intro": [
+      "Globální (celosvětové) akciové ETF je fond, který jedním nákupem koupí akcie z celého vyspělého a zpravidla i rozvíjejícího se světa. Není to sázka na jeden region ani sektor, ale co nejširší záběr trhu v jediném řádku portfolia. Právě proto je „nejlepší globální ETF“ nejčastější první dotaz českého začátečníka: hledá jeden fond, který koupí měsíčně, nechá běžet a nemusí ho každý rok přeskládávat.",
+      "Klíčové je rozlišit dvě skupiny, protože se pod jménem „globální“ míchají. První je typu all-world (celý svět) – indexy FTSE All-World a MSCI ACWI, které drží zhruba 3 600 až 3 700 firem z vyspělých i rozvíjejících se trhů (USA, Evropa, Japonsko, ale i Čína, Indie, Tchaj-wan). Druhá je jen vyspělý svět (developed) – index MSCI World s asi 1 400 firmami, který rozvíjející se trhy vynechává úplně. Rozdíl v počtu firem tedy není mezi 500 a 3 600 (to je S&P 500 vs. all-world), ale hlavně v tom, zda máte v portfoliu i emerging markets, nebo ne. Ty dnes tvoří zhruba 10 % all-world indexu.",
+      "Pro Čecha je podstatné, že drtivá většina relevantních fondů je v UCITS obalu s irským domicilem (ISIN začíná IE). To řeší srážkovou daň z amerických dividend uvnitř fondu na 15 % místo 30 % a odpadá formulář W-8BEN i riziko americké dědické daně. Fondy běžně koupíte u DEGIRO, XTB, Trading 212 nebo Interactive Brokers, často i frakčně za pár set korun.",
+      "Tato stránka řeší úhel „jeden fond na celý svět“. Pokud vás zajímá čistě developed varianta MSCI World, nebo srovnání celého vesmíru celosvětových řešení včetně kombinací World + emerging, projděte i naše kategorie nejlepší MSCI World ETF a nejlepší celosvětové ETF, kam z této stránky prolinkujeme."
+    ],
+    "verdict": [
+      "Pro naprostou většinu českých investorů, kteří chtějí jeden fond na celý svět, je nejjednodušší volbou all-world řešení v akumulační třídě s irským domicilem. Etalonem je Vanguard FTSE All-World UCITS ETF Acc (ticker VWCE, ISIN IE00BK5BQT80), zdaleka největší all-world fond na evropském trhu se jměním přes 43 mld. EUR a TER 0,22 % ročně. Drží kolem 3 600 firem z vyspělých i rozvíjejících se trhů a reinvestuje dividendy uvnitř fondu, takže o nich nic neřešíte v přiznání. Kdo chce pravidelnou výplatu, sáhne po sesterské distribuční verzi VWRL (IE00B3RBWM25).",
+      "Levnější alternativou se stejným záběrem (vyspělý svět plus emerging) je Amundi Prime All Country World Acc (WEBG, IE0009HF1MK9) s TER jen 0,07 %, respektive SPDR MSCI ACWI IMI Acc (SPYY, IE00B44Z5B48) s TER 0,12 %. Zavedenou klasikou na indexu MSCI ACWI je iShares MSCI ACWI Acc (SSAC, IE00B6R52259, TER 0,20 %, přes 29 mld. EUR) – dražší než Amundi, ale s dlouhou historií a vysokou likviditou. U menších, ale plnohodnotných fondů (WEBG, Invesco FWIA) sledujte spíš rozpětí nákup/prodej u vašeho brokera, kde se pár setin TER v úspoře snadno ztratí.",
+      "Pokud vám nevadí vynechat rozvíjející se trhy a chcete jen vyspělý svět, je referencí největší evropský akciový ETF vůbec: iShares Core MSCI World Acc (SWDA, IE00B4L5Y983, TER 0,20 %, přes 123 mld. EUR). Rozdíl proti all-world je hlavně chybějící Čína, Indie a další EM – historicky to výnos spíš mírně nadlepšovalo, do budoucna to ale nikdo nezaručí. Zjednodušeně: chcete-li opravdu celý svět jedním klikem, berte VWCE nebo WEBG; chcete-li nejlevnější a nejlikvidnější „skoro všechno“ bez EM, berte SWDA."
+    ],
+    "forWhom": "Globální ETF se hodí pro každého, kdo chce jeden fond, který nemusí řešit – pravidelně kupovat, držet roky až desítky let a nepřeskládávat. Je to ideální jádro (klidně 100 %) portfolia začátečníka i zkušeného pasivního investora, který nechce sázet na konkrétní region. Méně se hodí pro toho, kdo chce vědomě zvýraznit USA (tomu lépe poslouží S&P 500 nebo americké ETF), pro fanouška rozvíjejících se trhů, který by chtěl výrazně vyšší podíl EM než přirozených ~10 %, a pro konzervativního investora s krátkým horizontem – i celý svět umí v krizi klesnout o 30 až 50 % a plně nesete kurzové riziko dolaru vůči koruně.",
+    "risks": [
+      "Skrytá koncentrace do USA a technologických gigantů. „Celý svět“ zní jako maximální rozložení, ale USA dnes tvoří kolem 60–65 % all-world indexu a firmy jako Apple, Microsoft a Nvidia patří mezi největší pozice. Reálná diverzifikace je tedy nižší, než by počet 3 600 firem napovídal – při propadu amerického tech sektoru klesá i globální fond.",
+      "Měnové riziko vůči koruně nesete vždy. Fondy jsou denominované v USD a podkladově drží hlavně dolarová aktiva. Posílení koruny vám sníží výnos přepočtený do korun, i když index roste. Měnově zajištěné (hedged) verze míří jen do EUR/USD, ne do CZK, a navíc zvyšují náklady – korunové riziko vám neodstraní.",
+      "Čistě akciové riziko a délka propadů. Globální akciový fond nemá dluhopisový polštář. Historicky přicházely poklesy o 30 až 55 % a návrat na předchozí vrchol mohl trvat i několik let. To musíte psychicky i finančně ustát bez panického prodeje.",
+      "Rozdíly mezi „globálními“ fondy nejsou kosmetické. World (bez EM) versus all-world (s EM), fyzická versus swapová replikace, akumulace versus distribuce – to všechno mění chování i daňové dopady. Nekupujte podle jména „World/Global“ naslepo; ověřte si, co index skutečně obsahuje a jak je fond konstruován."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi globálním ETF na MSCI World a na FTSE All-World / MSCI ACWI?",
+        "a": "MSCI World drží jen vyspělé trhy – asi 1 400 firem, bez Číny, Indie a dalších rozvíjejících se zemí. FTSE All-World a MSCI ACWI přidávají i rozvíjející se trhy, takže mají kolem 3 600 firem a rozvíjející se trhy v nich tvoří zhruba 10 %. Chcete-li opravdu celý svět, sáhněte po all-world (VWCE, WEBG, SSAC). Chcete-li nejlevnější a nejlikvidnější „skoro všechno“ bez emerging, stačí MSCI World (SWDA)."
+      },
+      {
+        "q": "Který globální ETF je největší a který nejlevnější?",
+        "a": "Největší all-world fond je Vanguard FTSE All-World Acc (VWCE, IE00BK5BQT80) s jměním přes 43 mld. EUR a TER 0,22 %. Nejlevnější all-world je Amundi Prime All Country World (WEBG, IE0009HF1MK9) s TER jen 0,07 %. Ještě větší, ale bez emerging trhů, je iShares Core MSCI World (SWDA, IE00B4L5Y983, přes 123 mld. EUR, TER 0,20 %). Aktuální pořadí podle velikosti i nákladů najdete v žebříčcích na této stránce."
+      },
+      {
+        "q": "Stačí jako celé portfolio jediné globální ETF?",
+        "a": "Pro drtivou většinu dlouhodobých investorů ano. Jeden all-world fond jako VWCE nebo WEBG pokryje tisíce firem napříč regiony a sektory a odpadá potřeba cokoli přeskládávat. Přidávat další ETF má smysl, jen když chcete vědomě něco zvýraznit (víc USA, víc emerging, malé firmy). Pozor ale, že „celý svět“ je pořád ze  100 % v akciích – kdo potřebuje nižší kolísání, kombinuje ho s dluhopisy nebo hotovostí."
+      },
+      {
+        "q": "Mám volit akumulační, nebo distribuční globální ETF?",
+        "a": "Pro dlouhodobé budování majetku je praktičtější akumulační třída (VWCE, SSAC, WEBG Acc): dividendy reinvestuje sám fond, nemusíte je danit ani ručně reinvestovat a naplno běží složené úročení. Distribuční verzi (VWRL) volte, pokud cíleně chcete pravidelnou výplatu – typicky v rentiérské fázi. U distribučních tříd počítejte s 15% daní z vyplacených dividend. Podrobně to rozebíráme v kategoriích akumulační vs. distribuční ETF a v daňovém hubu."
+      },
+      {
+        "q": "Jak se globální ETF daní v Česku v roce 2026?",
+        "a": "Klasické akciové ETF jsou cenné papíry, takže platí časový a hodnotový test. Držíte-li fond déle než 3 roky, je zisk z prodeje osvobozen – od roku 2026 už bez horního limitu. Alternativně je osvobozen, pokud úhrn vašich prodejů cenných papírů nepřesáhne 100 000 Kč za rok. U akumulačních fondů se reinvestované dividendy uvnitř fondu neřeší; u distribučních se vyplacené dividendy daní 15 %. Nejde o individuální daňovou radu – detaily a příklady najdete v našem daňovém hubu."
+      },
+      {
+        "q": "Proč mají globální ETF s americkými akciemi domicil v Irsku?",
+        "a": "Irské UCITS fondy mají s USA daňovou smlouvu, díky které se z amerických dividend uvnitř fondu strhává 15 % místo 30 %. U all-world i World ETF, kde USA tvoří 60 a více procent, to reálně zvedá čistý výnos. Irský domicil (ISIN začíná IE) navíc řeší, že nemusíte podávat americký formulář W-8BEN, a odpadá riziko americké dědické daně, které hrozí u přímo držených fondů domicilovaných v USA."
+      }
+    ]
+  },
+  "nejlepsi-high-yield-etf": {
+    "introTitle": "High yield ETF: vyšší kupón výměnou za kreditní riziko, ne za bezpečí",
+    "intro": [
+      "Nejdřív si ujasněme pojem, protože „high yield“ v češtině svádí ke zmatku. Tato kategorie NENÍ o vysokodividendových akciích (na ty míří samostatná kategorie dividendových ETF). High yield ETF drží dluhopisy firem s ratingem POD investičním stupněm, tedy BB, B, CCC a níže, kterým se lidově říká „junk bonds“ neboli podřadné dluhopisy. Jsou to půjčky firmám, u nichž trh vidí vyšší pravděpodobnost, že peníze nesplatí, a proto za to chtějí investoři vyšší úrok. High yield fond tedy nabízí vyšší běžný výnos (yield to maturity) než státní nebo investment-grade korporátní dluhopisy, ale ten navíc není odměnou za trpělivost, nýbrž za převzaté kreditní riziko.",
+      "Fond nakupuje do jednoho koše stovky takových dluhopisů napříč emitenty a odvětvími, aby individuální bankrot jedné firmy portfolio nepoložil. Na evropském trhu (UCITS) dominují dva světy: eurové HY (dluhopisy evropských firem znějící na euro) a dolarové HY (americké firmy, USD). Největším eurovým fondem je iShares EUR High Yield Corporate Bond (ticker EUNW, ISIN IE00B66F4759, TER 0,50 %) s objemem přes 5 miliard EUR, levnější alternativou je Xtrackers EUR High Yield Corporate Bond (XHYA, LU1109943388, TER pouhých 0,20 %). Na dolarové straně stojí iShares USD High Yield Corporate Bond (distribuční IS0R, IE00B4PY7Y77; akumulační IS00, IE00BYXYYL56; TER 0,50 %) a cenově agresivní iShares Broad USD High Yield (UDHY, IE00BG0J4957, TER 0,20 %).",
+      "Proč to Čecha zajímá? V prostředí roku 2026, kdy sazby zůstávají relativně vysoko, nabízí high yield lákavý výnos do splatnosti klidně kolem 6–7 % u dolarových fondů. To ale není spořicí účet s prémií. High yield se chová napůl jako dluhopis a napůl jako akcie: v dobrých časech vydělává na kupónech i zúžení kreditních spreadů, ale při recesi nebo panice na trzích padá spolu s akciemi, protože investoři se bojí vln bankrotů. Není to tedy stabilizátor portfolia jako státní dluhopisy, nýbrž samostatná, výnosově i rizikově agresivnější třída aktiv."
+    ],
+    "verdict": [
+      "Pokud chcete high yield do portfolia zařadit vědomě a s rozvahou, nejde ani tak o „nejlepší fond“, jako o volbu měny a durace. Pro eurového investora je nejpřímočařejší velký a likvidní iShares EUR High Yield Corporate Bond (EUNW, IE00B66F4759) v distribuční verzi, nebo jeho akumulační sourozenec SXRI (IE00BF3N7094). Kdo hlídá náklady, sáhne po Xtrackers EUR High Yield (XHYA/XHYG, LU1109943388/LU1109942653) s TER jen 0,20 %, tedy o 30 bazických bodů levněji než iShares. Na dolarové straně dává u širokého trhu smysl nejlevnější iShares Broad USD High Yield (UDHY, IE00BG0J4957, TER 0,20 %), zatímco tradiční iShares USD High Yield (IS0R / IS00, TER 0,50 %) je největší a nejlikvidnější, ale dražší.",
+      "Kdo chce vyšší kupón, ale bojí se úrokového rizika a hlubokých propadů, měl by se podívat na verze s krátkou durací: iShares USD Short Duration High Yield (IS3K, IE00BCRY6003; akumulační OM3J, IE00BZ17CN18, TER 0,45 %) drží dluhopisy blízko splatnosti, takže mnohem méně reaguje na pohyby sazeb. Konzervativnější podkategorií jsou pak takzvaní „fallen angels“, tedy dluhopisy firem, které nedávno spadly z investičního stupně do junk pásma a bývají v průměru kvalitnější než rodilý high yield. Tuto strategii nabízí iShares Fallen Angels High Yield Corporate Bond (IE00BYM31M36 dist / IE00BDFJYP58 acc, TER 0,50 %).",
+      "Pro Čecha je klíčové rozhodnutí o měně. Dolarový HY láká výnosem kolem 6–7 %, ale nese plné USD/CZK riziko. Pokud chcete kreditní expozici bez amerického dolaru, existují eurově zajištěné verze amerického HY, například iShares USD High Yield EUR Hedged (IBC2, IE00BF3N7102, TER 0,55 %). Pozor ale: hedge do EUR odstíní pohyb dolaru vůči euru, nikoli euru vůči koruně, takže Čech měnové riziko úplně neodstraní, jen ho přesune z páru USD/CZK na EUR/CZK. Ať zvolíte cokoli, high yield by měl být jen malým, vědomě dávkovaným kořením portfolia, ne jeho dluhopisovou páteří."
+    ],
+    "forWhom": "Hodí se investorům, kteří už mají vybudované jádro (globální akcie plus kvalitní state/investment-grade dluhopisy) a vědomě chtějí přidat malou, výnosově agresivnější složku za vyšší kupón, případně těm, kdo v rentierské fázi hledají vyšší běžný příjem a jsou smíření s tím, že cena fondu může výrazně kolísat. Nehodí se začátečníkům jako první dluhopisová investice ani konzervativním investorům, kteří od dluhopisů čekají klid a protiváhu k akciím, protože high yield padá právě tehdy, kdy padají akcie. Rozhodně to není náhrada spořicího účtu ani krátkodobé rezervy, i když vyšší výnosové číslo tak může na první pohled vypadat.",
+    "risks": [
+      "Kreditní a default riziko: emitenti v pásmu BB až CCC bankrotují mnohem častěji než firmy investičního stupně. Fond riziko rozkládá napříč stovkami dluhopisů, ale v recesi roste míra defaultů plošně a hodnota fondu klesá. Právě za tohle riziko dostáváte ten vyšší kupón, není to výnos zadarmo.",
+      "Korelace s akciemi místo protiváhy: high yield se v krizích chová jako riziková aktiva. V roce 2008 i během covidového propadu 2020 padal současně s akciovým trhem, takže neplní funkci stabilizátoru, kterou od klasických státních dluhopisů čekáte. Kdo ho drží jako „bezpečnou“ složku, se přepočítá.",
+      "Měnové riziko vůči koruně: dolarové HY fondy (UDHY, IS0R) nesou plné USD/CZK riziko, které při posílení koruny snadno smaže i tučný kupón. Eurově zajištěné verze (IBC2) odstíní pohyb USD vůči EUR, ale ne EUR vůči CZK, takže Čech kurzové riziko nikdy neodstraní zcela.",
+      "Likviditní a úrokové riziko: trh podřadných dluhopisů v panice rychle vysychá a spready se rozšiřují, což prohlubuje propad ceny. Dlouhá durace navíc přidává citlivost na sazby, proto verze s krátkou durací (IS3K) v turbulencích kolísají méně."
+    ],
+    "faqs": [
+      {
+        "q": "Je high yield ETF totéž co dividendové ETF?",
+        "a": "Ne, a je to častá záměna kvůli slovu „yield“. High yield ETF drží podřadné (junk) firemní DLUHOPISY s ratingem pod investičním stupněm a jejich výnos plyne z kupónů. Dividendové ETF drží AKCIE firem, které vyplácejí vysoké dividendy. Jde o dvě úplně jiné třídy aktiv s jiným rizikem: u high yield řešíte kreditní a default riziko dlužníků, u dividendových akcií kolísání akciového trhu. Pokud hledáte akciovou výplatu, patříte do kategorie dividendových ETF."
+      },
+      {
+        "q": "Kolik high yield ETF vynáší a je to bezpečné?",
+        "a": "Dolarové HY fondy (např. iShares USD High Yield IS0R) nabízejí výnos do splatnosti řádově kolem 6–7 %, eurové (EUNW, XHYA) méně, zhruba 4–5 %, podle prostředí sazeb. Vyšší číslo ale odráží vyšší riziko, ne lepší kvalitu. V recesi rostou bankroty a fond může ztratit dvouciferná procenta, jako v roce 2008. Není to bezpečné uložení peněz, je to riziková investice s dluhopisovým kabátem."
+      },
+      {
+        "q": "Musím zisk z high yield ETF v ČR danit?",
+        "a": "U high yield ETF jde o klasické dluhopisové fondy (cenné papíry), takže platí stejná pravidla jako u jiných ETF. Časový test: pokud podíl držíte déle než 3 roky, je zisk z prodeje osvobozen (od roku 2026 bez horního limitu). Hodnotový test: pokud úhrn vašich prodejů cenných papírů za rok nepřesáhne 100 000 Kč, je zisk osvobozen i bez splnění časového testu. U distribučních verzí (EUNW, IS0R) se ovšem vyplacené kupóny daní srážkou 15 % vždy. Detaily řeší náš daňový hub, pravidla si vždy ověřte."
+      },
+      {
+        "q": "Mám volit akumulační, nebo distribuční verzi?",
+        "a": "Akumulační verze (např. SXRI IE00BF3N7094 nebo IS00 IE00BYXYYL56) reinvestuje kupóny automaticky uvnitř fondu, takže v přiznání neřešíte pravidelné výplaty a využijete složené úročení, ideální ve fázi budování majetku. Distribuční verze (EUNW, IS0R) vyplácí kupóny na účet, což ocení rentier hledající příjem, ale vyplacené kupóny podléhají 15% dani. U high yield s vysokým kupónem je tento daňový rozdíl citelnější než u nízkovýnosových dluhopisů."
+      },
+      {
+        "q": "Mám volit eurový, nebo dolarový high yield fond?",
+        "a": "Dolarový HY (UDHY, IS0R) má vyšší výnos, ale nese plné USD/CZK riziko: posílení koruny vůči dolaru může kupón snadno smazat. Eurový HY (EUNW, XHYA) má nižší výnos a riziko EUR/CZK, které bývá klidnější. Existují i verze amerického HY zajištěné do eura (IBC2 IE00BF3N7102), ty ale zajišťují jen pár USD/EUR, nikoli vůči koruně, takže jako Čech kurzové riziko nikdy neodstraníte úplně, jen ho přesunete."
+      },
+      {
+        "q": "Čím se high yield liší od běžných korporátních dluhopisů?",
+        "a": "Je to otázka ratingu. Kategorie korporátních dluhopisů investičního stupně drží dluhopisy kvalitních firem (rating BBB a výše) s nízkým rizikem bankrotu a nižším výnosem. High yield jde o stupeň níž (BB a hůře), kde je vyšší kupón vykoupen výrazně vyšším rizikem defaultu. Mezistupněm jsou „fallen angels“ (iShares Fallen Angels, IE00BYM31M36), tedy dluhopisy firem čerstvě vyřazených z investičního stupně, které bývají v průměru kvalitnější než rodilý junk."
+      }
+    ]
+  },
+  "nejlepsi-indicke-etf": {
+    "introTitle": "Indické ETF: jak Čech koupí nejrychleji rostoucí velkou ekonomiku světa",
+    "intro": [
+      "Indie je dnes nejlidnatější země světa a několik let po sobě jedna z nejrychleji rostoucích velkých ekonomik. Pro drobného investora je ale prakticky nemožné nakupovat jednotlivé indické akcie napřímo – domácí burzy (NSE a BSE) jsou pro zahraniční retail obtížně dostupné a plné regulatorních překážek. Řešením je evropský UCITS ETF, který indický trh zabalí do jednoho fondu obchodovaného na Xetře nebo Euronextu. V praxi vybíráte mezi dvěma indexovými rodinami: MSCI India (zhruba 130 největších firem, kolem 85 % trhu) a Nifty 50 (padesát blue chipů z burzy NSE). Sensex ani širší indexy v evropském UCITS obalu prakticky nenajdete.",
+      "Zásadní specifikum Indie je, jak se k jejím akciím vůbec dá dostat. Kvůli indickým daňovým a regulatorním pravidlům řada fondů nedrží akcie fyzicky, ale replikuje index synteticky přes swap – to je u ostatních regionů dnes spíš výjimka, u Indie je to běžné. Fyzickou replikaci nabízí hlavně iShares MSCI India (ticker QDV5) a Franklin FTSE India (FLXI); velká část fondů Amundi a Xtrackers jsou naopak swapy. Není to samo o sobě chyba, ale mění to profil rizika (viz níže).",
+      "Pro českého investora je Indie čistá sázka na jeden rozvíjející se trh. Nejde o náhradu globálního ani širšího EM portfolia – v běžném ETF na rozvíjející se trhy (MSCI Emerging Markets) už Indii z velké části máte, dnes tvoří jednu z největších vah indexu hned vedle Číny a Tchaj-wanu. Samostatné indické ETF má smysl jen jako vědomá nadváha: sázíte na to, že Indie poroste rychleji než zbytek EM. Pokud chcete širší expozici, projděte si nejdřív kategorie ETF na rozvíjející se trhy a ETF na Čínu, ať víte, co už držíte.",
+      "Poslední rok byl přitom pro indické akcie slabý – většina fondů je v korunovém přepočtu za posledních 12 měsíců v mínusu (řádově -9 až -14 %), protože po silných letech přišla korekce a k tomu oslabení rupie. To je dobrá připomínka, že vstupní bod a měna hrají u jednoho rozvíjejícího se trhu velkou roli a že historicky vysoké výnosy Indie nejsou zaručené do budoucna."
+    ],
+    "verdict": [
+      "Pro většinu českých investorů je nejrozumnější volbou akumulační, fyzicky replikovaný fond s irským domicilem. Tomu nejlépe odpovídá iShares MSCI India UCITS ETF USD Acc (ISIN IE00BZCQB185, ticker QDV5) – s majetkem přes 4,5 miliardy EUR je zdaleka největší a nejlikvidnější indický ETF na evropském trhu, drží akcie fyzicky a je akumulační, takže dividendy reinvestuje sám. Nevýhodou je vyšší TER 0,65 % ročně; za největší a fyzický fond na dražším trhu si ale připlácíte. Levnější fyzickou alternativou je Franklin FTSE India UCITS ETF (IE00BHZRQZ17, FLXI) s TER pouhých 0,19 % a jměním přes 1,7 miliardy EUR – sleduje index FTSE India, ne MSCI, ale ve výsledku pokrývá velmi podobný koš velkých indických firem za třetinový poplatek.",
+      "Kdo hledá nejnižší náklady a nevadí mu syntetická replikace, může sáhnout po UBS MSCI India SF UCITS ETF USD Acc (IE000N70F6V6, ticker INDA) s TER 0,15 %, nebo po Xtrackers MSCI India Swap UCITS ETF 1C (LU0514695187, XCS5) s TER 0,19 %. Oba používají swap, tedy nedrží indické akcie napřímo, ale výkonnost indexu dodává protistrana. To přináší malé riziko protistrany výměnou za nižší náklady a hladší sledování indexu na trhu, kde je fyzická replikace drahá.",
+      "Pokud chcete cíleně index Nifty 50 (padesát největších firem NSE) místo širšího MSCI India, je na evropském trhu prakticky jediná volba: Xtrackers Nifty 50 Swap UCITS ETF 1C (LU0292109690, ticker DBX7). Je to synteticky replikovaný fond s TER 0,85 % a menším jměním kolem 158 milionů EUR. Pro naprostou většinu investorů je ale MSCI India (širší, s nižšími náklady u konkurence) lepší jádro než dražší úzký Nifty 50 – rozdíl ve složení je v praxi malý, rozdíl v poplatku a likviditě velký."
+    ],
+    "forWhom": "Indické ETF se hodí pro investory s dlouhým horizontem (ideálně 10 a více let), kteří už mají jádro portfolia v širokém světovém indexu a chtějí k němu přidat cílenou sázku na růst Indie. Rozumná pozice je jednotky procent portfolia jako doplněk, ne základ. Nehodí se pro začátečníky budující první portfolio (těm stačí globální ETF, kde je Indie zastoupena automaticky), pro konzervativní investory s krátkým horizontem a pro každého, kdo už drží ETF na rozvíjející se trhy a nechce vědomě zvyšovat koncentraci do jediné země. Kdo indickou váhu jen \"nechce podvážit\", vystačí si s běžným EM fondem a samostatné indické ETF nepotřebuje.",
+    "risks": [
+      "Koncentrace do jediné země a jednoho trhu. Držíte akcie jedné rozvíjející se ekonomiky bez sektorové ani geografické záchranné sítě. Indický trh navíc bývá dražší (vyšší ocenění P/E) než jiné EM, což zvyšuje citlivost na zklamání z růstu – poslední rok se silnou korekcí je toho ukázkou.",
+      "Měnové riziko rupie i dolaru vůči koruně. Podkladem jsou akcie v indických rupiích (INR), fond obvykle kotuje v USD nebo EUR. Český investor tak nese hned dvojí měnový pohyb do CZK a hedgované třídy do koruny neexistují – i případné zajištění by bylo maximálně do EUR/USD, ne do CZK. Oslabení rupie umí samo o sobě smazat část akciového výnosu.",
+      "Syntetická (swapová) replikace u velké části fondů. Amundi, Xtrackers i UBS řada indických tříd nedrží akcie fyzicky, ale replikují index přes swap. To přináší riziko protistrany a menší transparentnost. Kdo tomu chce předejít, musí cíleně volit fyzický iShares QDV5 nebo Franklin FLXI.",
+      "Vyšší náklady a nižší likvidita než u širokých indexů. TER se u indických ETF pohybuje od 0,15 % (UBS INDA) až po 0,85 % (Xtrackers Nifty 50 DBX7, Amundi swapy), tedy výrazně výš než u globálního ETF kolem 0,20 %. K tomu se přidává poplatek za měnovou konverzi z korun do EUR/USD při každém nákupu."
+    ],
+    "faqs": [
+      {
+        "q": "Jaké je největší a nejznámější indické ETF pro českého investora?",
+        "a": "Největší je iShares MSCI India UCITS ETF USD Acc (ISIN IE00BZCQB185, ticker QDV5) s majetkem přes 4,5 miliardy EUR. Drží akcie fyzicky, je akumulační a má irský domicil; nevýhodou je vyšší TER 0,65 %. Obchoduje se na evropských burzách a je dostupné u brokerů jako DEGIRO, XTB, Trading 212 nebo Interactive Brokers."
+      },
+      {
+        "q": "Které indické ETF má nejnižší poplatek (TER)?",
+        "a": "Nejlevnější je UBS MSCI India SF UCITS ETF (IE000N70F6V6, INDA) s TER 0,15 %, těsně následované Franklin FTSE India (IE00BHZRQZ17, FLXI) a Xtrackers MSCI India Swap (LU0514695187, XCS5), oba s TER 0,19 %. Pozor ale, že nejlevnější fondy (UBS, Xtrackers) jsou synteticky replikované – fyzickou replikaci za nízký poplatek nabízí právě Franklin FLXI."
+      },
+      {
+        "q": "Je lepší MSCI India, nebo Nifty 50?",
+        "a": "MSCI India obsahuje zhruba 130 firem a kolem 85 % trhu, Nifty 50 jen padesát největších blue chipů z burzy NSE. V praxi se výkonnost obou indexů liší jen mírně, protože největší firmy dominují oběma. Rozhodující je nabídka fondů: MSCI India má více a levnějších ETF, kdežto Nifty 50 zastupuje na evropském trhu prakticky jen Xtrackers Nifty 50 Swap (DBX7) s vyšším TER 0,85 %. Pro většinu investorů je proto MSCI India praktičtější volba."
+      },
+      {
+        "q": "Proč jsou indické ETF často synteticky replikované (swap)?",
+        "a": "Indická daňová a regulatorní pravidla dělají přímé (fyzické) držení akcií pro zahraniční fondy nákladné a administrativně náročné. Řada poskytovatelů (Amundi, Xtrackers, UBS) proto místo nákupu akcií replikuje index přes swap, kde výnos dodává finanční protistrana. Přináší to nižší náklady a přesnější sledování indexu výměnou za riziko protistrany. Kdo se swapu chce vyhnout, volí fyzický iShares QDV5 nebo Franklin FLXI."
+      },
+      {
+        "q": "Nemám Indii už ve svém ETF na rozvíjející se trhy?",
+        "a": "Skoro jistě ano. Indie je dnes jednou z největších vah indexu MSCI Emerging Markets, hned vedle Číny a Tchaj-wanu. Pokud držíte běžné EM ETF nebo globální all-world fond, část indické expozice už máte automaticky. Samostatné indické ETF má proto smysl jen jako vědomá nadváha, když chcete na Indii vsadit víc než odpovídá jejímu podílu ve světě."
+      },
+      {
+        "q": "Jak se v Česku daní zisk z indického ETF?",
+        "a": "U akciových ETF (cenné papíry-fondy) platí standardní pravidla: zisk z prodeje je osvobozen po splnění tříletého časového testu (od roku 2026 bez horního limitu), případně pokud úhrn vašich prodejů za rok nepřesáhne 100 000 Kč (hodnotový test). U akumulačních fondů jako iShares QDV5 se reinvestice dividend uvnitř fondu neřeší; u distribučních tříd se vyplacené dividendy daní 15 %. Domicil ani syntetická replikace na tato pravidla pro českého investora nic nemění."
+      }
+    ]
+  },
+  "nejlepsi-infrastrukturni-etf": {
+    "introTitle": "Infrastrukturní ETF: reálná aktiva, cash flow a ochrana proti inflaci",
+    "intro": [
+      "Infrastrukturní ETF sdružují firmy, které vlastní a provozují fyzickou infrastrukturu, na níž stojí ekonomika: přenosové a distribuční sítě, plynovody a produktovody, dálnice a mýtné silnice, letiště, přístavy, železnice, vodárny, telekomunikační věže a datová centra. Nejde o samostatnou třídu aktiv, ale o výřez z akciového trhu s velmi specifickým profilem. Tyto firmy typicky mají regulovaný nebo dlouhodobě smluvně zajištěný příjem, vysoké vstupní bariéry (konkurent nepostaví druhé letiště vedle stávajícího) a příjmy často navázané na inflaci. Právě proto se infrastruktura řadí mezi takzvaná reálná aktiva a bere se jako částečná ochrana proti inflaci a doplněk k běžnému akciovému jádru.",
+      "Klasickým benchmarkem kategorie je index S&P Global Infrastructure, který drží zhruba 75 firem rozdělených napříč třemi bloky: energetika a sítě (utilities), doprava (transportation) a energetická infrastruktura (pipelines). V portfoliu tak najdete jména jako NextEra Energy, Enbridge, Transurban, Aena nebo American Tower. Pozor ale na to, že tato kategorie se v praxi rozpadá na dvě dost odlišné školy: klasickou defenzivní infrastrukturu (sítě, mýtné, letiště) a novou vlnu tematických fondů kolem AI, datacenter a elektrifikace, které jsou mnohem růstovější a volatilnější. To, co koupíte, se liší podle indexu často víc než u jiných kategorií.",
+      "Pro českého investora je zásadní, že žádný z těchto fondů nekoupíte v korunách. Většina je denominovaná v dolarech (fund_currency USD), část v eurech, ale podkladová aktiva jsou globální. Výnos, který uvidíte, je vždy potřeba chápat jako výnos přepočtený do korun. I když index roste, může posílení koruny vůči dolaru výnos v CZK smazat. Všechny níže uvedené fondy jsou UCITS s irským nebo lucemburským domicilem a běžně se obchodují na evropských burzách (Xetra, Euronext, LSE) u brokerů jako DEGIRO, XTB, Trading 212 nebo Interactive Brokers.",
+      "Od průmyslových (industrials) ETF se infrastruktura liší tím, že nejde o výrobce strojů a cyklické firmy, ale o provozovatele aktiv se stabilním cash flow; podrobný industrials úhel řešíme v samostatné kategorii nejlepší průmyslové ETF. Od sektorových utility fondů se zase liší přidanou dopravou a energetickou infrastrukturou."
+    ],
+    "verdict": [
+      "Pokud hledáte klasickou defenzivní globální infrastrukturu, jádrem kategorie jsou dva fondy na index S&P Global Infrastructure. iShares Global Infrastructure UCITS ETF v distribuční třídě (ISIN IE00B1FZS467, ticker INFR, TER 0,65 %, přes 2,1 mld. USD) je největší a nejlikvidnější fyzicky replikovaný fond; existuje i jeho akumulační sesterská třída CBUX (IE000CK5G8J7, TER 0,65 %, menší objem kolem 146 mil. USD). Levnější alternativou na velmi podobný index je Xtrackers S&P Global Infrastructure Swap UCITS ETF 1C (LU0322253229, DX2E, TER 0,60 %, přes 600 mil. USD), ten ale používá swapovou (syntetickou) replikaci, což je pro citlivější investory argument proti. Pro rentu je logickou volbou distribuční INFR, pro dlouhodobé spoření akumulační CBUX nebo swapový Xtrackers.",
+      "Kdo chce širší záběr než čistý S&P index, může sáhnout po State Street SPDR Morningstar Multi-Asset Global Infrastructure UCITS ETF (IE00BQWJFQ70, ZPRI, TER 0,40 %, kolem 967 mil. USD), který kombinuje akcie infrastrukturních firem a přidává i realitní a další prvky za nižší poplatek. Nejlevnějším čistě akciovým řešením v kategorii je BNP Paribas Easy ECPI Global ESG Infrastructure (IE000FF2EBQ8, TER 0,31 %), pokud vám nevadí ESG filtr. Naopak Amundi Global Infrastructure (LU1589350310) je malý (kolem 17 mil. EUR) a jeho výnos v korunách za poslední rok zaostával, což ukazuje, jak moc složení a měna rozhodují.",
+      "Zvlášť je nutné oddělit tematickou větev. Fondy jako First Trust Nasdaq Clean Edge Smart Grid Infrastructure (IE000J80JTL1, GRID, TER 0,63 %, přes 2,3 mld. USD, výnos v CZK za rok přes 36 %) nebo iShares AI Infrastructure (IE000X59ZHE2, AINF, TER 0,35 %), který vytáhl přepočtený roční výnos přes 90 %, nejsou defenzivní infrastruktura. Jde o sázku na elektrifikaci, datacentra a AI hardware. Nabízejí vyšší růst, ale i mnohem vyšší kolísání a překryv s technologickým sektorem. Neberte je jako náhradu klasické infrastruktury pro stabilitu, ale jako samostatné tematické doplňky. Konkrétní pořadí podle TER a velikosti najdete v žebříčcích a tabulce níže."
+    ],
+    "forWhom": "Infrastrukturní ETF se hodí investorovi, který už má postavené široké akciové jádro (světový index) a chce k němu přidat cihlu s odlišným profilem: nižší korelací k technologiím, stabilnějším cash flow a částečnou ochranou proti inflaci. Rozumná pozice bývá 5 až 10 % portfolia jako doplněk, ne základ. Dobře poslouží i těm, kdo v rentiérské fázi hledají pravidelnou dividendu z reálných aktiv (distribuční INFR). Nehodí se jako první a jediný fond začátečníka, protože je to úzký sektor s vyšším TER (0,3 až 0,7 %) než široký index. Nehodí se ani pro toho, kdo od infrastruktury čeká klid a přitom by omylem koupil tematický AI/smart-grid fond, jenž kolísá jako technologické akcie. A nehodí se pro investory, kteří by nesnesli, že po přepočtu do korun může i rostoucí index skončit v mínusu kvůli pohybu měny.",
+    "risks": [
+      "Záměna defenzivní a tematické infrastruktury. Pod jedním názvem kategorie se skrývají fondy s naprosto odlišným rizikovým profilem. Klasický iShares INFR (S&P Global Infrastructure) je defenzivní, zatímco First Trust GRID nebo iShares AI Infrastructure (AINF) jsou růstové tematické sázky s kolísáním jako u tech akcií. Před nákupem si projděte index a prvních deset pozic, ať víte, co skutečně kupujete.",
+      "Měnové riziko vůči koruně. Většina fondů je v USD, část v EUR, ale český investor nese riziko vůči CZK vždy. Žádný z těchto fondů není zajištěný do koruny (existují jen třídy hedgované do GBP, EUR nebo USD, například INGH do libry). I když globální infrastruktura roste, posílení koruny vůči dolaru může výnos v korunách smazat.",
+      "Citlivost na úrokové sazby a vyšší poplatky. Infrastrukturní a utility firmy jsou silně zadlužené a jejich stabilní dividendy konkurují dluhopisům; při růstu sazeb bývají pod tlakem. K tomu je TER v kategorii vyšší (0,31 až 0,74 %) než u širokého světového indexu kolem 0,20 %, takže za sektorové zaměření platíte prémii.",
+      "Koncentrace a regulatorní riziko. Indexy drží relativně málo firem (kolem 75 u S&P Global Infrastructure) a jsou navázané na regulaci, koncese a mýtné sazby. Zásah regulátora, změna koncesních podmínek nebo výpadek dopravy (jak ukázala pandemie u letišť) dopadá na výnos přímo a soustředěně."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je nejlepší klasický globální infrastrukturní ETF pro Čecha?",
+        "a": "Pro defenzivní globální infrastrukturu je nejrozšířenější iShares Global Infrastructure UCITS ETF na index S&P Global Infrastructure. Distribuční třída (ISIN IE00B1FZS467, ticker INFR, TER 0,65 %) je největší a nejlikvidnější, akumulační sesterská třída má ISIN IE000CK5G8J7 (CBUX). Levnější, ale swapově replikovanou alternativou je Xtrackers S&P Global Infrastructure (LU0322253229, DX2E, TER 0,60 %). Aktuální pořadí podle nákladovosti a velikosti najdete v žebříčcích na této stránce."
+      },
+      {
+        "q": "Jaký je rozdíl mezi infrastrukturním a průmyslovým (industrials) ETF?",
+        "a": "Infrastrukturní ETF drží provozovatele fyzických aktiv se stabilním, často regulovaným cash flow: sítě, mýtné silnice, letiště, plynovody, věže. Průmyslové (industrials) ETF drží cyklické výrobce strojů, letecký a obranný průmysl a logistiku, jejichž zisky silně kolísají s hospodářským cyklem. Infrastruktura je defenzivnější a víc navázaná na inflaci, industrials je cykličtější. Detailní industrials úhel řešíme v kategorii nejlepší průmyslové ETF."
+      },
+      {
+        "q": "Chrání infrastrukturní ETF proti inflaci?",
+        "a": "Částečně ano. Řada infrastrukturních firem (mýtné silnice, vodárny, regulované sítě) má příjmy smluvně nebo regulatorně navázané na inflaci, takže při růstu cen rostou i jejich tržby. Nejde ale o dokonalou ochranu: proti inflaci působí i protivítr v podobě citlivosti na úrokové sazby, protože jde o zadlužené firmy s dividendovým profilem. Berte to jako reálné aktivum s inflačním prvkem, ne jako záruku."
+      },
+      {
+        "q": "Je AI Infrastructure nebo Smart Grid ETF to samé jako klasická infrastruktura?",
+        "a": "Ne. Fondy jako iShares AI Infrastructure (IE000X59ZHE2, AINF) nebo First Trust Nasdaq Clean Edge Smart Grid Infrastructure (IE000J80JTL1, GRID) jsou tematické růstové sázky na datacentra, elektrifikaci a AI hardware. Jejich přepočtené roční výnosy byly řádově vyšší (u AINF přes 90 %), ale i kolísání je mnohem větší a překrývají se s technologickým sektorem. Neberte je jako defenzivní náhradu klasické infrastruktury, ale jako samostatný tematický doplněk."
+      },
+      {
+        "q": "Jak se infrastrukturní ETF daní v Česku v roce 2026?",
+        "a": "Jde o klasické akciové UCITS fondy (cenné papíry), takže platí standardní pravidla. Zisk z prodeje je osvobozen po splnění časového testu (držení déle než 3 roky; od roku 2026 bez horního limitu), nebo pokud úhrn vašich prodejů za rok nepřesáhne 100 000 Kč (hodnotový test). Dividendy z distribučních tříd (například INFR) se daní 15 %. U akumulačních tříd se reinvestice uvnitř fondu v přiznání neřeší. Detaily najdete v našem daňovém hubu."
+      },
+      {
+        "q": "Mám volit distribuční, nebo akumulační infrastrukturní ETF?",
+        "a": "Pro dlouhodobé budování majetku je jednodušší akumulační třída (například CBUX u iShares nebo swapový Xtrackers DX2E), která dividendy sama reinvestuje a nemusíte je danit. Distribuční variantu (INFR) volte, pokud chcete pravidelný příjem z reálných aktiv, typicky v rentiérské fázi. Infrastruktura patří mezi vyšší dividendové sektory, takže distribuční třída zde má pro rentu smysl víc než u růstových témat."
+      }
+    ]
+  },
+  "nejlepsi-korporatni-dluhopisy-etf": {
+    "introTitle": "Korporátní dluhopisové ETF: výnos nad státními bondy za cenu kreditního rizika",
+    "intro": [
+      "Korporátní (investment-grade) dluhopisové ETF sdružují dluhopisy vydané finančně zdravými firmami s ratingem v pásmu AAA až BBB- – tedy takovými, u nichž ratingové agentury považují splacení za pravděpodobné. Od vládních dluhopisů se liší jednou zásadní věcí: firma může zkrachovat nebo jí může spadnout rating, zatímco stát typicky ne. Za tuto nejistotu investor dostává kreditní přirážku (spread) – výnos navíc nad státním dluhopisem stejné splatnosti. To je jádro celé kategorie a hlavní důvod, proč ji do portfolia zařadit. Pokud hledáte čistě bezpečnostní pilíř bez kreditního rizika, patříte spíš do kategorie vládních dluhopisových ETF; pokud naopak toužíte po vysokém výnosu za cenu skutečného rizika defaultu, hledejte high-yield (junk) ETF – ty do investment-grade nepatří.",
+      "Pro českého investora je klíčové, že drtivá většina těchto fondů je denominovaná v euru nebo dolaru a drží evropské, respektive americké firemní bondy. Největší evropský fond iShares Core EUR Corporate Bond (ISIN IE00B3F81R35) drží stovky emisí od Nestlé, Volkswagenu, bank i utilit napříč eurozónou; americký protějšek Vanguard USD Corporate Bond (IE00BGYWFK87) sází na dolarové emise od Apple, JPMorgan a dalších. Ani jeden z nich ale nekoupíte v korunách – broker vám nákup přepočítá z CZK do EUR/USD a výnos, který uvidíte, je vždy výnos přepočtený do korun, ovlivněný pohybem kurzu.",
+      "Právě proto se u této kategorie roční výnosy přepočtené do korun tak liší podle měny fondu. Zatímco eurové korporátní fondy měly za poslední rok výnos blízko nule (iShares Core EUR Corporate Bond Acc kolem -0,2 %), dolarové fondy jako iShares USD Corporate Bond (IE00BYXYYJ35) vykázaly přes 5 % – velkou část toho ovšem tvořil pohyb dolaru vůči koruně, ne samotný dluhopisový výnos. To je pro Čecha zásadní připomínka: měnu tu neřešíte jako detail, ale jako hlavní zdroj kolísání."
+    ],
+    "verdict": [
+      "Pro jádro korporátní pozice v eurech je nejlogičtější volbou levný, široký a velký fond. Vede iShares Core EUR Corporate Bond – v distribuční verzi (IE00B3F81R35, TER 0,09 %, přes 9,7 mld. EUR) i akumulační (IE00BF11F565, TER 0,09 %). Ještě levnější je Vanguard EUR Corporate Bond (IE00BGYWT403 Acc / IE00BZ163G84 Dist, TER 0,07 %) a cenově srovnatelný Xtrackers II EUR Corporate Bond (LU0478205379, TER 0,09 %). Všechny drží stovky investment-grade emisí napříč eurozónou, takže default jedné firmy portfoliem sotva hne – to je hlavní výhoda ETF oproti nákupu jednotlivého firemního bondu.",
+      "Kdo chce dolarovou expozici a vyšší nominální výnos, sáhne po Vanguard USD Corporate Bond (IE00BGYWFK87, TER 0,07 %) nebo iShares USD Corporate Bond (IE00BYXYYJ35 Acc / IE0032895942 LQDS Dist, TER 0,20 %). Musí ale počítat s tím, že rozhodující díl výsledku určí kurz USD/CZK, ne kredit. Konzervativní investor, který se bojí úrokového rizika, by měl zvážit short-duration varianty: iShares USD Short Duration Corporate Bond (IE00BYXYYP94, TER 0,20 %) nebo Amundi EUR Corporate Bond 1-5Y (LU1525418643). Kratší durace znamená menší kolísání ceny při pohybu sazeb, ale i nižší výnos.",
+      "Volba mezi akumulační a distribuční třídou je čistě daňová a příjmová. Dlouhodobý investor, který jen skládá majetek, ať volí akumulační třídu – kupóny se reinvestují uvnitř fondu a nemusí je řešit v přiznání. Kdo z dluhopisů chce pravidelný příjem (renta, FIRE fáze), zvolí distribuční verzi a počítá s 15% daní z vyplácených kupónů. Pořadí podle nákladovosti a velikosti najdete v žebříčcích níže; rozdíly v TER jsou mezi hlavními fondy setiny procenta, rozhoduje spíš měna, durace a dostupnost u vašeho brokera."
+    ],
+    "forWhom": "Korporátní investment-grade ETF se hodí investorovi, který chce z dluhopisové části portfolia o něco vyšší výnos než ze státních bondů a je ochoten za to nést mírné kreditní riziko a citlivost na úrokové sazby. Sedí jako doplněk či náhrada vládní části dluhopisového bloku, pro konzervativnější profily nebo pro fázi života, kdy investor snižuje akciové riziko. Nehodí se jako bezpečnostní polštář nebo rezerva na horší časy – v akciové krizi mohou kreditní spready roztáhnout a fond klesnout spolu s trhem (na to jsou lepší krátké vládní bondy). Nehodí se ani pro toho, kdo honí maximální výnos – tam patří high-yield, ovšem s reálným rizikem defaultů. A rozhodně to není nástroj pro někoho, kdo nechce řešit měnu: výnos vždy nesete přepočtený do korun.",
+    "risks": [
+      "Kreditní (spread) riziko. Byť jde o investment-grade firmy, ratingy se mohou zhoršit a v recesi se kreditní přirážky rozšiřují – cena fondu pak klesá i bez jediného skutečného defaultu. Právě tento spread je zdrojem výnosu i rizika, kterým se kategorie liší od vládních dluhopisů.",
+      "Úrokové (durační) riziko. Když centrální banky zvednou sazby, ceny dříve vydaných dluhopisů klesají. Fondy s dlouhou durací (např. široké EUR/USD Corporate Bond) reagují prudčeji než short-duration varianty (1-5Y, 0-3Y). Před nákupem si zkontrolujte průměrnou duraci fondu.",
+      "Měnové riziko vůči koruně. Dolarové fondy jako iShares USD Corporate Bond mohou vykázat výnos přepočtený do korun přes 5 %, ale velký díl je pohyb USD/CZK, ne dluhopisový výnos. I 'EUR hedged' třídy zajišťují jen do eura, ne do koruny – korunové riziko Čechovi neodstraní žádný z těchto fondů.",
+      "Nižší likvidita podkladu než u akcií. Firemní dluhopisy se obchodují méně než akcie a v tržním stresu se rozpětí nákup/prodej roztahuje. U velkých fondů (nad 2-3 mld. EUR) je to menší problém než u malých; velikost fondu proto sledujte."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi korporátním a vládním dluhopisovým ETF?",
+        "a": "Vládní ETF drží dluhopisy států (nízké kreditní riziko, výnos hlavně z durace a sazeb). Korporátní investment-grade ETF drží dluhopisy finančně zdravých firem s ratingem AAA až BBB- a nabízí kreditní přirážku (spread) navíc nad státním výnosem. Za vyšší výnos ale nesete riziko zhoršení ratingu i defaultu firmy. Pokud chcete čistou bezpečnost, sáhněte po vládní kategorii; korporátní je kompromis mezi výnosem a rizikem."
+      },
+      {
+        "q": "Jaký je rozdíl oproti high-yield (junk) ETF?",
+        "a": "Investment-grade znamená rating AAA až BBB- – emitenti, u kterých je splacení pravděpodobné. High-yield (junk) ETF drží dluhopisy pod tímto pásmem (BB a níže), s výrazně vyšším výnosem, ale i vyšší pravděpodobností defaultu. Fondy z této kategorie junk bondy záměrně nedrží. Kdo cílí na vyšší výnos a snese riziko, hledá samostatnou high-yield kategorii; kdo chce firemní bondy s rozumným rizikem, zůstává u investment-grade."
+      },
+      {
+        "q": "Proč měl dolarový korporátní fond výnos přes 5 % a eurový skoro nula?",
+        "a": "Velký díl rozdílu tvoří kurz. iShares USD Corporate Bond (IE00BYXYYJ35) i Vanguard USD Corporate Bond (IE00BGYWFK87) vykázaly za poslední rok výnos přepočtený do korun přes 5 %, ale podstatnou část tvořil pohyb dolaru vůči koruně, ne samotný dluhopisový výnos. Eurové fondy jako iShares Core EUR Corporate Bond byly blízko nule. Jako Čech nesete měnové riziko vůči koruně vždy – u dolarových fondů je proto výsledek mnohem víc o kurzu než o kreditu."
+      },
+      {
+        "q": "Mám volit akumulační, nebo distribuční variantu?",
+        "a": "Pro dlouhodobé skládání majetku je jednodušší akumulační třída (např. iShares Core EUR Corporate Bond IE00BF11F565 nebo Vanguard EUR Corporate Bond IE00BGYWT403) – kupóny se reinvestují uvnitř fondu a nemusíte je danit ani ručně reinvestovat. Distribuční verzi (IE00B3F81R35, IE0032895942) volte, pokud chcete z dluhopisů pravidelný příjem; vyplácené kupóny se pak v ČR daní 15 %."
+      },
+      {
+        "q": "Jak se korporátní dluhopisové ETF daní v Česku?",
+        "a": "Jde o klasické cenné papíry-fondy. Zisk z prodeje podílů je osvobozen po splnění tříletého časového testu (od roku 2026 bez horního limitu), případně pokud úhrn všech prodejů nepřesáhne 100 000 Kč za rok (hodnotový test). U distribučních tříd se vyplácené kupóny daní 15 %; u akumulačních fondů se reinvestice uvnitř fondu v přiznání neřeší. Detaily najdete v našem daňovém hubu."
+      },
+      {
+        "q": "Co když centrální banka zvedne sazby – přijdu o peníze?",
+        "a": "Cena dluhopisů klesá, když rostou sazby, a fondy s dlouhou durací reagují prudčeji. Pokud se úrokového rizika obáváte, zvolte short-duration variantu – např. iShares USD Short Duration Corporate Bond (IE00BYXYYP94) nebo Amundi EUR Corporate Bond 1-5Y (LU1525418643). Kratší splatnosti kolísají méně, výměnou za nižší výnos. Před nákupem si u konkrétního fondu ověřte průměrnou duraci."
+      }
+    ]
+  },
+  "nejlepsi-obnovitelne-zdroje-etf": {
+    "introTitle": "Obnovitelné zdroje jako celý ekosystém: nejen solár, ale i voda, sítě a úložiště",
+    "intro": [
+      "Zatímco úzké \"clean energy\" fondy sázejí hlavně na výrobce solárních panelů a provozovatele větrných a vodních elektráren, kategorie obnovitelných zdrojů se dá pojmout šířeji – jako celý řetězec energetické transformace. Patří sem výroba (solár, vítr, vodík), ale i infrastruktura, která tu energii vůbec umožní: rozvodné a chytré sítě (smart grid), elektrifikace, bateriová úložiště a vodohospodářství. Právě tahle šíře je důvod, proč se stránka nepřekrývá jedna k jedné s naším přehledem clean energy ETF – tam řešíme čistou výrobu energie a její extrémní citlivost na úroky, tady bereme obnovitelné zdroje jako ekosystém \"krumpáčů a lopat\", který energetiku obsluhuje.",
+      "Nejlikvidnějším zástupcem čisté energie zůstává iShares Global Clean Energy Transition (ticker INRG, ISIN IE00B1XNHC34), objem kolem 3,2 mld. EUR, TER 0,65 %, distribuční třída. Vedle něj ale stojí fondy, které míří na jiné části řetězce: First Trust Nasdaq Clean Edge Smart Grid Infrastructure (GRID, IE000J80JTL1, TER 0,63 %, akumulační, přes 2,3 mld. EUR) sází na modernizaci rozvodných sítí, iShares Global Water (IH2O, IE00B1TXK627, TER 0,65 %) na vodohospodářství a Xtrackers Electrification Technologies & Smart Grid (WIRE, IE000O7Q2E56, TER jen 0,35 %) na elektrifikaci. To jsou byznysy s daleko klidnějším profilem než čistý solár.",
+      "Rozdíl v chování je zásadní. Čistá energie (INRG) i tematické segmenty typu baterie – třeba L&G Battery Value-Chain (BATE, IE00BF0M2Z96) nebo Global X Lithium & Battery Tech (LI7U, IE00BLCHJN13) – dokáží za rok vyskočit o desítky procent, ale i o desítky procent spadnout. Naproti tomu vodohospodářské fondy (IH2O) se chovají spíš jako defenzivní utility a jejich roční pohyby jsou mírné. Šíře kategorie tak není jen marketing – reálně rozhoduje o tom, jak moc s vámi portfolio bude houpat.",
+      "Pro českého investora utrácejícího koruny jsou skoro všechny relevantní fondy dostupné jako UCITS přes běžné brokery (DEGIRO, XTB, Trading 212, Interactive Brokers, Portu). Vedou se v USD nebo EUR, takže výnos přepočtený do korun ovlivní i pohyb měny – oslabení dolaru proti koruně vám sníží výsledek v CZK, i kdyby fond ve své měně rostl. TER se drží v pásmu zhruba 0,35–0,69 %, tedy citelně výš než u širokého světového indexu."
+    ],
+    "verdict": [
+      "Pokud chcete jednu širokou sázku na obnovitelnou energetiku, začněte u iShares Global Clean Energy Transition (INRG, IE00B1XNHC34) – největší a nejlikvidnější fond kategorie, který ale existuje hlavně v distribuční podobě (dividendy si v ČR daníte sami 15 %). Kdo preferuje akumulaci, sáhne po jeho třídě IE000U58J0M1, případně po Invesco Global Clean Energy Acc (G1CE, IE00BLRB0242). Tady se vědomě smiřte s tím, že jde o volatilní, na úrocích závislý segment; hlubší rozbor téhle citlivosti najdete na naší stránce clean energy ETF, kam z téhle kategorie prolinkujeme, ať neopakujeme totéž dvakrát.",
+      "Chcete-li klidnější profil a přitom zůstat u tématu transformace, jsou zajímavější infrastrukturní hráči. First Trust Smart Grid Infrastructure (GRID, IE000J80JTL1) a Xtrackers Electrification Technologies & Smart Grid (WIRE, IE000O7Q2E56, TER jen 0,35 %) sázejí na modernizaci a rozšiřování sítí – trend, který poroste bez ohledu na to, kdo zrovna vyhraje dotační bitvu o panely. Doplňkem k vodní a defenzivní části může být iShares Global Water (IH2O, IE00B1TXK627) nebo levnější L&G Clean Water (XMLC, IE00BK5BC891, TER 0,49 %). Naopak čisté sázky na jeden podsegment – solár (Invesco Solar S0LR, IE00BM8QRZ79), vítr, baterie (BATE) nebo vodík (L&G Hydrogen HTMW, IE00BMYDM794) – berte jen jako malý satelit; jsou to úzké, mimořádně kolísavé produkty.",
+      "Napříč kategorií preferujte irský domicil (ISIN začínající IE), který snižuje srážkovou daň z amerických dividend uvnitř fondu, a hlídejte velikost. Řada tematických fondů má jen desítky milionů EUR (Global X Solar RA7Z, Invesco Wind WDEY, Global X Wind WNDY) – u těch hrozí širší spread i riziko zrušení fondu. Poznámka na okraj: kategorie obnovitelné zdroje a clean energy se z velké části překrývají; z pohledu SEO i uživatele dává smysl je do budoucna sloučit pod jeden kanonický přehled a odlišit jen úhlem, ať se stránky vzájemně nekanibalizují."
+    ],
+    "forWhom": "Kategorie se hodí investorovi s dlouhým horizontem (ideálně 7+ let), který už má vybudované široké jádro portfolia (celosvětový akciový ETF) a chce k němu vědomě přidat satelit na energetickou transformaci v rozsahu zhruba 5–15 %. Kdo snese vyšší volatilitu, může jít do čisté výroby (INRG, solár, baterie, vodík); kdo chce klidnější variantu téhož tématu, zvolí spíš sítě a vodu (GRID, WIRE, IH2O). Nehodí se pro začátečníky stavějící první portfolio, pro investory s krátkým horizontem, pro ty, kdo potřebují pravidelný stabilní příjem, ani pro nikoho, kdo by při dvojcifderné ztrátě panicky prodával – čistě obnovitelné fondy prošly po roce 2021 několikaletým hlubokým propadem. Není to jádro portfolia, ale tematický doplněk.",
+    "risks": [
+      "Citlivost na úrokové sazby u výrobní části: solární, větrné a vodíkové projekty jsou kapitálově náročné a financované na dluh, takže růst sazeb sráží ocenění – to byl hlavní důvod, proč čistě obnovitelné fondy jako INRG po roce 2021 ztratily desítky procent a roky se z toho vzpamatovávaly.",
+      "Vysoká koncentrace a tematické riziko: úzké fondy (solár S0LR, vítr WDEY, vodík HTMW, baterie BATE) mají jen desítky titulů s velkou vahou jednotlivých jmen; neúspěch pár firem nebo nástup jiné technologie zasáhne fond mnohem víc než široký trh.",
+      "Malá velikost a likvidita: mnoho fondů v kategorii má jen jednotky až desítky milionů EUR (Global X Solar, Global X Wind, Invesco Hydrogen). Hrozí širší spread při nákupu i prodeji a riziko, že poskytovatel malý fond po opadnutí zájmu zruší.",
+      "Měnové riziko vůči koruně: fondy se vedou v USD/EUR. Výnos přepočtený do korun ovlivní i pohyb měny – i kdyby fond ve své měně rostl, oslabení dolaru proti CZK vám výsledek sníží. Žádný z těchto fondů není zajištěný do koruny."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi ETF na obnovitelné zdroje a clean energy ETF?",
+        "a": "V praxi se z velké části překrývají, ale úhel je jiný. Clean energy fondy (typicky INRG) míří na čistou výrobu energie – solár, vítr, vodní elektrárny – a jsou extrémně citlivé na úroky. Obnovitelné zdroje pojímáme šířeji jako celý ekosystém transformace: k výrobě přidáváme sítě a elektrifikaci (GRID, WIRE), vodu (IH2O) i úložiště a baterie (BATE). Detailní rozbor čisté výroby najdete na naší stránce clean energy ETF, kam odtud prolinkujeme."
+      },
+      {
+        "q": "Který fond je pro tuhle kategorii nejlikvidnější a nejbezpečnější volbou?",
+        "a": "Objemem vede iShares Global Clean Energy Transition (INRG, IE00B1XNHC34) s cca 3,2 mld. EUR a First Trust Smart Grid Infrastructure (GRID, IE000J80JTL1) přes 2,3 mld. EUR. Velký fond je bezpečnější v tom, že u něj méně hrozí zrušení a mívá užší spread. Naopak fondy s objemem v jednotkách až desítkách milionů EUR (Global X Solar, Global X Wind, Invesco Hydrogen) berte s rezervou právě kvůli likviditě."
+      },
+      {
+        "q": "Musím řešit daně, když fond drží zahraniční akcie a vyplácí dividendy?",
+        "a": "U klasických akciových ETF (a to obnovitelné fondy jsou) platí český časový test: pokud podíl držíte déle než 3 roky, je zisk z prodeje od roku 2026 osvobozen bez horního limitu. Alternativně hodnotový test osvobozuje prodeje do úhrnu 100 000 Kč za rok. U distribučních tříd (např. INRG Dist) si přijaté dividendy daníte sazbou 15 %; u akumulačních tříd (GRID, WIRE, Invesco G1CE) se reinvestice uvnitř fondu v přiznání neřeší. Konkrétní postup rozebíráme v našem daňovém hubu."
+      },
+      {
+        "q": "Proč čistě obnovitelné fondy tolik kolísají a sítě nebo voda méně?",
+        "a": "Výroba čisté energie je kapitálově náročná a financovaná na dluh, takže reaguje prudce na úrokové sazby a dotační politiku – odtud propad INRG o desítky procent po roce 2021. Sítě a elektrifikace (GRID, WIRE) i vodohospodářství (IH2O) stojí na regulovaných utilitách a infrastruktuře s předvídatelnějšími cash flow, takže se chovají klidněji. Proto šíře kategorie reálně mění rizikový profil."
+      },
+      {
+        "q": "Nesu jako Čech měnové riziko, i když je fond v EUR?",
+        "a": "Ano. Tyto fondy se vedou v USD nebo EUR a žádný z nich není zajištěný do koruny (hedgované třídy existují maximálně do EUR/USD, ne do CZK). Výnos vždy počítejte jako přepočtený do korun – pokud dolar nebo euro oslabí proti koruně, sníží vám to výsledek v CZK, i kdyby fond ve své měně rostl. Měnové riziko vůči koruně nesete u zahraničních ETF prakticky vždy."
+      },
+      {
+        "q": "Kolik z portfolia dává smysl do obnovitelných zdrojů dát?",
+        "a": "Vzhledem ke koncentraci a volatilitě jde o satelit, ne o jádro. Rozumné je držení zhruba 5–15 % portfolia vedle širokého celosvětového akciového ETF, přičemž nejvolatilnější úzké sázky (solár, vítr, baterie, vodík) by měly být jen malou částí i uvnitř tohoto satelitu. Vyšší alokace znamená, že se výsledek celého portfolia začne řídit náladou jednoho úzkého tématu."
+      }
+    ]
+  },
+  "nejlepsi-prumyslove-etf": {
+    "introTitle": "Průmyslové ETF: sázka na letecký, obranný a strojírenský motor ekonomiky",
+    "intro": [
+      "Průmyslový (industrials) sektor je jeden z jedenácti standardních sektorů podle klasifikace GICS a patří mezi nejcykličtější části akciového trhu. Nejde o \"těžkou fabriku\" v lidové představě, ale o širokou skupinu firem: letecký a obranný průmysl (Boeing, RTX, GE Aerospace, Safran, Airbus), strojírenství a automatizaci (Siemens, Caterpillar, Schneider Electric, ABB), dopravu a logistiku (Union Pacific, UPS, Deutsche Post), stavební a inženýrské služby i letiště. Průmyslové ETF tyhle firmy sbalí do jednoho koše, obvykle vážené tržní kapitalizací.",
+      "Pro českého investora je klíč pochopit, že tohle je vyloženě cyklická sázka. Průmysl vydělává, když ekonomika zrychluje, firmy investují do strojů, staví se a létá. Když přijde recese, kapitálové výdaje se škrtají první a průmyslové akcie padají hlouběji než široký trh. Poslední roky sektoru přály: reshoring (návrat výroby do USA a Evropy), rekordní zbrojní rozpočty v Evropě po roce 2022 a boom automatizace kvůli AI a datovým centrům. To vysvětluje, proč většina fondů níže vykázala roční výnos přepočtený do korun kolem 20 až 28 %.",
+      "Pozor na jednu terminologickou past, která u tohohle hesla mate nejvíc lidí. \"Industrial Metals\" (třeba WisdomTree Industrial Metals, ISIN GB00B15KYG56) NENÍ průmyslové akciové ETF. Jsou to komoditní ETC na měď, hliník, zinek a nikl, tedy úplně jiný produkt s jiným daňovým i rizikovým profilem. V téhle kategorii se bavíme o akciích průmyslových firem. Pokud hledáte kovy, patříte do komoditních ETF, ne sem.",
+      "Průmysl je také třeba odlišit od dvou sousedních témat, se kterými se často plete: infrastrukturní ETF (mýtné silnice, přenosové sítě, energetická infrastruktura, cíl je stabilní cash flow a inflační ochrana) a energetické ETF (těžba ropy a plynu). Industrials je něco jiného, cyklický výrobní a dopravní motor ekonomiky. Na obě sousední kategorie máme samostatné průvodce."
+    ],
+    "verdict": [
+      "Pokud chcete globálně diverzifikovaný průmysl v jednom fondu, nejlogičtější volbou je Xtrackers MSCI World Industrials UCITS ETF 1C (ISIN IE00BM67HV82, TER 0,25 %, velikost kolem 920 mil. EUR, akumulační). Drží průmyslové firmy z celého rozvinutého světa, takže nesázíte jen na jeden region. Levnější a čistě americkou alternativou je Xtrackers MSCI USA Industrials UCITS ETF (ISIN IE00BCHWNV48, TER jen 0,12 %, distribuční) nebo iShares S&P 500 Industrials Sector (ISIN IE00B4LN9N13, TER 0,15 %, kolem 685 mil. EUR). USA industrials byly historicky nejsilnější, což potvrzuje i roční výnos přes 26 % přepočtený do korun, ale koncentrujete se do jedné ekonomiky.",
+      "Kdo chce vsadit na evropskou reindustrializaci a zbrojní boom, sáhne po iShares MSCI Europe Industrials Sector (ISIN IE00BMW42520, TER 0,18 %, kolem 1,3 mld. EUR) nebo State Street SPDR MSCI Europe Industrials (ISIN IE00BKWQ0J47, TER 0,18 %). Evropský průmysl (Siemens, Airbus, Schneider, ABB, Safran) profituje z obranných rozpočtů a energetické transformace a tyhle dva fondy patří v kategorii k největším a nejlevnějším.",
+      "Populární, ale pozor: iShares Dow Jones Industrial Average UCITS ETF (ISIN IE00B53L4350, TER 0,33 %) navzdory názvu NENÍ sektorové průmyslové ETF. Dow Jones Industrial Average je 30 velkých amerických blue chips napříč sektory (banky, technologie, farmacie), historický název \"Industrial\" je matoucí. Kdo chce opravdu industrials sektor, ať se drží fondů se slovem \"Industrials\" a jasným sektorovým indexem (MSCI/S&P Industrials), ne \"Industrial Average\"."
+    ],
+    "forWhom": "Průmyslové ETF se hodí jako satelitní, doplňková pozice (rozumně 5 až 10 % portfolia) pro investora, který už má vybudované široké jádro (celosvětové nebo americké ETF) a chce cíleně přisadit na cyklický růst, reshoring a zbrojení. Sedne tomu, kdo věří, že fáze investic do výroby, automatizace a obrany bude pokračovat, a snese, že v recesi sektor spadne hlouběji než trh. Nehodí se pro začátečníka stavějícího první portfolio (industrials už máte automaticky v každém globálním fondu, typicky 10 až 12 % váhy), pro konzervativní investory s krátkým horizontem, ani pro nikoho, kdo hledá pravidelný dividendový příjem nebo defenzivní stabilitu. Kdo si termín plete s kovy, patří do komoditních ETF, ne sem.",
+    "risks": [
+      "Cykličnost: průmysl je jeden z nejcykličtějších sektorů vůbec. V recesi firmy škrtají kapitálové výdaje jako první a průmyslové akcie padají hlouběji a rychleji než široký trh. Vysoké výnosy posledních let (20 až 28 % v korunách) jsou z pozdní fáze cyklu, ne norma; nekupujte podle zpětného zrcátka.",
+      "Sektorová koncentrace a překryv: industrials už tvoří zhruba 10 až 12 % každého globálního ETF (MSCI World, S&P 500). Přidáním sektorového fondu tu expozici jen zdvojnásobíte, nediverzifikujete. U USA fondů navíc často dominuje pár velkých jmen (letecký a obranný průmysl, železnice), takže sázíte na užší téma, než se zdá.",
+      "Měnové riziko vůči koruně: fondy jsou v USD nebo EUR a jejich hodnota v korunách kolísá s kurzem. Ani u tříd označených jako EUR nejde o zajištění do CZK, český investor nese kurzové riziko vůči koruně vždy. Posílení koruny sníží výnos přepočtený do korun bez ohledu na to, jak si akcie vedly.",
+      "Záměna produktů: \"Industrial Metals\" jsou komoditní ETC (jiné riziko emitenta i daně), \"Dow Jones Industrial Average\" je 30 blue chips napříč sektory, ne industrials. Kupujte podle indexu (MSCI/S&P Industrials Sector), ne podle slova v názvu."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi průmyslovým a infrastrukturním ETF?",
+        "a": "Průmyslové (industrials) ETF drží akcie výrobních, strojírenských, leteckých, obranných a dopravních firem (Siemens, Caterpillar, Boeing, Union Pacific). Je to cyklická sázka na růst ekonomiky. Infrastrukturní ETF cílí na provozovatele mýtných silnic, letišť, přenosových a energetických sítí, kde jde o stabilní, často inflačně vázané cash flow, tedy defenzivnější profil. Na infrastrukturu máme samostatný průvodce."
+      },
+      {
+        "q": "Není 'Dow Jones Industrial Average' ETF vlastně průmyslové ETF?",
+        "a": "Ne, navzdory názvu. Fondy jako iShares Dow Jones Industrial Average (IE00B53L4350) nebo Amundi DJ Industrial Average sledují 30 amerických blue chips napříč všemi sektory (Apple, Goldman Sachs, UnitedHealth, Coca-Cola). Slovo 'Industrial' je jen historický název indexu z 19. století. Pokud chcete skutečně průmyslový sektor, hledejte v názvu 'Industrials' a index MSCI/S&P Industrials Sector."
+      },
+      {
+        "q": "Jsou 'Industrial Metals' fondy totéž co průmyslové ETF?",
+        "a": "Nejsou. WisdomTree Industrial Metals (GB00B15KYG56) a podobné produkty jsou komoditní ETC na průmyslové kovy (měď, hliník, zinek, nikl). Jde o jiný typ produktu, právně to nejsou akciové fondy, mají riziko emitenta a odlišné daňové zacházení. Průmyslové akciové ETF drží akcie firem, ne kovy."
+      },
+      {
+        "q": "Jak se v Česku daní zisk z průmyslového ETF v roce 2026?",
+        "a": "U klasického akciového ETF (což industrials fondy jsou) platí časový test: pokud podíl držíte déle než 3 roky, je zisk z prodeje od daně osvobozen, od roku 2026 bez horního limitu. Alternativně hodnotový test osvobozuje prodeje do úhrnu 100 000 Kč za rok. Dividendy z distribučních tříd (např. XUIN nebo iShares S&P 500 Industrials) se daní 15 %. U akumulačních tříd (např. Xtrackers World Industrials 1C) se reinvestice uvnitř fondu v přiznání neřeší. Detaily řešíme v daňovém průvodci."
+      },
+      {
+        "q": "Akumulační, nebo distribuční třída u průmyslového ETF?",
+        "a": "Pro dlouhodobé budování majetku je obvykle praktičtější akumulační (např. Xtrackers MSCI World Industrials 1C, IE00BM67HV82 nebo iShares MSCI Europe Industrials Acc, IE00BMW42520): fond dividendy reinvestuje sám a vy je neřešíte v přiznání. Distribuční třídy (Xtrackers USA Industrials 1D, iShares MSCI World Industrials Dist) vyplácejí dividendu, kterou pak daníte 15 %. Sektorové industrials fondy mají spíš nižší dividendový výnos, takže tady rozhoduje hlavně pohodlí a daňová administrativa."
+      },
+      {
+        "q": "Kolik procent portfolia dát do průmyslového ETF?",
+        "a": "Jako satelitní, tematickou sázku dává smysl 5 až 10 % portfolia nad rámec širokého jádra. Nezapomeňte, že industrials už tvoří zhruba 10 až 12 % každého globálního ETF (MSCI World, S&P 500), takže sektorovým fondem tuhle expozici jen zvyšujete. Nemá smysl z něj dělat základ portfolia, protože v recesi patří mezi nejhůře postižené sektory."
+      }
+    ]
+  },
+  "nejlepsi-realitni-etf": {
+    "introTitle": "Realitní ETF (REITs): renta z nájmů celého světa v jedné akcii",
+    "intro": [
+      "Realitní ETF je akciový fond, který místo cihel kupuje akcie kotovaných realitních společností, takzvaných REITs (Real Estate Investment Trusts). REIT je burzovně obchodovaná firma, která vlastní a pronajímá reálné nemovitosti a výměnou za daňové zvýhodnění musí ze zákona rozdělit drtivou většinu zisku z nájmů akcionářům. Když si koupíte realitní ETF, nekupujete tedy budovu, ale kus nájemního cash flow ze stovek nemovitostí najednou. To je zásadní rozdíl oproti koupi investičního bytu: žádná hypotéka, žádní nájemníci, žádná údržba, zato denní kotace na burze a možnost prodat pozici během vteřiny.",
+      "Klíč k pochopení realitního ETF je jeho vnitřní struktura podle typu nemovitostí. Standardní index v této kategorii, FTSE EPRA/NAREIT Developed, míchá rezidenční REITs (nájemní byty), logistiku a průmyslové haly, datacentra a telekomunikační věže, nákupní centra, kanceláře, zdravotnická zařízení i pronajímatele samoobslužných skladů. Tyto podsektory se dnes chovají velmi rozdílně: logistika a datacentra profitují z e-commerce a AI, zatímco kanceláře a klasický retail čelí strukturálnímu tlaku (práce z domova, online nákupy). Realitní ETF proto není homogenní sázka na 'nemovitosti' obecně, ale mix odvětví s protichůdnou dynamikou.",
+      "Nabídku pro českého investora tvoří převážně globální fondy nad rozvinutými trhy. Objemově vede HSBC FTSE EPRA/NAREIT Developed UCITS ETF (ticker HPRO, ISIN IE00B5L01S80) s aktivy kolem 1,8 mld. USD a TER 0,24 %, doplněný širokým VanEck Global Real Estate UCITS ETF (TRET, NL0009690239, TER 0,25 %) a akumulačním Amundi FTSE EPRA NAREIT Global UCITS ETF (ISIN LU1437018838, TER 0,24 %). Ve všech těchto fondech tvoří americké REITs zpravidla 60 a více procent, doplňuje je Japonsko, Austrálie, Velká Británie a kontinentální Evropa.",
+      "Pozor na terminologii: 'realitní' a 'nemovitostní' ETF jsou v češtině dvě jména pro totéž. Sledují stejné indexy (EPRA/NAREIT, Dow Jones Global Real Estate), obsahují stejné REITs a filtrují se přes stejnou kategorii Nemovitosti. Tato stránka klade důraz na strukturu REITs podle podsektorů a mechaniku 'renty z nájmů'; širší kontext a srovnání s koupí bytu najdete na sesterské stránce nemovitostních ETF, na kterou prolinkujeme, ať se obsah zbytečně nekanibalizuje."
+    ],
+    "verdict": [
+      "Pro dlouhodobého investora, který chce reálná aktiva a dividendový příjem z nájmů, dává v této kategorii největší smysl velký globální fond nad rozvinutými trhy s nízkým TER a dostatečnou likviditou. Nejlevnějším a zároveň největším řešením je HSBC FTSE EPRA/NAREIT Developed (HPRO, IE00B5L01S80) s TER 0,24 %; kdo chce ještě širší globální záběr včetně části menších firem, sáhne po VanEck Global Real Estate (TRET, NL0009690239) s TER 0,25 %. Oba jsou distribuční a hodí se pro toho, kdo z portfolia chce čtvrtletní rentu z nájmů. Kdo naopak jen spoří a nechce průběžně danit dividendy, zvolí akumulační třídu, typicky Amundi FTSE EPRA NAREIT Global Acc (LU1437018838) nebo akumulační verzi HSBC (H4Z7, IE000G6GSP88); reinvestice pak proběhne uvnitř fondu.",
+      "Chcete-li se vyhnout dolarové dominanci a vsadit spíš na evropský nájemní trh, existuje užší iShares European Property Yield (IPRP, IE00B0M63284, TER 0,40 %) nebo Xtrackers FTSE EPRA/NAREIT Developed Europe (D5BK, LU0489337690, TER 0,33 %). Počítejte ale s tím, že evropské realitní fondy byly v posledních letech tažené dolů úrokovým šokem výrazněji než globální mix a jejich roční výnos přepočtený do korun se pohyboval kolem nuly, zatímco globální fondy s americkou převahou vydělaly v korunách řádově 12 až 18 %. U indexu se držte zavedených standardů EPRA/NAREIT nebo Dow Jones Global Real Estate a vyhněte se pákovým či úzce profilovaným produktům.",
+      "Redakční doporučení: protože 'realitní' a 'nemovitostní' ETF popisují identickou skupinu fondů, dává smysl obě stránky provozovat s jedním kanonickým URL (canonical na nemovitostní verzi jako obsáhlejší) nebo je sloučit s přesměrováním. Dvě téměř totožné stránky by se ve vyhledávání jen kanibalizovaly a srážely celou doménu. Konkrétní aktuální velikosti fondů a poplatky si vždy ověřte ve srovnávací tabulce níže, protože se v čase mění."
+    ],
+    "forWhom": "Realitní ETF se hodí pro investora, který už má jádro portfolia postavené ze širokých akciových ETF (MSCI World, S&P 500 nebo All-World) a chce ho doplnit o reálná aktiva a pravidelný dividendový příjem z nájmů, typicky v rozsahu jednotek procent portfolia. Sedne rentiérovi ve výplatní fázi, jemuž vyhovují čtvrtletní distribuce, i tomu, kdo hledá částečnou obranu proti inflaci a diverzifikaci mimo čistě technologický trh. Nehodí se jako jediná nebo hlavní investice, pro odpůrce kolísání, pro krátký horizont (sektor je cyklický a citlivý na úroky) ani pro investora, který chce jednoduché zdanění bez řešení průběžně vyplácených dividend. Zbytečné je realitní ETF přidávat i tomu, kdo si myslí, že tím kupuje 'protiklad akcií' - REITs jsou plnohodnotné akcie a v krizích padají spolu s trhem.",
+    "risks": [
+      "Úrokové riziko je pro REITs zásadní. Nemovitosti se financují dluhem a jejich dividendový výnos konkuruje dluhopisům, takže když centrální banky zvedají sazby, ceny REITs klesají. Roky 2022 a 2023 to ukázaly naplno: globální realitní ETF ztrácely dvouciferně navzdory relativně vysokým nájmům.",
+      "Kurzové riziko vůči koruně. Index EPRA/NAREIT Developed je z 60 a více procent v amerických REITs a podklad je v dolarech, takže posílení koruny vůči dolaru vám sníží výnos v korunách i tehdy, když ceny nemovitostí nikam nespadnou. Tyto fondy zpravidla nejsou měnově zajištěné a i případný hedge by byl jen do EUR nebo USD, riziko vůči CZK neodstraní.",
+      "Sektorová a podsektorová koncentrace. Jde o jediné odvětví, jehož části se navíc rozcházejí: kanceláře a klasický retail čelí strukturálnímu úpadku (home office, e-commerce), zatímco logistika a datacentra rostou. Váhu jednotlivých podsektorů v konkrétním fondu je proto dobré si prohlédnout před nákupem.",
+      "Zdanění dividend. Distribuční realitní ETF vyplácejí zdanitelný příjem průběžně a REITs mají nadprůměrně vysoké dividendy, takže daňová zátěž je citelnější než u růstových fondů. Časový test na osvobození se váže výhradně k prodeji podílu ETF, na přijaté dividendy se nevztahuje - ty se v ČR daní vždy."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi realitním a nemovitostním ETF?",
+        "a": "Žádný věcný. Jsou to dvě česká synonyma pro fondy investující do kotovaných REITs a realitních firem. Sledují stejné indexy (nejčastěji FTSE EPRA/NAREIT Developed nebo Dow Jones Global Real Estate) a obsahují stejné společnosti. Na této stránce zdůrazňujeme strukturu REITs podle podsektorů a mechaniku renty z nájmů; širší srovnání s koupí investičního bytu najdete na stránce nemovitostních ETF, na kterou odkazujeme."
+      },
+      {
+        "q": "Které realitní ETF jsou největší a nejlevnější pro českého investora?",
+        "a": "Objemově i nákladově vede HSBC FTSE EPRA/NAREIT Developed (HPRO, IE00B5L01S80) s aktivy kolem 1,8 mld. USD a TER 0,24 %. Podobně levné jsou VanEck Global Real Estate (TRET, NL0009690239, 0,25 %) a akumulační Amundi FTSE EPRA NAREIT Global (LU1437018838, 0,24 %). Všechny se obchodují na evropských burzách a jsou dostupné u brokerů běžných v Česku jako DEGIRO, XTB, Trading 212 nebo Interactive Brokers. Aktuální velikost a poplatky si ověřte ve srovnávací tabulce."
+      },
+      {
+        "q": "Proč REITs vyplácejí tak vysoké dividendy?",
+        "a": "REIT si daňově zvýhodněný status udrží jen tehdy, když akcionářům rozdělí drtivou většinu zisku z nájmů. Proto mají REITs a fondy z nich složené výrazně vyšší dividendový výnos než běžné akcie, obvykle v pásmu jednotek procent ročně. To je hlavní důvod, proč realitní ETF láká rentiéry - ale zároveň to znamená vyšší průběžnou daňovou zátěž z vyplácených dividend."
+      },
+      {
+        "q": "Mám zvolit akumulační, nebo distribuční realitní ETF?",
+        "a": "Pro dlouhodobé spoření bez potřeby příjmu je jednodušší akumulační třída, například Amundi FTSE EPRA NAREIT Global Acc (LU1437018838) nebo akumulační HSBC (H4Z7, IE000G6GSP88): dividendy se reinvestují uvnitř fondu a nemusíte je každoročně danit ani ručně reinvestovat. Distribuční verzi jako HSBC HPRO nebo VanEck TRET volte, pokud cíleně chcete čtvrtletní rentu z nájmů, typicky ve výplatní fázi portfolia."
+      },
+      {
+        "q": "Jak se realitní ETF daní v Česku v roce 2026?",
+        "a": "U zisku z prodeje podílu platí časový test: pokud fond držíte déle než 3 roky, je zisk osvobozen (od roku 2026 bez horního limitu), případně se uplatní hodnotový test do 100 000 Kč ročního úhrnu prodejů. Vyplacené dividendy z distribučních tříd jsou ale zdanitelný příjem vždy, i po zápočtu zahraniční srážkové daně - časový test se na ně nevztahuje. U akumulačních fondů se reinvestice uvnitř fondu v přiznání neřeší. Detaily najdete v našem daňovém rozcestníku."
+      },
+      {
+        "q": "Proč realitní ETF klesaly, když nemovitosti v Česku i ve světě zdražovaly?",
+        "a": "REITs reagují především na úrokové sazby, ne přímo na ceny bytů. Když centrální banky v letech 2022 a 2023 prudce zvedly sazby, podražilo financování nemovitostí a investoři přeceňovali REITs dolů, protože jejich dividendový výnos přestal být atraktivní vůči nově vysokému úroku z dluhopisů. Ceny fondů proto klesaly navzdory rostoucím nájmům. Je to připomínka, že kotované REITs jsou akcie citlivé na sazby, nikoli přímý ekvivalent fyzické nemovitosti."
+      }
+    ]
+  },
+  "nejlepsi-ropa-etf": {
+    "introTitle": "Ropa přes ETF a ETC: proč barel v portfoliu funguje jinak než akcie ropných firem",
+    "intro": [
+      "Pod „ropa ETF“ se skrývají dvě úplně odlišné věci a záměna jedné za druhou je nejčastější chyba drobného investora. První skupinou jsou ETC (Exchange Traded Commodities) navázané přímo na cenu barelu ropy WTI nebo Brent – ty ale ropu fyzicky neskladují (nikdo vám nepošle sud do sklepa), místo toho drží futures kontrakty na ropu a průběžně je rolují. Druhou skupinou jsou klasické akciové ETF, které kupují akcie ropných a plynárenských firem (ExxonMobil, Shell, TotalEnergies, Chevron). Chovají se úplně jinak: firma vyplácí dividendy, roste s celým trhem a její cena nekopíruje barel jedna k jedné.",
+      "Rozdíl je zásadní i právně a daňově. Akciové energetické ETF jsou standardní UCITS fondy (cenné papíry), zatímco ropné ETC jsou dluhové cenné papíry navázané na komoditní index – jiná struktura, jiný možný daňový režim. Pokud hledáte spíš sektorovou sázku na ropné firmy s dividendou, patříte do kategorie energetických ETF a tam vás prolinkujeme; tato stránka je o expozici na samotnou cenu ropy a o tom, proč je to jedna z nejtěžších komodit k dlouhodobému držení.",
+      "Pro českého investora utrácejícího koruny přidejte měnovou vrstvu: ropa se globálně kotuje v amerických dolarech. I když WisdomTree WTI Crude Oil koupíte v eurech nebo librách na německé Xetře, výnos přepočtený do korun vždy ovlivní pohyb USD/CZK. Slabší dolar umí ukrojit část růstu barelu, silnější naopak výnos v korunách nafoukne. Existují EUR-hedgované varianty (třeba WisdomTree WTI Crude Oil – EUR Daily Hedged, JE00B44F1611), ale ty zajišťují maximálně vůči euru, nikoli vůči koruně – kurzové riziko CZK nesete tak jako tak."
+    ],
+    "verdict": [
+      "Pokud opravdu chcete sázet na cenu barelu, sáhněte po největších a nejlikvidnějších ETC: WisdomTree WTI Crude Oil (ISIN GB00B15KXV33, TER 0,49 %, objem kolem 790 mil.) pro americkou ropu WTI, nebo WisdomTree Brent Crude Oil (JE00B78CGV99, TER 0,49 %, ~710 mil.) pro globální benchmark Brent. Levnější alternativou s odlišnou konstrukcí je UBS CMCI Oil (CH0109967858, TER 0,26 %), který přes index CMCI rozkládá futures do více splatností a částečně tlumí ztráty z rolování. Všechny ale řeší stejný problém – contango – takže je berte jako taktickou, ne dlouhodobou pozici.",
+      "Pro většinu investorů, kteří chtějí „vydělat na ropě“ a přitom držet roky, dává mnohem větší smysl jít přes akcie ropných firem. Tam patří iShares STOXX Europe 600 Oil & Gas (EXH1, DE000A0H08M3, TER 0,47 %) s evropskými gigantami Shell a TotalEnergies, iShares S&P 500 Energy Sector (IESU, IE00B42NKQ00, TER jen 0,15 %, akumulační) pro americkou energetiku v čele s ExxonMobil a Chevron, nebo úžeji zaměřené iShares Oil & Gas Exploration & Production (SPOG, IE00B6R51Z18, TER 0,55 %) a VanEck Oil Services (V0IH, IE000NXF88S1, TER 0,35 %) na těžaře a naftové servisní firmy. Tyto fondy nesou dividendu, nemají contango a jsou to standardní UCITS ETF – detailní úhel k nim najdete v naší kategorii energetických ETF, na kterou tato stránka navazuje.",
+      "Čeho se držte dál: prstům pryč od pákových a short ETC. Reálný příklad z databáze – WisdomTree WTI Crude Oil 3x Daily Short (XS2819844387) odepsal za rok přes 90 % hodnoty. Denní páka a rolování futures se skládají v neprospěch dlouhodobého držitele; jde o čistě spekulativní nástroje na dny, ne na portfolio."
+    ],
+    "forWhom": "Ropné ETC se hodí zkušenějšímu investorovi, který cíleně chce taktickou expozici na cenu barelu – například jako krátkodobou sázku na geopolitické napětí, inflační skok nebo omezení těžby OPEC – a rozumí tomu, že drží futures, nikoli fyzickou komoditu. Pro dlouhodobé jádro portfolia se ropný ETC nehodí: kvůli contangu a nulovému výnosu (ropa nevyplácí dividendy ani úroky) umí i při stagnující ceně barelu pomalu ztrácet hodnotu. Investorům, kteří chtějí těžit z ropy dlouhodobě a s dividendou, sedí spíš akciové energetické ETF (Oil & Gas, Energy Sector). Úplným začátečníkům, kterým jde o jeden globálně diverzifikovaný fond, do téhle niky nepatří vůbec – jednotlivé komoditní sektory jsou volatilní a koncentrované.",
+    "risks": [
+      "Contango a roll riziko: ropné ETC drží futures a při jejich rolování na další měsíc často nakupují dráž, než prodávají – tento „roll yield“ může být dlouhodobě záporný, takže i při stejné ceně barelu ETC pomalu ztrácí. To je hlavní důvod, proč se ropa špatně drží roky.",
+      "Měnové riziko vůči koruně: ropa se kotuje v USD, výnos přepočtený do korun tedy stojí a padá i s kurzem USD/CZK. EUR-hedgované varianty (např. JE00B44F1611) zajišťují jen vůči euru, korunové riziko českému investorovi neodstraní.",
+      "Extrémní volatilita a specifická rizika pákových produktů: cena ropy umí během týdnů kolísat o desítky procent (v roce 2020 se futures dokonce propadly do záporu). U pákových a short ETC (např. WisdomTree WTI Crude Oil 3x Daily Short, XS2819844387, který za rok ztratil přes 90 %) se ztráty z denní páky násobí – nejsou vhodné k držení déle než pár dní.",
+      "Odlišná právní a daňová struktura: ropný ETC je dluhový cenný papír navázaný na komoditu, ne klasický fondový ETF. Uplatnění časového a hodnotového testu se u komoditních ETC nemusí posuzovat stejně jako u akciových ETF; konkrétní režim si ověřte v našem daňovém přehledu nebo u poradce, neberte osvobození automaticky."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi ropným ETF a ETF na akcie ropných firem?",
+        "a": "Ropné ETC (třeba WisdomTree WTI Crude Oil, GB00B15KXV33) sledují cenu barelu přes futures kontrakty – nevyplácejí dividendy a trpí contangem při rolování. Akciové energetické ETF (třeba iShares STOXX Europe 600 Oil & Gas, EXH1) kupují akcie firem jako Shell nebo ExxonMobil – vyplácejí dividendu, rostou s trhem a cenu barelu nekopírují jedna k jedné. Pro dlouhodobé držení jsou vhodnější akciové ETF; detaily rozebíráme v kategorii energetických ETF."
+      },
+      {
+        "q": "Co znamená contango a proč u ropy záleží?",
+        "a": "Contango je situace, kdy jsou futures s pozdější splatností dražší než ta blízká. Protože ropné ETC musí kontrakty pravidelně rolovat na další měsíc, v contangu nakupují dráž, než prodávají, a tento záporný roll yield ukrajuje z výnosu i tehdy, když cena barelu stojí na místě. Právě proto může ropný ETC dlouhodobě ztrácet, i když se ropa nehne."
+      },
+      {
+        "q": "Které ropné ETF a ETC jsou pro Čecha dostupné a od kterého brokera?",
+        "a": "Nejlikvidnější čistě ropné ETC jsou WisdomTree WTI Crude Oil (GB00B15KXV33) a WisdomTree Brent Crude Oil (JE00B78CGV99), levnější je UBS CMCI Oil (CH0109967858). Z akciové větve iShares STOXX Europe 600 Oil & Gas (EXH1) nebo iShares S&P 500 Energy Sector (IESU, IE00B42NKQ00). Najdete je běžně u brokerů populárních v ČR jako DEGIRO, XTB, Trading 212 nebo Interactive Brokers, typicky na burze Xetra."
+      },
+      {
+        "q": "Jak se v Česku daní zisk z ropného ETC?",
+        "a": "Záleží na právní struktuře produktu. Ropné ETC jsou dluhové cenné papíry navázané na komoditu, ne klasické fondové ETF, takže se na ně časový test (držba nad 3 roky) ani hodnotový test (úhrn prodejů do 100 000 Kč ročně) nemusí vztahovat stejně jako u akciových ETF. Neberte osvobození automaticky – konkrétní režim si ověřte v našem daňovém přehledu nebo u daňového poradce podle své situace."
+      },
+      {
+        "q": "Vyplatí se pákové nebo short ropné ETC?",
+        "a": "Pro drobného investora zásadně ne k držení. Produkty jako WisdomTree WTI Crude Oil 3x Daily Short (XS2819844387) používají denní páku, jejíž efekt se při rolování a kolísání ceny skládá v neprospěch dlouhodobého držitele – zmíněný fond odepsal za rok přes 90 %. Jsou to čistě spekulativní nástroje na jednotky dní, ne na portfolio."
+      },
+      {
+        "q": "Chrání ropa v portfoliu proti inflaci?",
+        "a": "Ropa historicky bývá citlivá na inflaci a geopolitiku, takže krátkodobě může fungovat jako inflační sázka. Kvůli contangu, nulovému výnosu a extrémní volatilitě je ale jako dlouhodobá inflační ochrana méně spolehlivá než třeba široký komoditní koš nebo akcie. Pokud chcete stabilnější složku, zvažte diverzifikovaný komoditní ETF nebo akcie energetického sektoru s dividendou místo čisté sázky na barel."
+      }
+    ]
+  },
+  "nejlepsi-spotrebitelske-etf": {
+    "introTitle": "Spotřebitelské ETF: dvě protikladné sázky pod jedním názvem",
+    "intro": [
+      "Pod hlavičkou „spotřebitelské ETF“ se skrývají dva sektory, které se chovají skoro opačně. Consumer Staples (základní spotřeba) jsou firmy jako Procter & Gamble, Nestlé, Coca-Cola nebo Walmart – tedy zubní pasta, jídlo, pití a drogerie, které lidé kupují i v krizi. Consumer Discretionary (cyklická spotřeba) jsou naopak firmy, na jejichž zboží se šetří jako první: Amazon, LVMH, McDonald's, Nike, Tesla. Když si vybíráte fond, musíte nejdřív vědět, do které z těchto dvou skupin vlastně sázíte – protože defenzivní staples a cyklický discretionary reagují na ekonomický cyklus zrcadlově.",
+      "Klíčový rozdíl je v tom, kdy který sektor „funguje“. Základní spotřeba je klasická defenzivní pozice – v recesi klesá méně než trh, protože poptávka po jídle a hygieně je stabilní. Cyklická spotřeba je pravý opak: v expanzi a při rostoucích reálných mzdách roste rychleji než trh, protože lidé utrácejí za luxus, auta a dovolené, ale v recesi padá jako první. Nejde tedy o „jeden spotřebitelský sektor“, ale o dvě různé stavební kostky pro portfolio.",
+      "V nabídce evropských UCITS fondů najdete obě varianty ve třech regionálních řezech – globální (MSCI World), americký (S&P 500 / MSCI USA) a evropský (MSCI Europe / STOXX Europe 600). Discretionary fondy jsou navíc silně koncentrované: v globálních indexech dominuje Amazon, Tesla a několik málo firem, takže sektorový fond je fakticky sázka na hrstku obřích jmen. Pro českého investora, který utrácí koruny, platí, že veškeré výnosy sledujeme přepočtené do korun a měnové riziko vůči CZK neseme vždy – většina těchto fondů je vedena v USD nebo EUR.",
+      "Pozn.: tato kategorie se tematicky překrývá s naší kategorií „spotřební ETF“. Do budoucna dává smysl obě stránky sloučit do jedné a druhou přesměrovat (canonical/redirect), aby se v Googlu nekanibalizovaly – obsahově pokrývají stejný sektorový úhel."
+    ],
+    "verdict": [
+      "Pokud chcete defenzivní jádro spotřeby, sáhněte po globální základní spotřebě. Největší a nejpřehlednější je Xtrackers MSCI World Consumer Staples 1C (ISIN IE00BM67HN09, ticker XDWS, TER 0,25 %, přes 779 mil. EUR, akumulační) – jeden fond pokrývá Procter & Gamble, Nestlé, Coca-Colu, Walmart i Costco napříč rozvinutým světem. Kdo chce čistě americkou staples expozici levněji, má iShares S&P 500 Consumer Staples (IE00B40B8R38, ICSU, TER 0,15 %, 415 mil. EUR) nebo State Street SPDR S&P U.S. Consumer Staples Select Sector (IE00BWBXM385, ZPDS, TER 0,15 %). Pro evropskou defenzivu (Nestlé, L'Oréal, Unilever) je tu iShares MSCI Europe Consumer Staples (IE00BMW42074, ESIS, TER 0,18 %, akumulační, 465 mil. EUR).",
+      "Pokud naopak chcete cyklickou sázku na spotřebitelské utrácení, je referenčním fondem iShares S&P 500 Consumer Discretionary (IE00B4MCHD36, ICDU, TER 0,15 %, 741 mil. EUR, akumulační) – nejlevnější a největší v kategorii, těžce vážený na Amazon a Teslu. Globálnější řez nabízí Xtrackers MSCI World Consumer Discretionary 1C (IE00BM67HP23, XDWC, TER 0,25 %). Kdo chce pravidelnou výplatu, najde distribuční varianty jako Xtrackers MSCI USA Consumer Discretionary 1D (IE00BGQYRR35, XUCD, TER 0,12 % – nejnižší v přehledu) nebo State Street SPDR S&P U.S. Consumer Discretionary Select Sector (IE00BWBXM278, ZPDD, TER 0,15 %).",
+      "Doporučení pro drtivou většinu čtenářů: spotřebitelský sektor je satelit, ne jádro. Rozumná velikost je jednotky až max. 10 % portfolia nad širokým základem (celosvětové ETF). Staples použijte, když chcete tlumit výkyvy a máte delší defenzivní záměr; discretionary jen tehdy, když vědomě sázíte na sílu spotřebitele a snesete jeho koncentraci a cykličnost. Kdo tohle rozlišovat nechce, dostane oba sektory automaticky a v tržní váze uvnitř běžného celosvětového nebo S&P 500 fondu – bez nutnosti cokoli časovat."
+    ],
+    "forWhom": "Spotřebitelská sektorová ETF se hodí pro pokročilejšího investora, který už má postavené široké jádro portfolia a chce ho cíleně doladit – staples pro defenzivu a nižší volatilitu, discretionary jako sázku na růst spotřeby v expanzi. Sedne také tomu, kdo má konkrétní makro názor (např. „přichází recese, chci defenzivu“ nebo „reálné mzdy rostou, vsadím na utrácení“). Nehodí se pro začátečníka, který teprve staví první portfolio – tomu lépe poslouží jeden celosvětový fond, kde jsou oba sektory zastoupeny automaticky v tržní váze. Nevhodné je i pro investora s krátkým horizontem, protože zejména discretionary umí v recesi propadnout o desítky procent, a pro každého, kdo by sektorovou koncentraci (u discretionary často přes 40 % v pár největších firmách) neustál.",
+    "risks": [
+      "Záměna sektorů: „spotřebitelské ETF“ pokrývá defenzivní staples i cyklický discretionary, které se chovají opačně. Koupit discretionary v očekávání „stabilní defenzivy“ je klasický omyl – před nákupem si vždy ověřte, který z obou indexů fond sleduje.",
+      "Koncentrace do několika firem: discretionary indexy jsou extrémně top-heavy – v globálních variantách dominuje Amazon a Tesla, které mohou tvořit desítky procent fondu. Není to diverzifikovaná pozice, ale sázka na hrstku megacapů; propad jednoho jména stáhne celý fond.",
+      "Měnové riziko vůči koruně: fondy jsou vedeny hlavně v USD (americké a globální) nebo EUR (evropské). Výnosy přepočtené do korun proto kolísají s kurzem – posílení koruny umazává zisk i u firem, které samy rostou. CZK-hedged třídy prakticky neexistují; i případné zajištění by bylo do EUR/USD, ne do CZK.",
+      "Zúžení diverzifikace a sektorové cykly: jde o jeden sektor bez zajištění napříč ekonomikou. Staples zaostávají v silných býčích trzích, discretionary tvrdě padají v recesích a při slabém spotřebiteli. Bez širokého jádra je to nevyvážená pozice."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi Consumer Staples a Consumer Discretionary ETF?",
+        "a": "Staples (základní spotřeba) jsou defenzivní firmy prodávající jídlo, pití a drogerii – Procter & Gamble, Nestlé, Coca-Cola, Walmart. Poptávka je stabilní i v krizi, takže fond kolísá méně než trh. Discretionary (cyklická spotřeba) jsou firmy jako Amazon, Tesla, LVMH, McDonald's nebo Nike, na jejichž zboží lidé šetří jako první – v expanzi rostou rychleji, v recesi padají nejvíc. Jsou to prakticky opačné sázky, přestože se obě řadí pod „spotřebitelské ETF“."
+      },
+      {
+        "q": "Který konkrétní fond je pro defenzivní a který pro cyklickou sázku?",
+        "a": "Pro defenzivu (staples) je referenční Xtrackers MSCI World Consumer Staples 1C (IE00BM67HN09, XDWS, TER 0,25 %) nebo levnější americký iShares S&P 500 Consumer Staples (IE00B40B8R38, ICSU, TER 0,15 %). Pro cyklickou sázku (discretionary) je největší a nejlevnější iShares S&P 500 Consumer Discretionary (IE00B4MCHD36, ICDU, TER 0,15 %), globálněji pak Xtrackers MSCI World Consumer Discretionary 1C (IE00BM67HP23, XDWC, TER 0,25 %)."
+      },
+      {
+        "q": "Jak se tyto ETF daní v roce 2026 pro českého investora?",
+        "a": "Jde o klasické akciové fondy (cenné papíry), takže platí standardní pravidla. Když podíly držíte déle než 3 roky, je zisk z prodeje díky časovému testu osvobozen – od roku 2026 bez horního limitu. Alternativně hodnotový test osvobozuje zisk, pokud úhrn vašich prodejů cenných papírů nepřekročí 100 000 Kč za rok. Dividendy z distribučních tříd (např. XUCD, ZPDD) se daní 15 %; u akumulačních fondů (XDWS, ICDU, ESIS) se reinvestice uvnitř fondu v přiznání neřeší. Nejde o daňovou radu – detaily najdete v našem daňovém hubu."
+      },
+      {
+        "q": "Mám raději akumulační, nebo distribuční variantu?",
+        "a": "U spotřebitelských fondů máte obě možnosti. Akumulační (XDWS, ICDU, ESIS) reinvestují dividendy uvnitř fondu – hodí se pro dlouhodobé budování majetku, protože se v přiznání neřeší a těží ze složeného úročení. Distribuční (XDWC, XUCD, ZPDD) vyplácejí dividendu na účet, což ocení investor v rentové fázi; počítejte ale s 15% daní z vyplacené dividendy. Pro fázi spoření je obvykle praktičtější akumulace."
+      },
+      {
+        "q": "Proč je discretionary ETF tak koncentrované do pár firem?",
+        "a": "Cyklické spotřebitelské indexy jsou vážené tržní kapitalizací a v tomto sektoru dominuje několik obřích firem. V globálních a amerických discretionary fondech tvoří Amazon a Tesla dohromady často 30–40 % portfolia. Sektorový fond je tak fakticky koncentrovaná sázka na hrstku megacapů, ne diverzifikovaná expozice – to je zásadní rozdíl oproti širokému indexu jako S&P 500 nebo MSCI World."
+      },
+      {
+        "q": "Nese český investor u těchto fondů měnové riziko?",
+        "a": "Ano, vždy. Globální a americké fondy jsou vedeny v USD, evropské v EUR, ale vy utrácíte koruny – veškeré výnosy proto sledujeme přepočtené do korun a jejich hodnota se pohybuje s kurzem. Pokud koruna posílí, umaže vám to část zisku, i když firmy ve fondu rostou. Měnově zajištěné (CZK-hedged) třídy pro tyto sektorové fondy prakticky neexistují a i běžné hedgované třídy zajišťují maximálně do EUR/USD, nikdy do CZK."
+      }
+    ]
+  },
+  "nejlepsi-stribro-etf": {
+    "introTitle": "Stříbro ETC (fyzicky kryté): jak koupit „divočejšího bratra zlata\" přes burzu",
+    "intro": [
+      "Podobně jako u zlata platí, že „stříbrné ETF\" ve skutečnosti téměř vždy nejsou fondy, ale ETC (Exchange Traded Commodities) - burzovně obchodované cenné papíry kryté fyzickým kovem uloženým v pojištěných trezorech (typicky LBMA depozitáře v Londýně nebo Curychu). Kupujete tedy nárok na skutečné stříbrné slitky, ale obchodujete je stejně snadno jako akcii přes svého brokera. Odpadá řešení úschovy, pojištění a hlavně vysokého rozpětí u dealerů. U fyzického stříbra je navíc v ČR na rozdíl od investičního zlata běžně DPH, což ETC obchází - to je jeden z hlavních důvodů, proč drobní investoři sahají právě po něm.",
+      "Zásadní odlišnost od zlata není v mechanice, ale v povaze kovu. Stříbro je z velké části průmyslová komodita - poptávku táhne fotovoltaika, elektronika a elektromobilita, ne jen investiční a šperkařská poptávka. To dělá jeho cenu výrazně volatilnější: v dobrých letech roste rychleji než zlato, v korekcích ale padá hlouběji. Tomu odpovídá i takzvaný Gold/Silver Ratio, poměr ceny zlata a stříbra, který kolísá v širokém pásmu a používá se jako orientační vodítko, zda je stříbro vůči zlatu relativně levné, či drahé. Pokud hledáte spíš klidnou pojistku portfolia, patříte pravděpodobně ke zlatu (viz naše kategorie zlaté ETF); stříbro je jeho dynamičtější, rizikovější varianta.",
+      "Pro českého investora je klíčové, že se stříbro kotuje v amerických dolarech. I když ETC koupíte v eurech nebo přes korunový účet, výnos vždy ovlivní pohyb kurzu USD/CZK - slabší dolar může část růstu ceny kovu sníst, silnější naopak výnos zvýší. Existují i verze měnově zajištěné do eura (například Xtrackers Physical Silver EUR Hedged, DE000A1EK0J7), které tlumí pohyb dolaru, ovšem za vyšší náklady a bez jakéhokoli zajištění vůči koruně.",
+      "Největší a nejlikvidnější fyzicky kryté produkty na stříbro dostupné z Česka jsou iShares Physical Silver ETC (SSLN, IE00B4NCWG09) s objemem kolem 2,4 mld., WisdomTree Physical Silver (PHAG, JE00B1VS3333) a nákladově velmi levné Invesco Physical Silver (SSLV, IE00B43VDT70) a WisdomTree Core Physical Silver (WSLV, JE00BQRFDY49). Všechny běžně najdete u brokerů oblíbených v ČR - DEGIRO, Trading 212, XTB nebo Interactive Brokers."
+    ],
+    "verdict": [
+      "V kategorii fyzicky krytého stříbra jednoznačně preferujte plně alokovaná fyzická ETC (kov přiřazený k slitkům v trezoru) před syntetickými nebo pákovými produkty. Rozhoduje kombinace nákladovosti TER, velikosti fondu a domicilu. Nejnižší TER 0,19 % nabízejí Invesco Physical Silver (SSLV, IE00B43VDT70) a WisdomTree Core Physical Silver (WSLV, JE00BQRFDY49) - obojí s irským či jerseyským domicilem a slušnou velikostí kolem 720-790 mil. Pokud vám jde primárně o likviditu a co nejužší rozpětí nákup/prodej, sáhněte po největším iShares Physical Silver ETC (SSLN, IE00B4NCWG09), který má TER 0,20 % a je zdaleka nejobjemnější. Naopak dražší produkty jako WisdomTree Physical Silver (PHAG) s TER 0,49 % dnes nedávají u nové pozice velký smysl, ledaže je máte dostupné výhodně u konkrétního brokera.",
+      "Otázka akumulace versus distribuce zde odpadá - stříbro nevyplácí dividendy ani úroky, veškerý výnos plyne z pohybu ceny kovu. Řešte tedy hlavně náklady, likviditu a případně měnové zajištění. Xtrackers Physical Silver EUR Hedged (XAD2, DE000A1EK0J7) tlumí pohyb dolaru vůči euru, ale má vyšší TER 0,75 % a Čechovi kurzové riziko vůči koruně stejně neodstraní; hedged verzi volte jen tehdy, když opravdu cíleně nechcete nést pohyb USD. Důrazně varujeme před pákovými produkty typu WisdomTree Silver 3x Daily Leveraged (3SIL) - jejich denní přepočet vede k dlouhodobému rozpadu hodnoty a poslední roční výnos kolem -64 % ukazuje, že to nejsou nástroje pro drž-a-zapomeň investora.",
+      "Praktický výběr pro většinu: SSLV nebo WSLV jako nákladově nejlevnější fyzická volba, případně SSLN pro maximální likviditu. Stříbro přitom držte jako menšinovou, satelitní pozici - jeho volatilita se do jádra portfolia nehodí."
+    ],
+    "forWhom": "Fyzicky kryté stříbro se hodí investorům, kteří už mají postavené jádro portfolia z akciových a dluhopisových ETF a chtějí přidat malou satelitní pozici do reálných aktiv s vyšším potenciálem růstu než zlato - typicky v řádu jednotek procent portfolia. Sedí těm, kdo věří v průmyslovou poptávku (fotovoltaika, elektromobilita) a snesou vyšší kolísavost, případně těm, kdo sázejí na návrat Gold/Silver Ratio k historickému průměru. Naopak se nehodí pro konzervativní investory hledající klidnou pojistku (na to je vhodnější zlato), pro investory očekávající pravidelný příjem (stříbro nic nevyplácí), pro celé jádro portfolia ani pro krátkodobé spekulanty bez tolerance k tomu, že cena umí i řadu let stagnovat či prudce klesnout.",
+    "risks": [
+      "Vysoká volatilita: stříbro je díky velké průmyslové složce poptávky výrazně kolísavější než zlato. V korekcích padá hlouběji a rychleji - proto se hodí jen jako malá satelitní pozice, ne jako stabilizátor portfolia.",
+      "Měnové riziko: stříbro se kotuje v USD, takže i při růstu ceny kovu můžete v korunách vydělat méně nebo prodělat, pokud dolar oslabí. Verze zajištěné do eura (XAD2) řeší jen riziko USD/EUR, nikoli pohyb koruny vůči euru.",
+      "Riziko produktu a struktury: ETC je právně dluhový cenný papír krytý kovem, nikoli fondový ETF - u plně alokovaných fyzických produktů je krytí reálnými slitky, přesto jde o odlišnou strukturu než klasické UCITS ETF. Zcela se vyhněte pákovým (3SIL, LSIL) a short (SSIL, 3SSI) variantám - kvůli dennímu přepočtu se pro dlouhodobé držení nehodí.",
+      "Odlišný daňový charakter: protože ETC je dluhový nástroj krytý komoditou, nemusí se na něj časový a hodnotový test pro osvobození zisku uplatnit stejně jako u klasických cenných papírů-fondů. Režim ověřte podle konkrétního produktu s daňovým poradcem, nespoléhejte automaticky na tříletý test."
+    ],
+    "faqs": [
+      {
+        "q": "Je stříbrné ETF vlastně ETF, nebo ETC?",
+        "a": "Téměř vždy jde technicky o ETC (Exchange Traded Commodity), nikoli o klasický fondový ETF. ETC je dluhový cenný papír krytý fyzickým stříbrem v trezoru. Pro investora se obchoduje stejně snadno jako akcie či ETF přes burzu, liší se ale právní strukturou a v některých případech i daňovým režimem."
+      },
+      {
+        "q": "Proč zvolit stříbro místo zlata, nebo vedle něj?",
+        "a": "Stříbro má vyšší růstový potenciál díky průmyslové poptávce (fotovoltaika, elektronika, elektromobilita), ale platíte za to výrazně vyšší kolísavostí - v korekcích padá hlouběji než zlato. Mnozí investoři drží obojí: zlato jako klidnou pojistku a stříbro jako menší, dynamičtější sázku. Orientačně sledují Gold/Silver Ratio, poměr cen obou kovů. Podrobněji viz naše kategorie zlaté ETF."
+      },
+      {
+        "q": "Které stříbrné ETC jsou nejlevnější a nejdostupnější v Česku?",
+        "a": "Nákladově nejlevnější jsou Invesco Physical Silver (SSLV, IE00B43VDT70) a WisdomTree Core Physical Silver (WSLV, JE00BQRFDY49) s TER 0,19 %. Největší a nejlikvidnější je iShares Physical Silver ETC (SSLN, IE00B4NCWG09) s TER 0,20 %. Všechny najdete u brokerů populárních v ČR jako DEGIRO, Trading 212, XTB nebo Interactive Brokers."
+      },
+      {
+        "q": "Mám volit stříbrné ETC zajištěné do eura?",
+        "a": "Měnově zajištěná verze (například Xtrackers Physical Silver EUR Hedged, XAD2, DE000A1EK0J7) tlumí pohyb kurzu USD/EUR, ale za vyšší náklady (TER 0,75 %) a nezajistí vás vůči koruně. Zajištění stojí na úrokovém diferenciálu mezi měnami a Čechovi CZK riziko neodstraní. Pro dlouhodobou pozici řada investorů volí nezajištěnou, levnější variantu."
+      },
+      {
+        "q": "Jsou pákové stříbrné produkty jako WisdomTree 3x vhodné k držení?",
+        "a": "Ne pro dlouhodobé investování. Pákové (3SIL, LSIL) a short (SSIL, 3SSI) produkty se přepočítávají denně, takže při kolísavém trhu se jejich hodnota v čase rozpadá bez ohledu na směr kovu. Ukázkově to dokládá roční výkonnost WisdomTree Silver 3x Daily Leveraged kolem -64 %. Jsou to nástroje pro krátkodobou spekulaci, ne pro portfolio."
+      },
+      {
+        "q": "Jak se v Česku daní zisk ze stříbrného ETC?",
+        "a": "Protože ETC je dluhový cenný papír krytý komoditou, nikoli klasický fondový ETF, nemusí se na něj časový test (držení nad 3 roky) a hodnotový test (úhrn prodejů do 100 000 Kč ročně) vztahovat stejně jako u běžných akciových či dluhopisových ETF. Situace se navíc může lišit podle konkrétního produktu. Doporučujeme ověřit aktuální režim v našem daňovém přehledu a s daňovým poradcem podle vaší situace."
+      }
+    ]
+  },
+  "nejlepsi-vladni-dluhopisy-etf": {
+    "introTitle": "Vládní dluhopisové ETF: nejbezpečnější část portfolia a jak jí rozumět v roce 2026",
+    "intro": [
+      "Vládní (státní) dluhopisové ETF drží dluhopisy vydané státy – typicky americkým Treasury, německým Bundem nebo košem států eurozóny. Kupujete tím pohledávku za vládou, ne za firmou, takže kreditní riziko je minimální (u USA a Německa prakticky nulové). Přesně tím se tato kategorie liší od korporátních dluhopisových ETF, kde nesete riziko bankrotu emitenta, i od high-yield fondů s junk dluhopisy. Tady je hlavní téma jiné: úrokové (durační) riziko a měna.",
+      "Klíč k pochopení státních bondů je durace – citlivost ceny na změnu úrokových sazeb. Když sazby rostou, cena starších dluhopisů klesá, a čím delší splatnost, tím prudší pohyb. To krásně ukázala data za poslední rok: krátký americký Treasury fond iShares USD Treasury Bond 0-1yr (ISIN IE00BGSF1X88) přinesl v korunách zhruba +5 %, zatímco dlouhý iShares USD Treasury Bond 20+yr (ISIN IE00BFM6TC58) skončil kolem -2,5 %. Stejný typ aktiva, stejný dlužník (USA), diametrálně jiný výsledek – rozdíl dělala durace a pohyb dolaru.",
+      "V prostředí roku 2026, kdy centrální banky po letech zvyšování drží sazby relativně vysoko a trh spekuluje o jejich snižování, jsou státní dluhopisy zpět ve hře. Krátké splatnosti nabízejí slušný výnos při nízké volatilitě (fungují skoro jako lepší spořák v cizí měně), dlouhé jsou sázka na pokles sazeb – když k němu dojde, ceny dlouhých bondů vyletí, když ne, bolí to. Nejde tedy o jednu homogenní kategorii, ale o škálu od 'skoro hotovost' po 'agresivní úroková sázka'.",
+      "Pro českého investora je navíc zásadní měnová vrstva. Většina velkých státních fondů je denominovaná v USD (Treasury) nebo EUR (eurozóna) a vy je nakupujete za koruny. Výnosy si tak vždy přepočítáváte do korun a nesete kurzové riziko vůči CZK – i u fondů, které nesou v názvu 'Hedged'. To zajištění totiž funguje maximálně do EUR nebo USD, ne do koruny."
+    ],
+    "verdict": [
+      "Pro konzervativní parkování peněz nebo defenzivní složku portfolia v USD dávají smysl krátké americké Treasury fondy: iShares USD Treasury Bond 0-1yr (IE00BGSF1X88, TER 0,07 %, přes 16 mld. EUR, akumulační) a iShares USD Treasury Bond 1-3yr (IE00BYXPSP02, TER 0,07 %). Za rok přidaly v korunách zhruba 4–5 % při minimální kolísavosti ceny dluhopisů – jejich hlavní riziko je pohyb dolaru vůči koruně, ne úroková citlivost. Ještě levnější variantou na americký krátký konec je Vanguard U.S. Treasury 0-1 Year Bond (IE00BLRPPV00, TER 0,05 %).",
+      "Kdo chce klasickou eurozónovou expozici bez dolaru, sáhne po Vanguard EUR Eurozone Government Bond (akumulační IE00BH04GL39, TER 0,07 %) nebo iShares Core Euro Government Bond (distribuční IE00B4WXJJ64, TER 0,07 %) – oba drží mix států eurozóny napříč splatnostmi. Za poslední rok byly kolem -1 % v korunách, protože delší durace a stabilnější euro nedaly prostor pro růst, ale jde o levné, robustní jádro dluhopisové části. Kdo chce cíleně krátkou euro duraci, má Xtrackers Eurozone Government Bond 1-3 (LU0290356871, TER 0,10 %) nebo Amundi Euro Government Bond 1-3Y (LU1650487413).",
+      "Pro odvážnější sázku na pokles sazeb je tu dlouhý konec: iShares USD Treasury Bond 20+yr (IE00BFM6TC58, TER 0,07 %) nebo středně dlouhý iShares USD Treasury Bond 3-7yr (IE00B3VWN393). Tyto fondy mohou při snížení sazeb vydělat dvojciferně, ale stejně tak spadnout – nejsou to 'bezpečné' fondy v intuitivním smyslu, jsou to nástroje na úrokovou spekulaci. Kdo chce dolarový výnos bez dolarového rizika, může zvážit EUR hedged třídy jako iShares $ Treasury Bond 7-10yr EUR Hedged (IE00BGPP6697) – ale i tak zůstává vystaven riziku EUR/CZK. Detaily každého fondu (durace, geografie, měna) si vždy ověřte na jeho stránce a porovnejte přes srovnávač."
+    ],
+    "forWhom": "Vládní dluhopisové ETF se hodí pro investora, který chce ke svému akciovému jádru přidat stabilizační, méně volatilní složku, nebo pro konzervativnějšího spořitele hledajícího vyšší výnos než na běžném účtu (typicky přes krátké Treasury fondy). Sedne také člověku v předdůchodové či rentové fázi, kdo snižuje podíl akcií. Krátké splatnosti jsou pro každého, kdo chce nízkou kolísavost; dlouhé splatnosti jen pro toho, kdo vědomě spekuluje na pokles sazeb a snese, že hodnota fondu může na roky spadnout. Nehodí se jako jediná pozice pro mladého investora s dlouhým horizontem, který chce hlavně růst (tomu lépe poslouží akciové ETF), ani pro nikoho, kdo mylně čeká, že 'dluhopisy nemohou klesat' – rok 2022 i dlouhé fondy v roce 2025 ukázaly opak. Kdo nechce řešit měnu, musí počítat s tím, že bez CZK-hedge tu čisté zajištění koruny prakticky neexistuje.",
+    "risks": [
+      "Úrokové (durační) riziko: při růstu sazeb cena dluhopisů klesá, a to tím víc, čím delší je splatnost. Dlouhé fondy jako iShares USD Treasury 20+yr (IE00BFM6TC58) mohou během roku spadnout o desetiny procent i o dvojcifernou hodnotu – nejsou to bezpečné fondy v intuitivním smyslu, ale sázka na směr sazeb.",
+      "Měnové riziko vůči koruně: většina fondů je v USD nebo EUR. Posílení koruny sníží výnos přepočítaný do CZK, i když dluhopisy samotné rostou. U dolarových Treasury fondů bývá pohyb EUR/USD i USD/CZK často větším faktorem než samotný úrokový výnos.",
+      "Zavádějící 'Hedged' třídy: fond označený EUR Hedged či USD Hedged zajišťuje jen do eura nebo dolaru, ne do koruny. Český investor tak dál nese CZK riziko a navíc platí za zajištění, které stojí na úrokovém diferenciálu mezi měnami.",
+      "Nesprávné očekávání růstu: státní dluhopisy dlouhodobě vynášejí méně než akcie a v období růstu sazeb i nominalně prodělaly (2022). Slouží ke stabilitě a diverzifikaci, ne k dlouhodobému bohatnutí – kdo čeká akciový výnos, bude zklamaný."
+    ],
+    "faqs": [
+      {
+        "q": "Jaký je rozdíl mezi vládními a korporátními dluhopisovými ETF?",
+        "a": "Vládní fondy drží dluhopisy států (USA, Německo, eurozóna) s minimálním rizikem nesplácení – hlavní riziko je úrokové a měnové. Korporátní fondy drží firemní dluhopisy, kde navíc nesete kreditní (kreditní spread) riziko, ale za to dostáváte vyšší výnos. Nejrizikovější jsou high-yield (junk) fondy. Pro nejbezpečnější defenzivní složku volíte státní, ideálně krátké splatnosti."
+      },
+      {
+        "q": "Mám koupit krátké, nebo dlouhé státní dluhopisy?",
+        "a": "Záleží na cíli. Krátké (0–3 roky, např. iShares USD Treasury 0-1yr IE00BGSF1X88) mají nízkou kolísavost a chovají se jako lepší spořák v cizí měně – vhodné na parkování peněz a stabilitu. Dlouhé (10+ let, např. iShares USD Treasury 20+yr IE00BFM6TC58) jsou sázka na pokles sazeb: při snižování mohou vydělat dvojciferně, ale i prudě spadnout. Začátečníkům a konzervativním investorům obvykle lépe slouží krátký konec."
+      },
+      {
+        "q": "Zbaví mě hedgovaný (zajištěný) fond měnového rizika vůči koruně?",
+        "a": "Ne. Třídy označené EUR Hedged nebo USD Hedged zajišťují pouze do eura nebo dolaru, ne do koruny. Jako český investor nakupující za CZK nesete kurzové riziko vůči koruně vždy. Hedgované třídy navíc stále nesou náklady zajištění odvíjející se od úrokového diferenciálu mezi měnami. Fond zajištěný přímo do CZK v této nabídce prakticky nenajdete."
+      },
+      {
+        "q": "Jak se daní zisk z vládních dluhopisových ETF v Česku (2026)?",
+        "a": "Státní dluhopisové ETF jsou cenné papíry-fondy, platí pro ně standardní pravidla. Časový test: při držení nad 3 roky je zisk z prodeje osvobozen (od 2026 bez horního limitu). Hodnotový test: úhrn prodejů do 100 000 Kč ročně je osvobozen. U distribučních tříd (např. iShares Core Euro Government Bond IE00B4WXJJ64) se vyplácené kupony daní jako příjem sazbou 15 %; u akumulačních tříd se reinvestice uvnitř fondu v přiznání neřeší. Podrobnosti vždy ověřte v daňovém hubu."
+      },
+      {
+        "q": "Akumulační, nebo distribuční varianta státního dluhopisového ETF?",
+        "a": "Akumulační (např. Vanguard EUR Eurozone Government Bond IE00BH04GL39) reinvestuje kupony uvnitř fondu – jednodušší na správu a bez každoročního danění dividend. Distribuční (iShares Core Euro Government Bond IE00B4WXJJ64) vyplácí kupony na účet, což ocení někdo v rentové fázi, ale vyplácené výnosy pak daníte 15 %. Pro dlouhodobé budování bývá daňově i administrativně jednodušší akumulační třída."
+      },
+      {
+        "q": "Proč byly některé státní dluhopisové fondy za poslední rok v mínusu, když jde o 'bezpečné' aktivum?",
+        "a": "Bezpečnost státních dluhopisů se týká kreditního rizika (stát skoro jistě zaplatí), ne kolísavosti ceny. Eurozónové fondy jako Vanguard EUR Eurozone Government Bond (IE00BH04GL39) skončily kolem -1 % v korunách kvůli kombinaci úrokového pohybu a kurzu EUR/CZK. Naopak krátké dolarové Treasury fondy přidaly kolem 4–5 %. Rozdíl dělala durace a měna, ne bonita dlužníka."
+      }
+    ]
+  },
 };
 
 /** Vrátí redakční obsah kategorie, nebo null (šablona pak použije jen data). */
