@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { ter, money, pct, shortName, RankPanel, TickerStrip, SectionHead } from '@/components/design-preview/CategoryUI';
 import CompareTable from '@/components/design-preview/CompareTable';
+import ReturnValue, { ReturnCurLabel } from '@/components/design-preview/ReturnValue';
 import InfoTip from '@/components/design-preview/InfoTip';
 
 export const revalidate = 86400;
@@ -34,14 +35,7 @@ const isImpostor = (e: ETFBasicInfo) => IMPOSTOR_PATTERNS.some((p) => p.test(e.n
 /* Preferované čisté indexové fondy pro hlavní tabulku (v pořadí relevance pro Čecha). */
 const CORE_TICKERS = ['CSP1', 'CSPX', 'VUAA', 'SPXP', 'SPY5', 'SPYL', 'VUSA', 'IUSA', 'LYP7', 'I500'];
 
-export default async function CategoryPreview({
-  searchParams,
-}: {
-  searchParams: Promise<{ mena?: string }>;
-}) {
-  const sp = await searchParams;
-  const cur: 'czk' | 'eur' = sp.mena === 'eur' ? 'eur' : 'czk';
-
+export default async function CategoryPreview() {
   const all = await getTopETFsForCategory(categoryConfigs['nejlepsi-sp500-etf']);
   const clean = all.filter((e) => !isImpostor(e));
 
@@ -62,14 +56,14 @@ export default async function CategoryPreview({
   /* Žebříčky */
   const byTer = [...clean].filter((e) => e.ter_numeric != null).sort((a, b) => a.ter_numeric! - b.ter_numeric!).slice(0, 5);
   const bySize = [...clean].sort((a, b) => (b.fund_size_numeric ?? 0) - (a.fund_size_numeric ?? 0)).slice(0, 5);
-  // Výkonnostní žebříček – z VŠECH (vč. nečistých), ale označený, aby neklamal
-  const perfField = (e: ETFBasicInfo) => (cur === 'czk' ? e.return_1y_czk : e.return_1y) ?? -999;
+  // Výkonnostní žebříček – z VŠECH (vč. nečistých), řazeno dle výnosu v Kč (výchozí báze).
+  const perfField = (e: ETFBasicInfo) => e.return_1y_czk ?? -999;
   const byPerf = [...all].filter((e) => perfField(e) > -999).sort((a, b) => perfField(b) - perfField(a)).slice(0, 5);
 
   /* Klíčové metriky pro hero */
   const lowestTer = byTer[0];
   const biggest = bySize[0];
-  const perfVals = clean.map((e) => (cur === 'czk' ? e.return_1y_czk : e.return_1y)).filter((v): v is number => v != null).sort((a, b) => a - b);
+  const perfVals = clean.map((e) => e.return_1y_czk).filter((v): v is number => v != null).sort((a, b) => a - b);
   const medianPerf = perfVals.length ? perfVals[Math.floor(perfVals.length / 2)] : null;
 
   const find = (t: string) => all.find((e) => e.primary_ticker === t);
@@ -206,7 +200,7 @@ export default async function CategoryPreview({
                   <p className="text-xs text-slate-400">{biggest?.primary_ticker}</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Medián 1R ({cur === 'czk' ? 'CZK' : 'EUR'})</p>
+                  <p className="text-xs text-slate-400">Medián 1R (Kč)</p>
                   <p className="text-lg font-bold tabular-nums text-emerald-400">{pct(medianPerf)}</p>
                   <p className="text-xs text-slate-400">čisté indexové fondy</p>
                 </div>
@@ -360,7 +354,7 @@ export default async function CategoryPreview({
         {/* HLAVNÍ SROVNÁVACÍ TABULKA */}
         <section id="srovnani" className="pb-10 scroll-mt-16">
           <SectionHead title="Srovnání hlavních S&P 500 ETF" desc="Největší a nejvýznamnější fondy sledující čistý index S&P 500. Přepněte měnu výnosů." href="/design-preview/srovnani" hrefLabel="srovnat vše" />
-          <CompareTable etfs={mainTable} cur={cur} />
+          <CompareTable etfs={mainTable} />
         </section>
 
         {/* ŽEBŘÍČKY PODLE KRITÉRIA */}
@@ -388,19 +382,15 @@ export default async function CategoryPreview({
               }))}
             />
             <RankPanel
-              title={`Nejvýkonnější 1R (${cur === 'czk' ? 'CZK' : 'EUR'})`}
+              title={<>Nejvýkonnější 1R (<ReturnCurLabel />)</>}
               subtitle="Pozor: nečisté varianty označeny"
-              rows={byPerf.map((e) => {
-                const v = (cur === 'czk' ? e.return_1y_czk : e.return_1y);
-                const pos = (v ?? 0) >= 0;
-                return {
-                  isin: e.isin,
-                  label: shortName(e.name),
-                  sub: e.primary_ticker ?? undefined,
-                  flagged: isImpostor(e),
-                  value: <span className={`tabular-nums text-sm font-medium ${pos ? 'text-emerald-600' : 'text-red-600'}`}>{pct(v)}</span>,
-                };
-              })}
+              rows={byPerf.map((e) => ({
+                isin: e.isin,
+                label: shortName(e.name),
+                sub: e.primary_ticker ?? undefined,
+                flagged: isImpostor(e),
+                value: <ReturnValue etf={e} period="1y" className="text-sm font-medium" />,
+              }))}
             />
           </div>
         </section>

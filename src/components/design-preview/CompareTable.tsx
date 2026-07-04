@@ -1,51 +1,15 @@
 import Link from 'next/link';
 import type { ETFBasicInfo } from '@/lib/etf-data';
-import { pct, ter, money, dist, repl, domicile, shortName } from './CategoryUI';
+import { ter, money, dist, repl, domicile, shortName } from './CategoryUI';
+import ReturnValue, { ReturnCurLabel } from '@/components/design-preview/ReturnValue';
+import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 
-type Currency = 'czk' | 'eur';
-
-function ret(etf: ETFBasicInfo, years: '1y' | '3y', cur: Currency): number | null {
-  if (years === '1y') return cur === 'czk' ? etf.return_1y_czk : etf.return_1y;
-  return cur === 'czk' ? etf.return_3y_czk : etf.return_3y;
-}
-
-function PerfCell({ v }: { v: number | null }) {
-  if (v == null) return <span className="text-slate-400">—</span>;
-  const pos = v >= 0;
-  return (
-    <span className={`tabular-nums font-medium ${pos ? 'text-emerald-600' : 'text-red-600'}`}>{pct(v)}</span>
-  );
-}
-
-/** Segmented control měny – funguje bez JS přes odkazy s ?mena= (SSR, default CZK). */
-function CurrencySwitch({ cur }: { cur: Currency }) {
-  const base = 'px-3 py-1.5 text-sm font-medium rounded-md transition-colors';
-  return (
-    <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 p-1">
-      <Link
-        href="?mena=czk#srovnani"
-        scroll={false}
-        className={`${base} ${cur === 'czk' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-      >
-        CZK
-      </Link>
-      <Link
-        href="?mena=eur#srovnani"
-        scroll={false}
-        className={`${base} ${cur === 'eur' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-      >
-        EUR
-      </Link>
-    </div>
-  );
-}
-
-export default function CompareTable({ etfs, cur }: { etfs: ETFBasicInfo[]; cur: Currency }) {
+export default function CompareTable({ etfs }: { etfs: ETFBasicInfo[] }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-slate-500">Výnosy v měně:</p>
-        <CurrencySwitch cur={cur} />
+        <CurrencyToggle showLabel={false} />
       </div>
 
       {/* Desktop tabulka */}
@@ -56,8 +20,8 @@ export default function CompareTable({ etfs, cur }: { etfs: ETFBasicInfo[]; cur:
               <th className="py-3 px-4 font-medium">Fond</th>
               <th className="py-3 px-4 font-medium text-right">TER</th>
               <th className="py-3 px-4 font-medium text-right">Velikost</th>
-              <th className="py-3 px-4 font-medium text-right">Výnos 1R</th>
-              <th className="py-3 px-4 font-medium text-right">Výnos 3R</th>
+              <th className="py-3 px-4 font-medium text-right">Výnos 1R (<ReturnCurLabel />)</th>
+              <th className="py-3 px-4 font-medium text-right">Výnos 3R (<ReturnCurLabel />)</th>
               <th className="py-3 px-4 font-medium">Replikace</th>
               <th className="py-3 px-4 font-medium">Politika</th>
               <th className="py-3 px-4 font-medium">Domicil</th>
@@ -74,8 +38,8 @@ export default function CompareTable({ etfs, cur }: { etfs: ETFBasicInfo[]; cur:
                 </td>
                 <td className="py-3 px-4 text-right tabular-nums text-slate-700">{ter(etf.ter_numeric)}</td>
                 <td className="py-3 px-4 text-right tabular-nums text-slate-700">{money(etf.fund_size_numeric)}</td>
-                <td className="py-3 px-4 text-right"><PerfCell v={ret(etf, '1y', cur)} /></td>
-                <td className="py-3 px-4 text-right"><PerfCell v={ret(etf, '3y', cur)} /></td>
+                <td className="py-3 px-4 text-right"><ReturnValue etf={etf} period="1y" className="font-medium" /></td>
+                <td className="py-3 px-4 text-right"><ReturnValue etf={etf} period="3y" className="font-medium" /></td>
                 <td className="py-3 px-4 text-slate-600">{repl(etf.replication)}</td>
                 <td className="py-3 px-4 text-slate-600">{dist(etf.distribution_policy)}</td>
                 <td className="py-3 px-4 text-slate-600">{domicile(etf.fund_domicile)}</td>
@@ -99,8 +63,8 @@ export default function CompareTable({ etfs, cur }: { etfs: ETFBasicInfo[]; cur:
                 <p className="text-xs text-slate-400 mt-0.5">{etf.primary_ticker} · {etf.isin}</p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-xs text-slate-400">Výnos 1R</p>
-                <PerfCell v={ret(etf, '1y', cur)} />
+                <p className="text-xs text-slate-400">Výnos 1R (<ReturnCurLabel />)</p>
+                <ReturnValue etf={etf} period="1y" className="font-medium" />
               </div>
             </div>
             <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
@@ -113,8 +77,8 @@ export default function CompareTable({ etfs, cur }: { etfs: ETFBasicInfo[]; cur:
                 <dd className="tabular-nums font-medium text-slate-700">{money(etf.fund_size_numeric)}</dd>
               </div>
               <div>
-                <dt className="text-slate-400">Výnos 3R</dt>
-                <dd><PerfCell v={ret(etf, '3y', cur)} /></dd>
+                <dt className="text-slate-400">Výnos 3R (<ReturnCurLabel />)</dt>
+                <dd><ReturnValue etf={etf} period="3y" className="font-medium" /></dd>
               </div>
               <div>
                 <dt className="text-slate-400">Replikace</dt>
