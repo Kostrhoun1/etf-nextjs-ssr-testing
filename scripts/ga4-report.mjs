@@ -16,15 +16,27 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createSign } from 'node:crypto';
 
 const KEY_PATH = '.secrets/gsc-service-account.json';
-const PROPERTY = process.env.GA4_PROPERTY_ID;
+let PROPERTY = process.env.GA4_PROPERTY_ID;
 const DAYS = parseInt(process.argv[2] || '28', 10);
 
 const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const fail = (m) => { console.error('\n❌ ' + m + '\nNastavení: viz SETUP-MERENI.md.'); process.exit(1); };
 
 if (!existsSync(KEY_PATH)) fail(`Chybí klíč ${KEY_PATH}.`);
-if (!PROPERTY) fail('Chybí GA4_PROPERTY_ID. Nastav: export GA4_PROPERTY_ID="číslo" (Admin → Property Settings → Property ID).');
 const key = JSON.parse(readFileSync(KEY_PATH, 'utf8'));
+
+/** Když není GA4_PROPERTY_ID, zkus ho zjistit z Admin API (co SA vidí). */
+async function discoverProperty(token) {
+  const res = await fetch('https://analyticsadmin.googleapis.com/v1beta/accountSummaries', { headers: { Authorization: `Bearer ${token}` } });
+  const j = await res.json();
+  if (j.error) fail(`Admin API (${j.error.code}): ${j.error.message}. Buď povol "Google Analytics Admin API" v Cloudu, nebo nastav GA4_PROPERTY_ID ručně.`);
+  const props = [];
+  for (const acc of j.accountSummaries || []) for (const p of acc.propertySummaries || []) props.push({ id: (p.property || '').replace('properties/', ''), name: p.displayName });
+  if (!props.length) fail('Service account nevidí žádnou GA4 property. Přidej ho jako Viewer v GA4 → Admin → Property Access Management.');
+  console.log('   Dostupné property:', props.map((p) => `${p.name} (${p.id})`).join(', '));
+  const match = props.find((p) => /etf|pruvodce/i.test(p.name)) || props[0];
+  return match.id;
+}
 
 async function getToken() {
   const now = Math.floor(Date.now() / 1000);
@@ -48,6 +60,7 @@ const dv = (row, i) => row.dimensionValues?.[i]?.value ?? '';
 
 (async () => {
   const token = await getToken();
+  if (!PROPERTY) PROPERTY = await discoverProperty(token);
   const totals = await runReport(token, { dateRanges: range, metrics: [{ name: 'activeUsers' }, { name: 'sessions' }, { name: 'screenPageViews' }, { name: 'averageSessionDuration' }, { name: 'engagementRate' }] });
   const t = rows(totals)[0];
   const pages = await runReport(token, { dateRanges: range, dimensions: [{ name: 'pagePath' }], metrics: [{ name: 'screenPageViews' }], orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }], limit: 10 });
