@@ -223,7 +223,10 @@ export default async function DesignPreviewV2() {
                   Nezávislá data {totalCount.toLocaleString('cs-CZ')}+ fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2.5">
-                  <Link href="/design-preview/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+                  <Link href="/design-preview/vyber-etf" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+                    <Sparkles className="w-4 h-4" /> Poradíme, který ETF
+                  </Link>
+                  <Link href="/design-preview/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                     Porovnat fondy <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link href="/design-preview/pruvodce" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
