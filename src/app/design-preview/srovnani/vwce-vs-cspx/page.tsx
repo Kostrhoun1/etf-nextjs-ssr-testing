@@ -11,10 +11,8 @@ import {
 } from 'lucide-react';
 import { ter, dist } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
-import {
-  SrovnaniSoubojKarta, SrovnaniParamTabulka, SrovnaniParamKarty,
-  buildParamRows,
-} from '@/components/design-preview/SrovnaniCompareUI';
+import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
+import SrovnaniParams from '@/components/design-preview/SrovnaniParams';
 
 export const revalidate = 86400;
 
@@ -118,8 +116,6 @@ export default async function SrovnaniPreview() {
     about: [financialProduct(etf1), financialProduct(etf2)],
     mainEntityOfPage: CANONICAL,
   };
-
-  const paramRows = buildParamRows(etf1, etf2);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -372,12 +368,11 @@ export default async function SrovnaniPreview() {
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Srovnání parametrů</h2>
             <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-              Klíčové hodnoty obou fondů vedle sebe. Výnosy jsou <strong>přepočtené do korun</strong> kurzem ČNB –
-              tak, jak je pocítí český investor. Zelené pole = výhodnější hodnota v daném řádku.
+              Klíčové hodnoty obou fondů vedle sebe. Výnosy si přepněte do měny podle sebe –
+              <strong> ve výchozím stavu do korun</strong> (jak je pocítí český investor). Zelené pole = výhodnější hodnota v daném řádku.
             </p>
           </div>
-          <SrovnaniParamTabulka ticker1={t1} ticker2={t2} rows={paramRows} />
-          <SrovnaniParamKarty ticker1={t1} ticker2={t2} rows={paramRows} />
+          <SrovnaniParams etf1={etf1} etf2={etf2} ticker1={t1} ticker2={t2} />
           <p className="text-xs text-slate-400 mt-3 flex items-start gap-1.5">
             <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
             Výnosy jsou přepočtené do korun a ukazují minulou výkonnost – nezaručují budoucí vývoj. „Vítěz“ řádku je jen orientační –

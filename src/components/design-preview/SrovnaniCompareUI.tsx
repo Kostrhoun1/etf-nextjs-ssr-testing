@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ComparisonETF } from '@/lib/etf-data';
 import { Check, Minus } from 'lucide-react';
 import { ter, money, pct, dist, repl, domicile } from '@/components/design-preview/CategoryUI';
+import { pickReturn, curLabel, type Currency } from '@/components/design-preview/currency';
 
 /* ------------------------------------------------------------------ *
  * Pomocné komponenty SPECIFICKÉ pro stránku "Srovnání dvou ETF".
@@ -155,7 +156,7 @@ export function SrovnaniParamKarty({
 
 /* Sestaví řádky tabulky parametrů z dvojice fondů.
    Výnosy jsou přepočtené do korun (return_*_czk) – korunový úhel je USP webu. */
-export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF): RadekProps[] {
+export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Currency = 'CZK'): RadekProps[] {
   const lowerTerWin = (a: number | null, b: number | null): 0 | 1 | 2 => {
     if (a == null || b == null || a === b) return 0;
     return a < b ? 1 : 2;
@@ -164,6 +165,10 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF): RadekP
     if (a == null || b == null || a === b) return 0;
     return a > b ? 1 : 2;
   };
+  const o1 = etf1 as unknown as Record<string, unknown>;
+  const o2 = etf2 as unknown as Record<string, unknown>;
+  const r1 = (p: string) => pickReturn(o1, p, cur);
+  const r2 = (p: string) => pickReturn(o2, p, cur);
 
   return [
     {
@@ -194,23 +199,23 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF): RadekP
       winner: 0,
     },
     {
-      label: 'Výnos 1 rok (v Kč)',
-      hint: 'Přepočteno do korun kurzem ČNB – tak, jak výnos reálně pocítí český investor',
-      v1: pct(etf1.return_1y_czk),
-      v2: pct(etf2.return_1y_czk),
-      winner: higherWin(etf1.return_1y_czk, etf2.return_1y_czk),
+      label: `Výnos 1 rok (${curLabel[cur]})`,
+      hint: cur === 'CZK' ? 'Přepočteno do korun kurzem ČNB – tak, jak výnos reálně pocítí český investor' : cur === 'USD' ? 'Původní výnos v dolarech (bez pohybu kurzu vůči koruně)' : 'Výnos v eurech (báze fondu, bez pohybu kurzu vůči koruně)',
+      v1: pct(r1('1y')),
+      v2: pct(r2('1y')),
+      winner: higherWin(r1('1y'), r2('1y')),
     },
     {
-      label: 'Výnos 3 roky (v Kč)',
-      v1: pct(etf1.return_3y_czk),
-      v2: pct(etf2.return_3y_czk),
-      winner: higherWin(etf1.return_3y_czk, etf2.return_3y_czk),
+      label: `Výnos 3 roky (${curLabel[cur]})`,
+      v1: pct(r1('3y')),
+      v2: pct(r2('3y')),
+      winner: higherWin(r1('3y'), r2('3y')),
     },
     {
-      label: 'Výnos 5 let (v Kč)',
-      v1: pct(etf1.return_5y_czk),
-      v2: pct(etf2.return_5y_czk),
-      winner: higherWin(etf1.return_5y_czk, etf2.return_5y_czk),
+      label: `Výnos 5 let (${curLabel[cur]})`,
+      v1: pct(r1('5y')),
+      v2: pct(r2('5y')),
+      winner: higherWin(r1('5y'), r2('5y')),
     },
     {
       label: 'Dividendový výnos',

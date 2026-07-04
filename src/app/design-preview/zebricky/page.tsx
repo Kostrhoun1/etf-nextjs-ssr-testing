@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
+import ReturnValue from '@/components/design-preview/ReturnValue';
 import {
   TrendingUp, ArrowRight, Layers, BarChart3, Globe2, Factory,
   Sparkles, Coins, Compass, Star, Trophy, Tag, BadgePercent,
@@ -286,6 +288,7 @@ export default async function ZebrickyPage() {
         {/* 3. Datový teaser – nejvýkonnější a nejlevnější */}
         {(topPerf.length > 0 || cheapest.length > 0) && (
           <section className="pb-10">
+            <div className="mb-4 flex justify-end"><CurrencyToggle size="sm" /></div>
             <div className="grid gap-4 lg:grid-cols-2">
               {/* Nejvýkonnější za 12 měsíců (v Kč) */}
               <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
@@ -294,7 +297,7 @@ export default async function ZebrickyPage() {
                     <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700"><Trophy className="w-5 h-5" /></span>
                     <h3 className="text-lg font-semibold text-slate-900">Nejvýkonnější za 12 měsíců</h3>
                   </div>
-                  <span className="text-xs text-slate-400">v přepočtu na Kč</span>
+                  <span className="text-xs text-slate-400">za posledních 12 měsíců</span>
                 </div>
                 <ul className="mt-4 divide-y divide-slate-100">
                   {topPerf.map((etf) => (
@@ -303,9 +306,7 @@ export default async function ZebrickyPage() {
                         <span className="block truncate text-sm font-medium text-slate-900">{etf.name}</span>
                         <span className="block text-xs text-slate-500">{etf.fund_provider}</span>
                       </span>
-                      <span className="shrink-0 tabular-nums text-sm font-semibold text-emerald-600">
-                        {fmtPct(etf.return_1y_czk)}
-                      </span>
+                      <ReturnValue etf={etf} period="1y" className="shrink-0 text-sm font-semibold" />
                     </li>
                   ))}
                 </ul>

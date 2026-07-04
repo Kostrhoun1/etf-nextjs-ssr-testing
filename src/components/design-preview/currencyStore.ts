@@ -1,43 +1,20 @@
 'use client';
 
-/* Sdílená volba měny pro zobrazení VÝKONNOSTI fondů (nový web = samostatné SSR
+/* Stav volby měny pro zobrazení VÝKONNOSTI fondů (nový web = samostatné SSR
    stránky). Uživatel zvolí jednou, drží se napříč stránkami přes localStorage
-   a všechny výkonnostní plochy reagují přes subscribe. Default = CZK (český
-   investor). Báze dat v justETF je EUR, proto EUR = sloupec bez přípony. */
+   a všechny výkonnostní plochy reagují přes subscribe. Default = CZK.
+   Čisté helpery (curSuffix/curLabel/pickReturn/CURRENCIES/Currency) jsou v
+   currency.ts a re-exportují se odsud pro pohodlí. */
 
 import { useEffect, useState } from 'react';
+import { type Currency } from '@/components/design-preview/currency';
 
-export type Currency = 'CZK' | 'EUR' | 'USD';
+export { CURRENCIES, curSuffix, curLabel, pickReturn, type Currency } from '@/components/design-preview/currency';
 
 const KEY = 'dp-currency-v1';
 const EVT = 'dp-currency-change';
 const DEFAULT: Currency = 'CZK';
 const VALID: Currency[] = ['CZK', 'EUR', 'USD'];
-
-export const CURRENCIES: Currency[] = VALID;
-
-/** Přípona sloupce výnosu pro danou měnu: CZK→_czk, USD→_usd, EUR→'' (báze). */
-export function curSuffix(cur: Currency): '' | '_czk' | '_usd' {
-  return cur === 'CZK' ? '_czk' : cur === 'USD' ? '_usd' : '';
-}
-
-/** Symbol/label měny pro popisky. */
-export const curLabel: Record<Currency, string> = { CZK: 'Kč', EUR: '€', USD: '$' };
-
-/**
- * Vybere hodnotu výnosu za období v aktuální měně z objektu s poli
- * return_<period>(_czk|_usd). EUR = pole bez přípony. Fallback na bázi.
- */
-export function pickReturn(
-  obj: Record<string, unknown> | null | undefined,
-  period: string,
-  cur: Currency,
-): number | null {
-  if (!obj) return null;
-  const raw = obj[`return_${period}${curSuffix(cur)}`];
-  const v = raw == null ? obj[`return_${period}`] : raw; // fallback na bázi (EUR)
-  return v == null || Number.isNaN(Number(v)) ? null : Number(v);
-}
 
 export function getCurrency(): Currency {
   if (typeof window === 'undefined') return DEFAULT;
