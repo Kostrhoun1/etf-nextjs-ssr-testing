@@ -93,7 +93,7 @@ export default async function SrovnaniPreview() {
     },
     {
       q: 'Jak se tyto ETF daní v Česku?',
-      a: 'Zisk z prodeje je osvobozen, pokud fond držíte déle než 3 roky (časový test podle § 4 zákona o daních z příjmů). Při prodeji do 3 let se zisk daní sazbou 15 %. Oba fondy jsou irské, takže nevyplňujete formulář W-8BEN – srážkovou daň z amerických dividend řeší správce fondu.',
+      a: 'Zisk z prodeje je osvobozen, pokud fond držíte déle než 3 roky (časový test, od roku 2026 bez horního limitu), nebo když úhrn vašich prodejů za rok nepřekročí 100 000 Kč (hodnotový test – hrubé příjmy, ne zisk). Jinak se zisk daní 15 % (u vysokých příjmů 23 %). Oba fondy jsou irské, takže W-8BEN nevyplňujete.',
     },
     {
       q: `Má smysl držet ${t1} i ${t2} zároveň?`,

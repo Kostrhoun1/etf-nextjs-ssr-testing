@@ -5,7 +5,7 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   getFeaturedETFs, getTotalETFCount, getMarketSnapshot, getReturnsByIsins,
-  getETFsByIsins, type ETFBasicInfo,
+  getETFsByIsins, categoryConfigs, type ETFBasicInfo,
 } from '@/lib/etf-data';
 import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -40,6 +40,13 @@ const STARTER_META: Record<string, { tag: string; icon: typeof Globe; why: strin
   IE00B5BMR087: { tag: 'Jen USA (S&P 500)', icon: LineChart, why: '500 největších amerických firem. Nejnižší poplatek z trojice, historicky nejsilnější výnos, vyšší koncentrace do USA.' },
   IE00B4L5Y983: { tag: 'Rozvinuté trhy', icon: Building2, why: 'Zhruba 1 500 firem z vyspělých zemí (MSCI World) bez rozvíjejících se trhů. Klasická a osvědčená volba.' },
 };
+
+/* Počet kategorií žebříčků – shodná logika jako /design-preview/zebricky
+   (bez duplicitních SEO slugů), ať homepage neuvádí nižší, zastaralé číslo. */
+const DUPLICATE_CATEGORY_SLUGS = ['nejlepsi-nemovitostni-etf', 'nejlepsi-zlate-etf'];
+const CATEGORY_COUNT = Object.keys(categoryConfigs).filter(
+  (s) => !DUPLICATE_CATEGORY_SLUGS.includes(s),
+).length;
 
 const CATEGORIES = [
   { href: '/design-preview/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'Celosvětové', icon: Globe },
@@ -381,7 +388,7 @@ export default async function DesignPreviewV2() {
         <section className="pb-10">
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-lg font-bold tracking-tight">Žebříčky podle kategorií</h2>
-            <Link href="/design-preview/zebricky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všech 38 kategorií <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/design-preview/zebricky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všech {CATEGORY_COUNT} kategorií <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {CATEGORIES.map((c) => (

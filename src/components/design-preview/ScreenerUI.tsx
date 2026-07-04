@@ -365,8 +365,8 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
         <CurrencyToggle size="sm" />
       </div>
 
-      {/* TABULKA */}
-      <div className="mt-3 rounded-xl border border-slate-200 bg-white overflow-x-auto">
+      {/* TABULKA – desktop */}
+      <div className="mt-3 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto">
         <table className="w-full min-w-[52rem] text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
@@ -417,6 +417,59 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* KARTY – mobil (stejná data jako tabulka, jen jiné vykreslení) */}
+      <div className="mt-3 md:hidden space-y-2">
+        {filtered.slice(0, shown).map(({ e, region: reg, ratingVal }) => {
+          const o = e as unknown as Record<string, unknown>;
+          const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur);
+          return (
+            <div key={e.isin} className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Link href={`/design-preview/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800 leading-tight">
+                    {e.name.length > 44 ? e.name.slice(0, 44) + '…' : e.name}
+                  </Link>
+                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
+                    {e.primary_ticker ?? e.isin}{reg ? ` · ${reg}` : ''}
+                    {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
+                    {ratingVal != null && <Stars n={ratingVal} />}
+                  </span>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[11px] text-slate-400">1R ({curLabel[cur]})</p>
+                  <p className={`tabular-nums font-semibold ${(r1 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r1)}</p>
+                </div>
+              </div>
+              <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <dt className="text-slate-400">TER</dt>
+                  <dd className="tabular-nums font-medium text-slate-800">{ter(num(e.ter_numeric))}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-400">YTD ({curLabel[cur]})</dt>
+                  <dd className={`tabular-nums font-medium ${(ytd ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ytd)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-400">3R ({curLabel[cur]})</dt>
+                  <dd className={`tabular-nums font-medium ${(r3 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r3)}</dd>
+                </div>
+              </dl>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${isAcc(e.distribution_policy) ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                  {isAcc(e.distribution_policy) ? 'ACC' : 'DIST'}
+                </span>
+                <CompareButton isin={e.isin} label={e.primary_ticker ?? e.name.slice(0, 8)} variant="chip" />
+              </div>
+            </div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <div className="rounded-lg border border-slate-200 bg-white py-10 text-center text-sm text-slate-400">
+            Žádný fond neodpovídá filtrům. <button onClick={reset} className="text-teal-700 hover:underline">Vymazat filtry</button>
+          </div>
+        )}
       </div>
 
       {shown < filtered.length && (

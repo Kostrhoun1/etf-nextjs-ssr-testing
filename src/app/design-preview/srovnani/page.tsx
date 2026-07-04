@@ -5,6 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords } from 'lucide-react';
 import { getScreenerETFData } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
+import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -87,6 +88,16 @@ export default async function SrovnaniScreenerPreview(
         {/* SCREENER */}
         <section id="screener" className="scroll-mt-16">
           <ScreenerUI etfs={etfs} initialQ={q ?? ''} />
+        </section>
+
+        {/* Disclaimer */}
+        <section className="pt-8 space-y-3">
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Výnosy jsou přepočtené do Kč a ukazují minulou výkonnost – nezaručují budoucí vývoj.
+            Hvězdičkové hodnocení je orientační souhrn (velikost, náklady, historická výkonnost),
+            ne investiční doporučení.
+          </p>
+          <InvestmentDisclaimer />
         </section>
       </main>
     </div>

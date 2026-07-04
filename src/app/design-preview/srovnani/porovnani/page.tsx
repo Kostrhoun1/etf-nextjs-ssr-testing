@@ -7,7 +7,6 @@ import { getComparisonETFsByIsins } from '@/lib/etf-data';
 import PorovnaniTable from '@/components/design-preview/PorovnaniTable';
 
 export const revalidate = 3600;
-export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Porovnání ETF vedle sebe | ETF průvodce',
   description: 'Detailní porovnání vybraných ETF fondů vedle sebe – poplatky, výnosy v Kč, riziko, typ a daně.',

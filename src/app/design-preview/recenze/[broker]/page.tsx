@@ -8,7 +8,7 @@ import {
   Banknote, Receipt, CalendarDays, HelpCircle, Check, X, ExternalLink,
 } from 'lucide-react';
 import { brokers } from '@/data/brokerData';
-import { reviewHref } from '@/components/design-preview/brokerReviewHref';
+import { reviewHref, reviewCanonical } from '@/components/design-preview/brokerReviewHref';
 import { getBrokerContent } from '@/components/design-preview/brokerContent';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
@@ -27,7 +27,7 @@ export async function generateMetadata(
   return {
     title: `${b.name} recenze ${new Date().getFullYear()} – poplatky, ETF, daně | ETF průvodce`,
     description: `Recenze brokera ${b.name} pro investování do ETF: poplatky za nákup, konverze měn, zdanění dividend, ochrana prostředků a pro koho se hodí.`,
-    alternates: { canonical: reviewHref[b.id] },
+    alternates: { canonical: reviewCanonical[b.id] ?? `https://www.etfpruvodce.cz/${b.id}-recenze` },
   };
 }
 

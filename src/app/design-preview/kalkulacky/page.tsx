@@ -11,10 +11,12 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
 export const revalidate = 86400;
 
+const DAN_ROK = new Date().getFullYear();
+
 export const metadata: Metadata = {
   title: 'Kalkulačky a nástroje pro investory | ETF průvodce',
   description:
-    'Rozcestník kalkulaček pro investory: složené úročení, poplatky ETF, kurzový dopad do korun, Monte Carlo, FIRE, hypotéka i čistá mzda 2025. Vše přehledně na jednom místě.',
+    `Rozcestník kalkulaček pro investory: složené úročení, poplatky ETF, kurzový dopad do korun, Monte Carlo, FIRE, hypotéka i čistá mzda ${DAN_ROK}. Vše přehledně na jednom místě.`,
   alternates: { canonical: '/design-preview/kalkulacky' },
 };
 
@@ -86,7 +88,7 @@ const GROUPS: Group[] = [
     tools: [
       {
         href: '/design-preview/cisty-plat',
-        title: 'Čistá mzda 2025',
+        title: `Čistá mzda ${DAN_ROK}`,
         desc: 'Kolik vám z hrubé mzdy zbude po dani a odvodech.',
         icon: Receipt,
       },

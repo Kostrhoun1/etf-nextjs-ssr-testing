@@ -34,6 +34,8 @@ export async function generateMetadata(
   return {
     title: `${name} — detail fondu, výnos v Kč | ETF průvodce`,
     description: `Detail fondu ${name} (ISIN ${isin}): TER, výnos přepočtený do korun, složení, rizika a kde koupit fond. Pro české investory.`,
+    // Fáze cutoveru: 4867 šablonových detailů zatím NEindexovat (slabá doména by
+    // utrpěla thin-content signálem). Otevřít až po náběhu důvěry (obsah + backlinky).
     robots: { index: false, follow: false },
   };
 }
