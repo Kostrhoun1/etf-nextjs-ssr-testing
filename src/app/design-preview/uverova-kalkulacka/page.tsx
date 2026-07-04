@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   title: 'Úvěrová kalkulačka: měsíční splátka a přeplatek spotřebitelského úvěru',
   description:
     'Spočítejte si měsíční splátku spotřebitelského úvěru, celkovou zaplacenou částku a přeplatek na úrocích. Zadejte výši úvěru, sazbu a dobu splácení – výsledek v korunách včetně grafu.',
-  robots: { index: false, follow: false },
 };
 
 export default function UverovaKalkulackaPreview() {

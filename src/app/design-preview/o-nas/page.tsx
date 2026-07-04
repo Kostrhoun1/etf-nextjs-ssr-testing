@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
   description:
     'Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12 let ve financích, dříve ředitel úvěrů a hypoték v MONETA. Nezávislý srovnávač 4 800+ ETF s výnosy přepočtenými do korun.',
-  robots: { index: false, follow: false },
 };
 
 // JSON-LD: Person (autor) + Organization (web s founder = ten Person).

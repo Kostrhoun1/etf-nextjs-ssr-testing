@@ -20,7 +20,6 @@ export const metadata: Metadata = {
   title: 'Modelová portfolia z ETF: 5 ověřených strategií pro české investory',
   description:
     'Vyberte si hotové modelové portfolio z ETF – Permanentní, Nobelovo, Akciové, Ray Dalio a Dividendové. Reálné složení, konkrétní fondy (ISIN) a verdikt pro koho.',
-  robots: { index: false, follow: false },
 };
 
 const BASE = 'https://www.etfpruvodce.cz';

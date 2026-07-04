@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: 'Kalkulačka kurzového dopadu: jak kurz USD/CZK ovlivní výnos ETF',
   description:
     'Spočítejte, jak pohyb kurzu dolaru a eura vůči koruně promění výnos vašeho ETF v přepočtu na koruny. Scénáře, kurzová expozice a riziko – výsledky v korunách.',
-  robots: { index: false, follow: false },
 };
 
 export default function KurzovyDopadPreview() {

@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: 'Kalkulačka nouzové rezervy: kolik si naspořit a za jak dlouho',
   description:
     'Spočítejte si v korunách optimální velikost nouzové rezervy podle své situace – kolik vám chybí dospořit a za jak dlouho při vašem tempu spoření.',
-  robots: { index: false, follow: false },
 };
 
 export default function NouzovaRezervaPreview() {

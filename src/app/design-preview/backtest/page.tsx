@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: 'Backtest portfolia ETF: historický test výnosů a poklesů',
   description:
     'Otestujte své ETF portfolio na reálných datech od roku 2000. Roční zhodnocení, největší pokles a kolísavost – v přepočtu na koruny, včetně grafu vývoje.',
-  robots: { index: false, follow: false },
 };
 
 export default function BacktestPreview() {

@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: 'Investiční kalkulačka: složené úročení a pravidelné investování',
   description:
     'Spočítejte, na kolik narostou vaše investice díky složenému úročení. Zadejte jednorázový i pravidelný vklad, dobu a výnos – výsledek v korunách včetně grafu.',
-  robots: { index: false, follow: false },
 };
 
 export default function InvesticniKalkulackaPreview() {

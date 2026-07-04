@@ -15,7 +15,6 @@ export const metadata: Metadata = {
   title: 'Kalkulačky a nástroje pro investory | ETF průvodce',
   description:
     'Rozcestník kalkulaček pro investory: složené úročení, poplatky ETF, kurzový dopad do korun, Monte Carlo, FIRE, hypotéka i čistá mzda 2025. Vše přehledně na jednom místě.',
-  robots: { index: false, follow: false },
   alternates: { canonical: '/design-preview/kalkulacky' },
 };
 

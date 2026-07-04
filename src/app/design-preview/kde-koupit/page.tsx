@@ -21,7 +21,6 @@ export const metadata: Metadata = {
   title: 'Kde koupit ETF v Česku 2026: srovnání 6 brokerů',
   description:
     'Kde koupit ETF? Jednotné skóre 6 brokerů – XTB a Trading 212 s 0% poplatkem, DEGIRO Core Selection od 0 EUR, daně 15 vs 35 %. Verdikt a tabulka na první pohled.',
-  robots: { index: false, follow: false },
 };
 
 export default function KdeKoupitPreview() {

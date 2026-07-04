@@ -19,7 +19,6 @@ import {
 export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'ETF průvodce – největší srovnávač ETF pro české investory',
-  robots: { index: false, follow: false },
 };
 
 const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);

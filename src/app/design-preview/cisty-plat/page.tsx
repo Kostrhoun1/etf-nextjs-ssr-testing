@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   title: 'Kalkulačka čisté mzdy 2026: výpočet čistého platu z hrubého',
   description:
     'Spočítejte si čistou mzdu z hrubé podle pravidel pro rok 2026 – pojistné, daň 15/23 %, sleva na poplatníka i na děti. Včetně nákladů zaměstnavatele.',
-  robots: { index: false, follow: false },
 };
 
 export default function CistyPlatPreview() {

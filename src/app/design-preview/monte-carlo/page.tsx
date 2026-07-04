@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: 'Monte Carlo simulátor portfolia: pravděpodobnostní scénáře v Kč',
   description:
     'Nikdo nezná budoucnost. Monte Carlo simulátor vygeneruje stovky možných vývojů vašeho portfolia a ukáže pesimistický, mediánový i optimistický scénář v korunách – včetně šance na dosažení cíle.',
-  robots: { index: false, follow: false },
 };
 
 export default function MonteCarloPreview() {

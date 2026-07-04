@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   title: 'Kalkulačka poplatků ETF: dopad TER na výnos za 30 let',
   description:
     'Spočítejte v korunách, kolik vás roční poplatek (TER) stojí za 30 let. Srovnání levného ETF vs. bankovní fond + nejlevnější ETF z naší databáze.',
-  robots: { index: false, follow: false },
 };
 
 /* Brokeři, které na stránce ukážeme – tažené z @/data/brokerData.ts (kontrakt).

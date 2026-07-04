@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   title: 'Nejlepší S&P 500 ETF 2026: CSPX, VUAA, SPY5 srovnání',
   description:
     'Srovnání 30+ S&P 500 ETF pro české investory. TER od 0,03 %, výnosy v CZK, akum vs dist, daně a jasný verdikt, který koupit.',
-  robots: { index: false, follow: false },
 };
 
 /* Tickery, které NEJSOU čisté indexové fondy S&P 500 (sektor / Leaders / Screened / Equal Weight / hedged).

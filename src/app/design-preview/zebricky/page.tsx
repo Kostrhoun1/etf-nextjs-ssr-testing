@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   title: 'Žebříčky ETF – nejlepší fondy podle třídy, indexu i tématu | ETF průvodce',
   description:
     'Rozcestník všech žebříčků ETF: nejlepší akciové, dluhopisové, S&P 500, světové i tematické fondy. Řazení podle velikosti, hodnocení a výnosů přepočtených do korun.',
-  robots: { index: false, follow: false },
   alternates: { canonical: '/design-preview/zebricky' },
 };
 

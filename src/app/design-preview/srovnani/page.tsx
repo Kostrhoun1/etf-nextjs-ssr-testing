@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   title: 'Srovnávač ETF: filtrujte a porovnejte 4 300+ fondů | ETF průvodce',
   description:
     'Interaktivní srovnávač ETF pro české investory. Filtrujte podle TER, typu, replikace a regionu, řaďte podle výnosu v Kč a proklikněte se na detail fondu.',
-  robots: { index: false, follow: false },
   alternates: { canonical: '/srovnani-etf' },
 };
 

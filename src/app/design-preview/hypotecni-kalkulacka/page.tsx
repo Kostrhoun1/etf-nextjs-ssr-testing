@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: 'Hypoteční kalkulačka: měsíční splátka a přeplacení na úrocích',
   description:
     'Spočítejte si měsíční splátku hypotéky i kolik celkem přeplatíte na úrocích. Zadejte cenu nemovitosti, vlastní zdroje, sazbu a dobu splatnosti – výsledek v korunách včetně grafu.',
-  robots: { index: false, follow: false },
 };
 
 export default function HypotecniKalkulackaPreview() {

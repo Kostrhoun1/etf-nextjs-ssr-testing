@@ -26,7 +26,6 @@ export const metadata: Metadata = {
   description:
     'VWCE (TER 0,19 %, 3 700+ firem celého světa) vs CSPX (TER 0,07 %, 500 firem USA). Srovnání pro Čechy: daně, měnové riziko, verdikt který koupit.',
   alternates: { canonical: CANONICAL },
-  robots: { index: false, follow: false },
 };
 
 export default async function SrovnaniPreview() {

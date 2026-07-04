@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   title: 'Co jsou ETF? Jednoduchý průvodce pro začátečníky 2026',
   description:
     'ETF jednoduše vysvětleno: jak fungují, co je TER, akumulační vs distribuční, daně v ČR a výnosy přepočtené do korun. Průvodce pro začátečníky.',
-  robots: { index: false, follow: false },
 };
 
 export default async function GuidePreview() {

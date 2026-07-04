@@ -31,7 +31,6 @@ export async function generateMetadata(
   return {
     title: `${cfg.title} – srovnání a výnosy v Kč | ETF průvodce`,
     description: cfg.metaDescription || cfg.description,
-    robots: { index: false, follow: false },
     alternates: { canonical: `/nejlepsi-etf/${slug}` },
   };
 }

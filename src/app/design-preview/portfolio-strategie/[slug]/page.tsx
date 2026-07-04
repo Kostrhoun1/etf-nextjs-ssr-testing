@@ -35,7 +35,6 @@ export async function generateMetadata(
   return {
     title: `${m.name} – složení, ETF a výnos v Kč | ETF průvodce`,
     description: `${m.name}: ${m.tagline} Složení z ETF, očekávaný výnos, riziko a historická výkonnost přepočtená do korun.`,
-    robots: { index: false, follow: false },
     alternates: { canonical: `/design-preview/portfolio-strategie/${slug}` },
   };
 }

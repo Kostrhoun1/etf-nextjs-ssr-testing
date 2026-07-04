@@ -46,7 +46,6 @@ export async function generateMetadata(
   return {
     title: `${t1} vs ${t2}: srovnání ETF, výnos v Kč a který koupit`,
     description: `Detailní souboj ${t1} vs ${t2} pro české investory: poplatek (TER), výnos přepočtený do korun, riziko, index a jasný verdikt. Nižší TER má ${cheaper.primary_ticker ?? '—'} (${ter(cheaper.ter_numeric)}).`,
-    robots: { index: false, follow: false },
   };
 }
 

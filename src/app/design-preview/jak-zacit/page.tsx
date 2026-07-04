@@ -21,7 +21,6 @@ export const metadata: Metadata = {
   title: 'Jak začít investovat do ETF: 7 kroků pro začátečníky 2026',
   description:
     'Praktická roadmapa pro úplného začátečníka: od finanční rezervy přes výběr fondu a brokera až po první nákup. 7 kroků, časté chyby a jak nepanikařit.',
-  robots: { index: false, follow: false },
   alternates: { canonical: '/jak-zacit-investovat-do-etf' },
 };
 

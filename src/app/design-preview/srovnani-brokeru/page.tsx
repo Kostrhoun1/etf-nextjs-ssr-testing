@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   title: 'Srovnání brokerů pro ETF 2026 – poplatky, daně, skóre | ETF průvodce',
   description:
     '6 brokerů pro ETF se skóre /100: srovnání poplatků za nákup, konverze měn a zdanění českých dividend 15 vs 35 %. Redakční hodnocení pro české investory.',
-  robots: { index: false, follow: false },
   alternates: { canonical: '/design-preview/srovnani-brokeru' },
 };
 

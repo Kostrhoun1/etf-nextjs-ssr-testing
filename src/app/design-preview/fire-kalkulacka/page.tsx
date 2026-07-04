@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: 'FIRE kalkulačka: kdy dosáhnu finanční nezávislosti?',
   description:
     'Spočítejte si v korunách, v kolika letech dosáhnete finanční nezávislosti. FIRE podle pravidla 4 % – cílová částka, rok dosažení a graf růstu portfolia.',
-  robots: { index: false, follow: false },
 };
 
 export default function FireKalkulackaPreview() {

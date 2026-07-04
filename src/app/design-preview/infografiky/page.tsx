@@ -38,7 +38,6 @@ export const metadata: Metadata = {
   title: 'Infografiky ETF: výkonnost, poplatky a tržní heatmapa | ETF průvodce',
   description:
     'Vizuální přehledy z dat ETF fondů — nejvýkonnější a nejlevnější fondy a tržní heatmapa sektorů a regionů. Výnosy přepočtené do korun.',
-  robots: { index: false, follow: false },
   alternates: { canonical: 'https://www.etfpruvodce.cz/infografiky' },
 };
 
