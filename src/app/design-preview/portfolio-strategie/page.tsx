@@ -9,9 +9,10 @@ import {
   PortfolioVerdictTable,
 } from '@/components/design-preview/portfolioComponents';
 import { portfolioModels } from '@/components/design-preview/portfolioData';
+import { getReturnsByIsins } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, LayoutGrid, PieChart, Scale, ShieldCheck,
-  History, Activity, Search, Landmark, BookOpen,
+  History, Activity, Search, Landmark, BookOpen, Trophy,
 } from 'lucide-react';
 
 export const revalidate = 86400;
@@ -48,7 +49,13 @@ const FAQ: { q: string; a: string }[] = [
   },
 ];
 
-export default function PortfolioStrategieDesignPreview() {
+export default async function PortfolioStrategieDesignPreview() {
+  // Reálné korunové výnosy (1R) složek – pro živý výnos na kartách (USP: koruna-first).
+  const allIsins = [...new Set(portfolioModels.flatMap((m) => m.allocations.map((a) => a.isin)))];
+  const returnsRaw = await getReturnsByIsins(allIsins);
+  const returns: Record<string, number | null> = {};
+  for (const isin of allIsins) returns[isin] = returnsRaw[isin]?.return_1y_czk ?? null;
+
   // SCHEMA: BreadcrumbList + ItemList (5 detailů) + FAQPage synchronizovaný se zněním FAQ.
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -87,6 +94,7 @@ export default function PortfolioStrategieDesignPreview() {
     { href: '/design-preview/srovnani', label: 'Srovnávač ETF', desc: 'Porovnejte konkrétní fondy do portfolia', icon: Search },
     { href: '/design-preview/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera pro české investory', icon: Landmark },
     { href: '/design-preview/jak-zacit', label: 'Jak začít investovat', desc: 'Krok za krokem k prvnímu nákupu', icon: BookOpen },
+    { href: '/design-preview/zebricky', label: 'Nejlepší ETF', desc: 'Žebříčky fondů pro jednotlivé složky', icon: Trophy },
   ];
 
   const EDU = [
@@ -175,10 +183,10 @@ export default function PortfolioStrategieDesignPreview() {
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Vyberte si portfolio podle své povahy</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Každá karta ukazuje reálné složení tříd aktiv. Klikněte na detail pro konkrétní ETF s ISIN ke koupi.
+              Každá karta ukazuje reálné složení tříd aktiv i skutečný korunový výnos za poslední rok. Klikněte na detail pro konkrétní ETF s ISIN ke koupi.
             </p>
           </div>
-          <PortfolioGrid />
+          <PortfolioGrid returns={returns} />
         </section>
 
         {/* 4. Verdikt pro koho */}
@@ -198,7 +206,7 @@ export default function PortfolioStrategieDesignPreview() {
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Ověřte si portfolio nástroji</h2>
             <p className="mt-1 text-sm text-slate-500">Simulujte vývoj a najděte si konkrétní fondy i brokera.</p>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {TOOLS.map((t) => (
               <Link key={t.href} href={t.href} className="group rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-teal-300 hover:shadow-sm">
                 <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-700 transition-colors group-hover:bg-teal-100"><t.icon className="h-5 w-5" /></span>

@@ -430,6 +430,66 @@ export default function HypotecniKalkulackaWidget() {
         </div>
       )}
 
+      {/* Splátkový kalendář po měsících (volitelný, sbalený) */}
+      {hasData && schedule.length > 0 && (
+        <details className="group rounded-lg border border-slate-200 bg-white">
+          <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none">
+            <span className="text-sm font-medium text-slate-900">
+              Splátkový kalendář{' '}
+              <InfoTip label="Rozpis splácení (umořovací plán): u každé splátky vidíte, kolik jde na úrok a kolik na úmor jistiny a jak klesá zbývající dluh.">
+                po měsících
+              </InfoTip>
+            </span>
+            <span className="text-xs text-slate-400 group-open:hidden">rozbalit</span>
+            <span className="text-xs text-slate-400 hidden group-open:inline">sbalit</span>
+          </summary>
+          <div className="border-t border-slate-100 max-h-96 overflow-y-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-50 text-slate-600 sticky top-0">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Měsíc</th>
+                  <th className="px-3 py-2 text-right font-medium">Splátka</th>
+                  <th className="px-3 py-2 text-right font-medium">Úrok</th>
+                  <th className="px-3 py-2 text-right font-medium">Jistina</th>
+                  <th className="px-3 py-2 text-right font-medium">Zbývá dluh</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((item, index) => (
+                  <tr
+                    key={item.month}
+                    className={index % 12 === 0 ? 'bg-teal-50/40' : 'hover:bg-slate-50'}
+                  >
+                    <td className="px-3 py-1.5 font-medium text-slate-700">
+                      {index % 12 === 0 && (
+                        <span className="text-teal-700 font-semibold">Rok {Math.floor(index / 12) + 1}</span>
+                      )}
+                      <span className="block text-[11px] text-slate-400">měsíc {item.month}</span>
+                    </td>
+                    <td className="px-3 py-1.5 text-right tabular-nums text-slate-700">
+                      {fmtCZK(Math.round(item.monthlyPayment))}
+                    </td>
+                    <td className="px-3 py-1.5 text-right tabular-nums text-red-600">
+                      {fmtCZK(Math.round(item.interestPayment))}
+                    </td>
+                    <td className="px-3 py-1.5 text-right tabular-nums text-emerald-600">
+                      {fmtCZK(Math.round(item.principalPayment))}
+                    </td>
+                    <td className="px-3 py-1.5 text-right tabular-nums text-slate-700">
+                      {fmtCZK(Math.round(item.remainingDebt))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="px-4 py-3 text-xs text-slate-500 leading-relaxed border-t border-slate-100">
+            Splátka je po celou dobu fixace stejná, ale její složení se mění: na začátku platíte hlavně
+            úrok, ke konci převažuje úmor jistiny. Tyrkysové řádky označují začátek každého roku.
+          </p>
+        </details>
+      )}
+
       {/* Výsledkový panel – interpretace (čísla jsou výše v kartách, tady jen závěr) */}
       {hasData && summary && (
         <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">

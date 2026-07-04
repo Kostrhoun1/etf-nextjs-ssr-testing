@@ -8,6 +8,8 @@ import {
   getETFsByIsins, categoryConfigs, type ETFBasicInfo,
 } from '@/lib/etf-data';
 import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
+import { brokers } from '@/data/brokerData';
+import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import InfoTip from '@/components/design-preview/InfoTip';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, Search, Star, Wallet, Globe,
@@ -58,6 +60,22 @@ const CATEGORIES = [
   { href: '/design-preview/nejlepsi-etf/nejlepsi-technologicke-etf', label: 'Technologické', icon: Sparkles },
   { href: '/design-preview/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější', icon: Wallet },
 ];
+
+/* Kde koupit ETF – kurátorský výběr brokerů pro homepage (parita se starým webem,
+   který na homepage jmenoval brokery a dával doporučení). Skóre a jména z brokerData;
+   krátká věta „pro koho" jen na homepage, plné srovnání je v sekci Kde koupit. */
+const BROKER_PICK: { id: string; forWhom: string }[] = [
+  { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.' },
+  { id: 'xtb', forWhom: 'Akcie i ETF bez poplatku, česká podpora 24/7.' },
+  { id: 'trading212', forWhom: 'Nulové poplatky a frakční ETF pro malé částky.' },
+  { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.' },
+  { id: 'degiro', forWhom: 'Levné nákupy z Core Selection pro buy-and-hold.' },
+  { id: 'fio', forWhom: 'Český broker, dividendy z ČR akcií jen 15 %.' },
+];
+const HOME_BROKERS = BROKER_PICK
+  .map((p) => ({ ...p, broker: brokers.find((b) => b.id === p.id) }))
+  .filter((x) => x.broker)
+  .sort((a, b) => (b.broker!.rating ?? 0) - (a.broker!.rating ?? 0));
 
 /* Jen nástroje relevantní k výběru ETF a portfoliu (osekáno z 12). */
 const TOOLS = [
@@ -421,6 +439,37 @@ export default async function DesignPreviewV2() {
               </Link>
             ))}
           </div>
+        </section>
+
+        {/* 8b. KDE KOUPIT ETF – konkrétní brokeři se skóre (parita se starým webem) */}
+        <section className="pb-10">
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">Kde koupit ETF</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Brokeři a robo-poradci dostupní v ČR – seřazeno podle našeho hodnocení.</p>
+            </div>
+            <Link href="/design-preview/kde-koupit" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">plné srovnání <ArrowRight className="w-4 h-4" /></Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {HOME_BROKERS.map(({ id, forWhom, broker }) => (
+              <Link key={id} href={reviewHref[id] ?? '/design-preview/kde-koupit'} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-900 text-sm">{broker!.name}</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700 tabular-nums" title={`Naše skóre ${broker!.rating} ze 100`}>
+                    <Star className="w-3 h-3 fill-current" /> {broker!.rating}
+                  </span>
+                </div>
+                <p className="mt-2 flex-1 text-sm text-slate-600 leading-relaxed">{forWhom}</p>
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <span>ETF poplatek <span className="font-medium text-slate-700">{broker!.etfFee.split(',')[0].split('(')[0].trim()}</span></span>
+                  <span className="inline-flex items-center gap-1 text-teal-700 group-hover:text-teal-800 font-medium">recenze <ArrowRight className="w-3.5 h-3.5" /></span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-400 leading-relaxed">
+            Hodnocení je nezávislé – žádné placené pořadí ani affiliate přednosti. Poplatky se mohou lišit dle trhu a typu obchodu.
+          </p>
         </section>
 
         {/* 9. POPULÁRNÍ SROVNÁNÍ + TRUST */}

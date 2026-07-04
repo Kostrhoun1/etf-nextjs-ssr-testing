@@ -151,6 +151,18 @@ export default async function GuidePreview() {
         </>
       ),
     },
+    {
+      q: 'Jaké jsou nevýhody ETF?',
+      a: (
+        <>
+          ETF nejsou kouzelná – kopírují trh, takže v recesi <strong>klesají spolu s ním</strong> a žádný správce vás
+          před propadem „nezachrání“. U zahraničních fondů nesete <strong>měnové riziko</strong> (pohyb koruny vůči
+          dolaru či euru). Výnos fondu se navíc mírně liší od indexu (odchylka od indexu) a nemůžete ovlivnit, které
+          konkrétní akcie fond drží. Ve srovnání s výhodami – nízké náklady, okamžitá diverzifikace, jednoduchost – jsou
+          ale tyto nevýhody pro dlouhodobého investora malé.
+        </>
+      ),
+    },
   ];
 
   /* ---------- JSON-LD: Article + FAQPage + BreadcrumbList ---------- */
@@ -185,6 +197,7 @@ export default async function GuidePreview() {
 
   const toc = [
     { href: '#co-je-etf', label: 'Co je ETF' },
+    { href: '#diverzifikace', label: 'Jeden fond = celý svět' },
     { href: '#jak-funguje', label: 'Jak ETF funguje' },
     { href: '#pojmy', label: '4 pojmy, které musíte znát' },
     { href: '#srovnani', label: 'ETF vs akcie vs aktivní fond' },
@@ -311,6 +324,55 @@ export default async function GuidePreview() {
               <strong className="text-slate-900">oddělen od majetku správce</strong>. I kdyby správcovská firma
               zkrachovala, vaše podíly v ETF nejsou součástí její konkurzní podstaty a zůstávají vaše.
             </p>
+          </div>
+        </GuideSection>
+
+        {/* 3b. JEDEN FOND = CELÝ SVĚT (geografická diverzifikace) */}
+        <GuideSection id="diverzifikace">
+          <SectionHead title="Jeden fond = celý svět" desc="Jak vypadá rozložení peněz, když koupíte jeden široký ETF na celý svět." />
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="md:col-span-2 rounded-lg border border-slate-200 bg-white p-5 md:p-6 text-sm text-slate-600 leading-relaxed space-y-3">
+              <p>
+                Široký ETF na celý svět (například na index FTSE All-World) drží <strong className="text-slate-900">tisíce
+                firem z desítek zemí</strong>. Jedním nákupem tak automaticky získáte vyváženou expozici vůči hlavním
+                světovým trhům – a to podle jejich <strong className="text-slate-900">ekonomické velikosti</strong>,
+                ne podle toho, kterou zemi máte zrovna rádi.
+              </p>
+              <p>
+                Rozdělení není napevno: mění se s tím, jak firmy v jednotlivých regionech rostou nebo klesají. Fond ho
+                sám průběžně dorovnává, takže se o žádné „přerovnávání“ nemusíte starat. Orientačně vypadá geografické
+                rozložení světového ETF takto:
+              </p>
+              <GuideCallout icon={Globe} title="Proč nejde jen o USA" tone="slate">
+                I když americké firmy dnes tvoří většinu světového indexu, jeden široký fond automaticky drží i Evropu,
+                Japonsko a rozvíjející se trhy. Nesázíte tak vše na jednu zemi – když jeden region zaostává, ostatní
+                to mohou vyrovnat.
+              </GuideCallout>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-5 flex flex-col justify-center">
+              <p className="text-xs font-medium text-slate-500 mb-3">Orientační rozložení (světový ETF)</p>
+              <ul className="space-y-2.5">
+                {([
+                  ['Severní Amerika', 64],
+                  ['Evropa', 15],
+                  ['Japonsko', 6],
+                  ['Ostatní trhy', 15],
+                ] as [string, number][]).map(([region, share]) => (
+                  <li key={region}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-700">{region}</span>
+                      <span className="font-semibold tabular-nums text-slate-800">{share} %</span>
+                    </div>
+                    <div className="mt-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full rounded-full bg-teal-600" style={{ width: `${share}%` }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-slate-400 leading-relaxed">
+                Ilustrační podíly dle tržní kapitalizace; přesné hodnoty se v čase mění a liší se podle indexu.
+              </p>
+            </div>
           </div>
         </GuideSection>
 
@@ -471,15 +533,39 @@ export default async function GuidePreview() {
               </div>
             ))}
           </div>
-          <div className="mt-4">
-            <GuideCallout icon={Calculator} title="Síla nízkých poplatků se počítá v desítkách let">
-              Rozdíl mezi 0,2 % a 1,5 % ročně vypadá malý, ale za 20–30 let může jít o značnou část výnosu. Místo
-              vymyšleného čísla si raději na vlastní částku spočítejte dopad v naší{' '}
+          {/* Konkrétní dopad poplatků v korunách (koruna-first USP) */}
+          <div className="mt-5 rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+            <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <Coins className="w-4 h-4 text-teal-700 shrink-0" /> Kolik vás poplatky reálně stojí v korunách
+            </p>
+            <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+              Modelový příklad: <strong className="text-slate-900">10 000 Kč měsíčně po dobu 20 let</strong> (vloženo
+              2 400 000 Kč) při shodném hrubém zhodnocení 7 % ročně. Jediný rozdíl je roční poplatek fondu.
+            </p>
+            <div className="mt-4 grid sm:grid-cols-2 gap-3">
+              <div className="rounded-lg border border-teal-200 bg-teal-50/50 p-4">
+                <p className="text-xs font-medium text-teal-800">Levný ETF – TER 0,2 %</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">≈ 5 085 000 Kč</p>
+                <p className="text-xs text-slate-500 mt-0.5">hodnota po 20 letech</p>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-medium text-slate-600">Aktivní fond – poplatek 1,8 %</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">≈ 4 207 000 Kč</p>
+                <p className="text-xs text-slate-500 mt-0.5">hodnota po 20 letech</p>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-slate-700">
+              Rozdíl jen kvůli poplatku: <strong className="text-slate-900 tabular-nums">zhruba 880 000 Kč</strong>{' '}
+              méně na účtu. Rozdíl 0,2 % vs 1,8 % ročně vypadá malý, ale za 20–30 let ukrojí značnou část výnosu.
+            </p>
+            <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+              Ilustrační výpočet za zjednodušených předpokladů (konstantní výnos, bez daní a poplatků brokera). Na
+              vlastní částku si dopad spočítejte v{' '}
               <Link href="/design-preview/kalkulacka" className="text-teal-700 hover:underline font-medium">
                 kalkulačce poplatků ETF
               </Link>
               .
-            </GuideCallout>
+            </p>
           </div>
         </GuideSection>
 
@@ -736,6 +822,8 @@ function faqPlainText(q: string): string {
       'TER je roční poplatek za správu fondu, který se strhává automaticky. U široce diverzifikovaných indexových fondů bývá velmi nízký (desetiny procenta ročně), aktivní fondy si účtují víc. Aktuální poplatky najdete ve srovnání ETF.',
     'Co znamená „výnos přepočtený do korun"?':
       'ETF je obvykle v dolarech či eurech. Reálný výnos Čecha ovlivňuje i kurz koruny, proto výnosy uvádíme přepočtené do korun – ukazují, co byste měli na účtu v Kč. Nejde o ETF v korunách.',
+    'Jaké jsou nevýhody ETF?':
+      'ETF kopírují trh, takže v recesi klesají spolu s ním. U zahraničních fondů nesete měnové riziko (pohyb koruny vůči dolaru či euru). Výnos se mírně liší od indexu (odchylka od indexu) a nemůžete ovlivnit, které konkrétní akcie fond drží. Ve srovnání s výhodami – nízké náklady, diverzifikace, jednoduchost – jsou tyto nevýhody pro dlouhodobého investora malé.',
   };
   return map[q] ?? q;
 }

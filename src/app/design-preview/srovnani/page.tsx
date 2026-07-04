@@ -2,10 +2,26 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
-import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords } from 'lucide-react';
+import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords, SlidersHorizontal, Coins, Layers } from 'lucide-react';
 import { getScreenerETFData } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+
+const currentYear = new Date().getFullYear();
+
+/* Nejhledanější ETF kategorie – prolink na reálné žebříčky (parita s odkazy na
+   starém webu z FeaturedETFSection + sr-only seznamu kategorií). */
+const POPULAR_CATEGORIES: { label: string; slug: string; note: string }[] = [
+  { label: 'MSCI World ETF', slug: 'nejlepsi-msci-world-etf', note: 'Globální diverzifikace, vyspělé trhy' },
+  { label: 'S&P 500 ETF', slug: 'nejlepsi-sp500-etf', note: 'Největší americké společnosti' },
+  { label: 'Celosvětové ETF', slug: 'nejlepsi-celosvetove-etf', note: 'Celý svět v jednom fondu' },
+  { label: 'Nasdaq / technologické ETF', slug: 'nejlepsi-technologicke-etf', note: 'Technologické akcie' },
+  { label: 'Dluhopisové ETF', slug: 'nejlepsi-dluhopisove-etf', note: 'Stabilnější složka portfolia' },
+  { label: 'Dividendové ETF', slug: 'nejlepsi-dividendove-etf', note: 'Pravidelný pasivní příjem' },
+  { label: 'Emerging Markets ETF', slug: 'nejlepsi-emerging-markets-etf', note: 'Rozvíjející se trhy' },
+  { label: 'Zlato ETF', slug: 'nejlepsi-zlato-etf', note: 'Ochrana proti inflaci' },
+  { label: 'Bitcoin ETF', slug: 'nejlepsi-bitcoin-etf', note: 'Kryptoměnová expozice' },
+];
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -23,8 +39,31 @@ export default async function SrovnaniScreenerPreview(
   const today = new Date();
   const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
+  const datasetSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Dataset',
+    name: `Databáze ETF fondů ${currentYear}`,
+    description:
+      'Databáze ETF fondů dostupných českým investorům s aktuálními daty o poplatcích (TER), velikosti, replikaci a výkonnosti přepočtené do korun.',
+    keywords: ['ETF', 'srovnání ETF', 'TER', 'výkonnost', 'investice', 'koruna'],
+    creator: { '@type': 'Organization', name: 'ETF průvodce.cz' },
+    temporalCoverage: `${currentYear}`,
+    spatialCoverage: 'Globální ETF trhy',
+    variableMeasured: ['TER poplatky', 'Historická výkonnost v Kč', 'Velikost fondu', 'Dividendový výnos', 'Replikace'],
+  };
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz' },
+      { '@type': 'ListItem', position: 2, name: 'Srovnávač ETF', item: 'https://www.etfpruvodce.cz/srovnani-etf' },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -88,6 +127,78 @@ export default async function SrovnaniScreenerPreview(
         {/* SCREENER */}
         <section id="screener" className="scroll-mt-16">
           <ScreenerUI etfs={etfs} initialQ={q ?? ''} />
+        </section>
+
+        {/* Nejhledanější kategorie – prolink na žebříčky (interní linkbuilding + SEO) */}
+        <section className="pt-10">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><Layers className="w-4 h-4" /></span>
+            <h2 className="text-lg font-bold tracking-tight text-slate-900">Nejhledanější kategorie ETF</h2>
+          </div>
+          <p className="mb-4 max-w-2xl text-sm text-slate-600 leading-relaxed">
+            Nevíte, kde začít? Projděte hotové žebříčky nejlepších fondů v dané kategorii – vybrané,
+            seřazené a s výnosy přepočtenými do korun.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {POPULAR_CATEGORIES.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/design-preview/nejlepsi-etf/${c.slug}`}
+                className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:border-teal-300 hover:shadow-sm transition-all"
+              >
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-slate-900 group-hover:text-teal-700">{c.label}</span>
+                  <span className="block text-xs text-slate-500">{c.note}</span>
+                </span>
+                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-700 shrink-0" />
+              </Link>
+            ))}
+          </div>
+          <div className="mt-4">
+            <Link href="/design-preview/zebricky" className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
+              Všechny žebříčky ETF <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+
+        {/* Co je srovnávač / jak používat / co porovnávat – SEO obsah (parita se starým webem) */}
+        <section className="pt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <article className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><Database className="w-4 h-4" /></span>
+              <h2 className="text-base font-bold text-slate-900">Co je srovnávač ETF</h2>
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Srovnávač je nástroj pro české investory, který nechá <strong className="text-slate-800">filtrovat 4&nbsp;300+ ETF fondů</strong>{' '}
+              podle poplatku (TER), typu výplaty, replikace a regionu. Na rozdíl od zahraničních nástrojů
+              ukazuje <strong className="text-slate-800">výnosy přepočtené do korun</strong> – tedy kolik reálně vyděláte vy.
+            </p>
+          </article>
+          <article className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><SlidersHorizontal className="w-4 h-4" /></span>
+              <h2 className="text-base font-bold text-slate-900">Jak srovnávač používat</h2>
+            </div>
+            <ol className="text-sm text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4">
+              <li>Vyberte třídu aktiv nahoře (akcie, dluhopisy, komodity…).</li>
+              <li>Zúžením filtrů nastavte TER, region, index či velikost fondu.</li>
+              <li>Seřaďte tabulku podle výnosu v Kč, TER nebo velikosti.</li>
+              <li>Tlačítkem <span className="font-medium text-slate-700">+</span> přidejte až {`5`} fondů do detailního porovnání.</li>
+            </ol>
+          </article>
+          <article className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><Coins className="w-4 h-4" /></span>
+              <h2 className="text-base font-bold text-slate-900">Co u ETF porovnávat</h2>
+            </div>
+            <ul className="text-sm text-slate-600 leading-relaxed space-y-1.5 list-disc pl-4">
+              <li><strong className="text-slate-800">TER</strong> – roční nákladovost, dlouhodobě zásadní.</li>
+              <li><strong className="text-slate-800">Velikost fondu</strong> – větší fond bývá likvidnější a stabilnější.</li>
+              <li><strong className="text-slate-800">Výnos v Kč</strong> – kurz koruny mění reálný výsledek.</li>
+              <li><strong className="text-slate-800">Akum. vs. distr.</strong> – reinvestice vs. výplata dividend.</li>
+              <li><strong className="text-slate-800">Replikace</strong> – fyzická vs. syntetická.</li>
+            </ul>
+          </article>
         </section>
 
         {/* Disclaimer */}

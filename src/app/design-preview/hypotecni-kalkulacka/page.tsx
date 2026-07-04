@@ -46,6 +46,18 @@ export default function HypotecniKalkulackaPreview() {
       q: 'Vyplatí se kratší, nebo delší doba splatnosti?',
       a: 'Kratší splatnost znamená vyšší měsíční splátku, ale výrazně nižší celkové úroky – dluh splatíte rychleji. Delší splatnost sníží měsíční zatížení, ale prodraží úvěr na úrocích. Rozumný kompromis bývá tak nastavit splatnost, aby splátka nepřesáhla únosnou část čistého příjmu, a zbytek řešit mimořádnými splátkami na konci fixace, kdy bývají bez sankce.',
     },
+    {
+      q: 'Lze si úroky z hypotéky odečíst z daní?',
+      a: 'Ano. Zaplacené úroky z hypotéky na vlastní bydlení si můžete odečíst ze základu daně z příjmů, a to až do výše 300 000 Kč ročně. Při 15% sazbě daně to představuje úsporu až 45 000 Kč ročně. Odpočet platí pro nemovitost, kterou sami užíváte k bydlení, ne pro investiční nemovitosti pronajímané dál.',
+    },
+    {
+      q: 'Lze hypotéku předčasně splatit a kolik to stojí?',
+      a: 'Hypotéku můžete předčasně doplatit kdykoli. Bez sankce to jde na konci fixačního období nebo ve vážných životních situacích (úmrtí, dlouhodobá nemoc, invalidita). Mimo tyto případy může banka účtovat náhradu účelně vynaložených nákladů. Mimořádné splátky během fixace bývají u části bank do určitého ročního limitu zdarma – konkrétní podmínky si ověřte ve smlouvě.',
+    },
+    {
+      q: 'Co je RPSN a kdy se vyplatí refinancovat?',
+      a: 'RPSN (roční procentní sazba nákladů) zahrnuje kromě úroku i poplatky spojené s úvěrem, takže lépe než samotná sazba vyjadřuje skutečnou cenu hypotéky a slouží k porovnání nabídek bank. Refinancování (přenos hypotéky k jiné bance) se obvykle vyplatí, pokud novou sazbu získáte alespoň o 0,5–1 procentního bodu nižší a do konce splatnosti zbývá dost let, aby úspora pokryla náklady na přechod.',
+    },
   ];
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -210,8 +222,16 @@ export default function HypotecniKalkulackaPreview() {
               Banky v Česku obvykle půjčí maximálně 80–90 % ceny nemovitosti – zbytek musíte pokrýt z{' '}
               <strong className="text-slate-900">vlastních zdrojů</strong>. Tento poměr vyjadřuje{' '}
               <InfoTip label="LTV (loan-to-value) = poměr úvěru k ceně nemovitosti. Nižší LTV znamená nižší riziko pro banku a zpravidla lepší sazbu.">poměr úvěru k ceně (LTV)</InfoTip>.
-              Čím víc vlastních peněz vložíte, tím nižší LTV, lepší sazba a snazší schválení. Úroky z hypotéky na vlastní bydlení si navíc lze za splnění podmínek odečíst z daní.
+              Čím víc vlastních peněz vložíte, tím nižší LTV, lepší sazba a snazší schválení.
             </p>
+            <div className="mt-4 rounded-lg bg-teal-50 border border-teal-200 px-4 py-3 text-sm text-teal-900 flex items-start gap-2.5">
+              <Percent className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
+              <span>
+                <strong>Daňový odpočet úroků.</strong> Zaplacené úroky z hypotéky na vlastní bydlení si můžete
+                odečíst ze základu daně až do <strong>300 000 Kč ročně</strong>. Při 15% sazbě daně to znamená
+                úsporu až <strong>45 000 Kč ročně</strong>. Úleva platí pro vlastní bydlení, ne pro investiční nemovitosti.
+              </span>
+            </div>
             <p className="mt-3">
               <Link href="/design-preview/cisty-plat" className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 font-medium text-sm">
                 Spočítejte si čistý příjem pro posouzení bonity <ArrowRight className="w-4 h-4" />

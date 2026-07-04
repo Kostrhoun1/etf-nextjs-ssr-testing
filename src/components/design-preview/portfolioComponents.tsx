@@ -13,6 +13,28 @@ import {
 const fmtPct = (v: number) =>
   Number.isInteger(v) ? `${v} %` : `${v.toFixed(1).replace('.', ',')} %`;
 
+// Mapa isin → korunový výnos za 1 rok (z DB). Umožňuje kartám ukázat REÁLNÝ výnos.
+export type ReturnsMap = Record<string, number | null | undefined>;
+
+// Vážený korunový výnos portfolia za 1 rok – renormalizovaný na dostupné složky
+// (počítáme jen z ETF, u kterých máme data; váhy se přepočtou na 100 %).
+function weighted1yCzk(model: PortfolioModel, returns?: ReturnsMap): number | null {
+  if (!returns) return null;
+  let sum = 0;
+  let w = 0;
+  for (const a of model.allocations) {
+    const v = returns[a.isin];
+    if (v != null) {
+      sum += v * a.percentage;
+      w += a.percentage;
+    }
+  }
+  return w > 0 ? sum / w : null;
+}
+
+const fmtCzkReturn = (v: number) =>
+  `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+
 /* ---------- Segmentovaný pruh složení z REÁLNÝCH procent ---------- */
 export function PortfolioBar({ model, showLegend = true }: { model: PortfolioModel; showLegend?: boolean }) {
   return (
@@ -43,7 +65,8 @@ export function PortfolioBar({ model, showLegend = true }: { model: PortfolioMod
 }
 
 /* ---------- Jedna karta portfolia (jádro stránky) ---------- */
-export function PortfolioCard({ model }: { model: PortfolioModel }) {
+export function PortfolioCard({ model, returns }: { model: PortfolioModel; returns?: ReturnsMap }) {
+  const real1y = weighted1yCzk(model, returns);
   return (
     <div className="group flex flex-col rounded-lg border border-slate-200 bg-white p-5 transition-all hover:border-teal-300 hover:shadow-sm">
       <div className="mb-2 flex items-start justify-between gap-3">
@@ -72,6 +95,19 @@ export function PortfolioCard({ model }: { model: PortfolioModel }) {
         </div>
       </div>
 
+      {real1y != null && (
+        <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+          <span className="text-xs text-slate-500">
+            <InfoTip label="Vážený průměr korunových výnosů jednotlivých ETF složek za poslední rok podle jejich váhy v portfoliu, z naší databáze. Bez rebalancingu. Minulá výkonnost nezaručuje budoucí výnosy.">
+              Reálný výnos za 1 rok (Kč)
+            </InfoTip>
+          </span>
+          <span className={`tabular-nums text-sm font-bold ${real1y >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            {fmtCzkReturn(real1y)}
+          </span>
+        </div>
+      )}
+
       <Link
         href={`/design-preview/portfolio-strategie/${model.slug}`}
         className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800"
@@ -83,11 +119,11 @@ export function PortfolioCard({ model }: { model: PortfolioModel }) {
 }
 
 /* ---------- Mřížka 5 karet ---------- */
-export function PortfolioGrid() {
+export function PortfolioGrid({ returns }: { returns?: ReturnsMap } = {}) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {portfolioModels.map((m) => (
-        <PortfolioCard key={m.id} model={m} />
+        <PortfolioCard key={m.id} model={m} returns={returns} />
       ))}
     </div>
   );
