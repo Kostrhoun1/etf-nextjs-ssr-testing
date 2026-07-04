@@ -525,19 +525,11 @@ export async function getComparisonETFData(
 export async function getComparisonETFsByIsins(isins: string[]): Promise<ComparisonETF[]> {
   if (!isins.length) return [];
   try {
+    // Načteme VŠECHNA pole (jen ≤4 řádky) – porovnání má ukázat maximum toho,
+    // co o fondech víme: top pozice, sektory, země, riziko, všechna období.
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select(`
-        isin, name, fund_provider, primary_ticker,
-        ter_numeric, fund_size_numeric,
-        return_1y, return_3y, return_5y, return_ytd,
-        return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
-        return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
-        volatility_1y, max_drawdown_1y,
-        current_dividend_yield_numeric,
-        distribution_policy, replication, index_name, region,
-        fund_currency, fund_domicile, total_holdings, inception_date
-      `)
+      .select('*')
       .in('isin', isins.slice(0, 4));
     if (error || !data) return [];
     const byIsin = new Map((data as ComparisonETF[]).map((e) => [e.isin, e]));
