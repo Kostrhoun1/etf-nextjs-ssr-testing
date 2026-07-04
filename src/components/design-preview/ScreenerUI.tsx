@@ -34,6 +34,33 @@ const replLabel = (r: string | null) => {
 
 const PAGE = 25;
 
+const selCls = 'min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none';
+
+/* Prezentační obal pole filtru (label + input/select). Definováno na úrovni
+   modulu, aby si input při každém překreslení zachoval stabilní identitu a
+   neztrácel fokus po každém stisku klávesy. */
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block"><span className="block mb-1 text-xs font-medium text-slate-500">{label}</span>{children}</label>
+  );
+}
+
+/* Řaditelná hlavička sloupce. Stav řazení dostává propy, aby mohla zůstat mimo
+   tělo komponenty (stabilní identita = žádný zbytečný remount hlavičky). */
+function SortH({ k, children, right, sortKey, sortDir, toggleSort }: {
+  k: SortKey; children: React.ReactNode; right?: boolean;
+  sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
+}) {
+  return (
+    <th aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`py-2.5 px-3 font-medium ${right ? 'text-right' : 'text-left'}`}>
+      <button onClick={() => toggleSort(k)} aria-label={`Seřadit podle sloupce, aktuálně ${sortKey === k ? (sortDir === 'asc' ? 'vzestupně' : 'sestupně') : 'neseřazeno'}`} className={`inline-flex items-center gap-1 hover:text-teal-700 ${sortKey === k ? 'text-teal-700' : ''}`}>
+        {children}
+        {sortKey === k ? (sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-40" />}
+      </button>
+    </th>
+  );
+}
+
 /* Kompaktní hvězdičkové hodnocení do seznamu. */
 function Stars({ n }: { n: number }) {
   return (
@@ -112,13 +139,15 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
     return [...set].sort();
   }, [etfs]);
 
-  const filtered = useMemo(() => {
+  // Filtrace nezávisí na měně (`cur`) – ta ovlivňuje jen řazení sloupců ytd/r1/r3/r5.
+  // Držíme ji ve vlastním memu, aby přepnutí měny nespouštělo drahý filtr přes ~4867 fondů.
+  const filteredRows = useMemo(() => {
     const term = q.trim().toLowerCase();
     const terMaxN = terMax === '' ? null : parseFloat(terMax.replace(',', '.'));
     const sizeMinN = sizeMin === '' ? null : parseFloat(sizeMin.replace(/\s/g, '').replace(',', '.'));
     const divMinN = divMin === '' ? null : parseFloat(divMin.replace(',', '.'));
 
-    const rows = enriched.filter(({ e, region: reg, hedge, indexLabel, ratingVal, blob }) => {
+    return enriched.filter(({ e, region: reg, hedge, indexLabel, ratingVal, blob }) => {
       if (term && !blob.includes(term)) return false;
       if (category !== 'all' && e.category !== category) return false;
       if (!leveraged && e.is_leveraged) return false;
@@ -146,6 +175,10 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       if (divMinN != null) { const d = num(e.current_dividend_yield_numeric); if (d == null || d < divMinN) return false; }
       return true;
     });
+  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, minRating, leveraged, terMax, sizeMin, divMin]);
+
+  const filtered = useMemo(() => {
+    const rows = [...filteredRows];
 
     const get = (e: ScreenerETF): number | string | null => {
       const o = e as unknown as Record<string, unknown>;
@@ -169,7 +202,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return rows;
-  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, minRating, leveraged, terMax, sizeMin, divMin, sortKey, sortDir, cur]);
+  }, [filteredRows, sortKey, sortDir, cur]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -193,20 +226,6 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
   const bump = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => { setter(e.target.value); setShown(PAGE); };
   const bumpN = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => { setter(e.target.value); setShown(PAGE); };
 
-  const SortH = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
-    <th className={`py-2.5 px-3 font-medium ${right ? 'text-right' : 'text-left'}`}>
-      <button onClick={() => toggleSort(k)} className={`inline-flex items-center gap-1 hover:text-teal-700 ${sortKey === k ? 'text-teal-700' : ''}`}>
-        {children}
-        {sortKey === k ? (sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-40" />}
-      </button>
-    </th>
-  );
-
-  const selCls = 'min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none';
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <label className="block"><span className="block mb-1 text-xs font-medium text-slate-500">{label}</span>{children}</label>
-  );
-
   return (
     <div>
       {/* KATEGORIE JAKO TABY – nejvyšší dělení, vždy na jeden klik */}
@@ -217,6 +236,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
           return (
             <button
               key={v}
+              aria-pressed={active}
               onClick={() => { setCategory(v); setShown(PAGE); }}
               className={`shrink-0 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${active ? 'bg-teal-700 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-700'}`}
             >
@@ -232,6 +252,8 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
+            type="search"
+            aria-label="Hledat fond podle názvu, ISIN, poskytovatele nebo tickeru"
             value={q}
             onChange={(e) => { setQ(e.target.value); setShown(PAGE); }}
             placeholder="Hledat podle názvu, ISIN, poskytovatele nebo tickeru…"
@@ -348,13 +370,13 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
         <table className="w-full min-w-[52rem] text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-              <SortH k="name">Fond</SortH>
-              <SortH k="ter" right>TER</SortH>
-              <SortH k="size" right>Velikost</SortH>
-              <SortH k="ytd" right>YTD ({curLabel[cur]})</SortH>
-              <SortH k="r1" right>1R ({curLabel[cur]})</SortH>
-              <SortH k="r3" right>3R ({curLabel[cur]})</SortH>
-              <SortH k="div" right>Div.</SortH>
+              <SortH k="name" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Fond</SortH>
+              <SortH k="ter" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>TER</SortH>
+              <SortH k="size" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Velikost</SortH>
+              <SortH k="ytd" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>YTD ({curLabel[cur]})</SortH>
+              <SortH k="r1" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>1R ({curLabel[cur]})</SortH>
+              <SortH k="r3" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>3R ({curLabel[cur]})</SortH>
+              <SortH k="div" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Div.</SortH>
               <th className="py-2.5 px-3 font-medium text-center">Typ</th>
               <th className="py-2.5 px-3 font-medium text-center"><span className="sr-only">Porovnat</span></th>
             </tr>

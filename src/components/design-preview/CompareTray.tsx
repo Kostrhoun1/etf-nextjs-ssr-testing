@@ -22,7 +22,7 @@ export default function CompareTray() {
   const href = `/design-preview/srovnani/porovnani?isins=${items.map((i) => i.isin).join(',')}`;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none">
+    <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="pointer-events-auto max-w-4xl mx-auto rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-lg shadow-slate-900/10 px-3 py-2.5 flex items-center gap-3">
         <span className="hidden sm:flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Scale className="w-4 h-4" /></span>
         <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto">

@@ -143,13 +143,13 @@ export function SectionHead({
   className?: string;
 }) {
   return (
-    <div id={id} className={`flex items-end justify-between scroll-mt-20 ${className}`}>
+    <div id={id} className={`flex items-start justify-between scroll-mt-20 ${className}`}>
       <div>
         <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
         {desc && <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">{desc}</p>}
       </div>
       {href && (
-        <Link href={href} className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">
+        <Link href={href} className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0 mt-1">
           {hrefLabel} <ArrowRight className="w-4 h-4" />
         </Link>
       )}

@@ -410,7 +410,7 @@ export default function BrokerReviewPreview() {
                 <tr><td className="py-3 px-4 font-medium text-slate-900">Prodej do 100 000 Kč / rok</td><td className="py-3 px-4">Osvobozeno (hodnotový test) – 0 %</td></tr>
                 <tr><td className="py-3 px-4 font-medium text-slate-900">Prodej do 3 let nad limit</td><td className="py-3 px-4">Daň 15 % ze zisku</td></tr>
                 <tr><td className="py-3 px-4 font-medium text-slate-900">Dividenda z české akcie</td><td className="py-3 px-4">35 % sraženo; možnost vratky 20 % v přiznání</td></tr>
-                <tr><td className="py-3 px-4 font-medium text-slate-900">Dividenda z americké akcie</td><td className="py-3 px-4">15 % díky formuláři W-8BEN (jinak 30 %)</td></tr>
+                <tr><td className="py-3 px-4 font-medium text-slate-900">Dividenda z americké akcie</td><td className="py-3 px-4">U irských (UCITS) ETF 15 % – sráží správce fondu díky smlouvě Irsko–USA, W-8BEN nevyplňujete</td></tr>
               </tbody>
             </table>
           </div>

@@ -71,9 +71,28 @@ export default async function CategoryDetailPreview(
     mainEntity: content.faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   } : null;
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Žebříčky ETF', item: 'https://www.etfpruvodce.cz/nejlepsi-etf' },
+      { '@type': 'ListItem', position: 3, name: cfg.title, item: `https://www.etfpruvodce.cz/nejlepsi-etf/${slug}` },
+    ],
+  };
+
+  const itemListSchema = bySize.length > 0 ? {
+    '@context': 'https://schema.org', '@type': 'ItemList', name: cfg.title,
+    itemListElement: bySize.map((e, i) => ({
+      '@type': 'ListItem', position: i + 1,
+      item: { '@type': 'FinancialProduct', name: shortName(e.name), identifier: e.isin, url: `https://www.etfpruvodce.cz/etf/${e.isin}` },
+    })),
+  } : null;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      {itemListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />}
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -96,7 +115,7 @@ export default async function CategoryDetailPreview(
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 pb-14">
+      <main className="max-w-6xl mx-auto px-4 pb-28">
         {/* Breadcrumb */}
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/design-preview" className="hover:text-slate-700">Domů</Link>

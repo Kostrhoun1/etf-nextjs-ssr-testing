@@ -190,8 +190,8 @@ export default async function ZebrickyPage() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Žebříčky ETF', item: 'https://etfpruvodce.cz/nejlepsi-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Žebříčky ETF', item: 'https://www.etfpruvodce.cz/nejlepsi-etf' },
     ],
   };
 
@@ -208,7 +208,7 @@ export default async function ZebrickyPage() {
         '@type': 'ListItem',
         position: i + 1,
         name: c.title,
-        url: `https://etfpruvodce.cz${catHref(c.slug)}`,
+        url: `https://www.etfpruvodce.cz${catHref(c.slug)}`,
       })),
     })),
   };
@@ -240,6 +240,13 @@ export default async function ZebrickyPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4">
+        {/* Breadcrumb */}
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
+          <Link href="/design-preview" className="hover:text-slate-700">Domů</Link>
+          <span>/</span>
+          <span className="text-slate-700">Žebříčky ETF</span>
+        </nav>
+
         {/* 1. Hero / H1 + USP + metodika */}
         <section className="py-8 md:py-10">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">

@@ -153,7 +153,7 @@ export default async function CategoryPreview() {
 
       <TickerStrip etfs={mainTable.slice(0, 6)} />
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main className="max-w-6xl mx-auto px-4 pb-28">
         {/* Breadcrumb (v produkci dodá Layout) */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>

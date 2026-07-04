@@ -65,9 +65,9 @@ export default function BacktestPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Backtest portfolia ETF', item: 'https://etfpruvodce.cz/kalkulacky/backtest-portfolia' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://www.etfpruvodce.cz/kalkulacky' },
+      { '@type': 'ListItem', position: 3, name: 'Backtest portfolia ETF', item: 'https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia' },
     ],
   };
 

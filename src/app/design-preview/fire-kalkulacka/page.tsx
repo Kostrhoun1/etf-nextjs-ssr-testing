@@ -61,9 +61,9 @@ export default function FireKalkulackaPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'FIRE kalkulačka', item: 'https://etfpruvodce.cz/kalkulacky/fire-kalkulacka' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://www.etfpruvodce.cz/kalkulacky' },
+      { '@type': 'ListItem', position: 3, name: 'FIRE kalkulačka', item: 'https://www.etfpruvodce.cz/kalkulacky/fire-kalkulacka' },
     ],
   };
 

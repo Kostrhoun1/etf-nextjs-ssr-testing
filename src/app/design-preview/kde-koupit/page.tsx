@@ -99,8 +99,8 @@ export default function KdeKoupitPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Kde koupit ETF', item: 'https://etfpruvodce.cz/kde-koupit-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kde koupit ETF', item: 'https://www.etfpruvodce.cz/kde-koupit-etf' },
     ],
   };
   const itemListSchema = {
@@ -155,6 +155,7 @@ export default function KdeKoupitPreview() {
             <Link href="/design-preview/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
             <Link href="/design-preview/zebricky" className="hover:text-slate-900">Žebříčky</Link>
             <Link href="/design-preview/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/design-preview/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
             <Link href="/design-preview/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
             <Link href="/design-preview/kde-koupit" className="text-slate-900 font-medium">Kde koupit</Link>
           </nav>
@@ -232,7 +233,7 @@ export default function KdeKoupitPreview() {
                   Pro většinu českých investorů nejlepší poměr nákladů, nabídky a pohodlí. Jediné mínus –
                   z českých dividend sráží 35 %, což pasivního investora do akumulačních ETF prakticky netrápí.
                 </p>
-                <div className="mt-3"><KkBrokerCta name="XTB" primary /></div>
+                <div className="mt-3"><KkBrokerCta name="XTB" brokerId="xtb" primary /></div>
               </div>
             </div>
 
@@ -400,7 +401,7 @@ export default function KdeKoupitPreview() {
                       <td className="py-3 px-3 text-center"><KkYesNo yes={b.czSupport} /></td>
                       <td className="py-3 px-3 text-center"><KkTaxBadge value={b.czDividends} /></td>
                       <td className="py-3 px-3 tabular-nums">{b.minDeposit}</td>
-                      <td className="py-3 px-3 text-right"><KkBrokerCta name={b.name} primary={i === 1} /></td>
+                      <td className="py-3 px-3 text-right"><KkBrokerCta name={b.name} brokerId={b.id} primary={i === 1} /></td>
                     </tr>
                   ))}
                 </tbody>

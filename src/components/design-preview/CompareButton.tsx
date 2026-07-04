@@ -29,7 +29,7 @@ export default function CompareButton({ isin, label, variant = 'button' }: { isi
         type="button" onClick={onClick} disabled={disabled}
         aria-label={inList ? 'Odebrat z porovnání' : 'Přidat do porovnání'}
         title={disabled ? `Maximum ${COMPARE_MAX} fondů` : inList ? 'V porovnání' : 'Přidat do porovnání'}
-        className={`flex items-center justify-center w-7 h-7 rounded-lg border shrink-0 transition-colors disabled:opacity-40 ${
+        className={`flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 rounded-lg border shrink-0 transition-colors disabled:opacity-40 ${
           inList ? 'border-teal-300 bg-teal-50 text-teal-700' : 'border-slate-200 text-slate-400 hover:border-teal-300 hover:text-teal-700'
         }`}
       >

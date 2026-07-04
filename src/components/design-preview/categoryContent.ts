@@ -401,7 +401,7 @@ export const categoryContent: Record<string, CategoryContent> = {
       },
       {
         "q": "Musím z akumulačního cloud ETF něco danit každý rok?",
-        "a": "Ne. U akumulačního (Acc) fondu se dividendy reinvestují uvnitř fondu a daň z příjmu v ČR řešíte až při prodeji. Pokud podíly držíte déle než 3 roky, splníte časový test a zisk je od daně z příjmu osvobozen. Od roku 2025 ale platí i souhrnný limit 40 mil. Kč na osvobozené příjmy z prodeje cenných papírů."
+        "a": "Ne. U akumulačního (Acc) fondu se dividendy reinvestují uvnitř fondu a daň z příjmu v ČR řešíte až při prodeji. Pokud podíly držíte déle než 3 roky, splníte časový test a zisk je od daně z příjmu osvobozen. Od roku 2026 je časový test bez horního limitu."
       },
       {
         "q": "Proč cloud ETF v roce 2022 tolik spadly, když cloud dál rostl?",
@@ -1308,7 +1308,7 @@ export const categoryContent: Record<string, CategoryContent> = {
       },
       {
         "q": "Jak se v Česku daní zisk z prodeje small cap ETF?",
-        "a": "Na zisk z prodeje se vztahuje časový test: pokud ETF držíte déle než 3 roky, je zisk z prodeje osvobozen od daně z příjmů. Od roku 2025 navíc platí, že příjmy z prodeje cenných papírů osvobozené časovým testem se sčítají a osvobození platí do stropu 40 milionů Kč za rok. Konkrétní situaci si vždy ověřte podle aktuálních pravidel nebo s daňovým poradcem."
+        "a": "Na zisk z prodeje se vztahuje časový test: pokud ETF držíte déle než 3 roky, je zisk z prodeje osvobozen od daně z příjmů. Od roku 2026 je toto osvobození bez horního limitu. Konkrétní situaci si vždy ověřte podle aktuálních pravidel nebo s daňovým poradcem."
       },
       {
         "q": "Proč mají small cap ETF vyšší TER než velké indexové fondy?",

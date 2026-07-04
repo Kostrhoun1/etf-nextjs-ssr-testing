@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import AboutHeader from '@/components/design-preview/AboutHeader';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { getTotalETFCount } from '@/lib/etf-data';
 import {
   Linkedin, Mail, ArrowRight, History, Landmark, Users, Award,
   Database, Coins, Scale, BookOpen, ShieldCheck, ExternalLink,
@@ -14,7 +15,7 @@ export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
   description:
-    'Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12 let ve financích, dříve ředitel úvěrů a hypoték v MONETA. Nezávislý srovnávač ETF s výnosy přepočtenými do korun.',
+    'Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12 let ve financích, dříve ředitel úvěrů a hypoték v MONETA. Nezávislý srovnávač 4 800+ ETF s výnosy přepočtenými do korun.',
   robots: { index: false, follow: false },
 };
 
@@ -56,7 +57,7 @@ const EXPERTISE = [
 const METODIKA = [
   {
     icon: Database,
-    title: 'Data ze 4 300+ fondů',
+    title: 'Data z tisíců fondů',
     desc: 'Žebříčky a srovnání čerpají z databáze tisíců evropských UCITS ETF, kterou denně aktualizujeme.',
   },
   {
@@ -80,7 +81,10 @@ const METODIKA = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const totalCount = await getTotalETFCount();
+  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 300';
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION) }} />
@@ -182,7 +186,9 @@ export default function AboutPage() {
                   <m.icon className="w-5 h-5" />
                 </span>
                 <span>
-                  <span className="block text-sm font-semibold text-slate-900">{m.title}</span>
+                  <span className="block text-sm font-semibold text-slate-900">
+                    {m.icon === Database ? `Data z ${countLabel}+ fondů` : m.title}
+                  </span>
                   <span className="block text-sm text-slate-500 mt-0.5 leading-relaxed">{m.desc}</span>
                 </span>
               </div>

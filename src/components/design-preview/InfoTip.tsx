@@ -38,7 +38,7 @@ export default function InfoTip({
         <span
           id={id}
           role="tooltip"
-          className="absolute left-1/2 bottom-full z-40 mb-1.5 w-56 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-normal leading-relaxed text-white shadow-lg whitespace-normal"
+          className="absolute left-1/2 bottom-full z-40 mb-1.5 max-w-[calc(100vw-2rem)] w-56 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-normal leading-relaxed text-white shadow-lg whitespace-normal break-words"
         >
           {label}
         </span>

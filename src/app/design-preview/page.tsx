@@ -268,10 +268,16 @@ export default async function DesignPreviewV2() {
         )}
 
         {/* 3. DATOVÉ PANELY */}
-        <section className="grid md:grid-cols-3 gap-4">
-          <DataPanel title="Největší fondy" href="/design-preview/zebricky" etfs={featured.bySize || []} metric="size" />
-          <DataPanel title="Nejvýkonnější (1R)" href="/design-preview/zebricky" etfs={featured.byPerformance || []} metric="return" />
-          <DataPanel title="Nejlevnější (TER)" href="/design-preview/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
+        <section className="pb-8">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold tracking-tight">Rychlý přehled fondů</h2>
+            <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější ETF na jeden pohled.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <DataPanel title="Největší fondy" href="/design-preview/zebricky" etfs={featured.bySize || []} metric="size" />
+            <DataPanel title="Nejvýkonnější (1R)" href="/design-preview/zebricky" etfs={featured.byPerformance || []} metric="return" />
+            <DataPanel title="Nejlevnější (TER)" href="/design-preview/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
+          </div>
         </section>
 
         {/* 4. KTERÝM ETF ZAČÍT – konkrétní odpověď s reálnými daty */}

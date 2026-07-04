@@ -271,15 +271,15 @@ export default async function ETFDetailPreview(
     category: 'ETF',
     provider: { '@type': 'Organization', name: etf.fund_provider },
     feesAndCommissionsSpecification: etf.ter_numeric != null ? `${etf.ter_numeric} % TER (roční nákladovost)` : undefined,
-    url: `https://etfpruvodce.cz/etf/${etf.isin}`,
+    url: `https://www.etfpruvodce.cz/etf/${etf.isin}`,
   };
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Srovnání ETF', item: 'https://etfpruvodce.cz/srovnani-etf' },
-      { '@type': 'ListItem', position: 3, name: etf.name, item: `https://etfpruvodce.cz/etf/${etf.isin}` },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Srovnání ETF', item: 'https://www.etfpruvodce.cz/srovnani-etf' },
+      { '@type': 'ListItem', position: 3, name: etf.name, item: `https://www.etfpruvodce.cz/etf/${etf.isin}` },
     ],
   };
 
@@ -313,7 +313,7 @@ export default async function ETFDetailPreview(
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main className="max-w-6xl mx-auto px-4 pb-28">
         {/* Breadcrumb */}
         <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
           <Link href="/design-preview" className="hover:text-slate-600">Domů</Link>
@@ -695,7 +695,7 @@ export default async function ETFDetailPreview(
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400">
               <p className="flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5" /> Zdroje: justETF, iShares (BlackRock), ČNB (kurz USD/CZK). Aktualizováno {dateStr}.
+                <Database className="w-3.5 h-3.5" /> Zdroje: justETF{etf.fund_provider ? ', ' + etf.fund_provider : ''}, ČNB (kurz USD/CZK). Aktualizováno {dateStr}.
               </p>
             </div>
           </div>

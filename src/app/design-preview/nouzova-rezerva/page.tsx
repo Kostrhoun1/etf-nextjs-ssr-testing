@@ -61,9 +61,9 @@ export default function NouzovaRezervaPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Kalkulačka nouzové rezervy', item: 'https://etfpruvodce.cz/kalkulacky/nouzova-rezerva' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://www.etfpruvodce.cz/kalkulacky' },
+      { '@type': 'ListItem', position: 3, name: 'Kalkulačka nouzové rezervy', item: 'https://www.etfpruvodce.cz/kalkulacky/nouzova-rezerva' },
     ],
   };
 

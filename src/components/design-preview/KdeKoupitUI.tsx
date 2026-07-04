@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Check, X, ExternalLink, Star } from 'lucide-react';
 import type { Broker } from '@/types/broker/index';
+import { reviewHref } from './brokerReviewHref';
 
 /* ---------- Pomocné formátovače jen pro stránku Kde koupit ---------- */
 export const kkScoreColor = (score: number) => {
@@ -57,10 +58,11 @@ export function KkTaxBadge({ value }: { value: string }) {
 }
 
 /* ---------- CTA tlačítko na brokera (affiliate) ---------- */
-export function KkBrokerCta({ name, href = '/design-preview/srovnani-brokeru', primary = false }: { name: string; href?: string; primary?: boolean }) {
+export function KkBrokerCta({ name, brokerId, href, primary = false }: { name: string; brokerId?: string; href?: string; primary?: boolean }) {
+  const target = href ?? (brokerId ? reviewHref[brokerId] : undefined) ?? '/design-preview/srovnani-brokeru';
   return (
     <Link
-      href={href}
+      href={target}
       className={
         primary
           ? 'inline-flex items-center justify-center gap-1.5 rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors'
@@ -115,7 +117,7 @@ export function KkBrokerCard({ broker, rank, primary = false }: { broker: Broker
         </div>
       </dl>
       <div className="mt-4">
-        <KkBrokerCta name={broker.name} primary={primary} />
+        <KkBrokerCta name={broker.name} brokerId={broker.id} primary={primary} />
       </div>
     </div>
   );
