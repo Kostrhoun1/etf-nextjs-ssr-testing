@@ -11,6 +11,8 @@ import { getTopETFsForCategory, categoryConfigs, type ETFBasicInfo } from '@/lib
 import { ter, money, pct, shortName, RankPanel, SectionHead } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent } from '@/components/design-preview/categoryContent';
 import CompareButton from '@/components/design-preview/CompareButton';
+import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
+import ReturnValue, { ReturnCurLabel } from '@/components/design-preview/ReturnValue';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
 export const revalidate = 86400;
@@ -149,7 +151,7 @@ export default async function CategoryDetailPreview(
                     <p className="mt-2 text-xs text-slate-600 leading-snug">{note}</p>
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs">
                       <span className="text-slate-500">TER <span className="font-semibold text-slate-800 tabular-nums">{ter(etf.ter_numeric)}</span></span>
-                      <span className="text-slate-500">1R <span className={`font-semibold tabular-nums ${(etf.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(etf.return_1y_czk)}</span></span>
+                      <span className="text-slate-500">1R <ReturnValue etf={etf} period="1y" className="font-semibold" /></span>
                       <span className="text-slate-500">Velikost <span className="font-semibold text-slate-800 tabular-nums">{money(etf.fund_size_numeric)}</span></span>
                     </div>
                     <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Detail fondu <ArrowRight className="w-4 h-4" /></span>
@@ -175,11 +177,14 @@ export default async function CategoryDetailPreview(
         {/* ŽEBŘÍČKY Z DAT */}
         {etfs.length >= 3 && (
           <section className="pb-8">
-            <SectionHead title="Žebříčky podle kritéria" desc="Nejlevnější, největší a nejvýkonnější fondy v kategorii – z reálných dat." />
+            <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+              <SectionHead title="Žebříčky podle kritéria" desc="Nejlevnější, největší a nejvýkonnější fondy v kategorii – z reálných dat." className="mb-0" />
+              <CurrencyToggle size="sm" />
+            </div>
             <div className="grid gap-4 md:grid-cols-3">
               {byTer.length > 0 && <RankPanel title="Nejlevnější (TER)" subtitle="Roční poplatek za správu" rows={byTer.map((e) => row(e, <span className="tabular-nums text-sm font-medium text-slate-700">{ter(e.ter_numeric)}</span>))} />}
               {bySize.length > 0 && <RankPanel title="Největší (AUM)" subtitle="Velikost spravovaných aktiv" rows={bySize.map((e) => row(e, <span className="tabular-nums text-sm font-medium text-slate-700">{money(e.fund_size_numeric)}</span>))} />}
-              {byPerf.length > 0 && <RankPanel title="Nejvýkonnější 1R (Kč)" subtitle="Výnos za 12 měsíců v korunách" rows={byPerf.map((e) => row(e, <span className={`tabular-nums text-sm font-medium ${(e.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(e.return_1y_czk)}</span>))} />}
+              {byPerf.length > 0 && <RankPanel title={<>Nejvýkonnější 1R (<ReturnCurLabel />)</>} subtitle="Výnos za posledních 12 měsíců" rows={byPerf.map((e) => row(e, <ReturnValue etf={e} period="1y" className="text-sm font-medium" />))} />}
             </div>
           </section>
         )}

@@ -14,6 +14,7 @@ import {
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import CompareButton from '@/components/design-preview/CompareButton';
+import EtfReturns from '@/components/design-preview/EtfReturns';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -174,7 +175,15 @@ export default async function ETFDetailPreview(
     y1: num(r.return_1y_usd as number),
     y3: num(r.return_3y_usd as number),
     y5: num(r.return_5y_usd as number),
+    ytd: num(r.return_ytd_usd as number),
   };
+  const eur = {
+    y1: num(r.return_1y as number),
+    y3: num(r.return_3y as number),
+    y5: num(r.return_5y as number),
+    ytd: num(r.return_ytd as number),
+  };
+  const returnsByCur = { CZK: czk, EUR: eur, USD: usd };
 
   const ticker = etf.primary_ticker || '—';
   const today = new Date();
@@ -252,14 +261,6 @@ export default async function ETFDetailPreview(
     Industrials: 'Průmysl',
     Other: 'Ostatní sektory',
   };
-
-  /* hlavní výnosové dlaždice – přepočtené do Kč */
-  const czkTiles: { label: string; value: number | null }[] = [
-    { label: '1 rok', value: czk.y1 },
-    { label: '3 roky', value: czk.y3 },
-    { label: '5 let', value: czk.y5 },
-  ];
-  const czkMax = Math.max(...czkTiles.map((t) => Math.abs(t.value ?? 0)), 1);
 
   /* ---------- JSON-LD ---------- */
   const productSchema = {
@@ -369,53 +370,13 @@ export default async function ETFDetailPreview(
           </div>
         </section>
 
-        {/* VÝNOS PŘEPOČTENÝ DO KČ */}
+        {/* VÝKONNOST – přepínatelná měna (default Kč) */}
         <section className="pb-10">
           <SectionHead
-            title="Výnos přepočtený do korun"
-            desc="Kolik fond reálně vydělal českému investorovi po přepočtu do korun – tak, jak to pocítí na svém účtu (bez daní a poplatků brokera)."
+            title="Výkonnost fondu"
+            desc="Kolik fond reálně vydělal – přepněte měnu podle toho, jak to pocítíte na účtu. Kč zahrnuje pohyb kurzu (bez daní a poplatků brokera)."
           />
-          <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {czkTiles.map((t) => {
-                const pos = (t.value ?? 0) >= 0;
-                return (
-                  <div key={t.label} className="rounded-lg border border-slate-200 p-4">
-                    <p className="text-xs text-slate-500">{t.label}</p>
-                    <p className={`mt-1 text-2xl font-bold tabular-nums ${pos ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {pct(t.value)}
-                    </p>
-                    <div className="mt-2.5">
-                      <PerfBar value={t.value} max={czkMax} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <p className="mt-4 text-xs text-slate-500 leading-relaxed flex items-start gap-1.5">
-              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
-              Výnosy jsou kumulativní (za celé období), přepočtené kurzem ČNB do Kč. Letošní výnos (od ledna): <span className="font-medium text-slate-700">{pct(czk.ytd)}</span>.
-              Zohledňují pohyb kurzu {etf.fund_currency ? `${etf.fund_currency}/CZK` : 'cizí měny vůči koruně'}, který výnos českého investora zvyšuje i snižuje.
-            </p>
-
-            {/* Sekundárně: původní výnos v USD */}
-            <div className="mt-4 pt-4 border-t border-slate-100">
-              <p className="text-xs font-medium text-slate-500 mb-2">Pro srovnání: původní výnos fondu v dolarech (bez měnového efektu)</p>
-              <div className="grid grid-cols-3 gap-3 text-sm">
-                {[
-                  { label: '1 rok', value: usd.y1 },
-                  { label: '3 roky', value: usd.y3 },
-                  { label: '5 let', value: usd.y5 },
-                ].map((t) => (
-                  <div key={t.label} className="flex flex-col">
-                    <span className="text-xs text-slate-400">{t.label} (USD)</span>
-                    <span className={`tabular-nums font-medium ${(t.value ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(t.value)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <EtfReturns byCur={returnsByCur} fundCurrency={etf.fund_currency} />
         </section>
 
         {/* VÝNOS PO KALENDÁŘNÍCH LETECH */}

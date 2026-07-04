@@ -442,6 +442,10 @@ export interface ComparisonETF {
   return_3y_czk: number | null;
   return_5y_czk: number | null;
   return_ytd_czk: number | null;
+  return_1y_usd: number | null;
+  return_3y_usd: number | null;
+  return_5y_usd: number | null;
+  return_ytd_usd: number | null;
   volatility_1y: number | null;
   max_drawdown_1y: number | null;
   current_dividend_yield_numeric: number | null;
@@ -483,6 +487,7 @@ export async function getComparisonETFData(
         ter_numeric, fund_size_numeric,
         return_1y, return_3y, return_5y, return_ytd,
         return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
+        return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
         volatility_1y, max_drawdown_1y,
         current_dividend_yield_numeric,
         distribution_policy, replication, index_name, region,
@@ -527,6 +532,7 @@ export async function getComparisonETFsByIsins(isins: string[]): Promise<Compari
         ter_numeric, fund_size_numeric,
         return_1y, return_3y, return_5y, return_ytd,
         return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
+        return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
         volatility_1y, max_drawdown_1y,
         current_dividend_yield_numeric,
         distribution_policy, replication, index_name, region,
@@ -563,6 +569,10 @@ export interface ScreenerETF {
   return_3y_czk: number | null;
   return_5y_czk: number | null;
   return_ytd_czk: number | null;
+  return_1y_usd: number | null;
+  return_3y_usd: number | null;
+  return_5y_usd: number | null;
+  return_ytd_usd: number | null;
   volatility_1y: number | null;
   current_dividend_yield_numeric: number | null;
   distribution_policy: string | null;
@@ -584,6 +594,7 @@ const SCREENER_COLUMNS = `
   ter_numeric, fund_size_numeric,
   return_ytd, return_1y, return_3y, return_5y,
   return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
+  return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
   volatility_1y, current_dividend_yield_numeric,
   distribution_policy, replication, index_name, region, investment_focus,
   fund_currency, currency_risk, category, is_leveraged, rating, inception_date

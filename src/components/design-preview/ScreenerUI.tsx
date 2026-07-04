@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star } from 'lucide-react';
 import type { ScreenerETF } from '@/lib/etf-data';
 import CompareButton from '@/components/design-preview/CompareButton';
+import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
+import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
 import { buildIndexOptions, canonicalIndexLabel } from '@/utils/indexNormalization';
 import { buildRegionOptions, classifyRegion } from '@/utils/regionClassification';
 import { detectHedging } from '@/utils/hedgingDetection';
@@ -31,6 +33,17 @@ const replLabel = (r: string | null) => {
 };
 
 const PAGE = 25;
+
+/* Kompaktní hvězdičkové hodnocení do seznamu. */
+function Stars({ n }: { n: number }) {
+  return (
+    <span className="inline-flex items-center" title={`Hodnocení ${n}/5`} aria-label={`Hodnocení ${n} z 5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star key={i} className={`w-3 h-3 ${i <= n ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`} />
+      ))}
+    </span>
+  );
+}
 
 /* Předpočítané odvozené hodnoty (region/hedging/index/rating) – jednou, ať filtr
    nemusí pouštět regexy přes 4 300 řádků při každém stisku klávesy. */
@@ -63,6 +76,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
   const [sortKey, setSortKey] = useState<SortKey>('size');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [shown, setShown] = useState(PAGE);
+  const [cur] = useCurrency();
 
   // Předpočítej odvozené hodnoty jednou pro celou sadu.
   const enriched = useMemo<Enriched[]>(() =>
@@ -134,14 +148,15 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
     });
 
     const get = (e: ScreenerETF): number | string | null => {
+      const o = e as unknown as Record<string, unknown>;
       switch (sortKey) {
         case 'name': return e.name?.toLowerCase() ?? '';
         case 'ter': return num(e.ter_numeric);
         case 'size': return num(e.fund_size_numeric);
-        case 'ytd': return num(e.return_ytd_czk);
-        case 'r1': return num(e.return_1y_czk);
-        case 'r3': return num(e.return_3y_czk);
-        case 'r5': return num(e.return_5y_czk);
+        case 'ytd': return pickReturn(o, 'ytd', cur);
+        case 'r1': return pickReturn(o, '1y', cur);
+        case 'r3': return pickReturn(o, '3y', cur);
+        case 'r5': return pickReturn(o, '5y', cur);
         case 'div': return num(e.current_dividend_yield_numeric);
       }
     };
@@ -154,7 +169,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return rows;
-  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, minRating, leveraged, terMax, sizeMin, divMin, sortKey, sortDir]);
+  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, minRating, leveraged, terMax, sizeMin, divMin, sortKey, sortDir, cur]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -323,7 +338,10 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
         )}
       </div>
 
-      <p className="mt-3 text-sm text-slate-500">Nalezeno <span className="font-semibold text-slate-800">{filtered.length}</span> z {etfs.length} fondů. Klikněte na fond pro detail, tlačítkem <span className="font-medium text-slate-700">+</span> přidáte do porovnání.</p>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-slate-500">Nalezeno <span className="font-semibold text-slate-800">{filtered.length}</span> z {etfs.length} fondů. Klikněte na fond pro detail, tlačítkem <span className="font-medium text-slate-700">+</span> přidáte do porovnání.</p>
+        <CurrencyToggle size="sm" />
+      </div>
 
       {/* TABULKA */}
       <div className="mt-3 rounded-xl border border-slate-200 bg-white overflow-x-auto">
@@ -333,9 +351,9 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
               <SortH k="name">Fond</SortH>
               <SortH k="ter" right>TER</SortH>
               <SortH k="size" right>Velikost</SortH>
-              <SortH k="ytd" right>YTD (Kč)</SortH>
-              <SortH k="r1" right>1R (Kč)</SortH>
-              <SortH k="r3" right>3R (Kč)</SortH>
+              <SortH k="ytd" right>YTD ({curLabel[cur]})</SortH>
+              <SortH k="r1" right>1R ({curLabel[cur]})</SortH>
+              <SortH k="r3" right>3R ({curLabel[cur]})</SortH>
               <SortH k="div" right>Div.</SortH>
               <th className="py-2.5 px-3 font-medium text-center">Typ</th>
               <th className="py-2.5 px-3 font-medium text-center"><span className="sr-only">Porovnat</span></th>
@@ -351,14 +369,16 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
                   <span className="flex items-center gap-1.5 text-xs text-slate-400">
                     {e.primary_ticker ?? e.isin}{reg ? ` · ${reg}` : ''}
                     {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
-                    {ratingVal != null && <span className="inline-flex items-center gap-0.5 text-amber-500"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{ratingVal}</span>}
+                    {ratingVal != null && <Stars n={ratingVal} />}
                   </span>
                 </td>
                 <td className="py-3 px-3 text-right tabular-nums font-medium text-slate-800">{ter(num(e.ter_numeric))}</td>
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{money(num(e.fund_size_numeric))}</td>
-                <td className={`py-3 px-3 text-right tabular-nums ${(num(e.return_ytd_czk) ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(num(e.return_ytd_czk))}</td>
-                <td className={`py-3 px-3 text-right tabular-nums font-medium ${(num(e.return_1y_czk) ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(num(e.return_1y_czk))}</td>
-                <td className={`py-3 px-3 text-right tabular-nums ${(num(e.return_3y_czk) ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(num(e.return_3y_czk))}</td>
+                {(() => { const o = e as unknown as Record<string, unknown>; const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur); return (<>
+                <td className={`py-3 px-3 text-right tabular-nums ${(ytd ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ytd)}</td>
+                <td className={`py-3 px-3 text-right tabular-nums font-medium ${(r1 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r1)}</td>
+                <td className={`py-3 px-3 text-right tabular-nums ${(r3 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r3)}</td>
+                </>); })()}
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{e.current_dividend_yield_numeric != null ? `${Number(e.current_dividend_yield_numeric).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}</td>
                 <td className="py-3 px-3 text-center">
                   <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${isAcc(e.distribution_policy) ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>

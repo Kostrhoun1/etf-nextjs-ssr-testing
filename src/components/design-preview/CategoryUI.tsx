@@ -64,7 +64,7 @@ export function RankPanel({
   subtitle,
   rows,
 }: {
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   rows: { isin: string; label: string; sub?: string; value: React.ReactNode; flagged?: boolean }[];
 }) {
@@ -133,15 +133,17 @@ export function SectionHead({
   desc,
   href,
   hrefLabel,
+  className = 'mb-4',
 }: {
   id?: string;
   title: string;
   desc?: string;
   href?: string;
   hrefLabel?: string;
+  className?: string;
 }) {
   return (
-    <div id={id} className="flex items-end justify-between mb-4 scroll-mt-20">
+    <div id={id} className={`flex items-end justify-between scroll-mt-20 ${className}`}>
       <div>
         <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
         {desc && <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">{desc}</p>}
