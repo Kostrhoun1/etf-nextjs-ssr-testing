@@ -234,7 +234,7 @@ export default async function CategoryDetailPreview(
               title="Které indexy tato kategorie sleduje"
               desc="Podkladové indexy fondů v kategorii – co měří, kolik mají složek a jak jsou vážené."
             />
-            <CategoryIndexes indexes={topIndexes} />
+            <CategoryIndexes indexes={topIndexes} total={etfs.length} />
           </section>
         )}
 

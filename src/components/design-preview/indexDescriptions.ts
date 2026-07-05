@@ -8,7 +8,7 @@
  * shoda chybí, getIndexInfo zkusí rodinové fallbacky (dluhopisy, krypto, sektory).
  */
 
-import { canonicalIndexKey, canonicalIndexLabel, getIndexProvider } from '@/utils/indexNormalization';
+import { canonicalIndexKey, canonicalIndexLabel, getIndexProvider, normalizeIndexName } from '@/utils/indexNormalization';
 
 export interface IndexInfo {
   label: string;      // zobrazovaný název
@@ -181,14 +181,27 @@ const FAMILY: { test: (k: string) => boolean; info: (label: string) => IndexInfo
   },
 ];
 
+/* Sloučí do jednoho indexu i varianty, které se liší jen replikací / třídou akcií
+   (Swap, Hedged, Acc, Dist…) přilepenou JEDNOU mezerou – ty `normalizeIndexName`
+   (řez na dvojité mezeře) nechytí. NEsluč strategie (Covered Call, Leveraged) ani
+   sektory (Biotech, Semiconductor) – to jsou jiné indexy. Jen pro popisnou sekci. */
+function cleanIndexForDescription(raw?: string | null): string {
+  const base = normalizeIndexName(raw);
+  return base
+    .replace(/\s+(swap|synthetic|synth|hedged|unhedged|acc|dist|inc|distributing|accumulating)\b.*$/i, '')
+    .replace(/\s+(usd|eur|gbp|chf|jpy)\b.*$/i, '')
+    .trim();
+}
+
 /**
  * Vrátí odborný popis indexu pro zadaný surový/kanonický název, nebo null.
  */
 export function getIndexInfo(rawOrLabel?: string | null): IndexInfo | null {
   if (!rawOrLabel) return null;
-  const key = canonicalIndexKey(rawOrLabel);
+  const cleaned = cleanIndexForDescription(rawOrLabel);
+  const key = canonicalIndexKey(cleaned);
   if (!key) return null;
-  const label = canonicalIndexLabel(rawOrLabel);
+  const label = canonicalIndexLabel(cleaned);
   const exact = EXACT[key];
   if (exact) return { label, ...exact };
   for (const f of FAMILY) {
@@ -199,7 +212,10 @@ export function getIndexInfo(rawOrLabel?: string | null): IndexInfo | null {
 
 /**
  * Z pole ETF sestaví nejčastější indexy kategorie (s popisem), seřazené dle počtu
- * fondů. Vrací jen indexy, ke kterým máme popis – kvalita před kvantitou.
+ * fondů. Sloučí varianty téhož indexu (Swap/Hedged/Acc/…), vrací jen indexy s
+ * popisem a s aspoň 2 fondy (kvalita před kvantitou; drobné výjimky se neukazují).
+ * Vrací i `matched` = kolik fondů kategorie spadá pod zobrazené indexy, aby šlo
+ * počty poctivě rámovat vůči celku.
  */
 export function topIndexesForCategory(
   etfs: { index_name?: string | null }[],
@@ -207,7 +223,7 @@ export function topIndexesForCategory(
 ): { info: IndexInfo; count: number }[] {
   const byKey = new Map<string, { info: IndexInfo; count: number }>();
   for (const e of etfs) {
-    const key = canonicalIndexKey(e.index_name);
+    const key = canonicalIndexKey(cleanIndexForDescription(e.index_name));
     if (!key) continue;
     const existing = byKey.get(key);
     if (existing) {
@@ -217,5 +233,8 @@ export function topIndexesForCategory(
     const info = getIndexInfo(e.index_name);
     if (info) byKey.set(key, { info, count: 1 });
   }
-  return [...byKey.values()].sort((a, b) => b.count - a.count).slice(0, limit);
+  return [...byKey.values()]
+    .filter((x) => x.count >= 2)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
 }

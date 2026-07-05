@@ -316,27 +316,37 @@ export function CompositionInfographic({
  * indexů (dle fondů v kategorii) s odborným popisem. Unikátní obsah pro SEO/GEO.
  * Graceful: když žádný index nemá popis, celá sekce se nevykreslí.
  */
-export function CategoryIndexes({ indexes }: { indexes: { info: IndexInfo; count: number }[] }) {
+export function CategoryIndexes({ indexes, total }: { indexes: { info: IndexInfo; count: number }[]; total: number }) {
   if (!indexes.length) return null;
+  const shown = indexes.reduce((s, i) => s + i.count, 0);
+  const rest = Math.max(0, total - shown);
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {indexes.map(({ info, count }) => (
-        <div key={info.label} className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="text-base font-semibold text-slate-900 leading-tight">{info.label}</h3>
-              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
-                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">{info.provider}</span>
-                {info.holdings && <span>{info.holdings}</span>}
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {indexes.map(({ info, count }) => (
+          <div key={info.label} className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-slate-900 leading-tight">{info.label}</h3>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                  <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">{info.provider}</span>
+                  {info.holdings && <span>{info.holdings}</span>}
+                </div>
               </div>
+              <span className="shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700 tabular-nums" title={`${count} z ${total} fondů v kategorii sleduje tento index`}>
+                {count} z {total}
+              </span>
             </div>
-            <span className="shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700 tabular-nums">
-              {count} {count === 1 ? 'fond' : count >= 2 && count <= 4 ? 'fondy' : 'fondů'}
-            </span>
+            <p className="mt-2.5 text-sm text-slate-600 leading-relaxed">{info.what}</p>
           </div>
-          <p className="mt-2.5 text-sm text-slate-600 leading-relaxed">{info.what}</p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+      {rest > 0 && (
+        <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
+          <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+          Zbývajících {rest} z {total} fondů sleduje méně časté nebo specifické indexy (sektorové, zajištěné, pákové apod.).
+        </p>
+      )}
+    </>
   );
 }
