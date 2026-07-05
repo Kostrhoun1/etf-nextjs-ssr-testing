@@ -13,6 +13,7 @@ udělá 1 increment, aktualizuje stav a přidá nově objevené položky.
 - [ ] **Ověřit daňové konstanty 2026** (čistá mzda + strop soc. pojištění) proti oficiálním zdrojům — kritické pro důvěryhodnost.
 
 ## Brzy (P2)
+- [ ] **Mobilní polish (zbytek z auditu):** portfolio holdings tabulka (min-w-34rem) → mobilní kartová varianta; ETF detail WeightRow w-40→w-28 na mobilu; "Kde se obchoduje" tabulka wrap do overflow-x-auto; sjednotit výšku heru na všech stránkách (py-4 md:py-7). Hlavní mobilní bloky (homepage, srovnání, menu-hledání) HOTOVY.
 - [ ] **Reálné (inflačně očištěné) hodnoty** do investiční / poplatků / Monte Carla (do FIRE už přidáno).
 - [ ] **Vlajkový nástroj „reálná koruna"** — hrubý výnos → −poplatky → −daň (časový test) → −inflace = reálná čistá koruna (jádro USP).
 - [ ] **Kurzový dopad** — aktualizovat výchozí kurzy 2026, odstranit vymyšlené „pravděpodobnosti scénářů".
