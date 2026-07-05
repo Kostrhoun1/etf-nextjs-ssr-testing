@@ -4,6 +4,11 @@
  */
 import { cache as reactCache } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
+import { canonicalIndexLabel, buildIndexOptions, type IndexOptionGroup } from '@/utils/indexNormalization';
+import { detectHedging } from '@/utils/hedgingDetection';
+import { calculateETFRating } from '@/utils/etfRating';
+import type { ETFListItem } from '@/types/etf';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Modern publishable key (sb_publishable_...) – nahrazuje starý legacy service_role
@@ -724,6 +729,153 @@ export async function getScreenerETFData(): Promise<ScreenerETF[]> {
     console.error('Error in getScreenerETFData:', error);
     return [];
   }
+}
+
+/* ------------------------------------------------------------------------- *
+ * Screener v2 – KOMPAKTNÍ + PŘEDPOČÍTANÝ řádek pro rychlé načtení srovnávače.
+ *
+ * Původně stránka /srovnani vkládala do HTML všech ~4900 fondů se 40 sloupci
+ * (6 MB HTML → FCP 4,5 s na mobilu) a klient pak přes všech 4900 řádků pouštěl
+ * regexy (region/zajištění/index/rating/fulltext) → TBT 730 ms.
+ *
+ * Řešení: odvozená pole počítáme JEDNOU na serveru (níže), payload zeštíhlíme
+ * (bez 10 duplicitních tickerů a nepoužitých polí) a stránka vloží jen prvních
+ * ~50 řádků; zbytek databáze si klient dotáhne z /api/etf/screener (cachované).
+ * Filtrování tak zůstává nad CELOU databází, jen se zpřístupní ~1 s po vykreslení.
+ * ------------------------------------------------------------------------- */
+export interface ScreenerRow {
+  isin: string;
+  name: string;
+  primary_ticker: string | null;
+  ter_numeric: number | null;
+  fund_size_numeric: number | null;
+  fund_currency: string | null;
+  distribution_policy: string | null;
+  is_leveraged: boolean | null;
+  category: string | null;
+  current_dividend_yield_numeric: number | null;
+  // Výnosy: EUR (báze, bez přípony) + CZK + USD, období ytd/1r/3r (5r se v UI nepoužívá).
+  return_ytd: number | null; return_ytd_czk: number | null; return_ytd_usd: number | null;
+  return_1y: number | null; return_1y_czk: number | null; return_1y_usd: number | null;
+  return_3y: number | null; return_3y_czk: number | null; return_3y_usd: number | null;
+  // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
+  _region: string | null;
+  _hedge: string;   // hedgingType
+  _index: string;   // kanonický label indexu
+  _rating: number | null;
+  _repl: string;    // 'Fyzická' | 'Syntetická' | '—'
+  _blob: string;    // fulltext (name/isin/provider/tickery), lowercase
+  _tickers: string[]; // všechny tickery lowercase (pro relevanci hledání)
+}
+
+export interface ScreenerOptions {
+  regions: string[];
+  indexGroups: IndexOptionGroup[];
+  currencies: string[];
+  replications: string[];
+  categories: string[];
+  catCounts: [string, number][]; // serializovatelná náhrada Map
+}
+
+/** Popisek replikace – shodně s klientem (ScreenerUI). */
+function replLabelSrv(r: string | null): string {
+  const s = (r || '').toLowerCase();
+  if (s.includes('synth') || s.includes('swap')) return 'Syntetická';
+  if (s.includes('physical') || s.includes('full') || s.includes('sampl') || s.includes('optim')) return 'Fyzická';
+  return r || '—';
+}
+
+const CATEGORY_ORDER = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto'];
+
+/**
+ * Načte celý screener JAKO kompaktní předpočítané řádky + volby filtrů + počet.
+ * React-cache: v rámci jednoho requestu se Supabase nedotazuje dvakrát
+ * (stránka i případný interní odkaz sdílí výsledek). Napříč requesty drží ISR.
+ */
+export const getScreenerRows = reactCache(async (): Promise<{
+  rows: ScreenerRow[];
+  options: ScreenerOptions;
+  total: number;
+}> => {
+  const raw = await getScreenerETFData();
+
+  const rows: ScreenerRow[] = raw.map((e) => {
+    const tickers = [
+      e.primary_ticker,
+      e.exchange_1_ticker, e.exchange_2_ticker, e.exchange_3_ticker, e.exchange_4_ticker, e.exchange_5_ticker,
+      e.exchange_6_ticker, e.exchange_7_ticker, e.exchange_8_ticker, e.exchange_9_ticker, e.exchange_10_ticker,
+    ]
+      .map((t) => (t ?? '').trim().toLowerCase())
+      .filter((t) => t && t !== '-');
+    const uniqTickers = [...new Set(tickers)];
+    return {
+      isin: e.isin,
+      name: e.name,
+      primary_ticker: e.primary_ticker,
+      ter_numeric: e.ter_numeric,
+      fund_size_numeric: e.fund_size_numeric,
+      fund_currency: e.fund_currency,
+      distribution_policy: e.distribution_policy,
+      is_leveraged: e.is_leveraged,
+      category: e.category,
+      current_dividend_yield_numeric: e.current_dividend_yield_numeric,
+      return_ytd: e.return_ytd, return_ytd_czk: e.return_ytd_czk, return_ytd_usd: e.return_ytd_usd,
+      return_1y: e.return_1y, return_1y_czk: e.return_1y_czk, return_1y_usd: e.return_1y_usd,
+      return_3y: e.return_3y, return_3y_czk: e.return_3y_czk, return_3y_usd: e.return_3y_usd,
+      _region: classifyRegion(e),
+      _hedge: detectHedging(e.name, e.currency_risk ?? undefined).hedgingType,
+      _index: canonicalIndexLabel(e.index_name),
+      _rating: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
+      _repl: replLabelSrv(e.replication),
+      _blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${uniqTickers.join(' ')}`.toLowerCase(),
+      _tickers: uniqTickers,
+    };
+  });
+
+  // Volby filtrů – z RAW dat (utils čtou původní pole index_name/region).
+  const present = [...new Set(raw.map((e) => e.category).filter((c): c is string => !!c && c !== 'Ostatní'))];
+  const ordered = CATEGORY_ORDER.filter((c) => present.includes(c));
+  const extra = present.filter((c) => !CATEGORY_ORDER.includes(c)).sort((a, b) => a.localeCompare(b));
+  const categories = [...ordered, ...extra];
+
+  const catCountsMap = new Map<string, number>();
+  for (const e of raw) if (e.category) catCountsMap.set(e.category, (catCountsMap.get(e.category) ?? 0) + 1);
+
+  const replSet = new Set<string>();
+  for (const e of raw) { const l = replLabelSrv(e.replication); if (l !== '—') replSet.add(l); }
+
+  const options: ScreenerOptions = {
+    regions: buildRegionOptions(raw),
+    indexGroups: buildIndexOptions(raw).groups,
+    currencies: [...new Set(raw.map((e) => e.fund_currency).filter(Boolean))].sort() as string[],
+    replications: [...replSet].sort(),
+    categories,
+    catCounts: [...catCountsMap.entries()],
+  };
+
+  return { rows, options, total: rows.length };
+});
+
+/**
+ * Prvních `n` řádků pro server-render (rychlý FCP + SEO). Když je zadané `q`
+ * (hledání z hlavičky), vrátíme relevantní shody, jinak top podle velikosti
+ * (rows už jsou seřazené sestupně). Plné filtrování dělá klient nad celou sadou.
+ */
+export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50): ScreenerRow[] {
+  const term = q.trim().toLowerCase();
+  if (!term) return rows.slice(0, n);
+  const relevance = (r: ScreenerRow): number => {
+    if (r.isin.toLowerCase() === term || r._tickers.includes(term)) return 4;
+    if (r._tickers.some((t) => t.startsWith(term))) return 3;
+    const name = r.name.toLowerCase();
+    if (name.startsWith(term)) return 2;
+    if (name.includes(term)) return 1;
+    return 0;
+  };
+  return rows
+    .filter((r) => r._blob.includes(term))
+    .sort((a, b) => relevance(b) - relevance(a))
+    .slice(0, n);
 }
 
 /**

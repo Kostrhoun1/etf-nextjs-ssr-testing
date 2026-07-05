@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords, SlidersHorizontal, Coins, Layers } from 'lucide-react';
-import { getScreenerETFData , getDataDate } from '@/lib/etf-data';
+import { getScreenerRows, buildInitialScreenerRows, getDataDate } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
@@ -35,7 +35,8 @@ export default async function SrovnaniScreenerPreview(
   { searchParams }: { searchParams: Promise<{ q?: string }> },
 ) {
   const { q } = await searchParams;
-  const etfs = await getScreenerETFData();
+  const { rows, options, total } = await getScreenerRows();
+  const initialRows = buildInitialScreenerRows(rows, q ?? '');
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -111,7 +112,7 @@ export default async function SrovnaniScreenerPreview(
 
         {/* SCREENER – hlavní obsah stránky (výpis fondů z databáze) */}
         <section id="screener" className="scroll-mt-16">
-          <ScreenerUI etfs={etfs} initialQ={q ?? ''} />
+          <ScreenerUI initialRows={initialRows} total={total} options={options} initialQ={q ?? ''} />
         </section>
 
         {/* Ukázkový souboj – featured (až POD samotným výpisem fondů) */}
