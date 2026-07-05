@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 
 /* Mobilní navigace nového webu (hamburger + rozbalovací panel).
    Zobrazuje se jen na mobilu (md:hidden); na desktopu je viditelné klasické menu. */
@@ -40,6 +40,13 @@ export default function MobileMenu() {
             className="fixed inset-0 top-14 z-40 bg-slate-900/20"
           />
           <nav className="fixed left-0 right-0 top-14 z-50 border-b border-slate-200 bg-white shadow-lg">
+            {/* Hledání ETF – flagship akce, na mobilu jinde v hlavičce není */}
+            <form action="/srovnani" onSubmit={() => setOpen(false)} className="max-w-6xl mx-auto px-4 pt-3">
+              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 h-11 focus-within:border-teal-400 focus-within:bg-white transition-colors">
+                <Search className="w-4 h-4 text-slate-400 shrink-0" />
+                <input name="q" type="search" aria-label="Hledat ETF" placeholder="Hledat ETF (název, ISIN, ticker)…" className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none" />
+              </div>
+            </form>
             <ul className="max-w-6xl mx-auto px-4 py-2">
               {LINKS.map((l) => (
                 <li key={l.href}>
