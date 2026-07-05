@@ -110,8 +110,13 @@ export default async function SrovnaniScreenerPreview(
           </div>
         </section>
 
-        {/* Ukázkový souboj – featured */}
-        <section className="pb-6">
+        {/* SCREENER – hlavní obsah stránky (výpis fondů z databáze) */}
+        <section id="screener" className="scroll-mt-16">
+          <ScreenerUI etfs={etfs} initialQ={q ?? ''} />
+        </section>
+
+        {/* Ukázkový souboj – featured (až POD samotným výpisem fondů) */}
+        <section className="pt-8">
           <Link href="/design-preview/srovnani/vwce-vs-cspx" className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
             <span className="flex items-center gap-3">
               <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Swords className="w-4 h-4" /></span>
@@ -122,11 +127,6 @@ export default async function SrovnaniScreenerPreview(
             </span>
             <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-700 shrink-0" />
           </Link>
-        </section>
-
-        {/* SCREENER */}
-        <section id="screener" className="scroll-mt-16">
-          <ScreenerUI etfs={etfs} initialQ={q ?? ''} />
         </section>
 
         {/* Nejhledanější kategorie – prolink na žebříčky (interní linkbuilding + SEO) */}

@@ -13,7 +13,8 @@ const str = (v: unknown) => (v == null || v === '' ? null : String(v));
 const ter = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
 const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
 const pct1 = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %`);
-const money = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. €` : `${Math.round(v).toLocaleString('cs-CZ')} mil. €`);
+const curSym = (c: string | null) => (c === 'USD' ? '$' : c === 'GBP' ? '£' : c === 'CHF' ? 'CHF' : '€');
+const money = (v: number | null, cur: string | null = 'EUR') => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${curSym(cur)}` : `${Math.round(v).toLocaleString('cs-CZ')} mil. ${curSym(cur)}`);
 const isAcc = (p: string | null) => !/distribut/i.test(p || '');
 const replLabel = (r: string | null) => { const s = (r || '').toLowerCase(); if (s.includes('synth') || s.includes('swap')) return 'Syntetická (swap)'; if (s) return 'Fyzická'; return '—'; };
 const DOM: Record<string, string> = { Ireland: 'Irsko', Luxembourg: 'Lucembursko', Germany: 'Německo', France: 'Francie', Netherlands: 'Nizozemsko', Switzerland: 'Švýcarsko', 'United Kingdom': 'Spojené království' };
@@ -92,7 +93,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
       title: 'Poplatky a velikost',
       rows: [
         { label: 'Roční poplatek (TER)', cell: (e) => ter(num(e.ter_numeric)), best: (e) => num(e.ter_numeric) === bestLowTer },
-        { label: 'Velikost fondu', cell: (e) => money(num(e.fund_size_numeric)), best: (e) => num(e.fund_size_numeric) === bestSize && bestSize !== -Infinity },
+        { label: 'Velikost fondu', cell: (e) => money(num(e.fund_size_numeric), e.fund_currency), best: (e) => num(e.fund_size_numeric) === bestSize && bestSize !== -Infinity },
         { label: 'Počet firem v indexu', cell: (e) => e.total_holdings != null ? e.total_holdings.toLocaleString('cs-CZ') : '—' },
         { label: 'Stáří fondu', cell: (e) => age(e.inception_date) },
       ],

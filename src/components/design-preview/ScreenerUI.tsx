@@ -19,10 +19,13 @@ type SortDir = 'asc' | 'desc';
 const num = (v: number | null | undefined) => (v == null || Number.isNaN(v) ? null : Number(v));
 const ter = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
 const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
-const money = (v: number | null) => {
+const curSym = (c: string | null) => (c === 'USD' ? '$' : c === 'GBP' ? '£' : c === 'CHF' ? 'CHF' : '€');
+/** fund_size_numeric je v milionech MĚNY FONDU (justETF) → zobraz se symbolem té měny. */
+const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v == null) return '—';
-  if (v >= 1000) return `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. €`;
-  return `${Math.round(v).toLocaleString('cs-CZ')} mil. €`;
+  const s = curSym(cur);
+  if (v >= 1000) return `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${s}`;
+  return `${Math.round(v).toLocaleString('cs-CZ')} mil. ${s}`;
 };
 const isAcc = (p: string | null) => !/distribut/i.test(p || '');
 const replLabel = (r: string | null) => {
@@ -47,13 +50,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 /* Řaditelná hlavička sloupce. Stav řazení dostává propy, aby mohla zůstat mimo
    tělo komponenty (stabilní identita = žádný zbytečný remount hlavičky). */
-function SortH({ k, children, right, sortKey, sortDir, toggleSort }: {
-  k: SortKey; children: React.ReactNode; right?: boolean;
+function SortH({ k, children, right, tip, sortKey, sortDir, toggleSort }: {
+  k: SortKey; children: React.ReactNode; right?: boolean; tip?: string;
   sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
 }) {
   return (
     <th aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`py-2.5 px-3 font-medium ${right ? 'text-right' : 'text-left'}`}>
-      <button onClick={() => toggleSort(k)} aria-label={`Seřadit podle sloupce, aktuálně ${sortKey === k ? (sortDir === 'asc' ? 'vzestupně' : 'sestupně') : 'neseřazeno'}`} className={`inline-flex items-center gap-1 hover:text-teal-700 ${sortKey === k ? 'text-teal-700' : ''}`}>
+      <button onClick={() => toggleSort(k)} title={tip} aria-label={`${tip ? tip + '. ' : ''}Seřadit podle sloupce, aktuálně ${sortKey === k ? (sortDir === 'asc' ? 'vzestupně' : 'sestupně') : 'neseřazeno'}`} className={`inline-flex items-center gap-1 hover:text-teal-700 ${tip ? 'cursor-help decoration-dotted underline-offset-4 hover:underline' : ''} ${sortKey === k ? 'text-teal-700' : ''}`}>
         {children}
         {sortKey === k ? (sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-40" />}
       </button>
@@ -346,7 +349,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
             <Field label="Max. TER (%)">
               <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="např. 0,20" value={terMax} onChange={bumpN(setTerMax)} className={selCls} />
             </Field>
-            <Field label="Min. velikost (mil. €)">
+            <Field label="Min. velikost (mil.)">
               <input type="number" inputMode="numeric" step="10" min="0" placeholder="např. 500" value={sizeMin} onChange={bumpN(setSizeMin)} className={selCls} />
             </Field>
             <Field label="Min. dividendový výnos (%)">
@@ -371,13 +374,13 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
               <SortH k="name" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Fond</SortH>
-              <SortH k="ter" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>TER</SortH>
-              <SortH k="size" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Velikost</SortH>
-              <SortH k="ytd" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>YTD ({curLabel[cur]})</SortH>
-              <SortH k="r1" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>1R ({curLabel[cur]})</SortH>
-              <SortH k="r3" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>3R ({curLabel[cur]})</SortH>
-              <SortH k="div" right sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Div.</SortH>
-              <th className="py-2.5 px-3 font-medium text-center">Typ</th>
+              <SortH k="ter" right tip="TER (Total Expense Ratio) = celkový roční poplatek za správu fondu v procentech. Čím nižší, tím lépe – strhává se automaticky z hodnoty fondu." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>TER</SortH>
+              <SortH k="size" right tip="Velikost fondu = kolik peněz fond celkem spravuje (v měně fondu). Větší fond obvykle znamená lepší likviditu a nižší riziko zrušení." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Velikost</SortH>
+              <SortH k="ytd" right tip="YTD (Year To Date) = výnos od začátku letošního roku, přepočtený do zvolené měny." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>YTD ({curLabel[cur]})</SortH>
+              <SortH k="r1" right tip="Výnos za poslední 1 rok (kumulativně), přepočtený do zvolené měny." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>1R ({curLabel[cur]})</SortH>
+              <SortH k="r3" right tip="Výnos za poslední 3 roky (kumulativně, ne ročně), přepočtený do zvolené měny." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>3R ({curLabel[cur]})</SortH>
+              <SortH k="div" right tip="Dividendový výnos = roční dividenda vůči ceně fondu v procentech. U akumulačních fondů se dividendy reinvestují uvnitř." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Div.</SortH>
+              <th className="py-2.5 px-3 font-medium text-center" title="Typ výplaty: ACC (akumulační) = dividendy se reinvestují uvnitř fondu. DIST (distribuční) = dividendy se vyplácejí na účet.">Typ</th>
               <th className="py-2.5 px-3 font-medium text-center"><span className="sr-only">Porovnat</span></th>
             </tr>
           </thead>
@@ -395,7 +398,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
                   </span>
                 </td>
                 <td className="py-3 px-3 text-right tabular-nums font-medium text-slate-800">{ter(num(e.ter_numeric))}</td>
-                <td className="py-3 px-3 text-right tabular-nums text-slate-600">{money(num(e.fund_size_numeric))}</td>
+                <td className="py-3 px-3 text-right tabular-nums text-slate-600">{money(num(e.fund_size_numeric), e.fund_currency)}</td>
                 {(() => { const o = e as unknown as Record<string, unknown>; const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur); return (<>
                 <td className={`py-3 px-3 text-right tabular-nums ${(ytd ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ytd)}</td>
                 <td className={`py-3 px-3 text-right tabular-nums font-medium ${(r1 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r1)}</td>
