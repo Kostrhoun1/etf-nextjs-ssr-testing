@@ -140,7 +140,7 @@ export default async function PortfolioDetailPreview(
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/design-preview" className="flex items-center gap-2 font-semibold tracking-tight">
             <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
-            ETF průvodce
+            ETF průvodce.cz
           </Link>
           <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">

@@ -166,7 +166,7 @@ export default async function BrokerReviewPreview() {
             <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white">
               <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
             </span>
-            ETF průvodce
+            ETF průvodce.cz
           </Link>
           <MobileMenu />
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
