@@ -5,6 +5,7 @@ Formát: `[ ]` = čeká, `[~]` = rozpracováno, `[x]` = hotovo (přesuň dolů d
 udělá 1 increment, aktualizuje stav a přidá nově objevené položky.
 
 ## Teď (P0–P1)
+- ⛔ **REDAKČNÍ HRANICE (obsah):** autor Tomáš Kostrhoun je šéf spotřebitelských úvěrů v České spořitelně → ŽÁDNÁ kritika bank/bankovních produktů, NEPSAT o úvěrech/půjčkách/dluzích (konflikt zájmů). Inflaci/poplatky/nominál-vs-reál piš neutrálně. Platí pro všechny články.
 - [ ] **Seznam Medium = kanál dosahu + přímý funnel** — 4 dřívější články měly ~700 čtenářů PŘÍMO NA MEDIUM (ne prokliky k nám!). POZOR: odkazy z medium.seznam.cz jsou nejspíš nofollow → NENÍ to SEO backlink, ranky nezvedne. Jediná měřitelná hodnota k cíli = (a) přímý PROKLIK čtenáře na web + (b) brand/awareness (→ pozdější branded/direct hledání). Proto každý článek stojí a padá na síle prokliku: háček = náš interaktivní nástroj, který Medium neumí (srovnávač/kalkulačka/žebříček). Sledovat referral „medium.seznam.cz" v GA4. Zjistit témata 4 úspěšných článků → podobný duch, neduplikovat.
 - [~] **FIRE hub** `/design-preview/financni-nezavislost` — vlajková „míra úspor → roky do FIRE" (MMM), pak FIRE číslo, Coast FIRE, renta/bezpečný výběr, Barista. Diferenciátor = česká daňová specifika (časový test 2026, akumulační vs distribuční, proč Čech nemá US-domiciled ETF, DIP two-bucket). Podklad: rešerše v transcriptu + [[redesign-novy-web-stav]].
 - [ ] **SEO CTR homepage** — homepage má ~270 impresí a ~0 % CTR; přepsat `title`/`description` (číslo, rok, „v Kč", benefit), ať láká proklik.

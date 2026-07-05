@@ -17,7 +17,7 @@ Není to o tom, že by ETF byly špatná volba – naopak, pro dlouhodobého inv
 
 Každý ETF fond si účtuje roční poplatek za správu (TER). U těch nejlevnějších na americké nebo světové akcie začíná na 0,03–0,20 % ročně. Zní to jako nic. Ale je to procento z **celého** vašeho majetku, každý rok, i když trh padá.
 
-Na našem příkladu: při TER 0,2 % ročně se z oněch 387 000 Kč stane zhruba **373 000 Kč**. Čtrnáct tisíc pryč – jen za poplatky. A pozor: kdyby fond měl TER 1 % (což u aktivně řízených fondů a některých bankovních produktů není nic výjimečného), ztráta by za 20 let vylezla na desítky procent. Proto se vyplatí levný fond vybírat pečlivě – rozdíl mezi 0,1 % a 1 % jsou u dlouhodobého investování reálně statisíce.
+Na našem příkladu: při TER 0,2 % ročně se z oněch 387 000 Kč stane zhruba **373 000 Kč**. Čtrnáct tisíc pryč – jen za poplatky. A pozor: u dražších fondů se TER klidně vyšplhá k 1 % i výš – a pak by ztráta za 20 let vylezla na desítky procent. Proto se vyplatí poplatek u fondu hlídat: rozdíl mezi 0,1 % a 1 % ročně jsou u dlouhodobého investování reálně statisíce.
 
 ## 2. Daně – tady je naopak dobrá zpráva
 
@@ -35,7 +35,7 @@ A teď ten největší ukusovač. Vaše koruna za 20 let nekoupí to, co dnes. P
 
 Takže z těch 373 000 Kč, které vám po poplatcích a bez daní zbydou, je v **dnešní kupní síle** jen asi **206 000 Kč**. Pořád jste zhruba zdvojnásobili reálnou hodnotu vkladu – to je skvělý výsledek! – ale je to úplně jiný příběh než ono lákavé „387 tisíc" z kalkulačky.
 
-A přesně tohle je pointa: většina lidí porovnává **nominální** čísla (spořicí účet „2 %" vs. akcie „7 %") a nevidí, že se má porovnávat to, co reálně zůstane po daních a inflaci. Na spořicím účtu vám inflace ukusuje výnos rychleji, než ho stačíte získat. U akcií přes ETF vám i po odečtení všeho reálně **něco** naroste.
+A přesně tohle je pointa: většina lidí se dívá na **nominální** číslo a zapomíná, že se má počítat to, co reálně zůstane po daních a inflaci. Rozdíl mezi „vypadá to na 387 tisíc" a „reálně mám 206 tisíc" je přesně ta lekce, kterou si spousta investorů nikdy neudělá – a přitom rozhoduje o tom, jestli vaše peníze skutečně rostou, nebo jen zdánlivě.
 
 ## Kolik zůstane vám?
 
