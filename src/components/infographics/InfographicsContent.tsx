@@ -129,7 +129,7 @@ const InfographicCard: React.FC<InfographicProps> = ({ title, subtitle, children
         {/* Footer */}
         <div className="bg-gray-50 border-t border-gray-200 px-6 py-3 text-right">
           <div className="text-sm text-gray-600 font-medium">
-            Zdroj: www.etfpruvodce.cz
+            Zdroj: etfpruvodce.cz
           </div>
         </div>
       </div>

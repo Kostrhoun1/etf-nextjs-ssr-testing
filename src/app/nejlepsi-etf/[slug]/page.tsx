@@ -99,9 +99,9 @@ export default async function CategoryDetailPreview(
   const breadcrumbSchema = {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Žebříčky ETF', item: 'https://www.etfpruvodce.cz/nejlepsi-etf' },
-      { '@type': 'ListItem', position: 3, name: cfg.title, item: `https://www.etfpruvodce.cz/nejlepsi-etf/${slug}` },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Žebříčky ETF', item: 'https://etfpruvodce.cz/nejlepsi-etf' },
+      { '@type': 'ListItem', position: 3, name: cfg.title, item: `https://etfpruvodce.cz/nejlepsi-etf/${slug}` },
     ],
   };
 
@@ -109,7 +109,7 @@ export default async function CategoryDetailPreview(
     '@context': 'https://schema.org', '@type': 'ItemList', name: cfg.title,
     itemListElement: bySize.map((e, i) => ({
       '@type': 'ListItem', position: i + 1,
-      item: { '@type': 'FinancialProduct', name: shortName(e.name), identifier: e.isin, url: `https://www.etfpruvodce.cz/etf/${e.isin}` },
+      item: { '@type': 'FinancialProduct', name: shortName(e.name), identifier: e.isin, url: `https://etfpruvodce.cz/etf/${e.isin}` },
     })),
   } : null;
 

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     'Vyberte si hotové modelové portfolio z ETF – Permanentní, Nobelovo, Akciové, Ray Dalio a Dividendové. Reálné složení, konkrétní fondy (ISIN) a verdikt pro koho.',
 };
 
-const BASE = 'https://www.etfpruvodce.cz';
+const BASE = 'https://etfpruvodce.cz';
 
 // FAQ – znění synchronizované 1:1 se schématem níže.
 const FAQ: { q: string; a: string }[] = [

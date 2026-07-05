@@ -189,8 +189,8 @@ export default async function ZebrickyPage() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Žebříčky ETF', item: 'https://www.etfpruvodce.cz/nejlepsi-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Žebříčky ETF', item: 'https://etfpruvodce.cz/nejlepsi-etf' },
     ],
   };
 
@@ -207,7 +207,7 @@ export default async function ZebrickyPage() {
         '@type': 'ListItem',
         position: i + 1,
         name: c.title,
-        url: `https://www.etfpruvodce.cz${catHref(c.slug)}`,
+        url: `https://etfpruvodce.cz${catHref(c.slug)}`,
       })),
     })),
   };

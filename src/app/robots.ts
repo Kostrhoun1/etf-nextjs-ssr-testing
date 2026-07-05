@@ -15,6 +15,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://www.etfpruvodce.cz/sitemap.xml',
+    sitemap: 'https://etfpruvodce.cz/sitemap.xml',
   }
 }

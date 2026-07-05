@@ -19,7 +19,7 @@ export const revalidate = 86400;
 /* Pilot: VWCE vs CSPX. V produkci by ticker1/ticker2 přišly z URL slugu. */
 const TICKER1 = 'VWCE';
 const TICKER2 = 'CSPX';
-const CANONICAL = 'https://www.etfpruvodce.cz/srovnani-etf/vwce-vs-cspx';
+const CANONICAL = 'https://etfpruvodce.cz/srovnani-etf/vwce-vs-cspx';
 
 export const metadata: Metadata = {
   title: 'VWCE vs CSPX: srovnání 2026 a které ETF koupit',
@@ -62,8 +62,8 @@ export default async function SrovnaniPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Srovnání ETF', item: 'https://www.etfpruvodce.cz/srovnani-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Srovnání ETF', item: 'https://etfpruvodce.cz/srovnani-etf' },
       { '@type': 'ListItem', position: 3, name: `${t1} vs ${t2}`, item: CANONICAL },
     ],
   };

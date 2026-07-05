@@ -5,7 +5,7 @@ import { portfolioModels } from '@/components/design-preview/portfolioData';
 /* Dynamická sitemapa – jen INDEXOVATELNÉ produkční URL (root routy nového webu).
    Vynecháno záměrně: /etf/[isin] (noindex – tenký obsah), /broker, /srovnani/porovnani,
    /prehled (noindex). etf detaily otevřeme do indexace později. */
-const BASE = 'https://www.etfpruvodce.cz';
+const BASE = 'https://etfpruvodce.cz';
 const BROKERS = ['degiro', 'xtb', 'trading212', 'ibkr', 'fio', 'portu'];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -13,7 +13,7 @@ export function generateCanonicalMetadata(
   description: string,
   additionalMetadata?: Partial<Metadata>
 ): Metadata {
-  const baseUrl = 'https://www.etfpruvodce.cz';
+  const baseUrl = 'https://etfpruvodce.cz';
   const canonicalUrl = `${baseUrl}${path}`;
 
   return {

@@ -28,18 +28,7 @@ const nextConfig: NextConfig = {
         destination: '/:path*',
         permanent: true,
       },
-      // Redirect non-www to www
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'etfpruvodce.cz',
-          },
-        ],
-        destination: 'https://www.etfpruvodce.cz/:path*',
-        permanent: true,
-      },
+      // (www→apex řeší Vercel domény + middleware; kanonická doména je apex etfpruvodce.cz)
       // === CUTOVER: staré URL (starý web) → nové routy nového designu ===
       { source: '/srovnani-etf', destination: '/srovnani', permanent: true },
       { source: '/srovnani-etf/:pair', destination: '/srovnani/:pair', permanent: true },

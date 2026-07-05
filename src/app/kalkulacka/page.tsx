@@ -99,9 +99,9 @@ export default async function FeeCalculatorPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://www.etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Kalkulačka poplatků ETF', item: 'https://www.etfpruvodce.cz/kalkulacky/kalkulacka-poplatku-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
+      { '@type': 'ListItem', position: 3, name: 'Kalkulačka poplatků ETF', item: 'https://etfpruvodce.cz/kalkulacky/kalkulacka-poplatku-etf' },
     ],
   };
 

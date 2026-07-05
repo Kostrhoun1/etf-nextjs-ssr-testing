@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   title: 'Infografiky ETF: výkonnost, poplatky a tržní heatmapa | ETF průvodce',
   description:
     'Vizuální přehledy z dat ETF fondů — nejvýkonnější a nejlevnější fondy a tržní heatmapa sektorů a regionů. Výnosy přepočtené do korun.',
-  alternates: { canonical: 'https://www.etfpruvodce.cz/infografiky' },
+  alternates: { canonical: 'https://etfpruvodce.cz/infografiky' },
 };
 
 /* Regiony a sektory pro tržní heatmapu – reálná data z DB (top fond v kategorii). */
@@ -93,21 +93,21 @@ export default async function InfografikyRozcestnik() {
         position: 1,
         name: 'Nejvýkonnější ETF',
         description: 'Žebříček ETF podle výnosu za posledních 12 měsíců, přepočteno do korun.',
-        url: 'https://www.etfpruvodce.cz/nejlepsi-etf',
+        url: 'https://etfpruvodce.cz/nejlepsi-etf',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Nejlevnější ETF podle TER',
         description: 'Fondy s nejnižším ročním poplatkem za správu.',
-        url: 'https://www.etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf',
+        url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlevnejsi-etf',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: 'Tržní heatmapa',
         description: 'Barevná mapa výkonnosti regionů a sektorů.',
-        url: 'https://www.etfpruvodce.cz/infografiky#trzni-heatmapa',
+        url: 'https://etfpruvodce.cz/infografiky#trzni-heatmapa',
       },
     ],
   };
@@ -116,8 +116,8 @@ export default async function InfografikyRozcestnik() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Infografiky', item: 'https://www.etfpruvodce.cz/infografiky' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Infografiky', item: 'https://etfpruvodce.cz/infografiky' },
     ],
   };
 

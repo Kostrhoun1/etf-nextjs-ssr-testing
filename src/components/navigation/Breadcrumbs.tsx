@@ -59,13 +59,13 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, className = '' }) => {
                 "@type": "ListItem",
                 "position": 1,
                 "name": "Domů",
-                "item": "https://www.etfpruvodce.cz/"
+                "item": "https://etfpruvodce.cz/"
               },
               ...items.map((item, index) => ({
                 "@type": "ListItem",
                 "position": index + 2,
                 "name": item.label,
-                "item": item.href ? `https://www.etfpruvodce.cz${item.href}` : undefined
+                "item": item.href ? `https://etfpruvodce.cz${item.href}` : undefined
               }))
             ]
           })

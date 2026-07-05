@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://www.etfpruvodce.cz'),
+  metadataBase: new URL('https://etfpruvodce.cz'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'cs_CZ',
-    url: 'https://www.etfpruvodce.cz',
+    url: 'https://etfpruvodce.cz',
     siteName: 'ETF průvodce.cz',
     title: 'ETF průvodce.cz | Srovnání 4300+ ETF fondů',
     description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',

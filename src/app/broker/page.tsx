@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   description:
     `Nezávislá recenze DEGIRO ${YEAR} pro české investory. Hodnocení ${degiroOverall}/100, poplatky za ETF (1 EUR Core), 35% daň z CZ dividend a vratka, vklady v Kč a poctivé pro koho ANO/NE.`,
   robots: { index: false, follow: false },
-  alternates: { canonical: 'https://www.etfpruvodce.cz/recenze/degiro' },
+  alternates: { canonical: 'https://etfpruvodce.cz/recenze/degiro' },
 };
 
 export default async function BrokerReviewPreview() {
@@ -124,9 +124,9 @@ export default async function BrokerReviewPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Kde koupit ETF', item: 'https://www.etfpruvodce.cz/kde-koupit-etf' },
-      { '@type': 'ListItem', position: 3, name: 'Recenze DEGIRO', item: 'https://www.etfpruvodce.cz/degiro-recenze' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kde koupit ETF', item: 'https://etfpruvodce.cz/kde-koupit-etf' },
+      { '@type': 'ListItem', position: 3, name: 'Recenze DEGIRO', item: 'https://etfpruvodce.cz/degiro-recenze' },
     ],
   };
   const faqSchema = {

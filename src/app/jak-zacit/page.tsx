@@ -235,7 +235,7 @@ export default async function HowToStartPreview() {
       position: i + 1,
       name: s.title,
       text: stepPlainText(s.title),
-      url: `https://www.etfpruvodce.cz/jak-zacit-investovat-do-etf#krok-${i + 1}`,
+      url: `https://etfpruvodce.cz/jak-zacit-investovat-do-etf#krok-${i + 1}`,
     })),
   };
   const faqSchema = {
@@ -251,8 +251,8 @@ export default async function HowToStartPreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Jak začít investovat do ETF', item: 'https://www.etfpruvodce.cz/jak-zacit-investovat-do-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Jak začít investovat do ETF', item: 'https://etfpruvodce.cz/jak-zacit-investovat-do-etf' },
     ],
   };
 

@@ -9,13 +9,12 @@ function isISIN(str: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
-  // Redirect non-www to www POUZE pro ostrou doménu (apex).
-  // NEsmí platit pro vercel.app preview/deploy URL ani localhost –
-  // jinak by se preview přesměroval na neexistující www.<hash>.vercel.app.
+  // Kanonická doména = apex bez www (etfpruvodce.cz). www → apex.
+  // NEsmí platit pro vercel.app preview/deploy URL ani localhost.
   const host = request.headers.get('host');
-  if (host === 'etfpruvodce.cz') {
+  if (host === 'www.etfpruvodce.cz') {
     const newUrl = request.nextUrl.clone();
-    newUrl.host = 'www.etfpruvodce.cz';
+    newUrl.host = 'etfpruvodce.cz';
     return NextResponse.redirect(newUrl, 301);
   }
 
@@ -127,11 +126,10 @@ export async function middleware(request: NextRequest) {
   // This helps Google see consistent content
   response.headers.set('Vary', 'Accept-Encoding');
 
-  // CUTOVER: indexovat smí POUZE ostrá produkční doména. Vše ostatní
-  // (vercel.app preview/staging, localhost, apex před redirectem) dostane
-  // X-Robots-Tag: noindex – zabrání indexaci stagingu i po tom, co pro
-  // produkci sundáme per-page noindex z obsahových stránek.
-  if (host !== 'www.etfpruvodce.cz') {
+  // CUTOVER: indexovat smí POUZE ostrá produkční doména (apex etfpruvodce.cz).
+  // Vše ostatní (vercel.app preview/staging, localhost, www před redirectem)
+  // dostane X-Robots-Tag: noindex – zabrání indexaci stagingu.
+  if (host !== 'etfpruvodce.cz') {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }
 

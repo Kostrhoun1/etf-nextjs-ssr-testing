@@ -149,7 +149,7 @@ const MarketHeatmap: React.FC<MarketHeatmapProps> = ({ data }) => {
       <Card className="mb-8">
         <CardHeader className="text-center relative">
           <div className="absolute top-4 right-4 text-emerald-700 font-bold text-lg">
-            📊 www.etfpruvodce.cz
+            📊 etfpruvodce.cz
           </div>
           <div className="space-y-2">
             <div className="text-4xl font-black text-gray-900">

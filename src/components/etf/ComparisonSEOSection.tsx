@@ -2,7 +2,7 @@ import React from 'react';
 import type { ComparisonETF } from '@/lib/etf-data';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
-const SITE_URL = 'https://www.etfpruvodce.cz';
+const SITE_URL = 'https://etfpruvodce.cz';
 
 interface Props {
   etf1: ComparisonETF;

@@ -30,7 +30,7 @@ const TwitterVariant1: React.FC<TwitterVariantProps> = ({ title, subtitle, child
             {subtitle && <p className="text-white/90 text-xl mt-2">{subtitle}</p>}
           </div>
           <div className="text-right">
-            <div className="text-lg font-medium">www.etfpruvodce.cz</div>
+            <div className="text-lg font-medium">etfpruvodce.cz</div>
           </div>
         </div>
       </div>
@@ -66,7 +66,7 @@ const TwitterVariant2: React.FC<TwitterVariantProps> = ({ title, subtitle, child
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-medium text-violet-600">www.etfpruvodce.cz</div>
+            <div className="text-lg font-medium text-violet-600">etfpruvodce.cz</div>
           </div>
         </div>
       </div>
@@ -100,7 +100,7 @@ const TwitterVariant3: React.FC<TwitterVariantProps> = ({ title, subtitle, child
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-medium">www.etfpruvodce.cz</div>
+            <div className="text-lg font-medium">etfpruvodce.cz</div>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ const TwitterVariant4: React.FC<TwitterVariantProps> = ({ title, subtitle, child
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-medium text-violet-600">www.etfpruvodce.cz</div>
+            <div className="text-lg font-medium text-violet-600">etfpruvodce.cz</div>
           </div>
         </div>
       </div>
@@ -179,7 +179,7 @@ const TwitterVariant5: React.FC<TwitterVariantProps> = ({ title, subtitle, child
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-medium">www.etfpruvodce.cz</div>
+            <div className="text-lg font-medium">etfpruvodce.cz</div>
           </div>
         </div>
       </div>

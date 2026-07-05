@@ -171,11 +171,11 @@ export default async function GuidePreview() {
     '@type': 'Article',
     headline: 'Co jsou ETF? Průvodce pro začátečníky',
     description: metadata.description,
-    author: { '@type': 'Person', name: 'Tomáš Kostrhoun', url: 'https://www.etfpruvodce.cz/o-nas' },
+    author: { '@type': 'Person', name: 'Tomáš Kostrhoun', url: 'https://etfpruvodce.cz/o-nas' },
     publisher: { '@type': 'Organization', name: 'ETF průvodce.cz' },
     datePublished: '2025-01-01',
     dateModified: today.toISOString().slice(0, 10),
-    mainEntityOfPage: 'https://www.etfpruvodce.cz/co-jsou-etf',
+    mainEntityOfPage: 'https://etfpruvodce.cz/co-jsou-etf',
   };
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -190,8 +190,8 @@ export default async function GuidePreview() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Co jsou ETF', item: 'https://www.etfpruvodce.cz/co-jsou-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Co jsou ETF', item: 'https://etfpruvodce.cz/co-jsou-etf' },
     ],
   };
 

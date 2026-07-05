@@ -55,8 +55,8 @@ export default async function SrovnaniScreenerPreview(
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz' },
-      { '@type': 'ListItem', position: 2, name: 'Srovnávač ETF', item: 'https://www.etfpruvodce.cz/srovnani-etf' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz' },
+      { '@type': 'ListItem', position: 2, name: 'Srovnávač ETF', item: 'https://etfpruvodce.cz/srovnani-etf' },
     ],
   };
 

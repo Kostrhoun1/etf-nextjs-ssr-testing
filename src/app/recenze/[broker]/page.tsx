@@ -28,7 +28,7 @@ export async function generateMetadata(
   return {
     title: `${b.name} recenze ${new Date().getFullYear()} – poplatky, ETF, daně | ETF průvodce`,
     description: `Recenze brokera ${b.name} pro investování do ETF: poplatky za nákup, konverze měn, zdanění dividend, ochrana prostředků a pro koho se hodí.`,
-    alternates: { canonical: `https://www.etfpruvodce.cz/recenze/${b.id}` },
+    alternates: { canonical: `https://etfpruvodce.cz/recenze/${b.id}` },
   };
 }
 

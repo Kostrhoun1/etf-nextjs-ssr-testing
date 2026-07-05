@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 // JSON-LD: Person (autor) + Organization (web s founder = ten Person).
 const PERSON = {
   '@type': 'Person',
-  '@id': 'https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun',
+  '@id': 'https://etfpruvodce.cz/o-nas#tomas-kostrhoun',
   name: 'Tomáš Kostrhoun',
   jobTitle: 'Zakladatel a autor',
   description:
@@ -38,9 +38,9 @@ const PERSON = {
 const ORGANIZATION = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  '@id': 'https://www.etfpruvodce.cz/#organization',
+  '@id': 'https://etfpruvodce.cz/#organization',
   name: 'ETF průvodce.cz',
-  url: 'https://www.etfpruvodce.cz',
+  url: 'https://etfpruvodce.cz',
   description:
     'Největší srovnávač ETF pro české investory – nezávislá data 4 300+ fondů s výnosy přepočtenými do korun.',
   founder: PERSON,

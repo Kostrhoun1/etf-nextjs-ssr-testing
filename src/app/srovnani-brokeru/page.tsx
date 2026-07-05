@@ -110,9 +110,9 @@ export default async function SrovnaniBrokeruPage() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Kde koupit ETF', item: 'https://www.etfpruvodce.cz/kde-koupit-etf' },
-      { '@type': 'ListItem', position: 3, name: 'Srovnání brokerů pro ETF 2026', item: 'https://www.etfpruvodce.cz/srovnani-brokeru' },
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kde koupit ETF', item: 'https://etfpruvodce.cz/kde-koupit-etf' },
+      { '@type': 'ListItem', position: 3, name: 'Srovnání brokerů pro ETF 2026', item: 'https://etfpruvodce.cz/srovnani-brokeru' },
     ],
   };
 
@@ -124,7 +124,7 @@ export default async function SrovnaniBrokeruPage() {
       '@type': 'ListItem',
       position: i + 1,
       name: b.name,
-      url: `https://www.etfpruvodce.cz${reviewHref[b.id]}`,
+      url: `https://etfpruvodce.cz${reviewHref[b.id]}`,
     })),
   };
 
