@@ -241,11 +241,11 @@ export default async function DesignPreviewV2() {
                   Nezávislá data {totalCount.toLocaleString('cs-CZ')}+ fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2.5">
-                  <Link href="/design-preview/vyber-etf" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
-                    <Sparkles className="w-4 h-4" /> Poradíme, který ETF
+                  <Link href="/design-preview/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+                    <LayoutGrid className="w-4 h-4" /> Prozkoumat všechny fondy
                   </Link>
-                  <Link href="/design-preview/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                    Porovnat fondy <ArrowRight className="w-4 h-4" />
+                  <Link href="/design-preview/vyber-etf" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                    <Sparkles className="w-4 h-4" /> Nevíš který? Poradíme
                   </Link>
                   <Link href="/design-preview/pruvodce" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                     <BookOpen className="w-4 h-4" /> Průvodce pro začátečníky
@@ -296,15 +296,23 @@ export default async function DesignPreviewV2() {
 
         {/* 3. DATOVÉ PANELY */}
         <section className="pb-8">
-          <div className="mb-4">
-            <h2 className="text-lg font-bold tracking-tight">Rychlý přehled fondů</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější ETF na jeden pohled.</p>
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">Rychlý přehled fondů</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější ETF na jeden pohled.</p>
+            </div>
+            <Link href="/design-preview/srovnani" className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+              Filtrovat všechny fondy <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
-            <DataPanel title="Největší fondy" href="/design-preview/zebricky" etfs={featured.bySize || []} metric="size" />
-            <DataPanel title="Nejvýkonnější (1R)" href="/design-preview/zebricky" etfs={featured.byPerformance || []} metric="return" />
+            <DataPanel title="Největší fondy" href="/design-preview/srovnani" etfs={featured.bySize || []} metric="size" />
+            <DataPanel title="Nejvýkonnější (1R)" href="/design-preview/srovnani" etfs={featured.byPerformance || []} metric="return" />
             <DataPanel title="Nejlevnější (TER)" href="/design-preview/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
           </div>
+          <Link href="/design-preview/srovnani" className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm font-semibold text-teal-800 hover:bg-teal-50 hover:border-teal-300 transition-colors">
+            <LayoutGrid className="w-4 h-4" /> Prozkoumat a filtrovat všech {totalCount.toLocaleString('cs-CZ')}+ fondů <ArrowRight className="w-4 h-4" />
+          </Link>
         </section>
 
         {/* 4. KTERÝM ETF ZAČÍT – konkrétní odpověď s reálnými daty */}
