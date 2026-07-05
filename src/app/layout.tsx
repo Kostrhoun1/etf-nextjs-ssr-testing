@@ -85,7 +85,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="cs" className={`${inter.variable} overflow-x-hidden`}>
+    <html lang="cs" className={`${inter.variable} overflow-x-clip`}>
       <head>
         <link rel="dns-prefetch" href="https://nbhwnatadyubiuadfakx.supabase.co" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
@@ -99,7 +99,7 @@ export default function RootLayout({
         {/* Author & Organization Schema - E-E-A-T signals for Google */}
         <AuthorSchema />
       </head>
-      <body className={`${inter.className} antialiased overflow-x-hidden`}>
+      <body className={`${inter.className} antialiased overflow-x-clip`}>
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
         <CurrencyProvider>
           {children}
