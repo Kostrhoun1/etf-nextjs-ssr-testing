@@ -242,6 +242,9 @@ export default async function DesignPreviewV2() {
                 <p className="mt-2.5 text-slate-300 text-sm md:text-base leading-relaxed">
                   Nezávislá data {totalCount.toLocaleString('cs-CZ')}+ fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.
                 </p>
+                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-medium text-emerald-300">
+                  <ShieldCheck className="w-3.5 h-3.5" /> 100% nezávislý a nekomerční — žádné provize, žádná reklama
+                </p>
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   <Link href="/design-preview/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
                     <LayoutGrid className="w-4 h-4" /> Prozkoumat všechny fondy
