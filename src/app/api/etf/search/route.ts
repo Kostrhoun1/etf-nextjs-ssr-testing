@@ -53,8 +53,9 @@ export async function GET(request: NextRequest) {
       return 0;
     };
 
-    const ranked = (data ?? [])
-      .map((row) => ({ row, s: score(row as Record<string, unknown>) }))
+    const rows = (data ?? []) as unknown as Record<string, unknown>[];
+    const ranked = rows
+      .map((row) => ({ row, s: score(row) }))
       .sort((a, b) => b.s - a.s || (Number(b.row.fund_size_numeric) || 0) - (Number(a.row.fund_size_numeric) || 0))
       .slice(0, 8)
       .map(({ row }) => ({
