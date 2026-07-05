@@ -137,7 +137,7 @@ export default async function PairComparePage(
   });
   if (sizeW) faqs.push({
     q: `Který fond je větší a likvidnější?`,
-    a: `Větší je ${tkOf(sizeW)} se spravovaným majetkem ${money(sizeW.fund_size_numeric)} (druhý ${money((sizeW === etf1 ? etf2 : etf1).fund_size_numeric)}). Větší fond obvykle znamená lepší likviditu a nižší riziko zrušení.`,
+    a: `Větší je ${tkOf(sizeW)} se spravovaným majetkem ${money(sizeW.fund_size_numeric, sizeW.fund_currency)} (druhý ${money((sizeW === etf1 ? etf2 : etf1).fund_size_numeric, (sizeW === etf1 ? etf2 : etf1).fund_currency)}). Větší fond obvykle znamená lepší likviditu a nižší riziko zrušení.`,
   });
   faqs.push({
     q: `Jak se zdaní zisk z ${tk1} nebo ${tk2} v Česku?`,
@@ -201,7 +201,7 @@ export default async function PairComparePage(
             <p className="mt-1 text-sm text-slate-500">Z reálných dat obou fondů. „Lepší" závisí na tom, co hledáte.</p></div>
           <div className="grid gap-3 sm:grid-cols-2">
             {terW && <WinRow icon={Coins} label="Nižší poplatek (TER)" winner={tkOf(terW)!} detail={`${ter(terW.ter_numeric)} vs ${ter((terW === etf1 ? etf2 : etf1).ter_numeric)}`} />}
-            {sizeW && <WinRow icon={Landmark} label="Větší fond (likvidita)" winner={tkOf(sizeW)!} detail={`${money(sizeW.fund_size_numeric)} spravovaného majetku`} />}
+            {sizeW && <WinRow icon={Landmark} label="Větší fond (likvidita)" winner={tkOf(sizeW)!} detail={`${money(sizeW.fund_size_numeric, sizeW.fund_currency)} spravovaného majetku`} />}
             {r3W && <WinRow icon={Trophy} label="Vyšší výnos 3 roky (Kč)" winner={tkOf(r3W)!} detail={`${pct(r3W.return_3y_czk)} v korunách za 3 roky`} />}
             {divW && <WinRow icon={Layers} label="Širší diverzifikace" winner={tkOf(divW)!} detail={`drží ${divW.total_holdings?.toLocaleString('cs-CZ')} firem`} />}
           </div>

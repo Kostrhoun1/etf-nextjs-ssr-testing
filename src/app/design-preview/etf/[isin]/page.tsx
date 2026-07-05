@@ -15,6 +15,7 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import CompareButton from '@/components/design-preview/CompareButton';
 import EtfReturns from '@/components/design-preview/EtfReturns';
+import EtfCalendarReturns, { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -56,11 +57,12 @@ const pct = (v: number | null | undefined) => {
   return `${n > 0 ? '+' : ''}${s} %`;
 };
 
-/** fund_size_numeric je v milionech měny → hezky na mld./mil. */
-const money = (v: number | null | undefined, cur = 'EUR') => {
+/** Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Ověřeno proti justETF. */
+const curSym = (_c?: string | null) => '€';
+const money = (v: number | null | undefined, cur: string | null = 'EUR') => {
   const n = num(v);
   if (n == null) return '—';
-  const sym = cur === 'EUR' ? '€' : cur === 'USD' ? '$' : cur;
+  const sym = curSym(cur);
   if (n >= 1000) {
     const mld = n / 1000;
     return `${mld.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${sym}`;
@@ -212,11 +214,38 @@ export default async function ETFDetailPreview(
   const dd5 = num(etf.max_drawdown_5y);
   const sharpe = num(r.return_per_risk_1y as number);
 
-  // roční (kalendářní) výnosy – v měně fondu (CZK přepočet u ročních v DB není)
-  const calYears = [2021, 2022, 2023, 2024, 2025]
-    .map((y) => ({ y, v: num(r[`return_${y}`] as number) }))
-    .filter((x) => x.v != null);
-  const calMax = Math.max(...calYears.map((x) => Math.abs(x.v ?? 0)), 1);
+  // roční (kalendářní) výnosy – měnově citlivé (return_<rok>_czk/_usd v DB jsou)
+  const currentYear = today.getFullYear();
+  const calCols: CalCol[] = [2021, 2022, 2023, 2024, 2025]
+    .map((y) => ({
+      year: y,
+      vals: {
+        EUR: num(r[`return_${y}`] as number),
+        CZK: num(r[`return_${y}_czk`] as number) ?? num(r[`return_${y}`] as number),
+        USD: num(r[`return_${y}_usd`] as number) ?? num(r[`return_${y}`] as number),
+      },
+    }))
+    .filter((c) => c.vals.EUR != null || c.vals.CZK != null || c.vals.USD != null);
+  // letošní rok (YTD) jako poslední, viditelně odlišený sloupec
+  const ytdCol: CalCol = {
+    year: currentYear,
+    ytd: true,
+    vals: {
+      EUR: num(r.return_ytd as number),
+      CZK: num(r.return_ytd_czk as number) ?? num(r.return_ytd as number),
+      USD: num(r.return_ytd_usd as number) ?? num(r.return_ytd as number),
+    },
+  };
+  const hasYtd = ytdCol.vals.EUR != null || ytdCol.vals.CZK != null || ytdCol.vals.USD != null;
+  const calCols2 = hasYtd ? [...calCols, ytdCol] : calCols;
+
+  // krátká období (v měně fondu) + kolísavost pro výnosovou sekci
+  const shortPeriods = {
+    m1: num(r.return_1m as number),
+    m3: num(r.return_3m as number),
+    m6: num(r.return_6m as number),
+  };
+  const volForReturns = { v3: vol3, v5: vol5 };
 
   // burzy / listingy – kde a v jaké měně se obchoduje
   const exchanges = Array.from({ length: 10 }, (_, i) => ({
@@ -352,7 +381,7 @@ export default async function ETFDetailPreview(
                 {/* Klíčové štítky / fakta */}
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Badge icon={Percent}>TER {ter(etf.ter_numeric)}</Badge>
-                  <Badge icon={Scale}>{money(etf.fund_size_numeric, etf.fund_size_currency)}</Badge>
+                  <Badge icon={Scale}>{money(etf.fund_size_numeric, etf.fund_currency)}</Badge>
                   <Badge icon={Coins}>{distText}</Badge>
                   <Badge icon={Layers}>{replText}</Badge>
                   <Badge icon={Landmark}>Domicil {domText}</Badge>
@@ -378,30 +407,14 @@ export default async function ETFDetailPreview(
             title="Výkonnost fondu"
             desc="Kolik fond reálně vydělal – přepněte měnu podle toho, jak to pocítíte na účtu. Kč zahrnuje pohyb kurzu (bez daní a poplatků brokera)."
           />
-          <EtfReturns byCur={returnsByCur} fundCurrency={etf.fund_currency} />
+          <EtfReturns byCur={returnsByCur} fundCurrency={etf.fund_currency} short={shortPeriods} vol={volForReturns} />
         </section>
 
-        {/* VÝNOS PO KALENDÁŘNÍCH LETECH */}
-        {calYears.length > 0 && (
+        {/* VÝNOS PO KALENDÁŘNÍCH LETECH (+ letošní YTD, měnově citlivé) */}
+        {calCols2.length > 0 && (
           <section className="pb-10">
-            <SectionHead title="Výnos po jednotlivých letech" desc="Roční výkonnost fondu v měně fondu. Ukazuje, jak rozdílné jednotlivé roky na trhu byly – ne každý je růstový." />
-            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-              <div className="grid grid-cols-5 gap-2 sm:gap-4">
-                {calYears.map(({ y, v }) => {
-                  const pos = (v ?? 0) >= 0;
-                  const h = Math.round((Math.abs(v ?? 0) / calMax) * 64) + 4;
-                  return (
-                    <div key={y} className="flex flex-col items-center">
-                      <span className={`text-xs sm:text-sm font-bold tabular-nums ${pos ? 'text-emerald-600' : 'text-red-600'}`}>{pct(v)}</span>
-                      <div className="mt-2 flex items-end" style={{ height: 68 }}>
-                        <div className={`w-7 sm:w-9 rounded-t ${pos ? 'bg-emerald-500' : 'bg-red-500'}`} style={{ height: `${h}px` }} />
-                      </div>
-                      <span className="mt-1 text-xs text-slate-400 tabular-nums">{y}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <SectionHead title="Výnos po jednotlivých letech" desc="Roční výkonnost fondu včetně letošního roku (YTD). Ukazuje, jak rozdílné jednotlivé roky na trhu byly – ne každý je růstový. Přepněte měnu pro reálný dopad kurzu." />
+            <EtfCalendarReturns cols={calCols2} />
           </section>
         )}
 
@@ -415,7 +428,7 @@ export default async function ETFDetailPreview(
               <tbody className="divide-y divide-slate-100">
                 {([
                   [<InfoTip key="ter" label="Total Expense Ratio – roční poplatek za správu fondu, strhává se průběžně z hodnoty investice.">Roční poplatek (TER)</InfoTip>, ter(etf.ter_numeric)],
-                  ['Velikost fondu', money(etf.fund_size_numeric, etf.fund_size_currency)],
+                  ['Velikost fondu', money(etf.fund_size_numeric, etf.fund_currency)],
                   [<InfoTip key="dist" label="Akumulační fond dividendy reinvestuje uvnitř (na účet nic nechodí, vhodné pro růst); distribuční je vyplácí na účet.">Distribuční politika</InfoTip>, `${distText}${isAcc ? ' (reinvestuje dividendy)' : ' (vyplácí dividendy)'}`],
                   ...(!isAcc ? [[<InfoTip key="dy" label="Dividendový výnos – kolik fond za rok vyplatil na dividendách vůči své ceně.">Dividendový výnos</InfoTip>, divYield != null ? pct(divYield).replace('+', '') : '—'] as [React.ReactNode, React.ReactNode]] : []),
                   [<InfoTip key="rep" label="Fyzická replikace = fond reálně nakupuje akcie z indexu (bez protistranového rizika); syntetická používá swap.">Replikace</InfoTip>, replText],
@@ -438,7 +451,7 @@ export default async function ETFDetailPreview(
           <div className="md:hidden grid grid-cols-2 gap-2.5">
             {([
               [<InfoTip key="t" label="Roční poplatek za správu fondu, strhává se průběžně z hodnoty.">TER</InfoTip>, ter(etf.ter_numeric)],
-              ['Velikost', money(etf.fund_size_numeric, etf.fund_size_currency)],
+              ['Velikost', money(etf.fund_size_numeric, etf.fund_currency)],
               ['Politika', distText],
               ['Replikace', replText.split(' ')[0]],
               ['Domicil', domText],
@@ -636,7 +649,7 @@ export default async function ETFDetailPreview(
             {[
               {
                 q: `Je ${ticker} (${shortName}) vhodný pro dlouhodobé investování?`,
-                a: `Je to ${distText.toLowerCase()} fond sledující index ${etf.index_name} s ${replText.toLowerCase()} replikací. Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_size_currency)}, roční poplatek ${ter(etf.ter_numeric)} a sídlo v ${domText}. ${isAcc ? 'Akumulační politika a nízké náklady z něj dělají praktickou volbu pro dlouhodobé pasivní investory.' : 'Distribuční politika se hodí těm, kdo chtějí z investice pravidelný příjem.'} Vhodnost pro vás ale závisí na vašem cíli a horizontu.`,
+                a: `Je to ${distText.toLowerCase()} fond sledující index ${etf.index_name} s ${replText.toLowerCase()} replikací. Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_currency)}, roční poplatek ${ter(etf.ter_numeric)} a sídlo v ${domText}. ${isAcc ? 'Akumulační politika a nízké náklady z něj dělají praktickou volbu pro dlouhodobé pasivní investory.' : 'Distribuční politika se hodí těm, kdo chtějí z investice pravidelný příjem.'} Vhodnost pro vás ale závisí na vašem cíli a horizontu.`,
               },
               {
                 q: 'Vyplácí tento fond dividendy?',

@@ -13,7 +13,10 @@ const str = (v: unknown) => (v == null || v === '' ? null : String(v));
 const ter = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
 const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
 const pct1 = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %`);
-const curSym = (c: string | null) => (c === 'USD' ? '$' : c === 'GBP' ? '£' : c === 'CHF' ? 'CHF' : '€');
+/* POZOR: velikost fondu (fund_size_numeric) se z justETF stahuje VŽDY v EUR
+   (standardizováno kvůli srovnatelnosti), i u USD/GBP tříd. Proto vždy €.
+   Ověřeno proti justETF: CSPX = EUR 131 612 mil., SWDA = EUR 123 901 mil. */
+const curSym = (_c?: string | null) => '€';
 const money = (v: number | null, cur: string | null = 'EUR') => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${curSym(cur)}` : `${Math.round(v).toLocaleString('cs-CZ')} mil. ${curSym(cur)}`);
 const isAcc = (p: string | null) => !/distribut/i.test(p || '');
 const replLabel = (r: string | null) => { const s = (r || '').toLowerCase(); if (s.includes('synth') || s.includes('swap')) return 'Syntetická (swap)'; if (s) return 'Fyzická'; return '—'; };

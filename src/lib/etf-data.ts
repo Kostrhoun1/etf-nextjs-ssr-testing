@@ -43,6 +43,7 @@ export interface ETFBasicInfo {
   distribution_policy: string | null;
   replication: string | null;
   fund_domicile: string | null;
+  fund_currency: string | null;
 }
 
 export interface CategoryConfig {
@@ -89,7 +90,8 @@ const ETF_SELECT_FIELDS = `
   category,
   distribution_policy,
   replication,
-  fund_domicile
+  fund_domicile,
+  fund_currency
 `;
 
 /**
@@ -171,6 +173,85 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
   } catch (error) {
     console.error(`Error in getTopETFsForCategory for ${config.slug}:`, error);
     return [];
+  }
+}
+
+/* ---------- Složení vlajkového fondu (pro infografiku kategorie) ---------- */
+
+export interface CompositionSlice {
+  name: string;
+  weight: number;
+}
+
+export interface FlagshipComposition {
+  isin: string;
+  name: string;
+  totalHoldings: number | null;
+  countries: CompositionSlice[];
+  sectors: CompositionSlice[];
+  holdings: CompositionSlice[];
+}
+
+const COMPOSITION_FIELDS = `
+  isin, name, total_holdings,
+  country_1_name, country_1_weight, country_2_name, country_2_weight,
+  country_3_name, country_3_weight, country_4_name, country_4_weight, country_5_name, country_5_weight,
+  sector_1_name, sector_1_weight, sector_2_name, sector_2_weight,
+  sector_3_name, sector_3_weight, sector_4_name, sector_4_weight, sector_5_name, sector_5_weight,
+  holding_1_name, holding_1_weight, holding_2_name, holding_2_weight, holding_3_name, holding_3_weight,
+  holding_4_name, holding_4_weight, holding_5_name, holding_5_weight, holding_6_name, holding_6_weight,
+  holding_7_name, holding_7_weight, holding_8_name, holding_8_weight, holding_9_name, holding_9_weight,
+  holding_10_name, holding_10_weight
+`;
+
+/**
+ * Vytáhne z řady polí name/weight (číslované 1..n) čisté segmenty:
+ * vynechá prázdné názvy a nulové/neplatné váhy. Data v etf_funds jsou
+ * „špinavá" – komoditní/zlaté ETC mají prázdné řetězce a váhu „0".
+ */
+function extractSlices(
+  row: Record<string, unknown>,
+  prefix: string,
+  count: number,
+): CompositionSlice[] {
+  const out: CompositionSlice[] = [];
+  for (let i = 1; i <= count; i++) {
+    const rawName = row[`${prefix}_${i}_name`];
+    const rawWeight = row[`${prefix}_${i}_weight`];
+    const name = typeof rawName === 'string' ? rawName.trim() : '';
+    const weight = rawWeight != null ? Number(rawWeight) : NaN;
+    if (!name || !Number.isFinite(weight) || weight <= 0) continue;
+    out.push({ name, weight });
+  }
+  return out;
+}
+
+/**
+ * Načte složení jednoho (vlajkového) fondu pro infografiku kategorie.
+ * Vrací země, sektory a top pozice; každou dimenzi zvlášť, ať si šablona
+ * vybere tu nejvýstižnější podle typu kategorie a dostupnosti dat.
+ */
+export async function getFlagshipComposition(isin: string): Promise<FlagshipComposition | null> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select(COMPOSITION_FIELDS)
+      .eq('isin', isin)
+      .limit(1)
+      .single();
+    if (error || !data) return null;
+    const row = data as Record<string, unknown>;
+    return {
+      isin,
+      name: (row.name as string) ?? '',
+      totalHoldings: row.total_holdings != null ? Number(row.total_holdings) : null,
+      countries: extractSlices(row, 'country', 5),
+      sectors: extractSlices(row, 'sector', 5),
+      holdings: extractSlices(row, 'holding', 10),
+    };
+  } catch (e) {
+    console.error('Error in getFlagshipComposition:', e);
+    return null;
   }
 }
 

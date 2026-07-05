@@ -19,7 +19,8 @@ type SortDir = 'asc' | 'desc';
 const num = (v: number | null | undefined) => (v == null || Number.isNaN(v) ? null : Number(v));
 const ter = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
 const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
-const curSym = (c: string | null) => (c === 'USD' ? '$' : c === 'GBP' ? '£' : c === 'CHF' ? 'CHF' : '€');
+/* Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Viz PorovnaniTable. */
+const curSym = (_c?: string | null) => '€';
 /** fund_size_numeric je v milionech MĚNY FONDU (justETF) → zobraz se symbolem té měny. */
 const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v == null) return '—';

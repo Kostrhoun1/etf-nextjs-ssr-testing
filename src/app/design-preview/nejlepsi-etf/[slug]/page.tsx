@@ -4,11 +4,11 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import { notFound } from 'next/navigation';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
-  TrendingUp, ArrowRight, ArrowLeft, Trophy, Coins, ShieldCheck, AlertTriangle,
-  CalendarDays, Database, HelpCircle, Wallet, BookOpen,
+  TrendingUp, ArrowRight, ArrowLeft, Trophy, Coins, AlertTriangle,
+  CalendarDays, Database, HelpCircle, Wallet, BookOpen, ChevronDown,
 } from 'lucide-react';
-import { getTopETFsForCategory, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
-import { ter, money, pct, shortName, RankPanel, SectionHead } from '@/components/design-preview/CategoryUI';
+import { getTopETFsForCategory, getFlagshipComposition, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
+import { ter, money, pct, shortName, RankPanel, SectionHead, CompositionInfographic } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent } from '@/components/design-preview/categoryContent';
 import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
@@ -17,6 +17,23 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
+
+/**
+ * Kterou dimenzi složení preferovat v infografice podle typu kategorie.
+ * Sektorové/tematické kategorie ukážou top pozice (co konkrétně držíte),
+ * ostatní geografické rozložení. Fallback řeší sama komponenta.
+ */
+function preferredDimension(slug: string): 'country' | 'sector' | 'holding' {
+  const holdingFirst = [
+    'technologicke', 'ai-', 'nasdaq', 'cloud', 'robotika', 'kyberbezpecnost',
+    'healthcare', 'biotechnologie', 'financni', 'energeticke', 'prumyslove',
+    'spotrebitelske', 'infrastrukturni', 'defense', 'clean-energy',
+    'obnovitelne', 'realitni', 'nemovitostni', 'value', 'growth', 'small-cap',
+    'dividendove', 'ai-etf', 'kyber',
+  ];
+  if (holdingFirst.some((k) => slug.includes(k))) return 'holding';
+  return 'country';
+}
 
 export function generateStaticParams() {
   return Object.keys(categoryConfigs).map((slug) => ({ slug }));
@@ -53,6 +70,11 @@ export default async function CategoryDetailPreview(
   const byTer = [...etfs].filter((e) => e.ter_numeric != null && e.ter_numeric > 0).sort((a, b) => (a.ter_numeric! - b.ter_numeric!)).slice(0, 5);
   const bySize = [...etfs].filter((e) => e.fund_size_numeric != null).sort((a, b) => (b.fund_size_numeric! - a.fund_size_numeric!)).slice(0, 5);
   const byPerf = [...etfs].filter((e) => e.return_1y_czk != null).sort((a, b) => (b.return_1y_czk! - a.return_1y_czk!)).slice(0, 5);
+
+  // Infografika „co v tom je" – složení vlajkového (největšího) fondu kategorie.
+  const flagship = bySize[0];
+  const composition = flagship ? await getFlagshipComposition(flagship.isin) : null;
+  const prefer = preferredDimension(slug);
 
   const row = (e: ETFBasicInfo, value: React.ReactNode) => ({ isin: e.isin, label: shortName(e.name), sub: e.primary_ticker ?? undefined, value });
 
@@ -124,28 +146,34 @@ export default async function CategoryDetailPreview(
           <span className="text-slate-700">{cfg.title}</span>
         </nav>
 
-        {/* HERO */}
+        {/* HERO – krátký lead + infografika vedle sebe (odlehčený úvod) */}
         <section className="pb-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">{cfg.title}</h1>
-            <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">{cfg.description}</p>
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> {etfs.length} fondů v kategorii</span>
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
-              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
+          <div className="grid gap-4 lg:grid-cols-5 lg:items-start">
+            {/* Lead */}
+            <div className="lg:col-span-2 rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-8">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">{cfg.title}</h1>
+              <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">{cfg.description}</p>
+              <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
+                <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> {etfs.length} fondů</span>
+                <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> {dateStr}</span>
+                <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
+              </div>
+            </div>
+
+            {/* Infografika „co v tom je" – hned nahoře, ať to ožije */}
+            <div className="lg:col-span-3">
+              {composition ? (
+                <CompositionInfographic comp={composition} prefer={prefer} fundLabel={flagship ? shortName(flagship.name) : undefined} />
+              ) : (
+                <div className="h-full rounded-2xl border border-slate-200 bg-white p-6 flex items-center">
+                  <div className="space-y-3 text-sm md:text-[15px] text-slate-700 leading-relaxed">
+                    {content?.intro[0] && <p>{content.intro[0]}</p>}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
-
-        {/* INTRO – co kategorie je (redakční obsah) */}
-        {content && (
-          <section className="pb-8">
-            <SectionHead title={content.introTitle} />
-            <div className="space-y-3 text-sm md:text-[15px] text-slate-700 leading-relaxed max-w-3xl">
-              {content.intro.map((p, i) => <p key={i}>{p}</p>)}
-            </div>
-          </section>
-        )}
 
         {/* NAŠE DOPORUČENÉ ETF – grafické, proklikávací */}
         {recos.length > 0 && (
@@ -170,24 +198,12 @@ export default async function CategoryDetailPreview(
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs">
                       <span className="text-slate-500">TER <span className="font-semibold text-slate-800 tabular-nums">{ter(etf.ter_numeric)}</span></span>
                       <span className="text-slate-500">1R <ReturnValue etf={etf} period="1y" className="font-semibold" /></span>
-                      <span className="text-slate-500">Velikost <span className="font-semibold text-slate-800 tabular-nums">{money(etf.fund_size_numeric)}</span></span>
+                      <span className="text-slate-500">Velikost <span className="font-semibold text-slate-800 tabular-nums">{money(etf.fund_size_numeric, etf.fund_currency)}</span></span>
                     </div>
                     <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Detail fondu <ArrowRight className="w-4 h-4" /></span>
                   </Link>
                 </div>
               ))}
-            </div>
-          </section>
-        )}
-
-        {/* VERDIKT – proč (text) */}
-        {content && content.verdict.length > 0 && (
-          <section className="pb-8">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-700 mb-2"><Trophy className="w-4 h-4" /> Proč právě tyto fondy</p>
-              <div className="space-y-2 text-sm text-slate-700 leading-relaxed max-w-3xl">
-                {content.verdict.map((p, i) => <p key={i}>{p}</p>)}
-              </div>
             </div>
           </section>
         )}
@@ -201,17 +217,50 @@ export default async function CategoryDetailPreview(
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               {byTer.length > 0 && <RankPanel title="Nejlevnější (TER)" subtitle="Roční poplatek za správu" rows={byTer.map((e) => row(e, <span className="tabular-nums text-sm font-medium text-slate-700">{ter(e.ter_numeric)}</span>))} />}
-              {bySize.length > 0 && <RankPanel title="Největší (AUM)" subtitle="Velikost spravovaných aktiv" rows={bySize.map((e) => row(e, <span className="tabular-nums text-sm font-medium text-slate-700">{money(e.fund_size_numeric)}</span>))} />}
+              {bySize.length > 0 && <RankPanel title="Největší (AUM)" subtitle="Velikost spravovaných aktiv" rows={bySize.map((e) => row(e, <span className="tabular-nums text-sm font-medium text-slate-700">{money(e.fund_size_numeric, e.fund_currency)}</span>))} />}
               {byPerf.length > 0 && <RankPanel title={<>Nejvýkonnější 1R (<ReturnCurLabel />)</>} subtitle="Výnos za posledních 12 měsíců" rows={byPerf.map((e) => row(e, <ReturnValue etf={e} period="1y" className="text-sm font-medium" />))} />}
             </div>
           </section>
         )}
 
-        {/* PRO KOHO */}
+        {/* PRO KOHO – krátké, ponecháno viditelné (1 odstavec) */}
         {content && (
           <section className="pb-8">
             <SectionHead title="Pro koho se hodí" />
             <p className="text-sm md:text-[15px] text-slate-700 leading-relaxed max-w-3xl">{content.forWhom}</p>
+          </section>
+        )}
+
+        {/* HLUBŠÍ VÝKLAD – dlouhý text schovaný do rozbalovacího bloku, ať nezavalí úvod */}
+        {content && (content.intro.length > 0 || content.verdict.length > 0) && (
+          <section className="pb-8">
+            <details className="group rounded-2xl border border-slate-200 bg-white overflow-hidden">
+              <summary className="flex items-center justify-between gap-3 cursor-pointer list-none px-5 py-4 md:px-6 hover:bg-slate-50 transition-colors">
+                <span className="flex items-center gap-2.5 min-w-0">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700 shrink-0">
+                    <BookOpen className="w-4 h-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm md:text-base font-semibold text-slate-900 leading-tight">{content.introTitle}</span>
+                    <span className="block text-xs text-slate-500 mt-0.5">Podrobný rozbor kategorie, na co koukat při výběru a proč</span>
+                  </span>
+                </span>
+                <ChevronDown className="w-5 h-5 text-slate-400 shrink-0 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="px-5 pb-6 md:px-6 border-t border-slate-100">
+                <div className="pt-5 space-y-3 text-sm md:text-[15px] text-slate-700 leading-relaxed max-w-3xl">
+                  {content.intro.map((p, i) => <p key={i}>{p}</p>)}
+                </div>
+                {content.verdict.length > 0 && (
+                  <div className="mt-6 rounded-xl border border-teal-100 bg-teal-50/60 p-5 max-w-3xl">
+                    <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-700 mb-2"><Trophy className="w-4 h-4" /> Proč právě tyto fondy</p>
+                    <div className="space-y-2 text-sm text-slate-700 leading-relaxed">
+                      {content.verdict.map((p, i) => <p key={i}>{p}</p>)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </details>
           </section>
         )}
 

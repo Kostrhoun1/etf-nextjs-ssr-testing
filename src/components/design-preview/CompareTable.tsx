@@ -37,7 +37,7 @@ export default function CompareTable({ etfs }: { etfs: ETFBasicInfo[] }) {
                   </Link>
                 </td>
                 <td className="py-3 px-4 text-right tabular-nums text-slate-700">{ter(etf.ter_numeric)}</td>
-                <td className="py-3 px-4 text-right tabular-nums text-slate-700">{money(etf.fund_size_numeric)}</td>
+                <td className="py-3 px-4 text-right tabular-nums text-slate-700">{money(etf.fund_size_numeric, etf.fund_currency)}</td>
                 <td className="py-3 px-4 text-right"><ReturnValue etf={etf} period="1y" className="font-medium" /></td>
                 <td className="py-3 px-4 text-right"><ReturnValue etf={etf} period="3y" className="font-medium" /></td>
                 <td className="py-3 px-4 text-slate-600">{repl(etf.replication)}</td>
@@ -74,7 +74,7 @@ export default function CompareTable({ etfs }: { etfs: ETFBasicInfo[] }) {
               </div>
               <div>
                 <dt className="text-slate-400">Velikost</dt>
-                <dd className="tabular-nums font-medium text-slate-700">{money(etf.fund_size_numeric)}</dd>
+                <dd className="tabular-nums font-medium text-slate-700">{money(etf.fund_size_numeric, etf.fund_currency)}</dd>
               </div>
               <div>
                 <dt className="text-slate-400">Výnos 3R (<ReturnCurLabel />)</dt>

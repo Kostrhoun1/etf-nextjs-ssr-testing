@@ -24,10 +24,13 @@ export const metadata: Metadata = {
 };
 
 const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
-const money = (v: number | null) => {
+/** Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Ověřeno proti justETF. */
+const curSym = (_c?: string | null) => '€';
+const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v == null) return '—';
-  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} mld €`;
-  return `${Math.round(v)} mil €`;
+  const s = curSym(cur);
+  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} mld ${s}`;
+  return `${Math.round(v)} mil ${s}`;
 };
 const pct = (v: number | null) => {
   if (v == null) return '—';
@@ -157,7 +160,7 @@ function DataPanel({ title, href, etfs, metric }: { title: string; href: string;
                 <span className="block text-xs text-slate-400">{etf.primary_ticker || etf.fund_provider}</span>
               </span>
               {metric === 'ter' && <span className="tabular-nums text-sm font-medium text-slate-700">{ter(etf.ter_numeric)}</span>}
-              {metric === 'size' && <span className="tabular-nums text-sm font-medium text-slate-700">{money(etf.fund_size_numeric)}</span>}
+              {metric === 'size' && <span className="tabular-nums text-sm font-medium text-slate-700">{money(etf.fund_size_numeric, etf.fund_currency)}</span>}
               {metric === 'return' && <PerfBar v={etf.return_1y} />}
             </Link>
           </li>

@@ -90,7 +90,7 @@ export default async function CategoryPreview() {
   const faqs = [
     {
       q: 'Který S&P 500 ETF je nejlepší pro většinu Čechů?',
-      a: `Pro většinu dlouhodobých investorů dává smysl iShares Core S&P 500 (CSPX, ISIN IE00B5BMR087): akumulační, fyzická replikace, největší fond na trhu (${money(cspx?.fund_size_numeric ?? null)}) a nízký TER ${ter(cspx?.ter_numeric ?? null)}. Pokud chcete nejnižší možný poplatek, zvažte SPY5/SPYL s TER ${ter(spy5?.ter_numeric ?? null)}.`,
+      a: `Pro většinu dlouhodobých investorů dává smysl iShares Core S&P 500 (CSPX, ISIN IE00B5BMR087): akumulační, fyzická replikace, největší fond na trhu (${money(cspx?.fund_size_numeric ?? null, cspx?.fund_currency)}) a nízký TER ${ter(cspx?.ter_numeric ?? null)}. Pokud chcete nejnižší možný poplatek, zvažte SPY5/SPYL s TER ${ter(spy5?.ter_numeric ?? null)}.`,
     },
     {
       q: 'Jaký je rozdíl mezi akumulačním a distribučním S&P 500 ETF?',
@@ -195,7 +195,7 @@ export default async function CategoryPreview() {
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Největší fond</p>
-                  <p className="text-lg font-bold tabular-nums">{money(biggest?.fund_size_numeric ?? null)}</p>
+                  <p className="text-lg font-bold tabular-nums">{money(biggest?.fund_size_numeric ?? null, biggest?.fund_currency)}</p>
                   <p className="text-xs text-slate-400">{biggest?.primary_ticker}</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
@@ -218,7 +218,7 @@ export default async function CategoryPreview() {
                 <p className="text-xs font-medium uppercase tracking-wide text-teal-700">Volba pro většinu Čechů</p>
                 <h3 className="text-lg font-bold text-slate-900 mt-0.5">iShares Core S&amp;P 500 — CSPX</h3>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Největší fond na trhu ({money(cspx?.fund_size_numeric ?? null)}), akumulační, plně fyzická replikace a nízký TER {ter(cspx?.ter_numeric ?? null)}.
+                  Největší fond na trhu ({money(cspx?.fund_size_numeric ?? null, cspx?.fund_currency)}), akumulační, plně fyzická replikace a nízký TER {ter(cspx?.ter_numeric ?? null)}.
                   Kombinace likvidity, nízkých nákladů a jednoduché daňové evidence z něj dělá bezpečnou výchozí volbu pro dlouhodobé držení.
                 </p>
                 <Link href={`/design-preview/etf/${cspx?.isin ?? 'IE00B5BMR087'}`} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
@@ -377,7 +377,7 @@ export default async function CategoryPreview() {
                 isin: e.isin,
                 label: shortName(e.name),
                 sub: e.primary_ticker ?? undefined,
-                value: <span className="tabular-nums text-sm font-medium text-slate-700">{money(e.fund_size_numeric)}</span>,
+                value: <span className="tabular-nums text-sm font-medium text-slate-700">{money(e.fund_size_numeric, e.fund_currency)}</span>,
               }))}
             />
             <RankPanel

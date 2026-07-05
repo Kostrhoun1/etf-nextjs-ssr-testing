@@ -44,7 +44,7 @@ export function SrovnaniSoubojKarta({
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-slate-400">Velikost fondu</dt>
-          <dd className="tabular-nums font-medium text-white">{money(etf.fund_size_numeric)}</dd>
+          <dd className="tabular-nums font-medium text-white">{money(etf.fund_size_numeric, etf.fund_currency)}</dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-slate-400">Počet firem</dt>
@@ -181,8 +181,8 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
     {
       label: 'Velikost fondu',
       hint: 'Vyšší majetek = lepší likvidita a nižší riziko zrušení',
-      v1: money(etf1.fund_size_numeric),
-      v2: money(etf2.fund_size_numeric),
+      v1: money(etf1.fund_size_numeric, etf1.fund_currency),
+      v2: money(etf2.fund_size_numeric, etf2.fund_currency),
       winner: higherWin(etf1.fund_size_numeric, etf2.fund_size_numeric),
     },
     {

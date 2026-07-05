@@ -1,14 +1,19 @@
 import Link from 'next/link';
-import type { ETFBasicInfo } from '@/lib/etf-data';
-import { ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
+import type { ETFBasicInfo, FlagshipComposition, CompositionSlice } from '@/lib/etf-data';
+import { ArrowRight, TrendingUp, TrendingDown, Globe2, PieChart, Layers, Info } from 'lucide-react';
 
 /* ---------- Formátovače ---------- */
 export const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
 
-export const money = (v: number | null) => {
+/** POZOR: fund_size_numeric se z justETF stahuje VŽDY v EUR (standardizace kvůli
+ *  srovnatelnosti), i u USD/GBP tříd → symbol je vždy €. Ověřeno proti justETF. */
+export const curSym = (_c?: string | null) => '€';
+
+export const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v == null) return '—';
-  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} mld €`;
-  return `${Math.round(v)} mil €`;
+  const s = curSym(cur);
+  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} mld ${s}`;
+  return `${Math.round(v)} mil ${s}`;
 };
 
 export const pct = (v: number | null) => {
@@ -153,6 +158,154 @@ export function SectionHead({
           {hrefLabel} <ArrowRight className="w-4 h-4" />
         </Link>
       )}
+    </div>
+  );
+}
+
+/* ---------- Infografika složení vlajkového fondu ---------- */
+
+// Odstupňovaná tyrkysová paleta pro segmenty (poslední = „ostatní" – šedá).
+const SLICE_COLORS = ['#0f766e', '#14b8a6', '#2dd4bf', '#5eead4', '#99f6e4'];
+const REST_COLOR = '#cbd5e1';
+
+// Lokalizace nejčastějších zemí do češtiny (data jsou anglicky).
+const COUNTRY_CS: Record<string, string> = {
+  'United States': 'USA', 'USA': 'USA', 'US': 'USA',
+  'United Kingdom': 'Velká Británie', 'UK': 'Velká Británie', 'Great Britain': 'Velká Británie',
+  Japan: 'Japonsko', China: 'Čína', 'Hong Kong': 'Hongkong', Taiwan: 'Tchaj-wan',
+  'South Korea': 'Jižní Korea', India: 'Indie', Canada: 'Kanada', Germany: 'Německo',
+  France: 'Francie', Switzerland: 'Švýcarsko', Netherlands: 'Nizozemsko', Australia: 'Austrálie',
+  Brazil: 'Brazílie', Spain: 'Španělsko', Italy: 'Itálie', Sweden: 'Švédsko', Denmark: 'Dánsko',
+  Ireland: 'Irsko', Belgium: 'Belgie', Finland: 'Finsko', Norway: 'Norsko', Austria: 'Rakousko',
+  'South Africa': 'JAR', Mexico: 'Mexiko', Singapore: 'Singapur', Poland: 'Polsko', Israel: 'Izrael',
+  Other: 'Ostatní', Others: 'Ostatní',
+};
+
+// Lokalizace sektorů (GICS) do češtiny.
+const SECTOR_CS: Record<string, string> = {
+  Technology: 'Technologie', 'Information Technology': 'Technologie',
+  Financials: 'Finance', 'Financial Services': 'Finance', Industrials: 'Průmysl',
+  'Health Care': 'Zdravotnictví', Healthcare: 'Zdravotnictví',
+  'Consumer Discretionary': 'Spotřeba (cyklická)', 'Consumer Staples': 'Spotřeba (běžná)',
+  'Communication Services': 'Komunikace', Communications: 'Komunikace',
+  Energy: 'Energetika', Materials: 'Materiály', Utilities: 'Utility',
+  'Real Estate': 'Nemovitosti', Telecommunications: 'Telekomunikace', Other: 'Ostatní',
+};
+
+const cs = (name: string, map: Record<string, string>) => map[name] ?? name;
+
+type Dimension = 'country' | 'sector' | 'holding';
+
+/** Vybere nejvýstižnější dimenzi podle typu kategorie a dostupnosti dat. */
+function pickDimension(
+  comp: FlagshipComposition,
+  prefer: Dimension,
+): { dim: Dimension; slices: CompositionSlice[] } | null {
+  const order: Dimension[] =
+    prefer === 'sector' ? ['sector', 'country', 'holding']
+    : prefer === 'holding' ? ['holding', 'sector', 'country']
+    : ['country', 'sector', 'holding'];
+  const byDim: Record<Dimension, CompositionSlice[]> = {
+    country: comp.countries, sector: comp.sectors, holding: comp.holdings,
+  };
+  for (const dim of order) {
+    const slices = byDim[dim];
+    // Přeskoč degenerované případy: 0/1 segment nebo jediný „Other 100 %".
+    const meaningful = slices.filter((s) => s.name.toLowerCase() !== 'other' || slices.length > 1);
+    if (meaningful.length >= 2) return { dim, slices };
+  }
+  return null;
+}
+
+const DIM_META: Record<Dimension, { title: string; icon: typeof Globe2; localize: Record<string, string> }> = {
+  country: { title: 'Geografické rozložení', icon: Globe2, localize: COUNTRY_CS },
+  sector: { title: 'Rozložení podle sektorů', icon: PieChart, localize: SECTOR_CS },
+  holding: { title: 'Největší pozice ve fondu', icon: Layers, localize: {} },
+};
+
+/**
+ * Vizuální infografika „co v tom je" – 100% skládaný pruh + legenda.
+ * Segmenty se normalizují na 100 %; zbytek do 100 % je „Ostatní".
+ * Graceful: když vlajkový fond nemá použitelná data (zlato, ropa), vrací null.
+ */
+export function CompositionInfographic({
+  comp,
+  prefer = 'country',
+  fundLabel,
+}: {
+  comp: FlagshipComposition | null;
+  prefer?: Dimension;
+  fundLabel?: string;
+}) {
+  if (!comp) return null;
+  const picked = pickDimension(comp, prefer);
+  if (!picked) return null;
+  const { dim, slices } = picked;
+  const meta = DIM_META[dim];
+  const Icon = meta.icon;
+
+  // Segmenty (max 5) + dopočítaný zbytek do 100 %.
+  const top = slices.slice(0, 5).map((s) => ({ ...s, label: cs(s.name, meta.localize) }));
+  const sum = top.reduce((a, s) => a + s.weight, 0);
+  const rest = Math.max(0, 100 - sum);
+  // „Ostatní" segment: buď už je v datech (name==Other), nebo dopočet nad 3 %.
+  const hasExplicitOther = top.some((s) => s.name.toLowerCase() === 'other');
+  const showRest = !hasExplicitOther && rest > 3 && dim !== 'holding';
+
+  const segs = top.map((s, i) => ({
+    label: s.name.toLowerCase() === 'other' ? 'Ostatní' : s.label,
+    weight: s.weight,
+    color: s.name.toLowerCase() === 'other' ? REST_COLOR : SLICE_COLORS[i % SLICE_COLORS.length],
+  }));
+  if (showRest) segs.push({ label: 'Ostatní', weight: rest, color: REST_COLOR });
+
+  const totalForScale = segs.reduce((a, s) => a + s.weight, 0) || 100;
+  const fmtW = (w: number) => `${w.toFixed(w < 10 ? 1 : 0).replace('.', ',')} %`;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0">
+            <Icon className="w-5 h-5" strokeWidth={2} />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-sm md:text-base font-semibold text-slate-900 leading-tight">{meta.title}</h3>
+            <p className="text-xs text-slate-500 mt-0.5 truncate">
+              Podle {fundLabel ?? shortName(comp.name)}
+              {comp.totalHoldings ? ` · ${comp.totalHoldings.toLocaleString('cs-CZ')} pozic ve fondu` : ''}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Skládaný pruh */}
+      <div className="flex w-full h-7 rounded-lg overflow-hidden bg-slate-100" role="img" aria-label={meta.title}>
+        {segs.map((s, i) => (
+          <div
+            key={i}
+            className="h-full first:rounded-l-lg last:rounded-r-lg"
+            style={{ width: `${(s.weight / totalForScale) * 100}%`, backgroundColor: s.color }}
+            title={`${s.label}: ${fmtW(s.weight)}`}
+          />
+        ))}
+      </div>
+
+      {/* Legenda */}
+      <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+        {segs.map((s, i) => (
+          <li key={i} className="flex items-center gap-2 text-sm min-w-0">
+            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: s.color }} />
+            <span className="text-slate-700 truncate flex-1 min-w-0">{s.label}</span>
+            <span className="tabular-nums font-semibold text-slate-900 shrink-0">{fmtW(s.weight)}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-4 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
+        <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+        Ilustrační složení největšího fondu v kategorii. Jednotlivé fondy se mohou lišit; přesné složení najdete v detailu fondu.
+      </p>
     </div>
   );
 }
