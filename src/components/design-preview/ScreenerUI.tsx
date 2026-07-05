@@ -2,16 +2,11 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star } from 'lucide-react';
-import type { ScreenerETF } from '@/lib/etf-data';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star, Loader2 } from 'lucide-react';
+import type { ScreenerRow, ScreenerOptions } from '@/lib/etf-data';
 import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
-import { buildIndexOptions, canonicalIndexLabel } from '@/utils/indexNormalization';
-import { buildRegionOptions, classifyRegion } from '@/utils/regionClassification';
-import { detectHedging } from '@/utils/hedgingDetection';
-import { calculateETFRating } from '@/utils/etfRating';
-import type { ETFListItem } from '@/types/etf';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div';
 type SortDir = 'asc' | 'desc';
@@ -29,12 +24,6 @@ const money = (v: number | null, cur: string | null = 'EUR') => {
   return `${Math.round(v).toLocaleString('cs-CZ')} mil. ${s}`;
 };
 const isAcc = (p: string | null) => !/distribut/i.test(p || '');
-const replLabel = (r: string | null) => {
-  const s = (r || '').toLowerCase();
-  if (s.includes('synth') || s.includes('swap')) return 'Syntetická';
-  if (s.includes('physical') || s.includes('full') || s.includes('sampl') || s.includes('optim')) return 'Fyzická';
-  return r || '—';
-};
 
 const PAGE = 25;
 
@@ -76,19 +65,29 @@ function Stars({ n }: { n: number }) {
   );
 }
 
-/* Předpočítané odvozené hodnoty (region/hedging/index/rating) – jednou, ať filtr
-   nemusí pouštět regexy přes 4 300 řádků při každém stisku klávesy. */
+/* Odvozené hodnoty (region/hedging/index/rating/fulltext) přicházejí PŘEDPOČÍTANÉ
+   ze serveru (ScreenerRow._*), takže klient přes ~4900 fondů nepouští žádné regexy. */
 interface Enriched {
-  e: ScreenerETF;
+  e: ScreenerRow;
   region: string | null;
-  hedge: string;          // hedgingType
+  hedge: string;
   indexLabel: string;
   ratingVal: number | null;
-  blob: string;           // text pro fulltext (name/isin/provider/tickery)
-  tickers: string[];      // všechny tickery (primární + burzovní) lowercase, pro relevanci
+  blob: string;
+  tickers: string[];
 }
 
-export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[]; initialQ?: string }) {
+export default function ScreenerUI({
+  initialRows,
+  total,
+  options,
+  initialQ = '',
+}: {
+  initialRows: ScreenerRow[];
+  total: number;
+  options: ScreenerOptions;
+  initialQ?: string;
+}) {
   const [q, setQ] = useState(initialQ);
   const [category, setCategory] = useState('all');
   const [dist, setDist] = useState('all');
@@ -111,6 +110,24 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
   const [cur] = useCurrency();
   const rootRef = useRef<HTMLDivElement>(null);
 
+  // Progresivní načtení: stránka vloží jen prvních ~50 řádků (rychlý FCP + SEO);
+  // celou databázi si dotáhneme z cachovaného API a odemkneme filtrování nad celkem.
+  const [rows, setRows] = useState<ScreenerRow[]>(initialRows);
+  const [full, setFull] = useState(initialRows.length >= total);
+  useEffect(() => {
+    if (full) return;
+    let cancelled = false;
+    fetch('/api/etf/screener')
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((data: ScreenerRow[]) => {
+        if (cancelled || !Array.isArray(data) || data.length === 0) return;
+        setRows(data);
+        setFull(true);
+      })
+      .catch(() => { /* necháme initialRows – stránka zůstane funkční nad ukázkou */ });
+    return () => { cancelled = true; };
+  }, [full]);
+
   // Vyhledávání z hlavičky (?q=) přijde jako initialQ. Když se změní (i při soft-navigaci
   // na už načtené stránce), převezmeme ho a doscrollujeme na výsledky, ať je vidět efekt.
   useEffect(() => {
@@ -122,54 +139,30 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQ]);
 
-  // Předpočítej odvozené hodnoty jednou pro celou sadu.
+  // Odvozená pole už jsou předpočítaná na serveru – jen je přemapujeme do tvaru,
+  // který filtr očekává (žádné skenování/regexy přes celou sadu na klientu).
   const enriched = useMemo<Enriched[]>(() =>
-    etfs.map((e) => {
-      // Všechny tickery fondu (primární + všech 10 burz). „-“ je v datech placeholder.
-      const tickers = [
-        e.primary_ticker,
-        e.exchange_1_ticker, e.exchange_2_ticker, e.exchange_3_ticker, e.exchange_4_ticker, e.exchange_5_ticker,
-        e.exchange_6_ticker, e.exchange_7_ticker, e.exchange_8_ticker, e.exchange_9_ticker, e.exchange_10_ticker,
-      ]
-        .map((t) => (t ?? '').trim().toLowerCase())
-        .filter((t) => t && t !== '-');
-      const uniqTickers = [...new Set(tickers)];
-      return {
-        e,
-        region: classifyRegion(e),
-        hedge: detectHedging(e.name, e.currency_risk ?? undefined).hedgingType,
-        indexLabel: canonicalIndexLabel(e.index_name),
-        ratingVal: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
-        blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${uniqTickers.join(' ')}`.toLowerCase(),
-        tickers: uniqTickers,
-      };
-    }), [etfs]);
+    rows.map((e) => ({
+      e,
+      region: e._region,
+      hedge: e._hedge,
+      indexLabel: e._index,
+      ratingVal: e._rating,
+      blob: e._blob,
+      tickers: e._tickers,
+    })), [rows]);
 
-  // Kategorie jako taby (nejvyšší dělení). Řazení dle preferovaného pořadí,
-  // neznámé kategorie na konec; „Ostatní“ (1 fond) vynecháme jako původní web.
-  const CATEGORY_ORDER = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto'];
-  const categories = useMemo(() => {
-    const present = [...new Set(etfs.map((e) => e.category).filter((c): c is string => !!c && c !== 'Ostatní'))];
-    const ordered = CATEGORY_ORDER.filter((c) => present.includes(c));
-    const extra = present.filter((c) => !CATEGORY_ORDER.includes(c)).sort((a, b) => a.localeCompare(b));
-    return [...ordered, ...extra];
-  }, [etfs]);
-  const catCounts = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const e of etfs) if (e.category) m.set(e.category, (m.get(e.category) ?? 0) + 1);
-    return m;
-  }, [etfs]);
-  const regions = useMemo(() => buildRegionOptions(etfs), [etfs]);
-  const indexOpts = useMemo(() => buildIndexOptions(etfs), [etfs]);
-  const currencies = useMemo(() => [...new Set(etfs.map((e) => e.fund_currency).filter(Boolean))].sort() as string[], [etfs]);
-  const replications = useMemo(() => {
-    const set = new Set<string>();
-    for (const e of etfs) { const l = replLabel(e.replication); if (l !== '—') set.add(l); }
-    return [...set].sort();
-  }, [etfs]);
+  // Volby filtrů + počty kategorií přicházejí předpočítané ze serveru (nad celou DB).
+  const { regions, currencies, replications, categories, indexGroups } = {
+    regions: options.regions,
+    currencies: options.currencies,
+    replications: options.replications,
+    categories: options.categories,
+    indexGroups: options.indexGroups,
+  };
+  const catCounts = useMemo(() => new Map(options.catCounts), [options]);
 
   // Filtrace nezávisí na měně (`cur`) – ta ovlivňuje jen řazení sloupců ytd/r1/r3/r5.
-  // Držíme ji ve vlastním memu, aby přepnutí měny nespouštělo drahý filtr přes ~4867 fondů.
   const filteredRows = useMemo(() => {
     const term = q.trim().toLowerCase();
     const terMaxN = terMax === '' ? null : parseFloat(terMax.replace(',', '.'));
@@ -184,7 +177,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       if (dist === 'dist' && isAcc(e.distribution_policy)) return false;
       if (region !== 'all' && reg !== region) return false;
       if (indexName !== 'all' && indexLabel !== indexName) return false;
-      if (repl !== 'all' && replLabel(e.replication) !== repl) return false;
+      if (repl !== 'all' && e._repl !== repl) return false;
       if (currency !== 'all' && e.fund_currency !== currency) return false;
       if (hedging !== 'all') {
         if (hedging === 'unhedged' && hedge !== 'unhedged') return false;
@@ -207,7 +200,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
   }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, minRating, leveraged, terMax, sizeMin, divMin]);
 
   const filtered = useMemo(() => {
-    const rows = [...filteredRows];
+    const list = [...filteredRows];
     const term = q.trim().toLowerCase();
 
     // Skóre relevance pro hledaný výraz: přesná shoda ISIN/tickeru má přednost
@@ -222,7 +215,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       return 0;
     };
 
-    const get = (e: ScreenerETF): number | string | null => {
+    const get = (e: ScreenerRow): number | string | null => {
       const o = e as unknown as Record<string, unknown>;
       switch (sortKey) {
         case 'name': return e.name?.toLowerCase() ?? '';
@@ -235,7 +228,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
         case 'div': return num(e.current_dividend_yield_numeric);
       }
     };
-    rows.sort((A, B) => {
+    list.sort((A, B) => {
       if (term) {
         const ra = relevance(A), rb = relevance(B);
         if (ra !== rb) return rb - ra; // relevantnější nahoru, nezávisle na řazení sloupce
@@ -247,7 +240,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       const cmp = typeof va === 'string' ? va.localeCompare(vb as string, 'cs') : (va as number) - (vb as number);
       return sortDir === 'asc' ? cmp : -cmp;
     });
-    return rows;
+    return list;
   }, [filteredRows, sortKey, sortDir, cur, q]);
 
   const toggleSort = (k: SortKey) => {
@@ -278,7 +271,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       <div className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto pb-1">
         {[{ v: 'all', label: 'Vše' }, ...categories.map((c) => ({ v: c, label: c }))].map(({ v, label }) => {
           const active = category === v;
-          const count = v === 'all' ? etfs.length : (catCounts.get(v) ?? 0);
+          const count = v === 'all' ? total : (catCounts.get(v) ?? 0);
           return (
             <button
               key={v}
@@ -318,7 +311,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
           <Field label="Sledovaný index">
             <select aria-label="Sledovaný index" value={indexName} onChange={bump(setIndexName)} className={selCls}>
               <option value="all">Všechny indexy</option>
-              {indexOpts.groups.map((g) => (
+              {indexGroups.map((g) => (
                 <optgroup key={g.heading} label={g.heading}>
                   {g.options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </optgroup>
@@ -407,7 +400,11 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-500">Nalezeno <span className="font-semibold text-slate-800">{filtered.length}</span> z {etfs.length} fondů. Klikněte na fond pro detail, tlačítkem <span className="font-medium text-slate-700">+</span> přidáte do porovnání.</p>
+        {full ? (
+          <p className="text-sm text-slate-500">Nalezeno <span className="font-semibold text-slate-800">{filtered.length}</span> z {total} fondů. Klikněte na fond pro detail, tlačítkem <span className="font-medium text-slate-700">+</span> přidáte do porovnání.</p>
+        ) : (
+          <p className="inline-flex items-center gap-2 text-sm text-slate-500"><Loader2 className="w-3.5 h-3.5 animate-spin text-teal-600" /> Načítám celou databázi ({total.toLocaleString('cs-CZ')} fondů) pro filtrování…</p>
+        )}
         <CurrencyToggle size="sm" />
       </div>
 
