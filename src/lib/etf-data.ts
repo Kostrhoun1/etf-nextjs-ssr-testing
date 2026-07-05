@@ -44,6 +44,7 @@ export interface ETFBasicInfo {
   replication: string | null;
   fund_domicile: string | null;
   fund_currency: string | null;
+  index_name: string | null;
 }
 
 export interface CategoryConfig {
@@ -91,7 +92,8 @@ const ETF_SELECT_FIELDS = `
   distribution_policy,
   replication,
   fund_domicile,
-  fund_currency
+  fund_currency,
+  index_name
 `;
 
 /**

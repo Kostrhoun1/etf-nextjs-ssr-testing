@@ -8,8 +8,9 @@ import {
   CalendarDays, Database, HelpCircle, Wallet, BookOpen, ChevronDown,
 } from 'lucide-react';
 import { getTopETFsForCategory, getFlagshipComposition, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
-import { ter, money, pct, shortName, RankPanel, SectionHead, CompositionInfographic } from '@/components/design-preview/CategoryUI';
+import { ter, money, pct, shortName, RankPanel, SectionHead, CompositionInfographic, CategoryIndexes } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent } from '@/components/design-preview/categoryContent';
+import { topIndexesForCategory } from '@/components/design-preview/indexDescriptions';
 import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import ReturnValue, { ReturnCurLabel } from '@/components/design-preview/ReturnValue';
@@ -75,6 +76,9 @@ export default async function CategoryDetailPreview(
   const flagship = bySize[0];
   const composition = flagship ? await getFlagshipComposition(flagship.isin) : null;
   const prefer = preferredDimension(slug);
+
+  // Reálně sledované indexy v kategorii (s odborným popisem) – datově řízené.
+  const topIndexes = topIndexesForCategory(etfs);
 
   const row = (e: ETFBasicInfo, value: React.ReactNode) => ({ isin: e.isin, label: shortName(e.name), sub: e.primary_ticker ?? undefined, value });
 
@@ -220,6 +224,17 @@ export default async function CategoryDetailPreview(
               {bySize.length > 0 && <RankPanel title="Největší (AUM)" subtitle="Velikost spravovaných aktiv" rows={bySize.map((e) => row(e, <span className="tabular-nums text-sm font-medium text-slate-700">{money(e.fund_size_numeric, e.fund_currency)}</span>))} />}
               {byPerf.length > 0 && <RankPanel title={<>Nejvýkonnější 1R (<ReturnCurLabel />)</>} subtitle="Výnos za posledních 12 měsíců" rows={byPerf.map((e) => row(e, <ReturnValue etf={e} period="1y" className="text-sm font-medium" />))} />}
             </div>
+          </section>
+        )}
+
+        {/* KTERÉ INDEXY KATEGORIE SLEDUJE – datově řízené, s odborným popisem */}
+        {topIndexes.length > 0 && (
+          <section className="pb-8">
+            <SectionHead
+              title="Které indexy tato kategorie sleduje"
+              desc="Podkladové indexy fondů v kategorii – co měří, kolik mají složek a jak jsou vážené."
+            />
+            <CategoryIndexes indexes={topIndexes} />
           </section>
         )}
 
