@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
-import { getTopETFsForCategory, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
+import { getTopETFsForCategory, categoryConfigs, type ETFBasicInfo , getDataDate } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, Trophy, Coins, Layers, Banknote, Scale, ShieldCheck,
   AlertTriangle, Check, X, Info, Database, User, CalendarDays, BadgeCheck,
@@ -39,7 +39,7 @@ export default async function CategoryPreview() {
   const clean = all.filter((e) => !isImpostor(e));
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const year = today.getFullYear();
 
   /* Hlavní tabulka: čisté indexové fondy v preferovaném pořadí, pak doplnit zbytkem podle velikosti. */

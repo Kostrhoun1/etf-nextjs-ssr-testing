@@ -12,6 +12,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import KurzovyDopadWidget from '@/components/design-preview/KurzovyDopadWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -20,9 +21,9 @@ export const metadata: Metadata = {
     'Spočítejte, jak pohyb kurzu dolaru a eura vůči koruně promění výnos vašeho ETF v přepočtu na koruny. Scénáře, kurzová expozice a riziko – výsledky v korunách.',
 };
 
-export default function KurzovyDopadPreview() {
+export default async function KurzovyDopadPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [

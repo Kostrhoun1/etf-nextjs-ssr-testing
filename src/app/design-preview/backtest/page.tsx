@@ -12,6 +12,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import BacktestWidget from '@/components/design-preview/BacktestWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -20,9 +21,9 @@ export const metadata: Metadata = {
     'Otestujte své ETF portfolio na reálných datech od roku 2000. Roční zhodnocení, největší pokles a kolísavost – v přepočtu na koruny, včetně grafu vývoje.',
 };
 
-export default function BacktestPreview() {
+export default async function BacktestPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [

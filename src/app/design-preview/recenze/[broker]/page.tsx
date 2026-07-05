@@ -11,6 +11,7 @@ import { brokers } from '@/data/brokerData';
 import { reviewHref, reviewCanonical } from '@/components/design-preview/brokerReviewHref';
 import { getBrokerContent } from '@/components/design-preview/brokerContent';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
@@ -40,7 +41,7 @@ export default async function BrokerReviewPreview(
   const c = getBrokerContent(b.id);
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const facts: { icon: typeof Wallet; label: string; value: string }[] = [
     { icon: Wallet, label: 'Poplatek za ETF', value: b.etfFee },

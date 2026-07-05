@@ -12,6 +12,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import FireKalkulackaWidget from '@/components/design-preview/FireKalkulackaWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -20,9 +21,9 @@ export const metadata: Metadata = {
     'Spočítejte si v korunách, v kolika letech dosáhnete finanční nezávislosti. FIRE podle pravidla 4 % – cílová částka, rok dosažení a graf růstu portfolia.',
 };
 
-export default function FireKalkulackaPreview() {
+export default async function FireKalkulackaPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [

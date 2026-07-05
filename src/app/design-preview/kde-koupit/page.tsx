@@ -15,6 +15,7 @@ import {
   KkScoreBadge, KkYesNo, KkTaxBadge, KkBrokerCta, KkBrokerCard, KkStarMetric,
 } from '@/components/design-preview/KdeKoupitUI';
 import { brokers } from '@/data/brokerData';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -23,9 +24,9 @@ export const metadata: Metadata = {
     'Kde koupit ETF? Jednotné skóre 6 brokerů – XTB a Trading 212 s 0% poplatkem, DEGIRO Core Selection od 0 EUR, daně 15 vs 35 %. Verdikt a tabulka na první pohled.',
 };
 
-export default function KdeKoupitPreview() {
+export default async function KdeKoupitPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const year = today.getFullYear();
 
   /* ---------- Živé metriky z brokerData.ts ---------- */

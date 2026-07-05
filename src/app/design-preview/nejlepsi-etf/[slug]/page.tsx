@@ -7,7 +7,7 @@ import {
   TrendingUp, ArrowRight, ArrowLeft, Trophy, Coins, AlertTriangle,
   CalendarDays, Database, HelpCircle, Wallet, BookOpen, ChevronDown,
 } from 'lucide-react';
-import { getTopETFsForCategory, getFlagshipComposition, categoryConfigs, type ETFBasicInfo } from '@/lib/etf-data';
+import { getTopETFsForCategory, getFlagshipComposition, categoryConfigs, type ETFBasicInfo , getDataDate } from '@/lib/etf-data';
 import { ter, money, pct, shortName, RankPanel, SectionHead, CompositionInfographic, CategoryIndexes } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent } from '@/components/design-preview/categoryContent';
 import { topIndexesForCategory } from '@/components/design-preview/indexDescriptions';
@@ -65,7 +65,7 @@ export default async function CategoryDetailPreview(
   const content = getCategoryContent(slug);
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Tři žebříčky z dat kategorie.
   const byTer = [...etfs].filter((e) => e.ter_numeric != null && e.ter_numeric > 0).sort((a, b) => (a.ter_numeric! - b.ter_numeric!)).slice(0, 5);

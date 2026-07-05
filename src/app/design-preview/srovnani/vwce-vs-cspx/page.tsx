@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
-import { getComparisonETFData, type ComparisonETF } from '@/lib/etf-data';
+import { getComparisonETFData, type ComparisonETF , getDataDate } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, Trophy, Scale, Layers, Coins,
   ShieldCheck, AlertTriangle, Check, Info, Database, User, CalendarDays,
@@ -32,7 +32,7 @@ export default async function SrovnaniPreview() {
   const data = await getComparisonETFData(TICKER1, TICKER2);
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const year = today.getFullYear();
 
   if (!data) {

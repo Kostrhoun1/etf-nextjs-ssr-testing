@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
-import { getTotalETFCount } from '@/lib/etf-data';
+import { getTotalETFCount , getDataDate } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, User, CalendarDays, BookOpen,
   Wallet, ShieldCheck, Target, ListChecks, Search, Building2, CalendarClock,
@@ -29,7 +29,7 @@ export default async function HowToStartPreview() {
   const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 300';
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- 7 akčních kroků (číslo + nadpis + věty + mini-seznam) ---------- */
   const steps: {

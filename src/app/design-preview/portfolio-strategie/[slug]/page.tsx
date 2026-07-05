@@ -16,7 +16,7 @@ import {
 } from '@/components/design-preview/portfolioData';
 import PortfolioBacktest from '@/components/design-preview/PortfolioBacktest';
 import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
-import { getMetricsByIsins } from '@/lib/etf-data';
+import { getMetricsByIsins , getDataDate } from '@/lib/etf-data';
 
 /* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
 const SP500_ISIN = 'IE00B5BMR087';
@@ -55,7 +55,7 @@ export default async function PortfolioDetailPreview(
   const pfMaxDD = -(parseInt(model.maxDrawdown.replace(/[^0-9]/g, ''), 10) || 0);
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1)
+  const dateStr = (await getDataDate(today))
     .toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Reálné metriky z DB pro složky portfolia + benchmark S&P 500.

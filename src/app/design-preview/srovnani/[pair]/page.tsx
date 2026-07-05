@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { TrendingUp, ArrowRight, ArrowLeft, Scale, Trophy, Coins, Layers, Landmark, ShieldCheck, Info, Wallet, HelpCircle } from 'lucide-react';
-import { getComparisonETFData, type ComparisonETF } from '@/lib/etf-data';
+import { getComparisonETFData, type ComparisonETF , getDataDate } from '@/lib/etf-data';
 import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
 import SrovnaniParams from '@/components/design-preview/SrovnaniParams';
 import { getPairContent } from '@/components/design-preview/pairContent';
@@ -102,7 +102,7 @@ export default async function PairComparePage(
   const curated = getPairContent(pair);
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Datový verdikt – kdo vyhrává v čem (jen když jsou data a liší se).
   const pickLower = (a: ComparisonETF, b: ComparisonETF, k: 'ter_numeric') => {

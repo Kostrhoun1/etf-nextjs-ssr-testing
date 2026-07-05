@@ -9,7 +9,7 @@ import {
   Crown, HelpCircle, BookOpen,
 } from 'lucide-react';
 import { ter, shortName, SectionHead } from '@/components/design-preview/CategoryUI';
-import { getTopETFsForCategory, getTotalETFCount, categoryConfigs } from '@/lib/etf-data';
+import { getTopETFsForCategory, getTotalETFCount, categoryConfigs , getDataDate } from '@/lib/etf-data';
 import { brokers } from '@/data/brokerData';
 import FeeCalculatorWidget from '@/components/design-preview/FeeCalculatorWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -30,7 +30,7 @@ export default async function FeeCalculatorPreview() {
   const totalCount = await getTotalETFCount();
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const lowestTer = cheapest[0];
 

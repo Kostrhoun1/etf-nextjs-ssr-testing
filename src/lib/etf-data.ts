@@ -2,6 +2,7 @@
  * Server-side data fetching functions for ETF pages
  * These functions are used for SSG/ISR to pre-render pages with data
  */
+import { cache as reactCache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
@@ -340,6 +341,20 @@ export async function getFeaturedETFs(): Promise<{
       lowCost: [],
     };
   }
+}
+
+/* Reálné datum poslední aktualizace dat (MAX updated_at) – data se počítají denně,
+   takže zobrazujeme skutečné čerstvé datum, ne 1. v měsíci (web musí působit up‑to‑date).
+   Cacheováno pro celý render (dedup napříč generateMetadata + komponentou). */
+const _dataDate = reactCache(async (): Promise<Date | null> => {
+  const iso = await getLastModifiedDate();
+  const d = iso ? new Date(iso) : null;
+  return d && !Number.isNaN(d.getTime()) ? d : null;
+});
+
+/** Vrátí datum posledních dat; když se nepodaří načíst, použije `fallback` (zpravidla dnešek). */
+export async function getDataDate(fallback: Date): Promise<Date> {
+  return (await _dataDate()) ?? fallback;
 }
 
 /**

@@ -15,6 +15,7 @@ import { degiroOverall } from '@/components/design-preview/BrokerScore';
 import BrokerScoreGrid from '@/components/design-preview/BrokerScoreGrid';
 import BrokerFeeTable from '@/components/design-preview/BrokerFeeTable';
 import BrokerStickyCTA from '@/components/design-preview/BrokerStickyCTA';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
@@ -29,9 +30,9 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.etfpruvodce.cz/degiro-recenze' },
 };
 
-export default function BrokerReviewPreview() {
+export default async function BrokerReviewPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- Rychlá fakta ---------- */
   const facts: { icon: typeof Wallet; label: ReactNode; value: string }[] = [

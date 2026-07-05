@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
-import { getFeaturedETFs, getTotalETFCount, type ETFBasicInfo } from '@/lib/etf-data';
+import { getFeaturedETFs, getTotalETFCount, type ETFBasicInfo , getDataDate } from '@/lib/etf-data';
 import {
   TrendingUp, TrendingDown, ArrowRight, ArrowDown, ArrowUpRight, User, CalendarDays, BookOpen,
   Database, Check, X, Layers, Coins, Percent, Banknote, ShieldCheck, Landmark,
@@ -25,7 +25,7 @@ export default async function GuidePreview() {
   const [featured, totalCount] = await Promise.all([getFeaturedETFs(), getTotalETFCount()]);
 
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const year = today.getFullYear();
 
   /* ---------- Živé metriky do hero (vše z DB, nic ručně psaného) ---------- */

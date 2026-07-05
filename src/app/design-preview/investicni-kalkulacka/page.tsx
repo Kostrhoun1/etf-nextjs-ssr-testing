@@ -12,6 +12,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvesticniKalkulackaWidget from '@/components/design-preview/InvesticniKalkulackaWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -20,9 +21,9 @@ export const metadata: Metadata = {
     'Spočítejte, na kolik narostou vaše investice díky složenému úročení. Zadejte jednorázový i pravidelný vklad, dobu a výnos – výsledek v korunách včetně grafu.',
 };
 
-export default function InvesticniKalkulackaPreview() {
+export default async function InvesticniKalkulackaPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [

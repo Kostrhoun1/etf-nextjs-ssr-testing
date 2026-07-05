@@ -12,6 +12,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import MonteCarloWidget from '@/components/design-preview/MonteCarloWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -20,9 +21,9 @@ export const metadata: Metadata = {
     'Nikdo nezná budoucnost. Monte Carlo simulátor vygeneruje stovky možných vývojů vašeho portfolia a ukáže pesimistický, mediánový i optimistický scénář v korunách – včetně šance na dosažení cíle.',
 };
 
-export default function MonteCarloPreview() {
+export default async function MonteCarloPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [

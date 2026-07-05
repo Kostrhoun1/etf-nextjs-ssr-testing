@@ -11,6 +11,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import UverovaKalkulackaWidget from '@/components/design-preview/UverovaKalkulackaWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -19,9 +20,9 @@ export const metadata: Metadata = {
     'Spočítejte si měsíční splátku spotřebitelského úvěru, celkovou zaplacenou částku a přeplatek na úrocích. Zadejte výši úvěru, sazbu a dobu splácení – výsledek v korunách včetně grafu.',
 };
 
-export default function UverovaKalkulackaPreview() {
+export default async function UverovaKalkulackaPreview() {
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [

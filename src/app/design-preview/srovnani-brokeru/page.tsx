@@ -12,6 +12,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruClient';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { brokers } from '@/data/brokerData';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
@@ -97,11 +98,11 @@ const FAQ = [
   },
 ] as const;
 
-export default function SrovnaniBrokeruPage() {
+export default async function SrovnaniBrokeruPage() {
   const published = '2026-01-10T08:00:00+01:00';
   // Datum aktualizace = 1. den aktuálního měsíce (viz MAINTENANCE-mesicni-kontrola.md).
   const now = new Date();
-  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const firstOfMonth = (await getDataDate(now));
   const modified = firstOfMonth.toISOString();
   const dateStr = firstOfMonth.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 

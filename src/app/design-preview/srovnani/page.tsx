@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords, SlidersHorizontal, Coins, Layers } from 'lucide-react';
-import { getScreenerETFData } from '@/lib/etf-data';
+import { getScreenerETFData , getDataDate } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
@@ -37,7 +37,7 @@ export default async function SrovnaniScreenerPreview(
   const { q } = await searchParams;
   const etfs = await getScreenerETFData();
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const datasetSchema = {
     '@context': 'https://schema.org',

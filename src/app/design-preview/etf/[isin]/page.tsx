@@ -16,6 +16,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import CompareButton from '@/components/design-preview/CompareButton';
 import EtfReturns from '@/components/design-preview/EtfReturns';
 import EtfCalendarReturns, { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
+import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -191,7 +192,7 @@ export default async function ETFDetailPreview(
 
   const ticker = etf.primary_ticker || '—';
   const today = new Date();
-  const dateStr = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // krátký název pro nadpis – odvozený z názvu fondu (ne napevno)
   const shortName = etf.name.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)/, '').trim();
