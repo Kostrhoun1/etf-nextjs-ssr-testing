@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star } from 'lucide-react';
 import type { ScreenerETF } from '@/lib/etf-data';
@@ -85,6 +85,7 @@ interface Enriched {
   indexLabel: string;
   ratingVal: number | null;
   blob: string;           // text pro fulltext (name/isin/provider/tickery)
+  tickers: string[];      // všechny tickery (primární + burzovní) lowercase, pro relevanci
 }
 
 export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[]; initialQ?: string }) {
@@ -108,17 +109,41 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [shown, setShown] = useState(PAGE);
   const [cur] = useCurrency();
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Vyhledávání z hlavičky (?q=) přijde jako initialQ. Když se změní (i při soft-navigaci
+  // na už načtené stránce), převezmeme ho a doscrollujeme na výsledky, ať je vidět efekt.
+  useEffect(() => {
+    if (initialQ) {
+      setQ(initialQ);
+      setShown(PAGE);
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQ]);
 
   // Předpočítej odvozené hodnoty jednou pro celou sadu.
   const enriched = useMemo<Enriched[]>(() =>
-    etfs.map((e) => ({
-      e,
-      region: classifyRegion(e),
-      hedge: detectHedging(e.name, e.currency_risk ?? undefined).hedgingType,
-      indexLabel: canonicalIndexLabel(e.index_name),
-      ratingVal: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
-      blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${e.primary_ticker ?? ''} ${e.exchange_1_ticker ?? ''} ${e.exchange_2_ticker ?? ''} ${e.exchange_3_ticker ?? ''} ${e.exchange_4_ticker ?? ''} ${e.exchange_5_ticker ?? ''}`.toLowerCase(),
-    })), [etfs]);
+    etfs.map((e) => {
+      // Všechny tickery fondu (primární + všech 10 burz). „-“ je v datech placeholder.
+      const tickers = [
+        e.primary_ticker,
+        e.exchange_1_ticker, e.exchange_2_ticker, e.exchange_3_ticker, e.exchange_4_ticker, e.exchange_5_ticker,
+        e.exchange_6_ticker, e.exchange_7_ticker, e.exchange_8_ticker, e.exchange_9_ticker, e.exchange_10_ticker,
+      ]
+        .map((t) => (t ?? '').trim().toLowerCase())
+        .filter((t) => t && t !== '-');
+      const uniqTickers = [...new Set(tickers)];
+      return {
+        e,
+        region: classifyRegion(e),
+        hedge: detectHedging(e.name, e.currency_risk ?? undefined).hedgingType,
+        indexLabel: canonicalIndexLabel(e.index_name),
+        ratingVal: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
+        blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${uniqTickers.join(' ')}`.toLowerCase(),
+        tickers: uniqTickers,
+      };
+    }), [etfs]);
 
   // Kategorie jako taby (nejvyšší dělení). Řazení dle preferovaného pořadí,
   // neznámé kategorie na konec; „Ostatní“ (1 fond) vynecháme jako původní web.
@@ -183,6 +208,19 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
 
   const filtered = useMemo(() => {
     const rows = [...filteredRows];
+    const term = q.trim().toLowerCase();
+
+    // Skóre relevance pro hledaný výraz: přesná shoda ISIN/tickeru má přednost
+    // před částečnou (aby „CSPX“ ukázal správný fond nahoře, ne náhodný substring).
+    const relevance = (row: Enriched): number => {
+      if (!term) return 0;
+      if (row.e.isin.toLowerCase() === term || row.tickers.includes(term)) return 4;
+      if (row.tickers.some((t) => t.startsWith(term))) return 3;
+      const name = row.e.name.toLowerCase();
+      if (name.startsWith(term)) return 2;
+      if (name.includes(term)) return 1;
+      return 0;
+    };
 
     const get = (e: ScreenerETF): number | string | null => {
       const o = e as unknown as Record<string, unknown>;
@@ -198,6 +236,10 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       }
     };
     rows.sort((A, B) => {
+      if (term) {
+        const ra = relevance(A), rb = relevance(B);
+        if (ra !== rb) return rb - ra; // relevantnější nahoru, nezávisle na řazení sloupce
+      }
       const va = get(A.e), vb = get(B.e);
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
@@ -206,7 +248,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return rows;
-  }, [filteredRows, sortKey, sortDir, cur]);
+  }, [filteredRows, sortKey, sortDir, cur, q]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -231,7 +273,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
   const bumpN = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => { setter(e.target.value); setShown(PAGE); };
 
   return (
-    <div>
+    <div ref={rootRef} className="scroll-mt-20">
       {/* KATEGORIE JAKO TABY – nejvyšší dělení, vždy na jeden klik */}
       <div className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto pb-1">
         {[{ v: 'all', label: 'Vše' }, ...categories.map((c) => ({ v: c, label: c }))].map(({ v, label }) => {

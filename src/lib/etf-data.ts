@@ -632,6 +632,11 @@ export interface ScreenerETF {
   exchange_3_ticker: string | null;
   exchange_4_ticker: string | null;
   exchange_5_ticker: string | null;
+  exchange_6_ticker: string | null;
+  exchange_7_ticker: string | null;
+  exchange_8_ticker: string | null;
+  exchange_9_ticker: string | null;
+  exchange_10_ticker: string | null;
   ter_numeric: number | null;
   fund_size_numeric: number | null;
   return_ytd: number | null;
@@ -664,6 +669,7 @@ export interface ScreenerETF {
 const SCREENER_COLUMNS = `
   isin, name, fund_provider, primary_ticker,
   exchange_1_ticker, exchange_2_ticker, exchange_3_ticker, exchange_4_ticker, exchange_5_ticker,
+  exchange_6_ticker, exchange_7_ticker, exchange_8_ticker, exchange_9_ticker, exchange_10_ticker,
   ter_numeric, fund_size_numeric,
   return_ytd, return_1y, return_3y, return_5y,
   return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
