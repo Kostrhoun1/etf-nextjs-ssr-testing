@@ -12,8 +12,9 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { PortfolioBar } from '@/components/design-preview/portfolioComponents';
 import {
-  portfolioModels, ASSET_COLORS, RISK_PILL,
+  portfolioModels, ASSET_COLORS, RISK_PILL, PORTFOLIO_BACKTEST,
 } from '@/components/design-preview/portfolioData';
+import PortfolioBacktest from '@/components/design-preview/PortfolioBacktest';
 import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
 import { getMetricsByIsins } from '@/lib/etf-data';
 
@@ -49,6 +50,7 @@ export default async function PortfolioDetailPreview(
   const model = portfolioModels.find((p) => p.slug === slug);
   if (!model) notFound();
   const content = getPortfolioContent(slug);
+  const btConfig = PORTFOLIO_BACKTEST[slug];
   // Kurátorský max. pokles strategie (číslo z „do −15 %").
   const pfMaxDD = -(parseInt(model.maxDrawdown.replace(/[^0-9]/g, ''), 10) || 0);
 
@@ -204,20 +206,6 @@ export default async function PortfolioDetailPreview(
               </div>
             ))}
           </div>
-          {(perf1y != null || perf3y != null) && (
-            <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <InfoTip label="Vážený průměr korunových výnosů jednotlivých ETF složek podle jejich váhy v portfoliu. Bez průběžného rebalancingu. Minulá výkonnost nezaručuje budoucí výnosy.">
-                  Historická výkonnost v Kč
-                </InfoTip>
-              </div>
-              <div className="mt-1 flex flex-wrap gap-x-8 gap-y-1">
-                <span className="text-sm text-slate-600">Za 1 rok: <span className={`font-bold tabular-nums ${(perf1y ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(perf1y)}</span></span>
-                <span className="text-sm text-slate-600">Za 3 roky: <span className={`font-bold tabular-nums ${(perf3y ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(perf3y)}</span></span>
-              </div>
-            </div>
-          )}
         </section>
 
         {/* SLOŽENÍ */}
@@ -261,8 +249,14 @@ export default async function PortfolioDetailPreview(
           </div>
         </section>
 
-        {/* SROVNÁNÍ SE S&P 500 */}
-        {cmp && (
+        {/* HISTORICKÁ VÝKONNOST – reálný backtest (dlouhodobě + chování v krizích) */}
+        {btConfig ? (
+          <section className="pb-8">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Historická výkonnost a chování v krizích</h2>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech od roku 2008 – dlouhodobý růst, kolísavost, nejhlubší propady a co se dělo v krizích. Vše přepočtené do zvolené měny.</p>
+            <PortfolioBacktest config={btConfig} portfolioName={model.name} />
+          </section>
+        ) : cmp ? (
           <section className="pb-8">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie (S&amp;P 500)</h2>
             <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu, kolísavosti i nejhorším propadu.</p>
@@ -299,7 +293,7 @@ export default async function PortfolioDetailPreview(
               <p className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700 leading-relaxed">{cmpNarrative}</p>
             </div>
           </section>
-        )}
+        ) : null}
 
         {/* SILNÉ / SLABÉ STRÁNKY */}
         {content && (

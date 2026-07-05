@@ -130,6 +130,74 @@ export const portfolioModels: PortfolioModel[] = [
   },
 ];
 
+/* ---------- Backtest: mapování na indexCode existujícího enginu ----------
+   Modelová portfolia napojujeme na reálná denní historická data (tabulka
+   index_historical_data, engine src/lib/backtest). Kde nemáme přesný index
+   (nemovitostní REIT, dividendový index), použijeme nejbližší proxy a otevřeně
+   to přiznáme v `proxyNote`. `start` = nejzazší datum, kde mají VŠECHNY složky
+   data (vázáno hlavně ftse_all_world od 2008‑06). */
+export interface BacktestItem {
+  indexCode: string;
+  weight: number; // 0–1
+  ter: number;    // desetinně, např. 0.0022
+}
+export interface BacktestConfig {
+  start: string;  // ISO datum začátku (kde mají data všechny složky)
+  items: BacktestItem[];
+  proxyNote?: string;
+}
+
+export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
+  'permanentni-portfolio': {
+    start: '2008-07-01',
+    items: [
+      { indexCode: 'ftse_all_world', weight: 0.25, ter: 0.0022 },
+      { indexCode: 'us_aggregate_bond', weight: 0.25, ter: 0.0025 },
+      { indexCode: 'ftse_europe', weight: 0.25, ter: 0.0040 }, // proxy nemovitostí
+      { indexCode: 'commodities', weight: 0.25, ter: 0.0019 },
+    ],
+    proxyNote: 'Nemovitostní složku kvůli délce historie aproximujeme evropským akciovým indexem – reálné výkyvy nemovitostních fondů jsou obvykle o něco mírnější.',
+  },
+  'nobel-portfolio': {
+    start: '2008-07-01',
+    items: [
+      { indexCode: 'ftse_all_world', weight: 0.55, ter: 0.0022 },
+      { indexCode: 'us_aggregate_bond', weight: 0.25, ter: 0.0025 },
+      { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
+    ],
+    proxyNote: 'Nemovitostní složku kvůli délce historie aproximujeme evropským akciovým indexem.',
+  },
+  'akciove-portfolio': {
+    start: '2008-07-01',
+    items: [
+      { indexCode: 'ftse_all_world', weight: 0.80, ter: 0.0022 },
+      { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
+    ],
+    proxyNote: 'Nemovitostní složku kvůli délce historie aproximujeme evropským akciovým indexem.',
+  },
+  'ray-dalio-all-weather': {
+    start: '2008-07-01',
+    items: [
+      { indexCode: 'us_treasury_20y', weight: 0.40, ter: 0.0007 },
+      { indexCode: 'ftse_all_world', weight: 0.30, ter: 0.0022 },
+      { indexCode: 'us_treasury_7_10y', weight: 0.15, ter: 0.0007 },
+      { indexCode: 'commodities', weight: 0.075, ter: 0.0019 },
+      { indexCode: 'gold', weight: 0.075, ter: 0.0012 },
+    ],
+  },
+  'dividendove-portfolio': {
+    start: '2008-07-01',
+    items: [
+      { indexCode: 'ftse_all_world', weight: 0.95, ter: 0.0045 }, // proxy dividendového indexu
+      { indexCode: 'ftse_europe', weight: 0.05, ter: 0.0040 },    // proxy nemovitostí
+    ],
+    proxyNote: 'Dividendovou složku aproximujeme širokým globálním akciovým indexem – slouží k ilustraci rizika a průběhu, ne k přesnému výnosu dividendové strategie.',
+  },
+};
+
+// Benchmark pro srovnání „portfolio vs čisté akcie".
+export const BACKTEST_BENCHMARK: BacktestItem = { indexCode: 'ftse_all_world', weight: 1, ter: 0.0022 };
+
 // Barva pilulky rizika (slate / amber / red – nikdy fialová).
 export const RISK_PILL: Record<PortfolioRisk, string> = {
   'Konzervativní': 'bg-slate-100 text-slate-700 border-slate-200',
