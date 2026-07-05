@@ -14,13 +14,12 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import { degiroOverall } from '@/components/design-preview/BrokerScore';
 import BrokerScoreGrid from '@/components/design-preview/BrokerScoreGrid';
 import BrokerFeeTable from '@/components/design-preview/BrokerFeeTable';
-import BrokerStickyCTA from '@/components/design-preview/BrokerStickyCTA';
 import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
 const YEAR = new Date().getFullYear();
-const AFFILIATE_HREF = 'https://www.degiro.cz';
+const BROKER_HREF = 'https://www.degiro.cz';
 
 export const metadata: Metadata = {
   title: `Recenze DEGIRO ${YEAR}: poplatky, daně a verdikt ${degiroOverall}/100`,
@@ -219,12 +218,12 @@ export default async function BrokerReviewPreview() {
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   <a
-                    href={AFFILIATE_HREF}
+                    href={BROKER_HREF}
                     target="_blank"
-                    rel="nofollow sponsored noopener"
+                    rel="nofollow noopener"
                     className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500 inline-flex items-center gap-1.5"
                   >
-                    Otevřít účet u DEGIRO <ArrowUpRight className="w-4 h-4" />
+                    Přejít na web DEGIRO <ArrowUpRight className="w-4 h-4" />
                   </a>
                   <Link href="#poplatky" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Přejít na poplatky</Link>
                 </div>
@@ -262,15 +261,15 @@ export default async function BrokerReviewPreview() {
           </div>
         </section>
 
-        {/* AFFILIATE DISCLOSURE */}
+        {/* NEZÁVISLOST / NEKOMERČNÍ */}
         <section className="pb-10">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 md:p-5 flex items-start gap-3">
-            <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-500 shrink-0"><Info className="w-4 h-4" /></span>
-            <div className="text-sm text-slate-600 leading-relaxed">
-              <p className="font-medium text-slate-900">Transparentně k odkazům</p>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 md:p-5 flex items-start gap-3">
+            <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 shrink-0"><ShieldCheck className="w-4 h-4" /></span>
+            <div className="text-sm text-slate-700 leading-relaxed">
+              <p className="font-medium text-slate-900">Nezávislé a nekomerční</p>
               <p className="mt-1">
-                Pokud si přes náš odkaz založíte účet, můžeme dostat provizi. Neovlivňuje to hodnocení ani výši poplatků
-                pro vás – skóre stavíme na datech a stejnou metodikou hodnotíme všechny brokery.{' '}
+                Nebereme žádné provize ani reklamu. Odkaz na brokera je čistě pro vaše pohodlí – hodnocení stavíme jen
+                na datech a stejnou metodikou pro všechny brokery.{' '}
                 <Link href="/design-preview/srovnani-brokeru" className="text-teal-700 hover:underline">Jak hodnotíme brokery</Link>.
               </p>
             </div>
@@ -515,12 +514,12 @@ export default async function BrokerReviewPreview() {
           </ol>
           <div className="mt-4">
             <a
-              href={AFFILIATE_HREF}
+              href={BROKER_HREF}
               target="_blank"
-              rel="nofollow sponsored noopener"
+              rel="nofollow noopener"
               className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"
             >
-              Otevřít účet u DEGIRO <ArrowUpRight className="w-4 h-4" />
+              Přejít na web DEGIRO <ArrowUpRight className="w-4 h-4" />
             </a>
           </div>
         </section>
@@ -573,12 +572,12 @@ export default async function BrokerReviewPreview() {
             </div>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <a
-                href={AFFILIATE_HREF}
+                href={BROKER_HREF}
                 target="_blank"
-                rel="nofollow sponsored noopener"
+                rel="nofollow noopener"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"
               >
-                Otevřít účet u DEGIRO <ArrowUpRight className="w-4 h-4" />
+                Přejít na web DEGIRO <ArrowUpRight className="w-4 h-4" />
               </a>
               <Link href="/design-preview/srovnani-brokeru" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">
                 Srovnat s ostatními brokery <ArrowRight className="w-4 h-4" />
@@ -614,7 +613,7 @@ export default async function BrokerReviewPreview() {
           <div className="grid sm:grid-cols-3 gap-4">
             {([
               [ShieldCheck, 'Nezávislé hodnocení', 'Jednotná metodika pro všechny brokery, žádné placené pořadí.'],
-              [BadgeCheck, 'Transparentní provize', 'Affiliate odkazy přiznáváme, neovlivňují skóre ani vaše poplatky.'],
+              [BadgeCheck, 'Bez provizí a reklam', 'Nekomerční vzdělávací obsah – nebereme provize ani reklamu.'],
               [Database, 'Aktuální data', `Z veřejných zdrojů a ceníku DEGIRO, aktualizováno ${dateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
@@ -676,9 +675,6 @@ export default async function BrokerReviewPreview() {
           <p className="max-w-md text-center sm:text-right leading-relaxed">Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy.</p>
         </div>
       </footer>
-
-      {/* Sticky mobilní CTA */}
-      <BrokerStickyCTA href={AFFILIATE_HREF} />
     </div>
   );
 }

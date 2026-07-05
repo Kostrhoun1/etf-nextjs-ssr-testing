@@ -205,14 +205,14 @@ export default async function KdeKoupitPreview() {
           </div>
         </section>
 
-        {/* AFFILIATE DISCLOSURE */}
+        {/* NEZÁVISLOST / NEKOMERČNÍ */}
         <section className="pb-8">
-          <div className="rounded-lg border border-sky-200 bg-sky-50 p-4 flex items-start gap-3">
-            <Info className="w-4 h-4 text-sky-700 mt-0.5 shrink-0" />
-            <p className="text-sm text-sky-900/90 leading-relaxed">
-              <span className="font-medium text-sky-900">Transparentně:</span> některé odkazy na brokery jsou
-              affiliate – pokud přes ně založíte účet, můžeme dostat provizi. Neovlivňuje to ani pořadí, ani skóre.
-              Hodnocení počítáme nezávisle z veřejných dat a metodiku níže máte celou před očima.
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 flex items-start gap-3">
+            <ShieldCheck className="w-4 h-4 text-emerald-700 mt-0.5 shrink-0" />
+            <p className="text-sm text-emerald-900/90 leading-relaxed">
+              <span className="font-medium text-emerald-900">Nezávislé a nekomerční:</span> nebereme žádné provize ani
+              reklamu. Odkazy na brokery jsou jen pro vaše pohodlí – hodnocení počítáme z veřejných dat stejnou
+              metodikou pro všechny brokery a celou ji máte níže před očima.
             </p>
           </div>
         </section>
@@ -482,7 +482,7 @@ export default async function KdeKoupitPreview() {
         <section className="pb-10">
           <div className="grid sm:grid-cols-3 gap-4">
             {([
-              [ShieldCheck, 'Nezávislé skóre', 'Stejné osy pro všechny brokery. Affiliate odkazy pořadí neovlivňují.'],
+              [ShieldCheck, 'Nezávislé skóre', 'Stejné osy pro všechny brokery. Nebereme provize ani reklamu.'],
               [Scale, 'Český úhel pohledu', 'Daně 15 vs 35 %, konverze CZK a česká podpora – co justETF neřeší.'],
               [Database, 'Aktuální data', `Z veřejných ceníků brokerů a ČNB, aktualizováno ${dateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
@@ -529,7 +529,7 @@ export default async function KdeKoupitPreview() {
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
               <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: veřejné ceníky brokerů, ČNB. Aktualizováno {dateStr}.</p>
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Některé odkazy na brokery jsou affiliate; pořadí ani skóre to neovlivňuje. Investice do ETF nesou riziko ztráty.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Nekomerční vzdělávací web – bez provizí a reklam. Investice do ETF nesou riziko ztráty.</p>
             </div>
           </div>
         </section>

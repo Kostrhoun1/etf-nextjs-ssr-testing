@@ -203,22 +203,23 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* JAK WEB VYDĚLÁVÁME – affiliate disclosure */}
+        {/* NEZÁVISLOST / NEKOMERČNÍ */}
         <section className="pb-10">
-          <h2 className="text-2xl font-bold tracking-tight mb-5">Jak web vyděláváme</h2>
-          <div className="rounded-xl border border-slate-200 bg-white p-5 md:p-6">
+          <h2 className="text-2xl font-bold tracking-tight mb-5">Nezávislý a nekomerční</h2>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5 md:p-6">
             <div className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-teal-50 text-teal-700">
+              <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-emerald-100 text-emerald-700">
                 <ShieldCheck className="w-5 h-5" />
               </span>
-              <div className="text-base text-slate-600 leading-relaxed space-y-3">
-                <p>
-                  Web je pro vás zdarma. Financuje se z provizí od brokerů (DEGIRO, XTB, Trading 212,
-                  Interactive Brokers), když se přes naše odkazy někdo zaregistruje.
-                </p>
+              <div className="text-base text-slate-700 leading-relaxed space-y-3">
                 <p className="text-slate-900 font-medium">
-                  Provize ale neovlivňuje pořadí ani hodnocení. Brokeři i fondy se řadí výhradně
-                  podle reálných parametrů – poplatků, podmínek a nabídky.
+                  Web je pro vás zdarma a čistě vzdělávací. Nebereme žádné provize od brokerů ani reklamu –
+                  na rozdíl od většiny podobných webů, které z affiliate provizí žijí.
+                </p>
+                <p>
+                  Díky tomu vás nemáme důvod tlačit ke konkrétnímu produktu. Brokery i fondy řadíme
+                  výhradně podle reálných parametrů – poplatků, podmínek a nabídky. Cílem je, abyste se
+                  rozhodli dobře pro sebe, ne pro nás.
                 </p>
                 <Link href="/design-preview/kde-koupit" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
                   Srovnání brokerů pro české investory <ArrowRight className="w-4 h-4" />

@@ -478,7 +478,7 @@ export default async function DesignPreviewV2() {
             ))}
           </div>
           <p className="mt-3 text-xs text-slate-400 leading-relaxed">
-            Hodnocení je nezávislé – žádné placené pořadí ani affiliate přednosti. Poplatky se mohou lišit dle trhu a typu obchodu.
+            Hodnocení je nezávislé – nebereme provize ani reklamu. Poplatky se mohou lišit dle trhu a typu obchodu.
           </p>
         </section>
 
@@ -501,7 +501,7 @@ export default async function DesignPreviewV2() {
         </section>
 
         <section className="grid sm:grid-cols-3 gap-4 pb-12">
-          {[[ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/design-preview/o-nas'], [Star, '12 let praxe ve financích', 'Obsah od experta, ne anonymně.', '/design-preview/o-nas'], [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/design-preview/kde-koupit']].map(([Icon, t, d, href]: any) => (
+          {[[ShieldCheck, 'Nezávislé a nekomerční', 'Žádné provize, žádná reklama, žádné placené pořadí.', '/design-preview/o-nas'], [Star, '12 let praxe ve financích', 'Obsah od experta, ne anonymně.', '/design-preview/o-nas'], [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/design-preview/kde-koupit']].map(([Icon, t, d, href]: any) => (
             <Link key={t} href={href} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-all">
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
               <span><span className="block font-semibold text-sm">{t}</span><span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{d}</span></span>

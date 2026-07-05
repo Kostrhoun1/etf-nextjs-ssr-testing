@@ -194,11 +194,9 @@ export default async function SrovnaniBrokeruPage() {
           </p>
         </section>
 
-        {/* Affiliate disclosure u tabulky */}
+        {/* Nezávislost / nekomerčnost */}
         <p className="mb-4 rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 leading-relaxed">
-          <span className="font-medium text-slate-600">Transparentně:</span> z odkazů na
-          brokery a z navazujících recenzí můžeme dostat provizi. Hodnocení tím není
-          ovlivněno – skóre hodnotíme podle stejných kritérií pro všechny brokery.
+          <span className="font-medium text-emerald-700">Nezávislé a nekomerční:</span> nebereme žádné provize ani reklamu. Odkazy na brokery jsou jen pro vaše pohodlí; skóre hodnotíme podle stejných kritérií pro všechny.
         </p>
 
         {/* 2. Srovnávací tabulka */}

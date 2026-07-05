@@ -57,7 +57,7 @@ export function KkTaxBadge({ value }: { value: string }) {
   );
 }
 
-/* ---------- CTA tlačítko na brokera (affiliate) ---------- */
+/* ---------- CTA tlačítko na brokera (informativní) ---------- */
 export function KkBrokerCta({ name, brokerId, href, primary = false }: { name: string; brokerId?: string; href?: string; primary?: boolean }) {
   const target = href ?? (brokerId ? reviewHref[brokerId] : undefined) ?? '/design-preview/srovnani-brokeru';
   return (
