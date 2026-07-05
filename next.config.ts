@@ -16,18 +16,9 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // Strip _rsc query parameter to fix Google indexing issues
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'query',
-            key: '_rsc',
-          },
-        ],
-        destination: '/:path*',
-        permanent: true,
-      },
+      // (Dřívější _rsc-strip redirect ODSTRANĚN – rozbíjel Next RSC prefetch → console
+      //  errors „Failed to fetch RSC payload" a pomalé přechody. Indexaci _rsc URL
+      //  řeší robots.ts disallow /*?_rsc=* .)
       // (www→apex řeší Vercel domény + middleware; kanonická doména je apex etfpruvodce.cz)
       // === CUTOVER: staré URL (starý web) → nové routy nového designu ===
       { source: '/srovnani-etf', destination: '/srovnani', permanent: true },
