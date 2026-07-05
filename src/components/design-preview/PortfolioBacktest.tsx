@@ -92,21 +92,57 @@ function LineChart({ portfolio, bench, cur }: { portfolio: EvoPoint[]; bench: Ev
   );
 }
 
+const dec1 = (v: number) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/* Klouzavé (rolling) výnosy – nejlepší/nejhorší roční zhodnocení přes VŠECHNA
+   N‑letá okna v období. Ukazuje konzistenci: „ať jste nastoupili kdykoli,
+   při N‑letém držení jste ročně vydělali X–Y %." Nejpřesvědčivější, když je min > 0. */
+function rollingAnnualized(evo: EvoPoint[], windowYears: number): { min: number; max: number } | null {
+  const monthly: EvoPoint[] = [];
+  let lastKey = '';
+  for (const p of evo) {
+    const key = p.date.slice(0, 7);
+    if (key !== lastKey) { monthly.push(p); lastKey = key; }
+  }
+  const ms = windowYears * 12;
+  if (monthly.length <= ms) return null;
+  let min = Infinity, max = -Infinity;
+  for (let i = 0; i + ms < monthly.length; i++) {
+    const a = monthly[i].value, b = monthly[i + ms].value;
+    if (a <= 0) continue;
+    const ann = Math.pow(b / a, 1 / windowYears) - 1;
+    if (ann < min) min = ann;
+    if (ann > max) max = ann;
+  }
+  return Number.isFinite(min) ? { min, max } : null;
+}
+
+/* Divergující sloupcový graf ročních výnosů: kladné nahoru, záporné dolů od nulové
+   osy. Poloviny jsou flex-1 uvnitř kontejneru s pevnou výškou, takže % výšky sloupců
+   spolehlivě fungují (dřív se počítaly vůči rodiči bez výšky → sloupce mizely). */
 function AnnualBars({ data }: { data: AnnualRet[] }) {
   if (!data.length) return null;
-  const max = Math.max(...data.map((d) => Math.abs(d.return)), 0.01);
+  const maxAbs = Math.max(...data.map((d) => Math.abs(d.return)), 0.01);
   return (
-    <div className="flex items-end gap-1.5 h-40" role="img" aria-label="Roční výnosy">
+    <div className="flex items-stretch gap-1 h-56" role="img" aria-label="Roční výnosy">
       {data.map((d) => {
-        const h = (Math.abs(d.return) / max) * 100;
+        const h = (Math.abs(d.return) / maxAbs) * 82; // necháme ~18 % na popisek
         const pos = d.return >= 0;
         return (
-          <div key={d.year} className="flex-1 flex flex-col items-center justify-end min-w-0" title={`${d.year}: ${pctD(d.return)}`}>
-            <span className={`text-[10px] tabular-nums mb-0.5 ${pos ? 'text-emerald-600' : 'text-red-500'}`}>{Math.round(d.return * 100)}</span>
-            <div className="w-full flex flex-col justify-end" style={{ height: '100%' }}>
-              <div className={`w-full rounded-sm ${pos ? 'bg-emerald-500' : 'bg-red-400'}`} style={{ height: `${Math.max(h, 2)}%` }} />
+          <div key={d.year} className="flex-1 flex flex-col min-w-0" title={`${d.year}: ${pctD(d.return)}`}>
+            {/* horní polovina – kladné roky */}
+            <div className="flex-1 flex flex-col justify-end items-center gap-0.5">
+              {pos && <span className="text-[9px] tabular-nums text-emerald-600 leading-none">{dec1(d.return * 100)}</span>}
+              {pos && <div className="w-full rounded-t-sm bg-emerald-500" style={{ height: `${h}%` }} />}
             </div>
-            <span className="text-[9px] text-slate-400 mt-1 rotate-0">{`'${String(d.year).slice(2)}`}</span>
+            {/* nulová osa */}
+            <div className="h-px bg-slate-300" />
+            {/* dolní polovina – záporné roky */}
+            <div className="flex-1 flex flex-col justify-start items-center gap-0.5">
+              {!pos && <div className="w-full rounded-b-sm bg-red-400" style={{ height: `${h}%` }} />}
+              {!pos && <span className="text-[9px] tabular-nums text-red-500 leading-none">{dec1(d.return * 100)}</span>}
+            </div>
+            <span className="text-[9px] text-slate-400 mt-1 text-center leading-none">{`'${String(d.year).slice(2)}`}</span>
           </div>
         );
       })}
@@ -171,12 +207,34 @@ export default function PortfolioBacktest({ config, portfolioName }: { config: B
 
   const tiles = [
     { label: 'Zhodnocení p.a.', value: pctD(s.cagr), tone: s.cagr >= 0 ? 'pos' : 'neg', sub: 'průměrně ročně (CAGR)' },
-    { label: 'Kolísavost', value: `± ${(annualVol * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} %`, tone: 'neutral', sub: 'roční – míra výkyvů' },
+    { label: 'Kolísavost', value: `± ${dec1(annualVol * 100)} %`, tone: 'neutral', sub: 'roční – míra výkyvů' },
     { label: 'Nejhlubší propad', value: pctD(dd.depth), tone: 'neg', sub: dd.recovered ? `zotaveno za ${dd.lengthMonths} měs.` : 'zatím nezotaveno' },
     { label: 'Nejlepší rok', value: pctD(best?.return), tone: 'pos', sub: best ? String(best.year) : '' },
     { label: 'Nejhorší rok', value: pctD(worst?.return), tone: 'neg', sub: worst ? String(worst.year) : '' },
     { label: 'Kladných let', value: `${pf.returns.positiveYears}/${years}`, tone: 'neutral', sub: 'let v plusu' },
   ];
+
+  // Klouzavé 5leté výnosy (konzistence) + poradenský souhrn.
+  const roll5 = rollingAnnualized(pf.evolution, 5);
+  const benchDD = bench.risk.maxDrawdown.depth;
+  const takeaway = (() => {
+    const parts: string[] = [];
+    parts.push(`Za ${years} let rostlo portfolio tempem ${pctD(s.cagr)} ročně – ze ${money(INITIAL[cur], cur)} by dnes bylo ${money(s.netAssetValue, cur)}.`);
+    if (roll5) {
+      parts.push(
+        `Ať jste nastoupili kdykoli, při libovolném pětiletém držení jste ročně vydělali ${pctD(roll5.min)} až ${pctD(roll5.max)}` +
+        (roll5.min > 0 ? ' – tedy ani v nejhorším pětiletém okně jste neprodělali.' : '.')
+      );
+    }
+    if (dd.depth != null && benchDD != null) {
+      const shallower = dd.depth > benchDD + 0.03; // méně hluboký propad (depth je záporný)
+      parts.push(
+        `Nejhlubší propad byl ${pctD(dd.depth)}${dd.recovered ? ` a trvalo ${dd.lengthMonths} měsíců, než se vrátil na původní hodnotu` : ''} – ` +
+        (shallower ? `mělčí než u čistě akciového portfolia (${pctD(benchDD)}), to je odměna za diverzifikaci.` : `srovnatelný s čistě akciovým portfoliem (${pctD(benchDD)}).`)
+      );
+    }
+    return parts.join(' ');
+  })();
 
   return (
     <div className="space-y-5">
@@ -210,9 +268,25 @@ export default function PortfolioBacktest({ config, portfolioName }: { config: B
         ))}
       </div>
 
+      {/* Poradenský souhrn – „co si z toho vzít" */}
+      <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-5">
+        <div className="flex items-center gap-2 mb-1.5">
+          <TrendingUp className="w-4 h-4 text-teal-700" />
+          <h3 className="text-sm font-semibold text-teal-900">Co si z toho vzít</h3>
+        </div>
+        <p className="text-sm text-teal-900/85 leading-relaxed">{takeaway}</p>
+      </div>
+
       {/* Annual returns */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Výnos rok po roce ({curLabel[cur]})</h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+          <h3 className="text-sm font-semibold text-slate-900">Výnos rok po roce ({curLabel[cur]})</h3>
+          {roll5 && (
+            <span className="text-xs text-slate-500">
+              Klouzavý 5letý výnos: <span className="font-medium text-slate-700 tabular-nums">{pctD(roll5.min)} až {pctD(roll5.max)}</span> ročně
+            </span>
+          )}
+        </div>
         <AnnualBars data={pf.returns.annualReturns} />
       </div>
 
