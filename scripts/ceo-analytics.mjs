@@ -49,11 +49,16 @@ const pct = (cur, old) => (old ? `${cur >= old ? '+' : ''}${(((cur - old) / old)
   const tok = await getToken();
   const dr = [{ startDate: `${DAYS}daysAgo`, endDate: 'today' }];
 
+  // Počítáme JEN produkční host (etfpruvodce.cz / www) – vyloučí localhost,
+  // vercel.app preview a jakékoli interní/QA návštěvy (např. testování Claude Code),
+  // aby čísla nebyla znehodnocená.
+  const PROD = { filter: { fieldName: 'hostName', inListFilter: { values: ['etfpruvodce.cz', 'www.etfpruvodce.cz'] } } };
+
   // ---- GA4 ----
-  const overview = await ga4(tok, { dateRanges: dr, metrics: [{ name: 'activeUsers' }, { name: 'sessions' }, { name: 'screenPageViews' }, { name: 'averageSessionDuration' }, { name: 'engagementRate' }] });
+  const overview = await ga4(tok, { dateRanges: dr, dimensionFilter: PROD, metrics: [{ name: 'activeUsers' }, { name: 'sessions' }, { name: 'screenPageViews' }, { name: 'averageSessionDuration' }, { name: 'engagementRate' }] });
   const o = overview.rows?.[0]?.metricValues?.map((m) => +m.value) || [0, 0, 0, 0, 0];
-  const pagesR = await ga4(tok, { dateRanges: dr, dimensions: [{ name: 'pagePath' }], metrics: [{ name: 'screenPageViews' }, { name: 'userEngagementDuration' }, { name: 'engagementRate' }], orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }], limit: 15 });
-  const chR = await ga4(tok, { dateRanges: dr, dimensions: [{ name: 'sessionDefaultChannelGroup' }], metrics: [{ name: 'sessions' }], orderBys: [{ metric: { metricName: 'sessions' }, desc: true }], limit: 6 });
+  const pagesR = await ga4(tok, { dateRanges: dr, dimensionFilter: PROD, dimensions: [{ name: 'pagePath' }], metrics: [{ name: 'screenPageViews' }, { name: 'userEngagementDuration' }, { name: 'engagementRate' }], orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }], limit: 15 });
+  const chR = await ga4(tok, { dateRanges: dr, dimensionFilter: PROD, dimensions: [{ name: 'sessionDefaultChannelGroup' }], metrics: [{ name: 'sessions' }], orderBys: [{ metric: { metricName: 'sessions' }, desc: true }], limit: 6 });
 
   // ---- GSC (má ~2denní zpoždění) ----
   const end = new Date(Date.now() - 2 * 86400000);
