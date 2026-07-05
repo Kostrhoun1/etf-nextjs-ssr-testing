@@ -159,13 +159,14 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
         <p className="text-sm text-slate-500">Kompletní srovnání vedle sebe. Zelené pole = nejlepší hodnota v řádku.</p>
         <CurrencyToggle />
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-        <table className="w-full min-w-[44rem] text-sm">
+      {/* DESKTOP: tabulka vedle sebe */}
+      <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto">
+        <table className="w-full min-w-0 sm:min-w-[44rem] text-sm">
           <thead>
             <tr className="border-b border-slate-200">
-              <th className="py-3 px-4 text-left text-xs font-medium uppercase tracking-wide text-slate-400 bg-slate-50 sticky left-0">Parametr</th>
+              <th className="py-3 px-2.5 sm:px-4 text-left text-xs font-medium uppercase tracking-wide text-slate-400 bg-slate-50 sticky left-0">Parametr</th>
               {etfs.map((e) => (
-                <th key={e.isin} className="py-3 px-4 text-left align-top bg-slate-50">
+                <th key={e.isin} className="py-3 px-2.5 sm:px-4 text-left align-top bg-slate-50">
                   <Link href={`/etf/${e.isin}`} className="font-semibold text-teal-700 hover:text-teal-800 leading-tight block">{e.name.length > 32 ? e.name.slice(0, 32) + '…' : e.name}</Link>
                   <span className="text-xs text-slate-400 font-normal">{e.primary_ticker ?? e.isin}</span>
                 </th>
@@ -176,13 +177,13 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
             {sections.map((sec) => (
               <React.Fragment key={sec.title}>
                 <tr>
-                  <td colSpan={colW} className="bg-slate-100/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{sec.title}</td>
+                  <td colSpan={colW} className="bg-slate-100/70 px-2.5 sm:px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{sec.title}</td>
                 </tr>
                 {sec.rows.map((r, i) => (
                   <tr key={i} className="border-b border-slate-100 align-top">
-                    <td className="py-2.5 px-4 text-slate-500 font-medium sticky left-0 bg-white">{r.label}</td>
+                    <td className="py-2.5 px-2.5 sm:px-4 text-slate-500 font-medium sticky left-0 bg-white">{r.label}</td>
                     {etfs.map((e) => (
-                      <td key={e.isin} className={`py-2.5 px-4 ${r.top ? '' : 'tabular-nums'} ${r.best?.(e) ? 'font-bold text-emerald-700' : 'text-slate-800'}`}>{r.cell(e)}</td>
+                      <td key={e.isin} className={`py-2.5 px-2.5 sm:px-4 ${r.top ? '' : 'tabular-nums'} ${r.best?.(e) ? 'font-bold text-emerald-700' : 'text-slate-800'}`}>{r.cell(e)}</td>
                     ))}
                   </tr>
                 ))}
@@ -190,6 +191,35 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* MOBIL: stack po parametrech (tabulka vedle sebe je na telefon moc široká) */}
+      <div className="md:hidden space-y-4">
+        <div className="grid gap-2 sticky top-14 z-10 bg-slate-50 py-2" style={{ gridTemplateColumns: `repeat(${etfs.length}, minmax(0,1fr))` }}>
+          {etfs.map((e) => (
+            <Link key={e.isin} href={`/etf/${e.isin}`} className="rounded-lg bg-white border border-slate-200 p-2 text-center">
+              <span className="block text-sm font-semibold text-teal-700 leading-tight">{e.primary_ticker ?? e.isin.slice(0, 6)}</span>
+              <span className="block text-[11px] text-slate-400 truncate">{e.name.length > 22 ? e.name.slice(0, 22) + '…' : e.name}</span>
+            </Link>
+          ))}
+        </div>
+        {sections.map((sec) => (
+          <div key={sec.title}>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">{sec.title}</h3>
+            <div className="space-y-2">
+              {sec.rows.map((r, i) => (
+                <div key={i} className="rounded-lg border border-slate-100 bg-white p-2.5">
+                  <p className="text-xs text-slate-500 mb-1.5">{r.label}</p>
+                  <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${etfs.length}, minmax(0,1fr))` }}>
+                    {etfs.map((e) => (
+                      <div key={e.isin} className={`min-w-0 text-sm ${r.top ? '' : 'tabular-nums'} ${r.best?.(e) ? 'font-bold text-emerald-700' : 'text-slate-800'}`}>{r.cell(e)}</div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </>
   );

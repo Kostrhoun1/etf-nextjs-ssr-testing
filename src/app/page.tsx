@@ -232,10 +232,10 @@ export default async function DesignPreviewV2() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main className="max-w-6xl mx-auto px-4 pb-24">
         {/* 1. HERO – USP + vyhledávání + dvojí cesta (vím co hledám / začátečník) */}
-        <section className="py-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-9">
+        <section className="py-4 md:py-7">
+          <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-9">
             <div className="md:flex md:items-start md:justify-between gap-10">
               <div className="md:max-w-lg">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Největší srovnávač ETF pro české investory</h1>
@@ -252,18 +252,18 @@ export default async function DesignPreviewV2() {
                   <Link href="/vyber-etf" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                     <Sparkles className="w-4 h-4" /> Nevíš který? Poradíme
                   </Link>
-                  <Link href="/pruvodce" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                  <Link href="/pruvodce" className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                     <BookOpen className="w-4 h-4" /> Průvodce pro začátečníky
                   </Link>
                 </div>
               </div>
               <form action="/srovnani" className="mt-6 md:mt-1 md:w-80 shrink-0">
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">Hledáte konkrétní fond?</label>
+                <label className="hidden sm:block text-xs font-medium text-slate-400 mb-1.5">Hledáte konkrétní fond?</label>
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 h-11">
                   <Search className="w-4 h-4 text-slate-400" />
                   <input name="q" placeholder="Název, ISIN nebo ticker…" className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 outline-none" />
                 </div>
-                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+                <div className="mt-2.5 hidden sm:flex flex-wrap items-center gap-2 text-xs">
                   <span className="text-slate-400">Hledané:</span>
                   <Link href="/nejlepsi-etf/nejlepsi-celosvetove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">MSCI World</Link>
                   <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">S&P 500</Link>
