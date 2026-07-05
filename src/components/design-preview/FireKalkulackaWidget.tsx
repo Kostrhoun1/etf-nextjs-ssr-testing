@@ -34,49 +34,17 @@ const getPortfolioParameters = (strategy: Strategy) => {
   }
 };
 
-// ===== 1:1 z retirementCalculations.ts (getPortfolioReturn) – NEMĚNIT =====
-const getPortfolioReturn = (
-  strategy: Strategy,
-  year: number,
-  scenario: 'optimistic' | 'realistic' | 'pessimistic' = 'realistic',
-): number => {
-  const params = getPortfolioParameters(strategy);
-
-  let returnMultiplier: number;
-  let volatilityMultiplier: number;
-
-  switch (scenario) {
-    case 'optimistic':
-      returnMultiplier = 1.3;
-      volatilityMultiplier = 0.8;
-      break;
-    case 'pessimistic':
-      returnMultiplier = 0.6;
-      volatilityMultiplier = 1.4;
-      break;
-    default:
-      returnMultiplier = 1.0;
-      volatilityMultiplier = 1.0;
-  }
-
-  const adjustedReturn = params.expectedReturn * returnMultiplier;
-  const adjustedVolatility = params.volatility * volatilityMultiplier;
-
-  const cycleFactor = Math.sin((year * 1.618) % (2 * Math.PI));
-  const volatilityFactor = cycleFactor * adjustedVolatility * 0.6;
-
-  const finalReturn = adjustedReturn + (adjustedReturn * volatilityFactor);
-
-  const minReturn = scenario === 'pessimistic' ? -0.40 : -0.25;
-  const maxReturn = scenario === 'optimistic' ? 0.50 : 0.35;
-
-  return Math.max(minReturn, Math.min(maxReturn, finalReturn / 100));
-};
+/* Očekávaný (nominální) roční výnos strategie. FIRE ukazuje očekávanou střední
+   dráhu – nejistotu a výkyvy záměrně řeší samostatná Monte Carlo simulace, ne
+   pseudonáhodný ornament. Proto tu žádný „Math.sin" ani umělá volatilita nejsou. */
+const expectedAnnualReturn = (strategy: Strategy): number =>
+  getPortfolioParameters(strategy).expectedReturn / 100;
 
 interface FirePoint {
   year: number;
   age: number;
   portfolioValue: number;
+  realValue: number;        // hodnota portfolia v dnešní kupní síle
   fireTargetAtYear: number;
 }
 
@@ -89,7 +57,10 @@ interface FireResult {
   projection: FirePoint[];
 }
 
-// ===== 1:1 z calculateFireScenario(..., 'realistic') – NEMĚNIT =====
+/* Poctivý model očekávané dráhy: portfolio roste očekávaným výnosem strategie,
+   cílová částka i (volitelně) měsíční spoření se navyšují o inflaci – aby model
+   nebyl asymetrický (dřív cíl rostl s inflací, ale vklad byl konstantní, což FIRE
+   uměle oddalovalo). Bez pseudonáhodných výkyvů a bez umělé „podlahy". */
 function computeFire(params: {
   currentAge: number;
   currentSavings: number;
@@ -97,39 +68,38 @@ function computeFire(params: {
   monthlyExpensesInFire: number;
   inflationRate: number;
   investmentStrategy: Strategy;
+  growContributions: boolean;
 }): FireResult {
   const {
     currentAge, currentSavings, monthlySavings,
-    monthlyExpensesInFire, inflationRate, investmentStrategy,
+    monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions,
   } = params;
 
   const yearlyInflation = inflationRate / 100;
+  const r = expectedAnnualReturn(investmentStrategy);
   const annualExpensesInFire = monthlyExpensesInFire * 12;
   const fireTarget = annualExpensesInFire * 25; // 4% pravidlo
 
   const projection: FirePoint[] = [];
   let portfolioValue = currentSavings;
-  let totalContributed = currentSavings;
   let fireAge: number | null = null;
   let fireAmount = 0;
 
   for (let year = 0; year < 50; year++) {
     const age = currentAge + year;
-    const yearlyContribution = year === 0 ? 0 : monthlySavings * 12;
 
     if (year > 0) {
+      // Volitelně valorizujeme roční vklad o inflaci (mzdy typicky rostou s inflací).
+      const yearlyContribution = (monthlySavings * 12) *
+        (growContributions ? Math.pow(1 + yearlyInflation, year - 1) : 1);
       portfolioValue += yearlyContribution;
-      totalContributed += yearlyContribution;
-
-      const portfolioReturn = getPortfolioReturn(investmentStrategy, year, 'realistic');
-      portfolioValue *= (1 + portfolioReturn);
-
-      portfolioValue = Math.max(portfolioValue, totalContributed * 0.6);
+      portfolioValue *= (1 + r);
     }
 
     const currentFireTarget = fireTarget * Math.pow(1 + yearlyInflation, year);
+    const realValue = portfolioValue / Math.pow(1 + yearlyInflation, year);
 
-    projection.push({ year, age, portfolioValue, fireTargetAtYear: currentFireTarget });
+    projection.push({ year, age, portfolioValue, realValue, fireTargetAtYear: currentFireTarget });
 
     if (fireAge === null && portfolioValue >= currentFireTarget) {
       fireAge = age;
@@ -212,6 +182,7 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Tooltip
         <span className="inline-block w-2 h-2 rounded-full bg-teal-400" /> Portfolio:{' '}
         <span className="font-medium tabular-nums">{fmtCZK(p.portfolioValue)}</span>
       </div>
+      <div className="text-[11px] text-slate-300 pl-3.5">≈ {fmtCZK(p.realValue)} v dnešních cenách</div>
       <div className="flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full bg-slate-400" /> FIRE cíl:{' '}
         <span className="font-medium tabular-nums">{fmtCZK(p.fireTargetAtYear)}</span>
@@ -227,13 +198,14 @@ export default function FireKalkulackaWidget() {
   const [monthlySavings, setMonthlySavings] = useState(15000);
   const [inflationRate, setInflationRate] = useState(2.5);
   const [investmentStrategy, setInvestmentStrategy] = useState<Strategy>('moderate');
+  const [growContributions, setGrowContributions] = useState(true);
 
   const result = useMemo(
     () => computeFire({
       currentAge, currentSavings, monthlySavings,
-      monthlyExpensesInFire, inflationRate, investmentStrategy,
+      monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions,
     }),
-    [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy],
+    [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions],
   );
 
   // Graf ořízneme do roku dosažení FIRE (+2 roky kontextu), jinak celé období do 50 let.
@@ -314,6 +286,19 @@ export default function FireKalkulackaWidget() {
             </p>
           </div>
         </div>
+
+        <label className="mt-4 flex items-start gap-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={growContributions}
+            onChange={(e) => setGrowContributions(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+          />
+          <span className="text-sm text-slate-600">
+            Navyšovat měsíční spoření o inflaci
+            <span className="block text-xs text-slate-400 leading-snug">Realističtější – mzdy i spoření obvykle rostou s inflací. Bez toho model dosažení nezávislosti uměle oddaluje.</span>
+          </span>
+        </label>
 
         {(warnExpenses || warnInflation) && (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
