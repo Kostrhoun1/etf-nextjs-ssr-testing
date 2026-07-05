@@ -166,7 +166,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
               <th className="py-3 px-4 text-left text-xs font-medium uppercase tracking-wide text-slate-400 bg-slate-50 sticky left-0">Parametr</th>
               {etfs.map((e) => (
                 <th key={e.isin} className="py-3 px-4 text-left align-top bg-slate-50">
-                  <Link href={`/design-preview/etf/${e.isin}`} className="font-semibold text-teal-700 hover:text-teal-800 leading-tight block">{e.name.length > 32 ? e.name.slice(0, 32) + '…' : e.name}</Link>
+                  <Link href={`/etf/${e.isin}`} className="font-semibold text-teal-700 hover:text-teal-800 leading-tight block">{e.name.length > 32 ? e.name.slice(0, 32) + '…' : e.name}</Link>
                   <span className="text-xs text-slate-400 font-normal">{e.primary_ticker ?? e.isin}</span>
                 </th>
               ))}

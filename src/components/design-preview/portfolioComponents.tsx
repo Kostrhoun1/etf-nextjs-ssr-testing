@@ -109,7 +109,7 @@ export function PortfolioCard({ model, returns }: { model: PortfolioModel; retur
       )}
 
       <Link
-        href={`/design-preview/portfolio-strategie/${model.slug}`}
+        href={`/portfolio-strategie/${model.slug}`}
         className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800"
       >
         Zobrazit detail a konkrétní ETF <ArrowRight className="h-4 w-4" />
@@ -149,7 +149,7 @@ export function PortfolioVerdictTable() {
             {portfolioModels.map((m) => (
               <tr key={m.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3">
-                  <Link href={`/design-preview/portfolio-strategie/${m.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
+                  <Link href={`/portfolio-strategie/${m.slug}`} className="font-medium text-teal-700 hover:text-teal-800">
                     {m.name}
                   </Link>
                 </td>
@@ -172,7 +172,7 @@ export function PortfolioVerdictTable() {
         {portfolioModels.map((m) => (
           <Link
             key={m.id}
-            href={`/design-preview/portfolio-strategie/${m.slug}`}
+            href={`/portfolio-strategie/${m.slug}`}
             className="block rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-teal-300"
           >
             <div className="mb-1 flex items-center justify-between gap-2">

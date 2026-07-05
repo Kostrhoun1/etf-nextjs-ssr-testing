@@ -64,13 +64,13 @@ export default function HeaderSearch() {
     const term = query.trim();
     if (!term) return;
     setOpen(false);
-    router.push(`/design-preview/srovnani?q=${encodeURIComponent(term)}`);
+    router.push(`/srovnani?q=${encodeURIComponent(term)}`);
   }, [query, router]);
 
   const goToEtf = useCallback((isin: string) => {
     setOpen(false);
     setQuery('');
-    router.push(`/design-preview/etf/${isin}`);
+    router.push(`/etf/${isin}`);
   }, [router]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {

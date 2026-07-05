@@ -141,10 +141,10 @@ export default function EtfSelector() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 pt-1">
-          <Link href={`/design-preview/nejlepsi-etf/${cat.slug}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800">
+          <Link href={`/nejlepsi-etf/${cat.slug}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800">
             Zobrazit doporučené fondy <ArrowRight className="w-4 h-4" />
           </Link>
-          <Link href="/design-preview/srovnani" className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">
+          <Link href="/srovnani" className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">
             <Filter className="w-4 h-4" /> Profiltrovat všechny fondy
           </Link>
           <button onClick={reset} className="inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-600">

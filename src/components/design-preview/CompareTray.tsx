@@ -19,7 +19,7 @@ export default function CompareTray() {
 
   if (!ready || items.length === 0) return null;
 
-  const href = `/design-preview/srovnani/porovnani?isins=${items.map((i) => i.isin).join(',')}`;
+  const href = `/srovnani/porovnani?isins=${items.map((i) => i.isin).join(',')}`;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>

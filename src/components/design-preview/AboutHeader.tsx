@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { TrendingUp, Menu, X } from 'lucide-react';
 
 const NAV = [
-  { href: '/design-preview/pruvodce', label: 'Co jsou ETF' },
-  { href: '/design-preview/zebricky', label: 'Žebříčky' },
-  { href: '/design-preview/srovnani', label: 'Srovnání' },
-  { href: '/design-preview/portfolio-strategie', label: 'Portfolia' },
-  { href: '/design-preview/kalkulacky', label: 'Kalkulačky' },
-  { href: '/design-preview/kde-koupit', label: 'Kde koupit' },
+  { href: '/pruvodce', label: 'Co jsou ETF' },
+  { href: '/zebricky', label: 'Žebříčky' },
+  { href: '/srovnani', label: 'Srovnání' },
+  { href: '/portfolio-strategie', label: 'Portfolia' },
+  { href: '/kalkulacky', label: 'Kalkulačky' },
+  { href: '/kde-koupit', label: 'Kde koupit' },
 ];
 
 /** Sdílená hlavička (vzor homepage) s mobilním hamburgerem. */
@@ -20,7 +20,7 @@ export default function AboutHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/design-preview" className="flex items-center gap-2 font-semibold tracking-tight">
+        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white">
             <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
           </span>
@@ -34,7 +34,7 @@ export default function AboutHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link href="/design-preview/srovnani" className="hidden sm:inline-flex rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
+          <Link href="/srovnani" className="hidden sm:inline-flex rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
           <button
             type="button"
             aria-label={open ? 'Zavřít menu' : 'Otevřít menu'}
@@ -61,7 +61,7 @@ export default function AboutHeader() {
               </Link>
             ))}
             <Link
-              href="/design-preview/srovnani"
+              href="/srovnani"
               onClick={() => setOpen(false)}
               className="mt-2 mb-1 inline-flex justify-center rounded-lg bg-teal-700 px-3.5 py-2 text-sm font-medium text-white hover:bg-teal-800"
             >

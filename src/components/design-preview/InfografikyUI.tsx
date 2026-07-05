@@ -195,7 +195,7 @@ export function InfografikyRankPanel({
           return (
             <li key={etf.isin}>
               <Link
-                href={`/design-preview/etf/${etf.isin}`}
+                href={`/etf/${etf.isin}`}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors"
               >
                 <span className="text-xs text-slate-400 tabular-nums w-4 shrink-0">{i + 1}</span>

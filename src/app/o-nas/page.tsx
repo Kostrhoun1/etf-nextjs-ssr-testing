@@ -1,124 +1,307 @@
-import Layout from '@/components/Layout';
 import { Metadata } from 'next';
-import { MailIcon } from '@/components/ui/icons';
 import Link from 'next/link';
-import { generateCanonicalMetadata } from '@/lib/metadata';
+import AboutHeader from '@/components/design-preview/AboutHeader';
+import InfoTip from '@/components/design-preview/InfoTip';
+import { getTotalETFCount } from '@/lib/etf-data';
+import {
+  Linkedin, Mail, ArrowRight, History, Landmark, Users, Award,
+  Database, Coins, Scale, BookOpen, ShieldCheck, ExternalLink,
+} from 'lucide-react';
 
-export const metadata: Metadata = generateCanonicalMetadata(
-  '/o-nas',
-  'O nás - ETF průvodce.cz',
-  'Seznamte se s Tomášem Kostrhoun, autorem ETF průvodce.cz. Fintech expert s 12letou zkušeností v bankovnictví, jehož cílem je zvýšení investiční gramotnosti v České republice.'
-);
+export const revalidate = 86400;
 
-export default function AboutPage() {
+// Preview build → noindex. Ostrá /o-nas se MÁ indexovat (autoritní signál):
+// na ostré routě se robots přepne na index:true (viz generateCanonicalMetadata).
+export const metadata: Metadata = {
+  title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
+  description:
+    'Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12 let ve financích, dříve ředitel úvěrů a hypoték v MONETA. Nezávislý srovnávač 4 800+ ETF s výnosy přepočtenými do korun.',
+};
+
+// JSON-LD: Person (autor) + Organization (web s founder = ten Person).
+const PERSON = {
+  '@type': 'Person',
+  '@id': 'https://www.etfpruvodce.cz/o-nas#tomas-kostrhoun',
+  name: 'Tomáš Kostrhoun',
+  jobTitle: 'Zakladatel a autor',
+  description:
+    'Zakladatel a autor ETF průvodce.cz. 12 let zkušeností ve financích, dříve ředitel úvěrů a hypoték v MONETA Money Bank.',
+  sameAs: [
+    'https://www.linkedin.com/in/tomaskostrhoun/',
+    'https://x.com/ETFpruvodce',
+  ],
+  worksFor: { '@type': 'Organization', name: 'ETF průvodce.cz' },
+  alumniOf: { '@type': 'Organization', name: 'MONETA Money Bank' },
+  knowsAbout: ['ETF', 'investování', 'osobní finance', 'pasivní investování', 'finanční trhy'],
+};
+
+const ORGANIZATION = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': 'https://www.etfpruvodce.cz/#organization',
+  name: 'ETF průvodce.cz',
+  url: 'https://www.etfpruvodce.cz',
+  description:
+    'Největší srovnávač ETF pro české investory – nezávislá data 4 300+ fondů s výnosy přepočtenými do korun.',
+  founder: PERSON,
+};
+
+const EXPERTISE = [
+  { icon: History, value: '12 let', label: 've financích', desc: 'Hypotéky, spotřebitelské úvěry a řízení byznysu v bankovnictví.' },
+  { icon: Landmark, value: '150+ mld Kč', label: 'úvěrové portfolio', desc: 'Hodnota portfolia, které jsem v MONETA spravoval a řídil.' },
+  { icon: Users, value: '30+ lidí', label: 'vedení týmu', desc: 'Přímé vedení obchodního a produktového týmu.' },
+  { icon: Award, value: 'První v ČR', label: 'online hypotéka', desc: 'Uvedení první plně online hypotéky na český trh.' },
+];
+
+const METODIKA = [
+  {
+    icon: Database,
+    title: 'Data z tisíců fondů',
+    desc: 'Žebříčky a srovnání čerpají z databáze tisíců evropských UCITS ETF, kterou denně aktualizujeme.',
+  },
+  {
+    icon: Coins,
+    title: 'Výnosy přepočtené do korun',
+    desc: 'Vlastní výpočet pro českého investora – vidíte reálný výnos v Kč, ne jen v měně fondu.',
+  },
+  {
+    icon: Scale,
+    title: 'Nezávislé pořadí',
+    desc: (
+      <>
+        Fondy řadíme podle reálných parametrů – <InfoTip label="Total Expense Ratio – roční poplatek za správu fondu, strhává se automaticky z hodnoty.">TER</InfoTip>, výnosů a velikosti, nikdy ne podle provize.
+      </>
+    ),
+  },
+  {
+    icon: BookOpen,
+    title: 'Vzdělávací charakter',
+    desc: 'Web informuje a vzdělává. Nedáváme investiční doporučení ani neříkáme, co konkrétně kupovat.',
+  },
+];
+
+export default async function AboutPage() {
+  const totalCount = await getTotalETFCount();
+  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 300';
+
   return (
-    <Layout>
-      <div className="bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          {/* Hero sekce */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl font-bold text-gray-900 mb-6">O projektu ETF průvodce.cz</h1>
-            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-              Moderní a komplexní průvodce světem ETF fondů pro české investory. 
-              Náš cíl je zvýšení investiční gramotnosti v České republice prostřednictvím 
-              kvalitních vzdělávacích materiálů a pokročilých analytických nástrojů.
-            </p>
-          </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION) }} />
 
-          {/* Autor sekce */}
-          <div className="bg-gray-50 rounded-2xl p-8 mb-12">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Autor projektu</h2>
-              
-              <div className="space-y-6 text-gray-700 leading-relaxed">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">Tomáš Kostrhoun</h3>
-                  <p className="text-lg text-violet-600 font-medium">Fintech expert & Founder</p>
-                </div>
+      <AboutHeader />
 
-                <p className="text-lg">
-                  S více než <strong>12letou zkušeností</strong> v oblasti hypotéčních úvěrů, spotřebitelského úvěrování a řízení P&L jsem přešel z pozice <strong>Head of Loans & Mortgages v MONETA Money Bank</strong> k roli nezávislého poradce a zakladatele fintech projektů.
+      <main className="max-w-4xl mx-auto px-4">
+        {/* Breadcrumb */}
+        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-slate-600">Domů</Link>
+          <span>/</span>
+          <span className="text-slate-600">O nás</span>
+        </nav>
+
+        {/* HERO – kdo za webem stojí */}
+        <section className="pb-8">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
+            Kdo stojí za ETF průvodce.cz
+          </h1>
+          <p className="mt-3 text-base text-slate-600 leading-relaxed max-w-2xl">
+            ETF průvodce.cz je nezávislý srovnávač ETF pro české investory. Nestojí za ním anonymní
+            redakce, ale konkrétní člověk s 12 lety praxe ve financích.
+          </p>
+
+          {/* Karta autora */}
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+              <span className="flex items-center justify-center w-20 h-20 shrink-0 rounded-full bg-teal-50 text-teal-700 text-2xl font-bold tracking-tight">
+                TK
+              </span>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-bold text-slate-900">Tomáš Kostrhoun</h2>
+                <p className="text-sm font-medium text-teal-700">Zakladatel a autor</p>
+                <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                  Dříve ředitel úvěrů a hypoték v MONETA Money Bank.
                 </p>
-
-                <p>
-                  V průběhu své kariéry jsem vedl tým 30+ FTE, spravoval úvěrové portfolio v hodnotě <strong>150+ miliard CZK</strong> a uvedl na trh <strong>první end-to-end online hypotéku</strong> v České republice. Během těchto let jsem ale neustále narážel na stejný problém: <strong>nízkou úroveň finanční gramotnosti</strong> mezi českými klienty.
-                </p>
-
-                <p>
-                  Lidé často nerozuměli základním finančním konceptům – od úrokových sazeb přes diverzifikaci až po dlouhodobé investiční strategie. Místo toho se spoléhali na rady od prodejců, kteří často preferovali drahé produkty s vysokými provizemi nad efektivní řešení. To mě motivovalo zaměřit se na <strong>zvyšování finanční gramotnosti v Česku</strong>.
-                </p>
-
-                <p>
-                  <strong>Proč ETF fondy?</strong> ETF představují demokratizaci investování – nízké náklady, široká diverzifikace, transparentnost. Jsou to nástroje, které umožňují běžným lidem budovat majetek stejným způsobem jako institucionální investoři. Během své praxe v bankovnictví jsem se naučil analyzovat finanční produkty, hodnotit rizika a spravovat portfolia. Tuto expertizu teď chci zpřístupnit širší veřejnosti.
-                </p>
-
-                <p>
-                  Aktuálně se věnuji <strong>vzdělávání v oblasti osobních financí a investic</strong>. ETF průvodce.cz je projekt, který kombinuje data-driven přístup z bankovnictví s moderními technologiemi, aby poskytl českým investorům nástroje pro informovaná rozhodnutí. Můj cíl je jasný: pomoct lidem pochopit, jak efektivně investovat, a zbavit je závislosti na drahých aktivně řízených fondech a poradcích s provizními motivacemi.
-                </p>
-
-                <div className="bg-white rounded-lg p-6 mt-8">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Mise ETF průvodce.cz</h4>
-                  <p className="text-gray-700">
-                    Věřím, že kvalitní investiční vzdělání by mělo být dostupné každému. 
-                    ETF průvodce.cz vznikl z potřeby poskytnut českým investorům nástroje a informace, 
-                    které jim pomohou činit informovaná investiční rozhodnutí. Naším jedinečným přínosem 
-                    je zobrazování výkonnosti ETF fondů přepočítané do českých korun, což umožňuje 
-                    reálné porovnání pro české investory.
-                  </p>
-                </div>
+                <a
+                  href="https://www.linkedin.com/in/tomaskostrhoun/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors"
+                >
+                  <Linkedin className="w-4 h-4" /> LinkedIn
+                </a>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Kontakt sekce */}
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">Spojte se s námi</h2>
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
-              <a
-                href="mailto:info@etfpruvodce.cz"
-                className="flex items-center gap-3 bg-violet-100 hover:bg-violet-200 text-violet-700 px-6 py-3 rounded-lg transition-colors"
-              >
-                <MailIcon className="h-5 w-5" />
-                info@etfpruvodce.cz
-              </a>
-              
-              <a 
-                href="https://x.com/ETFpruvodce" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition-colors"
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-                @ETFpruvodce
-              </a>
-              
-              <a 
-                href="https://www.linkedin.com/in/tomas-kostrhoun-b34a6831" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-lg transition-colors"
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-                LinkedIn
-              </a>
-            </div>
+        {/* BIO – zkrácené, skenovatelné */}
+        <section className="pb-10">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">Pár slov ode mě</h2>
+          <div className="space-y-4 text-base text-slate-600 leading-relaxed max-w-2xl">
+            <p>
+              Přes 12 let jsem se pohyboval ve financích – od hypoték přes spotřebitelské úvěry až po
+              vedení úvěrového byznysu v MONETA Money Bank. Vedl jsem tým, řídil portfolio v hodnotě
+              přes 150 miliard korun a pomáhal uvést na trh první plně online hypotéku v Česku.
+            </p>
+            <p>
+              Při té práci jsem znovu a znovu narážel na jedno: nízkou finanční gramotnost. Lidé se
+              spoléhali na rady prodejců, kteří preferovali drahé produkty s tučnými provizemi před
+              jednoduchými a levnými řešeními. ETF přitom dělají investování dostupné každému –
+              nízké náklady, široká diverzifikace, transparentnost.
+            </p>
+            <p>
+              ETF průvodce.cz jsem založil proto, aby měl český investor nezávislý zdroj postavený na
+              datech, ne na provizích. Vše počítám z reálných čísel a hlavně z pohledu člověka, který
+              investuje v korunách.
+            </p>
           </div>
+        </section>
 
-          {/* Zpět domů */}
-          <div className="text-center mt-12">
-            <Link 
-              href="/" 
-              className="inline-flex items-center text-violet-600 hover:text-violet-700 font-medium"
-            >
-              ← Zpět na hlavní stránku
+        {/* EXPERTÍZA – ikonové proof karty */}
+        <section className="pb-10">
+          <h2 className="text-2xl font-bold tracking-tight mb-1">Z čeho ta zkušenost vychází</h2>
+          <p className="text-sm text-slate-500 mb-5">Konkrétní, ověřitelná čísla z mé kariéry ve financích.</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {EXPERTISE.map((e) => (
+              <div key={e.label} className="rounded-xl border border-slate-200 bg-white p-4">
+                <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3">
+                  <e.icon className="w-5 h-5" />
+                </span>
+                <span className="block text-lg font-bold text-slate-900 tabular-nums leading-tight">{e.value}</span>
+                <span className="block text-sm font-medium text-slate-700">{e.label}</span>
+                <span className="block text-xs text-slate-500 mt-1.5 leading-snug">{e.desc}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* JAK TVOŘÍME OBSAH / METODIKA */}
+        <section className="pb-10">
+          <h2 className="text-2xl font-bold tracking-tight mb-1">Jak tvoříme obsah</h2>
+          <p className="text-sm text-slate-500 mb-5">Odkud bereme data a podle čeho řadíme fondy.</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {METODIKA.map((m, i) => (
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4 flex items-start gap-3">
+                <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-teal-50 text-teal-700">
+                  <m.icon className="w-5 h-5" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-slate-900">
+                    {m.icon === Database ? `Data z ${countLabel}+ fondů` : m.title}
+                  </span>
+                  <span className="block text-sm text-slate-500 mt-0.5 leading-relaxed">{m.desc}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <Link href="/pruvodce" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
+              Jak fungují ETF <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/srovnani" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
+              Srovnat fondy podle dat <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+        </section>
+
+        {/* NEZÁVISLOST / NEKOMERČNÍ */}
+        <section className="pb-10">
+          <h2 className="text-2xl font-bold tracking-tight mb-5">Nezávislý a nekomerční</h2>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5 md:p-6">
+            <div className="flex items-start gap-3">
+              <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-emerald-100 text-emerald-700">
+                <ShieldCheck className="w-5 h-5" />
+              </span>
+              <div className="text-base text-slate-700 leading-relaxed space-y-3">
+                <p className="text-slate-900 font-medium">
+                  Web je pro vás zdarma a čistě vzdělávací. Nebereme žádné provize od brokerů ani reklamu –
+                  na rozdíl od většiny podobných webů, které z affiliate provizí žijí.
+                </p>
+                <p>
+                  Díky tomu vás nemáme důvod tlačit ke konkrétnímu produktu. Brokery i fondy řadíme
+                  výhradně podle reálných parametrů – poplatků, podmínek a nabídky. Cílem je, abyste se
+                  rozhodli dobře pro sebe, ne pro nás.
+                </p>
+                <Link href="/kde-koupit" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
+                  Srovnání brokerů pro české investory <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* KONTAKT */}
+        <section className="pb-10">
+          <h2 className="text-2xl font-bold tracking-tight mb-5">Kontakt</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <a
+              href="mailto:info@etfpruvodce.cz"
+              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors"
+            >
+              <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-slate-100 text-slate-600">
+                <Mail className="w-5 h-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-slate-900">E-mail</span>
+                <span className="block text-xs text-slate-500 truncate">info@etfpruvodce.cz</span>
+              </span>
+            </a>
+            <a
+              href="https://x.com/ETFpruvodce"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors"
+            >
+              <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-slate-100 text-slate-600">
+                <ExternalLink className="w-5 h-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-slate-900">X (Twitter)</span>
+                <span className="block text-xs text-slate-500 truncate">@ETFpruvodce</span>
+              </span>
+            </a>
+            <a
+              href="https://www.linkedin.com/in/tomaskostrhoun/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors"
+            >
+              <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-slate-100 text-slate-600">
+                <Linkedin className="w-5 h-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-slate-900">LinkedIn</span>
+                <span className="block text-xs text-slate-500 truncate">Tomáš Kostrhoun</span>
+              </span>
+            </a>
+          </div>
+        </section>
+
+        {/* DISCLAIMER – na konec obsahu (YMYL) */}
+        <section className="pb-10">
+          <aside
+            role="note"
+            aria-label="Upozornění na investiční riziko"
+            className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 leading-relaxed"
+          >
+            <span className="font-semibold">Upozornění:</span> Obsah na ETF průvodce.cz má pouze
+            vzdělávací a informativní charakter a <strong>nepředstavuje investiční doporučení</strong>{' '}
+            ani nabídku k nákupu či prodeji cenných papírů. Minulá výkonnost není zárukou budoucích
+            výnosů a hodnota investice může kolísat. Před investováním zvažte své cíle a rizikový
+            profil, případně se poraďte s licencovaným poradcem.
+          </aside>
+        </section>
+      </main>
+
+      {/* Patička (vzor homepage) */}
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <span className="font-semibold text-slate-700">ETF průvodce.cz</span>
+          <p className="max-w-md text-center sm:text-right leading-relaxed">
+            Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost
+            nezaručuje budoucí výnosy.
+          </p>
         </div>
-      </div>
-    </Layout>
+      </footer>
+    </div>
   );
 }

@@ -7,12 +7,12 @@ import { Menu, X } from 'lucide-react';
 /* Mobilní navigace nového webu (hamburger + rozbalovací panel).
    Zobrazuje se jen na mobilu (md:hidden); na desktopu je viditelné klasické menu. */
 const LINKS: { href: string; label: string }[] = [
-  { href: '/design-preview/pruvodce', label: 'Co jsou ETF' },
-  { href: '/design-preview/zebricky', label: 'Žebříčky' },
-  { href: '/design-preview/srovnani', label: 'Srovnání' },
-  { href: '/design-preview/portfolio-strategie', label: 'Portfolia' },
-  { href: '/design-preview/kalkulacky', label: 'Kalkulačky' },
-  { href: '/design-preview/kde-koupit', label: 'Kde koupit' },
+  { href: '/pruvodce', label: 'Co jsou ETF' },
+  { href: '/zebricky', label: 'Žebříčky' },
+  { href: '/srovnani', label: 'Srovnání' },
+  { href: '/portfolio-strategie', label: 'Portfolia' },
+  { href: '/kalkulacky', label: 'Kalkulačky' },
+  { href: '/kde-koupit', label: 'Kde koupit' },
 ];
 
 export default function MobileMenu() {
@@ -54,7 +54,7 @@ export default function MobileMenu() {
               ))}
               <li className="pt-2 pb-1">
                 <Link
-                  href="/design-preview/srovnani"
+                  href="/srovnani"
                   onClick={() => setOpen(false)}
                   className="block rounded-lg bg-teal-700 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-teal-800"
                 >

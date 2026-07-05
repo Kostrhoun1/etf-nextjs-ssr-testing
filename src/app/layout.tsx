@@ -6,6 +6,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import AuthorSchema from '@/components/SEO/AuthorSchema';
+import CompareTray from '@/components/design-preview/CompareTray';
 
 const inter = Inter({
   subsets: ['latin', 'latin-ext'],
@@ -103,6 +104,7 @@ export default function RootLayout({
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
+        <CompareTray />
         <SpeedInsights />
         <Analytics />
       </body>

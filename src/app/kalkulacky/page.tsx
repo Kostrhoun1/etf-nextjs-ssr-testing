@@ -1,237 +1,266 @@
-import React from 'react';
-import Layout from '@/components/Layout';
-import CalculatorHub from '@/components/CalculatorHub';
-import StructuredData from '@/components/SEO/StructuredData';
-import InternalLinking from '@/components/SEO/InternalLinking';
-import KalkulackyHero from './KalkulackyHero';
 import { Metadata } from 'next';
+import Link from 'next/link';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
+import MobileMenu from '@/components/design-preview/MobileMenu';
+import {
+  TrendingUp, ArrowRight, Calculator, Percent, Coins, Dice5, History,
+  Flame, ShieldAlert, Receipt, Home, Landmark, LineChart, BarChart3,
+  PieChart, BookOpen, Wallet,
+} from 'lucide-react';
+import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
-const currentYear = new Date().getFullYear();
+export const revalidate = 86400;
+
+const DAN_ROK = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: `Investiční kalkulačky | ETF kalkulačka a finanční nástroje ${currentYear}`,
-  description: `Investiční kalkulačky zdarma: ETF kalkulačka, backtest portfolia, Monte Carlo simulace, FIRE kalkulačka. Spočítejte si výnosy z investic do ETF.`,
-  keywords: `investiční kalkulačka, ETF kalkulačka, kalkulačka výnosů, backtest portfolia, Monte Carlo simulace, FIRE kalkulačka, investiční nástroje, finanční kalkulačky ${currentYear}`,
-  openGraph: {
-    title: `Investiční kalkulačky - ETF kalkulačka a finanční nástroje`,
-    description: `Investiční kalkulačky zdarma: ETF kalkulačka, backtest portfolia, Monte Carlo simulace. Spočítejte si výnosy z investic.`,
-    url: 'https://www.etfpruvodce.cz/kalkulacky',
-    siteName: 'ETF průvodce.cz',
-    images: [{
-      url: 'https://www.etfpruvodce.cz/og-kalkulacky.jpg',
-      width: 1200,
-      height: 630,
-    }],
-    locale: 'cs_CZ',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `Finanční kalkulačky ${currentYear}`,
-    description: `Kompletní přehled finančních kalkulaček. Hypotéka, úvěry, mzda, investice. Vše zdarma.`,
-    images: ['https://www.etfpruvodce.cz/og-kalkulacky.jpg'],
-  },
-  alternates: {
-    canonical: 'https://www.etfpruvodce.cz/kalkulacky',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  title: 'Kalkulačky a nástroje pro investory | ETF průvodce',
+  description:
+    `Rozcestník kalkulaček pro investory: složené úročení, poplatky ETF, kurzový dopad do korun, Monte Carlo, FIRE, hypotéka i čistá mzda ${DAN_ROK}. Vše přehledně na jednom místě.`,
+  alternates: { canonical: '/kalkulacky' },
 };
+
+/* Cílové routy v náhledové větvi (na ostrém webu se přemapují 1:1). */
+type Tool = { href: string; title: string; desc: string; icon: typeof Calculator };
+type Group = { title: string; intro: string; icon: typeof Calculator; tools: Tool[] };
+
+const GROUPS: Group[] = [
+  {
+    title: 'Investování do ETF',
+    icon: LineChart,
+    intro: 'Spočítejte, jak vám peníze porostou, kolik vás stojí poplatky a jak výnos ovlivní kurz koruny.',
+    tools: [
+      {
+        href: '/investicni-kalkulacka',
+        title: 'Investiční kalkulačka',
+        desc: 'Kolik naspoříte pravidelným vkladem díky složenému úročení.',
+        icon: Calculator,
+      },
+      {
+        href: '/kalkulacka',
+        title: 'Kalkulačka poplatků ETF',
+        desc: 'Dopad ročního poplatku (TER) na váš výnos za desítky let.',
+        icon: Percent,
+      },
+      {
+        href: '/kurzovy-dopad',
+        title: 'Kurzový dopad ETF',
+        desc: 'Jak pohyb kurzu USD/CZK mění výnos přepočtený do korun.',
+        icon: Coins,
+      },
+      {
+        href: '/monte-carlo',
+        title: 'Monte Carlo simulátor',
+        desc: 'Pravděpodobnostní scénáře vývoje portfolia, ne jediné číslo.',
+        icon: Dice5,
+      },
+      {
+        href: '/backtest',
+        title: 'Backtest portfolia',
+        desc: 'Otestujte složení portfolia na historických datech trhu.',
+        icon: History,
+      },
+    ],
+  },
+  {
+    title: 'Plánování a renta',
+    icon: Flame,
+    intro: 'Zjistěte, kolik potřebujete k finanční nezávislosti a jak velkou rezervu si držet.',
+    tools: [
+      {
+        href: '/fire-kalkulacka',
+        title: 'FIRE kalkulačka',
+        desc: 'Kdy a s jakým majetkem dosáhnete finanční nezávislosti.',
+        icon: Flame,
+      },
+      {
+        href: '/nouzova-rezerva',
+        title: 'Nouzová rezerva',
+        desc: 'Kolik peněz si držet stranou pro nečekané výdaje.',
+        icon: ShieldAlert,
+      },
+    ],
+  },
+  {
+    title: 'Osobní finance',
+    icon: Wallet,
+    intro: 'Praktické výpočty kolem mzdy, hypotéky a úvěru – aby vám na investování zbylo.',
+    tools: [
+      {
+        href: '/cisty-plat',
+        title: `Čistá mzda ${DAN_ROK}`,
+        desc: 'Kolik vám z hrubé mzdy zbude po dani a odvodech.',
+        icon: Receipt,
+      },
+      {
+        href: '/hypotecni-kalkulacka',
+        title: 'Hypoteční kalkulačka',
+        desc: 'Měsíční splátka hypotéky podle výše úvěru a sazby.',
+        icon: Home,
+      },
+      {
+        href: '/uverova-kalkulacka',
+        title: 'Úvěrová kalkulačka',
+        desc: 'Splátka a celkové náklady spotřebitelského úvěru.',
+        icon: Landmark,
+      },
+    ],
+  },
+];
+
+const toolCount = GROUPS.reduce((n, g) => n + g.tools.length, 0);
+
+const KAM_DAL: { href: string; label: string; desc: string; icon: typeof Calculator }[] = [
+  { href: '/srovnani', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 300+ fondů podle vlastních kritérií.', icon: BarChart3 },
+  { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
+  { href: '/pruvodce', label: 'Co jsou ETF', desc: 'Základy fungování ETF srozumitelně pro začátečníky.', icon: BookOpen },
+];
 
 export default function KalkulackyPage() {
   const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Domů",
-        "item": "https://www.etfpruvodce.cz"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": `Finanční kalkulačky ${currentYear}`,
-        "item": "https://www.etfpruvodce.cz/kalkulacky"
-      }
-    ]
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://www.etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://www.etfpruvodce.cz/kalkulacky' },
+    ],
   };
 
-  const sitemapSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": `Finanční kalkulačky ${currentYear} - Kompletní přehled`,
-    "description": `Kompletní přehled všech finančních kalkulaček. Hypotéka, úvěry, čistá mzda, investice, penzi. Bezplatné nástroje s aktuálními daty ${currentYear}.`,
-    "url": "https://www.etfpruvodce.cz/kalkulacky",
-    "breadcrumb": breadcrumbSchema,
-    "mainEntity": {
-      "@type": "ItemList",
-      "name": "Finanční kalkulačky",
-      "numberOfItems": 5,
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": `Hypoteční kalkulačka ${currentYear}`,
-          "url": "https://www.etfpruvodce.cz/kalkulacky/hypotecni-kalkulacka"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": `Kalkulačka čisté mzdy ${currentYear}`,
-          "url": "https://www.etfpruvodce.cz/kalkulacky/cisty-plat-2026"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": "Úvěrová kalkulačka",
-          "url": "https://www.etfpruvodce.cz/kalkulacky/uverova-kalkulacka"
-        },
-        {
-          "@type": "ListItem",
-          "position": 4,
-          "name": "Backtest portfolia",
-          "url": "https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia"
-        },
-        {
-          "@type": "ListItem",
-          "position": 5,
-          "name": "Monte Carlo simulátor",
-          "url": "https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator"
-        }
-      ]
-    }
-  };
-
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": `Jsou kalkulačky aktuální pro rok ${currentYear}?`,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": `Ano, všechny nástroje jsou pravidelně aktualizovány s nejnovějšími sazbami, daňovými změnami a legislativními úpravami pro rok ${currentYear}.`
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Je používání kalkulaček zdarma?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Všechny kalkulačky jsou zcela zdarma bez jakýchkoli omezení. Nepotřebujete registraci ani předplatné."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Jak přesné jsou výpočty?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Používáme stejné matematické vzorce jako banky a finanční instituce. Výsledky jsou kontrolovány finančními experty."
-        }
-      }
-    ]
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Kalkulačky a nástroje pro investory',
+    description:
+      'Rozcestník kalkulaček pro investory do ETF i osobní finance: složené úročení, poplatky, kurzový dopad, FIRE, hypotéka a další.',
+    hasPart: GROUPS.map((g) => ({
+      '@type': 'ItemList',
+      name: g.title,
+      itemListElement: g.tools.map((t, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: t.title,
+        url: `https://www.etfpruvodce.cz${t.href}`,
+      })),
+    })),
   };
 
   return (
-    <Layout>
-      <StructuredData data={breadcrumbSchema} />
-      <StructuredData data={sitemapSchema} />
-      <StructuredData data={faqSchema} />
+    <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
 
-      {/* Hero Section - Client Component pro interaktivitu */}
-      <KalkulackyHero currentYear={currentYear} />
+      {/* Header – stejná navigace jako ostatní náhledy */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+            <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white">
+              <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
+            </span>
+            ETF průvodce.cz
+          </Link>
+          <MobileMenu />
+          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
+            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
+            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
+            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
+            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
+            <Link href="/kalkulacky" className="font-medium text-teal-700">Kalkulačky</Link>
+            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
+          </nav>
+          <HeaderSearch />
+        </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="kalkulacky">
-        {/* Samotný hub s kalkulačkami */}
-        <CalculatorHub />
+      <main className="max-w-6xl mx-auto px-4">
+        {/* Breadcrumb */}
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-slate-700">Domů</Link>
+          <span>/</span>
+          <span className="text-slate-700">Kalkulačky</span>
+        </nav>
 
-        {/* Často kladené otázky */}
-        <section className="mb-12" id="faq">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Často kladené otázky
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Odpovědi na nejčastější dotazy o finančních kalkulačkách
-            </p>
-          </div>
-          <div className="border-transparent shadow-none hover:shadow-md transition-shadow duration-200 group bg-white rounded-2xl p-8 card-hover animate-fade-in [animation-delay:0.2s]">
-            <div className="max-w-4xl mx-auto space-y-6">
-            {[
-              {
-                question: `Jsou kalkulačky aktuální pro rok ${currentYear}?`,
-                answer: `Ano, všechny nástroje jsou pravidelně aktualizovány s nejnovějšími sazbami, daňovými změnami a legislativními úpravami pro rok ${currentYear}. Sledujeme aktuální úrokové sazby bank, daňové tabulky a další relevantní data.`
-              },
-              {
-                question: "Je používání kalkulaček zdarma?",
-                answer: "Všechny kalkulačky jsou zcela zdarma bez jakýchkoli omezení. Nepotřebujete registraci ani předplatné. Nástroje budou vždy dostupné bezplatně."
-              },
-              {
-                question: "Jak přesné jsou výpočty?",
-                answer: "Používáme stejné matematické vzorce jako banky a finanční instituce. Výsledky jsou kontrolovány finančními experty a pravidelně ověřovány proti skutečným bankám a pojišťovnám."
-              },
-              {
-                question: "Lze kalkulačky používat na mobilu?",
-                answer: "Ano, všechny nástroje jsou plně responzivní a fungují perfektně na mobilních telefonech a tabletech. Optimalizovali jsme uživatelské rozhraní pro dotykové ovládání."
-              },
-              {
-                question: "Ukládáte naše data?",
-                answer: "Ne, všechny výpočty probíhají přímo ve vašem prohlížeči. Žádná data se neukládají ani neodesílají na naše servery. Vaše finanční informace zůstávají pouze u vás."
-              },
-              {
-                question: "Máte i pokročilé nástroje?",
-                answer: "Ano, nabízíme backtest portfolia pro historickou analýzu od roku 2000, Monte Carlo simulace pro prognózu budoucnosti, kalkulátor měnových dopadů na ETF, FIRE kalkulátor pro předčasný důchod a další pokročilé nástroje pro zkušené investory."
-              }
-            ].map((faq, index) => (
-              <details key={index} className="group border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
-                <summary className="flex justify-between items-center w-full px-6 py-4 text-left bg-gray-50 cursor-pointer hover:bg-purple-50 rounded-lg group-open:rounded-b-none transition-colors">
-                  <span className="font-semibold text-lg text-gray-900 group-hover:text-purple-800">{faq.question}</span>
-                  <svg className="w-5 h-5 text-gray-500 group-hover:text-purple-600 transition-all group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="px-6 py-4 text-gray-700 leading-relaxed bg-white rounded-b-lg">
-                  {faq.answer}
-                </div>
-              </details>
-            ))}
+        {/* Hero / H1 + co tu uživatel najde */}
+        <section className="py-8 md:py-10">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+            Kalkulačky a nástroje pro investory
+          </h1>
+          <p className="mt-3 max-w-2xl text-base text-slate-600 leading-relaxed">
+            Na jednom místě najdete nástroje pro výpočet výnosů, poplatků i plánování renty –
+            a k tomu praktické kalkulačky kolem mzdy, hypotéky a úvěru. Výnosy počítáme
+            v přepočtu na koruny, ať vidíte reálný dopad na vaši peněženku.
+          </p>
+          <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+            <span>{toolCount} kalkulaček a nástrojů</span>
+            <span aria-hidden>·</span>
+            <span>{GROUPS.length} tematické oblasti</span>
+            <span aria-hidden>·</span>
+            <span>výnosy přepočtené do korun</span>
+          </p>
+        </section>
+
+        {/* Skupiny kalkulaček */}
+        {GROUPS.map((g) => (
+          <section key={g.title} className="pb-10">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700">
+                <g.icon className="w-5 h-5" />
+              </span>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900">{g.title}</h2>
             </div>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600 leading-relaxed">{g.intro}</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {g.tools.map((t) => (
+                <Link
+                  key={t.href}
+                  href={t.href}
+                  className="group flex flex-col rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
+                >
+                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3 group-hover:bg-teal-100 transition-colors">
+                    <t.icon className="w-5 h-5" />
+                  </span>
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-slate-900">{t.title}</span>
+                    <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 transition-all group-hover:text-teal-700 group-hover:translate-x-0.5" />
+                  </span>
+                  <span className="block text-xs text-slate-500 mt-1 leading-snug">{t.desc}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* Kam dál */}
+        <section className="pb-10">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Kam dál</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {KAM_DAL.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="group flex flex-col rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
+              >
+                <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3 group-hover:bg-teal-100 transition-colors">
+                  <l.icon className="w-5 h-5" />
+                </span>
+                <span className="block text-sm font-semibold text-slate-900">{l.label}</span>
+                <span className="block text-xs text-slate-500 mt-1 leading-snug">{l.desc}</span>
+              </Link>
+            ))}
           </div>
         </section>
 
-        {/* Související stránky */}
-        <InternalLinking
-          relatedLinks={[
-            {
-              title: "Srovnání ETF fondů",
-              href: "/srovnani-etf",
-              description: "Najděte nejlepší ETF pro investice"
-            },
-            {
-              title: "Nejlepší brokeři 2026",
-              href: "/srovnani-brokeru",
-              description: "Kde nejlépe investovat a obchodovat"
-            },
-            {
-              title: "Návod pro začátečníky",
-              href: "/co-jsou-etf/jak-zacit-investovat",
-              description: "Jak začít s investováním do ETF"
-            },
-            {
-              title: "Investiční tipy 2026",
-              href: "/tipy",
-              description: "Aktuální investiční strategie a rady"
-            }
-          ]}
-          title="Další užitečné stránky"
-          className="mt-16"
-        />
-      </div>
-    </Layout>
+        {/* Disclaimer na úplný konec */}
+        <section className="pb-12">
+          <InvestmentDisclaimer variant="box" />
+        </section>
+      </main>
+
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <span className="font-semibold text-slate-700">ETF průvodce.cz</span>
+          <p className="max-w-md text-center sm:text-right leading-relaxed">Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy.</p>
+        </div>
+      </footer>
+    </div>
   );
 }

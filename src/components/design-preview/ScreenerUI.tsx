@@ -431,7 +431,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
             {filtered.slice(0, shown).map(({ e, region: reg, ratingVal }) => (
               <tr key={e.isin} className="border-b border-slate-100 hover:bg-slate-50/60 transition-colors">
                 <td className="py-3 px-3">
-                  <Link href={`/design-preview/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800">
+                  <Link href={`/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800">
                     {e.name.length > 44 ? e.name.slice(0, 44) + '…' : e.name}
                   </Link>
                   <span className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -474,7 +474,7 @@ export default function ScreenerUI({ etfs, initialQ = '' }: { etfs: ScreenerETF[
             <div key={e.isin} className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <Link href={`/design-preview/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800 leading-tight">
+                  <Link href={`/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800 leading-tight">
                     {e.name.length > 44 ? e.name.slice(0, 44) + '…' : e.name}
                   </Link>
                   <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">

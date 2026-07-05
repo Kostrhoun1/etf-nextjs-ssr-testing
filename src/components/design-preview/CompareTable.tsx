@@ -31,7 +31,7 @@ export default function CompareTable({ etfs }: { etfs: ETFBasicInfo[] }) {
             {etfs.map((etf) => (
               <tr key={etf.isin} className="hover:bg-slate-50 transition-colors">
                 <td className="py-3 px-4">
-                  <Link href={`/design-preview/etf/${etf.isin}`} className="group inline-flex flex-col">
+                  <Link href={`/etf/${etf.isin}`} className="group inline-flex flex-col">
                     <span className="font-medium text-slate-900 group-hover:text-teal-700">{shortName(etf.name)}</span>
                     <span className="text-xs text-slate-400">{etf.primary_ticker} · {etf.isin}</span>
                   </Link>
@@ -54,7 +54,7 @@ export default function CompareTable({ etfs }: { etfs: ETFBasicInfo[] }) {
         {etfs.map((etf) => (
           <Link
             key={etf.isin}
-            href={`/design-preview/etf/${etf.isin}`}
+            href={`/etf/${etf.isin}`}
             className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
           >
             <div className="flex items-start justify-between gap-3">

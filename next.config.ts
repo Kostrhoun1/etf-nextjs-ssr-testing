@@ -14,34 +14,6 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  async headers() {
-    return [
-      {
-        source: '/sitemap.xml',
-        headers: [
-          { key: 'Content-Type', value: 'application/xml' },
-          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=3600' },
-          { key: 'Vary', value: 'Accept-Encoding' },
-        ],
-      },
-      {
-        source: '/sitemap-static.xml',
-        headers: [
-          { key: 'Content-Type', value: 'application/xml' },
-          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=3600' },
-          { key: 'Vary', value: 'Accept-Encoding' },
-        ],
-      },
-      {
-        source: '/sitemap-etf.xml',
-        headers: [
-          { key: 'Content-Type', value: 'application/xml' },
-          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=3600' },
-          { key: 'Vary', value: 'Accept-Encoding' },
-        ],
-      },
-    ];
-  },
   async redirects() {
     return [
       // Strip _rsc query parameter to fix Google indexing issues
@@ -68,7 +40,35 @@ const nextConfig: NextConfig = {
         destination: 'https://www.etfpruvodce.cz/:path*',
         permanent: true,
       },
-      // Rok 2025 → 2026 (sjednocení s ostrým webem)
+      // === CUTOVER: staré URL (starý web) → nové routy nového designu ===
+      { source: '/srovnani-etf', destination: '/srovnani', permanent: true },
+      { source: '/srovnani-etf/:pair', destination: '/srovnani/:pair', permanent: true },
+      { source: '/kde-koupit-etf', destination: '/kde-koupit', permanent: true },
+      { source: '/co-jsou-etf', destination: '/pruvodce', permanent: true },
+      { source: '/co-jsou-etf/jak-zacit-investovat', destination: '/jak-zacit', permanent: true },
+      { source: '/degiro-recenze', destination: '/recenze/degiro', permanent: true },
+      { source: '/xtb-recenze', destination: '/recenze/xtb', permanent: true },
+      { source: '/trading212-recenze', destination: '/recenze/trading212', permanent: true },
+      { source: '/interactive-brokers-recenze', destination: '/recenze/ibkr', permanent: true },
+      { source: '/fio-ebroker-recenze', destination: '/recenze/fio', permanent: true },
+      { source: '/portu-recenze', destination: '/recenze/portu', permanent: true },
+      // Kalkulačky: staré vnořené → nové ploché
+      { source: '/kalkulacky/investicni-kalkulacka', destination: '/investicni-kalkulacka', permanent: true },
+      { source: '/kalkulacky/fire-kalkulacka', destination: '/fire-kalkulacka', permanent: true },
+      { source: '/kalkulacky/hypotecni-kalkulacka', destination: '/hypotecni-kalkulacka', permanent: true },
+      { source: '/kalkulacky/uverova-kalkulacka', destination: '/uverova-kalkulacka', permanent: true },
+      { source: '/kalkulacky/nouzova-rezerva', destination: '/nouzova-rezerva', permanent: true },
+      { source: '/kalkulacky/monte-carlo-simulator', destination: '/monte-carlo', permanent: true },
+      { source: '/kalkulacky/kurzovy-dopad-etf', destination: '/kurzovy-dopad', permanent: true },
+      { source: '/kalkulacky/kalkulacka-poplatku-etf', destination: '/kalkulacka', permanent: true },
+      { source: '/kalkulacky/backtest-portfolia', destination: '/backtest', permanent: true },
+      { source: '/kalkulacky/cisty-plat-2026', destination: '/cisty-plat', permanent: true },
+      // Rozcestník žebříčků: starý hub → nový
+      { source: '/nejlepsi-etf', destination: '/zebricky', permanent: true },
+      // Chybějící kategorie na novém webu → hub (aby stará indexovaná URL nespadla na 404)
+      { source: '/nejlepsi-etf/nejlepsi-spotrebni-etf', destination: '/zebricky', permanent: true },
+
+      // Rok 2025 → 2026 / staré aliasy (dest sjednoceny na nové routy, bez řetězení)
       {
         source: '/nejlepsi-etf/nejlepsi-etf-2025',
         destination: '/nejlepsi-etf/nejlepsi-etf-2026',
@@ -76,7 +76,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/kalkulacky/cisty-plat-2025',
-        destination: '/kalkulacky/cisty-plat-2026',
+        destination: '/cisty-plat',
         permanent: true,
       },
       {
@@ -86,7 +86,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/tipy',
-        destination: '/nejlepsi-etf',
+        destination: '/zebricky',
         permanent: true,
       },
       {

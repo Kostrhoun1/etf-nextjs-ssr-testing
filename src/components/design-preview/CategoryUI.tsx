@@ -84,7 +84,7 @@ export function RankPanel({
         {rows.map((r, i) => (
           <li key={r.isin}>
             <Link
-              href={`/design-preview/etf/${r.isin}`}
+              href={`/etf/${r.isin}`}
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors"
             >
               <span className="text-xs text-slate-400 tabular-nums w-4 shrink-0">{i + 1}</span>
@@ -118,7 +118,7 @@ export function TickerStrip({ etfs }: { etfs: ETFBasicInfo[] }) {
           const v = etf.return_1y_czk ?? etf.return_1y ?? 0;
           const pos = v >= 0;
           return (
-            <Link key={etf.isin} href={`/design-preview/etf/${etf.isin}`} className="flex items-center gap-1.5 shrink-0 hover:opacity-80">
+            <Link key={etf.isin} href={`/etf/${etf.isin}`} className="flex items-center gap-1.5 shrink-0 hover:opacity-80">
               <span className="font-medium text-slate-700">{etf.primary_ticker || shortName(etf.name).slice(0, 10)}</span>
               <span className={`tabular-nums font-medium inline-flex items-center gap-0.5 ${pos ? 'text-emerald-600' : 'text-red-600'}`}>
                 {pos ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
