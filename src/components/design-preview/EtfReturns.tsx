@@ -136,28 +136,6 @@ export default function EtfReturns({
           )}
         </span>
       </p>
-
-      {cur !== 'EUR' && (
-        <div className="mt-4 pt-4 border-t border-slate-100">
-          <p className="text-xs font-medium text-slate-500 mb-2">Pro srovnání: původní výnos fondu v eurech (bez měnového efektu)</p>
-          <div className="grid grid-cols-3 gap-3 text-sm">
-            {[
-              { label: '1 rok', value: byCur.EUR.y1, years: 1 },
-              { label: '3 roky', value: byCur.EUR.y3, years: 3 },
-              { label: '5 let', value: byCur.EUR.y5, years: 5 },
-            ].map((t) => {
-              const pa = t.years > 1 && t.value != null ? paLabel(t.value, t.years) : null;
-              return (
-                <div key={t.label} className="flex flex-col">
-                  <span className="text-xs text-slate-400">{t.label} (€)</span>
-                  <span className={`tabular-nums font-medium ${(t.value ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(t.value)}</span>
-                  {pa && <span className="text-[11px] tabular-nums text-slate-400">{pa}</span>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
