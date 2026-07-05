@@ -2,9 +2,11 @@
 
 Jak firmu reálně řídí CEO (agent) kontinuálně a samooptimalizovaně směrem k cíli.
 
-## Severka
-**10× organická návštěvnost do ~2027-01** (viz `STRATEGIE-CEO-FINAL.md`, [[ceo-mise-10x-navstevnost]]).
-USP: „kolik reálně vyděláš v korunách po daních a inflaci" ([[firma-usp-org]]).
+## Severka (vize)
+**Stát se #1 nejnavštěvovanějším vzdělávacím webem o ETF v ČR.** Metrika: **10× organická
+návštěvnost do ~2027-01** (viz `STRATEGIE-CEO-FINAL.md`, [[ceo-mise-10x-navstevnost]]).
+USP: „kolik reálně vyděláš v korunách po daních a inflaci" + **100% nezávislý a nekomerční**
+(bez provizí/reklam – jediný takový, [[web-nekomercni-vzdelavaci]]).
 
 ## Řídící smyčka (každý běh)
 1. **Zorientuj se** — přečti `BACKLOG.md` (priority), poslední snímek `.secrets/analytics-history.json`, `ANALYTIKA-REPORTING.md` (playbook).
