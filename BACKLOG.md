@@ -5,7 +5,7 @@ Formát: `[ ]` = čeká, `[~]` = rozpracováno, `[x]` = hotovo (přesuň dolů d
 udělá 1 increment, aktualizuje stav a přidá nově objevené položky.
 
 ## Teď (P0–P1)
-- [ ] **Seznam Medium = prioritní kanál** — 4 dřívější články měly ~700 čtenářů (víc než web/měsíc). Publikovat pravidelně (task `obsah-tydenni-clanek`), každý článek MUSÍ funnelovat na etfpruvodce.cz (kontextové odkazy + závěrečné CTA na konkrétní nástroj). Zjistit od vlastníka témata 4 úspěšných článků → psát v podobném duchu, neduplikovat.
+- [ ] **Seznam Medium = prioritní kanál dosahu** — 4 dřívější články měly ~700 čtenářů PŘÍMO NA MEDIUM (ne prokliky k nám!). Dosah je prokázaný, ale funnel na web chyběl = to je ta práce. Každý článek MUSÍ dát čtenáři silný důvod prokliknout na etfpruvodce.cz (interaktivní nástroj, který Medium neumí: srovnávač/kalkulačka/žebříček) + budovat autoritu backlinkem ze seznam.cz. Zjistit od vlastníka témata 4 úspěšných článků → podobný duch, neduplikovat.
 - [~] **FIRE hub** `/design-preview/financni-nezavislost` — vlajková „míra úspor → roky do FIRE" (MMM), pak FIRE číslo, Coast FIRE, renta/bezpečný výběr, Barista. Diferenciátor = česká daňová specifika (časový test 2026, akumulační vs distribuční, proč Čech nemá US-domiciled ETF, DIP two-bucket). Podklad: rešerše v transcriptu + [[redesign-novy-web-stav]].
 - [ ] **SEO CTR homepage** — homepage má ~270 impresí a ~0 % CTR; přepsat `title`/`description` (číslo, rok, „v Kč", benefit), ať láká proklik.
 - [ ] **Dotaz „etf" na dosah 1. strany** (poz. ~9,7, 201 impr., 0 kliků) — posílit cílovou stránku (pilíř „Co jsou ETF" / homepage) obsahem a prolinky přesně k záměru.
