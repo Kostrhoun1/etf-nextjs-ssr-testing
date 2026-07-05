@@ -226,7 +226,7 @@ export default async function InvesticniKalkulackaPreview() {
                 [Scale, 'Daň', 'jen při držení do 3 let'],
               ] as [typeof Wallet, string, string][]).map(([Icon, t, d], i) => (
                 <div key={t} className="flex items-stretch sm:items-center gap-2">
-                  {i > 0 && <span className="text-slate-300 font-semibold self-center px-0.5">+</span>}
+                  {i > 0 && <span className="text-slate-300 font-semibold self-center px-0.5">{t === 'Daň' ? '−' : '+'}</span>}
                   <div className="flex-1 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 min-w-[8rem]">
                     <span className="flex items-center gap-1.5 font-medium text-slate-900 text-sm"><Icon className="w-4 h-4 text-teal-700 shrink-0" /> {t}</span>
                     <span className="block text-xs text-slate-500 mt-0.5">{d}</span>
