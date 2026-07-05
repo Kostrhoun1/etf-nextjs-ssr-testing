@@ -68,6 +68,12 @@ const GROUPS: Group[] = [
     intro: 'Zjistěte, kolik potřebujete k finanční nezávislosti a jak velkou rezervu si držet.',
     tools: [
       {
+        href: '/fire',
+        title: 'Průvodce FIRE',
+        desc: 'Kompletní český pilíř: kolik potřebujete, míra úspor, role ETF a daně.',
+        icon: BookOpen,
+      },
+      {
         href: '/fire-kalkulacka',
         title: 'FIRE kalkulačka',
         desc: 'Kdy a s jakým majetkem dosáhnete finanční nezávislosti.',
