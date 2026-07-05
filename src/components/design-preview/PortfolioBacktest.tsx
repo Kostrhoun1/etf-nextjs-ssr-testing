@@ -205,6 +205,16 @@ export default function PortfolioBacktest({ config, portfolioName }: { config: B
   const meanRet = rets.reduce((a, b) => a + b, 0) / (rets.length || 1);
   const annualVol = Math.sqrt(rets.reduce((a, b) => a + (b - meanRet) ** 2, 0) / (rets.length || 1));
 
+  // Metriky čistě akciového benchmarku – pro zvýraznění kompromisu „menší výkyvy
+  // a mělčí propady za cenu o něco nižšího růstu" (jinak portfolio jen „prohrává").
+  const benchRets = bench.returns.annualReturns.map((r) => r.return);
+  const benchMean = benchRets.reduce((a, b) => a + b, 0) / (benchRets.length || 1);
+  const benchVol = Math.sqrt(benchRets.reduce((a, b) => a + (b - benchMean) ** 2, 0) / (benchRets.length || 1));
+  const benchCagr = bench.summary.cagr;
+  const benchDD = bench.risk.maxDrawdown.depth;
+  const calmer = annualVol < benchVol;
+  const shallower = (dd.depth ?? 0) > (benchDD ?? 0); // depth je záporný → větší = mělčí
+
   const tiles = [
     { label: 'Zhodnocení p.a.', value: pctD(s.cagr), tone: s.cagr >= 0 ? 'pos' : 'neg', sub: 'průměrně ročně (CAGR)' },
     { label: 'Kolísavost', value: `± ${dec1(annualVol * 100)} %`, tone: 'neutral', sub: 'roční – míra výkyvů' },
@@ -216,7 +226,6 @@ export default function PortfolioBacktest({ config, portfolioName }: { config: B
 
   // Klouzavé 5leté výnosy (konzistence) + poradenský souhrn.
   const roll5 = rollingAnnualized(pf.evolution, 5);
-  const benchDD = bench.risk.maxDrawdown.depth;
   const takeaway = (() => {
     const parts: string[] = [];
     parts.push(`Za ${years} let rostlo portfolio tempem ${pctD(s.cagr)} ročně – ze ${money(INITIAL[cur], cur)} by dnes bylo ${money(s.netAssetValue, cur)}.`);
@@ -240,7 +249,7 @@ export default function PortfolioBacktest({ config, portfolioName }: { config: B
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500 max-w-2xl">
-          Reálný průběh na denních datech od {startYear} (rebalancováno jednou ročně). Srovnáváme se 100% globálními akciemi.
+          Reálný průběh na denních datech od {startYear}. Cílem není porazit akcie, ale <strong className="text-slate-700">klidnější jízda</strong> – menší výkyvy a mělčí propady, obvykle za cenu o něco nižšího růstu. Srovnáváme se 100% globálními akciemi.
         </p>
         <CurrencyToggle size="sm" />
       </div>
@@ -255,6 +264,46 @@ export default function PortfolioBacktest({ config, portfolioName }: { config: B
           </div>
         </div>
         <LineChart portfolio={pf.evolution} bench={bench.evolution} cur={cur} />
+      </div>
+
+      {/* Klidnější jízda – riziko vs výnos proti čistým akciím (aby portfolio jen „neprohrávalo") */}
+      <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <h3 className="text-sm font-semibold text-slate-900 mb-1">Proč ho držet: klidnější jízda než čisté akcie</h3>
+        <p className="text-xs text-slate-500 mb-4">Akcie dlouhodobě rostou víc, ale s většími výkyvy. Smysl portfolia je <strong className="text-slate-700">menší kolísání a mělčí propady</strong> – abyste v krizi vydrželi a nevyprodali ve ztrátě.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs text-slate-500 border-b border-slate-100">
+                <th className="text-left font-medium py-2 pr-3">Za období od {startYear}</th>
+                <th className="text-right font-medium py-2 px-3">{portfolioName}</th>
+                <th className="text-right font-medium py-2 pl-3">Čisté akcie</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { label: 'Výnos p.a.', pfV: pctD(s.cagr), bV: pctD(benchCagr), badge: s.cagr >= benchCagr - 0.002 ? null : 'nižší růst', good: false, hint: 'kolik ročně vydělalo' },
+                { label: 'Kolísavost (výkyvy)', pfV: `± ${dec1(annualVol * 100)} %`, bV: `± ${dec1(benchVol * 100)} %`, badge: calmer ? 'klidnější' : null, good: calmer, hint: 'čím míň, tím klidnější jízda' },
+                { label: 'Nejhlubší propad', pfV: pctD(dd.depth), bV: pctD(benchDD), badge: shallower ? 'mělčí' : null, good: shallower, hint: 'kolik nejvíc spadlo od vrcholu' },
+              ].map((r) => (
+                <tr key={r.label} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 pr-3">
+                    <span className="font-medium text-slate-800">{r.label}</span>
+                    <span className="block text-[11px] text-slate-400">{r.hint}</span>
+                  </td>
+                  <td className="py-2.5 px-3 text-right">
+                    <span className="tabular-nums font-semibold text-slate-900">{r.pfV}</span>
+                    {r.badge && (
+                      <span className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${r.good ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                        {r.good ? '✓ ' : ''}{r.badge}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2.5 pl-3 text-right tabular-nums text-slate-500">{r.bV}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Metric tiles */}
