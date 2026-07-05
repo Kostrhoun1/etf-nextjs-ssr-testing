@@ -36,8 +36,14 @@ Jednorázově je spouštěj jako subagenty (research/audit/paralelní práce), k
 - **Týdně** hlubší revize dat + obsahový článek.
 - **Ty (vlastník)** nemusíš spouštět nic ručně; jen čteš reporty a jednou za čas řekneš směr nebo „GO na ostro". Když chceš zásah hned, napiš úkol do chatu — má přednost.
 
+## Po cutoveru: větve a nasazení (DŮLEŽITÉ)
+Web je ŽIVÝ na `etfpruvodce.cz` (apex). `main` = produkce (push na main → auto‑deploy).
+- **Autonomní smyčka (denní/týdenní tasky) pracuje VÝHRADNĚ na větvi `vyvoj`** → Vercel dělá bezpečné PREVIEW deploye (noindex). Nikdy nepushovat na `main`.
+- **Produkční release = merge `vyvoj` → `main`** – jen na explicitní pokyn vlastníka („nasaď na produkci"). Týdenní analytika release NAVRHNE (seznam commitů), vlastník ho odklikne.
+- Kanonická doména je **apex `etfpruvodce.cz`** (bez www); middleware indexuje jen apex.
+
 ## Guardraily
-- Změny jen na pracovní větev (`cutover/produkce`), malé commity, jasné hlášky.
-- Produkce/doména = jen na explicitní GO vlastníka.
+- Malé commity na `vyvoj`, jasné hlášky. Produkce jen na GO vlastníka.
 - Tajné klíče (`.secrets/`) nikdy do gitu ani do chatu.
-- Publikování navenek (články, sociální sítě) = návrh/draft; skutečné zveřejnění potvrzuje/odklikává vlastník.
+- Nekomerční ([[web-nekomercni-vzdelavaci]]) + redakční ([[obsah-redakcni-hranice]]) hranice platí pro veškerý obsah.
+- Publikování navenek (články) = návrh/draft; zveřejnění odklikává vlastník.
