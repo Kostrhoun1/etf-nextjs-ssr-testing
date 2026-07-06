@@ -222,6 +222,9 @@ export default async function DaneZEtf() {
               </div>
             ))}
           </div>
+          <Link href="/akumulacni-vs-distribucni-etf" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
+            Podrobně: Akumulační vs. distribuční ETF – který zvolit <ArrowRight className="w-4 h-4" />
+          </Link>
         </section>
 
         {/* 6. DIP */}
