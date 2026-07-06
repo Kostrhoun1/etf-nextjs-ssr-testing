@@ -25,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { p: '/fire', pr: 0.8 },
     { p: '/dane-z-etf', pr: 0.8 },
     { p: '/akumulacni-vs-distribucni-etf', pr: 0.7 },
+    { p: '/svetove-etf-indexy', pr: 0.8 },
     { p: '/investicni-kalkulacka', pr: 0.6 },
     { p: '/fire-kalkulacka', pr: 0.6 },
     { p: '/backtest', pr: 0.6 },

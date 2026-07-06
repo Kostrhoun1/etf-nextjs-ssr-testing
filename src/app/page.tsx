@@ -90,6 +90,7 @@ const TOOLS = [
   { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: '5 ověřených strategií', icon: LayoutGrid },
   { href: '/fire', label: 'Průvodce FIRE', desc: 'Kolik potřebujete k nezávislosti', icon: BookOpen },
   { href: '/dane-z-etf', label: 'Daně z ETF', desc: 'Kdy platíte a kdy ne (2026)', icon: Landmark },
+  { href: '/svetove-etf-indexy', label: 'Světové ETF: který index', desc: 'MSCI World vs FTSE All-World vs S&P 500', icon: Globe },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
