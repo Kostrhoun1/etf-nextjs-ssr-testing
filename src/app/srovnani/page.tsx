@@ -25,7 +25,7 @@ const POPULAR_CATEGORIES: { label: string; slug: string; note: string }[] = [
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Srovnávač ETF: filtrujte a porovnejte 4 300+ fondů | ETF průvodce',
+  title: 'Srovnávač ETF: filtrujte a porovnejte 4 800+ fondů | ETF průvodce',
   description:
     'Interaktivní srovnávač ETF pro české investory. Filtrujte podle TER, typu, replikace a regionu, řaďte podle výnosu v Kč a proklikněte se na detail fondu.',
   alternates: { canonical: '/srovnani' },

@@ -168,7 +168,7 @@ export default async function CategoryPreview() {
               <div className="max-w-xl">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Nejlepší S&amp;P 500 ETF {year}</h1>
                 <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Daty podložený verdikt, který fond koupit – a proč. Hodnotíme {all.length}+ fondů sledujících index
+                  Daty podložený verdikt, který fond koupit – a proč. Hodnotíme {all.length} fondů sledujících index
                   S&amp;P 500 podle velikosti, poplatků, replikace a výnosu v korunách.
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">

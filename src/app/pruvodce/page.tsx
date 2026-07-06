@@ -29,7 +29,7 @@ export default async function GuidePreview() {
   const year = today.getFullYear();
 
   /* ---------- Živé metriky do hero (vše z DB, nic ručně psaného) ---------- */
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 300';
+  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
   const lowestTerEtf = featured.lowCost[0] ?? null;
 
   // Medián výnosu 1R v CZK z velkých fondů – obecný orientační údaj, ne tip na konkrétní fond.

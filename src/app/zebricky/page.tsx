@@ -149,7 +149,7 @@ export default async function ZebrickyPage() {
     getFeaturedETFs(),
     getTotalETFCount(),
   ]);
-  const total = totalCount || 4300;
+  const total = totalCount || 4800;
 
   // Sestavit skupiny jen z reálně existujících kategorií.
   const groups = GROUP_DEFS.map((g) => ({
@@ -257,7 +257,7 @@ export default async function ZebrickyPage() {
             a výkonnosti, přičemž výnosy ukazujeme i přepočtené do korun.
           </p>
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
-            <span>{fmtNum(total)}+ fondů v databázi</span>
+            <span>{fmtNum(total)} fondů v databázi</span>
             <span aria-hidden>·</span>
             <span>{fmtNum(totalCategories)} žebříčků</span>
             <span aria-hidden>·</span>
@@ -408,7 +408,7 @@ export default async function ZebrickyPage() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Kam dál</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { href: '/srovnani', label: 'Srovnání ETF fondů', desc: `Porovnejte ${fmtNum(total)}+ fondů podle vlastních kritérií.`, icon: BarChart3 },
+              { href: '/srovnani', label: 'Srovnání ETF fondů', desc: `Porovnejte ${fmtNum(total)} fondů podle vlastních kritérií.`, icon: BarChart3 },
               { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
               { href: '/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera v ČR krok za krokem.', icon: ShoppingCart },
             ].map((l) => (

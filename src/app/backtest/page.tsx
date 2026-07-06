@@ -234,7 +234,7 @@ export default async function BacktestPreview() {
             {([
               [ShieldCheck, 'Reálná historická data', 'Indexy od roku 2000, kurzy ECB/ČNB – ne odhad ani vymyšlená čísla.'],
               [Crown, '12 let praxe ve financích', 'Obsah od jmenného autora, ne anonymně.'],
-              [Database, 'Vlastní databáze ETF', `4 300+ fondů a brokeři z naší databáze. Aktualizováno ${dateStr}.`],
+              [Database, 'Vlastní databáze ETF', `4 800+ fondů a brokeři z naší databáze. Aktualizováno ${dateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
