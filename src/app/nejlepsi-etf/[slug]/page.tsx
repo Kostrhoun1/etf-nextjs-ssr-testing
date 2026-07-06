@@ -36,6 +36,15 @@ function preferredDimension(slug: string): 'country' | 'sector' | 'holding' {
   return 'country';
 }
 
+/* Kategorie, u kterých dává smysl odkázat na pilíř „Světové ETF – který index"
+   (porovnání MSCI World / FTSE All-World / ACWI / S&P 500 napříč žebříčky).
+   Silo: pilíř = hub „který index", žebříček = užší seznam pro daný index. */
+const WORLD_INDEX_SLUGS = new Set([
+  'nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-sp500-etf',
+  'nejlepsi-americke-etf', 'nejlepsi-evropske-etf', 'nejlepsi-emerging-markets-etf',
+  'nejlepsi-technologicke-etf', 'nejlevnejsi-etf',
+]);
+
 export function generateStaticParams() {
   return Object.keys(categoryConfigs).map((slug) => ({ slug }));
 }
@@ -234,6 +243,11 @@ export default async function CategoryDetailPreview(
               desc="Podkladové indexy fondů v kategorii – co měří, kolik mají složek a jak jsou vážené."
             />
             <CategoryIndexes indexes={topIndexes} total={etfs.length} />
+            {WORLD_INDEX_SLUGS.has(slug) && (
+              <Link href="/svetove-etf-indexy" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
+                Nevíte, který světový index vybrat? MSCI World vs FTSE All-World vs S&amp;P 500 <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
           </section>
         )}
 
