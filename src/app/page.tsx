@@ -91,6 +91,7 @@ const TOOLS = [
   { href: '/fire', label: 'Průvodce FIRE', desc: 'Kolik potřebujete k nezávislosti', icon: BookOpen },
   { href: '/dane-z-etf', label: 'Daně z ETF', desc: 'Kdy platíte a kdy ne (2026)', icon: Landmark },
   { href: '/svetove-etf-indexy', label: 'Světové ETF: který index', desc: 'MSCI World vs FTSE All-World vs S&P 500', icon: Globe },
+  { href: '/menove-riziko-etf', label: 'Měnové riziko a zajištění', desc: 'Potřebujete hedged fond? (pohled v Kč)', icon: ShieldCheck },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
