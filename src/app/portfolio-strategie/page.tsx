@@ -9,7 +9,7 @@ import {
   PortfolioVerdictTable,
 } from '@/components/design-preview/portfolioComponents';
 import { portfolioModels } from '@/components/design-preview/portfolioData';
-import { getReturnsByIsins } from '@/lib/etf-data';
+import { getReturnsByIsins, getTotalETFCount } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, LayoutGrid, PieChart, Scale, ShieldCheck,
   History, Activity, Search, Landmark, BookOpen, Trophy,
@@ -55,6 +55,8 @@ export default async function PortfolioStrategieDesignPreview() {
   const returnsRaw = await getReturnsByIsins(allIsins);
   const returns: Record<string, number | null> = {};
   for (const isin of allIsins) returns[isin] = returnsRaw[isin]?.return_1y_czk ?? null;
+  const etfCount = await getTotalETFCount();
+  const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
 
   // SCHEMA: BreadcrumbList + ItemList (5 detailů) + FAQPage synchronizovaný se zněním FAQ.
   const breadcrumbSchema = {
@@ -239,7 +241,7 @@ export default async function PortfolioStrategieDesignPreview() {
           <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700"><ShieldCheck className="h-5 w-5" /></span>
             <p className="text-xs leading-relaxed text-slate-500">
-              Složení portfolií a výnosy vychází z naší databáze 4 800+ ETF fondů. Každá strategie obsahuje konkrétní
+              Složení portfolií a výnosy vychází z naší databáze {etfCountLabel} ETF fondů. Každá strategie obsahuje konkrétní
               UCITS ETF s ISIN dostupné u českých brokerů. Obsah připravil Tomáš Kostrhoun.
             </p>
           </div>

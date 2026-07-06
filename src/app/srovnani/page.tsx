@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords, SlidersHorizontal, Coins, Layers } from 'lucide-react';
-import { getScreenerRows, buildInitialScreenerRows, getDataDate } from '@/lib/etf-data';
+import { getScreenerRows, buildInitialScreenerRows, getDataDate, getTotalETFCount } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
@@ -24,12 +24,16 @@ const POPULAR_CATEGORIES: { label: string; slug: string; note: string }[] = [
 ];
 
 export const revalidate = 86400;
-export const metadata: Metadata = {
-  title: 'Srovnávač ETF: filtrujte a porovnejte 4 800+ fondů | ETF průvodce',
-  description:
-    'Interaktivní srovnávač ETF pro české investory. Filtrujte podle TER, typu, replikace a regionu, řaďte podle výnosu v Kč a proklikněte se na detail fondu.',
-  alternates: { canonical: '/srovnani' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const n = await getTotalETFCount();
+  const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
+  return {
+    title: `Srovnávač ETF: filtrujte a porovnejte ${count} fondů | ETF průvodce`,
+    description:
+      'Interaktivní srovnávač ETF pro české investory. Filtrujte podle TER, typu, replikace a regionu, řaďte podle výnosu v Kč a proklikněte se na detail fondu.',
+    alternates: { canonical: '/srovnani' },
+  };
+}
 
 export default async function SrovnaniScreenerPreview(
   { searchParams }: { searchParams: Promise<{ q?: string; index?: string }> },
