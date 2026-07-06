@@ -82,17 +82,19 @@ export default function ScreenerUI({
   total,
   options,
   initialQ = '',
+  initialIndex = '',
 }: {
   initialRows: ScreenerRow[];
   total: number;
   options: ScreenerOptions;
   initialQ?: string;
+  initialIndex?: string;
 }) {
   const [q, setQ] = useState(initialQ);
   const [category, setCategory] = useState('all');
   const [dist, setDist] = useState('all');
   const [region, setRegion] = useState('all');
-  const [indexName, setIndexName] = useState('all');
+  const [indexName, setIndexName] = useState(initialIndex || 'all');
   const [repl, setRepl] = useState('all');
   const [currency, setCurrency] = useState('all');
   const [hedging, setHedging] = useState('all');
@@ -138,6 +140,17 @@ export default function ScreenerUI({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQ]);
+
+  // Předvybraný index (?index=) – proklik ze srovnání světových indexů. Nastaví
+  // filtr „Sledovaný index" a doscrolluje na vyfiltrované výsledky.
+  useEffect(() => {
+    if (initialIndex) {
+      setIndexName(initialIndex);
+      setShown(PAGE);
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialIndex]);
 
   // Odvozená pole už jsou předpočítaná na serveru – jen je přemapujeme do tvaru,
   // který filtr očekává (žádné skenování/regexy přes celou sadu na klientu).

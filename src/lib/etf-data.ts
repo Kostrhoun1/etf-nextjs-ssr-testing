@@ -857,13 +857,15 @@ export const getScreenerRows = reactCache(async (): Promise<{
 });
 
 /**
- * Prvních `n` řádků pro server-render (rychlý FCP + SEO). Když je zadané `q`
- * (hledání z hlavičky), vrátíme relevantní shody, jinak top podle velikosti
- * (rows už jsou seřazené sestupně). Plné filtrování dělá klient nad celou sadou.
+ * Prvních `n` řádků pro server-render (rychlý FCP + SEO). Předfiltruje podle
+ * `index` (kanonický label sledovaného indexu, přijde z ?index= – proklik ze
+ * srovnání indexů) i `q` (hledání z hlavičky). Bez obojího vrátí top podle
+ * velikosti. Plné filtrování dělá klient nad celou sadou.
  */
-export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50): ScreenerRow[] {
+export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50, index?: string): ScreenerRow[] {
+  const base = index ? rows.filter((r) => r._index === index) : rows;
   const term = q.trim().toLowerCase();
-  if (!term) return rows.slice(0, n);
+  if (!term) return base.slice(0, n);
   const relevance = (r: ScreenerRow): number => {
     if (r.isin.toLowerCase() === term || r._tickers.includes(term)) return 4;
     if (r._tickers.some((t) => t.startsWith(term))) return 3;
@@ -872,7 +874,7 @@ export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50)
     if (name.includes(term)) return 1;
     return 0;
   };
-  return rows
+  return base
     .filter((r) => r._blob.includes(term))
     .sort((a, b) => relevance(b) - relevance(a))
     .slice(0, n);
