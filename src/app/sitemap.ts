@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { p: '/vyber-etf', pr: 0.6 },
     { p: '/kalkulacky', pr: 0.6 },
     { p: '/fire', pr: 0.8 },
+    { p: '/dane-z-etf', pr: 0.8 },
     { p: '/investicni-kalkulacka', pr: 0.6 },
     { p: '/fire-kalkulacka', pr: 0.6 },
     { p: '/backtest', pr: 0.6 },

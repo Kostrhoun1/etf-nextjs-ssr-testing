@@ -88,6 +88,8 @@ const TOOLS = [
   { href: '/fire-kalkulacka', label: 'FIRE kalkulačka', desc: 'Kdy dosáhnete nezávislosti', icon: Flame },
   { href: '/kurzovy-dopad', label: 'Kurzový dopad', desc: 'Vliv kurzu na korunový výnos', icon: RefreshCw },
   { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: '5 ověřených strategií', icon: LayoutGrid },
+  { href: '/fire', label: 'Průvodce FIRE', desc: 'Kolik potřebujete k nezávislosti', icon: BookOpen },
+  { href: '/dane-z-etf', label: 'Daně z ETF', desc: 'Kdy platíte a kdy ne (2026)', icon: Landmark },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
