@@ -322,6 +322,9 @@ export default async function FireHub() {
               </div>
             ))}
           </div>
+          <Link href="/dane-z-etf" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
+            Kompletní přehled: Daně z ETF v Česku <ArrowRight className="w-4 h-4" />
+          </Link>
         </section>
 
         {/* 6. NÁSTROJE */}
