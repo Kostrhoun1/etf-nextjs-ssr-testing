@@ -245,7 +245,7 @@ export default async function DesignPreviewV2() {
               <div className="md:max-w-lg">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Největší srovnávač ETF pro české investory</h1>
                 <p className="mt-2.5 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Nezávislá data {totalCount.toLocaleString('cs-CZ')}+ fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.
+                  Nezávislá data {totalCount.toLocaleString('cs-CZ')} fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.
                 </p>
                 <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-medium text-emerald-300">
                   <ShieldCheck className="w-3.5 h-3.5" /> 100% nezávislý a nekomerční — žádné provize, žádná reklama
@@ -321,7 +321,7 @@ export default async function DesignPreviewV2() {
             <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
           </div>
           <Link href="/srovnani" className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm font-semibold text-teal-800 hover:bg-teal-50 hover:border-teal-300 transition-colors">
-            <LayoutGrid className="w-4 h-4" /> Prozkoumat a filtrovat všech {totalCount.toLocaleString('cs-CZ')}+ fondů <ArrowRight className="w-4 h-4" />
+            <LayoutGrid className="w-4 h-4" /> Prozkoumat a filtrovat všech {totalCount.toLocaleString('cs-CZ')} fondů <ArrowRight className="w-4 h-4" />
           </Link>
         </section>
 

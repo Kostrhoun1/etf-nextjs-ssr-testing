@@ -284,7 +284,7 @@ export default async function SrovnaniBrokeruPage() {
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { href: '/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera v ČR krok za krokem.', icon: Landmark },
-              { href: '/srovnani', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 300+ fondů podle kritérií.', icon: BarChart3 },
+              { href: '/srovnani', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 800+ fondů podle kritérií.', icon: BarChart3 },
               { href: '/jak-zacit', label: 'Jak začít investovat', desc: 'Od základů k prvnímu nákupu.', icon: BookOpen },
               { href: '/kalkulacky', label: 'Kalkulačky', desc: 'Poplatky, výnosy i daně spočítané.', icon: Calculator },
             ].map((l) => (

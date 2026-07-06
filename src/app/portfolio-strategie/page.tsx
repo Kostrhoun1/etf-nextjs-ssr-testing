@@ -239,7 +239,7 @@ export default async function PortfolioStrategieDesignPreview() {
           <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700"><ShieldCheck className="h-5 w-5" /></span>
             <p className="text-xs leading-relaxed text-slate-500">
-              Složení portfolií a výnosy vychází z naší databáze 4 300+ ETF fondů. Každá strategie obsahuje konkrétní
+              Složení portfolií a výnosy vychází z naší databáze 4 800+ ETF fondů. Každá strategie obsahuje konkrétní
               UCITS ETF s ISIN dostupné u českých brokerů. Obsah připravil Tomáš Kostrhoun.
             </p>
           </div>

@@ -32,7 +32,7 @@ import {
 
 export const revalidate = 86400;
 
-const TOTAL_FALLBACK = 4300;
+const TOTAL_FALLBACK = 4800;
 
 export const metadata: Metadata = {
   title: 'Infografiky ETF: výkonnost, poplatky a tržní heatmapa | ETF průvodce',
@@ -163,7 +163,7 @@ export default async function InfografikyRozcestnik() {
             Infografiky ETF: trhy a fondy přehledně
           </h1>
           <p className="mt-3 max-w-2xl text-base text-slate-600 leading-relaxed">
-            Vizuální přehledy z dat {count.toLocaleString('cs-CZ')}+ fondů — výnosy přepočtené do
+            Vizuální přehledy z dat {count.toLocaleString('cs-CZ')} fondů — výnosy přepočtené do
             korun, poplatky a výkonnost. Vyberte si přehled a proklikněte se k celému žebříčku.
           </p>
         </section>

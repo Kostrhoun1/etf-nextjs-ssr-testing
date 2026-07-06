@@ -402,7 +402,7 @@ export default async function FeeCalculatorPreview() {
 
           <div className="mt-4">
             <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-800">
-              Zobrazit všech {totalCount > 0 ? `${totalCount}+ ` : ''}ETF <ArrowRight className="w-4 h-4" />
+              Zobrazit všech {totalCount > 0 ? `${totalCount.toLocaleString('cs-CZ')} ` : ''}ETF <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </section>

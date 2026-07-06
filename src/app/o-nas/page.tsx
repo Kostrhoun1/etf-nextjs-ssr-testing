@@ -42,7 +42,7 @@ const ORGANIZATION = {
   name: 'ETF průvodce.cz',
   url: 'https://etfpruvodce.cz',
   description:
-    'Největší srovnávač ETF pro české investory – nezávislá data 4 300+ fondů s výnosy přepočtenými do korun.',
+    'Největší srovnávač ETF pro české investory – nezávislá data 4 800+ fondů s výnosy přepočtenými do korun.',
   founder: PERSON,
 };
 
@@ -82,7 +82,7 @@ const METODIKA = [
 
 export default async function AboutPage() {
   const totalCount = await getTotalETFCount();
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 300';
+  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -186,7 +186,7 @@ export default async function AboutPage() {
                 </span>
                 <span>
                   <span className="block text-sm font-semibold text-slate-900">
-                    {m.icon === Database ? `Data z ${countLabel}+ fondů` : m.title}
+                    {m.icon === Database ? `Data z ${countLabel} fondů` : m.title}
                   </span>
                   <span className="block text-sm text-slate-500 mt-0.5 leading-relaxed">{m.desc}</span>
                 </span>

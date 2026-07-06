@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default async function HowToStartPreview() {
   const totalCount = await getTotalETFCount();
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 300';
+  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
 
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
