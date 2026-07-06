@@ -37,13 +37,14 @@ type Row = {
   firms: string;
   usa: string;
   etf: string;
+  filter?: string; // kanonický label pro proklik do /srovnani?index=… (musí odpovídat datům)
 };
 const ROWS: Row[] = [
-  { index: 'S&P 500', dev: 'jen USA', em: 'ne', small: false, firms: '500', usa: '100 %', etf: 'CSPX, VUAA' },
-  { index: 'MSCI World', dev: '23 rozvinutých zemí', em: 'ne', small: false, firms: '~1 300', usa: '~71 %', etf: 'IWDA, SWDA' },
-  { index: 'FTSE Developed', dev: 'rozvinuté trhy', em: 'ne', small: false, firms: '~2 000', usa: '~70 %', etf: 'VHVG' },
-  { index: 'MSCI ACWI', dev: '23 rozvinutých', em: 'ano', emNote: '~12 %', small: false, firms: '~2 500', usa: '~63 %', etf: 'SSAC, ISAC' },
-  { index: 'FTSE All-World', dev: 'rozvinuté trhy', em: 'ano', emNote: '~10 %', small: false, firms: '~4 300', usa: '~60 %', etf: 'VWCE, VWRL' },
+  { index: 'S&P 500', dev: 'jen USA', em: 'ne', small: false, firms: '500', usa: '100 %', etf: 'CSPX, VUAA', filter: 'S&P 500' },
+  { index: 'MSCI World', dev: '23 rozvinutých zemí', em: 'ne', small: false, firms: '~1 300', usa: '~71 %', etf: 'IWDA, SWDA', filter: 'MSCI World' },
+  { index: 'FTSE Developed', dev: 'rozvinuté trhy', em: 'ne', small: false, firms: '~2 000', usa: '~70 %', etf: 'VHVG', filter: 'FTSE Developed World' },
+  { index: 'MSCI ACWI', dev: '23 rozvinutých', em: 'ano', emNote: '~12 %', small: false, firms: '~2 500', usa: '~63 %', etf: 'SSAC, ISAC', filter: 'MSCI ACWI' },
+  { index: 'FTSE All-World', dev: 'rozvinuté trhy', em: 'ano', emNote: '~10 %', small: false, firms: '~4 300', usa: '~60 %', etf: 'VWCE, VWRL', filter: 'FTSE All-World' },
   { index: 'FTSE Global All Cap', dev: 'rozvinuté trhy', em: 'ano', emNote: '~10 %', small: true, firms: '~9 000', usa: '~60 %', etf: 'prakticky VWCE' },
 ];
 
@@ -219,7 +220,11 @@ export default async function SvetoveEtfIndexy() {
               <tbody>
                 {ROWS.map((r) => (
                   <tr key={r.index} className="border-b border-slate-100 last:border-0 align-top">
-                    <td className="py-3 px-4 font-semibold text-slate-900">{r.index}</td>
+                    <td className="py-3 px-4 font-semibold">
+                      {r.filter
+                        ? <Link href={`/srovnani?index=${encodeURIComponent(r.filter)}`} className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 hover:underline" title={`Zobrazit ${r.index} fondy ve srovnávači`}>{r.index}<ArrowRight className="w-3.5 h-3.5 opacity-60" /></Link>
+                        : <span className="text-slate-900">{r.index}</span>}
+                    </td>
                     <td className="py-3 px-4 text-slate-600">{r.dev}</td>
                     <td className="py-3 px-4 text-center">
                       {r.em === 'ano'
@@ -237,8 +242,8 @@ export default async function SvetoveEtfIndexy() {
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Tickery ETF jsou příklady nejznámějších fondů na daný index (existují i další). Konkrétní fondy, jejich
-            poplatky a výnosy v korunách najdete v <Link href="/srovnani" className="text-teal-700 hover:underline">srovnávači</Link>.
+            <strong className="text-slate-700">Klikněte na název indexu</strong> → otevře se srovnávač s vyfiltrovanými
+            fondy daného indexu (poplatky a výnosy v korunách). Tickery ETF jsou příklady nejznámějších fondů (existují i další).
           </p>
         </section>
 

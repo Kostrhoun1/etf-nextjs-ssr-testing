@@ -32,11 +32,11 @@ export const metadata: Metadata = {
 };
 
 export default async function SrovnaniScreenerPreview(
-  { searchParams }: { searchParams: Promise<{ q?: string }> },
+  { searchParams }: { searchParams: Promise<{ q?: string; index?: string }> },
 ) {
-  const { q } = await searchParams;
+  const { q, index } = await searchParams;
   const { rows, options, total } = await getScreenerRows();
-  const initialRows = buildInitialScreenerRows(rows, q ?? '');
+  const initialRows = buildInitialScreenerRows(rows, q ?? '', 50, index);
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -112,7 +112,7 @@ export default async function SrovnaniScreenerPreview(
 
         {/* SCREENER – hlavní obsah stránky (výpis fondů z databáze) */}
         <section id="screener" className="scroll-mt-16">
-          <ScreenerUI initialRows={initialRows} total={total} options={options} initialQ={q ?? ''} />
+          <ScreenerUI initialRows={initialRows} total={total} options={options} initialQ={q ?? ''} initialIndex={index ?? ''} />
         </section>
 
         {/* Ukázkový souboj – featured (až POD samotným výpisem fondů) */}
