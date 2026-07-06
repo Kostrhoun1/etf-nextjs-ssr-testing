@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import AuthorSchema from '@/components/SEO/AuthorSchema';
 import CompareTray from '@/components/design-preview/CompareTray';
+import { getTotalETFCount } from '@/lib/etf-data';
 
 const inter = Inter({
   subsets: ['latin', 'latin-ext'],
@@ -14,12 +15,15 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  const n = await getTotalETFCount();
+  const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
+  return {
   title: {
     default: "ETF průvodce.cz - Nejlepší ETF fondy pro české investory",
     template: "%s | ETF průvodce.cz"
   },
-  description: "★ ZDARMA ETF průvodce ★ Srovnání více než 4800 ETF fondů pro české investory s výkonností přepočítanou do CZK! Kompletní databáze, pokročilé filtry, srovnání brokerů a investiční kalkulačky.",
+  description: `★ ZDARMA ETF průvodce ★ Srovnání více než ${count} ETF fondů pro české investory s výkonností přepočítanou do CZK! Kompletní databáze, pokročilé filtry, srovnání brokerů a investiční kalkulačky.`,
   keywords: [
     "ETF fondy", "nejlepší ETF", "ETF srovnání", "kde koupit ETF",
     "ETF výkonnost CZK", "přepočet výnosů ETF", "ETF česká koruna přepočet", 
@@ -43,7 +47,7 @@ export const metadata: Metadata = {
     locale: 'cs_CZ',
     url: 'https://etfpruvodce.cz',
     siteName: 'ETF průvodce.cz',
-    title: 'ETF průvodce.cz | Srovnání 4 800+ ETF fondů',
+    title: `ETF průvodce.cz | Srovnání ${count} ETF fondů`,
     description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: [
       {
@@ -56,7 +60,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ETF průvodce.cz | Srovnání 4 800+ ETF fondů',
+    title: `ETF průvodce.cz | Srovnání ${count} ETF fondů`,
     description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: ['/og-image.jpg'],
   },
@@ -77,7 +81,8 @@ export const metadata: Metadata = {
   verification: {
     google: 'xcO4Z-AnzPYJ288SOKyYz4KphoizdnaitN7V8e1yXKc',
   },
-};
+  };
+}
 
 export default function RootLayout({
   children,

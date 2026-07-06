@@ -12,11 +12,15 @@ export const revalidate = 86400;
 
 // Preview build → noindex. Ostrá /o-nas se MÁ indexovat (autoritní signál):
 // na ostré routě se robots přepne na index:true (viz generateCanonicalMetadata).
-export const metadata: Metadata = {
-  title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
-  description:
-    'Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12 let ve financích, dříve ředitel úvěrů a hypoték v MONETA. Nezávislý srovnávač 4 800+ ETF s výnosy přepočtenými do korun.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const n = await getTotalETFCount();
+  const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
+  return {
+    title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
+    description:
+      `Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12 let ve financích, dříve ředitel úvěrů a hypoték v MONETA. Nezávislý srovnávač ${count} ETF s výnosy přepočtenými do korun.`,
+  };
+}
 
 // JSON-LD: Person (autor) + Organization (web s founder = ten Person).
 const PERSON = {
@@ -42,7 +46,7 @@ const ORGANIZATION = {
   name: 'ETF průvodce.cz',
   url: 'https://etfpruvodce.cz',
   description:
-    'Největší srovnávač ETF pro české investory – nezávislá data 4 800+ fondů s výnosy přepočtenými do korun.',
+    'Největší srovnávač ETF pro české investory – nezávislá data o fondech s výnosy přepočtenými do korun.',
   founder: PERSON,
 };
 

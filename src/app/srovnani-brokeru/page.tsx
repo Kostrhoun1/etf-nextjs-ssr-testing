@@ -12,7 +12,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruClient';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { brokers } from '@/data/brokerData';
-import { getDataDate } from '@/lib/etf-data';
+import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
@@ -104,6 +104,8 @@ export default async function SrovnaniBrokeruPage() {
   const now = new Date();
   const firstOfMonth = (await getDataDate(now));
   const modified = firstOfMonth.toISOString();
+  const etfCount = await getTotalETFCount();
+  const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
   const dateStr = firstOfMonth.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const breadcrumbSchema = {
@@ -284,7 +286,7 @@ export default async function SrovnaniBrokeruPage() {
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { href: '/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera v ČR krok za krokem.', icon: Landmark },
-              { href: '/srovnani', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 800+ fondů podle kritérií.', icon: BarChart3 },
+              { href: '/srovnani', label: 'Srovnání ETF fondů', desc: `Porovnejte ${etfCountLabel} fondů podle kritérií.`, icon: BarChart3 },
               { href: '/jak-zacit', label: 'Jak začít investovat', desc: 'Od základů k prvnímu nákupu.', icon: BookOpen },
               { href: '/kalkulacky', label: 'Kalkulačky', desc: 'Poplatky, výnosy i daně spočítané.', icon: Calculator },
             ].map((l) => (

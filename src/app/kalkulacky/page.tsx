@@ -8,6 +8,7 @@ import {
   PieChart, BookOpen, Wallet,
 } from 'lucide-react';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { getTotalETFCount } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
@@ -116,13 +117,15 @@ const GROUPS: Group[] = [
 
 const toolCount = GROUPS.reduce((n, g) => n + g.tools.length, 0);
 
-const KAM_DAL: { href: string; label: string; desc: string; icon: typeof Calculator }[] = [
-  { href: '/srovnani', label: 'Srovnání ETF fondů', desc: 'Porovnejte 4 800+ fondů podle vlastních kritérií.', icon: BarChart3 },
+const kamDalItems = (countLabel: string): { href: string; label: string; desc: string; icon: typeof Calculator }[] => [
+  { href: '/srovnani', label: 'Srovnání ETF fondů', desc: `Porovnejte ${countLabel} fondů podle vlastních kritérií.`, icon: BarChart3 },
   { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
   { href: '/pruvodce', label: 'Co jsou ETF', desc: 'Základy fungování ETF srozumitelně pro začátečníky.', icon: BookOpen },
 ];
 
-export default function KalkulackyPage() {
+export default async function KalkulackyPage() {
+  const etfCount = await getTotalETFCount();
+  const KAM_DAL = kamDalItems(etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800');
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
