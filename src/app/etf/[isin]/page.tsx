@@ -25,6 +25,26 @@ export const dynamicParams = true;
    a nejhledanějších fondů. Viz experiment níže. */
 const HEAD_MIN_SIZE = 2000;
 
+/* Unikátní tickery fondu (primary + burzovní, dedup case-insensitive, pryč „-").
+   Lidé hledají podle tickeru, ne ISIN – a `primary_ticker` NENÍ spolehlivě ten
+   nejhledanější (např. iShares S&P 500 má primary „CSP1", ale hledá se „CSPX").
+   Proto neukazujeme jeden, ale VŠECHNY – v obsahu i (limitovaně) v titulku. */
+const TICKER_KEYS = [
+  'primary_ticker', 'exchange_1_ticker', 'exchange_2_ticker', 'exchange_3_ticker',
+  'exchange_4_ticker', 'exchange_5_ticker', 'exchange_6_ticker', 'exchange_7_ticker',
+  'exchange_8_ticker', 'exchange_9_ticker', 'exchange_10_ticker',
+];
+function uniqueTickers(row: Record<string, unknown> | null | undefined): string[] {
+  if (!row) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const k of TICKER_KEYS) {
+    const v = (row[k] ?? '').toString().trim();
+    if (v && v !== '-' && !seen.has(v.toUpperCase())) { seen.add(v.toUpperCase()); out.push(v); }
+  }
+  return out;
+}
+
 /* Předgenerujeme jen pár nejznámějších fondů; zbytek se dogeneruje on-demand. */
 export async function generateStaticParams() {
   return ['IE00B5BMR087', 'IE00BK5BQT80', 'IE00B4L5Y983'].map((isin) => ({ isin }));
@@ -35,9 +55,13 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { isin } = await params;
   const { data } = await supabaseAdmin
-    .from('etf_funds').select('name, fund_size_numeric').eq('isin', isin).single();
-  const fund = data as { name?: string; fund_size_numeric?: number | null } | null;
-  const name = fund?.name ?? 'ETF fond';
+    .from('etf_funds')
+    .select('name, fund_size_numeric, ' + TICKER_KEYS.join(', '))
+    .eq('isin', isin).single();
+  const fund = data as Record<string, unknown> | null;
+  const name = (fund?.name as string) || 'ETF fond';
+  const tickers = uniqueTickers(fund);
+  const titleTk = tickers.slice(0, 4).join(', '); // titulek: max 4 (kdyby jich měl fond 8)
   // DIFERENCOVANÁ INDEXACE (experiment od 2026-07-07, měří CEO):
   // - Bing/Seznam/ostatní: indexovat VŠECHNY detaily – už dnes z nich chodí traffic
   //   (GA4: 54 organických vstupů / 28 dní), který jsme si dřív blanket-noindexem
@@ -45,10 +69,13 @@ export async function generateMetadata(
   // - Google: indexovat jen „hlavu" (velké/hledané fondy ≥ HEAD_MIN_SIZE), aby 4500+
   //   šablonových detailů nedělalo na mladé doméně thin-content bloat; dlouhý ocas
   //   necháme googlebot-noindex. Po 2–4 týdnech vyhodnotit a případně rozšířit.
-  const isHead = (fund?.fund_size_numeric ?? 0) >= HEAD_MIN_SIZE;
+  const isHead = Number(fund?.fund_size_numeric ?? 0) >= HEAD_MIN_SIZE;
   return {
-    title: `${name} — detail fondu, výnos v Kč | ETF průvodce`,
-    description: `Detail fondu ${name} (ISIN ${isin}): TER, výnos přepočtený do korun, složení, rizika a kde koupit fond. Pro české investory.`,
+    // Brand „| ETF průvodce.cz" doplní layout template – neduplikovat.
+    title: titleTk ? `${name} (${titleTk}): výnos v Kč, TER` : `${name} – detail fondu, výnos v Kč`,
+    description: tickers.length
+      ? `${name}. Burzovní tickery: ${tickers.slice(0, 5).join(', ')}. ISIN ${isin} – TER, výnos přepočtený do korun, složení, rizika a kde koupit fond. Pro české investory.`
+      : `Detail fondu ${name} (ISIN ${isin}): TER, výnos přepočtený do korun, složení, rizika a kde koupit fond. Pro české investory.`,
     robots: isHead
       ? { index: true, follow: true }
       : { index: true, follow: true, googleBot: { index: false, follow: true } },
@@ -204,6 +231,7 @@ export default async function ETFDetailPreview(
   const returnsByCur = { CZK: czk, EUR: eur, USD: usd };
 
   const ticker = etf.primary_ticker || '—';
+  const allTickers = uniqueTickers(etf as unknown as Record<string, unknown>);
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -379,7 +407,7 @@ export default async function ETFDetailPreview(
                 </div>
                 <h1 className="mt-1.5 text-2xl md:text-3xl font-bold tracking-tight leading-tight">{etf.name}</h1>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-300">
-                  <span className="font-medium text-white">{ticker}</span>
+                  <span className="font-medium text-white" title="Tickery na burzách">{allTickers.length ? allTickers.join(' · ') : ticker}</span>
                   <span className="inline-flex items-center gap-1.5 font-mono text-xs">ISIN {etf.isin}</span>
                   {ratingVal != null && (
                     <span className="inline-flex items-center gap-1 text-amber-300" aria-label={`Hodnocení ${ratingVal} z 5`}>
