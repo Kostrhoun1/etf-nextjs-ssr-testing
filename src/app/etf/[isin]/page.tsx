@@ -21,6 +21,10 @@ import { getDataDate } from '@/lib/etf-data';
 export const revalidate = 86400;
 export const dynamicParams = true;
 
+/* Práh „hlavy" pro Google indexaci (mil. EUR AUM). ≥ 2 000 = ~329 největších
+   a nejhledanějších fondů. Viz experiment níže. */
+const HEAD_MIN_SIZE = 2000;
+
 /* Předgenerujeme jen pár nejznámějších fondů; zbytek se dogeneruje on-demand. */
 export async function generateStaticParams() {
   return ['IE00B5BMR087', 'IE00BK5BQT80', 'IE00B4L5Y983'].map((isin) => ({ isin }));
@@ -31,14 +35,23 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { isin } = await params;
   const { data } = await supabaseAdmin
-    .from('etf_funds').select('name').eq('isin', isin).single();
-  const name = (data as { name?: string } | null)?.name ?? 'ETF fond';
+    .from('etf_funds').select('name, fund_size_numeric').eq('isin', isin).single();
+  const fund = data as { name?: string; fund_size_numeric?: number | null } | null;
+  const name = fund?.name ?? 'ETF fond';
+  // DIFERENCOVANÁ INDEXACE (experiment od 2026-07-07, měří CEO):
+  // - Bing/Seznam/ostatní: indexovat VŠECHNY detaily – už dnes z nich chodí traffic
+  //   (GA4: 54 organických vstupů / 28 dní), který jsme si dřív blanket-noindexem
+  //   podřezávali.
+  // - Google: indexovat jen „hlavu" (velké/hledané fondy ≥ HEAD_MIN_SIZE), aby 4500+
+  //   šablonových detailů nedělalo na mladé doméně thin-content bloat; dlouhý ocas
+  //   necháme googlebot-noindex. Po 2–4 týdnech vyhodnotit a případně rozšířit.
+  const isHead = (fund?.fund_size_numeric ?? 0) >= HEAD_MIN_SIZE;
   return {
     title: `${name} — detail fondu, výnos v Kč | ETF průvodce`,
     description: `Detail fondu ${name} (ISIN ${isin}): TER, výnos přepočtený do korun, složení, rizika a kde koupit fond. Pro české investory.`,
-    // Fáze cutoveru: 4867 šablonových detailů zatím NEindexovat (slabá doména by
-    // utrpěla thin-content signálem). Otevřít až po náběhu důvěry (obsah + backlinky).
-    robots: { index: false, follow: false },
+    robots: isHead
+      ? { index: true, follow: true }
+      : { index: true, follow: true, googleBot: { index: false, follow: true } },
   };
 }
 
