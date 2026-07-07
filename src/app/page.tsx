@@ -93,6 +93,7 @@ const TOOLS = [
   { href: '/svetove-etf-indexy', label: 'Světové ETF: který index', desc: 'MSCI World vs FTSE All-World vs S&P 500', icon: Globe },
   { href: '/menove-riziko-etf', label: 'Měnové riziko a zajištění', desc: 'Potřebujete hedged fond? (pohled v Kč)', icon: ShieldCheck },
   { href: '/kolik-investovat-mesicne', label: 'Kolik investovat měsíčně', desc: 'Kolik na milion nebo rentu (v Kč)', icon: Wallet },
+  { href: '/jaky-sp500-etf', label: 'Který S&P 500 ETF', desc: 'CSPX vs VUAA vs VUSA vs SPYL', icon: Landmark },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
