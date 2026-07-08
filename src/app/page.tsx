@@ -94,6 +94,7 @@ const TOOLS = [
   { href: '/menove-riziko-etf', label: 'Měnové riziko a zajištění', desc: 'Potřebujete hedged fond? (pohled v Kč)', icon: ShieldCheck },
   { href: '/kolik-investovat-mesicne', label: 'Kolik investovat měsíčně', desc: 'Kolik na milion nebo rentu (v Kč)', icon: Wallet },
   { href: '/jaky-sp500-etf', label: 'Který S&P 500 ETF', desc: 'CSPX vs VUAA vs VUSA vs SPYL', icon: Landmark },
+  { href: '/dca-vs-jednorazova', label: 'DCA vs. jednorázová', desc: 'Investovat naráz, nebo postupně? (data)', icon: LineChart },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [

@@ -28,6 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { p: '/svetove-etf-indexy', pr: 0.8 },
     { p: '/kolik-investovat-mesicne', pr: 0.8 },
     { p: '/jaky-sp500-etf', pr: 0.8 },
+    { p: '/dca-vs-jednorazova', pr: 0.8 },
     { p: '/menove-riziko-etf', pr: 0.7 },
     { p: '/investicni-kalkulacka', pr: 0.6 },
     { p: '/fire-kalkulacka', pr: 0.6 },
