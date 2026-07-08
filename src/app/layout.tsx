@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import AuthorSchema from '@/components/SEO/AuthorSchema';
 import CompareTray from '@/components/design-preview/CompareTray';
+import SiteFooter from '@/components/design-preview/SiteFooter';
 import { getTotalETFCount } from '@/lib/etf-data';
 
 const inter = Inter({
@@ -109,6 +110,7 @@ export default function RootLayout({
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
+        <SiteFooter />
         <CompareTray />
         <SpeedInsights />
         <Analytics />

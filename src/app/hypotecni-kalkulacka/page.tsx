@@ -320,12 +320,6 @@ export default async function HypotecniKalkulackaPreview() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <span className="font-semibold text-slate-700">ETF průvodce.cz</span>
-          <p className="max-w-md text-center sm:text-right leading-relaxed">Obsah má vzdělávací charakter a nepředstavuje investiční ani úvěrové doporučení. Skutečné podmínky hypoték se liší podle banky a bonity.</p>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -257,12 +257,6 @@ export default async function PortfolioStrategieDesignPreview() {
       </main>
 
       {/* Footer – 1:1 z homepage */}
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <span className="font-semibold text-slate-700">ETF průvodce.cz</span>
-          <p className="max-w-md text-center sm:text-right leading-relaxed">Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy.</p>
-        </div>
-      </footer>
     </div>
   );
 }
