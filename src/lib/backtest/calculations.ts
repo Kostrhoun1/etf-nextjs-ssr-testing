@@ -47,6 +47,21 @@ export function annualizeMonthlyStdDev(monthlyStdDev: number): number {
   return monthlyStdDev * Math.sqrt(12)
 }
 
+/**
+ * Kolik datových kroků připadá na rok.
+ *
+ * DŮLEŽITÉ: časová řada je DENNÍ (~252 obchodních dní/rok), ne měsíční.
+ * Anualizace rizika (σ×√N, μ×N) musí použít skutečnou frekvenci, jinak by
+ * denní σ×√12 podhodnotila volatilitu ~4,6× a nafoukla Sharpe. Frekvenci
+ * proto odvozujeme z dat (funguje pro denní i měsíční řadu).
+ */
+export function periodsPerYear(evolution: TimeSeriesPoint[]): number {
+  if (evolution.length < 2) return 12
+  const years = yearsBetween(evolution[0].date, evolution[evolution.length - 1].date)
+  if (years <= 0) return 12
+  return (evolution.length - 1) / years
+}
+
 // ============================================================
 // RETURN CALCULATIONS
 // ============================================================
@@ -171,18 +186,20 @@ export function calculateSharpeRatio(
  * VaR(95%) = μ_annual - 1.65 × σ_annual
  *
  * Where:
- * - μ_annual = mean monthly return × 12
- * - σ_annual = monthly std dev × √12
+ * - μ_annual = mean step return × periodsPerYear
+ * - σ_annual = step std dev × √periodsPerYear
  * - 1.65 is the z-score for 95% confidence (one-tailed)
+ *
+ * periodsPerYear odvozeno z dat (denní řada ~252), ne napevno 12.
  */
-export function calculateVaR95(monthlyReturns: number[]): number {
-  if (monthlyReturns.length === 0) return 0
+export function calculateVaR95(stepReturns: number[], periodsPerYear: number = 12): number {
+  if (stepReturns.length === 0) return 0
 
-  const monthlyMean = mean(monthlyReturns)
-  const monthlyStd = standardDeviation(monthlyReturns)
+  const stepMean = mean(stepReturns)
+  const stepStd = standardDeviation(stepReturns)
 
-  const annualMean = monthlyMean * 12
-  const annualStd = monthlyStd * Math.sqrt(12)
+  const annualMean = stepMean * periodsPerYear
+  const annualStd = stepStd * Math.sqrt(periodsPerYear)
 
   return annualMean - 1.65 * annualStd
 }
@@ -470,8 +487,10 @@ export function calculateSummary(
   const monthlyReturnValues = monthlyReturns.map((r) => r.return)
 
   const cagr = calculateCAGR(startNav, endNav, years) // time-weighted výnos strategie (bez vkladů)
-  const monthlyStdDev = standardDeviation(monthlyReturnValues)
-  const annualStdDev = annualizeMonthlyStdDev(monthlyStdDev)
+  const stepStdDev = standardDeviation(monthlyReturnValues)
+  // Anualizace podle SKUTEČNÉ frekvence dat (denní ~252/rok), ne napevno √12.
+  const ppy = years > 0 ? monthlyReturnValues.length / years : 12
+  const annualStdDev = stepStdDev * Math.sqrt(ppy)
   const sharpe = calculateSharpeRatio(cagr, riskFreeRate, annualStdDev)
 
   return {
@@ -536,6 +555,6 @@ export function calculateRiskAnalysis(
     maxDrawdown: deepestDrawdown || defaultDrawdown,
     deepestDrawdown: deepestDrawdown || defaultDrawdown,
     longestDrawdown: longestDrawdown || defaultDrawdown,
-    valueAtRisk95: calculateVaR95(monthlyReturnValues),
+    valueAtRisk95: calculateVaR95(monthlyReturnValues, periodsPerYear(evolution)),
   }
 }
