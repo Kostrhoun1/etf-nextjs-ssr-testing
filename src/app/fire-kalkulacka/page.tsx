@@ -149,9 +149,9 @@ export default async function FireKalkulackaPreview() {
                   <p className="text-xs text-slate-400">ročně z portfolia</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Výsledek</p>
-                  <p className="text-lg font-bold tabular-nums">věk + graf</p>
-                  <p className="text-xs text-slate-400">vývoje majetku</p>
+                  <p className="text-xs text-slate-400">Příklad cíle</p>
+                  <p className="text-lg font-bold tabular-nums text-teal-300">9 mil. Kč</p>
+                  <p className="text-xs text-slate-400">při výdajích 30 tis./měs</p>
                 </div>
               </div>
             </div>
