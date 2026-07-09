@@ -89,6 +89,7 @@ interface BacktestResult {
     valueAtRisk95: number;
   };
   stressPeriods?: Array<{ key: string; name: string; startDate: string; troughDate: string; drop: number; recoveryMonths: number | null }>;
+  drawdownSeries?: Array<{ date: string; drawdown: number }>;
 }
 
 const CURRENCIES: { code: Currency; label: string }[] = [
@@ -804,6 +805,62 @@ export default function BacktestWidget() {
               <p className="mt-3 text-xs text-slate-500 leading-relaxed">
                 „Zatím ne" znamená, že se portfolio z propadu do konce sledovaného období ještě nevrátilo na původní vrchol. Hloubka i délka
                 ukazují, kolik trpělivosti by dané portfolio v minulosti vyžadovalo.
+              </p>
+            </div>
+          )}
+
+          {/* Underwater graf – jak dlouho bylo portfolio ve ztrátě (pod vrcholem) */}
+          {result.drawdownSeries && result.drawdownSeries.length > 1 && (
+            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1 flex items-center gap-1">
+                Jak dlouho bylo portfolio ve ztrátě
+                <InfoTip label="Underwater / drawdown – graf ztráty od předchozího maxima v čase. Nula = nový vrchol, čím hlouběji, tím větší dočasná ztráta.">
+                  <span className="sr-only">vysvětlení</span>
+                </InfoTip>
+              </p>
+              <p className="text-xs text-slate-400 mb-3">
+                Plocha pod nulou ukazuje, jak hluboko a jak dlouho byla hodnota pod předchozím vrcholem, než se vrátila zpět.
+              </p>
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={result.drawdownSeries.map((p) => ({ date: p.date, dd: +(p.drawdown * 100).toFixed(2) }))}
+                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="uwFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#dc2626" stopOpacity={0.06} />
+                        <stop offset="100%" stopColor="#dc2626" stopOpacity={0.35} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="date" tickFormatter={fmtDate} minTickGap={48}
+                      tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+                    <YAxis width={48} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+                      tickFormatter={(v: number) => `${Math.round(v)} %`} domain={['dataMin', 0]} />
+                    <ReferenceLine y={0} stroke="#cbd5e1" />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload || !payload.length) return null;
+                        const p = payload[0].payload as { date: string; dd: number };
+                        return (
+                          <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
+                            <div className="font-semibold mb-0.5">
+                              {new Date(p.date).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' })}
+                            </div>
+                            {p.dd >= -0.05
+                              ? <div>Na vrcholu — bez ztráty</div>
+                              : <div>Pod vrcholem: <span className="font-medium tabular-nums">{fmtPct(p.dd)}</span></div>}
+                          </div>
+                        );
+                      }}
+                    />
+                    <Area type="monotone" dataKey="dd" stroke="#dc2626" strokeWidth={1.5} fill="url(#uwFill)" baseValue={0} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                Většinu času se hodnota drží na nule (nové maximum) nebo blízko ní; hluboké „doliny" jsou krize. Návrat na nulu znamená, že portfolio překonalo předchozí vrchol.
               </p>
             </div>
           )}

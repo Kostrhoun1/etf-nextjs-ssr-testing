@@ -121,6 +121,19 @@ export function calculateStressPeriods(
 }
 
 /**
+ * „Underwater" řada – pro každý měsíc, jak hluboko byla hodnota pod dosavadním vrcholem
+ * (0 na vrcholech, záporné ve ztrátě). Z EUR NAV (jako ostatní riziko) → start-nezávislé.
+ */
+export function calculateDrawdownSeries(nav: TimeSeriesPoint[]): { date: string; drawdown: number }[] {
+  const monthly = resampleMonthEnd(nav)
+  let peak = -Infinity
+  return monthly.map((p) => {
+    if (p.value > peak) peak = p.value
+    return { date: p.date.toISOString(), drawdown: peak > 0 ? p.value / peak - 1 : 0 }
+  })
+}
+
+/**
  * Převzorkuje časovou řadu na měsíční body (poslední hodnota v každém měsíci = konec měsíce).
  * Denní řada (~252/rok) → ~12/rok. Kompaktní pro přenos i pro rolling/krizové výpočty.
  */
