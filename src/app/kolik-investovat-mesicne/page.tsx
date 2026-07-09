@@ -133,9 +133,9 @@ export default async function KolikInvestovat() {
               Kolik investovat měsíčně, abyste měli milion (nebo rentu)?
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
-              Kolik reálně naspoříte pravidelným vkladem do ETF – spočítáno{' '}
-              <strong className="text-white">v korunách</strong> pro 10, 20 i 30 let. A hlavní pointa hned na začátku:{' '}
-              <strong className="text-white">za 30 let stačí ~{Math.round(need(1_000_000, RATE, 30)).toLocaleString('cs-CZ')} Kč měsíčně na první milion.</strong>
+              Kolik reálně naspoříte pravidelným vkladem do ETF – <strong className="text-white">v korunách</strong> pro 10, 20 i 30 let.
+              Příklad: na první milion stačí <strong className="text-white">~{Math.round(need(1_000_000, RATE, 30)).toLocaleString('cs-CZ')} Kč měsíčně</strong>,
+              když investujete 30 let při modelovém výnosu ~7 % ročně (nominálně, před inflací).
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href="/investicni-kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
