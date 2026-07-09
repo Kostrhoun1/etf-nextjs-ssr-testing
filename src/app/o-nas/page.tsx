@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
     description:
-      `Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12 let ve financích, dříve ředitel úvěrů a hypoték v MONETA. Nezávislý srovnávač ${count} ETF s výnosy přepočtenými do korun.`,
+      `Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12+ let v bankovnictví (MONETA Money Bank, Česká spořitelna). Nezávislý srovnávač ${count} ETF s výnosy přepočtenými do korun.`,
   };
 }
 
@@ -29,13 +29,16 @@ const PERSON = {
   name: 'Tomáš Kostrhoun',
   jobTitle: 'Zakladatel a autor',
   description:
-    'Zakladatel a autor ETF průvodce.cz. 12 let zkušeností ve financích, dříve ředitel úvěrů a hypoték v MONETA Money Bank.',
+    'Zakladatel a autor ETF průvodce.cz. 12+ let praxe v českém bankovnictví (MONETA Money Bank, Česká spořitelna).',
   sameAs: [
     'https://www.linkedin.com/in/tomaskostrhoun/',
     'https://x.com/ETFpruvodce',
   ],
   worksFor: { '@type': 'Organization', name: 'ETF průvodce.cz' },
-  alumniOf: { '@type': 'Organization', name: 'MONETA Money Bank' },
+  alumniOf: [
+    { '@type': 'Organization', name: 'MONETA Money Bank' },
+    { '@type': 'Organization', name: 'Česká spořitelna' },
+  ],
   knowsAbout: ['ETF', 'investování', 'osobní finance', 'pasivní investování', 'finanční trhy'],
 };
 
@@ -51,8 +54,8 @@ const ORGANIZATION = {
 };
 
 const EXPERTISE = [
-  { icon: History, value: '12 let', label: 've financích', desc: 'Hypotéky, spotřebitelské úvěry a řízení byznysu v bankovnictví.' },
-  { icon: Landmark, value: '150+ mld Kč', label: 'úvěrové portfolio', desc: 'Hodnota portfolia, které jsem v MONETA spravoval a řídil.' },
+  { icon: History, value: '12+ let', label: 'v bankovnictví', desc: 'Řízení byznysu, produktů a rizika v retailovém bankovnictví.' },
+  { icon: Landmark, value: '150+ mld Kč', label: 'spravované portfolio', desc: 'Hodnota portfolia, které jsem v bankovnictví řídil.' },
   { icon: Users, value: '30+ lidí', label: 'vedení týmu', desc: 'Přímé vedení obchodního a produktového týmu.' },
   { icon: Award, value: 'První v ČR', label: 'online hypotéka', desc: 'Uvedení první plně online hypotéky na český trh.' },
 ];
@@ -122,7 +125,7 @@ export default async function AboutPage() {
                 <h2 className="text-xl font-bold text-slate-900">Tomáš Kostrhoun</h2>
                 <p className="text-sm font-medium text-teal-700">Zakladatel a autor</p>
                 <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                  Dříve ředitel úvěrů a hypoték v MONETA Money Bank.
+                  12+ let v bankovnictví – MONETA Money Bank a Česká spořitelna.
                 </p>
                 <a
                   href="https://www.linkedin.com/in/tomaskostrhoun/"
@@ -142,9 +145,9 @@ export default async function AboutPage() {
           <h2 className="text-2xl font-bold tracking-tight mb-4">Pár slov ode mě</h2>
           <div className="space-y-4 text-base text-slate-600 leading-relaxed max-w-2xl">
             <p>
-              Přes 12 let jsem se pohyboval ve financích – od hypoték přes spotřebitelské úvěry až po
-              vedení úvěrového byznysu v MONETA Money Bank. Vedl jsem tým, řídil portfolio v hodnotě
-              přes 150 miliard korun a pomáhal uvést na trh první plně online hypotéku v Česku.
+              Přes 12 let jsem se pohyboval v českém bankovnictví – mimo jiné v MONETA Money Bank
+              a České spořitelně. Vedl jsem týmy, řídil portfolio v hodnotě přes 150 miliard korun
+              a pomáhal uvést na trh první plně online hypotéku v Česku.
             </p>
             <p>
               Při té práci jsem znovu a znovu narážel na jedno: nízkou finanční gramotnost. Lidé se

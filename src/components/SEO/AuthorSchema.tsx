@@ -19,16 +19,24 @@ export default function AuthorSchema() {
     "name": "Tomáš Kostrhoun",
     "givenName": "Tomáš",
     "familyName": "Kostrhoun",
-    "jobTitle": "Fintech Expert & Founder",
-    "description": "Former Head of Loans & Mortgages at MONETA Money Bank with 12+ years in financial services. Led team of 30+ FTE, managed loan portfolio worth 150+ billion CZK, and launched first end-to-end online mortgage in Czech Republic. Currently building fintech platforms focused on personal finance, mortgages and ETF investing across CEE/EU regions.",
+    "jobTitle": "Founder & Author, ETF průvodce.cz",
+    "description": "Finanční odborník s 12+ lety praxe v českém bankovnictví (MONETA Money Bank, Česká spořitelna). Zakladatel a autor ETF průvodce.cz – nezávislé vzdělávací platformy o ETF: srovnání, kalkulačky a výnosy přepočtené do korun, bez reklam a provizí.",
 
     // Work experience and credentials
-    "alumniOf": {
-      "@type": "Organization",
-      "name": "MONETA Money Bank",
-      "url": "https://www.moneta.cz",
-      "sameAs": "https://en.wikipedia.org/wiki/Moneta_Money_Bank"
-    },
+    "alumniOf": [
+      {
+        "@type": "Organization",
+        "name": "MONETA Money Bank",
+        "url": "https://www.moneta.cz",
+        "sameAs": "https://en.wikipedia.org/wiki/Moneta_Money_Bank"
+      },
+      {
+        "@type": "Organization",
+        "name": "Česká spořitelna",
+        "url": "https://www.csas.cz",
+        "sameAs": "https://en.wikipedia.org/wiki/Česká_spořitelna"
+      }
+    ],
 
     "worksFor": {
       "@type": "Organization",
@@ -43,45 +51,43 @@ export default function AuthorSchema() {
         "@type": "EducationalOccupationalCredential",
         "credentialCategory": "professional experience",
         "competencyRequired": "12+ years in banking and financial services",
-        "educationalLevel": "Head of Loans & Mortgages at MONETA Money Bank"
+        "educationalLevel": "Senior roles in Czech retail banking (MONETA Money Bank, Česká spořitelna)"
       },
       {
         "@type": "EducationalOccupationalCredential",
         "credentialCategory": "achievement",
-        "competencyRequired": "Portfolio management",
-        "educationalLevel": "Managed 150+ billion CZK loan portfolio"
+        "competencyRequired": "Portfolio & risk management",
+        "educationalLevel": "Managed multi-billion CZK portfolio"
       },
       {
         "@type": "EducationalOccupationalCredential",
         "credentialCategory": "achievement",
         "competencyRequired": "Digital innovation",
-        "educationalLevel": "Launched first end-to-end online mortgage in Czech Republic"
+        "educationalLevel": "Led digital banking innovation, incl. first end-to-end online mortgage in the Czech Republic"
       },
       {
         "@type": "EducationalOccupationalCredential",
         "credentialCategory": "leadership",
         "competencyRequired": "Team management",
-        "educationalLevel": "Led team of 30+ FTE"
+        "educationalLevel": "Led teams of 30+ FTE"
       }
     ],
 
-    // Areas of expertise (important for topic authority)
+    // Areas of expertise — investičně vedené (web je o ETF), bankovnictví jako kredibilita
     "knowsAbout": [
       "ETF investing",
       "Exchange Traded Funds",
-      "Financial planning",
-      "Czech financial markets",
+      "Index investing",
       "Investment strategy",
       "Portfolio management",
-      "Personal finance",
       "Asset allocation",
-      "Index investing",
+      "Personal finance",
+      "Financial planning",
+      "Czech financial markets",
       "Banking",
-      "Mortgage lending",
-      "Consumer credit",
-      "Financial products",
+      "Financial services",
       "Risk management",
-      "Digital banking",
+      "Financial products",
       "Fintech innovation"
     ],
 
