@@ -90,6 +90,7 @@ interface BacktestResult {
   };
   stressPeriods?: Array<{ key: string; name: string; startDate: string; troughDate: string; drop: number; recoveryMonths: number | null }>;
   drawdownSeries?: Array<{ date: string; drawdown: number }>;
+  rollingReturns?: Array<{ years: number; average: number; high: number; low: number; count: number; positiveShare: number }>;
 }
 
 const CURRENCIES: { code: Currency; label: string }[] = [
@@ -861,6 +862,52 @@ export default function BacktestWidget() {
               </div>
               <p className="mt-3 text-xs text-slate-500 leading-relaxed">
                 Většinu času se hodnota drží na nule (nové maximum) nebo blízko ní; hluboké „doliny" jsou krize. Návrat na nulu znamená, že portfolio překonalo předchozí vrchol.
+              </p>
+            </div>
+          )}
+
+          {/* Rolling returns – „záleželo, kdy jste začali?" */}
+          {result.rollingReturns && result.rollingReturns.length > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1 flex items-center gap-1">
+                Záleželo, kdy jste začali?
+                <InfoTip label="Rolling returns – vezmeme každý možný začátek v historii, podržíme daný počet let a spočítáme roční výnos. Ukáže, jak moc na načasování záleželo.">
+                  <span className="sr-only">vysvětlení</span>
+                </InfoTip>
+              </p>
+              <p className="text-xs text-slate-400 mb-3">
+                Kdybyste do tohoto portfolia vstoupili kdykoli v historii a drželi daný počet let, jaký roční výnos byste dostali – a jak často to skončilo v plusu.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500">
+                      <th className="text-left font-medium py-2 pr-3 whitespace-nowrap">Držel/a jsem</th>
+                      <th className="text-right font-medium py-2 px-3 whitespace-nowrap">Nejhorší</th>
+                      <th className="text-right font-medium py-2 px-3 whitespace-nowrap">Průměr</th>
+                      <th className="text-right font-medium py-2 px-3 whitespace-nowrap">Nejlepší</th>
+                      <th className="text-right font-medium py-2 pl-3 whitespace-nowrap">V plusu</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.rollingReturns.map((r) => (
+                      <tr key={r.years} className="border-b border-slate-100 last:border-0">
+                        <td className="text-slate-600 py-2.5 pr-3 whitespace-nowrap">{r.years} {r.years === 1 ? 'rok' : r.years < 5 ? 'roky' : 'let'}</td>
+                        <td className={`text-right py-2.5 px-3 tabular-nums font-semibold whitespace-nowrap ${r.low >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {r.low >= 0 ? '+' : ''}{fmtPct(r.low * 100)}
+                        </td>
+                        <td className="text-right py-2.5 px-3 tabular-nums text-slate-700 whitespace-nowrap">{r.average >= 0 ? '+' : ''}{fmtPct(r.average * 100)}</td>
+                        <td className="text-right py-2.5 px-3 tabular-nums font-semibold text-emerald-600 whitespace-nowrap">+{fmtPct(r.high * 100)}</td>
+                        <td className={`text-right py-2.5 pl-3 tabular-nums font-semibold whitespace-nowrap ${r.positiveShare >= 0.999 ? 'text-emerald-600' : 'text-slate-700'}`}>
+                          {Math.round(r.positiveShare * 100)} %
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                Čím delší horizont, tím užší rozpětí mezi nejhorším a nejlepším – načasování přestává rozhodovat a roste šance na kladný výsledek. Zaručené to ale není.
               </p>
             </div>
           )}
