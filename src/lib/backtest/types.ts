@@ -125,6 +125,9 @@ export interface BacktestResult {
   // Time series
   evolution: TimeSeriesPoint[]
 
+  // Market-only NAV (time-weighted, bez vkladů) – pro rolling returns / krizové testy
+  marketNav?: TimeSeriesPoint[]
+
   // Summary metrics
   summary: BacktestSummary
 

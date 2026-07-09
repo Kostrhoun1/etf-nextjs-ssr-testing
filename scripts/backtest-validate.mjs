@@ -76,6 +76,21 @@ const AW = [{ isin: 'ftse_all_world', name: 'All-World', weight: 1, ter: 0.0022,
     const bestWithDca = Math.max(...withDca.returns.annualReturns.map((r) => r.return)) * 100;
     check('Nejlepší rok s DCA je reálný (< 40 %)', bestWithDca < 40, `${bestWithDca.toFixed(1)} %`);
 
+    // 3d) KRIZOVÉ TESTY: (a) Covid propad All-World je reálný, (b) NEZÁVISLÉ NA STARTU
+    //     (regrese: FX-přepočet je start-závislý → počítat z EUR NAV).
+    const covid = (noDca.stressPeriods || []).find((s) => s.key === 'covid');
+    check('Krizový test Covid (All-World) je reálný (−25 až −45 %)',
+      !!covid && covid.drop < -0.25 && covid.drop > -0.45, covid ? `${(covid.drop * 100).toFixed(1)} %` : 'chybí');
+
+    const SP = [{ isin: 'IE00B5BMR087', name: 'S&P 500', weight: 1, ter: 0.0007, indexCode: 'sp500' }];
+    const sp2000 = await sim({ portfolio: SP, start: '2000-01-01' });
+    const sp2005 = await sim({ portfolio: SP, start: '2005-01-01' });
+    const gfcA = (sp2000.stressPeriods || []).find((s) => s.key === 'gfc');
+    const gfcB = (sp2005.stressPeriods || []).find((s) => s.key === 'gfc');
+    check('Krizové testy nezávislé na startu (GFC S&P 500, 2000 vs 2005)',
+      !!gfcA && !!gfcB && Math.abs(gfcA.drop - gfcB.drop) < 0.005,
+      gfcA && gfcB ? `${(gfcA.drop * 100).toFixed(1)} % vs ${(gfcB.drop * 100).toFixed(1)} %` : 'chybí');
+
     // 4) Vložené peníze s DCA > jednorázový vklad (kontribuce se sčítají do amountInvested).
     check('DCA navyšuje vložené peníze', withDca.summary.amountInvested > noDca.summary.amountInvested,
       `${Math.round(withDca.summary.amountInvested).toLocaleString('cs-CZ')} vs ${Math.round(noDca.summary.amountInvested).toLocaleString('cs-CZ')}`);

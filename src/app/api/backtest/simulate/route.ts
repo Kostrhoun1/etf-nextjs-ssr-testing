@@ -6,6 +6,7 @@ import {
   convertTimeSeriesFromEur,
   getExchangeRateForDate,
 } from '@/lib/backtest/engine'
+import { resampleMonthEnd, calculateStressPeriods } from '@/lib/backtest/calculations'
 import type { BacktestInput, PortfolioItem, RebalancingStrategy } from '@/lib/backtest/types'
 
 type Currency = 'EUR' | 'CZK' | 'USD'
@@ -151,10 +152,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Serialize dates for JSON response
+    // Krizové testy počítáme z EUR marketNav (stejně jako max. propad a ostatní rizikové metriky)
+    // – propad je poměr, takže je nezávislý na startu i na FX; a je KONZISTENTNÍ s tabulkou propadů.
+    // (Přepočet na CZK je bohužel start-závislý kvůli chování FX lookupu – proto ho tu nepoužíváme.)
+    const stressPeriods = calculateStressPeriods(result.marketNav ?? [])
+    // Měsíční NAV v cílové měně pro budoucí rolling returns (kompaktní).
+    const marketNavMonthly = result.marketNav
+      ? resampleMonthEnd(convertTimeSeriesFromEur(result.marketNav, exchangeRates, currency)).map((p) => ({ date: p.date.toISOString(), value: p.value }))
+      : []
+
+    // Serialize dates for JSON response (syrový denní marketNav do payloadu neposíláme)
+    const { marketNav: _rawMarketNav, ...resultRest } = result
     const serializedResult = {
-      ...result,
+      ...resultRest,
       currency,
+      marketNavMonthly,
+      stressPeriods,
       input: {
         ...result.input,
         startDate: result.input.startDate.toISOString(),
