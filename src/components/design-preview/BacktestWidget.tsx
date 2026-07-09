@@ -88,6 +88,7 @@ interface BacktestResult {
     allDrawdowns?: DrawdownPeriod[];
     valueAtRisk95: number;
   };
+  stressPeriods?: Array<{ key: string; name: string; startDate: string; troughDate: string; drop: number; recoveryMonths: number | null }>;
 }
 
 const CURRENCIES: { code: Currency; label: string }[] = [
@@ -702,6 +703,39 @@ export default function BacktestWidget() {
               Přerušovaná čára ukazuje celkem vložené prostředky. Plocha nad ní je zhodnocení, propady pod předchozí vrchol jsou ony „max. poklesy“.
             </p>
           </div>
+
+          {/* Krizové testy – jak by portfolio zvládlo slavné propady trhu */}
+          {result.stressPeriods && result.stressPeriods.length > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Krizové testy</p>
+              <p className="text-xs text-slate-400 mb-3">
+                Jak hluboko by portfolio kleslo během slavných propadů trhu (ukazujeme jen krize, které vaše období pokrývá).
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {result.stressPeriods.map((s) => {
+                  const rec = s.recoveryMonths;
+                  const y = rec != null ? Math.round(rec / 12) : 0;
+                  const recLabel = rec == null
+                    ? 'zatím bez návratu'
+                    : rec < 18
+                      ? `návrat za ${rec} měs.`
+                      : `návrat za ~${y} ${y === 1 ? 'rok' : y < 5 ? 'roky' : 'let'}`;
+                  return (
+                    <div key={s.key} className="rounded-lg border border-red-100 bg-red-50/40 p-3.5">
+                      <p className="text-sm font-medium text-slate-900 leading-snug">{s.name}</p>
+                      <p className="mt-1.5 text-2xl font-bold tabular-nums text-red-600">{fmtPct(s.drop * 100)}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        dno {fmtDate(s.troughDate)} · <span className={rec == null ? 'text-amber-600' : 'text-emerald-600'}>{recLabel}</span>
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                Propady jsou normální daň za dlouhodobý růst. Kdo vydržel a neprodal ve strachu, se v minulosti zpravidla dočkal zotavení – ale zaručené to není.
+              </p>
+            </div>
+          )}
 
           {/* Roční výnosy – reálná data z backtestu */}
           {result.returns.annualReturns.length > 0 && (

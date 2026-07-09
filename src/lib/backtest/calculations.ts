@@ -55,6 +55,85 @@ export function annualizeMonthlyStdDev(monthlyStdDev: number): number {
  * denní σ×√12 podhodnotila volatilitu ~4,6× a nafoukla Sharpe. Frekvenci
  * proto odvozujeme z dat (funguje pro denní i měsíční řadu).
  */
+// Známé krize (start = přibližný vrchol před propadem, end = konec/dno fáze). Ukazujeme jen ty,
+// jejichž START pokrývají data portfolia (jinak bychom propad podhodnotili → skryjeme = poctivé).
+export const STRESS_WINDOWS: { key: string; name: string; start: string; end: string }[] = [
+  { key: 'dotcom', name: 'Splasknutí dot-com bubliny', start: '2000-03-01', end: '2002-10-31' },
+  { key: 'gfc', name: 'Finanční krize 2008', start: '2007-10-01', end: '2009-03-31' },
+  { key: 'covid', name: 'Covid krach', start: '2020-02-01', end: '2020-04-30' },
+  { key: 'bear2022', name: 'Medvědí trh 2022', start: '2022-01-01', end: '2022-10-31' },
+]
+
+export interface StressPeriodResult {
+  key: string
+  name: string
+  startDate: string
+  troughDate: string
+  drop: number // desetinné, záporné (peak→dno v okně krize)
+  recoveryMonths: number | null // od dna zpět na předkrizový vrchol; null = do konce dat se nezotavil
+}
+
+/**
+ * Pro každou známou krizi spočítá, jak hluboko portfolio v tom okně kleslo (vrchol→dno)
+ * a za jak dlouho se od dna vrátilo na předkrizový vrchol.
+ * Počítá z DENNÍHO time-weighted NAV (bez vkladů), takže sedí s tabulkou propadů.
+ */
+export function calculateStressPeriods(
+  nav: TimeSeriesPoint[],
+  windows = STRESS_WINDOWS
+): StressPeriodResult[] {
+  if (nav.length < 2) return []
+  const dataStart = nav[0].date
+  const out: StressPeriodResult[] = []
+  for (const w of windows) {
+    const wStart = new Date(w.start)
+    const wEnd = new Date(w.end)
+    if (wStart < dataStart) continue // nemáme předkrizový vrchol → skryjeme
+    const inWin = nav.filter((p) => p.date >= wStart && p.date <= wEnd)
+    if (inWin.length < 2) continue
+    let peak = inWin[0].value
+    let drop = 0
+    let troughDate = inWin[0].date
+    let peakAtTrough = inWin[0].value
+    for (const p of inWin) {
+      if (p.value > peak) peak = p.value
+      else if (peak > 0) {
+        const d = p.value / peak - 1
+        if (d < drop) {
+          drop = d
+          troughDate = p.date
+          peakAtTrough = peak
+        }
+      }
+    }
+    if (drop >= 0) continue
+    // Zotavení: první bod PO dnu (v celé řadě), kde se NAV vrátí na předkrizový vrchol.
+    let recoveryMonths: number | null = null
+    for (const p of nav) {
+      if (p.date > troughDate && p.value >= peakAtTrough) {
+        recoveryMonths = monthsBetween(troughDate, p.date)
+        break
+      }
+    }
+    out.push({ key: w.key, name: w.name, startDate: wStart.toISOString(), troughDate: troughDate.toISOString(), drop, recoveryMonths })
+  }
+  return out
+}
+
+/**
+ * Převzorkuje časovou řadu na měsíční body (poslední hodnota v každém měsíci = konec měsíce).
+ * Denní řada (~252/rok) → ~12/rok. Kompaktní pro přenos i pro rolling/krizové výpočty.
+ */
+export function resampleMonthEnd(series: TimeSeriesPoint[]): TimeSeriesPoint[] {
+  if (series.length === 0) return []
+  const byMonth = new Map<string, TimeSeriesPoint>()
+  for (const p of series) {
+    // Poslední bod daného měsíce přepíše dřívější → zůstane konec měsíce. Řada je chronologická.
+    byMonth.set(`${p.date.getFullYear()}-${p.date.getMonth()}`, p)
+  }
+  return [...byMonth.values()]
+}
+
 export function periodsPerYear(evolution: TimeSeriesPoint[]): number {
   if (evolution.length < 2) return 12
   const years = yearsBetween(evolution[0].date, evolution[evolution.length - 1].date)

@@ -589,6 +589,7 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
   return {
     input,
     evolution,
+    marketNav,
     summary,
     returns,
     risk,
