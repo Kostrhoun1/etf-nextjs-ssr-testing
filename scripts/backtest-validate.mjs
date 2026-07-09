@@ -58,6 +58,10 @@ const AW = [{ isin: 'ftse_all_world', name: 'All-World', weight: 1, ter: 0.0022,
     const cagrPct = noDca.summary.cagr * 100;
     check('CAGR akcií v rozumném pásmu (2–15 % p.a.)', cagrPct > 2 && cagrPct < 15, `${cagrPct.toFixed(1)} % p.a.`);
 
+    // 3b) Nejlepší rok je reálný i s DCA (guard přímo na bug „vklad = +58 % výnos").
+    const bestWithDca = Math.max(...withDca.returns.annualReturns.map((r) => r.return)) * 100;
+    check('Nejlepší rok s DCA je reálný (< 40 %)', bestWithDca < 40, `${bestWithDca.toFixed(1)} %`);
+
     // 4) Vložené peníze s DCA > jednorázový vklad (kontribuce se sčítají do amountInvested).
     check('DCA navyšuje vložené peníze', withDca.summary.amountInvested > noDca.summary.amountInvested,
       `${Math.round(withDca.summary.amountInvested).toLocaleString('cs-CZ')} vs ${Math.round(noDca.summary.amountInvested).toLocaleString('cs-CZ')}`);
