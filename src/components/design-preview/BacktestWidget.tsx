@@ -614,24 +614,6 @@ export default function BacktestWidget() {
             />
           </div>
 
-          {/* Nejlepší a nejhorší rok */}
-          {advanced && (
-            <div className="grid grid-cols-2 gap-3">
-              <MetricCard
-                icon={TrendingUp} label="Nejlepší rok"
-                value={fmtPct(advanced.best.return * 100)}
-                hint={String(advanced.best.year)}
-                tone="pos"
-              />
-              <MetricCard
-                icon={TrendingDown} label="Nejhorší rok"
-                value={fmtPct(advanced.worst.return * 100)}
-                hint={String(advanced.worst.year)}
-                tone="neg"
-              />
-            </div>
-          )}
-
           {/* Srovnání portfolií (když jsou vybrána) */}
           {comparison && (
             <ComparisonBlock
@@ -697,6 +679,12 @@ export default function BacktestWidget() {
             </p>
           </div>
 
+          {/* ── AKT 2: Kolik to bolelo (riziko) ── */}
+          <div className="pt-2">
+            <p className="text-sm font-semibold text-slate-800">Kolik to bolelo</p>
+            <p className="text-xs text-slate-400 mt-0.5">Jak hluboké propady a jak dlouhé čekání na návrat portfolio přinášelo.</p>
+          </div>
+
           {/* Krizové testy – jak by portfolio zvládlo slavné propady trhu */}
           {result.stressPeriods && result.stressPeriods.length > 0 && (
             <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
@@ -726,77 +714,6 @@ export default function BacktestWidget() {
               </div>
               <p className="mt-3 text-xs text-slate-500 leading-relaxed">
                 Propady jsou normální daň za dlouhodobý růst. Kdo vydržel a neprodal ve strachu, se v minulosti zpravidla dočkal zotavení – ale zaručené to není.
-              </p>
-            </div>
-          )}
-
-          {/* Roční výnosy – reálná data z backtestu */}
-          {result.returns.annualReturns.length > 0 && (
-            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Roční výnosy</p>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                {result.returns.annualReturns.map((r) => {
-                  const pos = r.return >= 0;
-                  return (
-                    <div key={r.year} className={`rounded-lg border p-2.5 text-center ${pos ? 'border-emerald-100 bg-emerald-50/50' : 'border-red-100 bg-red-50/50'}`}>
-                      <p className="text-xs text-slate-500 tabular-nums">{r.year}</p>
-                      <p className={`text-sm font-semibold tabular-nums ${pos ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {pos ? '+' : ''}{fmtPct(r.return * 100)}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-                Zelené roky portfolio rostlo, červené klesalo. Pro klid v duši je důležitý dlouhodobý trend, ne jednotlivý špatný rok.
-              </p>
-            </div>
-          )}
-
-          {/* Největší propady (drawdowny) */}
-          {topDrawdowns.length > 0 && (
-            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Největší propady</p>
-              <p className="text-xs text-slate-400 mb-3">
-                Nejhlubší poklesy od předchozího vrcholu po dno a jak dlouho trvalo zotavení.
-              </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500">
-                      <th className="text-left font-medium py-2 pr-3 whitespace-nowrap">#</th>
-                      <th className="text-right font-medium py-2 px-3 whitespace-nowrap">Hloubka</th>
-                      <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Od vrcholu</th>
-                      <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Dno</th>
-                      <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Zotaveno</th>
-                      <th className="text-right font-medium py-2 pl-3 whitespace-nowrap">Délka</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topDrawdowns.map((d, i) => (
-                      <tr key={i} className="border-b border-slate-100 last:border-0">
-                        <td className="text-slate-400 py-2.5 pr-3 tabular-nums">{i + 1}</td>
-                        <td className="text-right py-2.5 px-3 tabular-nums font-semibold text-red-600 whitespace-nowrap">
-                          {fmtPct(d.depth * 100)}
-                        </td>
-                        <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.startDate)}</td>
-                        <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.troughDate)}</td>
-                        <td className="py-2.5 px-3 whitespace-nowrap">
-                          {d.recovered && d.endDate
-                            ? <span className="text-slate-600">{fmtDate(d.endDate)}</span>
-                            : <span className="text-amber-600">zatím ne</span>}
-                        </td>
-                        <td className="text-right py-2.5 pl-3 tabular-nums text-slate-500 whitespace-nowrap">
-                          {d.lengthMonths} měs.
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-                „Zatím ne" znamená, že se portfolio z propadu do konce sledovaného období ještě nevrátilo na původní vrchol. Hloubka i délka
-                ukazují, kolik trpělivosti by dané portfolio v minulosti vyžadovalo.
               </p>
             </div>
           )}
@@ -853,6 +770,42 @@ export default function BacktestWidget() {
               </div>
               <p className="mt-3 text-xs text-slate-500 leading-relaxed">
                 Většinu času se hodnota drží na nule (nové maximum) nebo blízko ní; hluboké „doliny" jsou krize. Návrat na nulu znamená, že portfolio překonalo předchozí vrchol.
+              </p>
+            </div>
+          )}
+
+          {/* ── AKT 3: Jak spolehlivý byl výnos ── */}
+          <div className="pt-2">
+            <p className="text-sm font-semibold text-slate-800">Jak spolehlivý byl výnos</p>
+            <p className="text-xs text-slate-400 mt-0.5">Jak konzistentní byl výnos napříč jednotlivými roky i delšími horizonty.</p>
+          </div>
+
+          {/* Roční výnosy – reálná data z backtestu (nej/nejhorší rok vyznačen) */}
+          {result.returns.annualReturns.length > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Roční výnosy</p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-2">
+                {result.returns.annualReturns.map((r) => {
+                  const pos = r.return >= 0;
+                  const isBest = !!advanced && r.year === advanced.best.year;
+                  const isWorst = !!advanced && r.year === advanced.worst.year;
+                  return (
+                    <div key={r.year} className={`relative rounded-lg border p-2.5 text-center ${isBest ? 'border-emerald-400 ring-1 ring-emerald-300' : isWorst ? 'border-red-400 ring-1 ring-red-300' : pos ? 'border-emerald-100 bg-emerald-50/50' : 'border-red-100 bg-red-50/50'}`}>
+                      {(isBest || isWorst) && (
+                        <span className={`absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-1.5 py-0.5 text-[9px] font-medium leading-none ${isBest ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+                          {isBest ? 'nejlepší' : 'nejhorší'}
+                        </span>
+                      )}
+                      <p className="text-xs text-slate-500 tabular-nums">{r.year}</p>
+                      <p className={`text-sm font-semibold tabular-nums ${pos ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {pos ? '+' : ''}{fmtPct(r.return * 100)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                Zelené roky portfolio rostlo, červené klesalo (nejlepší a nejhorší rok jsou vyznačené). Pro klid v duši je důležitý dlouhodobý trend, ne jednotlivý špatný rok.
               </p>
             </div>
           )}
@@ -944,6 +897,44 @@ export default function BacktestWidget() {
                   <p className="mt-3 text-xs text-slate-500 leading-relaxed">
                     Rizikově vážené ukazatele pro pokročilé – co znamenají, najdete pod ⓘ u každého názvu. Pro běžné rozhodnutí stačí výnos a největší pokles výše.
                   </p>
+
+                  {/* Největší propady – přesná tabulka pro pokročilé (pojmenované verze jsou v Krizových testech výše) */}
+                  {topDrawdowns.length > 0 && (
+                    <div className="mt-5 pt-5 border-t border-slate-100">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Největší propady (detailně)</p>
+                      <p className="text-xs text-slate-400 mb-3">Nejhlubší poklesy od vrcholu po dno a jak dlouho trvalo zotavení.</p>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-200 text-slate-500">
+                              <th className="text-left font-medium py-2 pr-3 whitespace-nowrap">#</th>
+                              <th className="text-right font-medium py-2 px-3 whitespace-nowrap">Hloubka</th>
+                              <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Od vrcholu</th>
+                              <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Dno</th>
+                              <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Zotaveno</th>
+                              <th className="text-right font-medium py-2 pl-3 whitespace-nowrap">Délka</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {topDrawdowns.map((d, i) => (
+                              <tr key={i} className="border-b border-slate-100 last:border-0">
+                                <td className="text-slate-400 py-2.5 pr-3 tabular-nums">{i + 1}</td>
+                                <td className="text-right py-2.5 px-3 tabular-nums font-semibold text-red-600 whitespace-nowrap">{fmtPct(d.depth * 100)}</td>
+                                <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.startDate)}</td>
+                                <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.troughDate)}</td>
+                                <td className="py-2.5 px-3 whitespace-nowrap">
+                                  {d.recovered && d.endDate
+                                    ? <span className="text-slate-600">{fmtDate(d.endDate)}</span>
+                                    : <span className="text-amber-600">zatím ne</span>}
+                                </td>
+                                <td className="text-right py-2.5 pl-3 tabular-nums text-slate-500 whitespace-nowrap">{d.lengthMonths} měs.</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </details>
             );
