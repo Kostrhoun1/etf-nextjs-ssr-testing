@@ -394,8 +394,8 @@ function combinePortfolio(
   initialAmount: number,
   rebalancing: RebalancingStrategy = 'yearly',
   contributions?: { amount: number; frequency: 'monthly' | 'quarterly' | 'yearly' }
-): { evolution: TimeSeriesPoint[]; totalContributed: number } {
-  if (etfSeries.length === 0) return { evolution: [], totalContributed: 0 }
+): { evolution: TimeSeriesPoint[]; totalContributed: number; marketNav: TimeSeriesPoint[] } {
+  if (etfSeries.length === 0) return { evolution: [], totalContributed: 0, marketNav: [] }
 
   // Find common date range
   const allDates = new Set<string>()
@@ -423,6 +423,12 @@ function combinePortfolio(
 
   // Track holdings
   let holdings = etfSeries.map(({ weight }) => weight * initialAmount)
+
+  // Market-only NAV (bez vkladů) – time-weighted řada pro výnos a riziko (drawdown, vol, Sharpe…).
+  // Vklady totiž maskují propady a zkreslují výnos; risk/return metriky musí být na této řadě.
+  const marketNav: TimeSeriesPoint[] = []
+  let marketNavValue = initialAmount
+  let prevTotalValue = initialAmount
 
   let prevDate: Date | null = null
 
@@ -457,6 +463,11 @@ function combinePortfolio(
       portfolioValue = newValue
     }
 
+    // Market-only růst za tento krok (hodnota PŘED přičtením vkladu) = time-weighted výnos.
+    if (i > 0 && prevTotalValue > 0) {
+      marketNavValue = marketNavValue * (portfolioValue / prevTotalValue)
+    }
+
     // Add recurring contribution if applicable
     if (contributions && contributions.amount > 0 && prevDate) {
       if (shouldContribute(date, prevDate, contributions.frequency)) {
@@ -472,6 +483,8 @@ function combinePortfolio(
     }
 
     result.push({ date, value: portfolioValue })
+    marketNav.push({ date, value: marketNavValue })
+    prevTotalValue = portfolioValue
 
     // Rebalance if needed
     if (shouldRebalance(date, i, rebalancing)) {
@@ -481,7 +494,7 @@ function combinePortfolio(
     prevDate = date
   }
 
-  return { evolution: result, totalContributed }
+  return { evolution: result, totalContributed, marketNav }
 }
 
 /**
@@ -554,7 +567,7 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
   }
 
   // Combine into portfolio with optional recurring contributions
-  const { evolution, totalContributed } = combinePortfolio(
+  const { evolution, totalContributed, marketNav } = combinePortfolio(
     etfSeries,
     initialAmount,
     rebalancingStrategy || 'yearly',
@@ -565,11 +578,13 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
     throw new Error('No overlapping data for portfolio ETFs')
   }
 
-  // Calculate all metrics - use totalContributed for proper summary
-  const summary = calculateSummary(evolution, totalContributed)
-  const returns = calculateReturnsAnalysis(evolution)
-  const risk = calculateRiskAnalysis(evolution)
-  const horizons = calculateHorizonAnalysis(evolution)
+  // Výnos a riziko počítáme z market-only NAV (bez vkladů) – time-weighted, jako PortfolioVisualizer.
+  // Reálná hodnota s vklady zůstává v `evolution` (graf) + v netAssetValue/amountInvested.
+  const realFinalValue = evolution[evolution.length - 1].value
+  const summary = calculateSummary(marketNav, realFinalValue, totalContributed)
+  const returns = calculateReturnsAnalysis(marketNav)
+  const risk = calculateRiskAnalysis(marketNav)
+  const horizons = calculateHorizonAnalysis(marketNav)
 
   return {
     input,

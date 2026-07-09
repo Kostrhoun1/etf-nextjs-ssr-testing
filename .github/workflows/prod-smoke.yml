@@ -1,9 +1,8 @@
 name: Prod smoke test
 
-# Kontrola produkce v prohlížeči – reálně klikne na nástroje a ověří, že se spustí
-# (chytí i klientské bugy, které API health-check nezachytí).
-# Chytré zapojení: testujeme hlavně PO DEPLOYI (tam bugy vznikají) + 1× denně pojistka.
-# Selhání = červený běh + GitHub notifikace.
+# Kontrola produkce: (1) v prohlížeči reálně klikne na nástroje (chytí klientské bugy),
+# (2) ověří SPRÁVNOST čísel backtestu (chytí bugy typu „DCA se počítá jako výnos").
+# Běží hlavně po deployi (tam bugy vznikají) + 1× denně pojistka. Selhání = notifikace.
 
 on:
   push:
@@ -25,14 +24,16 @@ jobs:
         run: npm ci || npm install
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Smoke test proti produkci (s čekáním na deploy)
+      - name: Kontrola produkce (smoke + správnost, s čekáním na deploy)
         env:
           BASE_URL: https://etfpruvodce.cz
         run: |
-          # Po pushi Vercel chvíli buildí – zkusíme to víckrát, ať netestujeme starou verzi.
+          # Po pushi Vercel chvíli buildí – smoke zkoušíme víckrát, ať netestujeme starou verzi.
+          ok=0
           for i in 1 2 3 4 5 6 7 8; do
-            if node scripts/prod-smoke.mjs; then exit 0; fi
-            echo "::notice::pokus $i neprošel, čekám na deploy…"; sleep 30
+            if node scripts/prod-smoke.mjs; then ok=1; break; fi
+            echo "::notice::smoke pokus $i neprošel, čekám na deploy…"; sleep 30
           done
-          echo "::error::Produkce neprošla smoke-testem ani po 8 pokusech."
-          exit 1
+          [ "$ok" = 1 ] || { echo "::error::Smoke-test produkce neprošel."; exit 1; }
+          echo "--- validace správnosti backtestu ---"
+          node scripts/backtest-validate.mjs
