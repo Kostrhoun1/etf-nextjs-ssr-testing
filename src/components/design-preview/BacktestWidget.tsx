@@ -154,7 +154,13 @@ export default function BacktestWidget() {
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
   const runBacktest = async (overrideCurrency?: Currency) => {
-    const cur = overrideCurrency ?? currency;
+    // Obrana: overrideCurrency smí být jen platná měna. Kdyby se sem dostal
+    // např. klikací event (onClick={runBacktest}), padne JSON.stringify na
+    // „cyclic structures". Proto raději fallback na aktuální currency.
+    const cur: Currency =
+      overrideCurrency === 'EUR' || overrideCurrency === 'CZK' || overrideCurrency === 'USD'
+        ? overrideCurrency
+        : currency;
     if (totalWeight !== 100) {
       setError(`Rozdělení musí být přesně 100 %. Aktuálně: ${totalWeight} %`);
       return;
@@ -363,7 +369,7 @@ export default function BacktestWidget() {
         {/* Spustit */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
           <button
-            onClick={runBacktest}
+            onClick={() => runBacktest()}
             disabled={loading || totalWeight !== 100 || selectedETFs.length === 0}
             className="w-full sm:w-auto sm:flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors min-h-[44px]"
           >
