@@ -541,6 +541,45 @@ export default function BacktestWidget() {
       {/* ===== VÝSLEDKY ===== */}
       {result && !loading && (
         <>
+          {/* Headline výsledek – kolik jsi vložil vs. kolik z toho je zisk (v Kč) */}
+          {(() => {
+            const invested = result.summary.amountInvested;
+            const final = result.summary.netAssetValue;
+            const profit = final - invested;
+            const gain = profit >= 0;
+            const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
+            const seg = gain
+              ? [{ label: 'Vloženo', v: invested, color: 'bg-slate-400' }, { label: 'Zisk', v: profit, color: 'bg-emerald-500' }]
+              : [{ label: 'Zůstalo', v: final, color: 'bg-slate-400' }, { label: 'Ztráta', v: -profit, color: 'bg-red-400' }];
+            const total = seg.reduce((s, x) => s + x.v, 0) || 1;
+            return (
+              <div className="rounded-lg border border-teal-200 bg-gradient-to-br from-teal-50 to-white p-5 md:p-6">
+                <p className="text-sm text-slate-600">
+                  Z vložených <span className="font-medium text-slate-800">{fmtMoney(invested, resultCurrency)}</span> by k dnešku bylo
+                </p>
+                <p className="text-3xl md:text-4xl font-bold tabular-nums text-teal-800 mt-0.5">{fmtMoney(final, resultCurrency)}</p>
+                <div className="mt-4 flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                  {seg.map((s) => (
+                    <div key={s.label} className={s.color} style={{ width: `${(s.v / total) * 100}%` }} />
+                  ))}
+                </div>
+                <div className="mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-slate-400" />
+                    Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtMoney(invested, resultCurrency)}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${gain ? 'bg-emerald-500' : 'bg-red-400'}`} />
+                    {gain ? 'Zisk' : 'Ztráta'}{' '}
+                    <span className={`font-semibold tabular-nums ${gain ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {gain ? '+' : ''}{fmtMoney(profit, resultCurrency)} ({gain ? '+' : ''}{fmtPct(profitPct)})
+                    </span>
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Souhrnné metriky */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <MetricCard
