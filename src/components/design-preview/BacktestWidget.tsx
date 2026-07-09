@@ -131,6 +131,8 @@ export default function BacktestWidget() {
   const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
+  // Vážený roční poplatek portfolia (TER) – kolik ročně stojí držení celého portfolia.
+  const weightedTER = selectedETFs.reduce((sum, etf) => sum + (etf.weight / 100) * etf.ter, 0);
 
   const applyPreset = (presetId: string) => {
     const preset = PRESET_PORTFOLIOS.find((p) => p.id === presetId);
@@ -277,7 +279,12 @@ export default function BacktestWidget() {
     <div className="space-y-4">
       {/* ===== VSTUPY ===== */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">Sestavte portfolio</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Sestavte portfolio</p>
+        <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+          Skládáte z <strong className="font-medium text-slate-600">tříd aktiv</strong> (akcie, dluhopisy, zlato…). Každou testujeme
+          na historii přes její <strong className="font-medium text-slate-600">reprezentativní ETF</strong> – jeho roční poplatek (TER)
+          se do výsledku promítá.
+        </p>
 
         {/* Hotová portfolia */}
         <div className="mb-5">
@@ -309,7 +316,9 @@ export default function BacktestWidget() {
               <div key={etf.indexCode} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
                 <div className="flex-1 min-w-0">
                   <span className="block text-sm font-medium text-slate-900 truncate">{etf.indexName}</span>
-                  <span className="block text-xs text-slate-400 truncate">{etf.name}</span>
+                  <span className="block text-xs text-slate-400 truncate">
+                    přes {etf.name} · TER {fmtPct(etf.ter * 100, 2)}
+                  </span>
                 </div>
                 <div className="relative w-24 shrink-0">
                   <input
@@ -345,7 +354,7 @@ export default function BacktestWidget() {
                 onChange={(e) => { if (e.target.value) addETF(e.target.value); }}
                 className="flex-1 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
               >
-                <option value="">Přidat fond do portfolia…</option>
+                <option value="">Přidat další třídu aktiv…</option>
                 {['Akcie', 'Dluhopisy EUR', 'Dluhopisy USD', 'Komodity'].map((cat) => (
                   <optgroup key={cat} label={cat}>
                     {availableToAdd.filter((i) => i.category === cat).map((i) => (
@@ -354,6 +363,19 @@ export default function BacktestWidget() {
                   </optgroup>
                 ))}
               </select>
+            </div>
+          )}
+
+          {/* Vážený roční poplatek celého portfolia */}
+          {selectedETFs.length > 0 && (
+            <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+              <span className="text-xs text-slate-600 flex items-center gap-1">
+                Průměrný roční poplatek portfolia (TER)
+                <InfoTip label="Vážený průměr TER podle vah. Kolik ročně stojí držení tohoto portfolia – tento poplatek se v backtestu odečítá z výnosu.">
+                  <span className="sr-only">vysvětlení</span>
+                </InfoTip>
+              </span>
+              <span className="text-sm font-semibold tabular-nums text-slate-900">{fmtPct(weightedTER * 100, 2)}</span>
             </div>
           )}
         </div>
@@ -659,7 +681,8 @@ export default function BacktestWidget() {
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-start gap-2.5">
             <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
             <p className="text-sm text-amber-900/80 leading-relaxed">
-              Výsledky ukazují, jak by se portfolio chovalo <strong>v minulosti</strong>. Nezahrnují poplatky brokera, spready ani daně a nejsou
+              Výsledky ukazují, jak by se portfolio chovalo <strong>v minulosti</strong>. Testujeme <strong>třídy aktiv</strong> (indexy)
+              očištěné o roční poplatek reprezentativního fondu (TER). Nezahrnují poplatky brokera, spready ani daně a nejsou
               příslibem budoucích výnosů – trh se v dalších letech může chovat úplně jinak.
             </p>
           </div>
