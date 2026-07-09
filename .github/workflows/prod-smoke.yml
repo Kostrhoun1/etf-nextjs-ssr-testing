@@ -1,0 +1,28 @@
+name: Prod smoke test
+
+# Pravidelná kontrola produkce v prohlížeči – reálně klikne na nástroje a ověří,
+# že se spustí (chytí i klientské bugy, které API health-check nezachytí).
+# Selhání = červený běh + GitHub notifikace (e-mail adminům).
+
+on:
+  schedule:
+    - cron: '0 * * * *' # každou hodinu
+  workflow_dispatch: {} # ruční spuštění tlačítkem
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        run: npm ci || npm install
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Smoke test proti produkci
+        run: node scripts/prod-smoke.mjs
+        env:
+          BASE_URL: https://etfpruvodce.cz
