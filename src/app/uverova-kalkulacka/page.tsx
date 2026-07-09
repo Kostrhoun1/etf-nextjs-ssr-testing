@@ -130,22 +130,23 @@ export default async function UverovaKalkulackaPreview() {
                 </div>
               </div>
 
-              {/* Mini-přehled pojmů – ikonové karty (BEZ schématu/šipek) */}
-              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Zadáte</p>
-                  <p className="text-lg font-bold tabular-nums">Výše a sazba</p>
-                  <p className="text-xs text-slate-400">a dobu splácení</p>
-                </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Spočítáte</p>
-                  <p className="text-lg font-bold tabular-nums text-teal-300">Měsíční splátku</p>
-                  <p className="text-xs text-slate-400">stejnou každý měsíc</p>
-                </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Uvidíte</p>
-                  <p className="text-lg font-bold tabular-nums text-red-300">Přeplatek</p>
-                  <p className="text-xs text-slate-400">graf + hodnoty v Kč</p>
+              {/* Ukázka výpočtu – čísla odpovídají výchozím vstupům kalkulačky níže (ground truth) */}
+              <div className="mt-6 md:mt-0 md:w-80 shrink-0">
+                <div className="rounded-xl bg-white/[0.06] border border-white/10 p-5">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-400 mb-2">Ukázka výpočtu</p>
+                  <p className="text-sm font-semibold text-white leading-snug">Úvěr 500 000 Kč</p>
+                  <p className="text-xs text-slate-400 mt-0.5">8,5 % ročně · 5 let</p>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
+                      <p className="text-[11px] text-slate-400 leading-tight">měsíční splátka</p>
+                      <p className="mt-0.5 text-sm font-semibold tabular-nums text-teal-300">10 258 Kč</p>
+                    </div>
+                    <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
+                      <p className="text-[11px] text-slate-400 leading-tight">přeplatíte na úrocích</p>
+                      <p className="mt-0.5 text-sm font-semibold tabular-nums text-amber-300">~115 tis. Kč</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-3 leading-relaxed">Ilustrační příklad. Svoje čísla zadáte v kalkulačce níže.</p>
                 </div>
               </div>
             </div>
