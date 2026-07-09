@@ -113,6 +113,22 @@ export const portfolioModels: PortfolioModel[] = [
     ],
   },
   {
+    id: '6040',
+    slug: 'portfolio-60-40',
+    name: 'Portfolio 60/40',
+    tagline: 'Klasická vyvážená kombinace 60 % akcií a 40 % dluhopisů.',
+    risk: 'Umírněné',
+    stocksPct: 60,
+    horizon: 'od 7 let',
+    forWhom: 'Chci osvědčenou rovnováhu růstu a stability bez vymýšlení.',
+    expectedReturn: '≈ 5–6 % ročně',
+    maxDrawdown: 'do −25 %',
+    allocations: [
+      { label: 'Světové akcie', cls: 'akcie', percentage: 60, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World UCITS ETF' },
+      { label: 'Dluhopisy', cls: 'dluhopisy', percentage: 40, isin: 'IE00BDBRDM35', etfName: 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)' },
+    ],
+  },
+  {
     id: 'dividend',
     slug: 'dividendove-portfolio',
     name: 'Dividendové portfolio',
@@ -183,6 +199,13 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'us_treasury_7_10y', weight: 0.15, ter: 0.0007 },
       { indexCode: 'commodities', weight: 0.075, ter: 0.0019 },
       { indexCode: 'gold', weight: 0.075, ter: 0.0012 },
+    ],
+  },
+  'portfolio-60-40': {
+    start: '2008-07-01',
+    items: [
+      { indexCode: 'ftse_all_world', weight: 0.60, ter: 0.0022 },
+      { indexCode: 'us_aggregate_bond', weight: 0.40, ter: 0.0025 },
     ],
   },
   'dividendove-portfolio': {
