@@ -74,6 +74,7 @@ export interface BacktestSummary {
   cagr: number // Compound Annual Growth Rate
   standardDeviation: number // Annualized
   sharpeRatio: number
+  sortinoRatio: number // like Sharpe, but only downside deviation
 }
 
 export interface BacktestReturns {

@@ -604,6 +604,7 @@ export function calculateSummary(
       cagr: 0,
       standardDeviation: 0,
       sharpeRatio: 0,
+      sortinoRatio: 0,
     }
   }
 
@@ -621,12 +622,20 @@ export function calculateSummary(
   const annualStdDev = stepStdDev * Math.sqrt(ppy)
   const sharpe = calculateSharpeRatio(cagr, riskFreeRate, annualStdDev)
 
+  // Sortino: jako Sharpe, ale v riziku jen ZÁPORNÉ kroky (downside deviation).
+  // Suma čtverců záporných / VŠECHNY kroky (standardní def.), anualizace stejnou frekvencí.
+  const downsideSq = monthlyReturnValues.reduce((a, r) => a + (r < 0 ? r * r : 0), 0)
+  const downsideStep = monthlyReturnValues.length > 0 ? Math.sqrt(downsideSq / monthlyReturnValues.length) : 0
+  const annualDownside = downsideStep * Math.sqrt(ppy)
+  const sortino = annualDownside > 0 ? (cagr - riskFreeRate) / annualDownside : 0
+
   return {
     amountInvested: totalContributed,
     netAssetValue: realFinalValue,
     cagr,
     standardDeviation: annualStdDev,
     sharpeRatio: sharpe,
+    sortinoRatio: sortino,
   }
 }
 
