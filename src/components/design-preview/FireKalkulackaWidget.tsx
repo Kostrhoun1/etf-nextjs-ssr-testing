@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine,
@@ -267,6 +267,17 @@ const STRATEGIES: { value: Strategy; label: string; sub: string }[] = [
   { value: 'aggressive', label: 'Agresivní', sub: '80 % akcie / 20 % dluhopisy' },
 ];
 
+/* Uložení plánu jen v prohlížeči uživatele (localStorage) – žádný účet, žádný server,
+   žádné osobní finanční údaje u nás. Vrátí se ke svým číslům při další návštěvě. */
+const STORAGE_KEY = 'etf-fire-plan-v1';
+interface SavedPlan {
+  currentAge: number; monthlyExpensesInFire: number; currentSavings: number; monthlySavings: number;
+  inflationRate: number; investmentStrategy: Strategy; growContributions: boolean; events: LifeEvent[];
+}
+function loadPlan(): Partial<SavedPlan> | null {
+  if (typeof window === 'undefined') return null;
+  try { const raw = window.localStorage.getItem(STORAGE_KEY); return raw ? (JSON.parse(raw) as Partial<SavedPlan>) : null; } catch { return null; }
+}
 
 export default function FireKalkulackaWidget() {
   const [currentAge, setCurrentAge] = useState(30);
@@ -299,6 +310,39 @@ export default function FireKalkulackaWidget() {
   const updateEvent = (id: number, patch: Partial<LifeEvent>) => setEvents((p) => p.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   const removeEvent = (id: number) => setEvents((p) => p.filter((e) => e.id !== id));
 
+  // Načtení uloženého plánu AŽ po mountu (jinak hydration mismatch server vs. klient).
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    const p = loadPlan();
+    if (p) {
+      if (typeof p.currentAge === 'number') setCurrentAge(p.currentAge);
+      if (typeof p.monthlyExpensesInFire === 'number') setMonthlyExpensesInFire(p.monthlyExpensesInFire);
+      if (typeof p.currentSavings === 'number') setCurrentSavings(p.currentSavings);
+      if (typeof p.monthlySavings === 'number') setMonthlySavings(p.monthlySavings);
+      if (typeof p.inflationRate === 'number') setInflationRate(p.inflationRate);
+      if (p.investmentStrategy) setInvestmentStrategy(p.investmentStrategy);
+      if (typeof p.growContributions === 'boolean') setGrowContributions(p.growContributions);
+      if (Array.isArray(p.events)) setEvents(p.events);
+    }
+    setHydrated(true);
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        currentAge, monthlyExpensesInFire, currentSavings, monthlySavings,
+        inflationRate, investmentStrategy, growContributions, events,
+      }));
+    } catch { /* localStorage nedostupný (privátní režim ap.) – tiše ignorujeme */ }
+  }, [hydrated, currentAge, monthlyExpensesInFire, currentSavings, monthlySavings, inflationRate, investmentStrategy, growContributions, events]);
+
+  const resetPlan = () => {
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    setCurrentAge(30); setMonthlyExpensesInFire(40000); setCurrentSavings(500000);
+    setMonthlySavings(15000); setInflationRate(2.5); setInvestmentStrategy('moderate');
+    setGrowContributions(true); setEvents([]);
+  };
+
   // Graf: pás jistoty (10.–90. percentil) kolem střední (mediánové) dráhy, v dnešních korunách.
   // Ořízneme do „když se nedařilo" + kontext, jinak do 50 let.
   const chartData = useMemo(() => {
@@ -319,7 +363,15 @@ export default function FireKalkulackaWidget() {
     <div className="space-y-4">
       {/* Vstupní parametry */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">Vaše vstupy</p>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Vaše vstupy</p>
+          {hydrated && (
+            <span className="flex items-center gap-2 text-xs text-slate-400">
+              <span className="hidden sm:inline">Plán se ukládá u vás v prohlížeči</span>
+              <button type="button" onClick={resetPlan} className="text-slate-500 hover:text-red-600 underline decoration-dotted">Vymazat</button>
+            </span>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <NumberField
