@@ -13,6 +13,7 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import BacktestWidget from '@/components/design-preview/BacktestWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
+import { getHeroExample } from '@/lib/backtest/heroExample';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -26,6 +27,11 @@ export default async function BacktestPreview() {
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const etfCount = await getTotalETFCount();
   const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
+
+  // Reálný příklad do hera (server, cache 1 den). null → statická varianta.
+  const hero = await getHeroExample();
+  const fmtCzk = (v: number) => new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(v);
+  const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -117,9 +123,9 @@ export default async function BacktestPreview() {
               <div className="max-w-xl">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Backtest portfolia ETF</h1>
                 <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Otestujte své portfolio na reálných datech od roku 2000 (
+                  Zadáte portfolio, my ukážeme, jak by obstálo v minulosti (
                   <InfoTip label="Backtest = historický test strategie. Ukáže, jak by se portfolio chovalo v minulosti – kolik vydělalo, jak kolísalo a jak hluboko klesalo.">backtest</InfoTip>
-                  ). Uvidíte roční zhodnocení, největší pokles i kolísavost – v přepočtu na koruny.
+                  ) – výnos, propady i kolísavost na reálných datech od roku 2000, v korunách.
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
@@ -134,22 +140,41 @@ export default async function BacktestPreview() {
                 </div>
               </div>
 
-              {/* Mini-metriky – co backtest spočítá */}
-              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Roční zhodnocení</p>
-                  <p className="text-lg font-bold tabular-nums text-emerald-400">CAGR</p>
-                  <p className="text-xs text-slate-400">tempo růstu</p>
-                </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Největší pokles</p>
-                  <p className="text-lg font-bold tabular-nums text-red-400">drawdown</p>
-                  <p className="text-xs text-slate-400">nejhorší propad</p>
-                </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Data od roku</p>
-                  <p className="text-lg font-bold tabular-nums">2000</p>
-                  <p className="text-xs text-slate-400">indexy v EUR</p>
+              {/* Reálný příklad v korunách – naše USP místo dekorativních placeholderů */}
+              <div className="mt-6 md:mt-0 md:w-80 shrink-0">
+                <div className="rounded-xl bg-white/[0.06] border border-white/10 p-5">
+                  {hero ? (
+                    <>
+                      <p className="text-xs text-slate-400">Kolik by z 100 000 Kč bylo dnes?</p>
+                      <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-400 whitespace-nowrap leading-tight">
+                        ≈ {fmtCzk(Math.round(hero.finalCzk / 10000) * 10000)}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        světové akcie · {hero.startYear}–dnes · jednorázový vklad
+                      </p>
+                      <div className="mt-4 grid grid-cols-2 gap-2">
+                        <div className="rounded-lg bg-white/[0.06] px-3 py-2">
+                          <p className="text-[11px] text-slate-400">ročně</p>
+                          <p className="text-sm font-semibold tabular-nums text-emerald-300">{fmtPct1(hero.cagr * 100)}</p>
+                        </div>
+                        <div className="rounded-lg bg-white/[0.06] px-3 py-2">
+                          <p className="text-[11px] text-slate-400">nejhlubší propad</p>
+                          <p className="text-sm font-semibold tabular-nums text-red-300">{fmtPct1(hero.maxDrawdown * 100)}</p>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
+                        Ilustrační příklad spočítaný naším backtestem. Minulost nezaručuje budoucnost.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-400">Co uvidíte</p>
+                      <p className="mt-1 text-xl font-bold text-white leading-snug">Kolik by z vašeho vkladu bylo dnes – v korunách</p>
+                      <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Roční zhodnocení, nejhlubší propad i kolísavost na reálných datech od roku 2000.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
