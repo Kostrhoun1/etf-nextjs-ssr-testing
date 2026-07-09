@@ -120,6 +120,42 @@ export function calculateStressPeriods(
   return out
 }
 
+export interface RollingReturnResult {
+  years: number
+  average: number // anualizovaný, desetinný
+  high: number
+  low: number
+  count: number
+  positiveShare: number // podíl oken s kladným výnosem (0–1)
+}
+
+/**
+ * Rolling (klouzavé) výnosy: pro každé okno délky N let vezme VŠECHNY možné začátky v historii
+ * a spočítá anualizovaný výnos → nejhorší / průměr / nejlepší. Ukazuje „záleželo, kdy jsi začal".
+ * Z EUR NAV (jako ostatní výnos/riziko) → start-nezávislé a konzistentní s CAGR.
+ */
+export function calculateRollingReturns(
+  nav: TimeSeriesPoint[],
+  periodsYears: number[] = [1, 5, 10, 15]
+): RollingReturnResult[] {
+  const m = resampleMonthEnd(nav)
+  const out: RollingReturnResult[] = []
+  for (const years of periodsYears) {
+    const w = years * 12
+    if (m.length <= w) continue
+    const rets: number[] = []
+    for (let i = 0; i + w < m.length; i++) {
+      const a = m[i].value
+      const b = m[i + w].value
+      if (a > 0) rets.push(Math.pow(b / a, 1 / years) - 1)
+    }
+    if (rets.length === 0) continue
+    const positive = rets.filter((r) => r > 0).length
+    out.push({ years, average: mean(rets), high: Math.max(...rets), low: Math.min(...rets), count: rets.length, positiveShare: positive / rets.length })
+  }
+  return out
+}
+
 /**
  * „Underwater" řada – pro každý měsíc, jak hluboko byla hodnota pod dosavadním vrcholem
  * (0 na vrcholech, záporné ve ztrátě). Z EUR NAV (jako ostatní riziko) → start-nezávislé.

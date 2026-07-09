@@ -6,7 +6,7 @@ import {
   convertTimeSeriesFromEur,
   getExchangeRateForDate,
 } from '@/lib/backtest/engine'
-import { resampleMonthEnd, calculateStressPeriods, calculateDrawdownSeries } from '@/lib/backtest/calculations'
+import { resampleMonthEnd, calculateStressPeriods, calculateDrawdownSeries, calculateRollingReturns } from '@/lib/backtest/calculations'
 import type { BacktestInput, PortfolioItem, RebalancingStrategy } from '@/lib/backtest/types'
 
 type Currency = 'EUR' | 'CZK' | 'USD'
@@ -157,6 +157,7 @@ export async function POST(request: NextRequest) {
     // (Přepočet na CZK je bohužel start-závislý kvůli chování FX lookupu – proto ho tu nepoužíváme.)
     const stressPeriods = calculateStressPeriods(result.marketNav ?? [])
     const drawdownSeries = calculateDrawdownSeries(result.marketNav ?? [])
+    const rollingReturns = calculateRollingReturns(result.marketNav ?? [])
     // Měsíční NAV v cílové měně pro budoucí rolling returns (kompaktní).
     const marketNavMonthly = result.marketNav
       ? resampleMonthEnd(convertTimeSeriesFromEur(result.marketNav, exchangeRates, currency)).map((p) => ({ date: p.date.toISOString(), value: p.value }))
@@ -170,6 +171,7 @@ export async function POST(request: NextRequest) {
       marketNavMonthly,
       stressPeriods,
       drawdownSeries,
+      rollingReturns,
       input: {
         ...result.input,
         startDate: result.input.startDate.toISOString(),
