@@ -65,6 +65,13 @@ const AW = [{ isin: 'ftse_all_world', name: 'All-World', weight: 1, ter: 0.0022,
     //     Dlouhodobý akciový Sharpe bývá ~0,3–0,7; nad 1,5 = nafouknuté (podhodnocená σ).
     check('Sharpe není nafouknutý (< 1,5)', noDca.summary.sharpeRatio < 1.5, noDca.summary.sharpeRatio.toFixed(2));
 
+    // 3c) API vystavuje seznam propadů (allDrawdowns) a jeho nejhlubší sedí s max. propadem.
+    const dd = noDca.risk.allDrawdowns || [];
+    const deepest = dd.length ? Math.min(...dd.map((d) => d.depth)) : 0;
+    check('Seznam propadů je vystaven a nejhlubší sedí s max. propadem',
+      dd.length > 0 && Math.abs(deepest - noDca.risk.maxDrawdown.depth) < 0.001,
+      `${dd.length} propadů, nejhlubší ${(deepest * 100).toFixed(1)} %`);
+
     // 3b) Nejlepší rok je reálný i s DCA (guard přímo na bug „vklad = +58 % výnos").
     const bestWithDca = Math.max(...withDca.returns.annualReturns.map((r) => r.return)) * 100;
     check('Nejlepší rok s DCA je reálný (< 40 %)', bestWithDca < 40, `${bestWithDca.toFixed(1)} %`);

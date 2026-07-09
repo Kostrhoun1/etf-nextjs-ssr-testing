@@ -76,12 +76,16 @@ interface SelectedETF {
 }
 
 // === Výstupní typ z API – 1:1 z originálu ===
+interface DrawdownPeriod {
+  startDate: string; troughDate: string; endDate: string | null; depth: number; lengthMonths: number; recovered: boolean;
+}
 interface BacktestResult {
   evolution: Array<{ date: string; value: number }>;
   summary: { amountInvested: number; netAssetValue: number; cagr: number; standardDeviation: number; sharpeRatio: number };
   returns: { annualReturns: Array<{ year: number; return: number }> };
   risk: {
-    maxDrawdown: { startDate: string; troughDate: string; endDate: string | null; depth: number; lengthMonths: number; recovered: boolean };
+    maxDrawdown: DrawdownPeriod;
+    allDrawdowns?: DrawdownPeriod[];
     valueAtRisk95: number;
   };
 }
@@ -273,6 +277,12 @@ export default function BacktestWidget() {
     const downside = Math.sqrt(ar.reduce((a, r) => a + (r.return < 0 ? r.return * r.return : 0), 0) / ar.length);
     const sortino = downside > 0 ? result.summary.cagr / downside : null;
     return { best, worst, sortino };
+  }, [result]);
+
+  // Největší propady (drawdowny) – API je počítá z time-weighted NAV. Nejhlubší první.
+  const topDrawdowns = useMemo(() => {
+    const dd = result?.risk.allDrawdowns ?? [];
+    return [...dd].sort((a, b) => a.depth - b.depth).slice(0, 5);
   }, [result]);
 
   return (
@@ -673,6 +683,54 @@ export default function BacktestWidget() {
               </div>
               <p className="mt-3 text-xs text-slate-500 leading-relaxed">
                 Zelené roky portfolio rostlo, červené klesalo. Pro klid v duši je důležitý dlouhodobý trend, ne jednotlivý špatný rok.
+              </p>
+            </div>
+          )}
+
+          {/* Největší propady (drawdowny) */}
+          {topDrawdowns.length > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Největší propady</p>
+              <p className="text-xs text-slate-400 mb-3">
+                Nejhlubší poklesy od předchozího vrcholu po dno a jak dlouho trvalo zotavení.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500">
+                      <th className="text-left font-medium py-2 pr-3 whitespace-nowrap">#</th>
+                      <th className="text-right font-medium py-2 px-3 whitespace-nowrap">Hloubka</th>
+                      <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Od vrcholu</th>
+                      <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Dno</th>
+                      <th className="text-left font-medium py-2 px-3 whitespace-nowrap">Zotaveno</th>
+                      <th className="text-right font-medium py-2 pl-3 whitespace-nowrap">Délka</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topDrawdowns.map((d, i) => (
+                      <tr key={i} className="border-b border-slate-100 last:border-0">
+                        <td className="text-slate-400 py-2.5 pr-3 tabular-nums">{i + 1}</td>
+                        <td className="text-right py-2.5 px-3 tabular-nums font-semibold text-red-600 whitespace-nowrap">
+                          {fmtPct(d.depth * 100)}
+                        </td>
+                        <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.startDate)}</td>
+                        <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.troughDate)}</td>
+                        <td className="py-2.5 px-3 whitespace-nowrap">
+                          {d.recovered && d.endDate
+                            ? <span className="text-slate-600">{fmtDate(d.endDate)}</span>
+                            : <span className="text-amber-600">zatím ne</span>}
+                        </td>
+                        <td className="text-right py-2.5 pl-3 tabular-nums text-slate-500 whitespace-nowrap">
+                          {d.lengthMonths} měs.
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                „Zatím ne" znamená, že se portfolio z propadu do konce sledovaného období ještě nevrátilo na původní vrchol. Hloubka i délka
+                ukazují, kolik trpělivosti by dané portfolio v minulosti vyžadovalo.
               </p>
             </div>
           )}
