@@ -32,6 +32,11 @@ export default async function BacktestPreview() {
   const hero = await getHeroExample();
   const fmtCzk = (v: number) => new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(v);
   const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  // Kompaktní částka bez falešné přesnosti (400 tis. / 1,2 mil.) – pro ilustrační hodnoty.
+  const fmtCompactCzk = (v: number) =>
+    v >= 1_000_000
+      ? `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč`
+      : `${Math.round(v / 1000)} tis. Kč`;
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -145,25 +150,25 @@ export default async function BacktestPreview() {
                 <div className="rounded-xl bg-white/[0.06] border border-white/10 p-5">
                   {hero ? (
                     <>
-                      <p className="text-xs text-slate-400">Kolik by z 100 000 Kč bylo dnes?</p>
-                      <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-400 whitespace-nowrap leading-tight">
-                        ≈ {fmtCzk(Math.round(hero.finalCzk / 10000) * 10000)}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1">
-                        světové akcie · {hero.startYear}–dnes · jednorázový vklad
-                      </p>
-                      <div className="mt-4 grid grid-cols-2 gap-2">
-                        <div className="rounded-lg bg-white/[0.06] px-3 py-2">
-                          <p className="text-[11px] text-slate-400">ročně</p>
-                          <p className="text-sm font-semibold tabular-nums text-emerald-300">{fmtPct1(hero.cagr * 100)}</p>
+                      <p className="text-[11px] uppercase tracking-wide text-slate-400 mb-2">Ukázka výstupu</p>
+                      <p className="text-sm font-semibold text-white leading-snug">Světové akcie, {hero.startYear}–dnes</p>
+                      <p className="text-xs text-slate-400 mt-0.5">jednorázový vklad {fmtCzk(hero.initialCzk)}</p>
+                      <div className="mt-4 grid grid-cols-3 gap-2">
+                        <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
+                          <p className="text-[11px] text-slate-400 leading-tight">ročně</p>
+                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-emerald-300">{fmtPct1(hero.cagr * 100)}</p>
                         </div>
-                        <div className="rounded-lg bg-white/[0.06] px-3 py-2">
-                          <p className="text-[11px] text-slate-400">nejhlubší propad</p>
-                          <p className="text-sm font-semibold tabular-nums text-red-300">{fmtPct1(hero.maxDrawdown * 100)}</p>
+                        <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
+                          <p className="text-[11px] text-slate-400 leading-tight">nejhlubší propad</p>
+                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-red-300">{fmtPct1(hero.maxDrawdown * 100)}</p>
+                        </div>
+                        <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
+                          <p className="text-[11px] text-slate-400 leading-tight">konečná hodnota</p>
+                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-100">≈ {fmtCompactCzk(hero.finalCzk)}</p>
                         </div>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
-                        Ilustrační příklad spočítaný naším backtestem. Minulost nezaručuje budoucnost.
+                      <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                        Ilustrační příklad spočítaný naším backtestem na reálných datech. Minulá výkonnost nezaručuje budoucí výnosy.
                       </p>
                     </>
                   ) : (
