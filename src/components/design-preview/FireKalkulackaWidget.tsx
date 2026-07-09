@@ -142,13 +142,19 @@ interface FireRange {
 /* Monte Carlo v REÁLNÝCH korunách (dnešní kupní síla): reálný výnos = (1+nom)/(1+infl)-1,
    měsíční kroky s kolísáním, cíl je konstantní (25× ročních výdajů dnes). Vrací rozsah LET
    do cíle (10./50./90. percentil) + pás hodnot pro graf. Nejistota akumulace = KDY, ne JESTLI. */
+/* Volitelné „životní události" na časové ose (v dnešních korunách):
+   jednorázový výdaj (auto, rekonstrukce), jednorázový příliv (dědictví, prodej),
+   dodatečný měsíční příjem (přivýdělek) do roku N. Modelujeme je v reálných korunách. */
+type LifeEventType = 'oneoffExpense' | 'oneoffIncome' | 'monthlyIncome';
+interface LifeEvent { id: number; type: LifeEventType; amount: number; year: number }
+
 function computeFireRange(params: {
   currentAge: number; currentSavings: number; monthlySavings: number;
   monthlyExpensesInFire: number; inflationRate: number; investmentStrategy: Strategy;
-  growContributions: boolean;
+  growContributions: boolean; events: LifeEvent[];
 }, sims = 600): FireRange {
   const { currentAge, currentSavings, monthlySavings, monthlyExpensesInFire,
-    inflationRate, investmentStrategy, growContributions } = params;
+    inflationRate, investmentStrategy, growContributions, events } = params;
   const infl = inflationRate / 100;
   const rNom = getPortfolioParameters(investmentStrategy).expectedReturn / 100;
   const vol = getPortfolioParameters(investmentStrategy).volatility;
@@ -171,6 +177,14 @@ function computeFireRange(params: {
       // reálný měsíční vklad: s valorizací = konstantní reálně; bez ní klesá reálnou hodnotu
       const realMonthly = growContributions ? monthlySavings : monthlySavings / Math.pow(1 + infl, year);
       pv += realMonthly;
+      // Životní události (v dnešních korunách): měsíční přivýdělek do roku N + jednorázové v roce N.
+      for (const ev of events) {
+        if (ev.type === 'monthlyIncome') { if (year < ev.year) pv += ev.amount; }
+        else if (m === ev.year * 12) {
+          if (ev.type === 'oneoffIncome') pv += ev.amount;
+          else pv -= ev.amount; // oneoffExpense
+        }
+      }
       pv *= (1 + randNormal(mMean, mVol));
       if (pv < 0) pv = 0;
       if (reached === null && pv >= targetReal) reached = m;
@@ -262,6 +276,7 @@ export default function FireKalkulackaWidget() {
   const [inflationRate, setInflationRate] = useState(2.5);
   const [investmentStrategy, setInvestmentStrategy] = useState<Strategy>('moderate');
   const [growContributions, setGrowContributions] = useState(true);
+  const [events, setEvents] = useState<LifeEvent[]>([]);
 
   const result = useMemo(
     () => computeFire({
@@ -275,10 +290,14 @@ export default function FireKalkulackaWidget() {
   const range = useMemo(
     () => computeFireRange({
       currentAge, currentSavings, monthlySavings,
-      monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions,
+      monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions, events,
     }),
-    [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions],
+    [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions, events],
   );
+
+  const addEvent = () => setEvents((p) => [...p, { id: (p.length ? p[p.length - 1].id : 0) + 1, type: 'oneoffExpense', amount: 300000, year: 5 }]);
+  const updateEvent = (id: number, patch: Partial<LifeEvent>) => setEvents((p) => p.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const removeEvent = (id: number) => setEvents((p) => p.filter((e) => e.id !== id));
 
   // Graf: pás jistoty (10.–90. percentil) kolem střední (mediánové) dráhy, v dnešních korunách.
   // Ořízneme do „když se nedařilo" + kontext, jinak do 50 let.
@@ -386,6 +405,65 @@ export default function FireKalkulackaWidget() {
           </div>
         )}
       </div>
+
+      {/* Životní události – volitelně, za rozklikem (default zůstane čistý) */}
+      <details className="group rounded-lg border border-slate-200 bg-white">
+        <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none">
+          <span>
+            <span className="text-sm font-medium text-slate-800">Životní události (volitelné)</span>
+            <span className="block text-xs text-slate-400 mt-0.5">
+              Velký výdaj, dědictví nebo přivýdělek v konkrétním roce – {events.length ? `${events.length} přidáno` : 'zpřesní odhad'}.
+            </span>
+          </span>
+          <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" />
+        </summary>
+        <div className="px-5 pb-5 space-y-2.5">
+          {events.map((ev) => (
+            <div key={ev.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/50 p-2.5">
+              <select
+                value={ev.type}
+                onChange={(e) => updateEvent(ev.id, { type: e.target.value as LifeEventType })}
+                className="min-h-[40px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+              >
+                <option value="oneoffExpense">Jednorázový výdaj</option>
+                <option value="oneoffIncome">Jednorázový příliv (dědictví…)</option>
+                <option value="monthlyIncome">Měsíční přivýdělek</option>
+              </select>
+              <div className="relative">
+                <input
+                  type="number" inputMode="numeric" min={0} step={10000} value={ev.amount}
+                  onChange={(e) => updateEvent(ev.id, { amount: Math.max(0, Number(e.target.value)) })}
+                  className="w-32 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-2.5 pr-14 py-1.5 text-right text-sm text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                  Kč{ev.type === 'monthlyIncome' ? '/měs' : ''}
+                </span>
+              </div>
+              <span className="text-xs text-slate-500">{ev.type === 'monthlyIncome' ? 'do roku' : 'v roce'}</span>
+              <div className="relative">
+                <input
+                  type="number" inputMode="numeric" min={1} max={50} value={ev.year}
+                  onChange={(e) => updateEvent(ev.id, { year: Math.max(1, Math.min(50, Number(e.target.value))) })}
+                  className="w-16 min-h-[40px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-right text-sm text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+              <button
+                onClick={() => removeEvent(ev.id)} aria-label="Odebrat událost"
+                className="ml-auto flex items-center justify-center w-8 h-8 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >×</button>
+            </div>
+          ))}
+          <button
+            onClick={addEvent}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:bg-teal-50/40 transition-colors"
+          >
+            + Přidat událost
+          </button>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Částky zadávejte v dnešních cenách; rok = za kolik let od teď. Události se promítnou do rozsahu i grafu výše.
+          </p>
+        </div>
+      </details>
 
       {/* Výsledkový panel */}
       {warnNoFire ? (
