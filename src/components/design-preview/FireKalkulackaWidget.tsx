@@ -3,9 +3,9 @@
 import React, { useMemo, useState } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceDot, ReferenceLine,
+  ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-import { Target, TrendingUp, CalendarClock, AlertTriangle, Sparkles, Flame , ChevronUp, ChevronDown } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Sparkles, Flame, ChevronUp, ChevronDown } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 
 /**
@@ -119,6 +119,88 @@ function computeFire(params: {
   };
 }
 
+/* Normální rozdělení (Box-Muller). Klientský Math.random je tu v pořádku. */
+function randNormal(mean: number, sd: number): number {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return mean + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+interface FireBandPoint { age: number; low: number; mid: number; high: number; targetReal: number }
+interface FireRange {
+  fastYears: number | null;   // 10. percentil (když se dařilo)
+  medYears: number | null;    // medián
+  slowYears: number | null;   // 90. percentil (když se nedařilo)
+  currentAge: number;
+  targetReal: number;
+  band: FireBandPoint[];
+  halfAge: number | null;       // věk, kdy medián dosáhne 50 % cíle
+  firstYearAge: number | null;  // věk, kdy medián pokryje 1 rok výdajů
+}
+
+/* Monte Carlo v REÁLNÝCH korunách (dnešní kupní síla): reálný výnos = (1+nom)/(1+infl)-1,
+   měsíční kroky s kolísáním, cíl je konstantní (25× ročních výdajů dnes). Vrací rozsah LET
+   do cíle (10./50./90. percentil) + pás hodnot pro graf. Nejistota akumulace = KDY, ne JESTLI. */
+function computeFireRange(params: {
+  currentAge: number; currentSavings: number; monthlySavings: number;
+  monthlyExpensesInFire: number; inflationRate: number; investmentStrategy: Strategy;
+  growContributions: boolean;
+}, sims = 600): FireRange {
+  const { currentAge, currentSavings, monthlySavings, monthlyExpensesInFire,
+    inflationRate, investmentStrategy, growContributions } = params;
+  const infl = inflationRate / 100;
+  const rNom = getPortfolioParameters(investmentStrategy).expectedReturn / 100;
+  const vol = getPortfolioParameters(investmentStrategy).volatility;
+  const rReal = (1 + rNom) / (1 + infl) - 1;
+  const mMean = Math.pow(1 + rReal, 1 / 12) - 1;
+  const mVol = vol / Math.sqrt(12);
+  const annualExpenses = monthlyExpensesInFire * 12;
+  const targetReal = annualExpenses * 25;
+  const YEARS = 50, MONTHS = YEARS * 12;
+
+  const yearsReached: number[] = [];
+  const perYear: number[][] = Array.from({ length: YEARS + 1 }, () => []);
+
+  for (let s = 0; s < sims; s++) {
+    let pv = currentSavings; // reálné dnešní koruny
+    let reached: number | null = null;
+    perYear[0].push(pv);
+    for (let m = 1; m <= MONTHS; m++) {
+      const year = Math.floor((m - 1) / 12);
+      // reálný měsíční vklad: s valorizací = konstantní reálně; bez ní klesá reálnou hodnotu
+      const realMonthly = growContributions ? monthlySavings : monthlySavings / Math.pow(1 + infl, year);
+      pv += realMonthly;
+      pv *= (1 + randNormal(mMean, mVol));
+      if (pv < 0) pv = 0;
+      if (reached === null && pv >= targetReal) reached = m;
+      if (m % 12 === 0) perYear[m / 12].push(pv);
+    }
+    yearsReached.push(reached === null ? MONTHS : reached);
+  }
+
+  yearsReached.sort((a, b) => a - b);
+  const qYears = (p: number) => yearsReached[Math.min(sims - 1, Math.floor(p * sims))] / 12;
+  const norm = (y: number): number | null => (y >= YEARS ? null : Math.max(0, Math.round(y)));
+
+  const band: FireBandPoint[] = perYear.map((arr, y) => {
+    arr.sort((a, b) => a - b);
+    const pick = (p: number) => arr[Math.min(arr.length - 1, Math.floor(p * arr.length))];
+    return { age: currentAge + y, low: pick(0.10), mid: pick(0.50), high: pick(0.90), targetReal };
+  });
+
+  let halfAge: number | null = null, firstYearAge: number | null = null;
+  for (const b of band) {
+    if (halfAge === null && b.mid >= targetReal * 0.5) halfAge = b.age;
+    if (firstYearAge === null && b.mid >= annualExpenses) firstYearAge = b.age;
+  }
+
+  return {
+    fastYears: norm(qYears(0.10)), medYears: norm(qYears(0.50)), slowYears: norm(qYears(0.90)),
+    currentAge, targetReal, band, halfAge, firstYearAge,
+  };
+}
+
 const fmtCZK = (amount: number) =>
   new Intl.NumberFormat('cs-CZ', {
     style: 'currency', currency: 'CZK', minimumFractionDigits: 0, maximumFractionDigits: 0,
@@ -171,25 +253,6 @@ const STRATEGIES: { value: Strategy; label: string; sub: string }[] = [
   { value: 'aggressive', label: 'Agresivní', sub: '80 % akcie / 20 % dluhopisy' },
 ];
 
-interface TooltipPayloadItem { payload: FirePoint }
-function ChartTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadItem[] }) {
-  if (!active || !payload || payload.length === 0) return null;
-  const p = payload[0].payload;
-  return (
-    <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
-      <div className="font-semibold mb-1">Věk {p.age} · rok {p.year}</div>
-      <div className="flex items-center gap-1.5">
-        <span className="inline-block w-2 h-2 rounded-full bg-teal-400" /> Portfolio:{' '}
-        <span className="font-medium tabular-nums">{fmtCZK(p.portfolioValue)}</span>
-      </div>
-      <div className="text-[11px] text-slate-300 pl-3.5">≈ {fmtCZK(p.realValue)} v dnešních cenách</div>
-      <div className="flex items-center gap-1.5">
-        <span className="inline-block w-2 h-2 rounded-full bg-slate-400" /> FIRE cíl:{' '}
-        <span className="font-medium tabular-nums">{fmtCZK(p.fireTargetAtYear)}</span>
-      </div>
-    </div>
-  );
-}
 
 export default function FireKalkulackaWidget() {
   const [currentAge, setCurrentAge] = useState(30);
@@ -208,22 +271,30 @@ export default function FireKalkulackaWidget() {
     [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions],
   );
 
-  // Graf ořízneme do roku dosažení FIRE (+2 roky kontextu), jinak celé období do 50 let.
-  const chartData = useMemo(() => {
-    if (result.yearsToFire !== null) {
-      const cut = Math.min(result.projection.length, result.yearsToFire + 3);
-      return result.projection.slice(0, Math.max(cut, 2));
-    }
-    return result.projection.slice(0, 41);
-  }, [result]);
+  // Monte Carlo rozsah (kolísání trhu) – nejistota akumulace je „kdy", ne „jestli".
+  const range = useMemo(
+    () => computeFireRange({
+      currentAge, currentSavings, monthlySavings,
+      monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions,
+    }),
+    [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions],
+  );
 
-  const fireDot = result.fireAge !== null
-    ? result.projection.find((p) => p.age === result.fireAge) ?? null
-    : null;
+  // Graf: pás jistoty (10.–90. percentil) kolem střední (mediánové) dráhy, v dnešních korunách.
+  // Ořízneme do „když se nedařilo" + kontext, jinak do 50 let.
+  const chartData = useMemo(() => {
+    const horizon = range.slowYears != null ? range.slowYears + 3 : 40;
+    return range.band.slice(0, Math.max(2, Math.min(range.band.length, horizon + 1)))
+      .map((b) => ({ age: b.age, low: b.low, bandHeight: Math.max(0, b.high - b.low), mid: b.mid, high: b.high, targetReal: b.targetReal }));
+  }, [range]);
 
   const warnExpenses = monthlyExpensesInFire < 10000;
   const warnInflation = inflationRate < 0 || inflationRate > 10;
-  const warnNoFire = result.fireAge === null;
+  const warnNoFire = range.medYears === null;
+  // Věky dosažení z Monte Carlo rozsahu (nejistota je „kdy", ne „jestli").
+  const fastAge = range.fastYears != null ? range.currentAge + range.fastYears : null;
+  const medAge = range.medYears != null ? range.currentAge + range.medYears : null;
+  const slowAge = range.slowYears != null ? range.currentAge + range.slowYears : null;
 
   return (
     <div className="space-y-4">
@@ -339,38 +410,76 @@ export default function FireKalkulackaWidget() {
           <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
             <Sparkles className="w-4 h-4" /> Váš výsledek
           </p>
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div>
-              <p className="text-sm text-teal-100">Nezávislosti dosáhnete ve věku</p>
-              <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1">
-                {result.fireAge} let
-              </p>
-              <p className="text-xs text-teal-200 mt-1">
-                tj. za {result.yearsToFire} {result.yearsToFire === 1 ? 'rok' : (result.yearsToFire ?? 0) < 5 ? 'roky' : 'let'}
-              </p>
+          {/* Headline = rozsah věku (nejistota akumulace je „kdy", ne „jestli") */}
+          <p className="mt-3 text-2xl md:text-3xl font-bold leading-tight text-balance">
+            Nezávislosti dosáhnete nejspíš <span className="whitespace-nowrap">mezi {fastAge} a {slowAge} lety</span>, obvykle kolem {medAge}.
+          </p>
+          <p className="mt-1.5 text-sm text-teal-100 leading-relaxed">
+            Podle 600 simulací s kolísáním trhu
+            <InfoTip label="Simulujeme stovky možných vývojů trhu (kolísání nahoru i dolů). V akumulaci portfolio cíle skoro vždy nakonec dosáhne – nejistota je hlavně KDY, ne jestli.">
+              <span className="text-teal-50 underline decoration-dotted"> proč rozsah?</span>
+            </InfoTip>
+            {' '}– v polovině případů jste v cíli do {medAge} let, ve většině do {slowAge}.
+          </p>
+          {/* Tři čísla: dařilo / obvykle / nedařilo */}
+          <div className="mt-4 grid grid-cols-3 gap-2.5">
+            <div className="rounded-lg bg-white/10 px-3 py-2.5">
+              <p className="text-[11px] text-teal-100 leading-tight">Když se trhu dařilo</p>
+              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{fastAge} let</p>
+              <p className="text-[11px] text-teal-200">za ~{range.fastYears} let</p>
             </div>
-            <div className="sm:border-l sm:border-white/15 sm:pl-5">
+            <div className="rounded-lg bg-white/[0.18] ring-1 ring-white/25 px-3 py-2.5">
+              <p className="text-[11px] text-teal-50 leading-tight">Nejčastěji</p>
+              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{medAge} let</p>
+              <p className="text-[11px] text-teal-100">za ~{range.medYears} let</p>
+            </div>
+            <div className="rounded-lg bg-white/10 px-3 py-2.5">
+              <p className="text-[11px] text-teal-100 leading-tight">Když se nedařilo</p>
+              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{slowAge} let</p>
+              <p className="text-[11px] text-teal-200">za ~{range.slowYears} let</p>
+            </div>
+          </div>
+          {/* Sekundárně: cílová částka + měsíční příjem */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-white/15 pt-4">
+            <div>
               <p className="text-sm text-teal-100">Cílová částka (
-                <InfoTip label="Pravidlo 4 % (Trinity Study): 25násobek ročních výdajů. Z takového portfolia můžete vybírat ~4 % ročně a s vysokou pravděpodobností vám vydrží.">
+                <InfoTip label="Pravidlo 4 % (Trinity Study): 25násobek ročních výdajů. Z takového portfolia můžete vybírat ~4 % ročně a s vysokou pravděpodobností vydrží.">
                   <span className="text-teal-50 underline decoration-dotted">pravidlo 4 %</span>
                 </InfoTip>
                 )
               </p>
-              <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1">{fmtCZK(result.fireTarget)}</p>
-              <p className="text-xs text-teal-200 mt-1">v dnešních cenách</p>
+              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-0.5">{fmtCZK(range.targetReal)}</p>
+              <p className="text-xs text-teal-200 mt-0.5">v dnešní kupní síle</p>
             </div>
-            <div className="sm:border-l sm:border-white/15 sm:pl-5">
+            <div className="sm:border-l sm:border-white/15 sm:pl-4">
               <p className="text-sm text-teal-100">Měsíční příjem z portfolia</p>
-              <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1">{fmtCZK(result.monthlyFireIncome)}</p>
-              <p className="text-xs text-teal-200 mt-1">při výběru 4 % ročně</p>
+              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-0.5">{fmtCZK(range.targetReal * 0.04 / 12)}</p>
+              <p className="text-xs text-teal-200 mt-0.5">při výběru 4 % ročně</p>
             </div>
           </div>
-          <p className="mt-4 text-sm text-teal-50 leading-relaxed border-t border-white/15 pt-4">
-            Při měsíčním spoření <strong className="font-semibold">{fmtCZK(monthlySavings)}</strong> a strategii{' '}
-            {STRATEGIES.find((s) => s.value === investmentStrategy)?.label.toLowerCase()} naroste portfolio na cílovou
-            částku v okamžiku dosažení nezávislosti zhruba na <strong className="font-semibold">{fmtCZK(result.fireAmount)}</strong>.
-            Cíl počítáme inflačně navýšený, takže zadáváte dnešní výdaje.
+          <p className="mt-4 text-xs text-teal-100/90 leading-relaxed">
+            Všechny částky jsou <strong className="font-semibold text-teal-50">v dnešní kupní síle</strong> – {fmtCZK(range.targetReal)} znamená, co si za tolik koupíte dnes (inflaci máme započítanou).
           </p>
+        </div>
+      )}
+
+      {/* Milníky na cestě (z mediánové dráhy) – jen ty budoucí (věk > současný) */}
+      {!warnNoFire && ((range.firstYearAge != null && range.firstYearAge > range.currentAge) || (range.halfAge != null && range.halfAge > range.currentAge)) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {range.firstYearAge != null && range.firstYearAge > range.currentAge && (
+            <div className="rounded-lg border border-slate-200 bg-white p-4 flex items-start gap-3">
+              <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700"><Flame className="w-4 h-4" /></span>
+              <div><p className="text-sm font-medium text-slate-900">První rok svobody pokrytý</p>
+              <p className="text-xs text-slate-500 mt-0.5">Kolem věku <strong className="text-slate-700">{range.firstYearAge}</strong> už portfolio pokryje jeden celý rok vašich výdajů.</p></div>
+            </div>
+          )}
+          {range.halfAge != null && range.halfAge > range.currentAge && (
+            <div className="rounded-lg border border-slate-200 bg-white p-4 flex items-start gap-3">
+              <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700"><TrendingUp className="w-4 h-4" /></span>
+              <div><p className="text-sm font-medium text-slate-900">Polovina cesty</p>
+              <p className="text-xs text-slate-500 mt-0.5">Kolem věku <strong className="text-slate-700">{range.halfAge}</strong> máte 50 % cíle – dál to díky složenému úročení zrychluje.</p></div>
+            </div>
+          )}
         </div>
       )}
 
@@ -380,22 +489,14 @@ export default function FireKalkulackaWidget() {
           Vývoj majetku v čase
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-xs text-slate-600">
-          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-1 rounded-full bg-teal-600" /> Hodnota portfolia</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-slate-400" /> FIRE cíl (s inflací)</span>
-          {fireDot && (
-            <span className="flex items-center gap-1.5 sm:ml-auto"><Flame className="w-3.5 h-3.5 text-teal-600" /> bod dosažení nezávislosti</span>
-          )}
+          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-1 rounded-full bg-teal-600" /> Střední (nejpravděpodobnější) dráha</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-2.5 rounded-sm bg-teal-600/15 border border-teal-600/20" /> Pás možností (kolísání trhu)</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-slate-400" /> FIRE cíl</span>
         </div>
 
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-              <defs>
-                <linearGradient id="fireFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0d9488" stopOpacity={0.28} />
-                  <stop offset="100%" stopColor="#0d9488" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
               <XAxis
                 dataKey="age"
@@ -412,49 +513,34 @@ export default function FireKalkulackaWidget() {
                 width={52}
                 tickFormatter={(v: number) => fmtCompact(v)}
               />
-              <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#cbd5e1', strokeDasharray: '3 3' }} />
-              <Area
-                type="monotone"
-                dataKey="fireTargetAtYear"
-                stroke="#94a3b8"
-                strokeWidth={1.5}
-                strokeDasharray="5 4"
-                fill="none"
-                dot={false}
-                activeDot={false}
-                isAnimationActive={false}
+              <Tooltip
+                cursor={{ stroke: '#cbd5e1', strokeDasharray: '3 3' }}
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null;
+                  const p = payload[0].payload as { age: number; low: number; mid: number; high: number };
+                  return (
+                    <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
+                      <div className="font-semibold mb-0.5">Věk {p.age} let</div>
+                      <div>Obvykle: <span className="font-medium tabular-nums">{fmtCZK(p.mid)}</span></div>
+                      <div className="text-slate-300">Rozpětí {fmtCompact(p.low)} – {fmtCompact(p.high)}</div>
+                    </div>
+                  );
+                }}
               />
-              <Area
-                type="monotone"
-                dataKey="portfolioValue"
-                stroke="#0d9488"
-                strokeWidth={2.5}
-                fill="url(#fireFill)"
-                dot={false}
-                isAnimationActive={false}
-              />
-              {fireDot && (
-                <>
-                  <ReferenceLine x={fireDot.age} stroke="#0d9488" strokeDasharray="3 3" strokeWidth={1} />
-                  <ReferenceDot
-                    x={fireDot.age}
-                    y={fireDot.portfolioValue}
-                    r={5}
-                    fill="#0d9488"
-                    stroke="#fff"
-                    strokeWidth={2}
-                  />
-                </>
-              )}
+              {/* Pás jistoty: spodní hrana (neviditelná) + výška pásu (světlá výplň) */}
+              <Area type="monotone" dataKey="low" stackId="band" stroke="none" fill="transparent" isAnimationActive={false} />
+              <Area type="monotone" dataKey="bandHeight" stackId="band" stroke="none" fill="#0d9488" fillOpacity={0.13} isAnimationActive={false} />
+              {/* Cíl (čárkovaně) */}
+              <Area type="monotone" dataKey="targetReal" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="5 4" fill="none" dot={false} activeDot={false} isAnimationActive={false} />
+              {/* Střední dráha */}
+              <Area type="monotone" dataKey="mid" stroke="#0d9488" strokeWidth={2.5} fill="none" dot={false} isAnimationActive={false} />
+              {medAge != null && <ReferenceLine x={medAge} stroke="#0d9488" strokeDasharray="3 3" strokeWidth={1} />}
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
         <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-          Tyrkysová křivka je hodnota vašeho portfolia, čárkovaná je cílová částka navyšovaná o inflaci.
-          {fireDot
-            ? ` Jakmile se křivky protnou (věk ${fireDot.age}), dosáhnete finanční nezávislosti.`
-            : ' V zadaném horizontu se křivky neprotnou – zkuste upravit vstupy.'}
+          Tyrkysová čára je nejpravděpodobnější vývoj, světlý pás ukazuje rozpětí podle toho, jak se povede trhu. Kde pás protne čárkovanou čáru cíle, tam se pohybuje věk dosažení nezávislosti. Vše v dnešní kupní síle.
         </p>
       </div>
 
