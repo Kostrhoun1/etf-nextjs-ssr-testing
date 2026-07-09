@@ -447,34 +447,36 @@ export function yearsBetween(start: Date, end: Date): number {
  * Calculate complete summary metrics
  */
 export function calculateSummary(
-  evolution: TimeSeriesPoint[],
-  initialAmount: number,
+  marketNav: TimeSeriesPoint[],   // time-weighted NAV bez vkladů (pro výnos/riziko)
+  realFinalValue: number,          // reálná konečná hodnota (s vklady) – jen k zobrazení
+  totalContributed: number,        // reálně vložené peníze
   riskFreeRate: number = 0.03 // Default 3% (approx Euribor)
 ): BacktestSummary {
-  if (evolution.length < 2) {
+  if (marketNav.length < 2) {
     return {
-      amountInvested: initialAmount,
-      netAssetValue: initialAmount,
+      amountInvested: totalContributed,
+      netAssetValue: realFinalValue,
       cagr: 0,
       standardDeviation: 0,
       sharpeRatio: 0,
     }
   }
 
-  const finalValue = evolution[evolution.length - 1].value
-  const years = yearsBetween(evolution[0].date, evolution[evolution.length - 1].date)
+  const startNav = marketNav[0].value
+  const endNav = marketNav[marketNav.length - 1].value
+  const years = yearsBetween(marketNav[0].date, marketNav[marketNav.length - 1].date)
 
-  const monthlyReturns = calculateMonthlyReturns(evolution)
+  const monthlyReturns = calculateMonthlyReturns(marketNav)
   const monthlyReturnValues = monthlyReturns.map((r) => r.return)
 
-  const cagr = calculateCAGR(initialAmount, finalValue, years)
+  const cagr = calculateCAGR(startNav, endNav, years) // time-weighted výnos strategie (bez vkladů)
   const monthlyStdDev = standardDeviation(monthlyReturnValues)
   const annualStdDev = annualizeMonthlyStdDev(monthlyStdDev)
   const sharpe = calculateSharpeRatio(cagr, riskFreeRate, annualStdDev)
 
   return {
-    amountInvested: initialAmount,
-    netAssetValue: finalValue,
+    amountInvested: totalContributed,
+    netAssetValue: realFinalValue,
     cagr,
     standardDeviation: annualStdDev,
     sharpeRatio: sharpe,
