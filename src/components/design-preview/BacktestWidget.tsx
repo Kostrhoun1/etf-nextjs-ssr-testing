@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine,
+  AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Legend,
 } from 'recharts';
 import {
   Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info,
@@ -90,6 +90,9 @@ const CURRENCIES: { code: Currency; label: string }[] = [
   { code: 'CZK', label: 'Kč' }, { code: 'EUR', label: '€' }, { code: 'USD', label: '$' },
 ];
 
+// Barvy sérií pro porovnání: [0] = vlastní portfolio (teal), [1..] = porovnávaná.
+const SERIES_COLORS = ['#0d9488', '#6366f1', '#f59e0b'];
+
 const fmtMoney = (v: number, currency: Currency) =>
   new Intl.NumberFormat('cs-CZ', { style: 'currency', currency, maximumFractionDigits: 0 }).format(v);
 
@@ -123,6 +126,9 @@ export default function BacktestWidget() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultCurrency, setResultCurrency] = useState<Currency>('CZK');
+  // Porovnání: id hotových portfolií, se kterými se vlastní portfolio poměří (max 2).
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
 
@@ -172,28 +178,69 @@ export default function BacktestWidget() {
     setLoading(true);
     setError(null);
     try {
-      const portfolio = selectedETFs.map((etf) => ({
-        isin: etf.isin, name: etf.name, weight: etf.weight / 100, ter: etf.ter, indexCode: etf.indexCode,
-      }));
       const contributions = contributionFrequency !== 'none' && contributionAmount > 0
         ? { amount: contributionAmount, frequency: contributionFrequency as 'monthly' | 'quarterly' | 'yearly' }
         : undefined;
 
-      const response = await fetch('/api/backtest/simulate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          portfolio, startDate, endDate, initialAmount,
-          rebalancingStrategy: 'yearly', currency: cur, contributions,
-        }),
+      // Jeden běh backtestu se stejnými parametry (částky, měna) – jen jiné složení a případně jiný start.
+      const simulateOne = async (
+        portfolio: { isin: string; name: string; weight: number; ter: number; indexCode: string }[],
+        start: string,
+      ) => {
+        const response = await fetch('/api/backtest/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            portfolio, startDate: start, endDate, initialAmount,
+            rebalancingStrategy: 'yearly', currency: cur, contributions,
+          }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Backtest se nepodařilo spustit.');
+        }
+        return response.json() as Promise<BacktestResult>;
+      };
+
+      const mainPortfolio = selectedETFs.map((etf) => ({
+        isin: etf.isin, name: etf.name, weight: etf.weight / 100, ter: etf.ter, indexCode: etf.indexCode,
+      }));
+      const compPortfolios = compareIds.map((id) => {
+        const preset = PRESET_PORTFOLIOS.find((p) => p.id === id)!;
+        return preset.etfs.map((item) => {
+          const index = AVAILABLE_INDEXES.find((i) => i.indexCode === item.indexCode)!;
+          return { isin: index.isin, name: index.etfName, weight: item.weight / 100, ter: index.ter, indexCode: index.indexCode };
+        });
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Backtest se nepodařilo spustit.');
+
+      // Vlastní portfolio + porovnávaná hotová portfolia spočítáme naráz (stejné období/vklady/měna).
+      const runAll = (start: string) =>
+        Promise.all([simulateOne(mainPortfolio, start), ...compPortfolios.map((pf) => simulateOne(pf, start))]);
+
+      let results = await runAll(startDate);
+
+      // FÉR SROVNÁNÍ: každé portfolio má jinak dlouhou historii (např. All-World až od 2008-07).
+      // Kdyby jedno mělo delší období, mělo by nespravedlivou výhodu. Proto zarovnáme všechna
+      // na společný start = nejpozdější první datum a přepočítáme (jako PortfolioVisualizer).
+      if (compareIds.length) {
+        const firsts = results.map((r) => r.evolution[0]?.date).filter(Boolean).sort() as string[];
+        const commonStart = firsts[firsts.length - 1];
+        const earliest = firsts[0];
+        if (commonStart && earliest &&
+            new Date(commonStart).getTime() - new Date(earliest).getTime() > 40 * 864e5) {
+          results = await runAll(commonStart);
+        }
       }
-      const data = await response.json();
-      setResult(data);
+
+      const [mainData, ...compData] = results;
+
+      setResult(mainData);
       setResultCurrency(cur);
+      setComparison(
+        compareIds.length
+          ? compareIds.map((id, i) => ({ name: PRESET_PORTFOLIOS.find((p) => p.id === id)!.name, result: compData[i] }))
+          : null,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Neznámá chyba.');
     } finally {
@@ -381,6 +428,56 @@ export default function BacktestWidget() {
           </div>
         </div>
 
+        {/* Porovnání s dalšími portfolii (volitelné) */}
+        <div className="mb-5">
+          <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
+            Porovnat s dalším portfoliem (volitelné)
+            <InfoTip label="Poměřte své portfolio až se dvěma hotovými portfolii naráz – na stejném období, se stejnými vklady i měnou. Ukážeme srovnávací tabulku a překryvný graf.">
+              <span className="sr-only">vysvětlení</span>
+            </InfoTip>
+          </label>
+          {compareIds.length > 0 && (
+            <div className="space-y-2 mb-2">
+              {compareIds.map((id, i) => {
+                const preset = PRESET_PORTFOLIOS.find((p) => p.id === id);
+                return (
+                  <div key={id} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SERIES_COLORS[i + 1] }} />
+                    <div className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-slate-900 truncate">{preset?.name}</span>
+                      <span className="block text-xs text-slate-500 truncate">{preset?.description}</span>
+                    </div>
+                    <button
+                      onClick={() => setCompareIds((prev) => prev.filter((x) => x !== id))}
+                      aria-label={`Odebrat ${preset?.name} z porovnání`}
+                      className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {compareIds.length < 2 && (
+            <div className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-indigo-50 text-indigo-600">
+                <Plus className="w-4 h-4" />
+              </span>
+              <select
+                value=""
+                onChange={(e) => { if (e.target.value) setCompareIds((prev) => [...prev, e.target.value]); }}
+                className="flex-1 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+              >
+                <option value="">Přidat portfolio k porovnání…</option>
+                {PRESET_PORTFOLIOS.filter((p) => !compareIds.includes(p.id)).map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
         {/* Spustit */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
           <button
@@ -470,9 +567,19 @@ export default function BacktestWidget() {
             </div>
           )}
 
+          {/* Srovnání portfolií (když jsou vybrána) */}
+          {comparison && (
+            <ComparisonBlock
+              portfolios={[{ name: 'Vaše portfolio', result }, ...comparison]}
+              currency={resultCurrency}
+            />
+          )}
+
           {/* Graf vývoje hodnoty portfolia */}
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Vývoj hodnoty portfolia v čase</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">
+              {comparison ? 'Vývoj vašeho portfolia v čase' : 'Vývoj hodnoty portfolia v čase'}
+            </p>
             <p className="text-xs text-slate-400 mb-3">
               {fmtDate(result.evolution[0]?.date)} – {fmtDate(result.evolution[result.evolution.length - 1]?.date)} · v přepočtu na {resultCurrency}
             </p>
@@ -558,6 +665,146 @@ export default function BacktestWidget() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// Nejlepší/nejhorší rok z ročních výnosů (v %).
+const bestYearPct = (r: BacktestResult) =>
+  r.returns.annualReturns.length ? Math.max(...r.returns.annualReturns.map((a) => a.return)) * 100 : 0;
+const worstYearPct = (r: BacktestResult) =>
+  r.returns.annualReturns.length ? Math.min(...r.returns.annualReturns.map((a) => a.return)) * 100 : 0;
+
+function ComparisonBlock({
+  portfolios, currency,
+}: {
+  portfolios: { name: string; result: BacktestResult }[];
+  currency: Currency;
+}) {
+  // Překryvný graf: hodnoty všech portfolií sloučené podle data (osy zarovnané na společné období).
+  const chartData = useMemo(() => {
+    const byDate = new Map<string, Record<string, number | string>>();
+    portfolios.forEach((p, si) => {
+      p.result.evolution.forEach((pt) => {
+        const row = byDate.get(pt.date) ?? { date: pt.date };
+        row[`s${si}`] = Math.round(pt.value);
+        byDate.set(pt.date, row);
+      });
+    });
+    return [...byDate.values()].sort((a, b) => ((a.date as string) < (b.date as string) ? -1 : 1));
+  }, [portfolios]);
+
+  // Řádky tabulky: hodnota + směr „co je lepší" (pro zvýraznění nejlepšího sloupce).
+  const rows: { label: React.ReactNode; values: number[]; fmt: (v: number) => string; better: 'high' | 'low' }[] = [
+    { label: 'Konečná hodnota', values: portfolios.map((p) => p.result.summary.netAssetValue), fmt: (v) => fmtMoney(v, currency), better: 'high' },
+    { label: 'Roční zhodnocení (CAGR)', values: portfolios.map((p) => p.result.summary.cagr * 100), fmt: (v) => fmtPct(v), better: 'high' },
+    { label: 'Max. pokles', values: portfolios.map((p) => p.result.risk.maxDrawdown.depth * 100), fmt: (v) => fmtPct(v), better: 'high' },
+    { label: 'Kolísavost', values: portfolios.map((p) => p.result.summary.standardDeviation * 100), fmt: (v) => fmtPct(v), better: 'low' },
+    { label: 'Sharpe', values: portfolios.map((p) => p.result.summary.sharpeRatio), fmt: (v) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), better: 'high' },
+    { label: 'Nejlepší rok', values: portfolios.map((p) => bestYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
+    { label: 'Nejhorší rok', values: portfolios.map((p) => worstYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
+  ];
+
+  const bestIndex = (values: number[], better: 'high' | 'low') => {
+    let idx = 0;
+    for (let i = 1; i < values.length; i++) {
+      if (better === 'high' ? values[i] > values[idx] : values[i] < values[idx]) idx = i;
+    }
+    return idx;
+  };
+
+  const first = chartData[0]?.date as string | undefined;
+  const last = chartData[chartData.length - 1]?.date as string | undefined;
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6 space-y-5">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Srovnání portfolií</p>
+        {first && last && (
+          <p className="text-xs text-slate-400">
+            Stejné období {fmtDate(first)} – {fmtDate(last)} · stejné vklady · v přepočtu na {currency}. Nejlepší hodnota v každém řádku je zvýrazněná.
+          </p>
+        )}
+      </div>
+
+      {/* Překryvný graf vývoje */}
+      <div className="h-72 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis dataKey="date" tickFormatter={fmtDate} minTickGap={48}
+              tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+            <YAxis width={64} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+              tickFormatter={(v: number) => fmtCompact(v, currency)} />
+            <Tooltip
+              cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }}
+              content={({ active, payload, label }) => {
+                if (!active || !payload || !payload.length) return null;
+                return (
+                  <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
+                    <div className="font-semibold mb-1">
+                      {new Date(label as string).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' })}
+                    </div>
+                    {payload.map((entry, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: entry.color as string }} />
+                        {portfolios[Number(String(entry.dataKey).slice(1))]?.name}:{' '}
+                        <span className="font-medium tabular-nums">{fmtMoney(entry.value as number, currency)}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }}
+            />
+            <Legend
+              formatter={(value) => <span className="text-xs text-slate-600">{portfolios[Number(String(value).slice(1))]?.name}</span>}
+            />
+            {portfolios.map((_, si) => (
+              <Line key={si} type="monotone" dataKey={`s${si}`} name={`s${si}`}
+                stroke={SERIES_COLORS[si] ?? '#64748b'} strokeWidth={2} dot={false} />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Srovnávací tabulka */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="border-b border-slate-200">
+              <th className="text-left font-medium text-slate-500 py-2 pr-3 whitespace-nowrap">Ukazatel</th>
+              {portfolios.map((p, si) => (
+                <th key={si} className="text-right font-semibold text-slate-900 py-2 px-3 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: SERIES_COLORS[si] ?? '#64748b' }} />
+                    {p.name}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => {
+              const bi = bestIndex(row.values, row.better);
+              return (
+                <tr key={ri} className="border-b border-slate-100 last:border-0">
+                  <td className="text-slate-600 py-2.5 pr-3 whitespace-nowrap">{row.label}</td>
+                  {row.values.map((v, ci) => (
+                    <td key={ci}
+                      className={`text-right py-2.5 px-3 tabular-nums whitespace-nowrap ${ci === bi ? 'font-bold text-teal-700 bg-teal-50/60 rounded' : 'text-slate-700'}`}>
+                      {row.fmt(v)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-slate-500 leading-relaxed">
+        Vyšší konečná hodnota neznamená automaticky lepší portfolio – všímejte si i max. poklesu a kolísavosti (kolik nervů by vás držení stálo).
+        Sharpe poměřuje výnos vůči riziku: čím vyšší, tím lepší poměr.
+      </p>
     </div>
   );
 }

@@ -58,6 +58,13 @@ const AW = [{ isin: 'ftse_all_world', name: 'All-World', weight: 1, ter: 0.0022,
     const cagrPct = noDca.summary.cagr * 100;
     check('CAGR akcií v rozumném pásmu (2–15 % p.a.)', cagrPct > 2 && cagrPct < 15, `${cagrPct.toFixed(1)} % p.a.`);
 
+    // 3a) VOLATILITA A SHARPE JSOU REÁLNÉ (guard na bug „denní σ × √12 místo × √252").
+    //     Světové akcie mají roční volatilitu ~15–18 %; pod 10 % = špatná anualizace.
+    const volPct = noDca.summary.standardDeviation * 100;
+    check('Volatilita akcií je reálná (10–30 % p.a.)', volPct > 10 && volPct < 30, `${volPct.toFixed(1)} %`);
+    //     Dlouhodobý akciový Sharpe bývá ~0,3–0,7; nad 1,5 = nafouknuté (podhodnocená σ).
+    check('Sharpe není nafouknutý (< 1,5)', noDca.summary.sharpeRatio < 1.5, noDca.summary.sharpeRatio.toFixed(2));
+
     // 3b) Nejlepší rok je reálný i s DCA (guard přímo na bug „vklad = +58 % výnos").
     const bestWithDca = Math.max(...withDca.returns.annualReturns.map((r) => r.return)) * 100;
     check('Nejlepší rok s DCA je reálný (< 40 %)', bestWithDca < 40, `${bestWithDca.toFixed(1)} %`);
