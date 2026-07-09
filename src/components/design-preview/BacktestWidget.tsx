@@ -211,6 +211,21 @@ export default function BacktestWidget() {
 
   const investedLine = result ? result.summary.amountInvested : 0;
 
+  // Pokročilé ukazatele z ročních výnosů (engine je počítá time-weighted, bez vkladů).
+  const advanced = useMemo(() => {
+    const ar = result?.returns.annualReturns ?? [];
+    if (ar.length === 0 || !result) return null;
+    let best = ar[0], worst = ar[0];
+    for (const r of ar) {
+      if (r.return > best.return) best = r;
+      if (r.return < worst.return) worst = r;
+    }
+    // Sortino (bezriziková sazba 0) = CAGR / kolísavost jen záporných let.
+    const downside = Math.sqrt(ar.reduce((a, r) => a + (r.return < 0 ? r.return * r.return : 0), 0) / ar.length);
+    const sortino = downside > 0 ? result.summary.cagr / downside : null;
+    return { best, worst, sortino };
+  }, [result]);
+
   return (
     <div className="space-y-4">
       {/* ===== VSTUPY ===== */}
@@ -427,6 +442,33 @@ export default function BacktestWidget() {
               tone="neutral"
             />
           </div>
+
+          {/* Pokročilé ukazatele */}
+          {advanced && (
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <MetricCard
+                icon={TrendingUp} label="Nejlepší rok"
+                value={fmtPct(advanced.best.return * 100)}
+                hint={String(advanced.best.year)}
+                tone="pos"
+              />
+              <MetricCard
+                icon={TrendingDown} label="Nejhorší rok"
+                value={fmtPct(advanced.worst.return * 100)}
+                hint={String(advanced.worst.year)}
+                tone="neg"
+              />
+              {advanced.sortino != null && (
+                <MetricCard
+                  icon={Activity}
+                  label={<>Sortino <InfoTip label="Výnos na jednotku propadů – jako Sharpe, ale trestá jen záporné výkyvy (ty, co bolí). Vyšší = lepší poměr výnosu k riziku poklesů."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                  value={advanced.sortino.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  hint="výnos vs. propady"
+                  tone="neutral"
+                />
+              )}
+            </div>
+          )}
 
           {/* Graf vývoje hodnoty portfolia */}
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
