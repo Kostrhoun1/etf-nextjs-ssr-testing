@@ -1,18 +1,21 @@
 name: Prod smoke test
 
-# Pravidelná kontrola produkce v prohlížeči – reálně klikne na nástroje a ověří,
-# že se spustí (chytí i klientské bugy, které API health-check nezachytí).
-# Selhání = červený běh + GitHub notifikace (e-mail adminům).
+# Kontrola produkce v prohlížeči – reálně klikne na nástroje a ověří, že se spustí
+# (chytí i klientské bugy, které API health-check nezachytí).
+# Chytré zapojení: testujeme hlavně PO DEPLOYI (tam bugy vznikají) + 1× denně pojistka.
+# Selhání = červený běh + GitHub notifikace.
 
 on:
+  push:
+    branches: [main] # po každém deployi na produkci
   schedule:
-    - cron: '0 * * * *' # každou hodinu
+    - cron: '0 6 * * *' # 1× denně (06:00 UTC ~ 08:00 CEST) jako pojistka
   workflow_dispatch: {} # ruční spuštění tlačítkem
 
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,7 +25,14 @@ jobs:
         run: npm ci || npm install
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Smoke test proti produkci
-        run: node scripts/prod-smoke.mjs
+      - name: Smoke test proti produkci (s čekáním na deploy)
         env:
           BASE_URL: https://etfpruvodce.cz
+        run: |
+          # Po pushi Vercel chvíli buildí – zkusíme to víckrát, ať netestujeme starou verzi.
+          for i in 1 2 3 4 5 6 7 8; do
+            if node scripts/prod-smoke.mjs; then exit 0; fi
+            echo "::notice::pokus $i neprošel, čekám na deploy…"; sleep 30
+          done
+          echo "::error::Produkce neprošla smoke-testem ani po 8 pokusech."
+          exit 1
