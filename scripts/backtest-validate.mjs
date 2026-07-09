@@ -64,6 +64,10 @@ const AW = [{ isin: 'ftse_all_world', name: 'All-World', weight: 1, ter: 0.0022,
     check('Volatilita akcií je reálná (10–30 % p.a.)', volPct > 10 && volPct < 30, `${volPct.toFixed(1)} %`);
     //     Dlouhodobý akciový Sharpe bývá ~0,3–0,7; nad 1,5 = nafouknuté (podhodnocená σ).
     check('Sharpe není nafouknutý (< 1,5)', noDca.summary.sharpeRatio < 1.5, noDca.summary.sharpeRatio.toFixed(2));
+    //     Sortino (jen downside) bývá vyšší než Sharpe; reálné pásmo ~0,1–2.
+    const sortino = noDca.summary.sortinoRatio;
+    check('Sortino je reálný (0,1–2) a ≥ Sharpe', sortino > 0.1 && sortino < 2 && sortino >= noDca.summary.sharpeRatio - 0.01,
+      `${sortino.toFixed(2)} (Sharpe ${noDca.summary.sharpeRatio.toFixed(2)})`);
 
     // 3c) API vystavuje seznam propadů (allDrawdowns) a jeho nejhlubší sedí s max. propadem.
     const dd = noDca.risk.allDrawdowns || [];

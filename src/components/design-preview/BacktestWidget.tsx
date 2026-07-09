@@ -81,7 +81,7 @@ interface DrawdownPeriod {
 }
 interface BacktestResult {
   evolution: Array<{ date: string; value: number }>;
-  summary: { amountInvested: number; netAssetValue: number; cagr: number; standardDeviation: number; sharpeRatio: number };
+  summary: { amountInvested: number; netAssetValue: number; cagr: number; standardDeviation: number; sharpeRatio: number; sortinoRatio: number };
   returns: { annualReturns: Array<{ year: number; return: number }> };
   risk: {
     maxDrawdown: DrawdownPeriod;
@@ -614,9 +614,9 @@ export default function BacktestWidget() {
             />
           </div>
 
-          {/* Pokročilé ukazatele */}
+          {/* Nejlepší a nejhorší rok */}
           {advanced && (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <MetricCard
                 icon={TrendingUp} label="Nejlepší rok"
                 value={fmtPct(advanced.best.return * 100)}
@@ -629,15 +629,6 @@ export default function BacktestWidget() {
                 hint={String(advanced.worst.year)}
                 tone="neg"
               />
-              {advanced.sortino != null && (
-                <MetricCard
-                  icon={Activity}
-                  label={<>Sortino <InfoTip label="Výnos na jednotku propadů – jako Sharpe, ale trestá jen záporné výkyvy (ty, co bolí). Vyšší = lepší poměr výnosu k riziku poklesů."><span className="sr-only">vysvětlení</span></InfoTip></>}
-                  value={advanced.sortino.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  hint="výnos vs. propady"
-                  tone="neutral"
-                />
-              )}
             </div>
           )}
 
@@ -911,6 +902,52 @@ export default function BacktestWidget() {
               </p>
             </div>
           )}
+
+          {/* Pokročilé ukazatele – za rozklikem (progressive disclosure), standardní názvy + ⓘ */}
+          {(() => {
+            const s = result.summary;
+            const dd = Math.abs(result.risk.maxDrawdown.depth);
+            const calmar = dd > 0 ? s.cagr / dd : null;
+            const fmt2 = (v: number) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return (
+              <details className="group rounded-lg border border-slate-200 bg-white">
+                <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none">
+                  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Pokročilé ukazatele</span>
+                  <span className="flex items-center gap-2 text-xs text-slate-400">
+                    Sharpe · Sortino · Calmar · VaR
+                    <Info className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform" />
+                  </span>
+                </summary>
+                <div className="px-5 pb-5 md:px-6 md:pb-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <MetricCard
+                      icon={Activity}
+                      label={<>Sharpe <InfoTip label="Kolik výnosu jsi dostal za každou jednotku kolísání. Vyšší číslo = líp zaplaceno za podstoupené nervy."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      value={fmt2(s.sharpeRatio)} hint="výnos vs. kolísání" tone="neutral"
+                    />
+                    <MetricCard
+                      icon={Activity}
+                      label={<>Sortino <InfoTip label="Jako Sharpe, ale trestá jen propady (ty, co bolí), ne výkyvy nahoru. Vyšší = lepší."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      value={fmt2(s.sortinoRatio)} hint="výnos vs. propady" tone="neutral"
+                    />
+                    <MetricCard
+                      icon={Activity}
+                      label={<>Calmar <InfoTip label="Roční výnos vůči nejhoršímu propadu. Vyšší = výnos se drží snáz, protože propady byly mělčí."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      value={calmar != null ? fmt2(calmar) : '—'} hint="výnos vs. max. propad" tone="neutral"
+                    />
+                    <MetricCard
+                      icon={TrendingDown}
+                      label={<>VaR 95 % <InfoTip label="Value at Risk – zhruba nejhorší rok, který běžně čekat. Horší nastane jen asi v 1 roce z 20."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      value={fmtPct(result.risk.valueAtRisk95 * 100)} hint="odhad špatného roku" tone="neg"
+                    />
+                  </div>
+                  <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                    Rizikově vážené ukazatele pro pokročilé – co znamenají, najdete pod ⓘ u každého názvu. Pro běžné rozhodnutí stačí výnos a největší pokles výše.
+                  </p>
+                </div>
+              </details>
+            );
+          })()}
 
           {/* Připomenutí limitů backtestu */}
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-start gap-2.5">
