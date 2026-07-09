@@ -129,6 +129,25 @@ export default async function DaneZEtf() {
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
             </div>
+
+            {/* Klíčová čísla – tři pravidla, která rozhodují o dani */}
+            <div className="mt-6 grid grid-cols-3 gap-2.5 max-w-2xl">
+              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
+                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Clock className="w-3.5 h-3.5" /> Časový test</span>
+                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-emerald-400">3 roky</p>
+                <p className="text-xs text-slate-400 mt-0.5">pak je zisk z prodeje bez daně</p>
+              </div>
+              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
+                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Scale className="w-3.5 h-3.5" /> Hodnotový test</span>
+                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-white">100 000 Kč</p>
+                <p className="text-xs text-slate-400 mt-0.5">roční prodeje pod limit bez daně</p>
+              </div>
+              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
+                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Percent className="w-3.5 h-3.5" /> Daň z dividend</span>
+                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-white">15 %</p>
+                <p className="text-xs text-slate-400 mt-0.5">u distribučních ETF</p>
+              </div>
+            </div>
           </div>
         </section>
 
