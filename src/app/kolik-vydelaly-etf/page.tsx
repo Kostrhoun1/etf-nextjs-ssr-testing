@@ -10,6 +10,7 @@ import {
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate } from '@/lib/etf-data';
+import { getEquityCurve } from '@/lib/backtest/equityCurve';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -29,6 +30,25 @@ export const metadata: Metadata = {
 export default async function KolikVydelalyEtf() {
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Equity křivka (serverové SVG). Null → graf se nevykreslí, stránka nespadne.
+  const equity = await getEquityCurve();
+  const chart = (() => {
+    if (!equity) return null;
+    const W = 720, H = 300, padL = 8, padR = 14, padT = 18, padB = 30;
+    const yMin = Math.min(equity.minY, 100000) * 0.9;
+    const yMax = equity.maxY * 1.06;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const px = (x: number) => padL + x * plotW;
+    const py = (v: number) => padT + (1 - (v - yMin) / (yMax - yMin)) * plotH;
+    const line = equity.points.map((p, i) => `${i ? 'L' : 'M'}${px(p.x).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ');
+    const area = `${line} L${px(1).toFixed(1)},${py(yMin).toFixed(1)} L${px(0).toFixed(1)},${py(yMin).toFixed(1)} Z`;
+    const years: number[] = [];
+    for (let y = Math.ceil(equity.startYear / 4) * 4; y < equity.endYear; y += 4) years.push(y);
+    const yearX = (y: number) => (y - equity.startYear) / (equity.endYear - equity.startYear);
+    return { W, H, padL, padR, py, px, line, area, yMin, yMax, years, yearX,
+      y100: py(100000), xEnd: px(1), yEndVal: py(equity.finalValue) };
+  })();
 
   const faqs = [
     {
@@ -188,6 +208,40 @@ export default async function KolikVydelalyEtf() {
         {/* 2. CESTA NEBYLA KLIDNÁ */}
         <section className="pb-10">
           <SectionHead title="Cesta ale zdaleka nebyla klidná" desc="Ten čtyřnásobek nevznikl v přímé linii. Investor cestou zažil několik hlubokých propadů – a právě ty rozhodují, kdo výnos nakonec dostane." />
+          {chart && equity && (
+            <div className="mb-3 rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+              <p className="text-sm font-medium text-slate-900 mb-2">Hodnota 100 000 Kč ve světovém indexu ({equity.startYear}–{equity.endYear})</p>
+              <div className="overflow-x-auto">
+                <svg viewBox={`0 0 ${chart.W} ${chart.H}`} className="w-full h-auto min-w-[520px]" role="img" aria-label={`Vývoj hodnoty 100 000 Kč investovaných do světového indexu od roku ${equity.startYear}: přibližně čtyřnásobek, cestou přes hluboké propady v letech 2008, 2020 a 2022.`}>
+                  <defs>
+                    <linearGradient id="eqFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0d9488" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="#0d9488" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {chart.years.map((y) => (
+                    <g key={y}>
+                      <line x1={chart.px(chart.yearX(y))} y1={chart.padT} x2={chart.px(chart.yearX(y))} y2={chart.H - 30} stroke="#f1f5f9" strokeWidth="1" />
+                      <text x={chart.px(chart.yearX(y))} y={chart.H - 11} textAnchor="middle" fontSize="11" fill="#94a3b8">{y}</text>
+                    </g>
+                  ))}
+                  <line x1={chart.padL} y1={chart.y100} x2={chart.W - chart.padR} y2={chart.y100} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 4" />
+                  <text x={chart.padL + 2} y={chart.y100 - 4} fontSize="10.5" fill="#94a3b8">vklad 100 000 Kč</text>
+                  <path d={chart.area} fill="url(#eqFill)" />
+                  <path d={chart.line} fill="none" stroke="#0d9488" strokeWidth="2" strokeLinejoin="round" />
+                  {equity.troughs.map((t) => (
+                    <g key={t.year}>
+                      <circle cx={chart.px(t.x)} cy={chart.py(t.y)} r="3.5" fill="#e11d48" />
+                      <text x={chart.px(t.x)} y={chart.py(t.y) + 16} textAnchor="middle" fontSize="11" fontWeight="600" fill="#e11d48">{t.label}</text>
+                    </g>
+                  ))}
+                  <circle cx={chart.xEnd} cy={chart.yEndVal} r="3.5" fill="#0d9488" />
+                  <text x={chart.xEnd - 6} y={chart.yEndVal - 7} textAnchor="end" fontSize="12" fontWeight="700" fill="#0f766e">~400 000 Kč</text>
+                </svg>
+              </div>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">Ilustrace tvaru zhodnocení (normalizováno na vklad 100 000 Kč, index FTSE All-World). Zaokrouhleno; minulé výnosy nezaručují budoucí.</p>
+            </div>
+          )}
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-sm">
               <thead>
