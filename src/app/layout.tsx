@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-cover.jpg',
         width: 1200,
         height: 630,
         alt: 'ETF průvodce.cz - Nejlepší ETF fondy pro české investory',
@@ -63,7 +63,7 @@ export async function generateMetadata(): Promise<Metadata> {
     card: 'summary_large_image',
     title: `ETF průvodce.cz | Srovnání ${count} ETF fondů`,
     description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
-    images: ['/og-image.jpg'],
+    images: ['/og-cover.jpg'],
   },
   robots: {
     index: true,
