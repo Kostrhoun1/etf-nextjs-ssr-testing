@@ -595,7 +595,7 @@ export function calculateSummary(
   marketNav: TimeSeriesPoint[],   // time-weighted NAV bez vkladů (pro výnos/riziko)
   realFinalValue: number,          // reálná konečná hodnota (s vklady) – jen k zobrazení
   totalContributed: number,        // reálně vložené peníze
-  riskFreeRate: number = 0.03 // Default 3% (approx Euribor)
+  riskFreeRate: number = 0.02 // ~2 % = přibližný vážený průměr české bezrizikové sazby (ČNB 2W repo) 2008–2026; výnosy jsou v Kč, proto CZK sazba, ne Euribor
 ): BacktestSummary {
   if (marketNav.length < 2) {
     return {
