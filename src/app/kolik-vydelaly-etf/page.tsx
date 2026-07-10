@@ -239,7 +239,7 @@ export default async function KolikVydelalyEtf() {
                   <text x={chart.xEnd - 6} y={chart.yEndVal - 7} textAnchor="end" fontSize="12" fontWeight="700" fill="#0f766e">~400 000 Kč</text>
                 </svg>
               </div>
-              <p className="mt-2 text-xs text-slate-500 leading-relaxed">Ilustrace tvaru zhodnocení (normalizováno na vklad 100 000 Kč, index FTSE All-World). Zaokrouhleno; minulé výnosy nezaručují budoucí.</p>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">Skutečný historický vývoj širokého světového indexu (FTSE All-World) přepočtený na vklad 100 000 Kč, od poloviny roku 2008 do současnosti. Hodnoty jsou zaokrouhlené. Minulé výnosy nezaručují ty budoucí.</p>
             </div>
           )}
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
