@@ -5,7 +5,7 @@ import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Legend,
 } from 'recharts';
 import {
-  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info,
+  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info, ChevronDown,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 
@@ -864,11 +864,15 @@ export default function BacktestWidget() {
             const fmt2 = (v: number) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             return (
               <details className="group rounded-lg border border-slate-200 bg-white">
-                <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none">
+                <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none rounded-lg hover:bg-slate-50 transition-colors">
                   <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Pokročilé ukazatele</span>
                   <span className="flex items-center gap-2 text-xs text-slate-400">
-                    Sharpe · Sortino · Calmar · VaR
-                    <Info className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform" />
+                    <span className="hidden sm:inline">Sharpe · Sortino · Calmar · VaR</span>
+                    <span className="inline-flex items-center gap-1 font-medium text-teal-700 group-open:text-slate-500">
+                      <span className="group-open:hidden">Zobrazit</span>
+                      <span className="hidden group-open:inline">Skrýt</span>
+                      <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                    </span>
                   </span>
                 </summary>
                 <div className="px-5 pb-5 md:px-6 md:pb-6">
