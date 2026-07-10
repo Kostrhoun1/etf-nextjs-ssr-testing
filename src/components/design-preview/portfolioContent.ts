@@ -17,7 +17,7 @@ export const portfolioContent: Record<string, PortfolioContent> = {
   'permanentni-portfolio': {
     intro: [
       'Permanentní portfolio vychází z myšlenky Harryho Browna z 80. let: rozložit majetek rovným dílem mezi aktiva, z nichž každé se daří v jiné fázi ekonomiky. Když jedna část klesá, jiná zpravidla roste, a celek tak zůstává klidný bez ohledu na to, co dělá trh.',
-      'Naše verze drží čtyři rovnoměrné čtvrtiny: světové akcie (růst v dobách prosperity), globální dluhopisy (opora při recesi a deflaci), nemovitosti (příjem a ochrana proti inflaci) a komodity (výkon při inflačních šocích). Žádná složka nepřesahuje 25 %, takže portfolio nestojí a nepadá s jediným trhem.',
+      'Drží čtyři rovnoměrné čtvrtiny přesně podle Browna: světové akcie (růst v dobách prosperity), dlouhé státní dluhopisy (opora při recesi a deflaci), zlato (ochrana při inflaci a krizích důvěry) a hotovost v podobě krátkých státních dluhopisů (klid a rezerva na nákupy během propadů). Žádná složka nepřesahuje 25 %, takže portfolio nestojí a nepadá s jediným trhem.',
     ],
     howItWorks: 'Jednou ročně portfolio vyvážíte zpět na 25/25/25/25 – prodáte část toho, co vyrostlo, a dokoupíte to, co zaostalo. Tím automaticky prodáváte draho a nakupujete levně a udržujete nízké riziko.',
     strengths: 'Mimořádně klidný průběh a mělké propady. Historicky zvládá inflaci i recesi bez velkých ztrát, takže investor méně podléhá panice a vydrží.',

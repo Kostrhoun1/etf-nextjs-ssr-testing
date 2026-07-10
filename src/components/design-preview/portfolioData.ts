@@ -51,13 +51,13 @@ export const portfolioModels: PortfolioModel[] = [
     stocksPct: 25,
     horizon: 'od 5 let',
     forWhom: 'Chci klid a co nejmenší výkyvy, růst je až druhořadý.',
-    expectedReturn: '≈ 4 % ročně',
-    maxDrawdown: 'do −15 %',
+    expectedReturn: '≈ 5–6 % ročně',
+    maxDrawdown: 'do −20 %',
     allocations: [
       { label: 'Akcie', cls: 'akcie', percentage: 25, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World UCITS ETF' },
-      { label: 'Dluhopisy', cls: 'dluhopisy', percentage: 25, isin: 'IE00BDBRDM35', etfName: 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)' },
-      { label: 'Nemovitosti', cls: 'nemovitosti', percentage: 25, isin: 'IE00B0M63284', etfName: 'iShares European Property Yield UCITS ETF' },
-      { label: 'Komodity', cls: 'komodity', percentage: 25, isin: 'IE00BD6FTQ80', etfName: 'Invesco Bloomberg Commodity UCITS ETF (Acc)' },
+      { label: 'Dlouhodobé dluhopisy', cls: 'dluhopisy', percentage: 25, isin: 'IE00BFM6TC58', etfName: 'iShares USD Treasury Bond 20+yr UCITS ETF (Acc)' },
+      { label: 'Hotovost (krátké dluhopisy)', cls: 'dluhopisy', percentage: 25, isin: 'IE00BYXPSP02', etfName: 'iShares USD Treasury Bond 1-3yr UCITS ETF' },
+      { label: 'Zlato', cls: 'zlato', percentage: 25, isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold ETC' },
     ],
   },
   {
@@ -168,11 +168,10 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
     start: '2008-07-01',
     items: [
       { indexCode: 'ftse_all_world', weight: 0.25, ter: 0.0022 },
-      { indexCode: 'us_aggregate_bond', weight: 0.25, ter: 0.0025 },
-      { indexCode: 'ftse_europe', weight: 0.25, ter: 0.0040 }, // proxy nemovitostí
-      { indexCode: 'commodities', weight: 0.25, ter: 0.0019 },
+      { indexCode: 'us_treasury_20y', weight: 0.25, ter: 0.0007 },
+      { indexCode: 'us_treasury_1_3y', weight: 0.25, ter: 0.0007 },
+      { indexCode: 'gold', weight: 0.25, ter: 0.0012 },
     ],
-    proxyNote: 'Nemovitostní složku kvůli délce historie aproximujeme evropským akciovým indexem – reálné výkyvy nemovitostních fondů jsou obvykle o něco mírnější.',
   },
   'nobel-portfolio': {
     start: '2008-07-01',
