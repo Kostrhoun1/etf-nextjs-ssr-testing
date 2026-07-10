@@ -50,18 +50,18 @@ const AVAILABLE_INDEXES = [
 const PRESET_PORTFOLIOS = [
   { id: 'sp500-100', name: '100% S&P 500', description: 'Čistě americké akcie', etfs: [{ indexCode: 'sp500', weight: 100 }] },
   { id: 'ftse-all-world', name: '100% All-World', description: 'Globální akcie', etfs: [{ indexCode: 'ftse_all_world', weight: 100 }] },
-  { id: '60-40', name: '60/40 portfolio', description: '60 % akcie, 40 % dluhopisy', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
+  { id: '60-40', name: '60/40 portfolio', description: '60 % akcie, 40 % dluhopisy', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
   {
     id: 'all-weather', name: 'Ray Dalio All-Weather', description: 'Pro všechny tržní podmínky',
     etfs: [
-      { indexCode: 'sp500', weight: 30 }, { indexCode: 'us_treasury_20y', weight: 40 },
-      { indexCode: 'us_treasury_7_10y', weight: 15 }, { indexCode: 'gold', weight: 7 }, { indexCode: 'commodities', weight: 8 },
+      { indexCode: 'ftse_all_world', weight: 30 }, { indexCode: 'us_treasury_20y', weight: 40 },
+      { indexCode: 'us_treasury_7_10y', weight: 15 }, { indexCode: 'gold', weight: 7.5 }, { indexCode: 'commodities', weight: 7.5 },
     ],
   },
   {
-    id: 'permanent', name: 'Permanentní portfolio', description: '25 % akcie, dluhopisy, zlato, hotovost',
+    id: 'permanent', name: 'Permanentní portfolio', description: '25 % akcie, dlouhé dluhopisy, hotovost, zlato',
     etfs: [
-      { indexCode: 'sp500', weight: 25 }, { indexCode: 'us_treasury_20y', weight: 25 },
+      { indexCode: 'ftse_all_world', weight: 25 }, { indexCode: 'us_treasury_20y', weight: 25 },
       { indexCode: 'us_treasury_1_3y', weight: 25 }, { indexCode: 'gold', weight: 25 },
     ],
   },
