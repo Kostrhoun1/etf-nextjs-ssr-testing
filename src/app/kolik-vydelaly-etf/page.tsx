@@ -219,12 +219,16 @@ export default async function KolikVydelalyEtf() {
                       <stop offset="100%" stopColor="#0d9488" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  {chart.years.map((y) => (
-                    <g key={y}>
-                      <line x1={chart.px(chart.yearX(y))} y1={chart.padT} x2={chart.px(chart.yearX(y))} y2={chart.H - 30} stroke="#f1f5f9" strokeWidth="1" />
-                      <text x={chart.px(chart.yearX(y))} y={chart.H - 11} textAnchor="middle" fontSize="11" fill="#94a3b8">{y}</text>
-                    </g>
-                  ))}
+                  {chart.years.map((y) => {
+                    const xx = chart.px(chart.yearX(y));
+                    const anchor = xx < 24 ? 'start' : xx > chart.W - 24 ? 'end' : 'middle';
+                    return (
+                      <g key={y}>
+                        <line x1={xx} y1={chart.padT} x2={xx} y2={chart.H - 30} stroke="#f1f5f9" strokeWidth="1" />
+                        <text x={xx} y={chart.H - 11} textAnchor={anchor} fontSize="11" fill="#94a3b8">{y}</text>
+                      </g>
+                    );
+                  })}
                   <line x1={chart.padL} y1={chart.y100} x2={chart.W - chart.padR} y2={chart.y100} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 4" />
                   <text x={chart.padL + 2} y={chart.y100 - 4} fontSize="10.5" fill="#94a3b8">vklad 100 000 Kč</text>
                   <path d={chart.area} fill="url(#eqFill)" />
