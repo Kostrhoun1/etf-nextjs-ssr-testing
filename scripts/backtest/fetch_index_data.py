@@ -12,9 +12,14 @@ from supabase import create_client
 from datetime import datetime
 import pandas as pd
 
-# Supabase config
-SUPABASE_URL = 'https://nbhwnatadyubiuadfakx.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaHduYXRhZHl1Yml1YWRmYWt4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODg0NDc0NCwiZXhwIjoyMDY0NDIwNzQ0fQ.SI_s72FBMs2qSqhKBsm7ZJSnPOnCEfWn1zQ6nxMtgyo'
+# Supabase config – přihlašovací údaje z ENV (service_role klíč se NIKDY necommituje).
+#   export SUPABASE_URL="https://<projekt>.supabase.co"
+#   export SUPABASE_KEY="<service_role klíč>"
+import os
+SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://nbhwnatadyubiuadfakx.supabase.co')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+if not SUPABASE_KEY:
+    raise SystemExit('Nastav SUPABASE_KEY (service_role) přes ENV proměnnou.')
 
 # Index definitions
 INDEXES = {
