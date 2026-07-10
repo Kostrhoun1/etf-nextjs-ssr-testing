@@ -324,6 +324,7 @@ export default async function SvetoveEtfIndexy() {
               ['/nejlepsi-etf/nejlepsi-msci-world-etf', 'Nejlepší MSCI World ETF', 'Rozvinuté trhy', Building2],
               ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', 'Americké velké firmy', Landmark],
               ['/akumulacni-vs-distribucni-etf', 'Akumulační vs. distribuční', 'Který typ výplaty zvolit', TrendingUp],
+              ['/kolik-vydelaly-etf', 'Kolik ETF reálně vydělaly', 'Výnos světového indexu v Kč přes krize', TrendingUp],
               ['/portfolio-strategie', 'Modelová portfolia', 'Jak fond zasadit do portfolia', BookOpen],
             ] as [string, string, string, typeof Wallet][]).map(([href, label, desc, Icon]) => (
               <Link key={href} href={href} className="group flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
