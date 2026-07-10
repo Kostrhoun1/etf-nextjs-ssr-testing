@@ -26,6 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { p: '/dane-z-etf', pr: 0.8 },
     { p: '/akumulacni-vs-distribucni-etf', pr: 0.7 },
     { p: '/svetove-etf-indexy', pr: 0.8 },
+    { p: '/kolik-vydelaly-etf', pr: 0.8 },
     { p: '/kolik-investovat-mesicne', pr: 0.8 },
     { p: '/jaky-sp500-etf', pr: 0.8 },
     { p: '/dca-vs-jednorazova', pr: 0.8 },

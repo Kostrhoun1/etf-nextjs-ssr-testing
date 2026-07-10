@@ -739,6 +739,7 @@ export default async function GuidePreview() {
               ['/nejlepsi-etf/nejlevnejsi-etf', 'Nejlevnější ETF', Wallet],
               ['/kde-koupit', 'Kde koupit ETF', Landmark],
               ['/kalkulacka', 'Kalkulačka poplatků', Calculator],
+              ['/kolik-vydelaly-etf', 'Kolik ETF vydělaly', TrendingUp],
             ] as [string, string, typeof Globe][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>
