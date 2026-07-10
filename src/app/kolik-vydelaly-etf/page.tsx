@@ -237,6 +237,7 @@ export default async function KolikVydelalyEtf() {
                   ))}
                   <circle cx={chart.xEnd} cy={chart.yEndVal} r="3.5" fill="#0d9488" />
                   <text x={chart.xEnd - 6} y={chart.yEndVal - 7} textAnchor="end" fontSize="12" fontWeight="700" fill="#0f766e">~400 000 Kč</text>
+                  <text x={chart.W - 2} y="12" textAnchor="end" fontSize="11" fontWeight="600" fill="#94a3b8" fontFamily="sans-serif">Zdroj: etfpruvodce.cz</text>
                 </svg>
               </div>
               <p className="mt-2 text-xs text-slate-500 leading-relaxed">Skutečný historický vývoj širokého světového indexu (FTSE All-World) přepočtený na vklad 100 000 Kč, od poloviny roku 2008 do současnosti. Hodnoty jsou zaokrouhlené. Minulé výnosy nezaručují ty budoucí.</p>
