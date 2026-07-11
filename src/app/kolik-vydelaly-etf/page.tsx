@@ -547,6 +547,32 @@ export default async function KolikVydelalyEtf() {
           <p className="mt-3 text-sm text-slate-500 leading-relaxed">Za posledních 18 let jednoznačně táhly <strong className="text-slate-700">americké akcie</strong> (S&amp;P 500) – z milionu udělaly skoro sedminásobek. Rozvíjející se trhy naopak zaostaly. Pozor ale: <strong className="text-slate-700">minulý vítěz nemusí být ten budoucí</strong>. Sázka na jediný region je koncentrace rizika; široký svět (All-World) je kompromis, který drží kus obojího.</p>
         </section>
 
+        {/* DELŠÍ POHLED – ZTRACENÁ DEKÁDA (S&P 500 od 1993) */}
+        <section className="pb-10">
+          <SectionHead title="A co ještě delší historie? Ztracená dekáda" desc="Rozbor výše začíná v roce 2008. Ještě delší data v korunách máme jen pro americké akcie (S&P 500) – koruna totiž vznikla až v roce 1993. A ukazují ještě drsnější lekci o trpělivosti." />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-5">
+              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200 mb-3"><Sprout className="w-5 h-5" /></span>
+              <p className="text-xs uppercase tracking-wide text-emerald-700/80">33 let (1993→dnes)</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">2 720 000 Kč</p>
+              <p className="text-sm text-slate-600 mt-0.5">ze 100 000 Kč, ~10,8 % ročně</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-5">
+              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 mb-3"><TrendingDown className="w-5 h-5" /></span>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Dot-com krach 2000</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-rose-600">−57 %</p>
+              <p className="text-sm text-slate-600 mt-0.5">zotavení trvalo skoro 7 let</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-5">
+              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 mb-3"><Timer className="w-5 h-5" /></span>
+              <p className="text-xs uppercase tracking-wide text-slate-500">Roky 2000–2013</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">~13 let</p>
+              <p className="text-sm text-slate-600 mt-0.5">akcie skoro bez reálného zisku</p>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-slate-500 leading-relaxed">Kdo koupil americké akcie na vrcholu roku 2000, viděl je spadnout o 57 % a na původní hodnotu se dostal až po sedmi letech – aby vzápětí přišla krize 2008. Reálně tak byl přes <strong className="text-slate-700">13 let skoro na nule</strong>. Extrémní příklad, proč horizont u akcií znamená klidně 15+ let, ne pět. Druhá strana mince: kdo těch 33 let vydržel, udělal ze 100 000 Kč přes <strong className="text-emerald-700">2,7 milionu</strong>. (Delší řada v korunách nejde – koruna vznikla v roce 1993.)</p>
+        </section>
+
         {/* 4. CO SI Z TOHO VZÍT */}
         <section className="pb-10">
           <SectionHead title="Co si z toho vzít" desc="Tři závěry, které z těchto čísel plynou pro obyčejného investora." />
