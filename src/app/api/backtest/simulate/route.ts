@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   runBacktest,
   runBacktestWithForecasts,
-  loadExchangeRates,
-  convertTimeSeriesFromEur,
-  getExchangeRateForDate,
 } from '@/lib/backtest/engine'
 import { resampleMonthEnd, calculateStressPeriods, calculateDrawdownSeries, calculateRollingReturns } from '@/lib/backtest/calculations'
 import type { BacktestInput, PortfolioItem, RebalancingStrategy } from '@/lib/backtest/types'
@@ -60,45 +57,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Load exchange rates for currency conversion
     const currency = body.currency || 'CZK'
     const startDate = new Date(body.startDate)
     const endDate = new Date(body.endDate)
 
-    let exchangeRates: Awaited<ReturnType<typeof loadExchangeRates>> = []
-    exchangeRates = await loadExchangeRates(startDate, endDate)
-
-    // Get starting exchange rate for input conversion
-    const startRate = exchangeRates.length > 0
-      ? getExchangeRateForDate(exchangeRates, startDate)
-      : null
-
-    // Convert input amounts from user currency to EUR (data is stored in EUR)
-    // For CZK: divide by EUR/CZK rate to get EUR
-    // For USD: divide by EUR/USD rate to get EUR
-    let initialAmountEur = body.initialAmount || 10000
-    let contributionsEur = body.contributions
-
-    if (startRate && currency === 'CZK') {
-      initialAmountEur = body.initialAmount / startRate.eurCzk
-      if (body.contributions) {
-        contributionsEur = {
-          ...body.contributions,
-          amount: body.contributions.amount / startRate.eurCzk,
-        }
-      }
-    } else if (startRate && currency === 'USD') {
-      initialAmountEur = body.initialAmount / startRate.eurUsd
-      if (body.contributions) {
-        contributionsEur = {
-          ...body.contributions,
-          amount: body.contributions.amount / startRate.eurUsd,
-        }
-      }
-    }
-    // EUR: no conversion needed
-
-    // Build input with EUR amounts
+    // FX řeší engine: každý index se převede ze své zdrojové měny (USD/EUR) do cílové
+    // měny po dnech JEŠTĚ PŘED složením portfolia. Částky uživatele (vklad, příspěvky)
+    // se proto berou přímo v cílové měně a příspěvky se nakupují za kurz daného dne
+    // (dřívější přepočet startovním kurzem celé období podhodnocoval/nadhodnocoval DCA).
     const input: BacktestInput = {
       portfolio: body.portfolio.map((item) => ({
         isin: item.isin,
@@ -109,12 +75,13 @@ export async function POST(request: NextRequest) {
       })),
       startDate,
       endDate,
-      initialAmount: initialAmountEur,
+      initialAmount: body.initialAmount || 10000,
       rebalancingStrategy: body.rebalancingStrategy || 'yearly',
-      contributions: contributionsEur,
+      contributions: body.contributions,
+      currency,
     }
 
-    // Run backtest (internally in EUR)
+    // Run backtest (celý v cílové měně)
     let result
     if (body.includeMonteCarlo) {
       result = await runBacktestWithForecasts(input, body.forecastYears || 10)
@@ -122,45 +89,17 @@ export async function POST(request: NextRequest) {
       result = await runBacktest(input)
     }
 
-    // Convert evolution from EUR to target currency
-    const convertedEvolution = convertTimeSeriesFromEur(
-      result.evolution,
-      exchangeRates,
-      currency
-    )
+    const convertedEvolution = result.evolution
+    const convertedSummary = result.summary
 
-    // Get final exchange rate for summary conversion
-    const finalRate = exchangeRates.length > 0
-      ? getExchangeRateForDate(exchangeRates, endDate)
-      : null
-
-    // Convert summary values from EUR to target currency
-    let convertedSummary = { ...result.summary }
-    if (finalRate) {
-      let conversionFactor = 1
-      if (currency === 'CZK') {
-        conversionFactor = finalRate.eurCzk
-      } else if (currency === 'USD') {
-        conversionFactor = finalRate.eurUsd
-      }
-      // EUR: factor = 1
-
-      convertedSummary = {
-        ...result.summary,
-        amountInvested: result.summary.amountInvested * conversionFactor,
-        netAssetValue: result.summary.netAssetValue * conversionFactor,
-      }
-    }
-
-    // Krizové testy počítáme z EUR marketNav (stejně jako max. propad a ostatní rizikové metriky)
-    // – propad je poměr, takže je nezávislý na startu i na FX; a je KONZISTENTNÍ s tabulkou propadů.
-    // (Přepočet na CZK je bohužel start-závislý kvůli chování FX lookupu – proto ho tu nepoužíváme.)
+    // Krizové testy, propady i rolling returns z marketNav – ten je teď v cílové měně,
+    // takže všechno (částky, CAGR, propady) sedí navzájem i s evolution.
     const stressPeriods = calculateStressPeriods(result.marketNav ?? [])
     const drawdownSeries = calculateDrawdownSeries(result.marketNav ?? [])
     const rollingReturns = calculateRollingReturns(result.marketNav ?? [])
-    // Měsíční NAV v cílové měně pro budoucí rolling returns (kompaktní).
+    // Měsíční NAV v cílové měně (kompaktní).
     const marketNavMonthly = result.marketNav
-      ? resampleMonthEnd(convertTimeSeriesFromEur(result.marketNav, exchangeRates, currency)).map((p) => ({ date: p.date.toISOString(), value: p.value }))
+      ? resampleMonthEnd(result.marketNav).map((p) => ({ date: p.date.toISOString(), value: p.value }))
       : []
 
     // Serialize dates for JSON response (syrový denní marketNav do payloadu neposíláme)

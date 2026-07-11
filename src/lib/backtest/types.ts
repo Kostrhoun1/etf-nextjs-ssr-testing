@@ -15,6 +15,15 @@ export interface BacktestInput {
   initialAmount: number
   rebalancingStrategy?: RebalancingStrategy
   contributions?: ContributionPlan
+  /**
+   * Cílová měna simulace. Když je zadaná, engine převede KAŽDÝ index z jeho zdrojové
+   * měny (viz INDEX_SOURCE_CURRENCY v engine.ts) na tuto měnu po jednotlivých dnech
+   * JEŠTĚ PŘED složením portfolia. initialAmount i contributions se pak berou přímo
+   * v této měně a všechny metriky (CAGR, volatilita, propady, Sharpe) vycházejí
+   * konzistentně v ní. Bez zadání běží simulace v nativních jednotkách dat (bez FX) –
+   * vhodné jen pro tvarové/poměrové použití (normalizovaný graf), NE pro částky.
+   */
+  currency?: 'EUR' | 'CZK' | 'USD'
 }
 
 export type RebalancingStrategy =

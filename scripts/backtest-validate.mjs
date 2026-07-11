@@ -50,8 +50,10 @@ const AW = [{ isin: 'ftse_all_world', name: 'All-World', weight: 1, ter: 0.0022,
     check('Roční výnosy nezávislé na vkladech (max rozdíl < 1 pb)', worstYearDiff < 1,
       `nejhorší rok ${worstYear}: ${worstYearDiff.toFixed(2)} pb`);
 
-    // 2) DRAWDOWN JE REÁLNÝ: 100% světové akcie od 2008 musely projít hlubokým propadem 2008 (< −35 %).
-    check('Reálný hluboký propad akcií 2008 (< −35 %)', noDca.risk.maxDrawdown.depth < -0.35,
+    // 2) DRAWDOWN JE REÁLNÝ: 100% světové akcie od 2008 musely projít hlubokým propadem (< −25 %).
+    //    Práh je v Kč: koruna v krizích oslabuje (podzim 2008: USD/CZK 14,9→22), takže propad
+    //    v Kč je MĚLČÍ než v USD (−32 % vs −50 %). Dřívější práh −35 % platil pro USD řadu.
+    check('Reálný hluboký propad akcií v Kč (< −25 %)', noDca.risk.maxDrawdown.depth < -0.25,
       `max. propad ${(noDca.risk.maxDrawdown.depth * 100).toFixed(1)} %`);
 
     // 3) SANITY CAGR: světové akcie v Kč 2008–dnes dávají rozumný výnos (2–15 % p.a.).
