@@ -10,7 +10,7 @@
  *
  * Při jakékoli chybě vrací null → hero zobrazí statickou variantu (žádný pád stránky).
  */
-import { runBacktest, loadExchangeRates, getExchangeRateForDate } from './engine';
+import { runBacktest } from './engine';
 import type { BacktestInput } from './types';
 
 export interface HeroExample {
@@ -28,15 +28,6 @@ export async function getHeroExample(): Promise<HeroExample | null> {
     const endDate = new Date();
     const initialCzk = 100000;
 
-    const rates = await loadExchangeRates(startDate, endDate);
-    if (rates.length === 0) return null;
-
-    const startRate = getExchangeRateForDate(rates, startDate);
-    const finalRate = getExchangeRateForDate(rates, endDate);
-    if (!startRate || !finalRate) return null;
-
-    const initialEur = initialCzk / startRate.eurCzk;
-
     const input: BacktestInput = {
       portfolio: [
         { isin: 'IE00B5BMR087', name: 'S&P 500', weight: 0.6, ter: 0.0007, indexCode: 'sp500' },
@@ -44,14 +35,15 @@ export async function getHeroExample(): Promise<HeroExample | null> {
       ],
       startDate,
       endDate,
-      initialAmount: initialEur,
+      initialAmount: initialCzk,
       rebalancingStrategy: 'yearly',
+      currency: 'CZK', // engine převádí každý index po dnech, výsledek je rovnou v Kč
     };
 
     const result = await runBacktest(input);
     if (!result.evolution.length) return null;
 
-    const finalCzk = result.summary.netAssetValue * finalRate.eurCzk;
+    const finalCzk = result.summary.netAssetValue;
     const actualStart = result.evolution[0]?.date;
 
     return {

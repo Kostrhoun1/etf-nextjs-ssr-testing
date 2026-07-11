@@ -30,13 +30,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build input for backtest to get historical stats
+    // Build input for backtest to get historical stats (v Kč – konzistentně se /simulate)
     const input: BacktestInput = {
       portfolio: body.portfolio,
       startDate: new Date(body.startDate),
       endDate: new Date(body.endDate),
       initialAmount: body.initialAmount || 10000,
       rebalancingStrategy: 'yearly',
+      currency: 'CZK',
     }
 
     // Run backtest to get monthly returns

@@ -37,32 +37,52 @@ export interface ExchangeRate {
 }
 
 /**
- * Load historical exchange rates from Supabase
+ * Load historical exchange rates from Supabase.
+ *
+ * POZOR: stránkuje po 1000 řádcích stejně jako loadIndexData. Bez stránkování Supabase
+ * vrátí jen prvních 1000 řádků (~4 roky denních kurzů) a všechna pozdější data se pak
+ * tiše převáděla zastaralým kurzem – to byla příčina „start-závislého" FX přepočtu.
  */
 export async function loadExchangeRates(
   startDate?: Date,
   endDate?: Date
 ): Promise<ExchangeRate[]> {
-  let query = supabaseAdmin
-    .from('exchange_rates_historical')
-    .select('date, eur_usd, eur_czk, usd_czk')
-    .order('date', { ascending: true })
+  const allData: Array<{ date: string; eur_usd: string; eur_czk: string; usd_czk: string }> = []
+  const pageSize = 1000
+  let offset = 0
+  let hasMore = true
 
-  if (startDate) {
-    query = query.gte('date', startDate.toISOString().split('T')[0])
+  while (hasMore) {
+    let query = supabaseAdmin
+      .from('exchange_rates_historical')
+      .select('date, eur_usd, eur_czk, usd_czk')
+      .order('date', { ascending: true })
+      .range(offset, offset + pageSize - 1)
+
+    if (startDate) {
+      query = query.gte('date', startDate.toISOString().split('T')[0])
+    }
+    if (endDate) {
+      query = query.lte('date', endDate.toISOString().split('T')[0])
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error loading exchange rates:', error)
+      break
+    }
+
+    if (data && data.length > 0) {
+      allData.push(...data)
+      offset += pageSize
+      hasMore = data.length === pageSize
+    } else {
+      hasMore = false
+    }
   }
-  if (endDate) {
-    query = query.lte('date', endDate.toISOString().split('T')[0])
-  }
 
-  const { data, error } = await query
-
-  if (error) {
-    console.error('Error loading exchange rates:', error)
-    return []
-  }
-
-  return (data || []).map((row) => ({
+  return allData.map((row) => ({
     date: new Date(row.date),
     eurUsd: parseFloat(row.eur_usd),
     eurCzk: parseFloat(row.eur_czk),
@@ -98,6 +118,71 @@ export function getExchangeRateForDate(
   }
 
   return closest
+}
+
+/**
+ * Zdrojová měna uložených dat každého indexu.
+ *
+ * Data v `index_historical_data` jsou adjusted-close US-listovaných ETF (USD), s výjimkou
+ * evropských UCITS dluhopisových fondů kótovaných v EUR. Ověřeno empiricky (11.7.2026):
+ * - sp500 2000→2008 = +21,5 % odpovídá USD total return (v EUR by bylo ~−20 %),
+ * - krátké US treasury 1–3y mají vol 0,9 % p.a. = domácí měna USD,
+ * - eur_govt_bond / eur_corp_bond mají vol 3,4/3,7 % p.a. = domácí měna EUR.
+ */
+export const INDEX_SOURCE_CURRENCY: Record<string, 'USD' | 'EUR'> = {
+  sp500: 'USD',
+  us_total_market: 'USD',
+  msci_eafe: 'USD',
+  msci_em: 'USD',
+  ftse_all_world: 'USD',
+  ftse_europe: 'USD',
+  world_ex_us: 'USD',
+  us_treasury_1_3y: 'USD',
+  us_treasury_7_10y: 'USD',
+  us_treasury_20y: 'USD',
+  us_aggregate_bond: 'USD',
+  us_corp_bond_ig: 'USD',
+  gold: 'USD',
+  commodities: 'USD',
+  eur_govt_bond: 'EUR',
+  eur_govt_bond_1_3y: 'EUR',
+  eur_govt_bond_3_7y: 'EUR',
+  eur_govt_bond_15_30y: 'EUR',
+  eur_corp_bond: 'EUR',
+}
+
+/**
+ * Převede cenovou řadu indexu z jeho zdrojové měny do cílové měny po jednotlivých dnech.
+ *
+ * Kurz se dosazuje forward-fillem (poslední známý kurz ≤ datum bodu) – kurzy jsou
+ * ECB business-day, indexy US/EU obchodní dny, takže se kalendáře nekryjí 1:1.
+ * Body PŘED prvním dostupným kurzem se ZAHAZUJÍ (kurzy začínají 30.12.1999 – vznik eura);
+ * to je poctivá podlaha: bez kurzu nelze hodnotu v cílové měně tvrdit.
+ * Obě řady jsou seřazené podle data → dvouukazatelový průchod O(n).
+ */
+export function convertIndexSeriesToCurrency(
+  data: Array<{ date: Date; closePrice: number }>,
+  sourceCurrency: 'USD' | 'EUR',
+  targetCurrency: 'EUR' | 'CZK' | 'USD',
+  rates: ExchangeRate[]
+): Array<{ date: Date; closePrice: number }> {
+  if (sourceCurrency === targetCurrency) return data
+  if (rates.length === 0) return []
+
+  const out: Array<{ date: Date; closePrice: number }> = []
+  let ri = 0
+  for (const point of data) {
+    const t = point.date.getTime()
+    while (ri + 1 < rates.length && rates[ri + 1].date.getTime() <= t) ri++
+    if (rates[ri].date.getTime() > t) continue // před začátkem FX dat → bez kurzu, zahodit
+    const r = rates[ri]
+    const factor =
+      sourceCurrency === 'USD'
+        ? targetCurrency === 'CZK' ? r.usdCzk : 1 / r.eurUsd // USD→CZK | USD→EUR
+        : targetCurrency === 'CZK' ? r.eurCzk : r.eurUsd     // EUR→CZK | EUR→USD
+    out.push({ date: point.date, closePrice: point.closePrice * factor })
+  }
+  return out
 }
 
 /**
@@ -537,7 +622,15 @@ function shouldRebalance(
  * Run a complete backtest for a portfolio
  */
 export async function runBacktest(input: BacktestInput): Promise<BacktestResult> {
-  const { portfolio, startDate, endDate, initialAmount, rebalancingStrategy, contributions } = input
+  const { portfolio, startDate, endDate, initialAmount, rebalancingStrategy, contributions, currency } = input
+
+  // FX kurzy pro per-index konverzi do cílové měny (načíst jen když je potřeba).
+  // Týden navíc před startem kvůli forward-fillu prvního bodu (kurz z předchozího business dne).
+  let rates: ExchangeRate[] = []
+  if (currency && portfolio.some((item) => (INDEX_SOURCE_CURRENCY[item.indexCode] ?? 'USD') !== currency)) {
+    const ratesFrom = new Date(startDate.getTime() - 7 * 24 * 60 * 60 * 1000)
+    rates = await loadExchangeRates(ratesFrom, endDate)
+  }
 
   // Load index data for each ETF
   const etfSeries: Array<{ weight: number; evolution: TimeSeriesPoint[] }> = []
@@ -545,13 +638,24 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
   for (const item of portfolio) {
     const indexData = await loadIndexData(item.indexCode, startDate, endDate)
 
-    if (indexData.data.length === 0) {
+    // Převod do cílové měny PŘED složením portfolia – od tohoto bodu je celá simulace
+    // (výnosy, vklady, rebalance i všechny metriky) konzistentně v input.currency.
+    const priceSeries = currency
+      ? convertIndexSeriesToCurrency(
+          indexData.data,
+          INDEX_SOURCE_CURRENCY[item.indexCode] ?? 'USD',
+          currency,
+          rates
+        )
+      : indexData.data
+
+    if (priceSeries.length === 0) {
       console.warn(`No data for index ${item.indexCode}`)
       continue
     }
 
     const evolution = simulateETFFromIndex(
-      indexData.data,
+      priceSeries,
       item.ter,
       item.weight * initialAmount
     )
