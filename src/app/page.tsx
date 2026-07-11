@@ -18,7 +18,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 
-export const revalidate = 86400;
+export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'ETF průvodce – největší srovnávač ETF pro české investory',
 };
