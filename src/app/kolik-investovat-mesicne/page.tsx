@@ -291,6 +291,7 @@ export default async function KolikInvestovat() {
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Víc o zdanění v průvodci <Link href="/dane-z-etf" className="text-teal-700 hover:underline">Daně z ETF</Link>,
             reálnou vs. nominální hodnotu si přepnete v <Link href="/investicni-kalkulacka" className="text-teal-700 hover:underline">investiční kalkulačce</Link>.
+            Kolik ETF reálně vydělaly v minulosti (v Kč) rozebírá <Link href="/kolik-vydelaly-etf" className="text-teal-700 hover:underline">Kolik vydělaly akcie</Link>.
           </p>
         </section>
 

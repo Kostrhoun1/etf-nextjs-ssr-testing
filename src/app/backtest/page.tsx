@@ -281,6 +281,7 @@ export default async function BacktestPreview() {
           <SectionHead title="Pokračujte dál" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
+              ['/kolik-vydelaly-etf', 'Kolik vydělaly akcie v Kč', TrendingUp],
               ['/investicni-kalkulacka', 'Investiční kalkulačka', Calculator],
               ['/kalkulacka', 'Kalkulačka poplatků', Wallet],
               ['/portfolio-strategie', 'Modelová portfolia', Scale],
