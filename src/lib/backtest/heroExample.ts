@@ -1,8 +1,10 @@
 /**
  * Reálný příklad do hera na stránce /backtest.
  *
- * Spočítá jednorázový vklad 100 000 Kč do světových akcií (FTSE All-World) od nejstarších
- * dostupných dat po dnešek – konečnou hodnotu v Kč, CAGR a nejhlubší propad. Běží na serveru,
+ * Spočítá jednorázový vklad 100 000 Kč do světových akcií (60 % USA + 40 % zbytek světa) od
+ * roku 2000 po dnešek – konečnou hodnotu v Kč, CAGR a nejhlubší propad. Kombinace sp500 (data
+ * od 1993) + world_ex_us (od 1996) dosáhne až na vrchol dot-com bubliny 2000, takže ukázka
+ * zachytí i krach 2000–2002 i finanční krizi 2008. Běží na serveru,
  * stránka je ISR (revalidate 1 den), takže se to počítá max. 1× denně. Používá STEJNÝ engine
  * i přepočet měny jako /api/backtest/simulate, takže čísla sedí s nástrojem.
  *
@@ -36,7 +38,10 @@ export async function getHeroExample(): Promise<HeroExample | null> {
     const initialEur = initialCzk / startRate.eurCzk;
 
     const input: BacktestInput = {
-      portfolio: [{ isin: 'IE00BK5BQT80', name: 'FTSE All-World', weight: 1, ter: 0.0022, indexCode: 'ftse_all_world' }],
+      portfolio: [
+        { isin: 'IE00B5BMR087', name: 'S&P 500', weight: 0.6, ter: 0.0007, indexCode: 'sp500' },
+        { isin: 'US9219097683', name: 'Svět mimo USA', weight: 0.4, ter: 0.0008, indexCode: 'world_ex_us' },
+      ],
       startDate,
       endDate,
       initialAmount: initialEur,
