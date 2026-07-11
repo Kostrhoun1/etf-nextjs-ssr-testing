@@ -29,6 +29,7 @@ const AVAILABLE_INDEXES = [
   { indexCode: 'sp500', name: 'S&P 500', category: 'Akcie', isin: 'IE00B5BMR087', etfName: 'iShares Core S&P 500', ter: 0.0007 },
   { indexCode: 'us_total_market', name: 'US Total Stock Market', category: 'Akcie', isin: 'IE00B3XXRP09', etfName: 'Vanguard Total Stock Market', ter: 0.0003 },
   { indexCode: 'msci_eafe', name: 'MSCI EAFE (vyspělé mimo USA)', category: 'Akcie', isin: 'IE00B4L5Y983', etfName: 'iShares MSCI EAFE', ter: 0.002 },
+  { indexCode: 'world_ex_us', name: 'Svět mimo USA (vyspělé + EM, od 1996)', category: 'Akcie', isin: 'US9219097683', etfName: 'Vanguard Total International Stock', ter: 0.0008 },
   { indexCode: 'ftse_europe', name: 'FTSE Europe', category: 'Akcie', isin: 'IE00B945VV12', etfName: 'Vanguard FTSE Developed Europe', ter: 0.001 },
   { indexCode: 'msci_em', name: 'MSCI Emerging Markets', category: 'Akcie', isin: 'IE00BKM4GZ66', etfName: 'iShares Core MSCI EM', ter: 0.0018 },
   { indexCode: 'ftse_all_world', name: 'FTSE All-World', category: 'Akcie', isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World', ter: 0.0022 },
@@ -50,6 +51,7 @@ const AVAILABLE_INDEXES = [
 const PRESET_PORTFOLIOS = [
   { id: 'sp500-100', name: '100% S&P 500', description: 'Čistě americké akcie', etfs: [{ indexCode: 'sp500', weight: 100 }] },
   { id: 'ftse-all-world', name: '100% All-World', description: 'Globální akcie', etfs: [{ indexCode: 'ftse_all_world', weight: 100 }] },
+  { id: 'global-since-2000', name: 'Globální akcie (od 2000)', description: 'US 60 % + svět 40 %, historie až do roku 2000 (dot-com i krize 2008)', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
   { id: '60-40', name: '60/40 portfolio', description: '60 % akcie, 40 % dluhopisy', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
   {
     id: 'all-weather', name: 'Ray Dalio All-Weather', description: 'Pro všechny tržní podmínky',
