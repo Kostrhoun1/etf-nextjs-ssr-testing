@@ -82,6 +82,7 @@ const HOME_BROKERS = BROKER_PICK
 
 /* Jen nástroje relevantní k výběru ETF a portfoliu (osekáno z 12). */
 const TOOLS = [
+  { href: '/kolik-vydelaly-etf', label: 'Kolik vydělaly ETF a akcie', desc: 'Kompletní datový rozbor v Kč (2008–2026)', icon: LineChart },
   { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Budoucí hodnota investice', icon: Calculator },
   { href: '/kalkulacka', label: 'Kalkulačka poplatků', desc: 'Kolik vás stojí TER za 30 let', icon: PieChart },
   { href: '/backtest', label: 'Backtest portfolia', desc: 'Historická simulace od roku 2000', icon: History },
