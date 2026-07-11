@@ -397,9 +397,9 @@ export default function BacktestWidget() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label htmlFor="bt-start" className="block text-sm text-slate-600 mb-1">Počáteční datum</label>
-            <input id="bt-start" type="date" min="2000-01-01" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+            <input id="bt-start" type="date" min="1993-01-01" value={startDate} onChange={(e) => setStartDate(e.target.value)}
               className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
-            <p className="text-xs text-slate-400 mt-1">Data dostupná od roku 2000</p>
+            <p className="text-xs text-slate-400 mt-1">Nejdelší historie od roku 1993 (S&amp;P 500). Každý index má jinak dlouhá data – backtest začne, až je mají všechny složky.</p>
           </div>
           <div>
             <label htmlFor="bt-end" className="block text-sm text-slate-600 mb-1">Koncové datum</label>
