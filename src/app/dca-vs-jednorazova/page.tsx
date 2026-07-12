@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Jednorázová vyhrává ~2/3 času, ale rozhoduje, zda máte balík teď, nebo investujete z výplaty. Data + psychologie, vzdělávací a nezávislé.',
     url: 'https://etfpruvodce.cz/dca-vs-jednorazova',
+    images: [ogImage({ title: 'DCA vs. jednorázová investice: co říkají data (a co ne)', eyebrow: 'Data vs. psychologie', stat: '~2/3', statLabel: 'času vyhrává jednorázová investice' })],
     type: 'article',
   },
 };

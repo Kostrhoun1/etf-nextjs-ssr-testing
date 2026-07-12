@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Které světové indexy obsahují emerging markets a které ne, kolik firem drží a jaký mají podíl USA – s příklady ETF. Vzdělávací a nezávislé.',
     url: 'https://etfpruvodce.cz/svetove-etf-indexy',
+    images: [ogImage({ title: 'Světové ETF: MSCI World vs FTSE All-World vs ACWI vs S&P 500', eyebrow: 'Průvodce indexy' })],
     type: 'article',
   },
 };

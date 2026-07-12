@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Kolik naspořit podle pravidla 4 % v korunách, jak dlouho to trvá podle míry úspor, role ETF a české daně. Vzdělávací a nezávislé.',
     url: 'https://etfpruvodce.cz/fire',
+    images: [ogImage({ title: 'FIRE v Česku: kolik potřebuješ na finanční nezávislost (v Kč)', eyebrow: 'Finanční nezávislost', stat: '25×', statLabel: 'ročních výdajů podle pravidla 4 %' })],
     type: 'article',
   },
 };

@@ -14,12 +14,21 @@ import BacktestWidget from '@/components/design-preview/BacktestWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
 import { getHeroExample } from '@/lib/backtest/heroExample';
+import { ogImage } from '@/lib/ogImage';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'Backtest portfolia ETF: historický test výnosů a poklesů',
   description:
     'Otestujte své ETF portfolio na reálných datech od roku 2000. Roční zhodnocení, největší pokles a kolísavost – v přepočtu na koruny, včetně grafu vývoje.',
+  openGraph: {
+    title: 'Backtest portfolia ETF: výnosy a propady v korunách',
+    description:
+      'Otestujte své portfolio na reálných denních datech od roku 2000 – zhodnocení, největší pokles a kolísavost v Kč.',
+    url: 'https://etfpruvodce.cz/backtest',
+    type: 'website',
+    images: [ogImage({ title: 'Backtest portfolia ETF: výnosy a propady v korunách', eyebrow: 'Nástroj zdarma', stat: '2000–2026', statLabel: 'reálná denní data, výsledky v Kč' })],
+  },
 };
 
 export default async function BacktestPreview() {
