@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
     default: "ETF průvodce.cz - Nejlepší ETF fondy pro české investory",
     template: "%s | ETF průvodce.cz"
   },
-  description: `★ ZDARMA ETF průvodce ★ Srovnání více než ${count} ETF fondů pro české investory s výkonností přepočítanou do CZK! Kompletní databáze, pokročilé filtry, srovnání brokerů a investiční kalkulačky.`,
+  description: `Srovnání více než ${count} ETF fondů s výnosy přepočtenými do korun. Žebříčky, backtest portfolia, investiční kalkulačky a srovnání brokerů – zdarma a česky.`,
   keywords: [
     "ETF fondy", "nejlepší ETF", "ETF srovnání", "kde koupit ETF",
     "ETF výkonnost CZK", "přepočet výnosů ETF", "ETF česká koruna přepočet", 
