@@ -59,11 +59,10 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     ],
   },
+  // Jen typ karty – title/description/obrázek si X bere z og:* dané stránky.
+  // (Globální twitter.title tady dřív přebíjel titulky článků na celém webu.)
   twitter: {
     card: 'summary_large_image',
-    title: `ETF průvodce.cz | Srovnání ${count} ETF fondů`,
-    description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
-    images: ['/og-cover.jpg'],
   },
   robots: {
     index: true,

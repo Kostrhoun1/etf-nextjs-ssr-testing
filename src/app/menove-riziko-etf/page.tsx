@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Kde měnové riziko opravdu vzniká, rozdíl hedged vs unhedged a kdy má zajištění pro českého investora smysl. Vzdělávací a nezávislé.',
     url: 'https://etfpruvodce.cz/menove-riziko-etf',
+    images: [ogImage({ title: 'Měnové riziko u ETF: potřebujete zajištěný (hedged) fond?', eyebrow: 'Měnové riziko' })],
     type: 'article',
   },
 };

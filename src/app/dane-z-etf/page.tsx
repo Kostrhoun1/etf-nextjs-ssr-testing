@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Časový test, hodnotový test, strop 40 mil., dividendy 15 % a DIP – přehledně a v korunách. Vzdělávací, nezávislé.',
     url: 'https://etfpruvodce.cz/dane-z-etf',
+    images: [ogImage({ title: 'Daně z ETF v Česku: kdy platíte a kdy ne (2026)', eyebrow: 'Daně · 2026', stat: '0 Kč', statLabel: 'daň při prodeji po 3 letech' })],
     type: 'article',
   },
 };

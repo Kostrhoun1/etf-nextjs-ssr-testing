@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Srovnání S&P 500 ETF v korunách: TER, akumulace vs distribuce, replikace, likvidita – a jasné doporučení, který vybrat.',
     url: 'https://etfpruvodce.cz/jaky-sp500-etf',
+    images: [ogImage({ title: 'Který S&P 500 ETF koupit? CSPX vs VUAA vs VUSA vs SPYL', eyebrow: 'Srovnání ETF' })],
     type: 'article',
   },
 };

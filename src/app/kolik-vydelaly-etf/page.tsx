@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
     description:
       'Ze 100 000 Kč přibližně čtyřnásobek za ~18 let – rok po roce, rolling okna, největší krize, DCA i svět vs. USA. Nejhlubší český datový rozbor. Vzdělávací, nezávislé.',
     url: 'https://etfpruvodce.cz/kolik-vydelaly-etf',
+    images: [ogImage({ title: 'Kolik vydělaly ETF a akcie: kompletní datový rozbor v korunách', eyebrow: 'Datový rozbor', stat: '100 000 → 400 000 Kč', statLabel: 'za 18 let' })],
     type: 'article',
   },
 };

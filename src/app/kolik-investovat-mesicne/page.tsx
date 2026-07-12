@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Kolik naspoříte pravidelným vkladem do ETF v korunách – 10/20/30 let, kolik měsíčně na milion, kolik na rentu. Vzdělávací a nezávislé.',
     url: 'https://etfpruvodce.cz/kolik-investovat-mesicne',
+    images: [ogImage({ title: 'Kolik investovat měsíčně, abyste měli milion (nebo rentu)', eyebrow: 'Kalkulačka' })],
     type: 'article',
   },
 };

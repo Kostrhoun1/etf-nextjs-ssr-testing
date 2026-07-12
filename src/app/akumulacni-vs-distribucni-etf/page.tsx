@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     description:
       'Rozdíl mezi Acc a Dist, dopad na daně a složené úročení, a který zvolit pro spoření vs. rentu. Vzdělávací a nezávislé.',
     url: 'https://etfpruvodce.cz/akumulacni-vs-distribucni-etf',
+    images: [ogImage({ title: 'Akumulační vs. distribuční ETF: který je pro vás lepší?', eyebrow: 'ETF prakticky' })],
     type: 'article',
   },
 };
