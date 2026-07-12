@@ -450,7 +450,7 @@ export default function BacktestWidget() {
         <div className="mb-4">
           <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
             Měna zobrazení
-            <InfoTip label="Indexy jsou vedeny v eurech. Pro zobrazení se hodnoty přepočítají historickými kurzy ECB/ČNB do zvolené měny.">
+            <InfoTip label="Každý index se převádí ze své domácí měny (USD/EUR) historickými denními kurzy do zvolené měny. Výnos v Kč tak zahrnuje i pohyb koruny – např. od roku 2008 vychází Kč a € téměř stejně (kurz koruny k euru je dnes na úrovni léta 2008), zatímco dolarový pohled se liší.">
               <span className="sr-only">vysvětlení</span>
             </InfoTip>
           </label>
