@@ -20,7 +20,11 @@ import {
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
-  title: 'ETF průvodce – největší srovnávač ETF pro české investory',
+  // Title/description ladí na dotaz „etf" (pozice ~10, dřív CTR 0 %): konkrétní číslo fondů
+  // + USP „výnosy v Kč" místo obecných frází; bez ★ znaků, které Google trestá přepsáním snippetu.
+  title: 'Srovnání 4 800+ ETF fondů, výnosy v Kč – ETF průvodce.cz',
+  description:
+    'Kolik reálně vydělaly ETF? Výnosy 4 800+ fondů přepočtené do korun, žebříčky pro rok 2026, backtest portfolia a investiční kalkulačky. Zdarma a česky.',
 };
 
 const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
