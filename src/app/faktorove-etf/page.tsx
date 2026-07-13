@@ -48,6 +48,25 @@ export default async function FaktoroveEtf() {
       what: 'Ziskové firmy s nízkým dluhem a stabilními maržemi.' },
   ];
 
+  // Faktorová ročenka: roční výnosy v Kč (z backtest enginu, po TER, kurz den po dni).
+  // Pořadí sloupců: [value, small cap, dividendy, min. volatilita, momentum, quality, S&P 500]
+  const rocenka: { y: number; v: number[] }[] = [
+    { y: 2014, v: [29.7, 20.2, 30.0, 33.2, 31.3, 27.5, 30.2] },
+    { y: 2015, v: [4.1, 3.4, 8.6, 14.2, 18.0, 14.3, 9.9] },
+    { y: 2016, v: [20.8, 25.1, 20.5, 13.8, 8.2, 12.0, 15.6] },
+    { y: 2017, v: [-6.0, -5.2, -3.6, -1.5, 13.9, 1.3, 1.0] },
+    { y: 2018, v: [-3.6, -6.5, -1.0, 6.6, 3.5, -0.8, 0.6] },
+    { y: 2019, v: [26.7, 25.8, 24.5, 28.2, 27.8, 34.5, 32.0] },
+    { y: 2020, v: [-3.1, 13.1, -4.6, -0.4, 22.5, 10.4, 11.8] },
+    { y: 2021, v: [27.9, 17.1, 29.1, 23.7, 16.1, 29.9, 32.0] },
+    { y: 2022, v: [-5.2, -18.4, 2.3, -7.0, -16.0, -18.3, -15.8] },
+    { y: 2023, v: [9.9, 15.2, 5.2, 8.9, 7.7, 29.2, 24.8] },
+    { y: 2024, v: [23.4, 20.3, 27.0, 25.0, 43.6, 32.2, 35.2] },
+    { y: 2025, v: [-1.8, -4.5, -2.1, -8.7, 3.7, -4.4, 0.1] },
+  ];
+  const rocenkaCols = ['Value', 'Small cap', 'Dividendy', 'Min. vol.', 'Momentum', 'Quality', 'S&P 500'];
+  const fmtR = (v: number) => `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+
   const etfs = [
     ['Value', 'iShares Edge MSCI World Value Factor', 'IE00BP3QZB59', '0,25 %'],
     ['Small cap', 'iShares MSCI World Small Cap', 'IE00BF4RFH31', '0,35 %'],
@@ -215,6 +234,63 @@ export default async function FaktoroveEtf() {
             Čtěte po řádcích, ne mezi řádky: momentum od 2013 index porazilo (+16,6 % vs. +15,2 %), malé firmy od 2000
             těsně také – všechno ostatní zaostalo. Minimální volatilita splnila slib nižšího kolísání (propad −26 %),
             ale stála skoro 4 procentní body výnosu ročně.
+          </p>
+        </section>
+
+        {/* 2b. FAKTOROVÁ ROČENKA */}
+        <section className="pb-10">
+          <SectionHead title="Faktorová ročenka 2014–2025" desc="Roční výnosy v Kč, po poplatcích. Nejlepší faktor roku zeleně, nejhorší červeně – všimněte si, jak se vedení střídá." />
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="w-full text-sm min-w-[760px]">
+              <thead>
+                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-3 py-3">Rok</th>
+                  {rocenkaCols.map((c, i) => (
+                    <th key={c} className={`px-3 py-3 text-right ${i === rocenkaCols.length - 1 ? 'text-slate-400' : ''}`}>{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="tabular-nums">
+                {rocenka.map(({ y, v }) => {
+                  const factorVals = v.slice(0, 6); // S&P 500 je reference, nesoutěží
+                  const max = Math.max(...factorVals);
+                  const min = Math.min(...factorVals);
+                  return (
+                    <tr key={y} className="border-b border-slate-100 last:border-0">
+                      <td className="px-3 py-2 font-medium text-slate-700">{y}</td>
+                      {v.map((val, i) => {
+                        const isSp = i === 6;
+                        const cls = isSp
+                          ? 'text-slate-400'
+                          : val === max
+                            ? 'bg-teal-50 text-teal-800 font-semibold'
+                            : val === min
+                              ? 'bg-rose-50 text-rose-700'
+                              : val < 0 ? 'text-rose-600' : 'text-slate-700';
+                        return <td key={i} className={`px-3 py-2 text-right ${cls}`}>{fmtR(val)}</td>;
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {([
+              ['5× z 12 let', 'vyhrálo momentum – nejčastější vítěz. Ale i ono umí propadnout (−16 % v 2022).'],
+              ['Každý faktor', 'byl aspoň jednou nejlepší i nejhorší. Vedení se střídá bez varování – přebíhání podle loňska nefunguje.'],
+              ['2022: dividendy +2,3 %', 'jediný kladný faktor v roce, kdy vše ostatní padalo. Diverzifikace mezi faktory má smysl víc než výběr „toho pravého".'],
+            ] as [string, string][]).map(([big, d]) => (
+              <div key={big} className="rounded-lg border border-slate-200 bg-white p-4">
+                <p className="font-bold text-teal-700">{big}</p>
+                <p className="text-sm text-slate-600 mt-1 leading-relaxed">{d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-500 leading-relaxed max-w-3xl">
+            Výnosy v korunách – zahrnují tedy i pohyb kurzu (proto se mohou lišit od dolarových tabulek; např. 2017
+            koruna prudce posílila a smazala dolarové zisky). Rok 2014 je první celý rok, kdy existují data všech
+            šesti faktorů. S&P 500 uvádíme šedě jako referenci.
           </p>
         </section>
 
