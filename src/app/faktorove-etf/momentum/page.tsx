@@ -157,7 +157,7 @@ export default async function MomentumFaktor() {
             <p className="text-sm text-slate-700 leading-relaxed mt-3">
               Proč by to mělo fungovat? Nejpřijímanější vysvětlení je <strong>behaviorální</strong>: trh na nové
               informace reaguje pomalu – dobré zprávy se do ceny promítají týdny a měsíce, ne okamžitě. A jakmile
-              trend běží, přitahuje další kupující. Momentum tedy nevydělává na „kvalitě" firem, ale na
+              trend běží, přitahuje další kupující. Momentum tedy nevydělává na „kvalitě“ firem, ale na
               předvídatelných chybách lidského chování.
             </p>
             <p className="text-sm text-slate-700 leading-relaxed mt-3">
@@ -251,7 +251,7 @@ export default async function MomentumFaktor() {
             <p className="text-sm text-slate-700 leading-relaxed">
               <AlertTriangle className="inline w-4 h-4 text-amber-600 mr-1 -mt-0.5" />
               <strong className="text-slate-900">Momentum crash.</strong> Když trh prudce otočí po velkém propadu,
-              momentum drží defenzivní akcie, které „vedly" v klesajícím trhu – a rally úplně propásne, nebo hůř.
+              momentum drží defenzivní akcie, které „vedly“ v klesajícím trhu – a rally úplně propásne, nebo hůř.
               V roce 2009, při obratu po finanční krizi, ztratil americký momentum faktor přes 40 % vůči trhu
               během několika měsíců. <strong className="text-slate-900">Naše data začínají v roce 2013, takže tento
               scénář v žádné z tabulek výše není.</strong> Krásná 13letá statistika zahrnuje jen období, kdy se
@@ -309,7 +309,7 @@ export default async function MomentumFaktor() {
           <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p className="text-lg font-semibold">Otestujte momentum na vlastní čísla</p>
-              <p className="text-sm text-slate-300 mt-1">V backtestu ho najdete v kategorii „Akcie – faktory" – zkuste ho i v kombinaci s indexem.</p>
+              <p className="text-sm text-slate-300 mt-1">V backtestu ho najdete v kategorii „Akcie – faktory“ – zkuste ho i v kombinaci s indexem.</p>
             </div>
             <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors whitespace-nowrap">
               <Calculator className="w-4 h-4" /> Spustit backtest
