@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 
 const cfg: FactorConfig = {
   slug: 'value',
+  indexCode: 'us_value',
+  ter: 0.0025,
+  dataStart: '2000-05-26',
+  shortName: 'Value',
   badge: 'Faktorová analýza 2/6 · value',
   h1: 'Value: faktor, který testuje trpělivost',
   lead: (

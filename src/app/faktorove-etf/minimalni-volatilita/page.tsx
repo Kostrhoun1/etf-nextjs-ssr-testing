@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 
 const cfg: FactorConfig = {
   slug: 'minimalni-volatilita',
+  indexCode: 'us_min_vol',
+  ter: 0.003,
+  dataStart: '2011-10-20',
+  shortName: 'Min. volatilita',
   badge: 'Faktorová analýza 4/6 · minimální volatilita',
   h1: 'Minimální volatilita: pojistka, ne motor',
   lead: (
