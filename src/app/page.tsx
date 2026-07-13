@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
+import HeroSearch from '@/components/home/HeroSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   getFeaturedETFs, getTotalETFCount, getMarketSnapshot, getReturnsByIsins,
@@ -12,7 +13,7 @@ import { brokers } from '@/data/brokerData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import InfoTip from '@/components/design-preview/InfoTip';
 import {
-  TrendingUp, ArrowRight, ArrowUpRight, Search, Star, Wallet, Globe,
+  TrendingUp, ArrowRight, ArrowUpRight, Star, Wallet, Globe,
   LineChart, Landmark, Building2, Banknote, ShieldCheck, Sparkles,
   Calculator, PieChart, Flame, RefreshCw, History, LayoutGrid, BookOpen,
   HelpCircle,
@@ -269,19 +270,7 @@ export default async function DesignPreviewV2() {
                   </Link>
                 </div>
               </div>
-              <form action="/srovnani" className="mt-6 md:mt-1 md:w-80 shrink-0">
-                <label className="hidden sm:block text-xs font-medium text-slate-400 mb-1.5">Hledáte konkrétní fond?</label>
-                <div className="flex items-center gap-2 rounded-lg bg-white px-3 h-11">
-                  <Search className="w-4 h-4 text-slate-400" />
-                  <input name="q" placeholder="Název, ISIN nebo ticker…" className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 outline-none" />
-                </div>
-                <div className="mt-2.5 hidden sm:flex flex-wrap items-center gap-2 text-xs">
-                  <span className="text-slate-400">Hledané:</span>
-                  <Link href="/nejlepsi-etf/nejlepsi-celosvetove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">MSCI World</Link>
-                  <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">S&P 500</Link>
-                  <Link href="/nejlepsi-etf/nejlepsi-dividendove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">Dividendové</Link>
-                </div>
-              </form>
+              <HeroSearch />
             </div>
           </div>
         </section>
