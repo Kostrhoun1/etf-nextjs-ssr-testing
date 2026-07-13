@@ -306,10 +306,20 @@ export default function BacktestWidget() {
 
   const availableToAdd = AVAILABLE_INDEXES.filter((i) => !selectedETFs.some((e) => e.indexCode === i.indexCode));
 
-  // Data pro recharts: hodnota portfolia + vložené prostředky (pro kontext)
+  // Data pro recharts: hodnota portfolia + vložené prostředky (pro kontext).
+  // Denní řada má ~5000+ bodů → obří SVG path, na mobilu se dlouho vykresluje a chvíli
+  // je graf prázdný. Podvzorkujeme na ~400 bodů (poslední bod zachováme) – vizuálně
+  // identické na šířce grafu, ale path je ~30× menší a kreslí se okamžitě.
   const chartData = useMemo(() => {
     if (!result) return [];
-    return result.evolution.map((p) => ({ date: p.date, value: Math.round(p.value) }));
+    const ev = result.evolution;
+    const MAX = 400;
+    const step = ev.length > MAX ? Math.ceil(ev.length / MAX) : 1;
+    const out: { date: Date; value: number }[] = [];
+    for (let i = 0; i < ev.length; i += step) out.push({ date: ev[i].date, value: Math.round(ev[i].value) });
+    const last = ev[ev.length - 1];
+    if (out.length && out[out.length - 1].date !== last.date) out.push({ date: last.date, value: Math.round(last.value) });
+    return out;
   }, [result]);
 
   const investedLine = result ? result.summary.amountInvested : 0;
@@ -1021,6 +1031,7 @@ function ComparisonBlock({
   currency: Currency;
 }) {
   // Překryvný graf: hodnoty všech portfolií sloučené podle data (osy zarovnané na společné období).
+  // Podvzorkujeme na ~400 bodů – jinak jsou to 2–3 denní řady po ~5000 bodech = na mobilu pomalé.
   const chartData = useMemo(() => {
     const byDate = new Map<string, Record<string, number | string>>();
     portfolios.forEach((p, si) => {
@@ -1030,7 +1041,13 @@ function ComparisonBlock({
         byDate.set(pt.date, row);
       });
     });
-    return [...byDate.values()].sort((a, b) => ((a.date as string) < (b.date as string) ? -1 : 1));
+    const all = [...byDate.values()].sort((a, b) => ((a.date as string) < (b.date as string) ? -1 : 1));
+    const MAX = 400;
+    if (all.length <= MAX) return all;
+    const step = Math.ceil(all.length / MAX);
+    const out = all.filter((_, i) => i % step === 0);
+    if (out[out.length - 1] !== all[all.length - 1]) out.push(all[all.length - 1]);
+    return out;
   }, [portfolios]);
 
   // Řádky tabulky: hodnota + směr „co je lepší" (pro zvýraznění nejlepšího sloupce).

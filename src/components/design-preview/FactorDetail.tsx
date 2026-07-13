@@ -123,12 +123,12 @@ function EquityChart({ cmp, shortName }: { cmp: NonNullable<Awaited<ReturnType<t
       {yTicks.map((v) => (
         <g key={v}>
           <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="#e2e8f0" strokeWidth="1" />
-          <text x={PAD.l - 6} y={y(v) + 4} textAnchor="end" fontSize="12" fill="#64748b">{fmtKc(v)}</text>
+          <text x={PAD.l - 6} y={y(v) + 4} textAnchor="end" fontSize="15" fill="#64748b">{fmtKc(v)}</text>
         </g>
       ))}
       {years.map((yr) => {
         const d = new Date(`${yr}-01-01`);
-        return <text key={yr} x={x(d)} y={H - 8} textAnchor="middle" fontSize="12" fill="#94a3b8">{yr}</text>;
+        return <text key={yr} x={x(d)} y={H - 8} textAnchor="middle" fontSize="15" fill="#94a3b8">{yr}</text>;
       })}
       <path d={path(cmp.spx)} fill="none" stroke="#94a3b8" strokeWidth="2" />
       <path d={path(cmp.fac)} fill="none" stroke="#0d9488" strokeWidth="2.5" />
@@ -154,12 +154,12 @@ function RatioChart({ cmp, shortName }: { cmp: NonNullable<Awaited<ReturnType<ty
       {[minV, 1, maxV].map((v) => (
         <g key={v}>
           <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke={v === 1 ? '#cbd5e1' : '#e2e8f0'} strokeWidth={v === 1 ? 1.5 : 1} strokeDasharray={v === 1 ? '4 3' : undefined} />
-          <text x={PAD.l - 6} y={y(v) + 4} textAnchor="end" fontSize="12" fill="#64748b">{v.toFixed(2).replace('.', ',')}×</text>
+          <text x={PAD.l - 6} y={y(v) + 4} textAnchor="end" fontSize="15" fill="#64748b">{v.toFixed(2).replace('.', ',')}×</text>
         </g>
       ))}
       {years.map((yr) => {
         const d = new Date(`${yr}-01-01`);
-        return <text key={yr} x={x(d)} y={H - 8} textAnchor="middle" fontSize="12" fill="#94a3b8">{yr}</text>;
+        return <text key={yr} x={x(d)} y={H - 8} textAnchor="middle" fontSize="15" fill="#94a3b8">{yr}</text>;
       })}
       <path d={path} fill="none" stroke="#0d9488" strokeWidth="2.5" />
     </svg>
