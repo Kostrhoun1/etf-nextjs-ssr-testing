@@ -35,17 +35,17 @@ export default async function FaktoroveEtf() {
   // Každý faktor od začátku svých dat + S&P 500 na STEJNÉM okně (férové srovnání).
   const factors = [
     { name: 'Value (hodnotové akcie)', od: '2000', nav: '398 tis.', cagr: '+5,4 %', dd: '−64 %', spNav: '419 tis.', spCagr: '+5,6 %', beat: false,
-      what: 'Levné firmy vůči účetní hodnotě a ziskům. Nejstarší „prémiový" faktor (Fama–French).' },
+      what: 'Levné firmy vůči účetní hodnotě a ziskům. Nejstarší „prémiový“ faktor (Fama–French).', href: '/faktorove-etf/value' },
     { name: 'Small cap (malé firmy)', od: '2000', nav: '444 tis.', cagr: '+5,9 %', dd: '−63 %', spNav: '419 tis.', spCagr: '+5,6 %', beat: true,
-      what: 'Menší firmy s vyšším růstovým potenciálem – a vyšším rizikem.' },
+      what: 'Menší firmy s vyšším růstovým potenciálem – a vyšším rizikem.', href: '/faktorove-etf/small-cap' },
     { name: 'Dividendové akcie', od: '2006', nav: '532 tis.', cagr: '+8,9 %', dd: '−55 %', spNav: '739 tis.', spCagr: '+10,7 %', beat: false,
-      what: 'Firmy s vysokou dividendou. Psychologicky příjemné, matematicky žádná záruka.' },
+      what: 'Firmy s vysokou dividendou. Psychologicky příjemné, matematicky žádná záruka.', href: '/faktorove-etf/dividendove-akcie' },
     { name: 'Minimální volatilita', od: '2011', nav: '572 tis.', cagr: '+12,6 %', dd: '−26 %', spNav: '936 tis.', spCagr: '+16,4 %', beat: false,
-      what: 'Akcie s nejmenším kolísáním. Slibuje klidnější jízdu za cenu nižšího výnosu.' },
+      what: 'Akcie s nejmenším kolísáním. Slibuje klidnější jízdu za cenu nižšího výnosu.', href: '/faktorove-etf/minimalni-volatilita' },
     { name: 'Momentum', od: '2013', nav: '764 tis.', cagr: '+16,6 %', dd: '−31 %', spNav: '651 tis.', spCagr: '+15,2 %', beat: true,
       what: 'Akcie, kterým se dařilo v posledním roce. Nejsilnější faktor posledního desetiletí.', href: '/faktorove-etf/momentum' },
     { name: 'Quality (kvalitní firmy)', od: '2013', nav: '548 tis.', cagr: '+14,0 %', dd: '−27 %', spNav: '592 tis.', spCagr: '+14,7 %', beat: false,
-      what: 'Ziskové firmy s nízkým dluhem a stabilními maržemi.' },
+      what: 'Ziskové firmy s nízkým dluhem a stabilními maržemi.', href: '/faktorove-etf/quality' },
   ];
 
   // Faktorová ročenka: roční výnosy v Kč (z backtest enginu, po TER, kurz den po dni).
@@ -87,7 +87,7 @@ export default async function FaktoroveEtf() {
     },
     {
       q: 'Proč se výsledky liší od amerických studií?',
-      a: 'Tři důvody: (1) studie často měří teoretické portfolio bez poplatků, my počítáme reálné ETF po TER; (2) my přepočítáváme do korun, takže výsledek zahrnuje i pohyb kurzu; (3) prémii, kterou všichni znají, trh částečně „vyarbitrážuje" – po objevení bývají faktory slabší.',
+      a: 'Tři důvody: (1) studie často měří teoretické portfolio bez poplatků, my počítáme reálné ETF po TER; (2) my přepočítáváme do korun, takže výsledek zahrnuje i pohyb kurzu; (3) prémii, kterou všichni znají, trh částečně „vyarbitrážuje“ – po objevení bývají faktory slabší.',
     },
     {
       q: 'Mám faktorové ETF vůbec kupovat?',
@@ -98,7 +98,7 @@ export default async function FaktoroveEtf() {
       a: 'Nejdelší dostupné denní řady jsou z amerických faktorových ETF (od 2000), evropské UCITS verze jsou mladší (většinou od 2014). V backtestu proto testujete americké faktorové řady; v tabulce doporučujeme evropské UCITS ekvivalenty, které v ČR reálně koupíte. Metodiky indexů se mírně liší.',
     },
     {
-      q: 'Který faktor je „nejlepší"?',
+      q: 'Který faktor je „nejlepší“?',
       a: 'Žádný není nejlepší napořád – vedou se střídavě. Momentum táhlo posledních 10 let, value zase 2000–2007. Pokud faktory, tak spíš kombinaci (multifaktor), a hlavně: levně, dlouhodobě a bez přebíhání podle posledního roku.',
     },
   ];
@@ -284,7 +284,7 @@ export default async function FaktoroveEtf() {
             {([
               ['5× z 12 let', 'vyhrálo momentum – nejčastější vítěz. Ale i ono umí propadnout (−16 % v 2022).'],
               ['Každý faktor', 'byl aspoň jednou nejlepší i nejhorší. Vedení se střídá bez varování – přebíhání podle loňska nefunguje.'],
-              ['2022: dividendy +2,3 %', 'jediný kladný faktor v roce, kdy vše ostatní padalo. Diverzifikace mezi faktory má smysl víc než výběr „toho pravého".'],
+              ['2022: dividendy +2,3 %', 'jediný kladný faktor v roce, kdy vše ostatní padalo. Diverzifikace mezi faktory má smysl víc než výběr „toho pravého“.'],
             ] as [string, string][]).map(([big, d]) => (
               <div key={big} className="rounded-lg border border-slate-200 bg-white p-4">
                 <p className="font-bold text-teal-700">{big}</p>
