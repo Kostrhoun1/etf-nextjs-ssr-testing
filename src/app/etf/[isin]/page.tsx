@@ -129,8 +129,22 @@ const dateLabel = (raw: string | null | undefined) => {
 };
 
 /* ---------- odvození popisků z dat (žádné hodnoty napevno) ---------- */
-const isAccumulating = (p: string | null | undefined) => !/distribut/i.test(p || '');
-const distLabel = (p: string | null | undefined) => (isAccumulating(p) ? 'Akumulační' : 'Distribuční');
+// Tri-state politika: 'acc' | 'dist' | 'unknown'. Prázdná politika se NIKDY
+// nedomýšlí na akumulační – radši se odvodí z výplatní frekvence, jinak „neuvedeno".
+const PAYOUT_FREQ = /(quarter|month|annual|semi|dividend|income)/i;
+const distKind = (
+  policy: string | null | undefined,
+  freq?: string | null,
+): 'acc' | 'dist' | 'unknown' => {
+  const p = policy || '';
+  if (/accumulat|thesaur|capitalis/i.test(p)) return 'acc';
+  if (/distribut/i.test(p)) return 'dist';
+  // politika chybí → výplatní frekvence je definiční signál distribuce
+  if (freq && PAYOUT_FREQ.test(freq)) return 'dist';
+  return 'unknown';
+};
+const distLabelOf = (kind: 'acc' | 'dist' | 'unknown') =>
+  kind === 'acc' ? 'Akumulační' : kind === 'dist' ? 'Distribuční' : 'Neuvedeno';
 const replLabel = (rep: string | null | undefined) => {
   const s = (rep || '').toLowerCase();
   if (s.includes('synth') || s.includes('swap')) return 'Syntetická (swap)';
@@ -243,8 +257,10 @@ export default async function ETFDetailPreview(
   const isHedged = /\bhedged\b|\bhdg\b|zajišt/i.test(etf.name || '');
 
   // odvozené parametry z dat
-  const isAcc = isAccumulating(etf.distribution_policy);
-  const distText = distLabel(etf.distribution_policy);
+  const dKind = distKind(etf.distribution_policy, etf.distribution_frequency);
+  const isAcc = dKind === 'acc';
+  const isDist = dKind === 'dist';
+  const distText = distLabelOf(dKind);
   const replText = replLabel(etf.replication);
   const domText = domLabel(etf.fund_domicile);
   const divYield = num(r.current_dividend_yield_numeric as number);
@@ -426,7 +442,7 @@ export default async function ETFDetailPreview(
                   <Badge icon={Coins}>{distText}</Badge>
                   <Badge icon={Layers}>{replText}</Badge>
                   <Badge icon={Landmark}>Domicil {domText}</Badge>
-                  {!isAcc && divYield != null && <Badge icon={Banknote}>Div. výnos {pct(divYield).replace('+', '')}</Badge>}
+                  {isDist && divYield != null && <Badge icon={Banknote}>Div. výnos {pct(divYield).replace('+', '')}</Badge>}
                 </div>
               </div>
 
@@ -470,8 +486,8 @@ export default async function ETFDetailPreview(
                 {([
                   [<InfoTip key="ter" label="Total Expense Ratio – roční poplatek za správu fondu, strhává se průběžně z hodnoty investice.">Roční poplatek (TER)</InfoTip>, ter(etf.ter_numeric)],
                   ['Velikost fondu', money(etf.fund_size_numeric, etf.fund_currency)],
-                  [<InfoTip key="dist" label="Akumulační fond dividendy reinvestuje uvnitř (na účet nic nechodí, vhodné pro růst); distribuční je vyplácí na účet.">Distribuční politika</InfoTip>, `${distText}${isAcc ? ' (reinvestuje dividendy)' : ' (vyplácí dividendy)'}`],
-                  ...(!isAcc ? [[<InfoTip key="dy" label="Dividendový výnos – kolik fond za rok vyplatil na dividendách vůči své ceně.">Dividendový výnos</InfoTip>, divYield != null ? pct(divYield).replace('+', '') : '—'] as [React.ReactNode, React.ReactNode]] : []),
+                  [<InfoTip key="dist" label="Akumulační fond dividendy reinvestuje uvnitř (na účet nic nechodí, vhodné pro růst); distribuční je vyplácí na účet.">Distribuční politika</InfoTip>, `${distText}${isAcc ? ' (reinvestuje dividendy)' : isDist ? ' (vyplácí dividendy)' : ''}`],
+                  ...(isDist ? [[<InfoTip key="dy" label="Dividendový výnos – kolik fond za rok vyplatil na dividendách vůči své ceně.">Dividendový výnos</InfoTip>, divYield != null ? pct(divYield).replace('+', '') : '—'] as [React.ReactNode, React.ReactNode]] : []),
                   [<InfoTip key="rep" label="Fyzická replikace = fond reálně nakupuje akcie z indexu (bez protistranového rizika); syntetická používá swap.">Replikace</InfoTip>, replText],
                   [<InfoTip key="dom" label="Země, kde fond právně sídlí. Irsko má výhodnou daňovou smlouvu s USA, W-8BEN neřešíte.">Domicil</InfoTip>, domText],
                   ['Sledovaný index', etf.index_name || '—'],
@@ -644,7 +660,7 @@ export default async function ETFDetailPreview(
             <p className="text-sm text-slate-600 leading-relaxed">
               {etf.description_cs && etf.description_cs.trim() !== ''
                 ? cleanDesc(etf.description_cs)
-                : `${etf.name} je ${etf.distribution_policy === 'Accumulating' ? 'akumulační' : 'distribuční'} fond sledující index ${etf.index_name} s nákladovostí ${ter(etf.ter_numeric)} ročně a sídlem v ${etf.fund_domicile === 'Ireland' ? 'Irsku' : etf.fund_domicile}.`}
+                : `${etf.name} je ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}fond sledující index ${etf.index_name} s nákladovostí ${ter(etf.ter_numeric)} ročně a sídlem v ${etf.fund_domicile === 'Ireland' ? 'Irsku' : etf.fund_domicile}.`}
             </p>
           </div>
         </section>
@@ -690,13 +706,15 @@ export default async function ETFDetailPreview(
             {[
               {
                 q: `Je ${ticker} (${shortName}) vhodný pro dlouhodobé investování?`,
-                a: `Je to ${distText.toLowerCase()} fond sledující index ${etf.index_name} s ${replText.toLowerCase()} replikací. Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_currency)}, roční poplatek ${ter(etf.ter_numeric)} a sídlo v ${domText}. ${isAcc ? 'Akumulační politika a nízké náklady z něj dělají praktickou volbu pro dlouhodobé pasivní investory.' : 'Distribuční politika se hodí těm, kdo chtějí z investice pravidelný příjem.'} Vhodnost pro vás ale závisí na vašem cíli a horizontu.`,
+                a: `Je to ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}fond sledující index ${etf.index_name} s ${replText.toLowerCase()} replikací. Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_currency)}, roční poplatek ${ter(etf.ter_numeric)} a sídlo v ${domText}. ${isAcc ? 'Akumulační politika a nízké náklady z něj dělají praktickou volbu pro dlouhodobé pasivní investory.' : isDist ? 'Distribuční politika se hodí těm, kdo chtějí z investice pravidelný příjem.' : ''} Vhodnost pro vás ale závisí na vašem cíli a horizontu.`,
               },
               {
                 q: 'Vyplácí tento fond dividendy?',
                 a: isAcc
                   ? 'Ne. Je to akumulační fond – dividendy se automaticky reinvestují uvnitř fondu. Na účet vám nic nechodí, takže v ČR neřešíte srážkovou daň ani řádky v přiznání z dividend.'
-                  : `Ano. Je to distribuční fond – dividendy vyplácí na váš účet${divYield != null ? ` (aktuální výnos zhruba ${pct(divYield).replace('+', '')})` : ''}. V ČR se daní 15 % a uvádějí se v daňovém přiznání.`,
+                  : isDist
+                  ? `Ano. Je to distribuční fond – dividendy vyplácí na váš účet${divYield != null ? ` (aktuální výnos zhruba ${pct(divYield).replace('+', '')})` : ''}. V ČR se daní 15 % a uvádějí se v daňovém přiznání.`
+                  : 'U tohoto fondu nemáme distribuční politiku spolehlivě ověřenou. Zkontrolujte si ji prosím v oficiálním dokumentu KID nebo na justETF – akumulační fondy dividendy reinvestují, distribuční je vyplácejí na účet.',
               },
               {
                 q: 'Musím jako Čech vyplňovat formulář W-8BEN?',

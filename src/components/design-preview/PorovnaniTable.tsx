@@ -18,7 +18,13 @@ const pct1 = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-
    Ověřeno proti justETF: CSPX = EUR 131 612 mil., SWDA = EUR 123 901 mil. */
 const curSym = (_c?: string | null) => '€';
 const money = (v: number | null, cur: string | null = 'EUR') => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${curSym(cur)}` : `${Math.round(v).toLocaleString('cs-CZ')} mil. ${curSym(cur)}`);
-const isAcc = (p: string | null) => !/distribut/i.test(p || '');
+const distTypeLabel = (p: string | null, freq?: string | null) => {
+  const s = p || '';
+  if (/accumulat|thesaur|capitalis/i.test(s)) return 'Akumulační';
+  if (/distribut/i.test(s)) return 'Distribuční';
+  if (freq && /(quarter|month|annual|semi|dividend|income)/i.test(freq)) return 'Distribuční';
+  return 'Neuvedeno';
+};
 const replLabel = (r: string | null) => { const s = (r || '').toLowerCase(); if (s.includes('synth') || s.includes('swap')) return 'Syntetická (swap)'; if (s) return 'Fyzická'; return '—'; };
 const DOM: Record<string, string> = { Ireland: 'Irsko', Luxembourg: 'Lucembursko', Germany: 'Německo', France: 'Francie', Netherlands: 'Nizozemsko', Switzerland: 'Švýcarsko', 'United Kingdom': 'Spojené království' };
 const dom = (d: string | null) => (d ? DOM[d] ?? d : '—');
@@ -85,7 +91,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
         { label: 'Poskytovatel', cell: (e) => str(e.fund_provider) ?? '—' },
         { label: 'Sledovaný index', cell: (e) => str(e.index_name) ?? '—' },
         { label: 'Zaměření', cell: (e) => str(raw(e).investment_focus) ?? str(e.region) ?? '—' },
-        { label: 'Typ výplaty', cell: (e) => isAcc(e.distribution_policy) ? 'Akumulační' : 'Distribuční' },
+        { label: 'Typ výplaty', cell: (e) => distTypeLabel(e.distribution_policy, e.distribution_frequency) },
         { label: 'Replikace', cell: (e) => replLabel(e.replication) },
         { label: 'Domicil', cell: (e) => dom(e.fund_domicile) },
         { label: 'Právní struktura', cell: (e) => str(raw(e).legal_structure) ?? '—' },
@@ -134,7 +140,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
       title: 'Dividendy',
       rows: [
         { label: 'Dividendový výnos', cell: (e) => { const v = num(e.current_dividend_yield_numeric); return v == null ? '—' : pct1(v); }, best: (e) => num(e.current_dividend_yield_numeric) === bestDiv && bestDiv > 0 },
-        { label: 'Politika výplaty', cell: (e) => isAcc(e.distribution_policy) ? 'Reinvestuje (Acc)' : 'Vyplácí (Dist)' },
+        { label: 'Politika výplaty', cell: (e) => { const t = distTypeLabel(e.distribution_policy, e.distribution_frequency); return t === 'Akumulační' ? 'Reinvestuje (Acc)' : t === 'Distribuční' ? 'Vyplácí (Dist)' : 'Neuvedeno'; } },
       ],
     },
     {

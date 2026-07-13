@@ -23,7 +23,20 @@ const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v >= 1000) return `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${s}`;
   return `${Math.round(v).toLocaleString('cs-CZ')} mil. ${s}`;
 };
-const isAcc = (p: string | null) => !/distribut/i.test(p || '');
+// Prázdná politika se nedomýšlí na akumulační; odvodí se z výplatní frekvence, jinak 'unknown'.
+const distKind = (p: string | null | undefined, freq?: string | null): 'acc' | 'dist' | 'unknown' => {
+  const s = p || '';
+  if (/accumulat|thesaur|capitalis/i.test(s)) return 'acc';
+  if (/distribut/i.test(s)) return 'dist';
+  if (freq && /(quarter|month|annual|semi|dividend|income)/i.test(freq)) return 'dist';
+  return 'unknown';
+};
+const distChip = (k: 'acc' | 'dist' | 'unknown') =>
+  k === 'acc'
+    ? { cls: 'bg-blue-50 text-blue-700', label: 'ACC' }
+    : k === 'dist'
+    ? { cls: 'bg-emerald-50 text-emerald-700', label: 'DIST' }
+    : { cls: 'bg-slate-100 text-slate-500', label: '—' };
 
 const PAGE = 25;
 
@@ -186,8 +199,8 @@ export default function ScreenerUI({
       if (term && !blob.includes(term)) return false;
       if (category !== 'all' && e.category !== category) return false;
       if (!leveraged && e.is_leveraged) return false;
-      if (dist === 'acc' && !isAcc(e.distribution_policy)) return false;
-      if (dist === 'dist' && isAcc(e.distribution_policy)) return false;
+      if (dist === 'acc' && distKind(e.distribution_policy, e.distribution_frequency) !== 'acc') return false;
+      if (dist === 'dist' && distKind(e.distribution_policy, e.distribution_frequency) !== 'dist') return false;
       if (region !== 'all' && reg !== region) return false;
       if (indexName !== 'all' && indexLabel !== indexName) return false;
       if (repl !== 'all' && e._repl !== repl) return false;
@@ -459,9 +472,10 @@ export default function ScreenerUI({
                 </>); })()}
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{e.current_dividend_yield_numeric != null ? `${Number(e.current_dividend_yield_numeric).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}</td>
                 <td className="py-3 px-3 text-center">
-                  <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${isAcc(e.distribution_policy) ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                    {isAcc(e.distribution_policy) ? 'ACC' : 'DIST'}
-                  </span>
+                  {(() => { const c = distChip(distKind(e.distribution_policy, e.distribution_frequency)); return (
+                  <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${c.cls}`}>
+                    {c.label}
+                  </span>); })()}
                 </td>
                 <td className="py-3 px-3">
                   <div className="flex justify-center"><CompareButton isin={e.isin} label={e.primary_ticker ?? e.name.slice(0, 8)} variant="chip" /></div>
@@ -513,9 +527,10 @@ export default function ScreenerUI({
                 </div>
               </dl>
               <div className="mt-3 flex items-center justify-between gap-2">
-                <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${isAcc(e.distribution_policy) ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                  {isAcc(e.distribution_policy) ? 'ACC' : 'DIST'}
-                </span>
+                {(() => { const c = distChip(distKind(e.distribution_policy, e.distribution_frequency)); return (
+                <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${c.cls}`}>
+                  {c.label}
+                </span>); })()}
                 <CompareButton isin={e.isin} label={e.primary_ticker ?? e.name.slice(0, 8)} variant="chip" />
               </div>
             </div>
