@@ -48,8 +48,8 @@ const AVAILABLE_INDEXES = [
   { indexCode: 'us_small_cap', name: 'Small cap – malé firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE00BF4RFH31', etfName: 'iShares MSCI World Small Cap', ter: 0.0035 },
   { indexCode: 'us_dividend', name: 'Dividendové akcie (od 2006)', category: 'Akcie – faktory', isin: 'IE00B8GKDB10', etfName: 'Vanguard FTSE All-World High Dividend', ter: 0.0029 },
   { indexCode: 'us_min_vol', name: 'Minimální volatilita (od 2011)', category: 'Akcie – faktory', isin: 'IE00B8FHGS14', etfName: 'iShares Edge MSCI World Min Volatility', ter: 0.003 },
-  { indexCode: 'us_momentum', name: 'Momentum (od 2013)', category: 'Akcie – faktory', isin: 'IE00BP3QZ825', etfName: 'iShares Edge MSCI World Momentum Factor', ter: 0.0025 },
-  { indexCode: 'us_quality', name: 'Quality – kvalitní firmy (od 2013)', category: 'Akcie – faktory', isin: 'IE00BP3QZ601', etfName: 'iShares Edge MSCI World Quality Factor', ter: 0.0025 },
+  { indexCode: 'us_momentum', name: 'Momentum (od 2000)', category: 'Akcie – faktory', isin: 'IE00BP3QZ825', etfName: 'iShares Edge MSCI World Momentum Factor', ter: 0.0025 },
+  { indexCode: 'us_quality', name: 'Quality – kvalitní firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE00BP3QZ601', etfName: 'iShares Edge MSCI World Quality Factor', ter: 0.0025 },
   { indexCode: 'gold', name: 'Zlato (od 2004)', category: 'Komodity', isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold', ter: 0.0012 },
   { indexCode: 'commodities', name: 'Komodity – diverzifikované (od 2006)', category: 'Komodity', isin: 'IE00BDFL4P12', etfName: 'iShares Diversified Commodity', ter: 0.0019 },
 ];

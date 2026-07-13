@@ -20,9 +20,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Faktorové ETF: co skutečně říkají data (v korunách)',
     description:
-      'Šest faktorů přepočtených do Kč na denních datech. Spoiler: od 2013 porazil S&P 500 jediný. Poctivý rozbor včetně konkrétních UCITS ETF.',
+      'Šest faktorů přepočtených do Kč na denních datech. Spoiler: od roku 2000 porazily index jen dva. Poctivý rozbor včetně konkrétních UCITS ETF.',
     url: 'https://etfpruvodce.cz/faktorove-etf',
-    images: [ogImage({ title: 'Faktorové ETF: co skutečně říkají data', eyebrow: 'Datový rozbor · v korunách', stat: '1 ze 6', statLabel: 'faktorů porazil S&P 500 (od 2013, v Kč)' })],
+    images: [ogImage({ title: 'Faktorové ETF: co skutečně říkají data', eyebrow: 'Datový rozbor · v korunách', stat: '2 ze 6', statLabel: 'faktorů porazilo S&P 500 (od 2000, v Kč)' })],
     type: 'article',
   },
 };
@@ -42,9 +42,9 @@ export default async function FaktoroveEtf() {
       what: 'Firmy s vysokou dividendou. Psychologicky příjemné, matematicky žádná záruka.', href: '/faktorove-etf/dividendove-akcie' },
     { name: 'Minimální volatilita', od: '2011', nav: '572 tis.', cagr: '+12,6 %', dd: '−26 %', spNav: '936 tis.', spCagr: '+16,4 %', beat: false,
       what: 'Akcie s nejmenším kolísáním. Slibuje klidnější jízdu za cenu nižšího výnosu.', href: '/faktorove-etf/minimalni-volatilita' },
-    { name: 'Momentum', od: '2013', nav: '764 tis.', cagr: '+16,6 %', dd: '−31 %', spNav: '651 tis.', spCagr: '+15,2 %', beat: true,
+    { name: 'Momentum', od: '2000', nav: '770 tis.', cagr: '+8,0 %', dd: '−61 %', spNav: '487 tis.', spCagr: '+6,2 %', beat: true,
       what: 'Akcie, kterým se dařilo v posledním roce. Nejsilnější faktor posledního desetiletí.', href: '/faktorove-etf/momentum' },
-    { name: 'Quality (kvalitní firmy)', od: '2013', nav: '548 tis.', cagr: '+14,0 %', dd: '−27 %', spNav: '592 tis.', spCagr: '+14,7 %', beat: false,
+    { name: 'Quality (kvalitní firmy)', od: '2000', nav: '448 tis.', cagr: '+5,8 %', dd: '−68 %', spNav: '487 tis.', spCagr: '+6,2 %', beat: false,
       what: 'Ziskové firmy s nízkým dluhem a stabilními maržemi.', href: '/faktorove-etf/quality' },
   ];
 
@@ -83,7 +83,7 @@ export default async function FaktoroveEtf() {
     },
     {
       q: 'Funguje to? Porazím s faktory trh?',
-      a: 'Na dlouhých akademických datech faktory prémii měly. V praxi posledních 10–25 let je to slabší: v našem korunovém přepočtu porazil S&P 500 od roku 2013 jediný faktor (momentum) a od roku 2000 jen malé firmy, o desetiny procenta. Faktory umí i dekádu zaostávat – kdo je kupuje, musí to vydržet.',
+      a: 'Na dlouhých akademických datech faktory prémii měly. V praxi je to slabší: v našem korunovém přepočtu od roku 2000 porazily S&P 500 jen momentum (+8,0 vs +6,2 % ročně) a těsně malé firmy – quality, value, dividendy i min. volatilita zaostaly. A faktory umí i dekádu zaostávat; kdo je kupuje, musí to vydržet.',
     },
     {
       q: 'Proč se výsledky liší od amerických studií?',
@@ -160,7 +160,7 @@ export default async function FaktoroveEtf() {
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
               Value, momentum, quality, malé firmy… Faktorové investování slibuje porazit trh vědecky. Přepočítali
               jsme šest faktorů do korun na reálných denních datech – a výsledek je střízlivější, než říká marketing:{' '}
-              <strong className="text-white">od roku 2013 porazil S&P 500 jediný faktor</strong>.
+              <strong className="text-white">z šesti faktorů porazil S&P 500 dlouhodobě jen momentum</strong> (a těsně malé firmy).
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
@@ -236,8 +236,8 @@ export default async function FaktoroveEtf() {
             </table>
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Čtěte po řádcích, ne mezi řádky: momentum od 2013 index porazilo (+16,6 % vs. +15,2 %), malé firmy od 2000
-            těsně také – všechno ostatní zaostalo. Minimální volatilita splnila slib nižšího kolísání (propad −26 %),
+            Pozn. k datům: řady momentum a quality jsou před vznikem ETF (2013) prodlouženy akademickými denními portfolii z Kenneth R. French Data Library, napojenými na ETF a kalibrovanými na jeho chování v překryvu (korelace 0,96–0,98) – metodika je popsaná v repozitáři. Čtěte po řádcích, ne mezi řádky: index od roku 2000 porazily jen momentum (+8,0 % vs. +6,2 %) a těsně malé firmy –
+            všechno ostatní zaostalo. Minimální volatilita splnila slib nižšího kolísání (propad −26 %),
             ale stála skoro 4 procentní body výnosu ročně.
           </p>
         </section>

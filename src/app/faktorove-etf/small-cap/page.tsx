@@ -6,7 +6,7 @@ export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'Small cap faktor: malé firmy v korunách od 2000 – hloubková analýza',
   description:
-    'Malé firmy jsou jediný faktor, který od roku 2000 porazil S&P 500 – o desetiny procenta a za cenu nejdivočejší jízdy. Rolling okna, krize, DCA a proč size prémie od svého objevení slábne.',
+    'Malé firmy porazily od roku 2000 S&P 500 – o desetiny procenta a za cenu nejdivočejší jízdy. Rolling okna, krize, DCA a proč size prémie od svého objevení slábne.',
   alternates: { canonical: '/faktorove-etf/small-cap' },
   openGraph: {
     title: 'Small cap: nejdivočejší jízda za nejmenší prémii',
@@ -49,7 +49,7 @@ const cfg: FactorConfig = {
   numbersTitle: 'Small cap v korunách (květen 2000 – červenec 2026)',
   numbersDesc: 'Jednorázových 100 000 Kč, po poplatcích (TER 0,35 %), kurz den po dni.',
   statCards: [
-    { big: '444 000 Kč', text: 'ze 100 000 Kč za 26 let (+5,9 % ročně). Jediný faktor, který od 2000 porazil S&P 500 (419 tis., +5,6 %).' },
+    { big: '444 000 Kč', text: 'ze 100 000 Kč za 26 let (+5,9 % ročně) proti 419 tis. (+5,6 %) u S&P 500 na stejném okně. Kromě momenta jediný faktor nad indexem.' },
     { big: '+44,2 %', text: 'nejlepší rok (2013) – a jednoleté okno umělo i +74 %. Nejvyšší kolísavost ze všech faktorů (±25 %).' },
     { big: '−63,2 %', text: 'nejhlubší propad (od září 2000). Návrat na vrchol trval 152 měsíců – přes 12 let.' },
   ],

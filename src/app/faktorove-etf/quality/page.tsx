@@ -6,14 +6,14 @@ export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'Quality faktor: kvalitní firmy v korunách – hloubková analýza',
   description:
-    'Quality ETF drží ziskové firmy s nízkým dluhem. V korunách od 2013 vydělaly 14,0 % ročně (index 14,7 %) a z COVID krachu se vrátily za 6 měsíců. Rozbor: kdy quality svítí, kdy je to jen dražší index – a rolling okna.',
+    'Quality ETF drží ziskové firmy s nízkým dluhem. V korunách od roku 2000 vydělaly 5,8 % ročně (index 6,2 %) – teze „dražší index“ na dlouhém okně platí. Rozbor: kdy quality svítí, čtyři krize a rolling okna.',
   alternates: { canonical: '/faktorove-etf/quality' },
   openGraph: {
     title: 'Quality: dražší index, nebo lepší spaní?',
     description:
-      'Ziskové firmy s nízkým dluhem od 2013 v Kč: 14,0 % ročně, návrat z COVID propadu za 6 měsíců, 10leté okno nikdy pod +10,5 %.',
+      'Ziskové firmy s nízkým dluhem od roku 2000 v Kč: 5,8 % ročně vs 6,2 % u indexu. Nejrychlejší návrat z COVID propadu, ale dlouhodobě index neporazil.',
     url: 'https://etfpruvodce.cz/faktorove-etf/quality',
-    images: [ogImage({ title: 'Quality: dražší index, nebo lepší spaní?', eyebrow: 'Faktorová analýza · v korunách', stat: '6 měsíců', statLabel: 'návrat z COVID propadu (nejrychlejší z faktorů)' })],
+    images: [ogImage({ title: 'Quality: dražší index, nebo lepší spaní?', eyebrow: 'Faktorová analýza · v korunách', stat: '5,8 % vs 6,2 %', statLabel: 'quality vs S&P 500 od roku 2000 (v Kč)' })],
     type: 'article',
   },
 };
@@ -26,11 +26,11 @@ const cfg: FactorConfig = {
     <>
       Ziskové firmy s nízkým dluhem a stabilními maržemi – kdo by je nechtěl? Quality je nejintuitivnější
       faktor, a proto je u něj nejtěžší poznat, co si vlastně kupujete navíc.{' '}
-      <strong className="text-white">V korunách od 2013: 14,0 % ročně proti 14,7 % u S&P 500</strong> – skoro
-      stejná jízda, o poplatek dražší. Skoro.
+      <strong className="text-white">V korunách od roku 2000: 5,8 % ročně proti 6,2 % u S&P 500</strong> – skoro
+      stejná jízda, o poplatek dražší. Na dlouhém okně to platí doslova.
     </>
   ),
-  dataRange: 'Denní data 2013–2026, v Kč, po TER',
+  dataRange: 'Denní data 2000–2026, v Kč, po TER',
   howTitle: 'Jak quality funguje',
   howParagraphs: [
     <>
@@ -48,32 +48,36 @@ const cfg: FactorConfig = {
       turbulentních obdobích, kdy trh odměňoval rozvahy bez dluhů.
     </>,
   ],
-  numbersTitle: 'Quality v korunách (červenec 2013 – červenec 2026)',
-  numbersDesc: 'Jednorázových 100 000 Kč, po poplatcích (TER 0,25 %), kurz den po dni.',
+  numbersTitle: 'Quality v korunách (leden 2000 – červenec 2026)',
+  numbersDesc: 'Jednorázových 100 000 Kč, po poplatcích (TER 0,25 %), kurz den po dni. Před 2013 akademická řada napojená na ETF (viz poznámka níže).',
   statCards: [
-    { big: '548 000 Kč', text: 'ze 100 000 Kč za 13 let (+14,0 % ročně). S&P 500 dal za stejné období 592 000 Kč (+14,7 %).' },
-    { big: '+34,5 %', text: 'nejlepší rok (2019). V ročence faktorů quality vyhrál 2× z 12 let (2019, 2023).' },
-    { big: '6 měsíců', text: 'návrat z COVID propadu (−27 %) – nejrychlejší zotavení ze všech faktorů. Kvalitní rozvahy panika neláme.' },
+    { big: '448 000 Kč', text: 'ze 100 000 Kč za 26 let (+5,8 % ročně). S&P 500 dal za stejné období 487 000 Kč (+6,2 %).' },
+    { big: '+37,6 %', text: 'nejlepší rok (2013). V ročence faktorů quality vyhrál 2× z 12 let (2019, 2023).' },
+    { big: '−67,9 %', text: 'nejhlubší propad (éra dot-com). I kvalitní firmy byly v roce 2000 součástí bubliny – „quality“ nechrání před drahým nákupem.' },
   ],
   dcaText: (
     <>
-      <strong className="text-slate-900">S pravidelnými vklady:</strong> kdo od července 2013 vložil 100 000 Kč
-      a přidával 5 000 Kč měsíčně, vložil celkem 880 000 Kč – a dnes by měl{' '}
-      <strong className="text-slate-900">přibližně 2 468 000 Kč</strong>.
+      <strong className="text-slate-900">S pravidelnými vklady:</strong> kdo od ledna 2000 vložil 100 000 Kč
+      a přidával 5 000 Kč měsíčně, vložil celkem 1 690 000 Kč – a dnes by měl{' '}
+      <strong className="text-slate-900">přibližně 8 300 000 Kč</strong>.
     </>
   ),
   rolling: [
-    { yrs: '1 rok', avg: '+14,3 %', low: '−18,3 %', high: '+46,3 %', pos: '84 %' },
-    { yrs: '5 let', avg: '+12,5 %', low: '+6,0 %', high: '+17,3 %', pos: '100 %' },
-    { yrs: '10 let', avg: '+12,6 %', low: '+10,5 %', high: '+14,6 %', pos: '100 %' },
+    { yrs: '1 rok', avg: '+7,0 %', low: '−38,2 %', high: '+46,3 %', pos: '69 %' },
+    { yrs: '5 let', avg: '+7,6 %', low: '−12,5 %', high: '+21,9 %', pos: '71 %' },
+    { yrs: '10 let', avg: '+8,7 %', low: '−7,8 %', high: '+18,3 %', pos: '85 %' },
+    { yrs: '15 let', avg: '+9,0 %', low: '+0,6 %', high: '+15,8 %', pos: '100 %' },
   ],
   rollingNote: (
     <>
-      Pozoruhodná stabilita: <strong className="text-slate-700">žádné desetileté okno neskončilo hůř než
-      +10,5 % ročně</strong> – nejužší rozpětí ze všech faktorů. Quality nedělá extrémy ani nahoru, ani dolů.
+      V éře ETF (od 2013) quality vykazoval nejstabilnější výnosy ze všech faktorů. Plné okno od 2000 ale
+      připomíná, že <strong className="text-slate-700">ani kvalita nechrání před drahým nákupem</strong> –
+      desetiletí po dot-com bublině umělo skončit −7,8 % ročně. Jistota přišla až na 15 letech.
     </>
   ),
   crises: [
+    { name: 'Dot-com krach (2000–02)', drop: '−55 %', note: 'návrat 148 měsíců – „kvalitní“ tituly roku 2000 byly zároveň nejdražší; nejdelší čekání' },
+    { name: 'Finanční krize 2008', drop: '−42 %', note: 'návrat 37 měsíců – mělčí propad než index (−50 %); tady se kvalita rozvah ukázala' },
     { name: 'COVID krach (2020)', drop: '−27 %', note: 'návrat 6 měsíců – nejrychlejší z faktorů; kvalita byla první, co trh po panice koupil zpět' },
     { name: 'Medvědí trh 2022', drop: '−19 %', note: 'návrat 15 měsíců – kvalitní firmy byly v roce 2021 drahé a růst sazeb je přecenil skoro jako celý trh' },
   ],
@@ -94,8 +98,10 @@ const cfg: FactorConfig = {
   ],
   etfNote: (
     <>
-      Pozn.: backtest výše běží na americké řadě (od 2013); světová UCITS verze aplikuje stejnou metodiku na
-      vyspělé trhy celého světa.
+      Pozn. k datům: od července 2013 běží řada na americkém quality ETF; období 2000–2013 je prodloužené
+      akademickým denním portfoliem (Kenneth R. French Data Library, top 30 % provozní ziskovosti) napojeným na ETF
+      a kalibrovaným na jeho chování v překryvu (korelace 0,98). Světová UCITS verze aplikuje metodiku na vyspělé
+      trhy celého světa.
     </>
   ),
   faqs: [
@@ -117,7 +123,7 @@ const cfg: FactorConfig = {
     },
     {
       q: 'Proč se vaše čísla liší od amerických materiálů?',
-      a: 'Počítáme v korunách (včetně kurzu USD/CZK), po TER a na reálném ETF. Data od 2013 – kratší okno než u value/small cap, protože quality ETF vznikly později.',
+      a: 'Počítáme v korunách (včetně kurzu USD/CZK), po TER a na reálném ETF; před rokem 2013 na akademické řadě napojené na ETF. Americké materiály bývají v dolarech a bez poplatků.',
     },
   ],
   related: [
