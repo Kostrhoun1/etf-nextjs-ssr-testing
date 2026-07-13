@@ -181,8 +181,6 @@ export default function BacktestWidget() {
     setSelectedETFs((prev) => prev.map((e) => (e.indexCode === indexCode ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
-  const resultAnchorRef = useRef<HTMLDivElement>(null);
-  const runAnchorRef = useRef<HTMLDivElement>(null);
   const runBacktest = async (overrideCurrency?: Currency) => {
     // Obrana: overrideCurrency smí být jen platná měna. Kdyby se sem dostal
     // např. klikací event (onClick={runBacktest}), padne JSON.stringify na
@@ -294,15 +292,11 @@ export default function BacktestWidget() {
     if (contrib === 'none') setContributionFrequency('none');
     else if (contrib && /^\d+$/.test(contrib)) { setContributionAmount(parseInt(contrib, 10)); setContributionFrequency('monthly'); }
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
-    // Sjedeme k tlačítku HNED (ne až po dopočítání) – uživatel plynule uvidí „Počítám…“
-    // a výsledek se objeví přímo pod tím, místo pozdějšího nečekaného skoku.
+    // ZÁMĚRNĚ nescrollujeme – uživatel má vidět předvyplněná (editovatelná) pole; výsledek
+    // je spočítaný a čeká, až k němu přirozeně dorolluje.
     if (hasPreset && p.get('run') === '1') {
       setTimeout(() => {
-        if (!didAutoRunRef.current) {
-          didAutoRunRef.current = true;
-          runBacktestRef.current();
-          setTimeout(() => runAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
-        }
+        if (!didAutoRunRef.current) { didAutoRunRef.current = true; runBacktestRef.current(); }
       }, 80);
     }
     // Jen jednou při načtení stránky.
@@ -577,7 +571,7 @@ export default function BacktestWidget() {
         </div>
 
         {/* Spustit */}
-        <div ref={runAnchorRef} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
           <button
             onClick={() => runBacktest()}
             disabled={loading || totalWeight !== 100 || selectedETFs.length === 0}
@@ -605,7 +599,6 @@ export default function BacktestWidget() {
       )}
 
       {/* ===== VÝSLEDKY ===== */}
-      <div ref={resultAnchorRef} />
       {result && !loading && (
         <>
           {/* Headline výsledek – kolik jsi vložil vs. kolik z toho je zisk (v Kč) */}
