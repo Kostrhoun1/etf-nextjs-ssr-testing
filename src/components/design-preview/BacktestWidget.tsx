@@ -43,6 +43,12 @@ const AVAILABLE_INDEXES = [
   { indexCode: 'us_treasury_20y', name: 'US státní dluhopisy 20+ let', category: 'Dluhopisy USD', isin: 'IE00BSKRJZ44', etfName: 'iShares USD Treasury Bond 20+yr', ter: 0.0007 },
   { indexCode: 'us_aggregate_bond', name: 'US agregátní dluhopisy', category: 'Dluhopisy USD', isin: 'IE00BYXYYM63', etfName: 'iShares US Aggregate Bond', ter: 0.0025 },
   { indexCode: 'us_corp_bond_ig', name: 'US firemní dluhopisy (IG)', category: 'Dluhopisy USD', isin: 'IE00BYXYYL56', etfName: 'iShares USD Corporate Bond', ter: 0.002 },
+  { indexCode: 'us_value', name: 'Value – hodnotové akcie (od 2000)', category: 'Akcie – faktory', isin: 'IE00BP3QZB59', etfName: 'iShares Edge MSCI World Value Factor', ter: 0.0025 },
+  { indexCode: 'us_small_cap', name: 'Small cap – malé firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE00BF4RFH31', etfName: 'iShares MSCI World Small Cap', ter: 0.0035 },
+  { indexCode: 'us_dividend', name: 'Dividendové akcie (od 2006)', category: 'Akcie – faktory', isin: 'IE00B8GKDB10', etfName: 'Vanguard FTSE All-World High Dividend', ter: 0.0029 },
+  { indexCode: 'us_min_vol', name: 'Minimální volatilita (od 2011)', category: 'Akcie – faktory', isin: 'IE00B8FHGS14', etfName: 'iShares Edge MSCI World Min Volatility', ter: 0.003 },
+  { indexCode: 'us_momentum', name: 'Momentum (od 2013)', category: 'Akcie – faktory', isin: 'IE00BP3QZ825', etfName: 'iShares Edge MSCI World Momentum Factor', ter: 0.0025 },
+  { indexCode: 'us_quality', name: 'Quality – kvalitní firmy (od 2013)', category: 'Akcie – faktory', isin: 'IE00BP3QZ601', etfName: 'iShares Edge MSCI World Quality Factor', ter: 0.0025 },
   { indexCode: 'gold', name: 'Zlato', category: 'Komodity', isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold', ter: 0.0012 },
   { indexCode: 'commodities', name: 'Komodity (diverzifikované)', category: 'Komodity', isin: 'IE00BDFL4P12', etfName: 'iShares Diversified Commodity', ter: 0.0019 },
 ];
@@ -70,6 +76,10 @@ const PRESET_PORTFOLIOS = [
   {
     id: 'global-em', name: '80 % vyspělé + 20 % EM', description: 'Globální akcie s rozvíjejícími se trhy',
     etfs: [{ indexCode: 'msci_eafe', weight: 40 }, { indexCode: 'sp500', weight: 40 }, { indexCode: 'msci_em', weight: 20 }],
+  },
+  {
+    id: 'buffett-90-10', name: 'Buffettovo 90/10', description: 'Co Buffett předepsal manželce: 90 % S&P 500, 10 % krátké státní dluhopisy',
+    etfs: [{ indexCode: 'sp500', weight: 90 }, { indexCode: 'us_treasury_1_3y', weight: 10 }],
   },
 ];
 
@@ -370,7 +380,7 @@ export default function BacktestWidget() {
                 className="flex-1 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
               >
                 <option value="">Přidat další třídu aktiv…</option>
-                {['Akcie', 'Dluhopisy EUR', 'Dluhopisy USD', 'Komodity'].map((cat) => (
+                {['Akcie', 'Akcie – faktory', 'Dluhopisy EUR', 'Dluhopisy USD', 'Komodity'].map((cat) => (
                   <optgroup key={cat} label={cat}>
                     {availableToAdd.filter((i) => i.category === cat).map((i) => (
                       <option key={i.indexCode} value={i.indexCode}>{i.name}</option>
