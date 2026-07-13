@@ -33,6 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { p: '/menove-riziko-etf', pr: 0.7 },
     { p: '/buffettovo-portfolio', pr: 0.8 },
     { p: '/faktorove-etf', pr: 0.8 },
+    { p: '/faktorove-etf/momentum', pr: 0.7 },
     { p: '/investicni-kalkulacka', pr: 0.6 },
     { p: '/fire-kalkulacka', pr: 0.6 },
     { p: '/backtest', pr: 0.6 },

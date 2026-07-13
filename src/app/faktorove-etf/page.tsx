@@ -43,7 +43,7 @@ export default async function FaktoroveEtf() {
     { name: 'Minimální volatilita', od: '2011', nav: '572 tis.', cagr: '+12,6 %', dd: '−26 %', spNav: '936 tis.', spCagr: '+16,4 %', beat: false,
       what: 'Akcie s nejmenším kolísáním. Slibuje klidnější jízdu za cenu nižšího výnosu.' },
     { name: 'Momentum', od: '2013', nav: '764 tis.', cagr: '+16,6 %', dd: '−31 %', spNav: '651 tis.', spCagr: '+15,2 %', beat: true,
-      what: 'Akcie, kterým se dařilo v posledním roce. Nejsilnější faktor posledního desetiletí.' },
+      what: 'Akcie, kterým se dařilo v posledním roce. Nejsilnější faktor posledního desetiletí.', href: '/faktorove-etf/momentum' },
     { name: 'Quality (kvalitní firmy)', od: '2013', nav: '548 tis.', cagr: '+14,0 %', dd: '−27 %', spNav: '592 tis.', spCagr: '+14,7 %', beat: false,
       what: 'Ziskové firmy s nízkým dluhem a stabilními maržemi.' },
   ];
@@ -217,7 +217,12 @@ export default async function FaktoroveEtf() {
                 {factors.map((f) => (
                   <tr key={f.name} className="border-b border-slate-100 last:border-0">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-slate-900">{f.name} {f.beat && <span className="ml-1 rounded bg-teal-100 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700 align-middle">porazil index</span>}</p>
+                      <p className="font-medium text-slate-900">
+                        {'href' in f && f.href ? (
+                          <Link href={f.href as string} className="text-teal-700 underline decoration-teal-300 hover:decoration-teal-600">{f.name}</Link>
+                        ) : f.name}
+                        {' '}{f.beat && <span className="ml-1 rounded bg-teal-100 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700 align-middle">porazil index</span>}
+                      </p>
                       <p className="text-xs text-slate-500 mt-0.5">{f.what}</p>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{f.od}</td>
