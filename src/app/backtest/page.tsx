@@ -13,7 +13,6 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import BacktestWidget from '@/components/design-preview/BacktestWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
-import { getHeroExample } from '@/lib/backtest/heroExample';
 import { ogImage } from '@/lib/ogImage';
 
 export const revalidate = 86400;
@@ -36,16 +35,6 @@ export default async function BacktestPreview() {
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const etfCount = await getTotalETFCount();
   const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
-
-  // Reálný příklad do hera (server, cache 1 den). null → statická varianta.
-  const hero = await getHeroExample();
-  const fmtCzk = (v: number) => new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(v);
-  const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
-  // Kompaktní částka bez falešné přesnosti (400 tis. / 1,2 mil.) – pro ilustrační hodnoty.
-  const fmtCompactCzk = (v: number) =>
-    v >= 1_000_000
-      ? `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč`
-      : `${Math.round(v / 1000)} tis. Kč`;
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -133,8 +122,8 @@ export default async function BacktestPreview() {
         {/* HERO */}
         <section className="pb-7">
           <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
-            <div className="md:flex md:items-center md:justify-between gap-8">
-              <div className="max-w-xl">
+            <div>
+              <div className="max-w-2xl">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Backtest portfolia ETF</h1>
                 <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
                   Zadáte portfolio, my ukážeme, jak by obstálo v minulosti (
@@ -154,43 +143,6 @@ export default async function BacktestPreview() {
                 </div>
               </div>
 
-              {/* Reálný příklad v korunách – naše USP místo dekorativních placeholderů */}
-              <div className="mt-6 md:mt-0 md:w-80 shrink-0">
-                <div className="rounded-xl bg-white/[0.06] border border-white/10 p-5">
-                  {hero ? (
-                    <>
-                      <p className="text-[11px] uppercase tracking-wide text-slate-400 mb-2">Ukázka výstupu</p>
-                      <p className="text-sm font-semibold text-white leading-snug">Světové akcie, {hero.startYear}–dnes</p>
-                      <p className="text-xs text-slate-400 mt-0.5">jednorázový vklad {fmtCzk(hero.initialCzk)}</p>
-                      <div className="mt-4 grid grid-cols-3 gap-2">
-                        <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
-                          <p className="text-[11px] text-slate-400 leading-tight">ročně</p>
-                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-emerald-300">{fmtPct1(hero.cagr * 100)}</p>
-                        </div>
-                        <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
-                          <p className="text-[11px] text-slate-400 leading-tight">nejhlubší propad</p>
-                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-red-300">{fmtPct1(hero.maxDrawdown * 100)}</p>
-                        </div>
-                        <div className="rounded-lg bg-white/[0.06] px-2.5 py-2">
-                          <p className="text-[11px] text-slate-400 leading-tight">konečná hodnota</p>
-                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-100">≈ {fmtCompactCzk(hero.finalCzk)}</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-                        Ilustrační příklad spočítaný naším backtestem na reálných datech. Minulá výkonnost nezaručuje budoucí výnosy.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs text-slate-400">Co uvidíte</p>
-                      <p className="mt-1 text-xl font-bold text-white leading-snug">Kolik by z vašeho vkladu bylo dnes – v korunách</p>
-                      <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                        Roční zhodnocení, nejhlubší propad i kolísavost na reálných datech od roku 2000.
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </section>
