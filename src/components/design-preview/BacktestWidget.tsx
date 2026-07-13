@@ -182,7 +182,8 @@ export default function BacktestWidget() {
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
   const resultAnchorRef = useRef<HTMLDivElement>(null);
-  const runBacktest = async (overrideCurrency?: Currency, scrollAfter = false) => {
+  const runAnchorRef = useRef<HTMLDivElement>(null);
+  const runBacktest = async (overrideCurrency?: Currency) => {
     // Obrana: overrideCurrency smí být jen platná měna. Kdyby se sem dostal
     // např. klikací event (onClick={runBacktest}), padne JSON.stringify na
     // „cyclic structures". Proto raději fallback na aktuální currency.
@@ -264,8 +265,6 @@ export default function BacktestWidget() {
           ? compareIds.map((id, i) => ({ name: PRESET_PORTFOLIOS.find((p) => p.id === id)!.name, result: compData[i] }))
           : null,
       );
-      // Po auto-runu ze sdíleného odkazu sjed na výsledek (až se stihne vykreslit).
-      if (scrollAfter) setTimeout(() => resultAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Neznámá chyba.');
     } finally {
@@ -295,9 +294,15 @@ export default function BacktestWidget() {
     if (contrib === 'none') setContributionFrequency('none');
     else if (contrib && /^\d+$/.test(contrib)) { setContributionAmount(parseInt(contrib, 10)); setContributionFrequency('monthly'); }
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
+    // Sjedeme k tlačítku HNED (ne až po dopočítání) – uživatel plynule uvidí „Počítám…“
+    // a výsledek se objeví přímo pod tím, místo pozdějšího nečekaného skoku.
     if (hasPreset && p.get('run') === '1') {
       setTimeout(() => {
-        if (!didAutoRunRef.current) { didAutoRunRef.current = true; runBacktestRef.current(undefined, true); }
+        if (!didAutoRunRef.current) {
+          didAutoRunRef.current = true;
+          runBacktestRef.current();
+          setTimeout(() => runAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+        }
       }, 80);
     }
     // Jen jednou při načtení stránky.
@@ -572,7 +577,7 @@ export default function BacktestWidget() {
         </div>
 
         {/* Spustit */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div ref={runAnchorRef} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
           <button
             onClick={() => runBacktest()}
             disabled={loading || totalWeight !== 100 || selectedETFs.length === 0}
