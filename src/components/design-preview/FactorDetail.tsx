@@ -16,11 +16,20 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import { getDataDate } from '@/lib/etf-data';
+import { runBacktest } from '@/lib/backtest/engine';
+import type { BacktestInput, TimeSeriesPoint } from '@/lib/backtest/types';
 
 export interface FactorConfig {
   slug: string;            // např. 'value'
   badge: string;           // „Faktorová analýza 3/6 · value“
   h1: string;
+  /** Kód indexu v index_historical_data + TER – z nich se počítají grafy a řada rok po roce. */
+  indexCode: string;
+  ter: number;
+  /** Začátek dat faktoru (YYYY-MM-DD) – stejné okno se použije i pro S&P 500, ať je srovnání férové. */
+  dataStart: string;
+  /** Krátký název do legendy grafů, např. „Value“. */
+  shortName: string;
   lead: React.ReactNode;   // hero odstavec (může obsahovat <strong>)
   dataRange: string;       // „Denní data 2000–2026, v Kč, po TER“
   howTitle: string;
@@ -41,9 +50,126 @@ export interface FactorConfig {
   related: [string, string][];
 }
 
+/** Poslední bod každého měsíce – SVG s ~300 body je čitelné i lehké. */
+function monthly(points: TimeSeriesPoint[]): TimeSeriesPoint[] {
+  const out: TimeSeriesPoint[] = [];
+  for (let i = 0; i < points.length; i++) {
+    const next = points[i + 1];
+    if (!next || next.date.getMonth() !== points[i].date.getMonth()) out.push(points[i]);
+  }
+  return out;
+}
+
+const fmtKc = (v: number) =>
+  v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1).replace('.', ',')} mil.` : `${Math.round(v / 1000)} tis.`;
+
+/**
+ * Spočítá srovnávací data faktor vs. S&P 500 živě z backtest enginu (stejné okno,
+ * 100 000 Kč, po TER, roční rebalance). Stránka je ISR (1 den), takže se to počítá
+ * nejvýš jednou denně – a čísla nikdy nezastarají vůči nástroji /backtest.
+ */
+async function computeComparison(cfg: FactorConfig) {
+  const base = {
+    startDate: new Date(cfg.dataStart),
+    endDate: new Date(),
+    initialAmount: 100000,
+    rebalancingStrategy: 'yearly' as const,
+    currency: 'CZK' as const,
+  };
+  const run = (indexCode: string, ter: number) =>
+    runBacktest({ ...base, portfolio: [{ isin: 'X', name: indexCode, weight: 1, ter, indexCode }] } as BacktestInput);
+  try {
+    const [fac, spx] = await Promise.all([run(cfg.indexCode, cfg.ter), run('sp500', 0.0007)]);
+    // zarovnat na společné datumy (stejný US kalendář → prakticky identické)
+    const spxByTime = new Map(spx.evolution.map((p) => [p.date.getTime(), p.value]));
+    const both = fac.evolution
+      .filter((p) => spxByTime.has(p.date.getTime()))
+      .map((p) => ({ date: p.date, f: p.value, s: spxByTime.get(p.date.getTime())! }));
+    if (both.length < 24) return null;
+    const m = monthly(both.map((p) => ({ date: p.date, value: p.f })));
+    const ms = monthly(both.map((p) => ({ date: p.date, value: p.s })));
+    const ratio = monthly(both.map((p) => ({ date: p.date, value: p.f / p.s })));
+    const annual = fac.returns.annualReturns.map((a) => ({
+      year: a.year,
+      f: a.return,
+      s: spx.returns.annualReturns.find((b) => b.year === a.year)?.return ?? null,
+    }));
+    return {
+      fac: m, spx: ms, ratio,
+      facFinal: both[both.length - 1].f, spxFinal: both[both.length - 1].s,
+      startYear: both[0].date.getFullYear(), endYear: both[both.length - 1].date.getFullYear(),
+      annual,
+    };
+  } catch {
+    return null; // graf se nevykreslí, stránka nespadne
+  }
+}
+
+/** Jednoduchý dvouřadý čárový graf (SVG) – faktor teal, S&P 500 šedě. */
+function EquityChart({ cmp, shortName }: { cmp: NonNullable<Awaited<ReturnType<typeof computeComparison>>>; shortName: string }) {
+  const W = 900, H = 320, PAD = { l: 56, r: 8, t: 12, b: 26 };
+  const all = [...cmp.fac, ...cmp.spx];
+  const minV = Math.min(...all.map((p) => p.value));
+  const maxV = Math.max(...all.map((p) => p.value));
+  const t0 = cmp.fac[0].date.getTime(), t1 = cmp.fac[cmp.fac.length - 1].date.getTime();
+  const x = (d: Date) => PAD.l + ((d.getTime() - t0) / (t1 - t0)) * (W - PAD.l - PAD.r);
+  const y = (v: number) => PAD.t + (1 - (v - minV) / (maxV - minV)) * (H - PAD.t - PAD.b);
+  const path = (pts: TimeSeriesPoint[]) => pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
+  const yTicks = [minV, (minV + maxV) / 2, maxV];
+  const years: number[] = [];
+  for (let yr = cmp.startYear + 1; yr <= cmp.endYear; yr += Math.ceil((cmp.endYear - cmp.startYear) / 8)) years.push(yr);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`Vývoj 100 000 Kč: ${shortName} vs. S&P 500`}>
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="#e2e8f0" strokeWidth="1" />
+          <text x={PAD.l - 6} y={y(v) + 4} textAnchor="end" fontSize="12" fill="#64748b">{fmtKc(v)}</text>
+        </g>
+      ))}
+      {years.map((yr) => {
+        const d = new Date(`${yr}-01-01`);
+        return <text key={yr} x={x(d)} y={H - 8} textAnchor="middle" fontSize="12" fill="#94a3b8">{yr}</text>;
+      })}
+      <path d={path(cmp.spx)} fill="none" stroke="#94a3b8" strokeWidth="2" />
+      <path d={path(cmp.fac)} fill="none" stroke="#0d9488" strokeWidth="2.5" />
+    </svg>
+  );
+}
+
+/** Poměr faktor / S&P 500 (start = 1). Nad čarou faktor vede, pod čarou zaostává. */
+function RatioChart({ cmp, shortName }: { cmp: NonNullable<Awaited<ReturnType<typeof computeComparison>>>; shortName: string }) {
+  const W = 900, H = 220, PAD = { l: 56, r: 8, t: 12, b: 26 };
+  const base = cmp.ratio[0].value;
+  const pts = cmp.ratio.map((p) => ({ date: p.date, value: p.value / base }));
+  const minV = Math.min(...pts.map((p) => p.value), 1);
+  const maxV = Math.max(...pts.map((p) => p.value), 1);
+  const t0 = pts[0].date.getTime(), t1 = pts[pts.length - 1].date.getTime();
+  const x = (d: Date) => PAD.l + ((d.getTime() - t0) / (t1 - t0)) * (W - PAD.l - PAD.r);
+  const y = (v: number) => PAD.t + (1 - (v - minV) / (maxV - minV)) * (H - PAD.t - PAD.b);
+  const path = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
+  const years: number[] = [];
+  for (let yr = cmp.startYear + 1; yr <= cmp.endYear; yr += Math.ceil((cmp.endYear - cmp.startYear) / 8)) years.push(yr);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`Relativní síla: ${shortName} vs. S&P 500`}>
+      {[minV, 1, maxV].map((v) => (
+        <g key={v}>
+          <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke={v === 1 ? '#cbd5e1' : '#e2e8f0'} strokeWidth={v === 1 ? 1.5 : 1} strokeDasharray={v === 1 ? '4 3' : undefined} />
+          <text x={PAD.l - 6} y={y(v) + 4} textAnchor="end" fontSize="12" fill="#64748b">{v.toFixed(2).replace('.', ',')}×</text>
+        </g>
+      ))}
+      {years.map((yr) => {
+        const d = new Date(`${yr}-01-01`);
+        return <text key={yr} x={x(d)} y={H - 8} textAnchor="middle" fontSize="12" fill="#94a3b8">{yr}</text>;
+      })}
+      <path d={path} fill="none" stroke="#0d9488" strokeWidth="2.5" />
+    </svg>
+  );
+}
+
 export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const cmp = await computeComparison(cfg);
 
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -146,6 +272,78 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
             <p className="text-sm text-slate-700 leading-relaxed">{cfg.dcaText}</p>
           </div>
         </section>
+
+        {/* GRAF VÝVOJE VS S&P 500 */}
+        {cmp && (
+          <section className="pb-10">
+            <SectionHead
+              title={`Vývoj v čase: ${cfg.shortName} vs. S&P 500 (${cmp.startYear}–${cmp.endYear})`}
+              desc="Jednorázových 100 000 Kč na stejném období, v korunách, po poplatcích. Počítáno živě naším backtest enginem."
+            />
+            <div className="rounded-lg border border-slate-200 bg-white p-4 md:p-6">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm mb-2">
+                <span className="inline-flex items-center gap-2"><span className="w-5 h-1 rounded bg-teal-600 inline-block" /> {cfg.shortName}: <strong className="tabular-nums">{fmtKc(cmp.facFinal)} Kč</strong></span>
+                <span className="inline-flex items-center gap-2 text-slate-500"><span className="w-5 h-1 rounded bg-slate-400 inline-block" /> S&P 500: <strong className="tabular-nums">{fmtKc(cmp.spxFinal)} Kč</strong></span>
+              </div>
+              <EquityChart cmp={cmp} shortName={cfg.shortName} />
+            </div>
+          </section>
+        )}
+
+        {/* RELATIVNÍ SÍLA */}
+        {cmp && (
+          <section className="pb-10">
+            <SectionHead
+              title="Kdy faktor vedl a kdy zaostával"
+              desc={`Poměr hodnoty ${cfg.shortName.toLowerCase()} / S&P 500 (start = 1×). Stoupá = faktor index poráží, klesá = zaostává.`}
+            />
+            <div className="rounded-lg border border-slate-200 bg-white p-4 md:p-6">
+              <RatioChart cmp={cmp} shortName={cfg.shortName} />
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                Tohle je nejdůležitější graf celé stránky: ukazuje, že faktor nevede plynule, ale ve vlnách po
+                letech. Konec čáry {cmp.facFinal >= cmp.spxFinal ? 'nad' : 'pod'} 1× znamená, že za celé období
+                faktor index {cmp.facFinal >= cmp.spxFinal ? 'porazil' : 'neporazil'}.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* ROK PO ROCE */}
+        {cmp && (
+          <section className="pb-10">
+            <SectionHead title={`Rok po roce vs. S&P 500`} desc="Roční výnosy v Kč po poplatcích. Zeleně roky, kdy faktor index porazil." />
+            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+              <table className="w-full text-sm min-w-[520px]">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <th className="px-4 py-3">Rok</th>
+                    <th className="px-4 py-3 text-right">{cfg.shortName}</th>
+                    <th className="px-4 py-3 text-right">S&P 500</th>
+                    <th className="px-4 py-3 text-right">Rozdíl</th>
+                  </tr>
+                </thead>
+                <tbody className="tabular-nums">
+                  {cmp.annual.map((a) => {
+                    const diff = a.s == null ? null : a.f - a.s;
+                    const pct = (v: number) => `${v > 0 ? '+' : ''}${(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+                    return (
+                      <tr key={a.year} className="border-b border-slate-100 last:border-0">
+                        <td className="px-4 py-2 font-medium text-slate-700">{a.year}</td>
+                        <td className={`px-4 py-2 text-right ${a.f < 0 ? 'text-rose-600' : 'text-slate-800'}`}>{pct(a.f)}</td>
+                        <td className={`px-4 py-2 text-right ${a.s != null && a.s < 0 ? 'text-rose-500' : 'text-slate-500'}`}>{a.s == null ? '–' : pct(a.s)}</td>
+                        <td className={`px-4 py-2 text-right font-medium ${diff == null ? '' : diff >= 0 ? 'text-teal-700 bg-teal-50/60' : 'text-rose-600'}`}>{diff == null ? '–' : pct(diff)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
+              Faktor index porazil v {cmp.annual.filter((a) => a.s != null && a.f > a.s).length} z {cmp.annual.filter((a) => a.s != null).length} let.
+              První a poslední rok jsou započtené jen zčásti (od začátku dat, resp. do dneška).
+            </p>
+          </section>
+        )}
 
         {/* ROLLING */}
         <section className="pb-10">

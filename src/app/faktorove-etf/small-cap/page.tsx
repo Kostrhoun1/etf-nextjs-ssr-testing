@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 
 const cfg: FactorConfig = {
   slug: 'small-cap',
+  indexCode: 'us_small_cap',
+  ter: 0.0035,
+  dataStart: '2000-05-26',
+  shortName: 'Small cap',
   badge: 'Faktorová analýza 3/6 · small cap',
   h1: 'Small cap: nejdivočejší jízda za nejmenší prémii',
   lead: (

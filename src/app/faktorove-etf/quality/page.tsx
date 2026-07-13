@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 
 const cfg: FactorConfig = {
   slug: 'quality',
+  indexCode: 'us_quality',
+  ter: 0.0025,
+  dataStart: '2000-01-01',
+  shortName: 'Quality',
   badge: 'Faktorová analýza 5/6 · quality',
   h1: 'Quality: dražší index, nebo lepší spaní?',
   lead: (

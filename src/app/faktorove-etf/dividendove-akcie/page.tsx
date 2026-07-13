@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 
 const cfg: FactorConfig = {
   slug: 'dividendove-akcie',
+  indexCode: 'us_dividend',
+  ter: 0.0029,
+  dataStart: '2006-11-16',
+  shortName: 'Dividendy',
   badge: 'Faktorová analýza 6/6 · dividendy',
   h1: 'Dividendové akcie: psychologie vs. matematika',
   lead: (
