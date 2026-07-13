@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Legend,
 } from 'recharts';
@@ -181,7 +181,8 @@ export default function BacktestWidget() {
     setSelectedETFs((prev) => prev.map((e) => (e.indexCode === indexCode ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
-  const runBacktest = async (overrideCurrency?: Currency) => {
+  const resultAnchorRef = useRef<HTMLDivElement>(null);
+  const runBacktest = async (overrideCurrency?: Currency, scrollAfter = false) => {
     // Obrana: overrideCurrency smí být jen platná měna. Kdyby se sem dostal
     // např. klikací event (onClick={runBacktest}), padne JSON.stringify na
     // „cyclic structures". Proto raději fallback na aktuální currency.
@@ -263,12 +264,45 @@ export default function BacktestWidget() {
           ? compareIds.map((id, i) => ({ name: PRESET_PORTFOLIOS.find((p) => p.id === id)!.name, result: compData[i] }))
           : null,
       );
+      // Po auto-runu ze sdíleného odkazu sjed na výsledek (až se stihne vykreslit).
+      if (scrollAfter) setTimeout(() => resultAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Neznámá chyba.');
     } finally {
       setLoading(false);
     }
   };
+
+  // Ref vždy na nejnovější runBacktest (s aktuálním stavem) – auto-run z něj čte,
+  // takže neběží se zastaralými hodnotami z předchozího renderu.
+  const runBacktestRef = useRef(runBacktest);
+  runBacktestRef.current = runBacktest;
+  const didAutoRunRef = useRef(false);
+
+  // Předvyplnění z URL (pro sdílené odkazy, např. z FB / článků):
+  //   /backtest?portfolio=buffett-90-10&start=2002-07-01&amount=1000000&contrib=none&run=1
+  // portfolio = id z PRESET_PORTFOLIOS, run=1 rovnou spustí výpočet.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const presetId = p.get('portfolio');
+    const hasPreset = !!presetId && PRESET_PORTFOLIOS.some((x) => x.id === presetId);
+    if (hasPreset) applyPreset(presetId!);
+    const start = p.get('start');
+    if (start && /^\d{4}-\d{2}-\d{2}$/.test(start)) setStartDate(start);
+    const amount = p.get('amount');
+    if (amount && /^\d+$/.test(amount)) setInitialAmount(parseInt(amount, 10));
+    const contrib = p.get('contrib');
+    if (contrib === 'none') setContributionFrequency('none');
+    else if (contrib && /^\d+$/.test(contrib)) { setContributionAmount(parseInt(contrib, 10)); setContributionFrequency('monthly'); }
+    // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
+    if (hasPreset && p.get('run') === '1') {
+      setTimeout(() => {
+        if (!didAutoRunRef.current) { didAutoRunRef.current = true; runBacktestRef.current(undefined, true); }
+      }, 80);
+    }
+    // Jen jednou při načtení stránky.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const availableToAdd = AVAILABLE_INDEXES.filter((i) => !selectedETFs.some((e) => e.indexCode === i.indexCode));
 
@@ -556,6 +590,7 @@ export default function BacktestWidget() {
       )}
 
       {/* ===== VÝSLEDKY ===== */}
+      <div ref={resultAnchorRef} />
       {result && !loading && (
         <>
           {/* Headline výsledek – kolik jsi vložil vs. kolik z toho je zisk (v Kč) */}
@@ -783,7 +818,7 @@ export default function BacktestWidget() {
                 </ResponsiveContainer>
               </div>
               <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-                Většinu času se hodnota drží na nule (nové maximum) nebo blízko ní; hluboké „doliny" jsou krize. Návrat na nulu znamená, že portfolio překonalo předchozí vrchol.
+                Většinu času se hodnota drží na nule (nové maximum) nebo blízko ní; hluboké „doliny“ jsou krize. Návrat na nulu znamená, že portfolio překonalo předchozí vrchol.
               </p>
             </div>
           )}
