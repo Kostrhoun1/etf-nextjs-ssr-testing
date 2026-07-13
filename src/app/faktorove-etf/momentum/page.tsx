@@ -15,14 +15,14 @@ export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'Momentum faktor: jediný, který porazil index – hloubková analýza',
   description:
-    'Momentum je nejsilnější faktor posledního desetiletí: od 2013 vydělal v korunách 16,6 % ročně a jako jediný porazil S&P 500. Jak funguje, co říká výzkum, rolling okna, chování v krizích a jeho skrytá rizika.',
+    'Momentum je nejsilnější faktor: od roku 2000 vydělal v korunách 8,0 % ročně proti 6,2 % u S&P 500 – jako jediný index jasně porazil. Jak funguje, co říká výzkum, rolling okna, chování ve čtyřech krizích včetně crashe 2009.',
   alternates: { canonical: '/faktorove-etf/momentum' },
   openGraph: {
     title: 'Momentum: jediný faktor, který porazil index',
     description:
-      'Hloubková analýza v korunách: 16,6 % ročně od 2013, 5leté okno nikdy záporné – a riziko, které v našich datech vidět není.',
+      'Hloubková analýza v korunách od roku 2000: 8,0 % ročně vs 6,2 % u indexu, čtyři krize včetně momentum crashe 2009.',
     url: 'https://etfpruvodce.cz/faktorove-etf/momentum',
-    images: [ogImage({ title: 'Momentum: jediný faktor, který porazil index', eyebrow: 'Faktorová analýza · v korunách', stat: '+16,6 % ročně', statLabel: 'od 2013 · S&P 500 měl +15,2 %' })],
+    images: [ogImage({ title: 'Momentum: jediný faktor, který porazil index', eyebrow: 'Faktorová analýza · v korunách', stat: '+8,0 % ročně', statLabel: 'od 2000 · S&P 500 měl +6,2 %' })],
     type: 'article',
   },
 };
@@ -34,9 +34,10 @@ export default async function MomentumFaktor() {
   // Čísla z backtest enginu (denní data od 2013-04, v Kč, po TER 0,25 %, roční rebalance),
   // ověřená proti produkčnímu /api/backtest/simulate.
   const rolling = [
-    { yrs: '1 rok', avg: '+16,3 %', low: '−17,1 %', high: '+55,8 %', pos: '84 %' },
-    { yrs: '5 let', avg: '+13,1 %', low: '+5,1 %', high: '+22,0 %', pos: '100 %' },
-    { yrs: '10 let', avg: '+13,2 %', low: '+11,1 %', high: '+15,7 %', pos: '100 %' },
+    { yrs: '1 rok', avg: '+9,1 %', low: '−32,3 %', high: '+55,8 %', pos: '69 %' },
+    { yrs: '5 let', avg: '+9,1 %', low: '−9,8 %', high: '+24,7 %', pos: '74 %' },
+    { yrs: '10 let', avg: '+10,3 %', low: '−6,2 %', high: '+20,8 %', pos: '87 %' },
+    { yrs: '15 let', avg: '+10,7 %', low: '+2,4 %', high: '+17,7 %', pos: '100 %' },
   ];
 
   const faqs = [
@@ -125,9 +126,9 @@ export default async function MomentumFaktor() {
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
               Kupovat to, co roste, zní jako nejhloupější možná strategie. Data říkají opak:{' '}
-              <strong className="text-white">od roku 2013 vydělal momentum v korunách 16,6 % ročně</strong> a jako
-              jediný ze šesti faktorů porazil S&P 500. Tady je celý rozbor – včetně rizika, které v našich číslech
-              vidět není.
+              <strong className="text-white">od roku 2000 vydělal momentum v korunách 8,0 % ročně proti 6,2 % u
+              S&P 500</strong> – jako jediný faktor index jasně porazil, přes dot-com, rok 2008 i vlastní
+              slavný crash v roce 2009. Celý rozbor tady.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
@@ -138,7 +139,7 @@ export default async function MomentumFaktor() {
               </Link>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Denní data 2013–2026, v Kč, po TER</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Denní data 2000–2026, v Kč, po TER</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Vzdělávací a nezávislé</span>
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
             </div>
@@ -170,12 +171,12 @@ export default async function MomentumFaktor() {
 
         {/* 2. NAŠE ČÍSLA */}
         <section className="pb-10">
-          <SectionHead title="Momentum v korunách (duben 2013 – červenec 2026)" desc="Jednorázových 100 000 Kč, po poplatcích (TER 0,25 %), kurz den po dni." />
+          <SectionHead title="Momentum v korunách (leden 2000 – červenec 2026)" desc="Jednorázových 100 000 Kč, po poplatcích (TER 0,25 %), kurz den po dni. Před 2013 akademická řada napojená na ETF (viz poznámka níže)." />
           <div className="grid gap-3 sm:grid-cols-3">
             {([
-              ['764 000 Kč', 'ze 100 000 Kč za 13 let (+16,6 % ročně). S&P 500 dal za stejné období 651 000 Kč (+15,2 %).', LineChart],
+              ['770 000 Kč', 'ze 100 000 Kč za 26 let (+8,0 % ročně). S&P 500 dal za stejné období 487 000 Kč (+6,2 %).', LineChart],
               ['+43,6 %', 'nejlepší rok (2024). V ročence faktorů momentum vyhrálo 5× z 12 let.', Zap],
-              ['−30,9 %', 'nejhlubší propad (od listopadu 2021, návrat na vrchol trval 27 měsíců).', History],
+              ['−60,7 %', 'nejhlubší propad (éra dot-com od září 2000). V éře ETF (od 2013) byl nejhlubší propad −31 %.', History],
             ] as [string, string, typeof Zap][]).map(([big, d, Icon]) => (
               <div key={big} className="rounded-lg border border-slate-200 bg-white p-5">
                 <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 mb-3"><Icon className="w-4.5 h-4.5" /></span>
@@ -186,9 +187,9 @@ export default async function MomentumFaktor() {
           </div>
           <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50/40 p-5 max-w-3xl">
             <p className="text-sm text-slate-700 leading-relaxed">
-              <strong className="text-slate-900">S pravidelnými vklady:</strong> kdo od dubna 2013 vložil 100 000 Kč
-              a přidával 5 000 Kč měsíčně, vložil celkem 895 000 Kč – a dnes by měl{' '}
-              <strong className="text-slate-900">přibližně 3 208 000 Kč</strong>.
+              <strong className="text-slate-900">S pravidelnými vklady:</strong> kdo od ledna 2000 vložil 100 000 Kč
+              a přidával 5 000 Kč měsíčně, vložil celkem 1 690 000 Kč – a dnes by měl{' '}
+              <strong className="text-slate-900">přibližně 11 715 000 Kč</strong>.
             </p>
           </div>
         </section>
@@ -221,9 +222,9 @@ export default async function MomentumFaktor() {
             </table>
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Jeden rok je loterie (od −17 % do +56 %). Ale <strong className="text-slate-700">žádné pětileté ani
-            desetileté okno v našich datech neskončilo v mínusu</strong> – nejhorší pětiletka dala +5,1 % ročně.
-            Platí ovšem výhrada: data pokrývají jen 13 let, vesměs rostoucí trh.
+            Jeden rok je loterie (od −32 % do +56 %) a přes dot-com éru umělo být záporné i desetileté okno
+            (−6,2 % ročně). <strong className="text-slate-700">Jistotu kladného výsledku daly až horizonty
+            15 let</strong> (nejhorší case +2,4 % ročně) – stejná lekce jako u ostatních faktorů.
           </p>
         </section>
 
@@ -232,6 +233,8 @@ export default async function MomentumFaktor() {
           <SectionHead title="Jak momentum snášelo krize" desc="Dvě velké zkoušky v našem období – v korunách, od vrcholu ke dnu." />
           <div className="grid gap-3 sm:grid-cols-2 max-w-3xl">
             {([
+              ['Dot-com krach (2000–02)', '−53 %', 'návrat 137 měsíců – nejdelší zkouška; momentum drželo technologie až do konce'],
+              ['Finanční krize 2008', '−45 %', 'návrat 37 měsíců – a v odrazu 2009 momentum zaostalo o 10 p. b. za indexem (slavný momentum crash)'],
               ['COVID krach (2020)', '−27 %', 'zotavení za 4 měsíce – momentum drželo technologie, které z pandemie vyšly jako vítěz'],
               ['Medvědí trh 2022', '−23 %', 'zotavení za 19 měsíců – obrat trhu momentum zaskočil, držel růstové tituly z 2021'],
             ] as [string, string, string][]).map(([name, drop, d]) => (
@@ -246,16 +249,16 @@ export default async function MomentumFaktor() {
 
         {/* 5. SKRYTÉ RIZIKO */}
         <section className="pb-10">
-          <SectionHead title="Riziko, které v našich datech vidět není" desc="Poctivost především: nejhorší scénář momenta se stal před začátkem našich dat." />
+          <SectionHead title="Momentum crash: největší slabina" desc="Rok 2009 máme v datech – a je vidět přesně to, co teorie předpovídá." />
           <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-6 max-w-3xl">
             <p className="text-sm text-slate-700 leading-relaxed">
               <AlertTriangle className="inline w-4 h-4 text-amber-600 mr-1 -mt-0.5" />
               <strong className="text-slate-900">Momentum crash.</strong> Když trh prudce otočí po velkém propadu,
-              momentum drží defenzivní akcie, které „vedly“ v klesajícím trhu – a rally úplně propásne, nebo hůř.
-              V roce 2009, při obratu po finanční krizi, ztratil americký momentum faktor přes 40 % vůči trhu
-              během několika měsíců. <strong className="text-slate-900">Naše data začínají v roce 2013, takže tento
-              scénář v žádné z tabulek výše není.</strong> Krásná 13letá statistika zahrnuje jen období, kdy se
-              momentu dařilo – to je přesně druh výběrového zkreslení, na který je u faktorů potřeba myslet.
+              momentum drží defenzivní akcie, které „vedly“ v klesajícím trhu – a odraz propásne. Přesně to ukazuje
+              rok 2009 v našich datech: <strong className="text-slate-900">momentum +10,5 %, zatímco S&P 500
+              +20,2 %</strong> – zaostání o 10 procentních bodů v roce největší rally. U koncentrovanějších
+              momentum strategií (long-short, úzké decily) byl crash 2009 ještě mnohem hlubší. Momentum tedy
+              dlouhodobě vede, ale svá vítězství si vybírá jindy než trh – a po velkých obratech platí daň.
             </p>
           </div>
         </section>
@@ -282,8 +285,10 @@ export default async function MomentumFaktor() {
             </table>
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Pozn.: backtest výše běží na nejdelší dostupné řadě (americký momentum od 2013); světová UCITS verze má
-            mírně odlišnou metodiku a kratší historii. Kde ETF koupit, srovnáváme v přehledu{' '}
+            Pozn. k datům: od dubna 2013 běží řada na americkém momentum ETF; období 2000–2013 je prodloužené
+            akademickým denním portfoliem (Kenneth R. French Data Library, velké firmy s nejvyšším momentem) napojeným
+            na ETF – v překryvu s ETF má korelace denních výnosů 0,96 a mírně nižší výnos (konzervativní směr).
+            Světová UCITS verze má mírně odlišnou metodiku. Kde ETF koupit, srovnáváme v přehledu{' '}
             <Link href="/kde-koupit" className="text-teal-700 underline decoration-teal-300 hover:decoration-teal-600">brokerů</Link>.
           </p>
         </section>
