@@ -119,10 +119,10 @@ export default async function BuffettovoPortfolio() {
   // Data pro grafy (equity křivka 4 portfolií + drawdown + rok po roce – vše z Buffetta/S&P)
   const CW = 900, CH = 320;
   const eqSeries = R ? [
-    { name: 'Buffett 90/10', color: '#0d9488', ev: R.buffett.evolution },
-    { name: '100 % S&P 500', color: '#6366f1', ev: R.sp.evolution },
-    { name: '60/40', color: '#f59e0b', ev: R.balanced.evolution },
-    { name: 'Svět (US+ex-US)', color: '#64748b', ev: R.global.evolution },
+    { name: 'Buffett 90/10', color: '#0d9488', ev: R.buffett.evolution },   // teal (hero)
+    { name: '100 % S&P 500', color: '#1d4ed8', ev: R.sp.evolution },        // sytě modrá
+    { name: '60/40', color: '#f59e0b', ev: R.balanced.evolution },          // jantarová
+    { name: 'Svět (US+ex-US)', color: '#9333ea', ev: R.global.evolution },  // fialová
   ] : [];
   const eqAll = eqSeries.flatMap((s) => s.ev.map((p) => p.value));
   const eqMax = eqAll.length ? Math.max(...eqAll) : 1;
@@ -263,20 +263,26 @@ export default async function BuffettovoPortfolio() {
             <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4 md:p-5">
               <p className="text-sm font-semibold text-slate-900">Vývoj 100 000 Kč (2002 → dnes), v přepočtu na koruny</p>
               <p className="text-xs text-slate-500 mt-0.5 mb-3">Buffettovo 90/10 mezi třemi alternativami na stejném období. Svislá osa je logaritmická – stejný sklon = stejné tempo růstu.</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-3">
-                {eqPaths.map((s) => (
-                  <span key={s.name} className="inline-flex items-center gap-1.5 text-xs text-slate-600">
-                    <span className="inline-block w-3 h-0.5 rounded" style={{ backgroundColor: s.color }} /> {s.name}
-                  </span>
-                ))}
+              {/* Legenda seřazená podle konečné hodnoty – nejvyšší čára = první v legendě */}
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-x-5 gap-y-1.5 mb-3">
+                {[...eqPaths]
+                  .sort((a, b) => (b.ev[b.ev.length - 1]?.value ?? 0) - (a.ev[a.ev.length - 1]?.value ?? 0))
+                  .map((s) => (
+                    <span key={s.name} className="inline-flex items-center gap-2 text-xs">
+                      <span className="inline-block w-5 h-1 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                      <span className={`${s.name.startsWith('Buffett') ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>{s.name}</span>
+                      <span className="text-slate-500 tabular-nums">{kc(s.ev[s.ev.length - 1]?.value ?? 0)}</span>
+                    </span>
+                  ))}
               </div>
               <div className="overflow-hidden">
                 <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full h-auto" preserveAspectRatio="none" role="img" aria-label="Vývoj hodnoty portfolií 2002 až dnes">
                   {[0.25, 0.5, 0.75].map((f) => (
                     <line key={f} x1="0" y1={CH * f} x2={CW} y2={CH * f} stroke="#f1f5f9" strokeWidth="1" vectorEffect="non-scaling-stroke" />
                   ))}
-                  {eqPaths.map((s) => (
-                    <path key={s.name} d={s.d} fill="none" stroke={s.color} strokeWidth={s.name.startsWith('Buffett') ? 2.6 : 1.6} vectorEffect="non-scaling-stroke" opacity={s.name.startsWith('Buffett') ? 1 : 0.85} />
+                  {/* Nejdřív ostatní, Buffett navrch a nejtlustší */}
+                  {[...eqPaths].sort((a) => (a.name.startsWith('Buffett') ? 1 : -1)).map((s) => (
+                    <path key={s.name} d={s.d} fill="none" stroke={s.color} strokeWidth={s.name.startsWith('Buffett') ? 3.4 : 2.2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
                   ))}
                 </svg>
               </div>
@@ -346,23 +352,39 @@ export default async function BuffettovoPortfolio() {
 
             {/* Rok po roce */}
             {yrs.length > 0 && (() => {
-              const n = yrs.length; const gw = 900 / n; const base = 110;
+              const n = yrs.length;
+              const PL = 68;                     // levý okraj pro popisky osy Y
+              const gw = (900 - PL) / n;
+              const base = 110;                  // nula
               const maxAbs = Math.max(...yrs.map((y) => Math.abs(y.b)), 1);
-              const h = (v: number) => (Math.abs(v) / maxAbs) * 95;
+              const niceMax = Math.max(10, Math.ceil(maxAbs / 10) * 10);
+              const yOf = (v: number) => base - (v / niceMax) * 95;
+              const levels = [niceMax, niceMax / 2, 0, -niceMax / 2, -niceMax];
               const pos = yrs.filter((y) => y.b >= 0).length;
+              const maxB = Math.max(...yrs.map((y) => y.b));
+              const minB = Math.min(...yrs.map((y) => y.b));
               return (
                 <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 md:p-5">
                   <p className="text-sm font-semibold text-slate-900">Výnos rok po roce – Buffettovo 90/10 (v Kč)</p>
-                  <p className="text-xs text-slate-500 mt-0.5 mb-3">{pos} z {n} let kladných. Ne každý rok je růstový – klíč je přečkat ty červené.</p>
+                  <p className="text-xs text-slate-500 mt-0.5 mb-3">{pos} z {n} let kladných. Ne každý rok je růstový – klíč je přečkat ty červené. Popsaný je nejlepší a nejhorší rok.</p>
                   <div className="overflow-hidden">
-                    <svg viewBox="0 0 900 230" className="w-full h-auto" role="img" aria-label="Roční výnosy Buffettova portfolia">
-                      <line x1="0" y1={base} x2="900" y2={base} stroke="#cbd5e1" strokeWidth="1" />
+                    <svg viewBox="0 0 900 248" className="w-full h-auto" role="img" aria-label="Roční výnosy Buffettova portfolia">
+                      {/* osa Y – gridlines + procentní popisky */}
+                      {levels.map((lv) => (
+                        <g key={lv}>
+                          <line x1={PL} y1={yOf(lv)} x2="900" y2={yOf(lv)} stroke={lv === 0 ? '#cbd5e1' : '#f1f5f9'} strokeWidth={lv === 0 ? 1.2 : 1} />
+                          <text x={PL - 8} y={yOf(lv) + 5} textAnchor="end" fontSize="15" fill="#64748b" className="tabular-nums">{lv > 0 ? `+${lv}` : lv} %</text>
+                        </g>
+                      ))}
                       {yrs.map((y, i) => {
-                        const x = i * gw; const bh = h(y.b);
+                        const x = PL + i * gw;
+                        const bh = Math.max(Math.abs(yOf(y.b) - base), 0.5);
+                        const extreme = y.b === maxB || y.b === minB;
                         return (
                           <g key={y.year}>
-                            <rect x={x + gw * 0.2} y={y.b >= 0 ? base - bh : base} width={gw * 0.6} height={bh} rx="1" fill={y.b >= 0 ? '#0d9488' : '#ef4444'} />
-                            {i % 3 === 0 && <text x={x + gw / 2} y="225" textAnchor="middle" fontSize="13" fill="#94a3b8">{`'${String(y.year).slice(2)}`}</text>}
+                            <rect x={x + gw * 0.18} y={y.b >= 0 ? base - bh : base} width={gw * 0.64} height={bh} rx="1.5" fill={y.b >= 0 ? '#0d9488' : '#ef4444'} />
+                            {i % 3 === 0 && <text x={x + gw / 2} y="242" textAnchor="middle" fontSize="15" fill="#64748b">{`'${String(y.year).slice(2)}`}</text>}
+                            {extreme && <text x={x + gw / 2} y={y.b >= 0 ? base - bh - 6 : base + bh + 17} textAnchor="middle" fontSize="15" fontWeight="600" fill={y.b >= 0 ? '#0f766e' : '#dc2626'}>{`${y.b >= 0 ? '+' : ''}${Math.round(y.b)} %`}</text>}
                           </g>
                         );
                       })}
