@@ -84,6 +84,18 @@ const PRESET_PORTFOLIOS = [
   },
 ];
 
+// Krátké názvy presetů pro kompaktní chipy (jedna scrollovací řádka).
+const PRESET_SHORT: Record<string, string> = {
+  'sp500-100': 'S&P 500',
+  'ftse-all-world': 'All-World',
+  'global-since-2000': 'Globální 2000',
+  '60-40': '60/40',
+  'all-weather': 'All-Weather',
+  'permanent': 'Permanentní',
+  'global-em': '80/20 EM',
+  'buffett-90-10': 'Buffett 90/10',
+};
+
 interface SelectedETF {
   isin: string; name: string; ter: number; indexCode: string; indexName: string; weight: number;
 }
@@ -149,6 +161,10 @@ export default function BacktestWidget() {
   // Porovnání: id hotových portfolií, se kterými se vlastní portfolio poměří (max 2).
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
+  // Config-first compact: aktivní hotové portfolio (pro zvýraznění chipu a souhrn),
+  // a rozklik editoru složení (default sbaleno – ukazuje jen souhrn vah).
+  const [activePreset, setActivePreset] = useState<string | null>('sp500-100');
+  const [editComposition, setEditComposition] = useState(false);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
   // Vážený roční poplatek portfolia (TER) – kolik ročně stojí držení celého portfolia.
@@ -162,23 +178,29 @@ export default function BacktestWidget() {
       return { isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: item.weight };
     });
     setSelectedETFs(newETFs);
+    setActivePreset(presetId);
   };
 
   const addETF = (indexCode: string) => {
     const index = AVAILABLE_INDEXES.find((i) => i.indexCode === indexCode);
     if (!index) return;
     if (selectedETFs.some((e) => e.indexCode === indexCode)) return;
+    setActivePreset(null); // vlastní úprava složení → už to není hotový preset
     setSelectedETFs((prev) => [
       ...prev,
       { isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: 0 },
     ]);
   };
 
-  const removeETF = (indexCode: string) =>
+  const removeETF = (indexCode: string) => {
+    setActivePreset(null);
     setSelectedETFs((prev) => prev.filter((e) => e.indexCode !== indexCode));
+  };
 
-  const setWeight = (indexCode: string, weight: number) =>
+  const setWeight = (indexCode: string, weight: number) => {
+    setActivePreset(null);
     setSelectedETFs((prev) => prev.map((e) => (e.indexCode === indexCode ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
+  };
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
   const runBacktest = async (overrideCurrency?: Currency) => {
@@ -348,37 +370,47 @@ export default function BacktestWidget() {
     <div className="space-y-4">
       {/* ===== VSTUPY ===== */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Sestavte portfolio</p>
-        <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-          Skládáte z <strong className="font-medium text-slate-600">tříd aktiv</strong> (akcie, dluhopisy, zlato…). Každou testujeme
-          na historii přes její <strong className="font-medium text-slate-600">reprezentativní ETF</strong> – jeho roční poplatek (TER)
-          se do výsledku promítá.
-        </p>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Sestavte portfolio</p>
 
-        {/* Hotová portfolia */}
-        <div className="mb-5">
-          <label className="block text-sm text-slate-600 mb-2">Hotová portfolia (jeden klik)</label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {PRESET_PORTFOLIOS.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => applyPreset(preset.id)}
-                className="text-left rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-colors min-h-[44px]"
-              >
-                <span className="block font-medium text-sm text-slate-900">{preset.name}</span>
-                <span className="block text-xs text-slate-500 mt-0.5">{preset.description}</span>
-              </button>
-            ))}
+        {/* Hotová portfolia – kompaktní chipy v jedné scrollovací řádce */}
+        <div className="mb-4">
+          <label className="block text-sm text-slate-600 mb-2">Vyberte hotové portfolio <span className="text-slate-400">(nebo si níže složte vlastní)</span></label>
+          <div className="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
+            {PRESET_PORTFOLIOS.map((preset) => {
+              const on = activePreset === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => applyPreset(preset.id)}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[40px] ${on ? 'border-teal-500 bg-teal-50 text-teal-800' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300 hover:bg-teal-50/40'}`}
+                >
+                  {PRESET_SHORT[preset.id] ?? preset.name}
+                </button>
+              );
+            })}
           </div>
+          {activePreset && (
+            <p className="text-xs text-slate-500 mt-2 leading-relaxed">{PRESET_PORTFOLIOS.find((p) => p.id === activePreset)?.description}</p>
+          )}
         </div>
 
-        {/* Složení portfolia s váhami */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm text-slate-600">Složení a váhy</label>
-            <span className={`text-sm font-semibold tabular-nums ${totalWeight === 100 ? 'text-emerald-600' : 'text-amber-600'}`}>
-              Součet: {totalWeight} %
-            </span>
+        {/* Složení – default jen souhrn; editor vah na rozklik (progressive disclosure) */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <label className="block text-sm text-slate-600">Složení</label>
+            <button type="button" onClick={() => setEditComposition((v) => !v)} className="text-sm font-medium text-teal-700 hover:text-teal-800 min-h-[32px]">
+              {editComposition ? 'Hotovo' : 'Upravit / sestavit vlastní'}
+            </button>
+          </div>
+          {!editComposition && (
+            <div className={`rounded-lg border px-3 py-2.5 text-sm ${totalWeight === 100 ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-amber-300 bg-amber-50 text-amber-800'}`}>
+              {selectedETFs.length ? selectedETFs.map((e) => `${e.indexName} ${e.weight} %`).join('  ·  ') : 'Zatím prázdné – vyberte hotové portfolio nebo přidejte třídy aktiv.'}
+              {totalWeight !== 100 && <span className="block text-xs mt-1">Součet vah: {totalWeight} % (musí být 100 %).</span>}
+            </div>
+          )}
+          {editComposition && (<>
+          <div className="flex items-center justify-end mb-2">
+            <span className={`text-sm font-semibold tabular-nums ${totalWeight === 100 ? 'text-emerald-600' : 'text-amber-600'}`}>Součet: {totalWeight} %</span>
           </div>
           <div className="space-y-2">
             {selectedETFs.map((etf) => (
@@ -447,23 +479,10 @@ export default function BacktestWidget() {
               <span className="text-sm font-semibold tabular-nums text-slate-900">{fmtPct(weightedTER * 100, 2)}</span>
             </div>
           )}
+          </>)}
         </div>
 
-        {/* Období + částky */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label htmlFor="bt-start" className="block text-sm text-slate-600 mb-1">Počáteční datum</label>
-            <input id="bt-start" type="date" min="1993-01-01" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-              className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
-            <p className="text-xs text-slate-400 mt-1">Nejdelší historie od roku 1993 (S&amp;P 500). Každý index má jinak dlouhá data – backtest začne, až je mají všechny složky.</p>
-          </div>
-          <div>
-            <label htmlFor="bt-end" className="block text-sm text-slate-600 mb-1">Koncové datum</label>
-            <input id="bt-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-              className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
-          </div>
-        </div>
-
+        {/* ===== ZÁKLADNÍ: částky ===== */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           <div>
             <label htmlFor="bt-initial" className="block text-sm text-slate-600 mb-1">Počáteční vklad</label>
@@ -471,7 +490,6 @@ export default function BacktestWidget() {
               <input id="bt-initial" type="text" inputMode="numeric" value={initialAmount === 0 ? '' : initialAmount} placeholder="0"
                 onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setInitialAmount(v === '' ? 0 : parseInt(v, 10)); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-              {/* Přípona sleduje zvolenou měnu – vklady se zadávají v měně simulace. */}
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
             </div>
           </div>
@@ -501,74 +519,101 @@ export default function BacktestWidget() {
           </div>
         </div>
 
-        {/* Měna zobrazení */}
-        <div className="mb-4">
-          <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
-            Měna
-            <InfoTip label="Vklady zadáváte a výsledky čtete v této měně. Každý index se převádí ze své domácí měny (USD/EUR) historickými denními kurzy, takže výnos v Kč zahrnuje i pohyb koruny – např. od roku 2008 vychází Kč a € téměř stejně (kurz koruny k euru je dnes na úrovni léta 2008), zatímco dolarový pohled se liší.">
-              <span className="sr-only">vysvětlení</span>
-            </InfoTip>
-          </label>
-          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
-            {CURRENCIES.map((c) => (
-              <button key={c.code} disabled={loading}
-                onClick={() => { setCurrency(c.code); if (result) runBacktest(c.code); }}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors min-h-[40px] disabled:opacity-60 ${currency === c.code ? 'bg-white text-teal-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
-                {c.label} {c.code}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* ===== POKROČILÉ NASTAVENÍ (rozklik) – období, měna, porovnání ===== */}
+        <details className="group mb-4 rounded-lg border border-slate-200 bg-slate-50/60">
+          <summary className="flex items-center justify-between gap-2 px-4 py-3 cursor-pointer list-none min-h-[44px] rounded-lg hover:bg-slate-50">
+            <span className="text-sm font-medium text-slate-700">Pokročilé nastavení</span>
+            <span className="flex items-center gap-2 text-xs text-slate-400">
+              <span className="hidden xs:inline sm:inline tabular-nums">od {startDate.slice(0, 4)} · {currency}{compareIds.length ? ` · ${compareIds.length}× porovnání` : ''}</span>
+              <span className="inline-block group-open:rotate-180 transition-transform text-slate-400 text-base leading-none">▾</span>
+            </span>
+          </summary>
+          <div className="px-4 pb-4 pt-3 space-y-4 border-t border-slate-200">
+            {/* Období */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="bt-start" className="block text-sm text-slate-600 mb-1">Počáteční datum</label>
+                <input id="bt-start" type="date" min="1993-01-01" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
+                <p className="text-xs text-slate-400 mt-1">Nejdelší historie od roku 1993 (S&amp;P 500). Každý index má jinak dlouhá data – backtest začne, až je mají všechny složky.</p>
+              </div>
+              <div>
+                <label htmlFor="bt-end" className="block text-sm text-slate-600 mb-1">Koncové datum</label>
+                <input id="bt-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
+              </div>
+            </div>
 
-        {/* Porovnání s dalšími portfolii (volitelné) */}
-        <div className="mb-5">
-          <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
-            Porovnat s dalším portfoliem (volitelné)
-            <InfoTip label="Poměřte své portfolio až se dvěma hotovými portfolii naráz – na stejném období, se stejnými vklady i měnou. Ukážeme srovnávací tabulku a překryvný graf.">
-              <span className="sr-only">vysvětlení</span>
-            </InfoTip>
-          </label>
-          {compareIds.length > 0 && (
-            <div className="space-y-2 mb-2">
-              {compareIds.map((id, i) => {
-                const preset = PRESET_PORTFOLIOS.find((p) => p.id === id);
-                return (
-                  <div key={id} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-                    <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SERIES_COLORS[i + 1] }} />
-                    <div className="flex-1 min-w-0">
-                      <span className="block text-sm font-medium text-slate-900 truncate">{preset?.name}</span>
-                      <span className="block text-xs text-slate-500 truncate">{preset?.description}</span>
-                    </div>
-                    <button
-                      onClick={() => setCompareIds((prev) => prev.filter((x) => x !== id))}
-                      aria-label={`Odebrat ${preset?.name} z porovnání`}
-                      className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {compareIds.length < 2 && (
-            <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-indigo-50 text-indigo-600">
-                <Plus className="w-4 h-4" />
-              </span>
-              <select
-                value=""
-                onChange={(e) => { if (e.target.value) setCompareIds((prev) => [...prev, e.target.value]); }}
-                className="flex-1 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
-              >
-                <option value="">Přidat portfolio k porovnání…</option>
-                {PRESET_PORTFOLIOS.filter((p) => !compareIds.includes(p.id)).map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+            {/* Měna */}
+            <div>
+              <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
+                Měna
+                <InfoTip label="Vklady zadáváte a výsledky čtete v této měně. Každý index se převádí ze své domácí měny (USD/EUR) historickými denními kurzy, takže výnos v Kč zahrnuje i pohyb koruny – např. od roku 2008 vychází Kč a € téměř stejně (kurz koruny k euru je dnes na úrovni léta 2008), zatímco dolarový pohled se liší.">
+                  <span className="sr-only">vysvětlení</span>
+                </InfoTip>
+              </label>
+              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1">
+                {CURRENCIES.map((c) => (
+                  <button key={c.code} disabled={loading}
+                    onClick={() => { setCurrency(c.code); if (result) runBacktest(c.code); }}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors min-h-[40px] disabled:opacity-60 ${currency === c.code ? 'bg-teal-50 text-teal-700 border border-teal-200' : 'text-slate-500 hover:text-slate-700'}`}>
+                    {c.label} {c.code}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Porovnání */}
+            <div>
+              <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
+                Porovnat s dalším portfoliem
+                <InfoTip label="Poměřte své portfolio až se dvěma hotovými portfolii naráz – na stejném období, se stejnými vklady i měnou. Ukážeme srovnávací tabulku a překryvný graf.">
+                  <span className="sr-only">vysvětlení</span>
+                </InfoTip>
+              </label>
+              {compareIds.length > 0 && (
+                <div className="space-y-2 mb-2">
+                  {compareIds.map((id, i) => {
+                    const preset = PRESET_PORTFOLIOS.find((p) => p.id === id);
+                    return (
+                      <div key={id} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
+                        <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SERIES_COLORS[i + 1] }} />
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-sm font-medium text-slate-900 truncate">{preset?.name}</span>
+                          <span className="block text-xs text-slate-500 truncate">{preset?.description}</span>
+                        </div>
+                        <button
+                          onClick={() => setCompareIds((prev) => prev.filter((x) => x !== id))}
+                          aria-label={`Odebrat ${preset?.name} z porovnání`}
+                          className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {compareIds.length < 2 && (
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-indigo-50 text-indigo-600">
+                    <Plus className="w-4 h-4" />
+                  </span>
+                  <select
+                    value=""
+                    onChange={(e) => { if (e.target.value) setCompareIds((prev) => [...prev, e.target.value]); }}
+                    className="flex-1 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                  >
+                    <option value="">Přidat portfolio k porovnání…</option>
+                    {PRESET_PORTFOLIOS.filter((p) => !compareIds.includes(p.id)).map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        </details>
 
         {/* Spustit */}
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
