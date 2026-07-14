@@ -10,6 +10,7 @@ import {
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate } from '@/lib/etf-data';
+import { simulateAndSerialize } from '@/lib/backtest/simulate';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -70,6 +71,86 @@ export default async function BuffettovoPortfolio() {
       { '@type': 'ListItem', position: 2, name: 'Buffettovo portfolio 90/10', item: 'https://etfpruvodce.cz/buffettovo-portfolio' },
     ],
   };
+
+  /* ================= ŽIVÁ DATA – 4 portfolia na stejném okně 2002→dnes =================
+     Vše serverově přes stejný engine jako backtest (100 000 Kč, roční rebalance, CZK, po
+     TER). Čísla se tak nikdy nerozejdou s nástrojem a nezastarají. Fallback = poslední
+     známé hodnoty, kdyby data nebyla při buildu dostupná. */
+  const START = '2002-07-01';
+  const AMOUNT = 100000;
+  const END = today.toISOString().split('T')[0];
+  const IX = {
+    sp500: { isin: 'IE00B5BMR087', ter: 0.0007, indexCode: 'sp500', name: 'S&P 500' },
+    t13: { isin: 'IE00BYXPSP02', ter: 0.0007, indexCode: 'us_treasury_1_3y', name: 'US Treasury 1–3y' },
+    t710: { isin: 'IE00B3VWN518', ter: 0.0007, indexCode: 'us_treasury_7_10y', name: 'US Treasury 7–10y' },
+    wxus: { isin: 'US9219097683', ter: 0.0008, indexCode: 'world_ex_us', name: 'Svět mimo USA' },
+  };
+  const w = (base: typeof IX.sp500, weight: number) => ({ ...base, weight });
+  const PF = {
+    buffett: [w(IX.sp500, 0.9), w(IX.t13, 0.1)],
+    sp: [w(IX.sp500, 1)],
+    balanced: [w(IX.sp500, 0.6), w(IX.t710, 0.4)],
+    global: [w(IX.sp500, 0.6), w(IX.wxus, 0.4)],
+  };
+  const runPF = (portfolio: { isin: string; ter: number; indexCode: string; name: string; weight: number }[], contributions?: { amount: number; frequency: 'monthly' }) =>
+    simulateAndSerialize({ portfolio, startDate: START, endDate: END, initialAmount: AMOUNT, rebalancingStrategy: 'yearly', currency: 'CZK', contributions });
+
+  type Sim = Awaited<ReturnType<typeof simulateAndSerialize>>;
+  let R: { buffett: Sim; sp: Sim; balanced: Sim; global: Sim; dca: Sim } | null = null;
+  try {
+    const [buffett, sp, balanced, global, dca] = await Promise.all([
+      runPF(PF.buffett), runPF(PF.sp), runPF(PF.balanced), runPF(PF.global),
+      runPF(PF.buffett, { amount: 5000, frequency: 'monthly' }),
+    ]);
+    R = { buffett, sp, balanced, global, dca };
+  } catch {
+    R = null;
+  }
+
+  const worstYear = (r: Sim) => { const a = r.returns.annualReturns.map((x) => x.return); return a.length ? Math.min(...a) * 100 : 0; };
+  const metrics = (r: Sim) => ({ final: r.summary.netAssetValue, cagr: r.summary.cagr * 100, dd: r.risk.maxDrawdown.depth * 100, vol: r.summary.standardDeviation * 100, worst: worstYear(r) });
+  const M = R ? { buffett: metrics(R.buffett), sp: metrics(R.sp), balanced: metrics(R.balanced), global: metrics(R.global) } : null;
+
+  // Formátovače
+  const kc = (v: number) => `${new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(Math.round(v))} Kč`;
+  const p1 = (v: number) => `${v >= 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  const p1a = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+
+  // Data pro grafy (equity křivka 4 portfolií + drawdown + rok po roce – vše z Buffetta/S&P)
+  const CW = 900, CH = 320;
+  const eqSeries = R ? [
+    { name: 'Buffett 90/10', color: '#0d9488', ev: R.buffett.evolution },
+    { name: '100 % S&P 500', color: '#6366f1', ev: R.sp.evolution },
+    { name: '60/40', color: '#f59e0b', ev: R.balanced.evolution },
+    { name: 'Svět (US+ex-US)', color: '#64748b', ev: R.global.evolution },
+  ] : [];
+  const eqAll = eqSeries.flatMap((s) => s.ev.map((p) => p.value));
+  const eqMax = eqAll.length ? Math.max(...eqAll) : 1;
+  const eqMinV = eqAll.length ? Math.min(...eqAll) : 1;
+  // Logaritmická osa: dlouhý horizont (24 let) se na lineární škále zmáčkne dolů.
+  const lg = Math.log;
+  const eqY = (v: number) => CH - ((lg(v) - lg(eqMinV)) / ((lg(eqMax) - lg(eqMinV)) || 1)) * CH;
+  const eqPath = (ev: { value: number }[]) => {
+    const N = 160; const st = Math.max(1, Math.ceil(ev.length / N));
+    const pts = ev.filter((_, i) => i % st === 0);
+    return pts.map((p, i) => { const x = (i / (pts.length - 1 || 1)) * CW; const y = eqY(p.value); return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ');
+  };
+  const eqPaths = eqSeries.map((s) => ({ ...s, d: eqPath(s.ev) }));
+
+  // Drawdown Buffett 90/10 (plocha pod nulou)
+  const dd = R?.buffett.drawdownSeries ?? [];
+  const ddN = 200; const ddStep = Math.max(1, Math.ceil(dd.length / ddN));
+  const ddPts = dd.filter((_, i) => i % ddStep === 0);
+  const ddMin = ddPts.length ? Math.min(...ddPts.map((p) => p.drawdown)) : -0.5; // nejhlubší (záporné)
+  const DDW = 900, DDH = 200;
+  const ddLine = ddPts.map((p, i) => { const x = (i / (ddPts.length - 1 || 1)) * DDW; const y = (p.drawdown / (ddMin || -1)) * DDH; return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ');
+  const ddArea = ddPts.length ? `${ddLine} L${DDW},0 L0,0 Z` : '';
+
+  // Rok po roce – Buffett 90/10 vs S&P (sloupce)
+  const yrs = R ? R.buffett.returns.annualReturns.map((b) => {
+    const s = R!.sp.returns.annualReturns.find((x) => x.year === b.year);
+    return { year: b.year, b: b.return * 100, s: s ? s.return * 100 : 0 };
+  }) : [];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -157,16 +238,19 @@ export default async function BuffettovoPortfolio() {
           </div>
         </section>
 
-        {/* 2. ČÍSLA */}
+        {/* 2. ČÍSLA – živě z enginu */}
         <section className="pb-10">
-          <SectionHead title="Výsledky v korunách (červenec 2002 – červenec 2026)" desc="Jednorázový vklad 100 000 Kč, rebalancováno 1× ročně, po poplatcích ETF." />
+          <SectionHead
+            title={`Výsledky v korunách (červenec 2002 – ${today.getFullYear()})`}
+            desc={`Jednorázový vklad 100 000 Kč, rebalancováno 1× ročně, po poplatcích ETF. Čísla i grafy počítá stejný engine jako náš backtest${M ? '' : ' (dočasně zobrazeny poslední známé hodnoty)'} – aktualizováno ${dateStr}.`}
+          />
           <div className="grid gap-3 sm:grid-cols-3">
             {([
-              ['729 000 Kč', 'hodnota ze 100 000 Kč po 24 letech (výnos 8,6 % ročně).', Percent],
-              ['−47 %', 'nejhlubší propad (finanční krize 2008–2009). Kdo vydržel, vydělal.', History],
-              ['−27 %', 'nejhorší kalendářní rok (2008). Čisté akcie měly −33 %.', AlertTriangle],
+              [M ? kc(M.buffett.final) : '729 000 Kč', `hodnota ze 100 000 Kč (výnos ${M ? p1(M.buffett.cagr) : '+8,6 %'} ročně, po poplatcích).`, Percent],
+              [M ? p1a(M.buffett.dd) : '−47,3 %', 'nejhlubší propad (finanční krize 2008–2009). Kdo vydržel, vydělal.', History],
+              [M ? p1(M.buffett.worst) : '−27,4 %', `nejhorší kalendářní rok. Čisté akcie (100 % S&P) měly ${M ? p1(M.sp.worst) : '−32,6 %'}.`, AlertTriangle],
             ] as [string, string, typeof Percent][]).map(([big, d, Icon]) => (
-              <div key={big} className="rounded-lg border border-slate-200 bg-white p-5">
+              <div key={d} className="rounded-lg border border-slate-200 bg-white p-5">
                 <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 mb-3"><Icon className="w-4.5 h-4.5" /></span>
                 <p className="text-2xl font-bold text-teal-700 tabular-nums">{big}</p>
                 <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{d}</p>
@@ -174,37 +258,121 @@ export default async function BuffettovoPortfolio() {
             ))}
           </div>
 
+          {/* Equity křivka – 4 portfolia na stejném okně */}
+          {R && (
+            <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4 md:p-5">
+              <p className="text-sm font-semibold text-slate-900">Vývoj 100 000 Kč (2002 → dnes), v přepočtu na koruny</p>
+              <p className="text-xs text-slate-500 mt-0.5 mb-3">Buffettovo 90/10 mezi třemi alternativami na stejném období. Svislá osa je logaritmická – stejný sklon = stejné tempo růstu.</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-3">
+                {eqPaths.map((s) => (
+                  <span key={s.name} className="inline-flex items-center gap-1.5 text-xs text-slate-600">
+                    <span className="inline-block w-3 h-0.5 rounded" style={{ backgroundColor: s.color }} /> {s.name}
+                  </span>
+                ))}
+              </div>
+              <div className="overflow-hidden">
+                <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full h-auto" preserveAspectRatio="none" role="img" aria-label="Vývoj hodnoty portfolií 2002 až dnes">
+                  {[0.25, 0.5, 0.75].map((f) => (
+                    <line key={f} x1="0" y1={CH * f} x2={CW} y2={CH * f} stroke="#f1f5f9" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                  ))}
+                  {eqPaths.map((s) => (
+                    <path key={s.name} d={s.d} fill="none" stroke={s.color} strokeWidth={s.name.startsWith('Buffett') ? 2.6 : 1.6} vectorEffect="non-scaling-stroke" opacity={s.name.startsWith('Buffett') ? 1 : 0.85} />
+                  ))}
+                </svg>
+              </div>
+              <div className="flex justify-between text-xs text-slate-400 mt-1">
+                <span>červenec 2002</span><span className="tabular-nums">až {kc(eqMax).replace(' Kč', '')} Kč</span><span>dnes</span>
+              </div>
+            </div>
+          )}
+
+          {/* Širší srovnávací tabulka – 4 portfolia */}
           <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="w-full text-sm min-w-[560px]">
+            <table className="w-full text-sm min-w-[680px]">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-4 py-3">2002–2026 · v Kč · po TER</th>
-                  <th className="px-4 py-3 text-right">Buffett 90/10</th>
+                  <th className="px-4 py-3">2002–{today.getFullYear()} · v Kč · po TER</th>
+                  <th className="px-4 py-3 text-right bg-teal-50/60 text-teal-800">Buffett 90/10</th>
                   <th className="px-4 py-3 text-right">100 % S&P 500</th>
+                  <th className="px-4 py-3 text-right">60/40</th>
+                  <th className="px-4 py-3 text-right">Svět (US+ex-US)</th>
                 </tr>
               </thead>
               <tbody className="tabular-nums">
                 {([
-                  ['Hodnota ze 100 000 Kč', '729 413 Kč', '845 188 Kč'],
-                  ['Výnos ročně (CAGR)', '+8,6 %', '+9,3 %'],
-                  ['Nejhlubší propad', '−47,3 %', '−52,9 %'],
-                  ['Kolísavost', '± 19,6 %', '± 21,5 %'],
-                  ['Nejhorší rok (2008)', '−27,4 %', '−32,6 %'],
-                ] as [string, string, string][]).map(([m, a, b]) => (
-                  <tr key={m} className="border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-2.5 text-slate-600">{m}</td>
-                    <td className="px-4 py-2.5 text-right font-medium text-slate-900">{a}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-500">{b}</td>
+                  ['Hodnota ze 100 000 Kč', (m: { final: number }) => M ? kc(m.final) : '—'],
+                  ['Výnos ročně (CAGR)', (m: { cagr: number }) => M ? p1(m.cagr) : '—'],
+                  ['Nejhlubší propad', (m: { dd: number }) => M ? p1a(m.dd) : '—'],
+                  ['Kolísavost', (m: { vol: number }) => M ? `± ${p1a(m.vol)}` : '—'],
+                  ['Nejhorší rok', (m: { worst: number }) => M ? p1(m.worst) : '—'],
+                ] as [string, (m: { final: number; cagr: number; dd: number; vol: number; worst: number }) => string][]).map(([label, fmt]) => (
+                  <tr key={label} className="border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-2.5 text-slate-600">{label}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold text-slate-900 bg-teal-50/40">{M ? fmt(M.buffett) : '—'}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-500">{M ? fmt(M.sp) : '—'}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-500">{M ? fmt(M.balanced) : '—'}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-500">{M ? fmt(M.global) : '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Dluhopisová desetina výnos mírně brzdí, ale změkčuje nejhorší chvíle – v roce 2008 o víc než 5 procentních
-            bodů. Přesně to od ní Buffett chce: rezervu na výběry ve špatných letech, ne maximalizaci výnosu.
+            Dluhopisová desetina výnos mírně brzdí (proti čistým akciím), ale změkčuje nejhorší chvíle – v roce 2008 zhruba
+            o 5 procentních bodů. Přesně to od ní Buffett chce: rezervu na výběry ve špatných letech, ne maximalizaci výnosu.
+            Celosvětová varianta (poslední sloupec) je diverzifikovanější měnově i geograficky – historicky ale za americkou
+            koncentrací v tomto okně zaostávala. „Svět" tu skládáme z 60 % USA + 40 % zbytek světa, protože ETF na FTSE
+            All-World má data až od roku 2008; tahle proxy sahá poctivě do roku 2002.
           </p>
         </section>
+
+        {/* 2b. PROPADY + ROK PO ROCE */}
+        {R && (
+          <section className="pb-10">
+            <SectionHead title="Kolik to bolelo cestou" desc="Backtest není jen konečné číslo. Tohle je průběh propadů a rozdílnost jednotlivých let – to, co rozhoduje, jestli strategii ustojíte." />
+
+            {/* Drawdown */}
+            <div className="rounded-lg border border-slate-200 bg-white p-4 md:p-5">
+              <p className="text-sm font-semibold text-slate-900">Propad od vrcholu (drawdown) – Buffettovo 90/10</p>
+              <p className="text-xs text-slate-500 mt-0.5 mb-3">Jak hluboko pod předchozím maximem portfolio bylo. Dno {M ? p1a(M.buffett.dd) : ''} přišlo ve finanční krizi 2008–2009.</p>
+              <div className="overflow-hidden">
+                <svg viewBox={`0 0 ${DDW} ${DDH}`} className="w-full h-auto" preserveAspectRatio="none" role="img" aria-label="Průběh propadů Buffettova portfolia">
+                  <path d={ddArea} fill="#fecaca" opacity="0.7" />
+                  <path d={ddLine} fill="none" stroke="#ef4444" strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
+                </svg>
+              </div>
+              <div className="flex justify-between text-xs text-slate-400 mt-1"><span>2002</span><span>dnes</span></div>
+            </div>
+
+            {/* Rok po roce */}
+            {yrs.length > 0 && (() => {
+              const n = yrs.length; const gw = 900 / n; const base = 110;
+              const maxAbs = Math.max(...yrs.map((y) => Math.abs(y.b)), 1);
+              const h = (v: number) => (Math.abs(v) / maxAbs) * 95;
+              const pos = yrs.filter((y) => y.b >= 0).length;
+              return (
+                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 md:p-5">
+                  <p className="text-sm font-semibold text-slate-900">Výnos rok po roce – Buffettovo 90/10 (v Kč)</p>
+                  <p className="text-xs text-slate-500 mt-0.5 mb-3">{pos} z {n} let kladných. Ne každý rok je růstový – klíč je přečkat ty červené.</p>
+                  <div className="overflow-hidden">
+                    <svg viewBox="0 0 900 230" className="w-full h-auto" role="img" aria-label="Roční výnosy Buffettova portfolia">
+                      <line x1="0" y1={base} x2="900" y2={base} stroke="#cbd5e1" strokeWidth="1" />
+                      {yrs.map((y, i) => {
+                        const x = i * gw; const bh = h(y.b);
+                        return (
+                          <g key={y.year}>
+                            <rect x={x + gw * 0.2} y={y.b >= 0 ? base - bh : base} width={gw * 0.6} height={bh} rx="1" fill={y.b >= 0 ? '#0d9488' : '#ef4444'} />
+                            {i % 3 === 0 && <text x={x + gw / 2} y="225" textAnchor="middle" fontSize="13" fill="#94a3b8">{`'${String(y.year).slice(2)}`}</text>}
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              );
+            })()}
+          </section>
+        )}
 
         {/* 3. DCA */}
         <section className="pb-10">
@@ -212,8 +380,9 @@ export default async function BuffettovoPortfolio() {
           <div className="rounded-lg border border-teal-200 bg-teal-50/40 p-6 max-w-3xl">
             <p className="text-sm text-slate-700 leading-relaxed">
               Kdo od července 2002 vložil 100 000 Kč a přidával 5 000 Kč měsíčně, vložil celkem{' '}
-              <strong className="text-slate-900">1 540 000 Kč</strong> – a dnes by měl{' '}
-              <strong className="text-slate-900">přibližně 7 715 000 Kč</strong>. Pětinásobek vkladů, v korunách,
+              <strong className="text-slate-900">{R ? kc(R.dca.summary.amountInvested) : '1 540 000 Kč'}</strong> – a dnes by měl{' '}
+              <strong className="text-slate-900">{R ? `přibližně ${kc(R.dca.summary.netAssetValue)}` : 'přibližně 7 715 000 Kč'}</strong>.{' '}
+              {R ? `Zhruba ${(R.dca.summary.netAssetValue / R.dca.summary.amountInvested).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}×` : 'Pětinásobek'} vkladů, v korunách,
               po poplatcích, včetně dvou velkých krizí po cestě.
             </p>
             <p className="text-xs text-slate-500 mt-3">
