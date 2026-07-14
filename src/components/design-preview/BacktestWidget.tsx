@@ -88,6 +88,17 @@ interface SelectedETF {
   isin: string; name: string; ter: number; indexCode: string; indexName: string; weight: number;
 }
 
+// Sestaví vybrané fondy z hotového portfolia (preset id) – sdílené pro seed z
+// serveru (result-first) i pro klikací presety uvnitř widgetu.
+function buildPresetETFs(presetId: string): SelectedETF[] {
+  const preset = PRESET_PORTFOLIOS.find((p) => p.id === presetId);
+  if (!preset) return [];
+  return preset.etfs.map((item) => {
+    const index = AVAILABLE_INDEXES.find((i) => i.indexCode === item.indexCode)!;
+    return { isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: item.weight };
+  });
+}
+
 // === Výstupní typ z API – 1:1 z originálu ===
 interface DrawdownPeriod {
   startDate: string; troughDate: string; endDate: string | null; depth: number; lengthMonths: number; recovered: boolean;
@@ -132,53 +143,73 @@ const fmtDate = (iso: string) =>
 const indexNameByCode = (code: string) =>
   AVAILABLE_INDEXES.find((i) => i.indexCode === code)?.name ?? code;
 
-export default function BacktestWidget() {
-  const [currency, setCurrency] = useState<Currency>('CZK');
-  const [selectedETFs, setSelectedETFs] = useState<SelectedETF[]>([
-    { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007, indexCode: 'sp500', indexName: 'S&P 500', weight: 100 },
-  ]);
-  const [startDate, setStartDate] = useState('2005-01-01');
+// Předpočítaný default ze serveru (result-first): widget nabootuje rovnou
+// s hotovým výsledkem, bez klientského spinneru a bez prázdného formuláře.
+interface BacktestInitial {
+  presetId: string;
+  startDate: string;
+  initialAmount: number;
+  contribution: ContributionFrequency;
+  currency: Currency;
+  result: BacktestResult;
+}
+
+export default function BacktestWidget({ initial }: { initial?: BacktestInitial }) {
+  const [currency, setCurrency] = useState<Currency>(initial?.currency ?? 'CZK');
+  const [selectedETFs, setSelectedETFs] = useState<SelectedETF[]>(() =>
+    initial ? buildPresetETFs(initial.presetId) : [
+      { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007, indexCode: 'sp500', indexName: 'S&P 500', weight: 100 },
+    ]);
+  const [startDate, setStartDate] = useState(initial?.startDate ?? '2005-01-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [initialAmount, setInitialAmount] = useState(100000);
+  const [initialAmount, setInitialAmount] = useState(initial?.initialAmount ?? 100000);
   const [contributionAmount, setContributionAmount] = useState(5000);
-  const [contributionFrequency, setContributionFrequency] = useState<ContributionFrequency>('monthly');
-  const [result, setResult] = useState<BacktestResult | null>(null);
+  const [contributionFrequency, setContributionFrequency] = useState<ContributionFrequency>(initial?.contribution ?? 'monthly');
+  const [result, setResult] = useState<BacktestResult | null>(initial?.result ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resultCurrency, setResultCurrency] = useState<Currency>('CZK');
+  const [resultCurrency, setResultCurrency] = useState<Currency>(initial?.currency ?? 'CZK');
   // Porovnání: id hotových portfolií, se kterými se vlastní portfolio poměří (max 2).
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
+
+  // Result-first "example" režim: widget nabootuje s předpočítaným příkladem
+  // (result nahoře, config pod ním). Badge PŘÍKLAD se po první úpravě portfolia
+  // nebo parametrů přepne na TVŮJ VÝPOČET – nástroj tak nikdy netvrdí, že
+  // příklad je „tvůj", je to jen editovatelný sandbox.
+  const exampleMode = !!initial;
+  const [edited, setEdited] = useState(false);
+  const markEdited = () => setEdited(true);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
   // Vážený roční poplatek portfolia (TER) – kolik ročně stojí držení celého portfolia.
   const weightedTER = selectedETFs.reduce((sum, etf) => sum + (etf.weight / 100) * etf.ter, 0);
 
   const applyPreset = (presetId: string) => {
-    const preset = PRESET_PORTFOLIOS.find((p) => p.id === presetId);
-    if (!preset) return;
-    const newETFs: SelectedETF[] = preset.etfs.map((item) => {
-      const index = AVAILABLE_INDEXES.find((i) => i.indexCode === item.indexCode)!;
-      return { isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: item.weight };
-    });
-    setSelectedETFs(newETFs);
+    const etfs = buildPresetETFs(presetId);
+    if (etfs.length) setSelectedETFs(etfs);
   };
 
   const addETF = (indexCode: string) => {
     const index = AVAILABLE_INDEXES.find((i) => i.indexCode === indexCode);
     if (!index) return;
     if (selectedETFs.some((e) => e.indexCode === indexCode)) return;
+    markEdited();
     setSelectedETFs((prev) => [
       ...prev,
       { isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: 0 },
     ]);
   };
 
-  const removeETF = (indexCode: string) =>
+  const removeETF = (indexCode: string) => {
+    markEdited();
     setSelectedETFs((prev) => prev.filter((e) => e.indexCode !== indexCode));
+  };
 
-  const setWeight = (indexCode: string, weight: number) =>
+  const setWeight = (indexCode: string, weight: number) => {
+    markEdited();
     setSelectedETFs((prev) => prev.map((e) => (e.indexCode === indexCode ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
+  };
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
   const runBacktest = async (overrideCurrency?: Currency) => {
@@ -294,7 +325,11 @@ export default function BacktestWidget() {
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
     // ZÁMĚRNĚ nescrollujeme – uživatel má vidět předvyplněná (editovatelná) pole; výsledek
     // je spočítaný a čeká, až k němu přirozeně dorolluje.
-    if (hasPreset && p.get('run') === '1') {
+    // Default (Buffett) je už předpočítaný ze serveru a naseedovaný. Pokud URL
+    // preset odpovídá seedu, znovu nepočítáme (jinak by problikl spinner přes
+    // hotový výsledek). Jiný preset z URL má přednost a spustí se.
+    const sameAsSeed = !!initial && presetId === initial.presetId;
+    if (hasPreset && p.get('run') === '1' && !sameAsSeed) {
       setTimeout(() => {
         if (!didAutoRunRef.current) { didAutoRunRef.current = true; runBacktestRef.current(); }
       }, 80);
@@ -345,9 +380,24 @@ export default function BacktestWidget() {
   }, [result]);
 
   return (
-    <div className="space-y-4">
+    <div className={exampleMode ? 'flex flex-col gap-4' : 'space-y-4'}>
+      {/* Result-first: badge PŘÍKLAD/TVŮJ VÝPOČET (order-1), výsledek (order-2),
+          pobídka k úpravě (order-3), pak formulář (order-4) – řadí flex order. */}
+      {exampleMode && (
+        <div className="order-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${edited ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800'}`}>
+            {edited ? 'TVŮJ VÝPOČET' : 'PŘÍKLAD · Buffettovo 90/10'}
+          </span>
+          {!edited && <span className="text-xs text-slate-500">Takhle vypadá výstup na hotovém portfoliu — uprav ho, nebo sestav vlastní.</span>}
+        </div>
+      )}
+      {exampleMode && (
+        <div className="order-3 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-teal-300 bg-teal-50/50 py-2.5 text-sm font-medium text-teal-700">
+          Uprav portfolio nebo sestav vlastní ↓
+        </div>
+      )}
       {/* ===== VSTUPY ===== */}
-      <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+      <div className={`rounded-lg border border-slate-200 bg-white p-5 md:p-6${exampleMode ? ' order-4' : ''}`}>
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Sestavte portfolio</p>
         <p className="text-xs text-slate-500 mb-4 leading-relaxed">
           Skládáte z <strong className="font-medium text-slate-600">tříd aktiv</strong> (akcie, dluhopisy, zlato…). Každou testujeme
@@ -362,7 +412,7 @@ export default function BacktestWidget() {
             {PRESET_PORTFOLIOS.map((preset) => (
               <button
                 key={preset.id}
-                onClick={() => applyPreset(preset.id)}
+                onClick={() => { applyPreset(preset.id); markEdited(); }}
                 className="text-left rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-colors min-h-[44px]"
               >
                 <span className="block font-medium text-sm text-slate-900">{preset.name}</span>
@@ -589,7 +639,7 @@ export default function BacktestWidget() {
 
       {/* Chyba */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-2.5">
+        <div className={`rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-2.5${exampleMode ? ' order-5' : ''}`}>
           <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
           <div className="text-sm">
             <p className="font-semibold text-red-800">Backtest se nepodařilo spustit</p>
@@ -600,7 +650,7 @@ export default function BacktestWidget() {
 
       {/* ===== VÝSLEDKY ===== */}
       {result && !loading && (
-        <>
+        <div className={exampleMode ? 'order-2 space-y-4' : 'space-y-4'}>
           {/* Headline výsledek – kolik jsi vložil vs. kolik z toho je zisk (v Kč) */}
           {(() => {
             const invested = result.summary.amountInvested;
@@ -1010,7 +1060,7 @@ export default function BacktestWidget() {
               příslibem budoucích výnosů – trh se v dalších letech může chovat úplně jinak.
             </p>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
