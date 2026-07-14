@@ -308,6 +308,7 @@ export default async function KolikInvestovat() {
               ['/fire', 'Průvodce FIRE', 'Kolik potřebujete k rentě', Target],
               ['/svetove-etf-indexy', 'Který světový ETF', 'Do čeho ty peníze vlastně poslat', TrendingUp],
               ['/kalkulacka', 'Kalkulačka poplatků', 'Kolik ukrojí TER za desítky let', Wallet],
+              ['/investovani-pro-deti', 'Investování pro děti', 'Kolik naspoříte dítěti do 18 let', PiggyBank],
             ] as [string, string, string, typeof Wallet][]).map(([href, label, desc, Icon]) => (
               <Link key={href} href={href} className="group flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0 group-hover:bg-teal-100 transition-colors"><Icon className="w-4 h-4" /></span>
