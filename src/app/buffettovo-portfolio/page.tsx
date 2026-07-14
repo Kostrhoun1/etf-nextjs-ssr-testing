@@ -123,7 +123,7 @@ export default async function BuffettovoPortfolio() {
     { name: 'Buffett 90/10', color: '#0d9488', ev: R.buffett.evolution },   // teal (hero)
     { name: '100 % S&P 500', color: '#1d4ed8', ev: R.sp.evolution },        // sytě modrá
     { name: '60/40', color: '#f59e0b', ev: R.balanced.evolution },          // jantarová
-    { name: 'Svět (US+ex-US)', color: '#9333ea', ev: R.global.evolution },  // fialová
+    { name: 'Globální', color: '#9333ea', ev: R.global.evolution },  // fialová
   ] : [];
   const eqAll = eqSeries.flatMap((s) => s.ev.map((p) => p.value));
   const eqMax = eqAll.length ? Math.max(...eqAll) : 1;
@@ -221,10 +221,9 @@ export default async function BuffettovoPortfolio() {
           <SectionHead title="Odkud se 90/10 vzalo" desc="Dopis akcionářům Berkshire Hathaway za rok 2013 – pokyn pro správce dědictví." />
           <div className="rounded-lg border border-slate-200 bg-white p-6 max-w-3xl">
             <p className="text-sm text-slate-700 leading-relaxed">
-              Buffett v dopise popsal, co má správce udělat s penězi pro jeho ženu: <em>vložit 10 % do krátkodobých
-              státních dluhopisů a 90 % do velmi levného indexového fondu na S&P 500</em>. A dodal, že dlouhodobé
-              výsledky tohoto portfolia budou lepší než u většiny investorů – penzijních fondů i institucí – kteří
-              platí drahé správce.
+              Není to náhodný nápad. Buffett ten pokyn napsal do závěti – jako instrukci správci, jak má naložit
+              s dědictvím jeho ženy. A dodal, že takové jednoduché portfolio dlouhodobě porazí většinu investorů –
+              penzijních fondů i institucí – kteří platí drahé správce.
             </p>
             <p className="text-sm text-slate-700 leading-relaxed mt-3">
               Nebyla to jen teorie. Ve slavné desetileté sázce (2008–2017) postavil levný indexový fond na S&P 500
@@ -302,7 +301,7 @@ export default async function BuffettovoPortfolio() {
                   <th className="px-4 py-3 text-right bg-teal-50/60 text-teal-800">Buffett 90/10</th>
                   <th className="px-4 py-3 text-right">100 % S&P 500</th>
                   <th className="px-4 py-3 text-right">60/40</th>
-                  <th className="px-4 py-3 text-right">Svět (US+ex-US)</th>
+                  <th className="px-4 py-3 text-right">Globální</th>
                 </tr>
               </thead>
               <tbody className="tabular-nums">
@@ -328,7 +327,7 @@ export default async function BuffettovoPortfolio() {
             Dluhopisová desetina výnos mírně brzdí (proti čistým akciím), ale změkčuje nejhorší chvíle – v roce 2008 zhruba
             o 5 procentních bodů. Přesně to od ní Buffett chce: rezervu na výběry ve špatných letech, ne maximalizaci výnosu.
             Celosvětová varianta (poslední sloupec) je diverzifikovanější měnově i geograficky – historicky ale za americkou
-            koncentrací v tomto okně zaostávala. „Svět" tu skládáme z 60 % USA + 40 % zbytek světa, protože ETF na FTSE
+            koncentrací v tomto okně zaostávala. „Globální" tu skládáme z 60 % USA + 40 % zbytek světa, protože ETF na FTSE
             All-World má data až od roku 2008; tahle proxy sahá poctivě do roku 2002.
           </p>
         </section>
