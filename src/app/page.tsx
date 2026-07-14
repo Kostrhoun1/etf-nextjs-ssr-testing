@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   title: 'Srovnání 4 800+ ETF fondů, výnosy v Kč – ETF průvodce.cz',
   description:
     'Kolik reálně vydělaly ETF? Výnosy 4 800+ fondů přepočtené do korun, žebříčky pro rok 2026, backtest portfolia a investiční kalkulačky. Zdarma a česky.',
+  alternates: { canonical: '/' },
 };
 
 const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
