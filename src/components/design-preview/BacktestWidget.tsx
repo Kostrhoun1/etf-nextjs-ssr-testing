@@ -57,8 +57,7 @@ const AVAILABLE_INDEXES = [
 // === Hotová portfolia – 1:1 z originálu ===
 const PRESET_PORTFOLIOS = [
   { id: 'sp500-100', name: '100% S&P 500', description: '500 největších firem USA v jednom indexu – nejsledovanější akciová sázka na americkou ekonomiku. Nejvyšší dlouhodobý výnos, ale i hluboké propady.', etfs: [{ indexCode: 'sp500', weight: 100 }] },
-  { id: 'ftse-all-world', name: '100% All-World', description: 'Akcie celého světa (~3 800 firem, vyspělé i rozvíjející se trhy) v jednom fondu. Maximální rozptýlení – nesázíte na jedinou zemi.', etfs: [{ indexCode: 'ftse_all_world', weight: 100 }] },
-  { id: 'global-since-2000', name: 'Globální akcie (od 2000)', description: '60 % USA + 40 % zbytek světa. Globálně vyvážené akcie s historií až do roku 2000 – projde dot-com propadem i krizí 2008.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
+  { id: 'global-since-2000', name: 'Celý svět', description: 'Akcie celého světa včetně rozvíjejících se trhů (EM) – 60 % USA + 40 % zbytek světa (vyspělé i EM, zhruba podle tržní váhy jako široký All-World). Historie až do roku 2000, takže projde dot-com propadem i krizí 2008.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
   { id: '60-40', name: '60/40 portfolio', description: 'Klasika investování: 60 % akcie, 40 % dluhopisy. Dluhopisy tlumí propady – klidnější jízda za cenu o něco nižšího výnosu.', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
   {
     id: 'all-weather', name: 'Ray Dalio All-Weather', description: 'Portfolio slavného investora Raye Dalia: akcie + dlouhé i krátké dluhopisy + zlato a komodity. Cíl není nejvyšší výnos, ale obstát v každé fázi ekonomiky (růst, recese, inflace).',
@@ -87,8 +86,7 @@ const PRESET_PORTFOLIOS = [
 // Krátké názvy presetů pro kompaktní chipy (jedna scrollovací řádka).
 const PRESET_SHORT: Record<string, string> = {
   'sp500-100': 'S&P 500',
-  'ftse-all-world': 'All-World',
-  'global-since-2000': 'Globální 2000',
+  'global-since-2000': 'Celý svět',
   '60-40': '60/40',
   'all-weather': 'All-Weather',
   'permanent': 'Permanentní',
@@ -98,6 +96,17 @@ const PRESET_SHORT: Record<string, string> = {
 
 interface SelectedETF {
   isin: string; name: string; ter: number; indexCode: string; indexName: string; weight: number;
+}
+
+// Sestaví vybrané fondy z hotového portfolia (preset id) – pro applyPreset i pro
+// prvotní naplnění widgetu přes prop defaultPreset (embed v článku).
+function presetToETFs(presetId: string): SelectedETF[] {
+  const preset = PRESET_PORTFOLIOS.find((p) => p.id === presetId);
+  if (!preset) return [];
+  return preset.etfs.map((item) => {
+    const index = AVAILABLE_INDEXES.find((i) => i.indexCode === item.indexCode)!;
+    return { isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: item.weight };
+  });
 }
 
 // === Výstupní typ z API – 1:1 z originálu ===
@@ -144,16 +153,19 @@ const fmtDate = (iso: string) =>
 const indexNameByCode = (code: string) =>
   AVAILABLE_INDEXES.find((i) => i.indexCode === code)?.name ?? code;
 
-export default function BacktestWidget() {
+export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmount, defaultContribFreq }: { defaultPreset?: string; defaultStart?: string; defaultAmount?: number; defaultContribFreq?: ContributionFrequency } = {}) {
   const [currency, setCurrency] = useState<Currency>('CZK');
-  const [selectedETFs, setSelectedETFs] = useState<SelectedETF[]>([
-    { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007, indexCode: 'sp500', indexName: 'S&P 500', weight: 100 },
-  ]);
-  const [startDate, setStartDate] = useState('2005-01-01');
+  const [selectedETFs, setSelectedETFs] = useState<SelectedETF[]>(() => {
+    const seeded = defaultPreset ? presetToETFs(defaultPreset) : [];
+    return seeded.length ? seeded : [
+      { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007, indexCode: 'sp500', indexName: 'S&P 500', weight: 100 },
+    ];
+  });
+  const [startDate, setStartDate] = useState(defaultStart ?? '2005-01-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [initialAmount, setInitialAmount] = useState(100000);
+  const [initialAmount, setInitialAmount] = useState(defaultAmount ?? 100000);
   const [contributionAmount, setContributionAmount] = useState(5000);
-  const [contributionFrequency, setContributionFrequency] = useState<ContributionFrequency>('monthly');
+  const [contributionFrequency, setContributionFrequency] = useState<ContributionFrequency>(defaultContribFreq ?? 'monthly');
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +175,7 @@ export default function BacktestWidget() {
   const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
   // Config-first compact: aktivní hotové portfolio (pro zvýraznění chipu a souhrn),
   // a rozklik editoru složení (default sbaleno – ukazuje jen souhrn vah).
-  const [activePreset, setActivePreset] = useState<string | null>('sp500-100');
+  const [activePreset, setActivePreset] = useState<string | null>(defaultPreset ?? 'sp500-100');
   const [editComposition, setEditComposition] = useState(false);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
@@ -311,7 +323,7 @@ export default function BacktestWidget() {
     const amount = p.get('amount');
     if (amount && /^\d+$/.test(amount)) setInitialAmount(parseInt(amount, 10));
     const contrib = p.get('contrib');
-    if (contrib === 'none') setContributionFrequency('none');
+    if (contrib === 'none') { setContributionFrequency('none'); setContributionAmount(0); }
     else if (contrib && /^\d+$/.test(contrib)) { setContributionAmount(parseInt(contrib, 10)); setContributionFrequency('monthly'); }
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
     // ZÁMĚRNĚ nescrollujeme – uživatel má vidět předvyplněná (editovatelná) pole; výsledek
@@ -495,7 +507,7 @@ export default function BacktestWidget() {
           <div>
             <label htmlFor="bt-initial" className="block text-sm text-slate-600 mb-1">Počáteční vklad</label>
             <div className="relative">
-              <input id="bt-initial" type="text" inputMode="numeric" value={initialAmount === 0 ? '' : initialAmount} placeholder="0"
+              <input id="bt-initial" type="text" inputMode="numeric" value={initialAmount === 0 ? '' : initialAmount.toLocaleString('cs-CZ')} placeholder="0"
                 onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setInitialAmount(v === '' ? 0 : parseInt(v, 10)); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
@@ -505,8 +517,8 @@ export default function BacktestWidget() {
           <div>
             <label htmlFor="bt-contrib" className="block text-sm text-slate-600 mb-1">Pravidelný vklad</label>
             <div className="relative">
-              <input id="bt-contrib" type="text" inputMode="numeric" value={contributionAmount === 0 ? '' : contributionAmount} placeholder="0"
-                onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setContributionAmount(v === '' ? 0 : parseInt(v, 10)); }}
+              <input id="bt-contrib" type="text" inputMode="numeric" value={contributionAmount === 0 ? '' : contributionAmount.toLocaleString('cs-CZ')} placeholder="0"
+                onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); const n = v === '' ? 0 : parseInt(v, 10); setContributionAmount(n); if (n > 0 && contributionFrequency === 'none') setContributionFrequency('monthly'); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
             </div>
@@ -518,9 +530,9 @@ export default function BacktestWidget() {
                 <span className="sr-only">vysvětlení</span>
               </InfoTip>
             </label>
-            <select id="bt-freq" value={contributionFrequency} onChange={(e) => setContributionFrequency(e.target.value as ContributionFrequency)}
+            <select id="bt-freq" value={contributionFrequency} onChange={(e) => { const f = e.target.value as ContributionFrequency; setContributionFrequency(f); if (f === 'none') setContributionAmount(0); }}
               className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none">
-              <option value="none">Bez pravidelných vkladů</option>
+              <option value="none">Bez vkladů</option>
               <option value="monthly">Měsíčně</option>
               <option value="quarterly">Čtvrtletně</option>
               <option value="yearly">Ročně</option>

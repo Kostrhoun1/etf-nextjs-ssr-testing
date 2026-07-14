@@ -133,7 +133,7 @@ const cfg: FactorConfig = {
   related: [
     ['/faktorove-etf', 'Přehled všech šesti faktorů'],
     ['/faktorove-etf/momentum', 'Momentum: jediný faktor, který porazil index'],
-    ['/buffettovo-portfolio', 'Buffettovo portfolio 90/10 v korunách'],
+    ['/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1', 'Buffettovo 90/10 v backtestu: kolik vydělalo'],
   ],
 };
 

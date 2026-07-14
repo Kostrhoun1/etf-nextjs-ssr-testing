@@ -20,6 +20,8 @@ const nextConfig: NextConfig = {
       //  errors „Failed to fetch RSC payload" a pomalé přechody. Indexaci _rsc URL
       //  řeší robots.ts disallow /*?_rsc=* .)
       // (www→apex řeší Vercel domény + middleware; kanonická doména je apex etfpruvodce.cz)
+      // Smazaný Buffettův článek → rovnou plný backtest s předvyplněným 90/10.
+      { source: '/buffettovo-portfolio', destination: '/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1', permanent: true },
       // === CUTOVER: staré URL (starý web) → nové routy nového designu ===
       { source: '/srovnani-etf', destination: '/srovnani', permanent: true },
       { source: '/srovnani-etf/:pair', destination: '/srovnani/:pair', permanent: true },

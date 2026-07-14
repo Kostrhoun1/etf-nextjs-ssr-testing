@@ -400,7 +400,7 @@ export default async function FaktoroveEtf() {
           </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-3 text-sm">
             {([
-              ['/buffettovo-portfolio', 'Buffettovo portfolio 90/10 v korunách'],
+              ['/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1', 'Buffettovo 90/10 v backtestu: kolik vydělalo'],
               ['/kolik-vydelaly-etf', 'Kolik vydělaly ETF a akcie: datový rozbor'],
               ['/svetove-etf-indexy', 'Světové ETF indexy: který vybrat'],
             ] as [string, string][]).map(([href, label]) => (
