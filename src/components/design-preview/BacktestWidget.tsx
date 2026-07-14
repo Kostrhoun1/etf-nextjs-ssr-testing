@@ -5,7 +5,7 @@ import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Legend,
 } from 'recharts';
 import {
-  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info,
+  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info, Pencil,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 
@@ -374,15 +374,15 @@ export default function BacktestWidget() {
 
         {/* Hotová portfolia – kompaktní chipy v jedné scrollovací řádce */}
         <div className="mb-4">
-          <label className="block text-sm text-slate-600 mb-2">Vyberte hotové portfolio <span className="text-slate-400">(nebo si níže složte vlastní)</span></label>
-          <div className="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
+          <label className="block text-sm text-slate-600 mb-2">Vyberte hotové portfolio <span className="text-slate-500">(nebo si níže složte vlastní)</span></label>
+          <div className="flex flex-wrap gap-2">
             {PRESET_PORTFOLIOS.map((preset) => {
               const on = activePreset === preset.id;
               return (
                 <button
                   key={preset.id}
                   onClick={() => applyPreset(preset.id)}
-                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[40px] ${on ? 'border-teal-500 bg-teal-50 text-teal-800' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300 hover:bg-teal-50/40'}`}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${on ? 'border-teal-600 bg-teal-600 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
                 >
                   {PRESET_SHORT[preset.id] ?? preset.name}
                 </button>
@@ -390,7 +390,7 @@ export default function BacktestWidget() {
             })}
           </div>
           {activePreset && (
-            <div className="mt-2.5 flex items-start gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5">
+            <div className="mt-3 flex items-start gap-2 rounded-lg bg-teal-50/70 px-3 py-2.5">
               <Info className="w-4 h-4 text-teal-600 mt-0.5 shrink-0" />
               <p className="text-xs text-slate-600 leading-relaxed">{PRESET_PORTFOLIOS.find((p) => p.id === activePreset)?.description}</p>
             </div>
@@ -400,15 +400,20 @@ export default function BacktestWidget() {
         {/* Složení – default jen souhrn; editor vah na rozklik (progressive disclosure) */}
         <div className="mb-4">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <label className="block text-sm text-slate-600">Složení</label>
-            <button type="button" onClick={() => setEditComposition((v) => !v)} className="text-sm font-medium text-teal-700 hover:text-teal-800 min-h-[32px]">
-              {editComposition ? 'Hotovo' : 'Upravit / sestavit vlastní'}
+            <label className="block text-sm font-medium text-slate-700">Složení</label>
+            <button type="button" onClick={() => setEditComposition((v) => !v)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 min-h-[44px] text-sm font-medium text-teal-700 hover:border-teal-300 hover:bg-teal-50/40 transition-colors">
+              {editComposition ? 'Hotovo' : (<><Pencil className="w-3.5 h-3.5" /> Upravit / sestavit vlastní</>)}
             </button>
           </div>
           {!editComposition && (
             <div className={`rounded-lg border px-3 py-2.5 text-sm ${totalWeight === 100 ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-amber-300 bg-amber-50 text-amber-800'}`}>
               {selectedETFs.length ? selectedETFs.map((e) => `${e.indexName} ${e.weight} %`).join('  ·  ') : 'Zatím prázdné – vyberte hotové portfolio nebo přidejte třídy aktiv.'}
-              {totalWeight !== 100 && <span className="block text-xs mt-1">Součet vah: {totalWeight} % (musí být 100 %).</span>}
+              {totalWeight !== 100 && (
+                <button type="button" onClick={() => setEditComposition(true)} className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-amber-800 underline underline-offset-2">
+                  Součet vah je {totalWeight} % – upravit na 100 % →
+                </button>
+              )}
             </div>
           )}
           {editComposition && (<>
@@ -420,7 +425,7 @@ export default function BacktestWidget() {
               <div key={etf.indexCode} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
                 <div className="flex-1 min-w-0">
                   <span className="block text-sm font-medium text-slate-900 truncate">{etf.indexName}</span>
-                  <span className="block text-xs text-slate-400 truncate">
+                  <span className="block text-xs text-slate-500 truncate">
                     přes {etf.name} · TER {fmtPct(etf.ter * 100, 2)}
                   </span>
                 </div>
@@ -432,14 +437,14 @@ export default function BacktestWidget() {
                     max={100}
                     value={etf.weight}
                     onChange={(e) => setWeight(etf.indexCode, Number(e.target.value))}
-                    className="w-full min-h-[40px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-right text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-right text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
-                  <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span>
+                  <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">%</span>
                 </div>
                 <button
                   onClick={() => removeETF(etf.indexCode)}
                   aria-label={`Odebrat ${etf.indexName}`}
-                  className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="flex items-center justify-center w-11 h-11 shrink-0 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -472,7 +477,7 @@ export default function BacktestWidget() {
 
           {/* Vážený roční poplatek celého portfolia */}
           {selectedETFs.length > 0 && (
-            <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
               <span className="text-xs text-slate-600 flex items-center gap-1">
                 Průměrný roční poplatek portfolia (TER)
                 <InfoTip label="Vážený průměr TER podle vah. Kolik ročně stojí držení tohoto portfolia – tento poplatek se v backtestu odečítá z výnosu.">
@@ -486,23 +491,24 @@ export default function BacktestWidget() {
         </div>
 
         {/* ===== ZÁKLADNÍ: částky ===== */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div className="space-y-3 mb-4">
           <div>
             <label htmlFor="bt-initial" className="block text-sm text-slate-600 mb-1">Počáteční vklad</label>
             <div className="relative">
               <input id="bt-initial" type="text" inputMode="numeric" value={initialAmount === 0 ? '' : initialAmount} placeholder="0"
                 onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setInitialAmount(v === '' ? 0 : parseInt(v, 10)); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor="bt-contrib" className="block text-sm text-slate-600 mb-1">Pravidelný vklad</label>
             <div className="relative">
               <input id="bt-contrib" type="text" inputMode="numeric" value={contributionAmount === 0 ? '' : contributionAmount} placeholder="0"
                 onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setContributionAmount(v === '' ? 0 : parseInt(v, 10)); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
             </div>
           </div>
           <div>
@@ -520,15 +526,16 @@ export default function BacktestWidget() {
               <option value="yearly">Ročně</option>
             </select>
           </div>
+          </div>
         </div>
 
         {/* ===== POKROČILÉ NASTAVENÍ (rozklik) – období, měna, porovnání ===== */}
-        <details className="group mb-4 rounded-lg border border-slate-200 bg-slate-50/60">
+        <details className="group mb-4 rounded-lg border border-slate-200 bg-white">
           <summary className="flex items-center justify-between gap-2 px-4 py-3 cursor-pointer list-none min-h-[44px] rounded-lg hover:bg-slate-50">
             <span className="text-sm font-medium text-slate-700">Pokročilé nastavení</span>
-            <span className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="hidden xs:inline sm:inline tabular-nums">od {startDate.slice(0, 4)} · {currency}{compareIds.length ? ` · ${compareIds.length}× porovnání` : ''}</span>
-              <span className="inline-block group-open:rotate-180 transition-transform text-slate-400 text-base leading-none">▾</span>
+            <span className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="tabular-nums group-open:hidden">od {startDate.slice(0, 4)} · {currency}{compareIds.length ? ` · ${compareIds.length}× porov.` : ''}</span>
+              <span className="inline-block group-open:rotate-180 transition-transform text-slate-500 text-base leading-none">▾</span>
             </span>
           </summary>
           <div className="px-4 pb-4 pt-3 space-y-4 border-t border-slate-200">
@@ -538,7 +545,7 @@ export default function BacktestWidget() {
                 <label htmlFor="bt-start" className="block text-sm text-slate-600 mb-1">Počáteční datum</label>
                 <input id="bt-start" type="date" min="1993-01-01" value={startDate} onChange={(e) => setStartDate(e.target.value)}
                   className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
-                <p className="text-xs text-slate-400 mt-1">Nejdelší historie od roku 1993 (S&amp;P 500). Každý index má jinak dlouhá data – backtest začne, až je mají všechny složky.</p>
+                <p className="text-xs text-slate-500 mt-1">Nejdelší historie od roku 1993 (S&amp;P 500). Každý index má jinak dlouhá data – backtest začne, až je mají všechny složky.</p>
               </div>
               <div>
                 <label htmlFor="bt-end" className="block text-sm text-slate-600 mb-1">Koncové datum</label>
@@ -588,7 +595,7 @@ export default function BacktestWidget() {
                         <button
                           onClick={() => setCompareIds((prev) => prev.filter((x) => x !== id))}
                           aria-label={`Odebrat ${preset?.name} z porovnání`}
-                          className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -647,8 +654,8 @@ export default function BacktestWidget() {
       )}
 
       {/* ===== VÝSLEDKY ===== */}
-      {result && !loading && (
-        <>
+      {result && (
+        <div className={loading ? 'space-y-4 opacity-50 pointer-events-none transition-opacity' : 'space-y-4'}>
           {/* Headline výsledek – kolik jsi vložil vs. kolik z toho je zisk (v Kč) */}
           {(() => {
             const invested = result.summary.amountInvested;
@@ -732,7 +739,7 @@ export default function BacktestWidget() {
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">
               {comparison ? 'Vývoj vašeho portfolia v čase' : 'Vývoj hodnoty portfolia v čase'}
             </p>
-            <p className="text-xs text-slate-400 mb-3">
+            <p className="text-xs text-slate-500 mb-3">
               {fmtDate(result.evolution[0]?.date)} – {fmtDate(result.evolution[result.evolution.length - 1]?.date)} · v přepočtu na {resultCurrency}
             </p>
             <div className="h-72 w-full">
@@ -747,15 +754,15 @@ export default function BacktestWidget() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                   <XAxis
                     dataKey="date" tickFormatter={fmtDate} minTickGap={48}
-                    tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false}
+                    tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false}
                   />
                   <YAxis
-                    width={64} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+                    width={64} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
                     tickFormatter={(v: number) => fmtCompact(v, resultCurrency)}
                   />
                   {investedLine > 0 && (
-                    <ReferenceLine y={investedLine} stroke="#94a3b8" strokeDasharray="4 4"
-                      label={{ value: 'vloženo', position: 'insideTopLeft', fontSize: 10, fill: '#94a3b8' }} />
+                    <ReferenceLine y={investedLine} stroke="#64748b" strokeDasharray="4 4"
+                      label={{ value: 'vloženo', position: 'insideTopLeft', fontSize: 10, fill: '#64748b' }} />
                   )}
                   <Tooltip
                     cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }}
@@ -787,14 +794,14 @@ export default function BacktestWidget() {
           {/* ── AKT 2: Kolik to bolelo (riziko) ── */}
           <div className="pt-2">
             <p className="text-sm font-semibold text-slate-800">Kolik to bolelo</p>
-            <p className="text-xs text-slate-400 mt-0.5">Jak hluboké propady a jak dlouhé čekání na návrat portfolio přinášelo.</p>
+            <p className="text-xs text-slate-500 mt-0.5">Jak hluboké propady a jak dlouhé čekání na návrat portfolio přinášelo.</p>
           </div>
 
           {/* Krizové testy – jak by portfolio zvládlo slavné propady trhu */}
           {result.stressPeriods && result.stressPeriods.length > 0 && (
             <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Krizové testy</p>
-              <p className="text-xs text-slate-400 mb-3">
+              <p className="text-xs text-slate-500 mb-3">
                 Jak hluboko by portfolio kleslo během slavných propadů trhu (ukazujeme jen krize, které vaše období pokrývá).
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -832,7 +839,7 @@ export default function BacktestWidget() {
                   <span className="sr-only">vysvětlení</span>
                 </InfoTip>
               </p>
-              <p className="text-xs text-slate-400 mb-3">
+              <p className="text-xs text-slate-500 mb-3">
                 Plocha pod nulou ukazuje, jak hluboko a jak dlouho byla hodnota pod předchozím vrcholem, než se vrátila zpět.
               </p>
               <div className="h-56 w-full">
@@ -849,8 +856,8 @@ export default function BacktestWidget() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                     <XAxis dataKey="date" tickFormatter={fmtDate} minTickGap={48}
-                      tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
-                    <YAxis width={48} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+                      tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+                    <YAxis width={48} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
                       tickFormatter={(v: number) => `${Math.round(v)} %`} domain={['dataMin', 0]} />
                     <ReferenceLine y={0} stroke="#cbd5e1" />
                     <Tooltip
@@ -882,7 +889,7 @@ export default function BacktestWidget() {
           {/* ── AKT 3: Jak spolehlivý byl výnos ── */}
           <div className="pt-2">
             <p className="text-sm font-semibold text-slate-800">Jak spolehlivý byl výnos</p>
-            <p className="text-xs text-slate-400 mt-0.5">Jak konzistentní byl výnos napříč jednotlivými roky i delšími horizonty.</p>
+            <p className="text-xs text-slate-500 mt-0.5">Jak konzistentní byl výnos napříč jednotlivými roky i delšími horizonty.</p>
           </div>
 
           {/* Roční výnosy – reálná data z backtestu (nej/nejhorší rok vyznačen) */}
@@ -924,7 +931,7 @@ export default function BacktestWidget() {
                   <span className="sr-only">vysvětlení</span>
                 </InfoTip>
               </p>
-              <p className="text-xs text-slate-400 mb-3">
+              <p className="text-xs text-slate-500 mb-3">
                 Kdybyste do tohoto portfolia vstoupili kdykoli v historii a drželi daný počet let, jaký roční výnos byste dostali – a jak často to skončilo v plusu.
               </p>
               <div className="overflow-x-auto">
@@ -971,7 +978,7 @@ export default function BacktestWidget() {
               <div className="rounded-lg border border-slate-200 bg-white">
                 <div className="flex items-center justify-between gap-3 px-5 py-4">
                   <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Podrobné ukazatele</span>
-                  <span className="hidden sm:inline text-xs text-slate-400">Sharpe · Sortino · Calmar · VaR</span>
+                  <span className="hidden sm:inline text-xs text-slate-500">Sharpe · Sortino · Calmar · VaR</span>
                 </div>
                 <div className="px-5 pb-5 md:px-6 md:pb-6 border-t border-slate-100 pt-4">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1002,9 +1009,15 @@ export default function BacktestWidget() {
 
                   {/* Největší propady – přesná tabulka pro pokročilé (pojmenované verze jsou v Krizových testech výše) */}
                   {topDrawdowns.length > 0 && (
-                    <div className="mt-5 pt-5 border-t border-slate-100">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Největší propady (detailně)</p>
-                      <p className="text-xs text-slate-400 mb-3">Nejhlubší poklesy od vrcholu po dno a jak dlouho trvalo zotavení.</p>
+                    <details className="group mt-5 pt-5 border-t border-slate-100">
+                      <summary className="flex items-center justify-between gap-2 cursor-pointer list-none min-h-[40px]">
+                        <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Největší propady (detailní tabulka)</span>
+                        <span className="inline-flex items-center gap-1 text-xs text-teal-700 group-open:text-slate-500">
+                          <span className="group-open:hidden">Zobrazit</span><span className="hidden group-open:inline">Skrýt</span>
+                          <span className="inline-block group-open:rotate-180 transition-transform text-base leading-none">▾</span>
+                        </span>
+                      </summary>
+                      <p className="text-xs text-slate-500 mb-3 mt-2">Nejhlubší poklesy od vrcholu po dno a jak dlouho trvalo zotavení.</p>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm border-collapse">
                           <thead>
@@ -1020,7 +1033,7 @@ export default function BacktestWidget() {
                           <tbody>
                             {topDrawdowns.map((d, i) => (
                               <tr key={i} className="border-b border-slate-100 last:border-0">
-                                <td className="text-slate-400 py-2.5 pr-3 tabular-nums">{i + 1}</td>
+                                <td className="text-slate-500 py-2.5 pr-3 tabular-nums">{i + 1}</td>
                                 <td className="text-right py-2.5 px-3 tabular-nums font-semibold text-red-600 whitespace-nowrap">{fmtPct(d.depth * 100)}</td>
                                 <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.startDate)}</td>
                                 <td className="text-slate-600 py-2.5 px-3 whitespace-nowrap">{fmtDate(d.troughDate)}</td>
@@ -1035,7 +1048,7 @@ export default function BacktestWidget() {
                           </tbody>
                         </table>
                       </div>
-                    </div>
+                    </details>
                   )}
                 </div>
               </div>
@@ -1051,7 +1064,7 @@ export default function BacktestWidget() {
               příslibem budoucích výnosů – trh se v dalších letech může chovat úplně jinak.
             </p>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -1116,7 +1129,7 @@ function ComparisonBlock({
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-1">Srovnání portfolií</p>
         {first && last && (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Stejné období {fmtDate(first)} – {fmtDate(last)} · stejné vklady · v přepočtu na {currency}. Nejlepší hodnota v každém řádku je zvýrazněná.
           </p>
         )}
@@ -1128,8 +1141,8 @@ function ComparisonBlock({
           <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
             <XAxis dataKey="date" tickFormatter={fmtDate} minTickGap={48}
-              tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
-            <YAxis width={64} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+              tick={{ fontSize: 11, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+            <YAxis width={64} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
               tickFormatter={(v: number) => fmtCompact(v, currency)} />
             <Tooltip
               cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }}
@@ -1227,7 +1240,7 @@ function MetricCard({
       </span>
       <p className="text-xs text-slate-500 flex items-center gap-1 flex-wrap">{label}</p>
       <p className={`text-xl font-bold tabular-nums mt-0.5 ${valueColor}`}>{value}</p>
-      <p className="text-xs text-slate-400 mt-0.5">{hint}</p>
+      <p className="text-xs text-slate-500 mt-0.5">{hint}</p>
     </div>
   );
 }
