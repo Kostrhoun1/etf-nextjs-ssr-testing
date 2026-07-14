@@ -40,9 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
     telephone: false,
   },
   metadataBase: new URL('https://etfpruvodce.cz'),
-  alternates: {
-    canonical: '/',
-  },
+  // POZOR: canonical zde NENASTAVOVAT. Next.js metadata se dědí, takže globální
+  // canonical:'/' by na KAZDE stránce bez vlastního canonicalu hlásil Googlu
+  // homepage jako kanonickou URL → stránky se berou jako duplikáty a neindexují se.
+  // Homepage má vlastní canonical:'/' ve svém page.tsx; ostatní stránky se
+  // self-kanonizují na vlastní URL (žádný tag = Google bere vlastní adresu).
   openGraph: {
     type: 'website',
     locale: 'cs_CZ',
