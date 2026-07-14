@@ -323,7 +323,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const amount = p.get('amount');
     if (amount && /^\d+$/.test(amount)) setInitialAmount(parseInt(amount, 10));
     const contrib = p.get('contrib');
-    if (contrib === 'none') setContributionFrequency('none');
+    if (contrib === 'none') { setContributionFrequency('none'); setContributionAmount(0); }
     else if (contrib && /^\d+$/.test(contrib)) { setContributionAmount(parseInt(contrib, 10)); setContributionFrequency('monthly'); }
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
     // ZÁMĚRNĚ nescrollujeme – uživatel má vidět předvyplněná (editovatelná) pole; výsledek
@@ -518,7 +518,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             <label htmlFor="bt-contrib" className="block text-sm text-slate-600 mb-1">Pravidelný vklad</label>
             <div className="relative">
               <input id="bt-contrib" type="text" inputMode="numeric" value={contributionAmount === 0 ? '' : contributionAmount.toLocaleString('cs-CZ')} placeholder="0"
-                onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setContributionAmount(v === '' ? 0 : parseInt(v, 10)); }}
+                onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); const n = v === '' ? 0 : parseInt(v, 10); setContributionAmount(n); if (n > 0 && contributionFrequency === 'none') setContributionFrequency('monthly'); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
             </div>
@@ -530,7 +530,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 <span className="sr-only">vysvětlení</span>
               </InfoTip>
             </label>
-            <select id="bt-freq" value={contributionFrequency} onChange={(e) => setContributionFrequency(e.target.value as ContributionFrequency)}
+            <select id="bt-freq" value={contributionFrequency} onChange={(e) => { const f = e.target.value as ContributionFrequency; setContributionFrequency(f); if (f === 'none') setContributionAmount(0); }}
               className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none">
               <option value="none">Bez vkladů</option>
               <option value="monthly">Měsíčně</option>
