@@ -5,7 +5,7 @@ import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Legend,
 } from 'recharts';
 import {
-  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info, ChevronDown,
+  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 
@@ -56,30 +56,30 @@ const AVAILABLE_INDEXES = [
 
 // === Hotová portfolia – 1:1 z originálu ===
 const PRESET_PORTFOLIOS = [
-  { id: 'sp500-100', name: '100% S&P 500', description: 'Čistě americké akcie', etfs: [{ indexCode: 'sp500', weight: 100 }] },
-  { id: 'ftse-all-world', name: '100% All-World', description: 'Globální akcie', etfs: [{ indexCode: 'ftse_all_world', weight: 100 }] },
-  { id: 'global-since-2000', name: 'Globální akcie (od 2000)', description: 'US 60 % + svět 40 %, historie až do roku 2000 (dot-com i krize 2008)', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
-  { id: '60-40', name: '60/40 portfolio', description: '60 % akcie, 40 % dluhopisy', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
+  { id: 'sp500-100', name: '100% S&P 500', description: '500 největších firem USA v jednom indexu – nejsledovanější akciová sázka na americkou ekonomiku. Nejvyšší dlouhodobý výnos, ale i hluboké propady.', etfs: [{ indexCode: 'sp500', weight: 100 }] },
+  { id: 'ftse-all-world', name: '100% All-World', description: 'Akcie celého světa (~3 800 firem, vyspělé i rozvíjející se trhy) v jednom fondu. Maximální rozptýlení – nesázíte na jedinou zemi.', etfs: [{ indexCode: 'ftse_all_world', weight: 100 }] },
+  { id: 'global-since-2000', name: 'Globální akcie (od 2000)', description: '60 % USA + 40 % zbytek světa. Globálně vyvážené akcie s historií až do roku 2000 – projde dot-com propadem i krizí 2008.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
+  { id: '60-40', name: '60/40 portfolio', description: 'Klasika investování: 60 % akcie, 40 % dluhopisy. Dluhopisy tlumí propady – klidnější jízda za cenu o něco nižšího výnosu.', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
   {
-    id: 'all-weather', name: 'Ray Dalio All-Weather', description: 'Pro všechny tržní podmínky',
+    id: 'all-weather', name: 'Ray Dalio All-Weather', description: 'Portfolio slavného investora Raye Dalia: akcie + dlouhé i krátké dluhopisy + zlato a komodity. Cíl není nejvyšší výnos, ale obstát v každé fázi ekonomiky (růst, recese, inflace).',
     etfs: [
       { indexCode: 'ftse_all_world', weight: 30 }, { indexCode: 'us_treasury_20y', weight: 40 },
       { indexCode: 'us_treasury_7_10y', weight: 15 }, { indexCode: 'gold', weight: 7.5 }, { indexCode: 'commodities', weight: 7.5 },
     ],
   },
   {
-    id: 'permanent', name: 'Permanentní portfolio', description: '25 % akcie, dlouhé dluhopisy, hotovost, zlato',
+    id: 'permanent', name: 'Permanentní portfolio', description: 'Portfolio Harryho Browna: po 25 % akcie, dlouhé státní dluhopisy, krátké dluhopisy (hotovost) a zlato. Jednoduché a odolné „za každého počasí".',
     etfs: [
       { indexCode: 'ftse_all_world', weight: 25 }, { indexCode: 'us_treasury_20y', weight: 25 },
       { indexCode: 'us_treasury_1_3y', weight: 25 }, { indexCode: 'gold', weight: 25 },
     ],
   },
   {
-    id: 'global-em', name: '80 % vyspělé + 20 % EM', description: 'Globální akcie s rozvíjejícími se trhy',
+    id: 'global-em', name: '80 % vyspělé + 20 % EM', description: '40 % USA + 40 % ostatní vyspělé trhy + 20 % rozvíjející se trhy (Čína, Indie…). Široká globální akciová sázka s vyšším podílem růstových trhů.',
     etfs: [{ indexCode: 'msci_eafe', weight: 40 }, { indexCode: 'sp500', weight: 40 }, { indexCode: 'msci_em', weight: 20 }],
   },
   {
-    id: 'buffett-90-10', name: 'Buffettovo 90/10', description: 'Co Buffett předepsal manželce: 90 % S&P 500, 10 % krátké státní dluhopisy',
+    id: 'buffett-90-10', name: 'Buffettovo 90/10', description: 'Co Warren Buffett odkázal manželce: 90 % S&P 500 + 10 % krátké státní dluhopisy. Sázka na jednoduchost, nízké náklady a dlouhý horizont.',
     etfs: [{ indexCode: 'sp500', weight: 90 }, { indexCode: 'us_treasury_1_3y', weight: 10 }],
   },
 ];
@@ -390,7 +390,10 @@ export default function BacktestWidget() {
             })}
           </div>
           {activePreset && (
-            <p className="text-xs text-slate-500 mt-2 leading-relaxed">{PRESET_PORTFOLIOS.find((p) => p.id === activePreset)?.description}</p>
+            <div className="mt-2.5 flex items-start gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5">
+              <Info className="w-4 h-4 text-teal-600 mt-0.5 shrink-0" />
+              <p className="text-xs text-slate-600 leading-relaxed">{PRESET_PORTFOLIOS.find((p) => p.id === activePreset)?.description}</p>
+            </div>
           )}
         </div>
 
@@ -965,19 +968,12 @@ export default function BacktestWidget() {
             const calmar = dd > 0 ? s.cagr / dd : null;
             const fmt2 = (v: number) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             return (
-              <details className="group rounded-lg border border-slate-200 bg-white">
-                <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Pokročilé ukazatele</span>
-                  <span className="flex items-center gap-2 text-xs text-slate-400">
-                    <span className="hidden sm:inline">Sharpe · Sortino · Calmar · VaR</span>
-                    <span className="inline-flex items-center gap-1 font-medium text-teal-700 group-open:text-slate-500">
-                      <span className="group-open:hidden">Zobrazit</span>
-                      <span className="hidden group-open:inline">Skrýt</span>
-                      <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
-                    </span>
-                  </span>
-                </summary>
-                <div className="px-5 pb-5 md:px-6 md:pb-6">
+              <div className="rounded-lg border border-slate-200 bg-white">
+                <div className="flex items-center justify-between gap-3 px-5 py-4">
+                  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Podrobné ukazatele</span>
+                  <span className="hidden sm:inline text-xs text-slate-400">Sharpe · Sortino · Calmar · VaR</span>
+                </div>
+                <div className="px-5 pb-5 md:px-6 md:pb-6 border-t border-slate-100 pt-4">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <MetricCard
                       icon={Activity}
@@ -1042,7 +1038,7 @@ export default function BacktestWidget() {
                     </div>
                   )}
                 </div>
-              </details>
+              </div>
             );
           })()}
 
