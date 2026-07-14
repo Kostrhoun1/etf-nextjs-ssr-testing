@@ -11,7 +11,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate } from '@/lib/etf-data';
 import { simulateAndSerialize } from '@/lib/backtest/simulate';
-import BacktestWidget from '@/components/design-preview/BacktestWidget';
+import BuffettMiniCalc from '@/components/buffett/BuffettMiniCalc';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -112,6 +112,14 @@ export default async function BuffettovoPortfolio() {
   const metrics = (r: Sim) => ({ final: r.summary.netAssetValue, cagr: r.summary.cagr * 100, dd: r.risk.maxDrawdown.depth * 100, vol: r.summary.standardDeviation * 100, worst: worstYear(r) });
   const M = R ? { buffett: metrics(R.buffett), sp: metrics(R.sp), balanced: metrics(R.balanced), global: metrics(R.global) } : null;
 
+  // Koeficienty pro mini-kalkulačku (engine je lineární v cashflow):
+  //   výsledek = jednorázový × lumpMultiple + měsíční × monthlyCoeff
+  // lumpMultiple = násobek jednorázového vkladu; monthlyCoeff = konečná hodnota 1 Kč vkládané měsíčně.
+  const DCA_STEP = 5000; // měsíční vklad použitý v serverové DCA simulaci
+  const lumpMultiple = M ? M.buffett.final / AMOUNT : 7.24;
+  const monthlyCoeff = R && M ? (R.dca.summary.netAssetValue - M.buffett.final) / DCA_STEP : 0;
+  const contribMonths = R ? Math.round((R.dca.summary.amountInvested - AMOUNT) / DCA_STEP) : 288;
+
   // Formátovače
   const kc = (v: number) => `${new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 0 }).format(Math.round(v))} Kč`;
   const p1 = (v: number) => `${v >= 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
@@ -123,7 +131,7 @@ export default async function BuffettovoPortfolio() {
     { name: 'Buffett 90/10', color: '#0d9488', ev: R.buffett.evolution },   // teal (hero)
     { name: '100 % S&P 500', color: '#1d4ed8', ev: R.sp.evolution },        // sytě modrá
     { name: '60/40', color: '#f59e0b', ev: R.balanced.evolution },          // jantarová
-    { name: 'Globální', color: '#9333ea', ev: R.global.evolution },  // fialová
+    { name: 'Celý svět', color: '#9333ea', ev: R.global.evolution },  // fialová
   ] : [];
   const eqAll = eqSeries.flatMap((s) => s.ev.map((p) => p.value));
   const eqMax = eqAll.length ? Math.max(...eqAll) : 1;
@@ -201,8 +209,8 @@ export default async function BuffettovoPortfolio() {
               <strong className="text-white">přes 700 000 Kč</strong>.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="#kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
-                <Scale className="w-4 h-4" /> Namodelovat si to sám ↓
+              <Link href="#spocitat" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+                <Scale className="w-4 h-4" /> Zkusit vlastní částku ↓
               </Link>
               <Link href="/portfolio-strategie" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                 <Landmark className="w-4 h-4" /> Další modelová portfolia
@@ -214,6 +222,12 @@ export default async function BuffettovoPortfolio() {
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
             </div>
           </div>
+        </section>
+
+        {/* MINI-KALKULAČKA – hned na úvod: jen vlastní částka (+ nepovinný měsíční vklad) */}
+        <section id="spocitat" className="pb-9 scroll-mt-16">
+          <SectionHead title="Kolik by to udělalo s vaší částkou" desc="Zadejte svůj vklad – přepočítá se stejným enginem jako náš backtest, na reálných datech do korun." />
+          <BuffettMiniCalc lumpMultiple={lumpMultiple} monthlyCoeff={monthlyCoeff} contribMonths={contribMonths} />
         </section>
 
         {/* 1. PŘÍBĚH */}
@@ -301,7 +315,7 @@ export default async function BuffettovoPortfolio() {
                   <th className="px-4 py-3 text-right bg-teal-50/60 text-teal-800">Buffett 90/10</th>
                   <th className="px-4 py-3 text-right">100 % S&P 500</th>
                   <th className="px-4 py-3 text-right">60/40</th>
-                  <th className="px-4 py-3 text-right">Globální</th>
+                  <th className="px-4 py-3 text-right">Celý svět</th>
                 </tr>
               </thead>
               <tbody className="tabular-nums">
@@ -327,8 +341,8 @@ export default async function BuffettovoPortfolio() {
             Dluhopisová desetina výnos mírně brzdí (proti čistým akciím), ale změkčuje nejhorší chvíle – v roce 2008 zhruba
             o 5 procentních bodů. Přesně to od ní Buffett chce: rezervu na výběry ve špatných letech, ne maximalizaci výnosu.
             Celosvětová varianta (poslední sloupec) je diverzifikovanější měnově i geograficky – historicky ale za americkou
-            koncentrací v tomto okně zaostávala. „Globální" tu skládáme z 60 % USA + 40 % zbytek světa, protože ETF na FTSE
-            All-World má data až od roku 2008; tahle proxy sahá poctivě do roku 2002.
+            koncentrací v tomto okně zaostávala. „Celý svět" tu skládáme z 60 % USA + 40 % zbytek světa (vyspělé i rozvíjející
+            se trhy), protože ETF na FTSE All-World má data až od roku 2008; tahle proxy sahá poctivě do roku 2002.
           </p>
         </section>
 
@@ -428,12 +442,6 @@ export default async function BuffettovoPortfolio() {
               </div>
             ))}
           </div>
-        </section>
-
-        {/* EMBED NÁSTROJE – namodeluj si vlastní čísla přímo tady */}
-        <section id="kalkulacka" className="pb-10 scroll-mt-16">
-          <SectionHead title="Namodelujte si vlastní čísla" desc="Backtest má předvyplněné Buffettovo 90/10. Změňte částku, období nebo přidejte pravidelné vklady – a porovnejte to třeba s celosvětovým portfoliem. Vše na reálných datech, v korunách." />
-          <BacktestWidget defaultPreset="buffett-90-10" defaultStart="2002-07-01" defaultAmount={100000} defaultContribFreq="none" />
         </section>
 
         {/* FAQ */}

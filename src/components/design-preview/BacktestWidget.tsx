@@ -57,7 +57,7 @@ const AVAILABLE_INDEXES = [
 // === Hotová portfolia – 1:1 z originálu ===
 const PRESET_PORTFOLIOS = [
   { id: 'sp500-100', name: '100% S&P 500', description: '500 největších firem USA v jednom indexu – nejsledovanější akciová sázka na americkou ekonomiku. Nejvyšší dlouhodobý výnos, ale i hluboké propady.', etfs: [{ indexCode: 'sp500', weight: 100 }] },
-  { id: 'global-since-2000', name: 'Globální akcie', description: 'Akcie celého světa – 60 % USA + 40 % zbytek světa (zhruba podle tržní váhy, jako široký All-World). Historie až do roku 2000, takže projde dot-com propadem i krizí 2008.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
+  { id: 'global-since-2000', name: 'Celý svět', description: 'Akcie celého světa včetně rozvíjejících se trhů (EM) – 60 % USA + 40 % zbytek světa (vyspělé i EM, zhruba podle tržní váhy jako široký All-World). Historie až do roku 2000, takže projde dot-com propadem i krizí 2008.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
   { id: '60-40', name: '60/40 portfolio', description: 'Klasika investování: 60 % akcie, 40 % dluhopisy. Dluhopisy tlumí propady – klidnější jízda za cenu o něco nižšího výnosu.', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
   {
     id: 'all-weather', name: 'Ray Dalio All-Weather', description: 'Portfolio slavného investora Raye Dalia: akcie + dlouhé i krátké dluhopisy + zlato a komodity. Cíl není nejvyšší výnos, ale obstát v každé fázi ekonomiky (růst, recese, inflace).',
@@ -86,7 +86,7 @@ const PRESET_PORTFOLIOS = [
 // Krátké názvy presetů pro kompaktní chipy (jedna scrollovací řádka).
 const PRESET_SHORT: Record<string, string> = {
   'sp500-100': 'S&P 500',
-  'global-since-2000': 'Globální',
+  'global-since-2000': 'Celý svět',
   '60-40': '60/40',
   'all-weather': 'All-Weather',
   'permanent': 'Permanentní',
