@@ -88,7 +88,7 @@ const PRESET_PORTFOLIOS = [
 const PRESET_SHORT: Record<string, string> = {
   'sp500-100': 'S&P 500',
   'ftse-all-world': 'All-World',
-  'global-since-2000': 'Globální 2000',
+  'global-since-2000': 'US + svět',
   '60-40': '60/40',
   'all-weather': 'All-Weather',
   'permanent': 'Permanentní',
@@ -98,6 +98,17 @@ const PRESET_SHORT: Record<string, string> = {
 
 interface SelectedETF {
   isin: string; name: string; ter: number; indexCode: string; indexName: string; weight: number;
+}
+
+// Sestaví vybrané fondy z hotového portfolia (preset id) – pro applyPreset i pro
+// prvotní naplnění widgetu přes prop defaultPreset (embed v článku).
+function presetToETFs(presetId: string): SelectedETF[] {
+  const preset = PRESET_PORTFOLIOS.find((p) => p.id === presetId);
+  if (!preset) return [];
+  return preset.etfs.map((item) => {
+    const index = AVAILABLE_INDEXES.find((i) => i.indexCode === item.indexCode)!;
+    return { isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: item.weight };
+  });
 }
 
 // === Výstupní typ z API – 1:1 z originálu ===
@@ -144,16 +155,19 @@ const fmtDate = (iso: string) =>
 const indexNameByCode = (code: string) =>
   AVAILABLE_INDEXES.find((i) => i.indexCode === code)?.name ?? code;
 
-export default function BacktestWidget() {
+export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmount, defaultContribFreq }: { defaultPreset?: string; defaultStart?: string; defaultAmount?: number; defaultContribFreq?: ContributionFrequency } = {}) {
   const [currency, setCurrency] = useState<Currency>('CZK');
-  const [selectedETFs, setSelectedETFs] = useState<SelectedETF[]>([
-    { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007, indexCode: 'sp500', indexName: 'S&P 500', weight: 100 },
-  ]);
-  const [startDate, setStartDate] = useState('2005-01-01');
+  const [selectedETFs, setSelectedETFs] = useState<SelectedETF[]>(() => {
+    const seeded = defaultPreset ? presetToETFs(defaultPreset) : [];
+    return seeded.length ? seeded : [
+      { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007, indexCode: 'sp500', indexName: 'S&P 500', weight: 100 },
+    ];
+  });
+  const [startDate, setStartDate] = useState(defaultStart ?? '2005-01-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [initialAmount, setInitialAmount] = useState(100000);
+  const [initialAmount, setInitialAmount] = useState(defaultAmount ?? 100000);
   const [contributionAmount, setContributionAmount] = useState(5000);
-  const [contributionFrequency, setContributionFrequency] = useState<ContributionFrequency>('monthly');
+  const [contributionFrequency, setContributionFrequency] = useState<ContributionFrequency>(defaultContribFreq ?? 'monthly');
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +177,7 @@ export default function BacktestWidget() {
   const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
   // Config-first compact: aktivní hotové portfolio (pro zvýraznění chipu a souhrn),
   // a rozklik editoru složení (default sbaleno – ukazuje jen souhrn vah).
-  const [activePreset, setActivePreset] = useState<string | null>('sp500-100');
+  const [activePreset, setActivePreset] = useState<string | null>(defaultPreset ?? 'sp500-100');
   const [editComposition, setEditComposition] = useState(false);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
@@ -495,7 +509,7 @@ export default function BacktestWidget() {
           <div>
             <label htmlFor="bt-initial" className="block text-sm text-slate-600 mb-1">Počáteční vklad</label>
             <div className="relative">
-              <input id="bt-initial" type="text" inputMode="numeric" value={initialAmount === 0 ? '' : initialAmount} placeholder="0"
+              <input id="bt-initial" type="text" inputMode="numeric" value={initialAmount === 0 ? '' : initialAmount.toLocaleString('cs-CZ')} placeholder="0"
                 onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setInitialAmount(v === '' ? 0 : parseInt(v, 10)); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
@@ -505,7 +519,7 @@ export default function BacktestWidget() {
           <div>
             <label htmlFor="bt-contrib" className="block text-sm text-slate-600 mb-1">Pravidelný vklad</label>
             <div className="relative">
-              <input id="bt-contrib" type="text" inputMode="numeric" value={contributionAmount === 0 ? '' : contributionAmount} placeholder="0"
+              <input id="bt-contrib" type="text" inputMode="numeric" value={contributionAmount === 0 ? '' : contributionAmount.toLocaleString('cs-CZ')} placeholder="0"
                 onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setContributionAmount(v === '' ? 0 : parseInt(v, 10)); }}
                 className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
@@ -520,7 +534,7 @@ export default function BacktestWidget() {
             </label>
             <select id="bt-freq" value={contributionFrequency} onChange={(e) => setContributionFrequency(e.target.value as ContributionFrequency)}
               className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none">
-              <option value="none">Bez pravidelných vkladů</option>
+              <option value="none">Bez vkladů</option>
               <option value="monthly">Měsíčně</option>
               <option value="quarterly">Čtvrtletně</option>
               <option value="yearly">Ročně</option>

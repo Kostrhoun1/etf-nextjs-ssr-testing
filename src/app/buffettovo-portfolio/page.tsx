@@ -11,6 +11,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate } from '@/lib/etf-data';
 import { simulateAndSerialize } from '@/lib/backtest/simulate';
+import BacktestWidget from '@/components/design-preview/BacktestWidget';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     description:
       'Nejslavnější investiční pokyn světa přepočtený do Kč na datech 2002–2026: ze 100 000 Kč přes 700 tisíc. Včetně propadů a pravidelného investování.',
     url: 'https://etfpruvodce.cz/buffettovo-portfolio',
-    images: [ogImage({ title: 'Buffettovo portfolio 90/10 v korunách', eyebrow: 'Světové myšlenky česky', stat: '100 000 → 729 000 Kč', statLabel: 'od 2002 · v Kč · po poplatcích' })],
+    images: [ogImage({ title: 'Buffettovo portfolio 90/10 v korunách', eyebrow: 'Světové myšlenky česky', stat: '100 000 → přes 700 000 Kč', statLabel: 'od 2002 · v Kč · po poplatcích' })],
     type: 'article',
   },
 };
@@ -197,11 +198,11 @@ export default async function BuffettovoPortfolio() {
               Nejslavnější investor světa předepsal pro dědictví své ženy nejjednodušší portfolio, jaké existuje:{' '}
               <strong className="text-white">90 % levný indexový fond na S&P 500 a 10 % krátké státní dluhopisy</strong>.
               Přepočítali jsme ho do korun na reálných denních datech od roku 2002 – ze 100 000 Kč by dnes bylo{' '}
-              <strong className="text-white">přes 729 000 Kč</strong>.
+              <strong className="text-white">přes 700 000 Kč</strong>.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
-                <Scale className="w-4 h-4" /> Otestovat 90/10 v backtestu
+              <Link href="#kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+                <Scale className="w-4 h-4" /> Namodelovat si to sám ↓
               </Link>
               <Link href="/portfolio-strategie" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                 <Landmark className="w-4 h-4" /> Další modelová portfolia
@@ -430,6 +431,12 @@ export default async function BuffettovoPortfolio() {
           </div>
         </section>
 
+        {/* EMBED NÁSTROJE – namodeluj si vlastní čísla přímo tady */}
+        <section id="kalkulacka" className="pb-10 scroll-mt-16">
+          <SectionHead title="Namodelujte si vlastní čísla" desc="Backtest má předvyplněné Buffettovo 90/10. Změňte částku, období nebo přidejte pravidelné vklady – a porovnejte to třeba s celosvětovým portfoliem. Vše na reálných datech, v korunách." />
+          <BacktestWidget defaultPreset="buffett-90-10" defaultStart="2002-07-01" defaultAmount={100000} defaultContribFreq="none" />
+        </section>
+
         {/* FAQ */}
         <section className="pb-10">
           <SectionHead title="Časté otázky" desc="Prakticky k portfoliu 90/10 pro českého investora." />
@@ -446,18 +453,9 @@ export default async function BuffettovoPortfolio() {
           </div>
         </section>
 
-        {/* CTA + pokračování */}
+        {/* Pokračování – související články */}
         <section className="pb-12">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <p className="text-lg font-semibold">Vyzkoušejte Buffettovo 90/10 na vlastní čísla</p>
-              <p className="text-sm text-slate-300 mt-1">V backtestu je jako hotový preset – změňte částku, období nebo přidejte vklady.</p>
-            </div>
-            <Link href="/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors whitespace-nowrap">
-              <Calculator className="w-4 h-4" /> Spustit backtest
-            </Link>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3 text-sm">
+          <div className="grid gap-3 sm:grid-cols-3 text-sm">
             {([
               ['/kolik-vydelaly-etf', 'Kolik vydělaly ETF a akcie: datový rozbor'],
               ['/faktorove-etf', 'Faktorové ETF: co říkají data v Kč'],
