@@ -200,7 +200,7 @@ export default async function BuffettovoPortfolio() {
               <strong className="text-white">přes 729 000 Kč</strong>.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              <Link href="/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
                 <Scale className="w-4 h-4" /> Otestovat 90/10 v backtestu
               </Link>
               <Link href="/portfolio-strategie" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
@@ -431,7 +431,7 @@ export default async function BuffettovoPortfolio() {
               <p className="text-lg font-semibold">Vyzkoušejte Buffettovo 90/10 na vlastní čísla</p>
               <p className="text-sm text-slate-300 mt-1">V backtestu je jako hotový preset – změňte částku, období nebo přidejte vklady.</p>
             </div>
-            <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors whitespace-nowrap">
+            <Link href="/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors whitespace-nowrap">
               <Calculator className="w-4 h-4" /> Spustit backtest
             </Link>
           </div>
