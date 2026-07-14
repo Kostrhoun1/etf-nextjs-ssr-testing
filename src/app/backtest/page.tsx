@@ -6,7 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
   Coins, Wallet, Scale, Landmark, ShieldCheck, Crown, HelpCircle, BookOpen,
-  History, TrendingDown, Activity, Repeat, LineChart,
+  History, Repeat, LineChart,
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -147,29 +147,8 @@ export default async function BacktestPreview() {
           </div>
         </section>
 
-        {/* CO BACKTEST UKÁŽE – edukace NAD nástrojem (ikonové karty, BEZ schémat) */}
-        <section className="pb-10">
-          <SectionHead title="Co vám backtest ukáže" desc="Tři čísla, která rozhodují, jestli s portfoliem vydržíte i ve špatných letech." />
-          <div className="grid sm:grid-cols-3 gap-3">
-            {([
-              [TrendingUp, 'Roční zhodnocení', (
-                <>Průměrné roční tempo růstu se složeným úročením (<InfoTip label="CAGR – Compound Annual Growth Rate. Tempo, jakým hodnota reálně rostla rok za rokem, ne prostý průměr.">CAGR</InfoTip>). Říká, jak rychle portfolio dlouhodobě rostlo.</>
-              )],
-              [TrendingDown, 'Největší pokles', (
-                <>Nejhlubší propad od vrcholu po dno (anglicky <InfoTip label="Drawdown – dočasný pokles hodnoty od předchozího maxima. Ukazuje, kolik byste museli psychicky ustát.">drawdown</InfoTip>). Prozradí, kolik nervů strategie vyžaduje.</>
-              )],
-              [Activity, 'Kolísavost', (
-                <>Jak silně hodnota kmitá nahoru a dolů (<InfoTip label="Volatilita – roční směrodatná odchylka výnosů. Vyšší číslo = větší výkyvy, klidnější spánek je u nižší.">volatilita</InfoTip>). Vyšší číslo znamená divočejší jízdu.</>
-              )],
-            ] as [typeof TrendingUp, string, ReactNode][]).map(([Icon, t, d]) => (
-              <div key={t} className="rounded-lg border border-slate-200 bg-white p-4">
-                <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 mb-3"><Icon className="w-4 h-4" /></span>
-                <p className="font-medium text-slate-900 text-sm">{t}</p>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{d}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Sekce „Co vám backtest ukáže" odstraněna – 3 pojmy (CAGR/propad/kolísavost)
+            vysvětlují ⓘ tooltipy přímo u výsledku, sekce jen tlačila nástroj dolů. */}
 
         {/* NÁSTROJ */}
         <section id="backtest" className="pb-10 scroll-mt-16">
