@@ -1,3 +1,9 @@
+-- ⚠️ POZOR (15.7.2026): SEED do `index_mapping` NÍŽE JE NEPLATNÝ – needitovat podle něj nic.
+--    Tvrdí 'S&P 500' -> sp500 -> '^SP500TR'. VE SKUTEČNOSTI je sp500 = SPY (ověřeno na 6 desetin).
+--    Kódy msci_world / msci_europe / stoxx600 v databázi VŮBEC NEEXISTUJÍ.
+--    Tabulka index_mapping se používá (engine.ts, api/backtest/search-etf), ale tenhle seed ne.
+--    Jediná pravda o indexech = src/lib/backtest/indexes.ts. Popis = BACKTEST-DATA.md.
+
 -- =====================================================
 -- BACKTEST TABLES - Run in Supabase SQL Editor
 -- =====================================================

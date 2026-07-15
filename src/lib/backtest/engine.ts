@@ -123,40 +123,17 @@ export function getExchangeRateForDate(
 /**
  * Zdrojová měna uložených dat každého indexu.
  *
- * Data v `index_historical_data` jsou adjusted-close US-listovaných ETF (USD), s výjimkou
- * evropských UCITS dluhopisových fondů kótovaných v EUR. Ověřeno empiricky (11.7.2026):
- * - sp500 2000→2008 = +21,5 % odpovídá USD total return (v EUR by bylo ~−20 %),
- * - krátké US treasury 1–3y mají vol 0,9 % p.a. = domácí měna USD,
- * - eur_govt_bond / eur_corp_bond mají vol 3,4/3,7 % p.a. = domácí měna EUR.
+ * !! NEEDITOVAT ZDE !! Jediná pravda je manifest `src/lib/backtest/indexes.ts`.
+ * Dřív tady byla ručně udržovaná kopie, která se rozcházela s tickery ve scraperu (etf-astro)
+ * a s AVAILABLE_INDEXES ve widgetu – tři pravdy na třech místech. Právě proto nikdo nevěděl,
+ * odkud která řada pochází, a noční job směl 15.7.2026 smazat 419 řádků sp500.
+ * Viz memory/incident-sp500-smazana-data a BACKTEST-DATA.md.
+ *
+ * Data v `index_historical_data` jsou adjusted-close listovaných ETF v NATIVNÍ měně listingu
+ * (US ETF = USD, evropské UCITS dluhopisové fondy = EUR). Ověřeno empiricky (11.7. i 15.7.2026).
  */
-export const INDEX_SOURCE_CURRENCY: Record<string, 'USD' | 'EUR'> = {
-  sp500: 'USD',
-  us_total_market: 'USD',
-  msci_eafe: 'USD',
-  msci_em: 'USD',
-  ftse_all_world: 'USD',
-  ftse_europe: 'USD',
-  world_ex_us: 'USD',
-  us_treasury_1_3y: 'USD',
-  us_treasury_7_10y: 'USD',
-  us_treasury_20y: 'USD',
-  us_aggregate_bond: 'USD',
-  us_corp_bond_ig: 'USD',
-  gold: 'USD',
-  commodities: 'USD',
-  us_value: 'USD',
-  us_growth: 'USD',
-  us_small_cap: 'USD',
-  us_momentum: 'USD',
-  us_quality: 'USD',
-  us_min_vol: 'USD',
-  us_dividend: 'USD',
-  eur_govt_bond: 'EUR',
-  eur_govt_bond_1_3y: 'EUR',
-  eur_govt_bond_3_7y: 'EUR',
-  eur_govt_bond_15_30y: 'EUR',
-  eur_corp_bond: 'EUR',
-}
+import { INDEX_SOURCE_CURRENCY } from './indexes'
+export { INDEX_SOURCE_CURRENCY }
 
 /**
  * Převede cenovou řadu indexu z jeho zdrojové měny do cílové měny po jednotlivých dnech.
