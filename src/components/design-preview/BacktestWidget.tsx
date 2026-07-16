@@ -174,6 +174,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultCurrency, setResultCurrency] = useState<Currency>('CZK');
+  // Reálný výnos po inflaci je VOLITELNÝ (default vypnuto) – zapíná se v pokročilém nastavení.
+  const [showRealReturn, setShowRealReturn] = useState(false);
   // Porovnání: id hotových portfolií, se kterými se vlastní portfolio poměří (max 2).
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
@@ -589,6 +591,24 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               </div>
             </div>
 
+            {/* Reálný výnos po inflaci (volitelné) */}
+            <div>
+              <label className="flex items-start gap-2.5 text-sm text-slate-700 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showRealReturn}
+                  onChange={(e) => setShowRealReturn(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 shrink-0 rounded border-slate-300 text-teal-600 focus:ring-2 focus:ring-teal-100"
+                />
+                <span>
+                  Očistit roční výnos o inflaci (ČSÚ)
+                  <span className="block text-xs text-slate-500 mt-0.5">
+                    K výnosu doplní i reálné tempo – o kolik si za výsledek reálně víc koupíte. Dostupné pro období od roku 2000.
+                  </span>
+                </span>
+              </label>
+            </div>
+
             {/* Porovnání */}
             <div>
               <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
@@ -724,7 +744,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               label={<>Roční zhodnocení <InfoTip label="Průměrné roční tempo růstu se zohledněním složeného úročení (CAGR) – jakým tempem portfolio skutečně rostlo rok za rokem. Nominálně = v korunách, jak je vidíte na účtu; reálně = co z toho zbylo po inflaci, tedy o kolik si víc koupíte."><span className="sr-only">vysvětlení</span></InfoTip></>}
               value={fmtPct(result.summary.cagr * 100)}
               hint={
-                result.inflation
+                result.inflation && showRealReturn
                   ? `${fmtPct(result.inflation.realCAGR * 100)} ročně reálně, po inflaci`
                   : 'ročně, po složeném úročení'
               }
