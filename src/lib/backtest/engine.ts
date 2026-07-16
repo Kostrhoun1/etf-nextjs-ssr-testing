@@ -690,7 +690,10 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
   const returns = calculateReturnsAnalysis(marketNav)
   const risk = calculateRiskAnalysis(marketNav)
   const horizons = calculateHorizonAnalysis(marketNav)
-  const inflation = calculateInflationImpact(marketNav, summary.cagr)
+  // Deflujeme ČESKÝM CPI → dává smysl jedině u korunového výnosu. Deflovat USD/EUR českou
+  // inflací by míchalo jablka s hruškami, tak to u jiných měn vůbec nepočítáme.
+  const inflation =
+    input.currency === 'CZK' ? calculateInflationImpact(marketNav, summary.cagr) : undefined
 
   return {
     input,

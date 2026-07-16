@@ -603,7 +603,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 <span>
                   Očistit roční výnos o inflaci (ČSÚ)
                   <span className="block text-xs text-slate-500 mt-0.5">
-                    K výnosu doplní i reálné tempo – o kolik si za výsledek reálně víc koupíte. Dostupné pro období od roku 2000.
+                    K výnosu doplní i reálné tempo – o kolik si za výsledek reálně víc koupíte. Počítáme v Kč z inflace ČSÚ (data od roku 1999).
                   </span>
                 </span>
               </label>
@@ -744,9 +744,13 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               label={<>Roční zhodnocení <InfoTip label="Průměrné roční tempo růstu se zohledněním složeného úročení (CAGR) – jakým tempem portfolio skutečně rostlo rok za rokem. Nominálně = v korunách, jak je vidíte na účtu; reálně = co z toho zbylo po inflaci, tedy o kolik si víc koupíte."><span className="sr-only">vysvětlení</span></InfoTip></>}
               value={fmtPct(result.summary.cagr * 100)}
               hint={
-                result.inflation && showRealReturn
-                  ? `${fmtPct(result.inflation.realCAGR * 100)} ročně reálně, po inflaci`
-                  : 'ročně, po složeném úročení'
+                !showRealReturn
+                  ? 'ročně, po složeném úročení'
+                  : result.inflation
+                    ? `${fmtPct(result.inflation.realCAGR * 100)} ročně reálně, po inflaci`
+                    : resultCurrency !== 'CZK'
+                      ? 'reálně po inflaci jen v Kč'
+                      : 'inflaci máme až od roku 1999'
               }
               tone={result.summary.cagr >= 0 ? 'pos' : 'neg'}
             />
