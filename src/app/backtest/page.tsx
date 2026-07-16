@@ -251,7 +251,7 @@ export default async function BacktestPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: historická data indexů od roku 2000, kurzy ECB a ČNB, vlastní databáze ETF a brokerů. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: historická data indexů od roku 2000, kurzy ECB a ČNB, index spotřebitelských cen ČSÚ (reálné zhodnocení po inflaci), vlastní databáze ETF a brokerů. Aktualizováno {dateStr}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Backtest pracuje s minulými daty a slouží ke vzdělávání. Nezahrnuje poplatky brokera, spready ani daně. <strong>Minulá výkonnost nezaručuje budoucí výnosy a backtest není předpovědí.</strong> Obsah nepředstavuje investiční doporučení. Investice do ETF nesou riziko ztráty.</p>
             </div>
           </div>

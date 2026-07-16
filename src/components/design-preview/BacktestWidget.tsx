@@ -44,12 +44,14 @@ const AVAILABLE_INDEXES = [
   { indexCode: 'us_treasury_20y', name: 'US státní dluhopisy 20+ let (od 2002)', category: 'Dluhopisy USD', isin: 'IE00BSKRJZ44', etfName: 'iShares USD Treasury Bond 20+yr', ter: 0.0007 },
   { indexCode: 'us_aggregate_bond', name: 'US agregátní dluhopisy (od 2003)', category: 'Dluhopisy USD', isin: 'IE00BYXYYM63', etfName: 'iShares US Aggregate Bond', ter: 0.0025 },
   { indexCode: 'us_corp_bond_ig', name: 'US firemní dluhopisy IG (od 2002)', category: 'Dluhopisy USD', isin: 'IE00BYXYYL56', etfName: 'iShares USD Corporate Bond', ter: 0.002 },
-  { indexCode: 'us_value', name: 'Value – hodnotové akcie (od 2000)', category: 'Akcie – faktory', isin: 'IE00BP3QZB59', etfName: 'iShares Edge MSCI World Value Factor', ter: 0.0025 },
-  { indexCode: 'us_small_cap', name: 'Small cap – malé firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE00BF4RFH31', etfName: 'iShares MSCI World Small Cap', ter: 0.0035 },
-  { indexCode: 'us_dividend', name: 'Dividendové akcie (od 2006)', category: 'Akcie – faktory', isin: 'IE00B8GKDB10', etfName: 'Vanguard FTSE All-World High Dividend', ter: 0.0029 },
-  { indexCode: 'us_min_vol', name: 'Minimální volatilita (od 2011)', category: 'Akcie – faktory', isin: 'IE00B8FHGS14', etfName: 'iShares Edge MSCI World Min Volatility', ter: 0.003 },
-  { indexCode: 'us_momentum', name: 'Momentum (od 2000)', category: 'Akcie – faktory', isin: 'IE00BP3QZ825', etfName: 'iShares Edge MSCI World Momentum Factor', ter: 0.0025 },
-  { indexCode: 'us_quality', name: 'Quality – kvalitní firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE00BP3QZ601', etfName: 'iShares Edge MSCI World Quality Factor', ter: 0.0025 },
+  // Faktory jsou AMERICKÉ (Russell / MSCI USA) → i proxy ETF je US, ne World. Ověřeno z DB 16.7.2026.
+  { indexCode: 'us_value', name: 'Value – US, hodnotové akcie (od 2000)', category: 'Akcie – faktory', isin: 'IE000US24HF4', etfName: 'Vanguard Russell 1000 US Value', ter: 0.0016 },
+  { indexCode: 'us_growth', name: 'Growth – US, růstové akcie (od 2000)', category: 'Akcie – faktory', isin: 'IE000NITTFF2', etfName: 'iShares Russell 1000 Growth', ter: 0.0018 },
+  { indexCode: 'us_small_cap', name: 'Small cap – US, malé firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE000LRGEN55', etfName: 'Vanguard Russell 2000 US Small-Cap', ter: 0.002 },
+  { indexCode: 'us_dividend', name: 'Dividendové akcie – US (od 2006)', category: 'Akcie – faktory', isin: 'IE000V04SL39', etfName: 'Xtrackers MSCI USA High Dividend (nejbližší)', ter: 0.0025 },
+  { indexCode: 'us_min_vol', name: 'Minimální volatilita – US (od 2011)', category: 'Akcie – faktory', isin: 'IE00BDB7J586', etfName: 'Xtrackers MSCI USA Min Volatility', ter: 0.002 },
+  { indexCode: 'us_momentum', name: 'Momentum – US (od 2000)', category: 'Akcie – faktory', isin: 'IE00BD1F4N50', etfName: 'iShares Edge MSCI USA Momentum Factor', ter: 0.002 },
+  { indexCode: 'us_quality', name: 'Quality – US, kvalitní firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE00BD1F4L37', etfName: 'iShares Edge MSCI USA Quality Factor', ter: 0.002 },
   { indexCode: 'gold', name: 'Zlato (od 2004)', category: 'Komodity', isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold', ter: 0.0012 },
   { indexCode: 'commodities', name: 'Komodity – diverzifikované (od 2006)', category: 'Komodity', isin: 'IE00BDFL4P12', etfName: 'iShares Diversified Commodity', ter: 0.0019 },
 ];
@@ -117,6 +119,8 @@ interface BacktestResult {
   evolution: Array<{ date: string; value: number }>;
   summary: { amountInvested: number; netAssetValue: number; cagr: number; standardDeviation: number; sharpeRatio: number; sortinoRatio: number };
   returns: { annualReturns: Array<{ year: number; return: number }> };
+  /** Reálné zhodnocení po české inflaci (ČSÚ). Chybí, když období leží mimo CPI řadu. */
+  inflation?: { nominalCAGR: number; realCAGR: number; inflationRate: number };
   risk: {
     maxDrawdown: DrawdownPeriod;
     allDrawdowns?: DrawdownPeriod[];
@@ -170,6 +174,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultCurrency, setResultCurrency] = useState<Currency>('CZK');
+  // Reálný výnos po inflaci je VOLITELNÝ (default vypnuto) – zapíná se v pokročilém nastavení.
+  const [showRealReturn, setShowRealReturn] = useState(false);
   // Porovnání: id hotových portfolií, se kterými se vlastní portfolio poměří (max 2).
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [comparison, setComparison] = useState<{ name: string; result: BacktestResult }[] | null>(null);
@@ -585,6 +591,24 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               </div>
             </div>
 
+            {/* Reálný výnos po inflaci (volitelné) */}
+            <div>
+              <label className="flex items-start gap-2.5 text-sm text-slate-700 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showRealReturn}
+                  onChange={(e) => setShowRealReturn(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 shrink-0 rounded border-slate-300 text-teal-600 focus:ring-2 focus:ring-teal-100"
+                />
+                <span>
+                  Očistit roční výnos o inflaci (ČSÚ)
+                  <span className="block text-xs text-slate-500 mt-0.5">
+                    K výnosu doplní i reálné tempo – o kolik si za výsledek reálně víc koupíte. Počítáme v Kč z inflace ČSÚ (data od roku 1999).
+                  </span>
+                </span>
+              </label>
+            </div>
+
             {/* Porovnání */}
             <div>
               <label className="block text-sm text-slate-600 mb-2 flex items-center gap-1">
@@ -717,9 +741,17 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             />
             <MetricCard
               icon={TrendingUp}
-              label={<>Roční zhodnocení <InfoTip label="Průměrné roční tempo růstu se zohledněním složeného úročení (CAGR) – jakým tempem portfolio reálně rostlo rok za rokem."><span className="sr-only">vysvětlení</span></InfoTip></>}
+              label={<>Roční zhodnocení <InfoTip label="Průměrné roční tempo růstu se zohledněním složeného úročení (CAGR) – jakým tempem portfolio skutečně rostlo rok za rokem. Nominálně = v korunách, jak je vidíte na účtu; reálně = co z toho zbylo po inflaci, tedy o kolik si víc koupíte."><span className="sr-only">vysvětlení</span></InfoTip></>}
               value={fmtPct(result.summary.cagr * 100)}
-              hint="ročně, po složeném úročení"
+              hint={
+                !showRealReturn
+                  ? 'ročně, po složeném úročení'
+                  : result.inflation
+                    ? `${fmtPct(result.inflation.realCAGR * 100)} ročně reálně, po inflaci`
+                    : resultCurrency !== 'CZK'
+                      ? 'reálně po inflaci jen v Kč'
+                      : 'inflaci máme až od roku 1999'
+              }
               tone={result.summary.cagr >= 0 ? 'pos' : 'neg'}
             />
             <MetricCard
