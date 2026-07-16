@@ -117,6 +117,8 @@ interface BacktestResult {
   evolution: Array<{ date: string; value: number }>;
   summary: { amountInvested: number; netAssetValue: number; cagr: number; standardDeviation: number; sharpeRatio: number; sortinoRatio: number };
   returns: { annualReturns: Array<{ year: number; return: number }> };
+  /** Reálné zhodnocení po české inflaci (ČSÚ). Chybí, když období leží mimo CPI řadu. */
+  inflation?: { nominalCAGR: number; realCAGR: number; inflationRate: number };
   risk: {
     maxDrawdown: DrawdownPeriod;
     allDrawdowns?: DrawdownPeriod[];
@@ -717,9 +719,13 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             />
             <MetricCard
               icon={TrendingUp}
-              label={<>Roční zhodnocení <InfoTip label="Průměrné roční tempo růstu se zohledněním složeného úročení (CAGR) – jakým tempem portfolio reálně rostlo rok za rokem."><span className="sr-only">vysvětlení</span></InfoTip></>}
+              label={<>Roční zhodnocení <InfoTip label="Průměrné roční tempo růstu se zohledněním složeného úročení (CAGR) – jakým tempem portfolio skutečně rostlo rok za rokem. Nominálně = v korunách, jak je vidíte na účtu; reálně = co z toho zbylo po inflaci, tedy o kolik si víc koupíte."><span className="sr-only">vysvětlení</span></InfoTip></>}
               value={fmtPct(result.summary.cagr * 100)}
-              hint="ročně, po složeném úročení"
+              hint={
+                result.inflation
+                  ? `${fmtPct(result.inflation.realCAGR * 100)} ročně reálně, po inflaci`
+                  : 'ročně, po složeném úročení'
+              }
               tone={result.summary.cagr >= 0 ? 'pos' : 'neg'}
             />
             <MetricCard

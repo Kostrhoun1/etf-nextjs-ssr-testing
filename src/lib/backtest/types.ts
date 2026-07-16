@@ -110,9 +110,11 @@ export interface BacktestRisk {
 export interface BacktestInflation {
   nominalCAGR: number
   realCAGR: number
-  inflationRate: number
-  nominalEvolution: TimeSeriesPoint[]
-  realEvolution: TimeSeriesPoint[]
+  inflationRate: number // anualizovaná inflace za období backtestu
+  // Deflované řady zatím neposíláme (zdvojily by payload grafu); až je bude
+  // potřebovat UI, dopočítej je z `evolution` přes inflationFactor().
+  nominalEvolution?: TimeSeriesPoint[]
+  realEvolution?: TimeSeriesPoint[]
 }
 
 export interface MonteCarloResult {

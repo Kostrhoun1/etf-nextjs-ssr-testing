@@ -8,12 +8,14 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type {
   BacktestInput,
   BacktestResult,
+  BacktestInflation,
   PortfolioItem,
   TimeSeriesPoint,
   IndexData,
   IndexDataPoint,
   RebalancingStrategy,
 } from './types'
+import { inflationFactor } from './inflation'
 import {
   calculateSummary,
   calculateReturnsAnalysis,
@@ -673,6 +675,7 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
   const returns = calculateReturnsAnalysis(marketNav)
   const risk = calculateRiskAnalysis(marketNav)
   const horizons = calculateHorizonAnalysis(marketNav)
+  const inflation = calculateInflationImpact(marketNav, summary.cagr)
 
   return {
     input,
@@ -682,7 +685,38 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
     returns,
     risk,
     horizons,
+    ...(inflation ? { inflation } : {}),
   }
+}
+
+/**
+ * Reálné (inflačně očištěné) zhodnocení – jádro USP „kolik reálně vyděláš v korunách".
+ *
+ * Deflujeme českým CPI (viz `inflation.ts`), proto to dává smysl jen u výnosů v Kč –
+ * a ty v Kč jsou (FX vrstva převádí každý index zvlášť). Vrací null, když datum leží
+ * mimo pokrytí CPI řady; volající pak reálná čísla prostě neukáže (radši nic než odhad).
+ */
+function calculateInflationImpact(
+  marketNav: TimeSeriesPoint[],
+  nominalCAGR: number
+): BacktestInflation | undefined {
+  if (marketNav.length < 2) return undefined
+  const startDate = marketNav[0].date
+  const endDate = marketNav[marketNav.length - 1].date
+  const factor = inflationFactor(startDate, endDate)
+  const years = yearsBetween(startDate, endDate)
+  if (factor == null || factor <= 0 || years <= 0) return undefined
+
+  const startNav = marketNav[0].value
+  const endNav = marketNav[marketNav.length - 1].value
+  if (startNav <= 0 || endNav <= 0) return undefined
+
+  // Reálný CAGR z deflovaného NAV (ne Fisher aproximace) – konečnou hodnotu
+  // přepočteme na kupní sílu k datu startu a z ní vezmeme tempo růstu.
+  const realCAGR = Math.pow(endNav / factor / startNav, 1 / years) - 1
+  const inflationRate = Math.pow(factor, 1 / years) - 1
+
+  return { nominalCAGR, realCAGR, inflationRate }
 }
 
 /**
