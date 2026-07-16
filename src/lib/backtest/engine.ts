@@ -134,7 +134,7 @@ export function getExchangeRateForDate(
  * Data v `index_historical_data` jsou adjusted-close listovaných ETF v NATIVNÍ měně listingu
  * (US ETF = USD, evropské UCITS dluhopisové fondy = EUR). Ověřeno empiricky (11.7. i 15.7.2026).
  */
-import { INDEX_SOURCE_CURRENCY } from './indexes'
+import { INDEX_SOURCE_CURRENCY, INDEX_BY_CODE } from './indexes'
 export { INDEX_SOURCE_CURRENCY }
 
 /**
@@ -384,13 +384,22 @@ export async function getAvailableIndexes(): Promise<
 // ============================================================
 
 /**
- * Simulate a single ETF based on its underlying index
+ * Simulate a single ETF based on its underlying index.
  *
- * ETF value = Index value × (1 - TER)^years
+ * Data v `index_historical_data` jsou NAV reálného fondu, takže poplatek zdroje (`sourceTer`)
+ * je UŽ V CENĚ. Dřív se navíc aplikoval TER proxy ETF → poplatek se počítal 2× (podceňovali jsme
+ * o ~1,7 % za 24 let). Teď se přepočítává na POŽADOVANÝ poplatek:
+ *
+ *   hodnota = data × [(1 − desiredTer) / (1 − sourceTer)]^roky
+ *
+ *   • desiredTer = sourceTer (výchozí) → faktor 1 → data beze změny (poctivé, poplatek fondu v ceně)
+ *   • desiredTer = 0                   → čistý index, co udělal trh (pokročilé „zrušit poplatek")
+ *   • desiredTer = 0,005               → modeluje dražší fond / poplatky brokera
  */
 function simulateETFFromIndex(
   indexData: IndexDataPoint[],
-  ter: number,
+  sourceTer: number,
+  desiredTer: number,
   initialValue: number
 ): TimeSeriesPoint[] {
   if (indexData.length === 0) return []
@@ -405,11 +414,11 @@ function simulateETFFromIndex(
     // Index return
     const indexReturn = point.closePrice / startPrice
 
-    // Apply TER drag
-    const terDrag = Math.pow(1 - ter, years)
+    // Přepočet poplatku: odečti zdrojový (už v ceně), přidej požadovaný. Default → faktor 1.
+    const feeAdjust = Math.pow((1 - desiredTer) / (1 - sourceTer), years)
 
     // ETF value
-    const value = initialValue * indexReturn * terDrag
+    const value = initialValue * indexReturn * feeAdjust
 
     result.push({
       date: point.date,
@@ -640,9 +649,15 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
       continue
     }
 
+    // Poplatek řídí manifest (jediná pravda), ne item.ter z widgetu. sourceTer = poplatek fondu,
+    // jehož NAV jsou data (už v ceně). feeOverride = pokročilé nastavení; bez něj data beze změny.
+    const sourceTer = INDEX_BY_CODE[item.indexCode]?.sourceTer ?? 0
+    const desiredTer = item.feeOverride ?? sourceTer
+
     const evolution = simulateETFFromIndex(
       priceSeries,
-      item.ter,
+      sourceTer,
+      desiredTer,
       item.weight * initialAmount
     )
 

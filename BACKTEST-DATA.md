@@ -31,7 +31,8 @@ Odsud se **odvozuje** (nikdy nekopíruje):
 - **`splicedFrom`** — u `us_momentum` / `us_quality`: odkdy jsou data z ETF. Starší část je dopočtená
   z Ken French (viz níže) a **nesmí se přepsat**.
 - **`dataIsNetOfFees: true`** — data jsou NAV reálného ETF, tj. **poplatek je už v ceně**. Engine na to
-  navíc aplikuje TER proxy ETF → **poplatek se počítá 2×**. Známá chyba, viz [§5](#5-známé-problémy).
+  poplatek je tak už v ceně. `sourceTer` = poplatek TOHO fondu; engine podle něj umí přepočítat na jiný
+  poplatek nebo ukázat čistý index. (Dvojitý odečet opraven 16. 7. 2026, viz [§5](#5-známé-problémy).)
 
 ---
 
@@ -98,9 +99,12 @@ odstaven je *jen* ten yfinance job na indexy.
 
 | Problém | Dopad | Stav |
 |---|---|---|
-| **TER se počítá 2×** — data jsou NAV ETF (poplatek uvnitř) a engine odečte TER znovu | Podceňujeme výnosy o **~1,7 %** za 24 let (konzervativní směr) | Odloženo na ~19. 7. 2026 (14. 7. vyšel článek s čísly) |
+| ~~**TER se počítá 2×**~~ | ~~podceňujeme o ~1,7 %~~ | ✅ **OPRAVENO 16. 7. 2026** — engine už poplatek neodečítá podruhé (data = NAV fondu, poplatek v ceně). Čísla na webu vzrostla o ~1,7 %. Model: `data × [(1−desiredTer)/(1−sourceTer)]^roky`, default `desiredTer = sourceTer` → data beze změny. |
+| ~~**Faktory míchaly US a World**~~ (data US, ale nabízené ETF World) | ~~jablka s hruškami~~ | ✅ **OPRAVENO 16. 7. 2026** — všech 7 faktorů má nově US proxy ETF (Russell / MSCI USA, ověřeno z DB) a název „… – US". Přidán `us_growth` (dřív se nenabízel). |
+| **`sourceTer` zatím nevyplněn** — pole v manifestu existuje, hodnoty (poplatky zdrojových fondů) chybí | Popisky „přes fond X, TER Y %" a pokročilé „zrušit poplatek" zatím nefungují | Čeká na ověření TER z oficiálních zdrojů. Do té doby default = data beze změny (správně). |
+| **`us_dividend` bez přesného ETF** — zdroj FTSE High Dividend, evropský ETF na tento index neexistuje | Nabízíme „nejbližší" US high-dividend (Xtrackers MSCI USA) | Přiznáno v názvu i poznámce. |
 | **3 eurové dluhopisy s neověřeným původem** — `eur_govt_bond_1_3y`, `_3_7y`, `_15_30y` | Data se nedají obnovit ani aktualizovat | `managed: false`, loader se jich nedotkne |
-| **Momentum míchá US a World** (Ken French US do 2013, MSCI World po) | Dlouhá okna nejsou čistá | Na krátká okna (1–10 let) OK; jinak s upozorněním |
+| **Momentum – US: splice bez kalibrace** (Ken French US do 2013, ETF po) | Předřadá historie běží ~0,7 pb/rok pod ETF | Konzervativní směr, přiznáno v poznámce |
 
 ---
 

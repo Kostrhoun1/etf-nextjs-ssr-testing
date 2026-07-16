@@ -34,10 +34,12 @@ export interface IndexDef {
   /** Odkdy data reálně jsou (pro poctivé upozornění v UI). */
   since: string
   /**
-   * Data jsou NAV reálného ETF, tj. poplatek fondu je UŽ V CENĚ.
-   * POZOR: engine na to navíc aplikuje TER proxy ETF → poplatek se počítá 2×
-   * (podceňujeme o ~1,7 % za 24 let). Viz memory/ter-dvojity-odecet-oprava.
+   * Data jsou NAV reálného fondu, tj. poplatek je UŽ V CENĚ. `sourceTer` je roční poplatek TOHO fondu
+   * (ne proxy ETF!) — engine podle něj umí data přepočítat na jiný poplatek (pokročilé nastavení) nebo
+   * ukázat čistý index. Ověřený z oficiálního zdroje správce. Chybí-li, engine bere data beze změny.
    */
+  sourceTer?: number
+  /** Data jsou NAV reálného fondu (poplatek v ceně). Engine ho už NEodečítá podruhé (opraveno). */
   dataIsNetOfFees: true
   /** U spliced řad: odkdy jsou data z ETF. Starší část je dopočtená (Ken French) a loader ji nesmí přepsat. */
   splicedFrom?: string
@@ -101,34 +103,38 @@ export const INDEXES: IndexDef[] = [
 
   // ─────────────── FAKTORY / STYLY ───────────────
   // us_value + us_growth dohledány 15.7.2026 podle shody startu (2000-05-26 = spuštění řady iShares Russell).
-  { code: 'us_value', ticker: 'IWD', currency: 'USD', name: 'Value (hodnotové akcie)', group: 'factor', since: '2000-05-26',
+  // FAKTORY JSOU AMERICKÉ: data = US indexy (Russell / MSCI USA), proto i proxy ETF musí být US, ne World.
+  // Dřív tu byly World faktorové ETF → míchání jablek s hruškami. Opraveno 16.7.2026, US UCITS ověřeny z naší DB.
+  { code: 'us_value', ticker: 'IWD', currency: 'USD', name: 'Value – US (hodnotové akcie)', group: 'factor', since: '2000-05-26',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    note: 'Zdroj Russell 1000 Value (USA), ne globální.',
-    proxyEtf: { isin: 'IE00BP3QZB59', name: 'iShares Edge MSCI World Value Factor', ter: 0.0025 } },
-  { code: 'us_growth', ticker: 'IWF', currency: 'USD', name: 'Growth (růstové akcie)', group: 'factor', since: '2000-05-26',
+    note: 'Zdroj Russell 1000 Value (USA).',
+    proxyEtf: { isin: 'IE000US24HF4', name: 'Vanguard Russell 1000 US Value', ter: 0.0016 } },
+  { code: 'us_growth', ticker: 'IWF', currency: 'USD', name: 'Growth – US (růstové akcie)', group: 'factor', since: '2000-05-26',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    note: 'Zdroj Russell 1000 Growth (USA). V nástroji dosud nebyl nabízen — protějšek k Value.' },
-  { code: 'us_small_cap', ticker: 'IWM', currency: 'USD', name: 'Small cap (malé firmy)', group: 'factor', since: '2000-05-26',
+    note: 'Zdroj Russell 1000 Growth (USA). Protějšek k Value.',
+    proxyEtf: { isin: 'IE000NITTFF2', name: 'iShares Russell 1000 Growth', ter: 0.0018 } },
+  { code: 'us_small_cap', ticker: 'IWM', currency: 'USD', name: 'Small cap – US (malé firmy)', group: 'factor', since: '2000-05-26',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    note: 'Zdroj Russell 2000 (USA), ne globální.',
-    proxyEtf: { isin: 'IE00BF4RFH31', name: 'iShares MSCI World Small Cap', ter: 0.0035 } },
-  { code: 'us_dividend', ticker: 'VYM', currency: 'USD', name: 'Dividendové akcie', group: 'factor', since: '2006-11-16',
+    note: 'Zdroj Russell 2000 (USA).',
+    proxyEtf: { isin: 'IE000LRGEN55', name: 'Vanguard Russell 2000 US Small-Cap', ter: 0.002 } },
+  { code: 'us_dividend', ticker: 'VYM', currency: 'USD', name: 'Dividendové akcie – US', group: 'factor', since: '2006-11-16',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B8GKDB10', name: 'Vanguard FTSE All-World High Dividend', ter: 0.0029 } },
-  { code: 'us_min_vol', ticker: 'USMV', currency: 'USD', name: 'Minimální volatilita', group: 'factor', since: '2011-10-20',
+    note: 'Zdroj FTSE High Dividend Yield (USA). Evropský ETF na přesně tento index neexistuje — nejblíž je US high-dividend s jinou metodikou.' },
+  { code: 'us_min_vol', ticker: 'USMV', currency: 'USD', name: 'Minimální volatilita – US', group: 'factor', since: '2011-10-20',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B8FHGS14', name: 'iShares Edge MSCI World Min Volatility', ter: 0.003 } },
+    note: 'Zdroj MSCI USA Minimum Volatility.',
+    proxyEtf: { isin: 'IE00BDB7J586', name: 'Xtrackers MSCI USA Min Volatility', ter: 0.002 } },
   // SPLICED: data před `splicedFrom` jsou dopočtená z Kenneth French Data Library (zpětný chod od kotevní
   // ceny ETF). Yahoo tuhle historii NEMÁ → upsert ji přirozeně nepřepíše. Nikdy nemazat!
-  // Viz etf-astro/scraper/data/README.md a build_factor_extensions.py.
-  { code: 'us_momentum', ticker: 'MTUM', currency: 'USD', name: 'Momentum', group: 'factor', since: '1999-12-31',
+  // Viz scripts/backtest/data/README.md a build_factor_extensions.py.
+  { code: 'us_momentum', ticker: 'MTUM', currency: 'USD', name: 'Momentum – US', group: 'factor', since: '1999-12-31',
     splicedFrom: '2013-04-01', dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    note: 'Historie před 2013 dopočtena z Ken French (US BIG HiPRIOR), po 2013 ETF MTUM. Míchá US a World — na dlouhá okna nepublikovat bez upozornění.',
-    proxyEtf: { isin: 'IE00BP3QZ825', name: 'iShares Edge MSCI World Momentum Factor', ter: 0.0025 } },
-  { code: 'us_quality', ticker: 'QUAL', currency: 'USD', name: 'Quality (kvalitní firmy)', group: 'factor', since: '1999-12-31',
+    note: 'Zdroj MSCI USA Momentum. Historie před 2013 dopočtena z Ken French (US BIG HiPRIOR, nekalibrováno — běží ~0,7 pb/rok pod ETF, konzervativní směr), po 2013 ETF MTUM.',
+    proxyEtf: { isin: 'IE00BD1F4N50', name: 'iShares Edge MSCI USA Momentum Factor', ter: 0.002 } },
+  { code: 'us_quality', ticker: 'QUAL', currency: 'USD', name: 'Quality – US (kvalitní firmy)', group: 'factor', since: '1999-12-31',
     splicedFrom: '2013-07-01', dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    note: 'Historie před 2013 dopočtena z Ken French (Hi 30 op. ziskovost, kalibrováno −1,89 %/rok), po 2013 ETF QUAL.',
-    proxyEtf: { isin: 'IE00BP3QZ601', name: 'iShares Edge MSCI World Quality Factor', ter: 0.0025 } },
+    note: 'Zdroj MSCI USA Quality. Historie před 2013 dopočtena z Ken French (Hi 30 op. ziskovost, kalibrováno −1,89 %/rok na překryv s ETF vč. poplatku), po 2013 ETF QUAL.',
+    proxyEtf: { isin: 'IE00BD1F4L37', name: 'iShares Edge MSCI USA Quality Factor', ter: 0.002 } },
 
   // ─────────────── DLUHOPISY ───────────────
   { code: 'us_treasury_1_3y', ticker: 'SHY', currency: 'USD', name: 'US státní dluhopisy 1–3 roky', group: 'bond', since: '2002-07-30',

@@ -4,8 +4,14 @@ export interface PortfolioItem {
   isin: string
   name: string
   weight: number // 0-1
-  ter: number // e.g., 0.002 for 0.2%
+  ter: number // e.g., 0.002 for 0.2% — jen pro zobrazení (reprezentativní ETF). NEpoužívá se pro výpočet.
   indexCode: string
+  /**
+   * Pokročilé nastavení: jaký roční poplatek modelovat MÍSTO toho, který je zapečený v datech.
+   * Data jsou NAV reálného fondu (poplatek zdroje už v ceně) → engine přepočítá na tento poplatek.
+   * undefined = data beze změny (výchozí). 0 = čistý index, co udělal trh. 0.005 = modeluj 0,5 %.
+   */
+  feeOverride?: number
 }
 
 export interface BacktestInput {
