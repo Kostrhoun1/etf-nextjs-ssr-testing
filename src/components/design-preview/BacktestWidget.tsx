@@ -96,6 +96,18 @@ const PRESET_SHORT: Record<string, string> = {
   'buffett-90-10': 'Buffett 90/10',
 };
 
+// Investiční styly (faktory) – rychlý vstup „faktor vs S&P 500". Kliknutí nahraje faktor (100 %),
+// přidá S&P 500 do porovnání a spustí. `since` = odkdy má faktor REÁLNÉ ETF (momentum/quality až 2014).
+const FACTOR_STYLES: { code: string; label: string; slug: string; since: string }[] = [
+  { code: 'us_momentum', label: 'Momentum', slug: 'momentum', since: '2014-01-01' },
+  { code: 'us_value', label: 'Value', slug: 'value', since: '2000-06-01' },
+  { code: 'us_growth', label: 'Growth', slug: 'growth', since: '2000-06-01' },
+  { code: 'us_small_cap', label: 'Small cap', slug: 'small-cap', since: '2000-06-01' },
+  { code: 'us_quality', label: 'Quality', slug: 'quality', since: '2014-01-01' },
+  { code: 'us_min_vol', label: 'Min. volatilita', slug: 'min-vol', since: '2011-11-01' },
+  { code: 'us_dividend', label: 'Dividendové', slug: 'dividend', since: '2006-12-01' },
+];
+
 interface SelectedETF {
   isin: string; name: string; ter: number; indexCode: string; indexName: string; weight: number;
 }
@@ -182,6 +194,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   // Config-first compact: aktivní hotové portfolio (pro zvýraznění chipu a souhrn),
   // a rozklik editoru složení (default sbaleno – ukazuje jen souhrn vah).
   const [activePreset, setActivePreset] = useState<string | null>(defaultPreset ?? 'sp500-100');
+  const [activeStyle, setActiveStyle] = useState<string | null>(null);
   const [editComposition, setEditComposition] = useState(false);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
@@ -197,6 +210,23 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     });
     setSelectedETFs(newETFs);
     setActivePreset(presetId);
+    setActiveStyle(null);
+  };
+
+  // Rychlý vstup „faktor vs S&P 500": nahraje faktor (100 %), přidá index do porovnání,
+  // nastaví okno od reálného ETF a vypne pravidelné vklady (čistá jednorázová komparace).
+  const applyFactor = (code: string) => {
+    const style = FACTOR_STYLES.find((s) => s.code === code);
+    const index = AVAILABLE_INDEXES.find((i) => i.indexCode === code);
+    if (!style || !index) return;
+    setSelectedETFs([{ isin: index.isin, name: index.etfName, ter: index.ter, indexCode: index.indexCode, indexName: index.name, weight: 100 }]);
+    setActivePreset(null);
+    setActiveStyle(code);
+    setEditComposition(false);
+    setCompareIds(['sp500-100']);
+    setStartDate(style.since);
+    setContributionFrequency('none');
+    setContributionAmount(0);
   };
 
   const addETF = (indexCode: string) => {
@@ -324,6 +354,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const presetId = p.get('portfolio');
     const hasPreset = !!presetId && PRESET_PORTFOLIOS.some((x) => x.id === presetId);
     if (hasPreset) applyPreset(presetId!);
+    // ?styl=momentum → faktor vs S&P 500 (odkaz z FB/článků o faktorech)
+    const stylParam = p.get('styl');
+    const style = stylParam ? FACTOR_STYLES.find((x) => x.slug === stylParam || x.code === stylParam) : null;
+    if (style) applyFactor(style.code);
     const start = p.get('start');
     if (start && /^\d{4}-\d{2}-\d{2}$/.test(start)) setStartDate(start);
     const amount = p.get('amount');
@@ -334,7 +368,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
     // ZÁMĚRNĚ nescrollujeme – uživatel má vidět předvyplněná (editovatelná) pole; výsledek
     // je spočítaný a čeká, až k němu přirozeně dorolluje.
-    if (hasPreset && p.get('run') === '1') {
+    if ((hasPreset || style) && p.get('run') === '1') {
       setTimeout(() => {
         if (!didAutoRunRef.current) { didAutoRunRef.current = true; runBacktestRef.current(); }
       }, 80);
@@ -411,6 +445,33 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             <div className="mt-3 flex items-start gap-2 rounded-lg bg-teal-50/70 px-3 py-2.5">
               <Info className="w-4 h-4 text-teal-600 mt-0.5 shrink-0" />
               <p className="text-xs text-slate-600 leading-relaxed">{PRESET_PORTFOLIOS.find((p) => p.id === activePreset)?.description}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Investiční styly (faktory) – rychlé porovnání faktor vs S&P 500 */}
+        <div className="mb-4">
+          <label className="block text-sm text-slate-600 mb-2">…nebo porovnej investiční styl <span className="text-slate-500">(faktor vs&nbsp;S&amp;P&nbsp;500)</span></label>
+          <div className="flex flex-wrap gap-2">
+            {FACTOR_STYLES.map((s) => {
+              const on = activeStyle === s.code;
+              return (
+                <button
+                  key={s.code}
+                  onClick={() => { applyFactor(s.code); setTimeout(() => runBacktestRef.current(), 90); }}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${on ? 'border-teal-600 bg-teal-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+          {activeStyle && (
+            <div className="mt-3 flex items-start gap-2 rounded-lg bg-teal-50/70 px-3 py-2.5">
+              <Info className="w-4 h-4 text-teal-600 mt-0.5 shrink-0" />
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Porovnáváš <b>{FACTOR_STYLES.find((s) => s.code === activeStyle)?.label}</b> (100&nbsp;%) proti S&amp;P&nbsp;500 na reálných datech v Kč. Období běží od vzniku reálného ETF{(activeStyle === 'us_momentum' || activeStyle === 'us_quality') ? ' (2014)' : ''}.
+              </p>
             </div>
           )}
         </div>
