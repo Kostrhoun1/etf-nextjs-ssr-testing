@@ -265,10 +265,7 @@ export default async function DesignPreviewV2() {
                     <LayoutGrid className="w-4 h-4" /> Prozkoumat všechny fondy
                   </Link>
                   <Link href="/vyber-etf" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-200 underline-offset-4 hover:text-white hover:underline transition-colors">
-                    <Sparkles className="w-4 h-4" /> Nevíš který? Poradíme
-                  </Link>
-                  <Link href="/pruvodce" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-slate-200 underline-offset-4 hover:text-white hover:underline transition-colors">
-                    <BookOpen className="w-4 h-4" /> Průvodce pro začátečníky
+                    <Sparkles className="w-4 h-4" /> Nevíš který? Poradíme s výběrem
                   </Link>
                 </div>
               </div>
