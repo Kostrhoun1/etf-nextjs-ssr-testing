@@ -260,15 +260,12 @@ export default async function DesignPreviewV2() {
                 <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-medium text-emerald-300">
                   <ShieldCheck className="w-3.5 h-3.5" /> 100% nezávislý a nekomerční — žádné provize, žádná reklama
                 </p>
-                <div className="mt-5 flex flex-wrap gap-2.5">
+                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
                   <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
                     <LayoutGrid className="w-4 h-4" /> Prozkoumat všechny fondy
                   </Link>
-                  <Link href="/vyber-etf" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                    <Sparkles className="w-4 h-4" /> Nevíš který? Poradíme
-                  </Link>
-                  <Link href="/pruvodce" className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                    <BookOpen className="w-4 h-4" /> Průvodce pro začátečníky
+                  <Link href="/vyber-etf" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-200 underline-offset-4 hover:text-white hover:underline transition-colors">
+                    <Sparkles className="w-4 h-4" /> Nevíš který? Poradíme s výběrem
                   </Link>
                 </div>
               </div>
@@ -277,55 +274,9 @@ export default async function DesignPreviewV2() {
           </div>
         </section>
 
-        {/* 2. JAK SI VEDOU TRHY – reálná data v Kč */}
-        {markets.length > 0 && (
-          <section className="pb-8">
-            <div className="flex items-end justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-bold tracking-tight">Jak si vedou trhy</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Výnos největšího fondu v dané oblasti za posledních 12 měsíců, přepočtený do korun.</p>
-              </div>
-              <Link href="/infografiky#trzni-heatmapa" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">tržní heatmapa <ArrowRight className="w-4 h-4" /></Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-              {markets.map((m) => {
-                const v = m.return_1y_czk;
-                const posM = (v ?? 0) >= 0;
-                return (
-                  <Link key={m.slug} href={`/nejlepsi-etf/${m.slug}`} className="group rounded-lg border border-slate-200 bg-white px-3 py-3 hover:border-teal-300 hover:shadow-sm transition-all">
-                    <span className="block text-xs text-slate-500 leading-snug">{m.label}</span>
-                    <span className={`mt-1 block text-lg font-bold tabular-nums ${posM ? 'text-emerald-600' : 'text-red-600'}`}>{pct(v)}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* 3. DATOVÉ PANELY */}
-        <section className="pb-8">
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-bold tracking-tight">Rychlý přehled fondů</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější ETF na jeden pohled.</p>
-            </div>
-            <Link href="/srovnani" className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
-              Filtrovat všechny fondy <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            <DataPanel title="Největší fondy" href="/srovnani" etfs={featured.bySize || []} metric="size" />
-            <DataPanel title="Nejvýkonnější (1R)" href="/srovnani" etfs={featured.byPerformance || []} metric="return" />
-            <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
-          </div>
-          <Link href="/srovnani" className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm font-semibold text-teal-800 hover:bg-teal-50 hover:border-teal-300 transition-colors">
-            <LayoutGrid className="w-4 h-4" /> Prozkoumat a filtrovat všech {totalCount.toLocaleString('cs-CZ')} fondů <ArrowRight className="w-4 h-4" />
-          </Link>
-        </section>
-
-        {/* 4. KTERÝM ETF ZAČÍT – konkrétní odpověď s reálnými daty */}
+        {/* 2. KTERÝM ETF ZAČÍT – hned pod hero: přesně záměr začátečníka (hlavní publikum) */}
         {starters.length > 0 && (
-          <section className="py-10">
+          <section className="pt-2 pb-8">
             <div className="mb-4">
               <h2 className="text-lg font-bold tracking-tight">Kterým ETF začít?</h2>
               <p className="text-sm text-slate-500 mt-0.5">
@@ -357,6 +308,51 @@ export default async function DesignPreviewV2() {
           </section>
         )}
 
+        {/* 3. DATOVÉ PANELY */}
+        <section className="pb-8">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">Rychlý přehled fondů</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější ETF na jeden pohled.</p>
+            </div>
+            <Link href="/srovnani" className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+              Filtrovat všechny fondy <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <DataPanel title="Největší fondy" href="/srovnani" etfs={featured.bySize || []} metric="size" />
+            <DataPanel title="Nejvýkonnější (1R)" href="/srovnani" etfs={featured.byPerformance || []} metric="return" />
+            <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
+          </div>
+          <Link href="/srovnani" className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm font-semibold text-teal-800 hover:bg-teal-50 hover:border-teal-300 transition-colors">
+            <LayoutGrid className="w-4 h-4" /> Prozkoumat a filtrovat všech {totalCount.toLocaleString('cs-CZ')} fondů <ArrowRight className="w-4 h-4" />
+          </Link>
+        </section>
+
+        {/* KTERÝM ETF ZAČÍT přesunuto nahoru (pod hero). Zde bylo, teď je tu „Jak si vedou trhy". */}
+        {markets.length > 0 && (
+          <section className="pb-8 pt-2">
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold tracking-tight">Jak si vedou trhy</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Výnos největšího fondu v dané oblasti za posledních 12 měsíců, přepočtený do korun.</p>
+              </div>
+              <Link href="/infografiky#trzni-heatmapa" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">tržní heatmapa <ArrowRight className="w-4 h-4" /></Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+              {markets.map((m) => {
+                const v = m.return_1y_czk;
+                const posM = (v ?? 0) >= 0;
+                return (
+                  <Link key={m.slug} href={`/nejlepsi-etf/${m.slug}`} className="group rounded-lg border border-slate-200 bg-white px-3 py-3 hover:border-teal-300 hover:shadow-sm transition-all">
+                    <span className="block text-xs text-slate-500 leading-snug">{m.label}</span>
+                    <span className={`mt-1 block text-lg font-bold tabular-nums ${posM ? 'text-emerald-600' : 'text-red-600'}`}>{pct(v)}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
         {/* 5. HOTOVÁ MODELOVÁ PORTFOLIA – s reálnou výkonností v Kč */}
         <section className="pb-4">
           <div className="flex items-end justify-between mb-4">
@@ -388,6 +384,9 @@ export default async function DesignPreviewV2() {
               );
             })}
           </div>
+          <Link href="/backtest" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-teal-700 hover:text-teal-800">
+            <History className="w-4 h-4" /> Spočítej si to na svých penězích – backtest portfolia <ArrowRight className="w-4 h-4" />
+          </Link>
           <p className="mt-3 text-xs text-slate-400 leading-relaxed">
             Výnos je orientační – vážený průměr korunových výnosů ETF složek daného portfolia (bez průběžného rebalancingu). Minulá výkonnost nezaručuje budoucí výnosy.
           </p>
