@@ -50,8 +50,8 @@ const AVAILABLE_INDEXES = [
   { indexCode: 'us_small_cap', name: 'Small cap – US, malé firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE000LRGEN55', etfName: 'Vanguard Russell 2000 US Small-Cap', ter: 0.002 },
   { indexCode: 'us_dividend', name: 'Dividendové akcie – US (od 2006)', category: 'Akcie – faktory', isin: 'IE000V04SL39', etfName: 'Xtrackers MSCI USA High Dividend (nejbližší)', ter: 0.0025 },
   { indexCode: 'us_min_vol', name: 'Minimální volatilita – US (od 2011)', category: 'Akcie – faktory', isin: 'IE00BDB7J586', etfName: 'Xtrackers MSCI USA Min Volatility', ter: 0.002 },
-  { indexCode: 'us_momentum', name: 'Momentum – US (od 2000)', category: 'Akcie – faktory', isin: 'IE00BD1F4N50', etfName: 'iShares Edge MSCI USA Momentum Factor', ter: 0.002 },
-  { indexCode: 'us_quality', name: 'Quality – US, kvalitní firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE00BD1F4L37', etfName: 'iShares Edge MSCI USA Quality Factor', ter: 0.002 },
+  { indexCode: 'us_momentum', name: 'Momentum – US (reálné ETF od 2013)', category: 'Akcie – faktory', isin: 'IE00BD1F4N50', etfName: 'iShares Edge MSCI USA Momentum Factor', ter: 0.002 },
+  { indexCode: 'us_quality', name: 'Quality – US, kvalitní firmy (reálné ETF od 2013)', category: 'Akcie – faktory', isin: 'IE00BD1F4L37', etfName: 'iShares Edge MSCI USA Quality Factor', ter: 0.002 },
   { indexCode: 'gold', name: 'Zlato (od 2004)', category: 'Komodity', isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold', ter: 0.0012 },
   { indexCode: 'commodities', name: 'Komodity – diverzifikované (od 2006)', category: 'Komodity', isin: 'IE00BDFL4P12', etfName: 'iShares Diversified Commodity', ter: 0.0019 },
 ];
