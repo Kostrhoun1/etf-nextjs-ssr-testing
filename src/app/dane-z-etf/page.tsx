@@ -265,6 +265,11 @@ export default async function DaneZEtf() {
                   věku; při předčasném ukončení se výhoda dodaňuje. Zda a jaké ETF lze v DIP držet, závisí na konkrétním
                   poskytovateli – ověřte si nabídku i podmínky předem.
                 </p>
+                <p>
+                  Kolik reálně dostanete zpět, pravidlo 120/60, příspěvek zaměstnavatele i to, kdy je DIP výhodnější
+                  než běžný účet s ETF, rozebírá samostatný průvodce{' '}
+                  <Link href="/dip" className="text-teal-700 hover:underline">DIP: vyplatí se dlouhodobý investiční produkt?</Link>
+                </p>
               </div>
             </div>
           </div>

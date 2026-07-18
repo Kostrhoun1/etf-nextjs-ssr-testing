@@ -383,7 +383,8 @@ export default async function InvestovaniProDeti() {
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Pro cíl „mít peníze v osmnácti" je tedy běžný investiční účet bez wrapperu jednodušší i pružnější.
-            DIP dává smysl vám na vlastní důchod, ne dítěti na studia.
+            DIP dává smysl vám na vlastní důchod, ne dítěti na studia – kdy a komu se{' '}
+            <Link href="/dip" className="text-teal-700 hover:underline">DIP vyplatí</Link>, rozebíráme zvlášť.
           </p>
         </section>
 
