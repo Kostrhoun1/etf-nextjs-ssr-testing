@@ -612,12 +612,17 @@ export function calculateSummary(
   const endNav = marketNav[marketNav.length - 1].value
   const years = yearsBetween(marketNav[0].date, marketNav[marketNav.length - 1].date)
 
-  const monthlyReturns = calculateMonthlyReturns(marketNav)
+  // Riziko (σ, Sharpe, Sortino) počítáme z MĚSÍČNÍCH výnosů (month-end resample), ne z denní
+  // řady. Důvod: zdrojová denní data mají ojedinělé vadné ticky na začátku měsíce (splice
+  // denního ETF a měsíčního zdroje), které denní σ×√252 nafukovaly (~13 % → 31 % u All-World).
+  // Month-end sampling je zahodí (bere poslední den měsíce) a je to i standardní metodika –
+  // stejně už počítá drawdown (resampleMonthEnd). CAGR zůstává z krajních bodů denní řady.
+  const monthlyReturns = calculateMonthlyReturns(resampleMonthEnd(marketNav))
   const monthlyReturnValues = monthlyReturns.map((r) => r.return)
 
   const cagr = calculateCAGR(startNav, endNav, years) // time-weighted výnos strategie (bez vkladů)
   const stepStdDev = standardDeviation(monthlyReturnValues)
-  // Anualizace podle SKUTEČNÉ frekvence dat (denní ~252/rok), ne napevno √12.
+  // Anualizace podle SKUTEČNÉ frekvence dat (měsíční ~12/rok).
   const ppy = years > 0 ? monthlyReturnValues.length / years : 12
   const annualStdDev = stepStdDev * Math.sqrt(ppy)
   const sharpe = calculateSharpeRatio(cagr, riskFreeRate, annualStdDev)
