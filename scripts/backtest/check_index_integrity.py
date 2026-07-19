@@ -34,6 +34,18 @@ HIST = '.secrets/index-integrity-history.json'
 MAX_STALE_DAYS = 5      # ocas starší než tohle = poplach
 MAX_GAP_DAYS = 10       # díra uvnitř řady delší než tohle = poplach
 
+# Per-index výjimka pro OCAS (freshness). Některé zdroje publikují se zpožděním
+# a 5denní práh na ně nesedí – nejde o ztrátu dat, jen o pomalejší zdroj.
+# 3 EUR vládní dluhopisy jedou z evropských listingů (IBGS.AS/SXRP.DE/IBGL.AS),
+# které zveřejňují close s ~3–5 obchodními dny zpoždění oproti US/World zdroji.
+# Viz ZAMERNA-ROZHODNUTI.md. POZOR: týká se JEN ocasu – kontroly DÍRY a ÚBYTEK
+# řádků (ochrana proti incidentu 15.7.) zůstávají pro všechny stejně přísné.
+STALE_OVERRIDE = {
+    'eur_govt_bond_1_3y': 10,
+    'eur_govt_bond_3_7y': 10,
+    'eur_govt_bond_15_30y': 10,
+}
+
 sb = create_client(URL, KEY)
 
 
@@ -80,9 +92,10 @@ def main():
             continue
         counts[code] = len(d)
         last, stale = d[-1], (today - d[-1]).days
+        stale_limit = STALE_OVERRIDE.get(code, MAX_STALE_DAYS)
         flags = []
-        if stale > MAX_STALE_DAYS:
-            flags.append(f"OCAS {stale} dni stary")
+        if stale > stale_limit:
+            flags.append(f"OCAS {stale} dni stary (limit {stale_limit})")
         gap = max(((d[i] - d[i - 1]).days, d[i]) for i in range(1, len(d))) if len(d) > 1 else (0, None)
         if gap[0] > MAX_GAP_DAYS:
             flags.append(f"DIRA {gap[0]} dni pred {gap[1]}")

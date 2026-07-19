@@ -18,7 +18,11 @@ import EtfReturns from '@/components/design-preview/EtfReturns';
 import EtfCalendarReturns, { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
 import { getDataDate } from '@/lib/etf-data';
 
-export const revalidate = 86400;
+// 7 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
+// crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write.
+// Fundamenty fondu (název, TER, složení) se mění pomalu → týdenní cache stačí a drží
+// nás pod free-tier limitem 200k writes. Aktivní srovnávač jede přes /api/etf/screener.
+export const revalidate = 604800;
 export const dynamicParams = true;
 
 /* Práh „hlavy" pro Google indexaci (mil. EUR AUM). ≥ 2 000 = ~329 největších

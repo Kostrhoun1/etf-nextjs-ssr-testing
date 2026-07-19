@@ -34,6 +34,22 @@ přepočítá na požadovaný poplatek. Default `desiredTer = sourceTer` → **d
 widgetu je jen na zobrazení — needituj kvůli němu výpočet. (Dvojitý odečet opraven 16. 7. 2026, čísla
 na webu +1,7 %.) → paměť `ter-dvojity-odecet-oprava`
 
+## Infrastruktura (CI, hosting)
+
+**Kontrola integrity: 3 EUR dluhopisy mají delší toleranci ocasu (10 dní, ne 5).**
+`STALE_OVERRIDE` v `check_index_integrity.py`. Jejich evropský listing (IBGS.AS/SXRP.DE/IBGL.AS)
+publikuje close se zpožděním ~3–5 obchodních dní oproti US/World zdroji (07-17), takže na 5denním
+prahu padaly do false-poplachu (19. 7. 2026 shodila celý workflow jen kvůli `eur_govt_bond_3_7y`).
+**Netýká se to kontrol DÍRY a ÚBYTEK řádků** — ty (ochrana proti incidentu 15. 7.) drží pro všechny
+stejně přísně. Nevracej zpátky na 5. → paměť `eur-govt-bond-data-oprava`
+
+**`/etf/[isin]` má `revalidate = 604800` (7 dní), ne 1 den. Není to překlep.**
+~4970 stránek dlouhého ocasu se regeneruje ISR na požádání; při 1denní expiraci je crawleři
+(Seznam/Bing) přepisovali tak často, že jsme spotřebovali 75 % free-tier limitu Vercelu
+(200k ISR Writes/měsíc → auto-pauza projektu). Fundamenty fondu se mění pomalu, týdenní cache stačí.
+Aktivní srovnávač jede přes `/api/etf/screener`, tenhle interval se ho netýká. Nezkracuj bez důvodu.
+Vedlejší páka: **méně častý deploy** (každý deploy invaliduje ISR cache → nárazová vlna writes).
+
 ## Obsah a distribuce
 
 **`/buffettovo-portfolio` neexistuje — je tam 301 na `/backtest`.**
