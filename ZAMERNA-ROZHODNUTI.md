@@ -52,6 +52,14 @@ prakticky zastaví. Fundamenty fondu se mění pomalu, měsíční cache je OK. 
 `/api/etf/screener`, tenhle interval se ho netýká. Po resetu cyklu lze vrátit na 7 dní. Nezkracuj bez důvodu.
 Vedlejší páka: **méně častý deploy** (každý deploy invaliduje ISR cache → nárazová vlna writes).
 
+**Riziko (σ, Sharpe, Sortino) se počítá z MĚSÍČNÍCH výnosů, ne denních.** `calculateSummary`
+používá `resampleMonthEnd`. Není to nepřesnost — zdrojová denní data mají ojedinělé vadné ticky
+na začátku měsíce (splice denního ETF a měsíčního zdroje; např. `ftse_all_world` 2008-10-01 =
+23.09 mezi 29.39 a 27.40), které denní σ×√252 nafukovaly (All-World 13 % → 31 %). Month-end sampling
+je zahodí. **Nevracet na denní „kvůli přesnosti"** — reintrodukuje to bug. Drawdown už jede stejně.
+Zbývá úklid: vyčistit vadné ticky přímo v `index_historical_data` (integrity check je nechytá –
+hlídá ocas/díry/počty, ne odlehlé hodnoty).
+
 ## Obsah a distribuce
 
 **`/buffettovo-portfolio` neexistuje — je tam 301 na `/backtest`.**
