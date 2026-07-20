@@ -141,6 +141,25 @@ export default async function BacktestPreview() {
                   <Link href="#backtest" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Spustit backtest</Link>
                   <Link href="/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít ETF do portfolia</Link>
                 </div>
+                {/* Rychlé starty: deep-link na hotové portfolio + run=1 → widget se předvyplní
+                    a rovnou spočítá. Plain <a> (ne <Link>) záměrně = full reload i ze /backtest,
+                    aby se widget remountnul a URL-effect přednastavení skutečně proběhl. */}
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-slate-400">Nevíte, kde začít? Vyzkoušejte hned:</span>
+                  {([
+                    ['global-since-2000', 'Celý svět'],
+                    ['60-40', '60/40 portfolio'],
+                    ['sp500-100', 'S&P 500'],
+                  ] as [string, string][]).map(([id, label]) => (
+                    <a
+                      key={id}
+                      href={`/backtest?portfolio=${id}&run=1#backtest`}
+                      className="rounded-full border border-white/20 px-3 py-1 font-medium text-slate-200 hover:bg-white/10 hover:text-white"
+                    >
+                      {label}
+                    </a>
+                  ))}
+                </div>
               </div>
 
             </div>
