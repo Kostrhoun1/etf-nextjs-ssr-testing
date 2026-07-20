@@ -566,6 +566,12 @@ export default async function GuidePreview() {
               .
             </p>
           </div>
+          <p className="mt-4 text-sm text-slate-600 leading-relaxed">
+            <Info className="inline w-4 h-4 text-teal-700 mr-1 -mt-0.5" />
+            Váháte mezi vlastními akciemi a fondem? Proč většina jednotlivých akcií dlouhodobě zaostává za indexem
+            (a kdy naopak dávají smysl) rozebírá pilíř{' '}
+            <Link href="/etf-vs-akcie" className="text-teal-700 hover:underline font-medium">ETF, nebo jednotlivé akcie?</Link>
+          </p>
         </GuideSection>
 
         {/* 7. PRVNÍ ETF PRO ČECHA – živá data */}

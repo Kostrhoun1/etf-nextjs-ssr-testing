@@ -32,6 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { p: '/dca-vs-jednorazova', pr: 0.8 },
     { p: '/investovani-pro-deti', pr: 0.8 },
     { p: '/dip', pr: 0.8 },
+    { p: '/etf-vs-akcie', pr: 0.8 },
     { p: '/menove-riziko-etf', pr: 0.7 },
     { p: '/faktorove-etf', pr: 0.8 },
     { p: '/faktorove-etf/momentum', pr: 0.7 },
