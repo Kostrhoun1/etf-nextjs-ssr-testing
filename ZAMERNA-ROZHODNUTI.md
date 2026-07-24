@@ -24,9 +24,12 @@ Jeho práci převzal GitHub Actions **`sync-indexes.yml`** v tomhle repu (upsert
 **`src/lib/backtest/indexes.ts` = JEDINÁ pravda o indexech** (ticker, měna, původ, zařazení).
 `engine.ts` si z něj měny **odvozuje**, nemá vlastní tabulku. Nikdy nepřidávej ticker ani měnu jinam.
 
-**Tři EUR dluhopisové indexy mají `managed: false`** (`eur_govt_bond_1_3y`, `_3_7y`, `_15_30y`).
-Není to opomenutí — jejich původ se nepodařilo ověřit (odchylka 2,1 / 11,6 / 2,4 %), tak je loader
-schválně nechává být. Zapnout až po dohledání zdroje.
+**Tři EUR dluhopisové indexy jsou `monthly: true` (jen měsíční data), ne denní.** (`eur_govt_bond_1_3y`,
+`_3_7y`, `_15_30y`.) Původ dohledán 24. 7. 2026: čistý total-return (adjclose) z Amsterdam listingů
+iShares € Govt Bond (IBGS.AS / IBGX.AS / IBGL.AS). Yahoo má pro plnou historii jen měsíční data →
+223 bodů/kód (2008-01-31→dnes), `managed:true` (sync je drží čerstvé). Dřív byly `managed:false` s daty
+neznámého původu (3-7y navíc špatná durace) — nahrazeno. **Nesnaž se z nich udělat denní řadu** — čistý
+denní zdroj zdarma neexistuje; engine si měsíční řadu forward-fillem nese přes denní dny (viz níže).
 
 **Poplatek řídí engine z manifestu (`sourceTer`), ne `item.ter` z widgetu.**
 Data jsou NAV reálného fondu (poplatek v ceně); engine je vzorcem `[(1−desiredTer)/(1−sourceTer)]^roky`
@@ -36,15 +39,18 @@ na webu +1,7 %.) → paměť `ter-dvojity-odecet-oprava`
 
 ## Infrastruktura (CI, hosting)
 
-**Kontrola integrity: 3 EUR dluhopisy jsou VYJMUTÉ z kontroly čerstvosti ocasu.**
-`TAIL_CHECK_EXEMPT` v `check_index_integrity.py` (`eur_govt_bond_1_3y`, `_3_7y`, `_15_30y`).
-Mají `managed: false`, takže je loader (`sync-indexes.mjs`) záměrně neaktualizuje → jejich ocas je
-zmražený (zamrzl na 07-13/07-14) a **každý den stárne o den**, takže jakýkoli pevný stale-práh je
-dřív nebo později VŽDY shodí. Nejdřív jsem to (mylně) řešil delší tolerancí 10 dní — jenže to problém
-jen odsunulo (24. 7. 2026 znovu shodil workflow). Kontrola ocasu pro zmražené řady nedává smysl, tak
-je přeskakujeme úplně. **Netýká se to kontrol DÍRY a ÚBYTEK řádků** — ty (ochrana proti incidentu
-15. 7.) drží pro všechny stejně přísně. Až se ověří původ a přepnou na `managed:true`, odeber je
-z výjimky. → paměť `eur-govt-bond-data-oprava`
+**Kontrola integrity: měsíční indexy (`monthly: true`) mají volnější prahy ocasu i díry.**
+`MONTHLY_INDEXES` v `check_index_integrity.py` (3 EUR dluhopisy) → `MONTHLY_STALE_DAYS`/`MONTHLY_GAP_DAYS`
+= 40 dní. U měsíčních dat jsou ~30denní rozestupy a měsíc starý ocas NORMÁLNÍ, denní prahy (5/10) by je
+vždy shodily. Není to úplná výjimka — když se zdroj zastaví na >~měsíc, i tak to poznáme. **Kontrola
+ÚBYTEK řádků platí pro všechny stejně přísně.** (Migrace denní→měsíční 24. 7. znamenala jednorázový
+propad 4679→223 řádků → smazal jsem GH cache `index-integrity-*`, aby se baseline založil znovu a
+UBYLO nefalš-nezařvalo.) → paměť `eur-govt-bond-data-oprava`
+
+**Engine: `combinePortfolio` dělá forward-fill řad na sjednocené ose.** Měsíční dluhopisová řada se
+nese přes denní akciové dny (poslední známá hodnota). Bez toho engine dělal průnik dat a smíšené
+portfolio (60/40 akcie+dluhopis) dávalo nesmysl (CAGR −0,5 %). **Nevracej to na „skip if missing".**
+Čistě denní portfolia se chovají stejně jako dřív (ověřeno 13/13 invariantů backtest-validate).
 
 **`/etf/[isin]` má `revalidate = 2592000` (30 dní), ne 1 den. Není to překlep.**
 ~4970 stránek dlouhého ocasu se regeneruje ISR na požádání; při 1denní expiraci je crawleři
