@@ -34,16 +34,18 @@ HIST = '.secrets/index-integrity-history.json'
 MAX_STALE_DAYS = 5      # ocas starší než tohle = poplach
 MAX_GAP_DAYS = 10       # díra uvnitř řady delší než tohle = poplach
 
-# Per-index výjimka pro OCAS (freshness). Některé zdroje publikují se zpožděním
-# a 5denní práh na ně nesedí – nejde o ztrátu dat, jen o pomalejší zdroj.
-# 3 EUR vládní dluhopisy jedou z evropských listingů (IBGS.AS/SXRP.DE/IBGL.AS),
-# které zveřejňují close s ~3–5 obchodními dny zpoždění oproti US/World zdroji.
-# Viz ZAMERNA-ROZHODNUTI.md. POZOR: týká se JEN ocasu – kontroly DÍRY a ÚBYTEK
-# řádků (ochrana proti incidentu 15.7.) zůstávají pro všechny stejně přísné.
-STALE_OVERRIDE = {
-    'eur_govt_bond_1_3y': 10,
-    'eur_govt_bond_3_7y': 10,
-    'eur_govt_bond_15_30y': 10,
+# Výjimka z kontroly OCASU (freshness). Tyhle indexy mají v manifestu (indexes.ts)
+# `managed: false`, tzn. loader (sync-indexes.mjs) je ZÁMĚRNĚ neaktualizuje (neověřený
+# původ dat). Jejich ocas je proto zmražený a každý den stárne o den – jakýkoli pevný
+# práh je dřív nebo později VŽDY shodí. Kontrola čerstvosti ocasu pro ně nedává smysl,
+# tak ji přeskakujeme (věk se pořád vypíše, jen nezpůsobí poplach).
+# POZOR: týká se JEN ocasu – kontroly DÍRY a ÚBYTEK řádků (ochrana proti incidentu
+# 15.7.) pro ně platí dál. Až se ověří původ a přepnou na managed:true (sync je začne
+# aktualizovat), odeber je odsud. Viz ZAMERNA-ROZHODNUTI.md.
+TAIL_CHECK_EXEMPT = {
+    'eur_govt_bond_1_3y',
+    'eur_govt_bond_3_7y',
+    'eur_govt_bond_15_30y',
 }
 
 sb = create_client(URL, KEY)
@@ -92,10 +94,9 @@ def main():
             continue
         counts[code] = len(d)
         last, stale = d[-1], (today - d[-1]).days
-        stale_limit = STALE_OVERRIDE.get(code, MAX_STALE_DAYS)
         flags = []
-        if stale > stale_limit:
-            flags.append(f"OCAS {stale} dni stary (limit {stale_limit})")
+        if stale > MAX_STALE_DAYS and code not in TAIL_CHECK_EXEMPT:
+            flags.append(f"OCAS {stale} dni stary")
         gap = max(((d[i] - d[i - 1]).days, d[i]) for i in range(1, len(d))) if len(d) > 1 else (0, None)
         if gap[0] > MAX_GAP_DAYS:
             flags.append(f"DIRA {gap[0]} dni pred {gap[1]}")

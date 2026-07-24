@@ -36,12 +36,15 @@ na webu +1,7 %.) → paměť `ter-dvojity-odecet-oprava`
 
 ## Infrastruktura (CI, hosting)
 
-**Kontrola integrity: 3 EUR dluhopisy mají delší toleranci ocasu (10 dní, ne 5).**
-`STALE_OVERRIDE` v `check_index_integrity.py`. Jejich evropský listing (IBGS.AS/SXRP.DE/IBGL.AS)
-publikuje close se zpožděním ~3–5 obchodních dní oproti US/World zdroji (07-17), takže na 5denním
-prahu padaly do false-poplachu (19. 7. 2026 shodila celý workflow jen kvůli `eur_govt_bond_3_7y`).
-**Netýká se to kontrol DÍRY a ÚBYTEK řádků** — ty (ochrana proti incidentu 15. 7.) drží pro všechny
-stejně přísně. Nevracej zpátky na 5. → paměť `eur-govt-bond-data-oprava`
+**Kontrola integrity: 3 EUR dluhopisy jsou VYJMUTÉ z kontroly čerstvosti ocasu.**
+`TAIL_CHECK_EXEMPT` v `check_index_integrity.py` (`eur_govt_bond_1_3y`, `_3_7y`, `_15_30y`).
+Mají `managed: false`, takže je loader (`sync-indexes.mjs`) záměrně neaktualizuje → jejich ocas je
+zmražený (zamrzl na 07-13/07-14) a **každý den stárne o den**, takže jakýkoli pevný stale-práh je
+dřív nebo později VŽDY shodí. Nejdřív jsem to (mylně) řešil delší tolerancí 10 dní — jenže to problém
+jen odsunulo (24. 7. 2026 znovu shodil workflow). Kontrola ocasu pro zmražené řady nedává smysl, tak
+je přeskakujeme úplně. **Netýká se to kontrol DÍRY a ÚBYTEK řádků** — ty (ochrana proti incidentu
+15. 7.) drží pro všechny stejně přísně. Až se ověří původ a přepnou na `managed:true`, odeber je
+z výjimky. → paměť `eur-govt-bond-data-oprava`
 
 **`/etf/[isin]` má `revalidate = 2592000` (30 dní), ne 1 den. Není to překlep.**
 ~4970 stránek dlouhého ocasu se regeneruje ISR na požádání; při 1denní expiraci je crawleři
