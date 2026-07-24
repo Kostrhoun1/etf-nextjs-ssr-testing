@@ -51,6 +51,9 @@ export interface IndexDef {
   inDashboard: boolean
   /** Smí do něj loader zapisovat? false = původ neověřen, needitovat! */
   managed: boolean
+  /** Data jsou jen MĚSÍČNÍ (Yahoo nemá čistou denní historii, typicky staré/méně likvidní listingy).
+   *  Loader pak fetchuje interval=1mo a kontrola integrity počítá s ~30denními rozestupy. */
+  monthly?: boolean
 }
 
 export const INDEXES: IndexDef[] = [
@@ -159,21 +162,17 @@ export const INDEXES: IndexDef[] = [
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B3F81R35', name: 'iShares Core EUR Corp Bond', ter: 0.002 } },
 
-  // !! PŮVOD NEOVĚŘEN — loader se jich NESMÍ dotknout (managed: false) !!
-  // Změřeno 15.7.2026: hodnota v DB nesedí na žádný kandidátní ticker (odchylky 2,1 % / 11,6 % / 2,4 %).
-  // Starý scraper na ně měl GBP tickery (IBGS.L/IBGM.L/IBGL.L) + natvrdo gbp_eur=1,15 → nesmysl.
-  // Data v DB jsou konzistentní a používají se, jen nevíme, odkud jsou. Dohledat, pak zapnout managed.
-  { code: 'eur_govt_bond_1_3y', ticker: 'IBGS.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 1–3 roky', group: 'bond', since: '2008-01-02',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: false,
-    note: 'Původ dat neověřen (kandidát IBGS.AS se liší o 2,1 %) — loader needituje.',
+  // Původ dohledán 24.7.2026: čistý total-return (adjclose) z Amsterdam listingů iShares € Govt Bond
+  // koší. Yahoo má pro plnou historii jen MĚSÍČNÍ data → `monthly: true`. Nahrazuje starou řadu
+  // neznámého původu (3-7y byla navíc nejspíš špatná durace). Ověřená ann. vol (×√12): 1,5 / 3,0 / 11,2 %.
+  { code: 'eur_govt_bond_1_3y', ticker: 'IBGS.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 1–3 roky', group: 'bond', since: '2008-01-31',
+    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B14X4Q57', name: 'iShares EUR Govt Bond 1-3yr', ter: 0.002 } },
-  { code: 'eur_govt_bond_3_7y', ticker: '', currency: 'EUR', name: 'EUR vládní dluhopisy 3–7 let', group: 'bond', since: '2008-01-02',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: false,
-    note: 'Původ dat NEZNÁMÝ — nesedí na žádný kandidátní ticker (nejblíž IBGX.AS, 11,6 % mimo). Loader needituje.',
+  { code: 'eur_govt_bond_3_7y', ticker: 'IBGX.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 3–7 let', group: 'bond', since: '2008-01-31',
+    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B3VTML14', name: 'iShares EUR Govt Bond 3-7yr', ter: 0.002 } },
-  { code: 'eur_govt_bond_15_30y', ticker: 'IBCL.DE', currency: 'EUR', name: 'EUR vládní dluhopisy 15–30 let', group: 'bond', since: '2008-01-02',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: false,
-    note: 'Původ dat neověřen (kandidát IBCL.DE se liší o 2,4 %) — loader needituje.',
+  { code: 'eur_govt_bond_15_30y', ticker: 'IBGL.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 15–30 let', group: 'bond', since: '2008-01-31',
+    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B1FZS913', name: 'iShares EUR Govt Bond 15-30yr', ter: 0.002 } },
 
   // ─────────────── KOMODITY ───────────────

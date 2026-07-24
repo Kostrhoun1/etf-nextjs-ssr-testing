@@ -34,19 +34,17 @@ HIST = '.secrets/index-integrity-history.json'
 MAX_STALE_DAYS = 5      # ocas starší než tohle = poplach
 MAX_GAP_DAYS = 10       # díra uvnitř řady delší než tohle = poplach
 
-# Výjimka z kontroly OCASU (freshness). Tyhle indexy mají v manifestu (indexes.ts)
-# `managed: false`, tzn. loader (sync-indexes.mjs) je ZÁMĚRNĚ neaktualizuje (neověřený
-# původ dat). Jejich ocas je proto zmražený a každý den stárne o den – jakýkoli pevný
-# práh je dřív nebo později VŽDY shodí. Kontrola čerstvosti ocasu pro ně nedává smysl,
-# tak ji přeskakujeme (věk se pořád vypíše, jen nezpůsobí poplach).
-# POZOR: týká se JEN ocasu – kontroly DÍRY a ÚBYTEK řádků (ochrana proti incidentu
-# 15.7.) pro ně platí dál. Až se ověří původ a přepnou na managed:true (sync je začne
-# aktualizovat), odeber je odsud. Viz ZAMERNA-ROZHODNUTI.md.
-TAIL_CHECK_EXEMPT = {
+# Měsíční indexy (v manifestu `monthly: true`) mají data jen v měsíční frekvenci — Yahoo pro ně nemá
+# čistou denní historii. Rozestupy ~30 dní a ocas až měsíc starý jsou u nich NORMÁLNÍ, takže denní
+# prahy (5/10 dní) by je vždy shodily. Dostávají volnější limity — ne úplnou výjimku: když se zdroj
+# zastaví na víc než ~měsíc, i tak to poznáme. Kontrola ÚBYTEK řádků platí pro všechny stejně přísně.
+MONTHLY_INDEXES = {
     'eur_govt_bond_1_3y',
     'eur_govt_bond_3_7y',
     'eur_govt_bond_15_30y',
 }
+MONTHLY_STALE_DAYS = 40   # měsíční ocas bývá až ~měsíc starý + rezerva
+MONTHLY_GAP_DAYS = 40     # ~30denní rozestupy jsou u měsíčních dat v pořádku
 
 sb = create_client(URL, KEY)
 
@@ -94,11 +92,14 @@ def main():
             continue
         counts[code] = len(d)
         last, stale = d[-1], (today - d[-1]).days
+        is_monthly = code in MONTHLY_INDEXES
+        stale_limit = MONTHLY_STALE_DAYS if is_monthly else MAX_STALE_DAYS
+        gap_limit = MONTHLY_GAP_DAYS if is_monthly else MAX_GAP_DAYS
         flags = []
-        if stale > MAX_STALE_DAYS and code not in TAIL_CHECK_EXEMPT:
+        if stale > stale_limit:
             flags.append(f"OCAS {stale} dni stary")
         gap = max(((d[i] - d[i - 1]).days, d[i]) for i in range(1, len(d))) if len(d) > 1 else (0, None)
-        if gap[0] > MAX_GAP_DAYS:
+        if gap[0] > gap_limit:
             flags.append(f"DIRA {gap[0]} dni pred {gap[1]}")
         was = prev.get(code)
         if was and len(d) < was:

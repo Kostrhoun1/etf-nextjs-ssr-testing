@@ -47,8 +47,8 @@ async function loadManifest() {
 }
 
 /** Denní adj-close z Yahoo. Vrací i měnu, ať ji můžeme ověřit proti manifestu. */
-async function fetchYahoo(ticker, range) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=${range}`
+async function fetchYahoo(ticker, range, interval = '1d') {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`
   const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const r = (await res.json())?.chart?.result?.[0]
@@ -88,7 +88,11 @@ const main = async () => {
   const problems = []
   for (const idx of targets) {
     try {
-      const { currency, rows } = await fetchYahoo(idx.ticker, FULL ? 'max' : '1mo')
+      // Měsíční indexy (Yahoo nemá čistou denní historii) fetchujeme vždy interval=1mo, range=max —
+      // je to jen ~223 řádků (levné) a drží se tak správně adjclose drift po výplatách kupónů.
+      const range = idx.monthly ? 'max' : (FULL ? 'max' : '1mo')
+      const interval = idx.monthly ? '1mo' : '1d'
+      const { currency, rows } = await fetchYahoo(idx.ticker, range, interval)
 
       // POJISTKA: měna musí sedět na manifest, jinak bychom zapsali nesmysl (past starého scraperu).
       if (currency && currency !== idx.currency) {

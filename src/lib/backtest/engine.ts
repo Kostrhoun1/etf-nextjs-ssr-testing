@@ -487,13 +487,21 @@ function combinePortfolio(
 
   const sortedDates = Array.from(allDates).sort()
 
-  // Create lookup maps
-  const lookups = etfSeries.map(({ evolution }) => {
-    const map = new Map<string, number>()
-    for (const point of evolution) {
-      map.set(point.date.toISOString(), point.value)
+  // Forward-fill lookup: pro každé datum sjednocené osy vrátí hodnotu řady k tomu datu, nebo POSLEDNÍ
+  // známou předtím (null jen PŘED začátkem řady). Nutné pro míchání frekvencí – měsíční dluhopis se
+  // pak nese přes denní akciové dny místo toho, aby smíšené portfolio zdecimoval na průnik dat
+  // (jinak 60/40 akcie+dluhopis dávalo nesmysl). Pro čistě denní řady se chová stejně jako dřív.
+  const lookups: Array<Map<string, number | null>> = etfSeries.map(({ evolution }) => {
+    const points = [...evolution].sort((a, b) => a.date.getTime() - b.date.getTime())
+    const filled = new Map<string, number | null>()
+    let pi = 0
+    let last: number | null = null
+    for (const ds of sortedDates) {
+      const t = new Date(ds).getTime()
+      while (pi < points.length && points[pi].date.getTime() <= t) { last = points[pi].value; pi++ }
+      filled.set(ds, last)
     }
-    return map
+    return filled
   })
 
   // Calculate portfolio value at each date
@@ -519,7 +527,7 @@ function combinePortfolio(
     // Get current ETF values (normalized to initial)
     const etfValues = lookups.map((lookup) => {
       const etfValue = lookup.get(dateStr)
-      if (etfValue === undefined) return null
+      if (etfValue == null) return null
 
       // Get previous value for return calculation
       const prevDateStr = i > 0 ? sortedDates[i - 1] : dateStr
