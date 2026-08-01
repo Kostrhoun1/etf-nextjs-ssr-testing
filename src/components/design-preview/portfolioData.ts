@@ -144,6 +144,24 @@ export const portfolioModels: PortfolioModel[] = [
       { label: 'Nemovitosti', cls: 'nemovitosti', percentage: 5, isin: 'IE00B1FZS350', etfName: 'iShares Developed Markets Property Yield UCITS ETF' },
     ],
   },
+  {
+    id: 'jadro-scv',
+    slug: 'globalni-jadro-small-cap-value',
+    name: 'Globální jádro + small-cap value',
+    tagline: 'Pro pokročilé: daňově optimalizované světové jádro (85 %) a k němu jediný faktor, který přežije náklady — small-cap value (15 %).',
+    risk: 'Agresivní',
+    stocksPct: 100,
+    horizon: 'od 12 let',
+    forWhom: 'Chci prostý světový základ a k němu jeden faktor navíc — a udržím ho i v letech, kdy zaostává.',
+    expectedReturn: '≈ 7–9 % ročně (nominálně)',
+    maxDrawdown: 'do −50 %',
+    allocations: [
+      { label: 'Jádro — USA (S&P 500)', cls: 'akcie', percentage: 54, isin: 'IE00B3YCGJ38', etfName: 'Invesco S&P 500 UCITS ETF (Acc, syntetický)' },
+      { label: 'Jádro — svět mimo USA', cls: 'akcie', percentage: 22, isin: 'IE0006WW1TQ4', etfName: 'Xtrackers MSCI World ex USA UCITS ETF' },
+      { label: 'Jádro — rozvíjející se trhy', cls: 'akcie', percentage: 9, isin: 'IE00BKM4GZ66', etfName: 'iShares Core MSCI EM IMI UCITS ETF' },
+      { label: 'Small-cap value satelit', cls: 'akcie', percentage: 15, isin: 'IE0003R87OG3', etfName: 'Avantis Global Small Cap Value UCITS ETF' },
+    ],
+  },
 ];
 
 /* ---------- Backtest: mapování na indexCode existujícího enginu ----------
@@ -164,6 +182,16 @@ export interface BacktestConfig {
 }
 
 export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
+  'globalni-jadro-small-cap-value': {
+    start: '2008-07-01',
+    items: [
+      { indexCode: 'sp500', weight: 0.54, ter: 0.0005 },
+      { indexCode: 'world_ex_us', weight: 0.22, ter: 0.0015 },
+      { indexCode: 'msci_em', weight: 0.09, ter: 0.0018 },
+      { indexCode: 'us_small_cap', weight: 0.15, ter: 0.0039 }, // proxy globálního small-cap value
+    ],
+    proxyNote: 'Small-cap value satelit (Avantis Global Small Cap Value) v backtestu aproximujeme indexem US small cap — zachytí size prémii, ne však value tilt ani globální rozsah, takže jeho historický přínos je spíš PODhodnocený. Slouží k ilustraci rizika a průběhu, ne k přesnému výnosu SCV strategie.',
+  },
   'permanentni-portfolio': {
     start: '2008-07-01',
     items: [
