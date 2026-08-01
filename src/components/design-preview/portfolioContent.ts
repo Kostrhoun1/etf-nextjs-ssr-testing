@@ -14,6 +14,17 @@ export interface PortfolioContent {
 }
 
 export const portfolioContent: Record<string, PortfolioContent> = {
+  'globalni-jadro-small-cap-value': {
+    intro: [
+      'ETF průvodce portfolio je vzorové portfolio, na kterém ukazujeme, jak bychom sami stavěli čistě akciové portfolio, kdyby šlo o vlastní dlouhodobé peníze — s důrazem na dvě věci, které se dají doložit čísly: minimalizovat daně a náklady jádra a přidat jen ty faktory, které po nákladech reálně přežijí. Není to investiční doporučení, ale poctivě odůvodněný příklad.',
+      'Jádro (85 %) záměrně nestavíme na jednom „all-world" fondu, ale na třech cap-weight stavebních kamenech vybraných kvůli daním a nákladům: syntetický S&P 500 (vyhýbá se americké srážkové dani z dividend — na 10 letech dat reálně o ~20 bp/rok lepší než fyzická replikace), MSCI World ex USA a rozvíjející se trhy (EM IMI). Dohromady tvoří stejný globální trh jako jeden all-world fond, ale s ověřeným nadvýnosem ~+15–20 bp ročně. Je to málo — ale je to zadarmo a natrvalo.',
+      'U faktorů jsme byli tvrdí. Value, quality, momentum i size jsou na papíře reálné prémie, jenže otázka pro českého UCITS investora nezní „existují?", ale „dokážu je po nákladech vytěžit?". A tam většina padá: value po poplatcích ~0, quality taky (QUAL zaostal −0,4 % za trhem), momentum se v UCITS obalu nedá koupit za rozumnou cenu. Jediný faktor, který přežívá i po nákladech a má za sebou 44 let živé historie, je small-cap value — fond DFSVX vydělával ~11,4 % ročně od 1993, ~+1,8 pb/rok nad svým benchmarkem.',
+      'Proto je jediný náklon v tomhle portfoliu 15% satelit small-cap value (Avantis). A nedržíme ho kvůli honbě za výnosem — bereme ho jako režimovou pojistku: pomáhá nejvíc ve „ztracené dekádě" cap-weight trhu, jeho očekávaný přínos je skromný (0–15 bp s pravděpodobností úspěchu ~60–65 %). To znamená disciplínu: závazek držet ho i roky, kdy zaostává, protože přesně to je cena za tu prémii.',
+    ],
+    howItWorks: 'Jednou ročně vyvážíte zpět na 54/22/9/15. Jádro (85 %) dělá hlavní práci a přebírá tržní výnos co nejlevněji a daňově nejčistěji; small-cap value satelit (15 %) je dlouhodobá pojistka, se kterou se neobchoduje podle nálady — nechává se běžet i v letech, kdy zaostává za trhem.',
+    strengths: 'Levné, daňově optimalizované světové jádro s ověřeným nadvýnosem nad jedním all-world fondem, plus jediný faktor s doloženým přínosem po nákladech. Poctivost je tu záměrná: nepřidáváme faktory, které po poplatcích mizí, a u satelitu otevřeně přiznáváme, že jde o pojistku se skromným očekáváním, ne o zázračný výnos.',
+    weakness: 'Je to 100% akciové portfolio — počítejte s propady i −50 % a lety návratu na vrchol. Small-cap value může zaostávat i celou dekádu a vyžaduje pevné nervy a závazek ho neprodat. A oproti jednomu all-world fondu je náročnější na správu: čtyři fondy, pravidelný rebalancing a víc administrativy — vyplatí se jen tomu, kdo to opravdu udrží dlouhé roky.',
+  },
   'permanentni-portfolio': {
     intro: [
       'Permanentní portfolio vychází z myšlenky Harryho Browna z 80. let: rozložit majetek rovným dílem mezi aktiva, z nichž každé se daří v jiné fázi ekonomiky. Když jedna část klesá, jiná zpravidla roste, a celek tak zůstává klidný bez ohledu na to, co dělá trh.',

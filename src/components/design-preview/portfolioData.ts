@@ -147,7 +147,7 @@ export const portfolioModels: PortfolioModel[] = [
   {
     id: 'jadro-scv',
     slug: 'globalni-jadro-small-cap-value',
-    name: 'Globální jádro + small-cap value',
+    name: 'ETF průvodce portfolio',
     tagline: 'Pro pokročilé: daňově optimalizované světové jádro (85 %) a k němu jediný faktor, který přežije náklady — small-cap value (15 %).',
     risk: 'Agresivní',
     stocksPct: 100,
