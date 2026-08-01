@@ -105,6 +105,7 @@ const TOOLS = [
   { href: '/investovani-pro-deti', label: 'Investování pro děti', desc: 'Kolik naspoříte do 18 let (v Kč)', icon: Sparkles },
   { href: '/dip', label: 'DIP: vyplatí se?', desc: 'Dlouhodobý investiční produkt (daně, v Kč)', icon: Landmark },
   { href: '/etf-vs-akcie', label: 'ETF, nebo jednotlivé akcie?', desc: 'Proč většina akcií zaostává (data v Kč)', icon: PieChart },
+  { href: '/faktorove-etf', label: 'Faktorové ETF', desc: 'Fungují po nákladech? Co říkají data (v Kč)', icon: LineChart },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [

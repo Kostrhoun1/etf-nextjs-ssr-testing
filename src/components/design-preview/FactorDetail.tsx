@@ -453,6 +453,10 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
               <Calculator className="w-4 h-4" /> Spustit backtest
             </Link>
           </div>
+          <Link href="/portfolio-strategie/globalni-jadro-small-cap-value" className="mt-4 block rounded-xl border border-teal-200 bg-teal-50 px-5 py-4 text-sm hover:border-teal-300 transition-colors">
+            <span className="font-semibold text-teal-900">Jak faktor reálně zapojit do portfolia?</span>{' '}
+            <span className="text-teal-800">Podívejte se na <b>ETF průvodce portfolio</b> — světové jádro plus jediný faktor, který přežije náklady (small-cap value).</span>
+          </Link>
           <div className="mt-6 grid gap-3 sm:grid-cols-3 text-sm">
             {cfg.related.map(([href, label]) => (
               <Link key={href} href={href} className="rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors flex items-center justify-between gap-2">

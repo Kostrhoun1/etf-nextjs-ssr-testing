@@ -34,7 +34,7 @@ export async function generateMetadata(
   const m = portfolioModels.find((p) => p.slug === slug);
   if (!m) return { title: 'Portfolio | ETF průvodce', robots: { index: false, follow: false } };
   return {
-    title: `${m.name} – složení, ETF a výnos v Kč | ETF průvodce`,
+    title: `${m.name} – složení, ETF a výnos v Kč`,
     description: `${m.name}: ${m.tagline} Složení z ETF, očekávaný výnos, riziko a historická výkonnost přepočtená do korun.`,
     alternates: { canonical: `/portfolio-strategie/${slug}` },
   };
@@ -323,6 +323,9 @@ export default async function PortfolioDetailPreview(
           <div className="flex flex-wrap gap-3">
             <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800">Porovnat tyto ETF <ArrowRight className="w-4 h-4" /></Link>
             <Link href="/kde-koupit" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Kde je koupit</Link>
+            {slug === 'globalni-jadro-small-cap-value' && (
+              <Link href="/faktorove-etf" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Proč jen small-cap value? <ArrowRight className="w-4 h-4" /></Link>
+            )}
             <Link href="/portfolio-strategie" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400"><ArrowLeft className="w-4 h-4" /> Všechna portfolia</Link>
           </div>
         </section>

@@ -169,6 +169,9 @@ export default async function FaktoroveEtf() {
               <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                 <BookOpen className="w-4 h-4" /> Najít faktorové ETF
               </Link>
+              <Link href="/portfolio-strategie/globalni-jadro-small-cap-value" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                <Layers className="w-4 h-4" /> Jak je zapojit do portfolia
+              </Link>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Denní data od 2000, v Kč, po TER</span>
