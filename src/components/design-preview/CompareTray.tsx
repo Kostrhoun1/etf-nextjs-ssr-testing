@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Scale, X, ArrowRight } from 'lucide-react';
+import { Scale, X, ArrowRight, Plus } from 'lucide-react';
 import { getCompare, subscribeCompare, removeCompare, clearCompare, type CompareItem } from '@/components/design-preview/compareStore';
 
 /* Plovoucí lišta porovnání – drží se napříč stránkami (localStorage). */
@@ -41,7 +41,14 @@ export default function CompareTray() {
             Porovnat ({items.length}) <ArrowRight className="w-4 h-4" />
           </Link>
         ) : (
-          <span className="text-xs text-slate-400 shrink-0 px-2">Přidejte další fond</span>
+          /* Dřív tu byl jen <span> s textem „Přidejte další fond" – vypadal jako tlačítko,
+             ale nic nedělal. Teď je to reálná akce do srovnávače, kde jde fond vybrat. */
+          <Link
+            href="/srovnani"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 px-3.5 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50 active:bg-teal-100 shrink-0"
+          >
+            <Plus className="w-4 h-4" /> Přidat fond
+          </Link>
         )}
       </div>
     </div>

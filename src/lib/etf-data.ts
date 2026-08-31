@@ -62,6 +62,10 @@ export interface CategoryConfig {
     category?: string;
     categories?: string[];
     nameContains?: string[];
+    /** Názvy, které se z výsledku VYŘADÍ (AND, case-insensitive).
+     *  Bez toho spadne „MSCI World Semiconductors" do kategorie „Celý svět" jen proto,
+     *  že má v názvu „World" – `nameContains` je totiž prostá shoda podřetězce. */
+    nameExcludes?: string[];
     indexContains?: string[];
     minFundSize?: number;
     distribution_policy?: string;
@@ -126,6 +130,13 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
     if (config.filters.nameContains && config.filters.nameContains.length > 0) {
       const nameFilters = config.filters.nameContains.map(term => `name.ilike.%${term}%`).join(',');
       query = query.or(nameFilters);
+    }
+
+    // Vyřazení sektorových/faktorových fondů ze širokých kategorií (AND přes všechny termy).
+    if (config.filters.nameExcludes && config.filters.nameExcludes.length > 0) {
+      for (const term of config.filters.nameExcludes) {
+        query = query.not('name', 'ilike', `%${term}%`);
+      }
     }
 
     // Apply index contains filter
@@ -884,6 +895,21 @@ export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50,
  * Category configurations for all /nejlepsi-etf/* pages
  * This maps each page slug to its filter configuration
  */
+/** Sektorové, faktorové a tematické názvy, které NEPATŘÍ do širokých tržních/regionálních
+ *  žebříčků („Celý svět", „USA", „Evropa"…). Důvod: `nameContains` je jen shoda podřetězce,
+ *  takže bez tohohle se mezi „nejlepší celosvětové ETF" dostaly velké sektorové fondy
+ *  (MSCI World Semiconductors, World Health Care) i faktorové (World Value/Momentum/Small Cap).
+ *  Změřeno 2026-08: 95 z 346 fondů se slovem „World" bylo tohoto typu.
+ *  POZOR: nepoužívat u sektorových kategorií – tam ty fondy naopak patří. */
+const BROAD_MARKET_EXCLUDES = [
+  'Semiconductor', 'Information Technology', 'Technology', 'Health Care', 'Healthcare',
+  'Energy', 'Financial', 'Bank', 'Insurance', 'Industrial', 'Materials', 'Utilities',
+  'Consumer', 'Real Estate', 'Communication', 'Biotech', 'Defence', 'Defense',
+  'Aerospace', 'Robotics', 'Infrastructure',
+  'Momentum', 'Value', 'Quality', 'Growth', 'Minimum Volatility', 'Min Vol',
+  'Small Cap', 'SmallCap', 'Mid Cap', 'Dividend', 'Buyback', 'Leveraged',
+];
+
 export const categoryConfigs: Record<string, CategoryConfig> = {
   'nejlepsi-etf-2026': {
     slug: 'nejlepsi-etf-2026',
@@ -959,6 +985,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['S&P 500', 'S&P500', 'SP500'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -973,6 +1000,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['MSCI World', 'World'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1028,6 +1056,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Emerging', 'EM ', 'MSCI EM'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1042,6 +1071,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Europe', 'Euro', 'STOXX', 'DAX', 'CAC', 'European'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1123,6 +1153,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['World', 'Global', 'All-World', 'ACWI', 'All Country'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1137,6 +1168,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['USA', 'US ', 'United States', 'America', 'S&P', 'Nasdaq', 'Dow Jones'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1151,6 +1183,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Japan', 'Nikkei', 'TOPIX'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1165,6 +1198,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['China', 'Chinese', 'CSI', 'Hong Kong', 'Hang Seng'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1179,6 +1213,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['India', 'Indian', 'Nifty', 'Sensex'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1413,6 +1448,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Asia Pacific', 'Asia-Pacific', 'APAC', 'Pacific'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1441,6 +1477,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['World', 'Global', 'All-World', 'ACWI', 'All Country'],
+      nameExcludes: BROAD_MARKET_EXCLUDES,
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
