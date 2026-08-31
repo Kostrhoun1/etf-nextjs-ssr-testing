@@ -40,6 +40,20 @@ const distChip = (k: 'acc' | 'dist' | 'unknown') =>
 
 const PAGE = 25;
 
+/* Investiční styly (faktory). Data nemají sloupec „faktor", takže se rozpoznávají
+   z názvu fondu (`_blob` = název + ISIN + poskytovatel + tickery, lowercase).
+   `exclude` řeší falešné shody – např. „Battery Value-Chain" NENÍ value fond. */
+const FACTORS: { value: string; label: string; match: string[]; exclude?: string[] }[] = [
+  { value: 'small_cap', label: 'Small cap', match: ['small cap', 'smallcap', 'small-cap', 'russell 2000'] },
+  { value: 'value', label: 'Value', match: ['value'], exclude: ['value-chain', 'value chain'] },
+  { value: 'growth', label: 'Growth', match: ['growth'] },
+  { value: 'momentum', label: 'Momentum', match: ['momentum'] },
+  { value: 'quality', label: 'Quality', match: ['quality'] },
+  { value: 'min_vol', label: 'Nízká volatilita', match: ['minimum volatility', 'min vol', 'minimum vol', 'low volatility'] },
+  { value: 'dividend', label: 'Dividendové', match: ['dividend', 'dividendenaristokraten'] },
+  { value: 'multifactor', label: 'Multifaktorové', match: ['multifactor', 'multi-factor', 'multi factor'] },
+];
+
 const selCls = 'min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none';
 
 /* Prezentační obal pole filtru (label + input/select). Definováno na úrovni
@@ -112,6 +126,7 @@ export default function ScreenerUI({
   const [currency, setCurrency] = useState('all');
   const [hedging, setHedging] = useState('all');
   const [sizeCat, setSizeCat] = useState('all');
+  const [factor, setFactor] = useState('all');
   const [minRating, setMinRating] = useState(0);
   const [leveraged, setLeveraged] = useState(false);
   const [terMax, setTerMax] = useState<string>('');
@@ -210,6 +225,13 @@ export default function ScreenerUI({
         if (hedging === 'hedged' && hedge === 'unhedged') return false;
         if (hedging !== 'unhedged' && hedging !== 'hedged' && hedge !== hedging) return false;
       }
+      if (factor !== 'all') {
+        const f = FACTORS.find((x) => x.value === factor);
+        if (f) {
+          if (!f.match.some((m) => blob.includes(m))) return false;
+          if (f.exclude?.some((m) => blob.includes(m))) return false;
+        }
+      }
       if (minRating > 0 && (ratingVal == null || ratingVal < minRating)) return false;
       const size = num(e.fund_size_numeric);
       if (sizeCat !== 'all' && size != null) {
@@ -223,7 +245,7 @@ export default function ScreenerUI({
       if (divMinN != null) { const d = num(e.current_dividend_yield_numeric); if (d == null || d < divMinN) return false; }
       return true;
     });
-  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, minRating, leveraged, terMax, sizeMin, divMin]);
+  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, factor, minRating, leveraged, terMax, sizeMin, divMin]);
 
   const filtered = useMemo(() => {
     const list = [...filteredRows];
@@ -277,14 +299,14 @@ export default function ScreenerUI({
 
   const reset = () => {
     setQ(''); setCategory('all'); setDist('all'); setRegion('all'); setIndexName('all');
-    setRepl('all'); setCurrency('all'); setHedging('all'); setSizeCat('all'); setMinRating(0);
+    setRepl('all'); setCurrency('all'); setHedging('all'); setSizeCat('all'); setFactor('all'); setMinRating(0);
     setLeveraged(false); setTerMax(''); setSizeMin(''); setDivMin(''); setShown(PAGE);
   };
   // Kategorie je samostatný tab, do odznaku „Pokročilé filtry“ ji nepočítáme.
   const activeCount =
     (dist !== 'all' ? 1 : 0) + (region !== 'all' ? 1 : 0) +
     (indexName !== 'all' ? 1 : 0) + (repl !== 'all' ? 1 : 0) + (currency !== 'all' ? 1 : 0) +
-    (hedging !== 'all' ? 1 : 0) + (sizeCat !== 'all' ? 1 : 0) + (minRating > 0 ? 1 : 0) +
+    (hedging !== 'all' ? 1 : 0) + (sizeCat !== 'all' ? 1 : 0) + (factor !== 'all' ? 1 : 0) + (minRating > 0 ? 1 : 0) +
     (leveraged ? 1 : 0) + (terMax !== '' ? 1 : 0) + (sizeMin !== '' ? 1 : 0) + (divMin !== '' ? 1 : 0);
   const anyFilter = activeCount > 0 || q !== '' || category !== 'all';
 
@@ -349,6 +371,12 @@ export default function ScreenerUI({
               <option value="all">Akum. i distrib.</option>
               <option value="acc">Akumulační</option>
               <option value="dist">Distribuční</option>
+            </select>
+          </Field>
+          <Field label="Investiční styl">
+            <select aria-label="Investiční styl (faktor)" value={factor} onChange={bump(setFactor)} className={selCls}>
+              <option value="all">Všechny styly</option>
+              {FACTORS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
             </select>
           </Field>
         </div>

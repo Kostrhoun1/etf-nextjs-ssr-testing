@@ -176,3 +176,19 @@
     }
   }
 }
+
+/* MOBIL: formulářová pole musí mít aspoň 16px písmo.
+   iOS Safari jinak při klepnutí do pole automaticky PŘIBLÍŽÍ celou stránku a ta zůstane
+   zoomnutá – uživatel pak musí rolovat do strany. Projeví se jen na reálném iPhonu,
+   v desktopové emulaci ne.
+   POZOR: musí být MIMO @layer, jinak to přebije Tailwindí `text-sm` z @layer utilities. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    /* !important je tu nutné: Tailwindí `text-sm` je selektor třídy (0,1,0) a přebil by
+       element selektor. Tohle je jediné místo, kde se velikost formulářových polí
+       na mobilu určuje – needituj `text-sm` po jednotlivých komponentách. */
+    font-size: 16px !important;
+  }
+}
