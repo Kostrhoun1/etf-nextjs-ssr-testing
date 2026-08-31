@@ -7,7 +7,8 @@ import { CURRENCIES, useCurrency } from '@/components/design-preview/currencySto
    napříč stránkami. `label` lze vypnout u kompaktních umístění. */
 export default function CurrencyToggle({ size = 'md', showLabel = true }: { size?: 'sm' | 'md'; showLabel?: boolean }) {
   const [cur, setCur] = useCurrency();
-  const pad = size === 'sm' ? 'px-2 py-1 text-xs' : 'px-2.5 py-1 text-sm';
+  // Na mobilu vyšší (py-2) kvůli klikací ploše – s py-1 měl přepínač ~24px a špatně se trefoval.
+  const pad = size === 'sm' ? 'px-2.5 py-2 sm:px-2 sm:py-1 text-xs' : 'px-3 py-2 sm:px-2.5 sm:py-1 text-sm';
 
   return (
     <div className="inline-flex items-center gap-2">

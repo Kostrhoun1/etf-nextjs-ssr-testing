@@ -253,17 +253,23 @@ export default async function DesignPreviewV2() {
       <main className="max-w-6xl mx-auto px-4 pb-24">
         {/* 1. HERO – USP + vyhledávání + dvojí cesta (vím co hledám / začátečník) */}
         <section className="py-4 md:py-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-9">
+          {/* Na MOBILU je hero záměrně stručné: dlouhý úvod tlačil reálný obsah (startovací
+              fondy, hledání) pod ohyb a uživateli nic nedával. Podtitulek i odznak
+              nezávislosti se proto na mobilu krátí, na desktopu zůstávají celé. */}
+          <div className="rounded-2xl bg-slate-900 text-white px-4 py-5 md:px-9 md:py-9">
             <div className="md:flex md:items-start md:justify-between gap-10">
               <div className="md:max-w-lg">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Největší srovnávač ETF pro české investory</h1>
-                <p className="mt-2.5 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Nezávislá data {totalCount.toLocaleString('cs-CZ')} fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.
+                <p className="mt-2 md:mt-2.5 text-slate-300 text-sm md:text-base leading-relaxed">
+                  <span className="md:hidden">{totalCount.toLocaleString('cs-CZ')} fondů s výnosy přepočtenými do korun.</span>
+                  <span className="hidden md:inline">Nezávislá data {totalCount.toLocaleString('cs-CZ')} fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.</span>
                 </p>
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-medium text-emerald-300">
-                  <ShieldCheck className="w-3.5 h-3.5" /> 100% nezávislý a nekomerční — žádné provize, žádná reklama
+                <p className="mt-2.5 md:mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-medium text-emerald-300">
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span className="md:hidden">100% nezávislý, bez reklam</span>
+                  <span className="hidden md:inline">100% nezávislý a nekomerční — žádné provize, žádná reklama</span>
                 </p>
-                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+                <div className="mt-4 md:mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
                   <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
                     <LayoutGrid className="w-4 h-4" /> Prozkoumat všechny fondy
                   </Link>

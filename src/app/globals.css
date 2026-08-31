@@ -192,3 +192,14 @@
     font-size: 16px !important;
   }
 }
+
+/* MOBIL: minimální čitelná velikost písma.
+   Mikropopisky a odznaky (ACC/DIST, „1R (Kč)", „páka") měly 10–11px, což je na
+   telefonu na hraně čitelnosti. Na mobilu je zvedáme na 12px – jedním pravidlem
+   místo úprav ve 34 místech napříč komponentami. Na desktopu zůstávají menší. */
+@media (max-width: 767px) {
+  .text-\[10px\],
+  .text-\[11px\] {
+    font-size: 12px;
+  }
+}
