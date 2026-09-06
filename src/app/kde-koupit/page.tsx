@@ -16,12 +16,13 @@ import {
 } from '@/components/design-preview/KdeKoupitUI';
 import { brokers } from '@/data/brokerData';
 import { getDataDate } from '@/lib/etf-data';
+import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'Kde koupit ETF v Česku 2026: srovnání 6 brokerů',
   description:
-    'Kde koupit ETF? Jednotné skóre 6 brokerů – XTB a Trading 212 s 0% poplatkem, DEGIRO Core Selection od 0 EUR, daně 15 vs 35 %. Verdikt a tabulka na první pohled.',
+    'Kde koupit ETF? Jednotné skóre 6 brokerů – XTB a Trading 212 s 0% poplatkem, DEGIRO ETF Selection od 0 EUR, daně 15 vs 35 %. Verdikt a tabulka na první pohled.',
 };
 
 export default async function KdeKoupitPreview() {
@@ -70,11 +71,11 @@ export default async function KdeKoupitPreview() {
   const faqs = [
     {
       q: 'Kde koupím ETF nejlevněji?',
-      a: 'Skutečný náklad = komise za obchod + konverze měny (viz schéma „Kolik vás nákup opravdu stojí" výše). Nejnižší přímé náklady mají XTB a Trading 212 (0 % komise), pozor ale na konverzi: Trading 212 účtuje 0,15 %, XTB 0,5 %. U DEGIRO koupíte fondy z Core Selection za 1 EUR a směnu CZK/EUR máte zdarma.',
+      a: 'Skutečný náklad = komise za obchod + konverze měny (viz schéma „Kolik vás nákup opravdu stojí" výše). Nejnižší přímé náklady mají XTB a Trading 212 (0 % komise), pozor ale na konverzi: Trading 212 účtuje 0,15 %, XTB 0,5 %. U DEGIRO koupíte fondy ze seznamu ETF Selection za 1 EUR a směnu CZK/EUR máte zdarma.',
     },
     {
       q: 'Jsou ETF u DEGIRO opravdu zdarma?',
-      a: 'Fondy z tzv. Core Selection (200+ ETF) koupíte u DEGIRO za 1 EUR manipulační poplatek, ostatní ETF za 3 EUR. Není to tedy úplná nula jako u XTB, ale směnu CZK/EUR máte zdarma a u jednoho většího nákupu měsíčně jsou náklady zanedbatelné.',
+      a: 'Fondy ze seznamu tzv. ETF Selection (200+ ETF) koupíte u DEGIRO za 1 EUR manipulační poplatek, ostatní ETF za 3 EUR. Není to tedy úplná nula jako u XTB, ale směnu CZK/EUR máte zdarma a u jednoho většího nákupu měsíčně jsou náklady zanedbatelné.',
     },
     {
       q: 'Proč některý broker sráží 35 % z dividend?',
@@ -240,7 +241,7 @@ export default async function KdeKoupitPreview() {
             <div className="mt-5 grid sm:grid-cols-3 gap-3">
               {[
                 { icon: Sparkles, label: 'Začínám a chci klid', name: portu.name, reason: `Robo-poradce sestaví a spravuje portfolio za vás (skóre ${portu.rating}). Jiná kategorie než broker.` },
-                { icon: Layers, label: 'Chci nejširší nabídku', name: degiro.name, reason: 'Tisíce UCITS ETF, Core Selection od 1 EUR a směna CZK/EUR zdarma.' },
+                { icon: Layers, label: 'Chci nejširší nabídku', name: degiro.name, reason: 'Tisíce UCITS ETF, ETF Selection od 1 EUR a směna CZK/EUR zdarma.' },
                 { icon: Percent, label: 'Chci nižší daň z dividend', name: fio.name, reason: 'Český broker – z českých dividend sráží jen 15 %, KID v češtině.' },
               ].map(({ icon: Icon, label, name, reason }) => (
                 <div key={label} className="rounded-lg border border-slate-200 p-4">
@@ -357,7 +358,7 @@ export default async function KdeKoupitPreview() {
                 klasické brokery (XTB, DEGIRO, Fio). Pokud chcete mít starost z krku, dává Portu smysl.
               </p>
             </div>
-            <p className="text-xs text-slate-400 mt-3">Zdroj dat: veřejné ceníky brokerů, ČNB. Aktualizováno {dateStr}.</p>
+            <p className="text-xs text-slate-400 mt-3">Zdroj dat: veřejné ceníky brokerů, ČNB. Poplatky a ochranu prostředků jsme naposledy ručně ověřili <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
           </div>
         </section>
 
@@ -484,7 +485,7 @@ export default async function KdeKoupitPreview() {
             {([
               [ShieldCheck, 'Nezávislé skóre', 'Stejné osy pro všechny brokery. Nebereme provize ani reklamu.'],
               [Scale, 'Český úhel pohledu', 'Daně 15 vs 35 %, konverze CZK a česká podpora – co justETF neřeší.'],
-              [Database, 'Aktuální data', `Z veřejných ceníků brokerů a ČNB, aktualizováno ${dateStr}.`],
+              [Database, 'Ověřená data', `Z veřejných ceníků brokerů a ČNB. Naposledy ručně ověřeno ${editorialCheckDateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -528,7 +529,7 @@ export default async function KdeKoupitPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: veřejné ceníky brokerů, ČNB. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: veřejné ceníky brokerů, ČNB. Poplatky, ochranu prostředků a zdanění dividend jsme naposledy ručně ověřili <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Nekomerční vzdělávací web – bez provizí a reklam. Investice do ETF nesou riziko ztráty.</p>
             </div>
           </div>

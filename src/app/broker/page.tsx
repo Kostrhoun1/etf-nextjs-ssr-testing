@@ -15,6 +15,7 @@ import { degiroOverall } from '@/components/design-preview/BrokerScore';
 import BrokerScoreGrid from '@/components/design-preview/BrokerScoreGrid';
 import BrokerFeeTable from '@/components/design-preview/BrokerFeeTable';
 import { getDataDate } from '@/lib/etf-data';
+import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
 
 export const revalidate = 86400;
 
@@ -88,7 +89,7 @@ export default async function BrokerReviewPreview() {
     },
     {
       q: 'Jaké jsou poplatky DEGIRO za ETF?',
-      a: 'ETF ze seznamu Core Selection (~200+ vybraných fondů) stojí 1 EUR za pokyn, ostatní ETF 3 EUR. K tomu se přičítá roční poplatek 2,50 EUR za každou cizí burzu, kde v daném roce obchodujete. Vedení účtu je zdarma, vklady a výběry v korunách bez poplatku.',
+      a: 'ETF ze seznamu ETF Selection (~200+ vybraných fondů, dříve „Core Selection“) stojí 1 EUR za pokyn, ostatní ETF 3 EUR. K tomu se přičítá roční poplatek 2,50 EUR za každou cizí burzu, kde v daném roce obchodujete. Vedení účtu je zdarma, vklady a výběry v korunách bez poplatku.',
     },
     {
       q: 'Jak se daní zisky z DEGIRO v ČR?',
@@ -146,7 +147,7 @@ export default async function BrokerReviewPreview() {
       { '@type': 'HowToStep', name: 'Registrace přes web', text: 'Vyplňte registrační formulář, připravte si občanku nebo pas a daňové identifikační číslo.' },
       { '@type': 'HowToStep', name: 'Ověření totožnosti', text: 'Doložte totožnost a projděte ověřením podle pravidel proti praní špinavých peněz.' },
       { '@type': 'HowToStep', name: 'První vklad v korunách', text: 'Pošlete peníze bankovním převodem v Kč, minimální vklad je 0 EUR.' },
-      { '@type': 'HowToStep', name: 'Vyhledání ETF', text: 'Najděte fond podle ISIN a ověřte, zda patří do Core Selection (nižší poplatek).' },
+      { '@type': 'HowToStep', name: 'Vyhledání ETF', text: 'Najděte fond podle ISIN a ověřte, zda patří do ETF Selection (nižší poplatek).' },
       { '@type': 'HowToStep', name: 'Zadání pokynu', text: 'Zadejte nákupní pokyn, zkontrolujte poplatek a potvrďte obchod.' },
     ],
   };
@@ -204,7 +205,7 @@ export default async function BrokerReviewPreview() {
                 <h1 className="mt-3 text-2xl md:text-3xl font-bold tracking-tight leading-tight">Recenze DEGIRO {YEAR}</h1>
                 <p className="mt-2 text-base font-medium text-white">Dobrá volba pro levné dlouhodobé ETF investování.</p>
                 <p className="mt-2.5 text-slate-300 text-sm md:text-base leading-relaxed">
-                  <span className="text-white font-medium">Ano</span>, pokud chcete levně nakupovat ETF z Core Selection,
+                  <span className="text-white font-medium">Ano</span>, pokud chcete levně nakupovat ETF ze seznamu ETF Selection,
                   vkládat peníze v korunách a mít v zádech banku pod evropskou regulací.{' '}
                   <span className="text-white font-medium">Spíš ne</span>, pokud potřebujete frakční investování,
                   českou podporu 24/7 nebo investujete do českých dividendových akcií (35% srážka).
@@ -290,7 +291,7 @@ export default async function BrokerReviewPreview() {
               <h3 className="font-semibold text-emerald-700 flex items-center gap-2"><Check className="w-4 h-4" /> Výhody</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate-600">
                 {[
-                  'ETF z Core Selection za 1 EUR (~200+ zvýhodněných fondů)',
+                  'ETF ze seznamu ETF Selection za 1 EUR (~200+ zvýhodněných fondů)',
                   'Vklady a výběry v korunách zdarma, konverze CZK/EUR bez poplatku',
                   'Banka flatexDEGIRO pod regulací BaFin a DNB/AFM, ochrana 100 000 EUR',
                   'Široká nabídka 3000+ UCITS ETF a přístup na 31 burz',
@@ -319,7 +320,7 @@ export default async function BrokerReviewPreview() {
 
         {/* POPLATKY – detail */}
         <section id="poplatky" className="pb-10 scroll-mt-16">
-          <SectionHead title="Poplatky DEGIRO" desc="Kompletní přehled nákladů. Co je manipulační poplatek a co Core Selection vysvětlujeme rovnou u tabulky." />
+          <SectionHead title="Poplatky DEGIRO" desc="Kompletní přehled nákladů. Co je manipulační poplatek a co ETF Selection vysvětlujeme rovnou u tabulky." />
 
           {/* Edukace: schéma cesty poplatku za ETF (boxy + šipky) */}
           <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 md:p-5">
@@ -342,7 +343,7 @@ export default async function BrokerReviewPreview() {
                     <p className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
                       <Layers className="w-3.5 h-3.5 text-teal-700" />
                       <InfoTip label="Seznam zhruba 200+ vybraných ETF (včetně fondů na S&P 500 nebo MSCI World) se zvýhodněným poplatkem 1 EUR za pokyn.">
-                        Core Selection
+                        ETF Selection
                       </InfoTip>
                     </p>
                     <p className="mt-1 text-lg font-bold tabular-nums text-slate-900">1 EUR<span className="text-xs font-medium text-slate-400"> / pokyn</span></p>
@@ -377,19 +378,19 @@ export default async function BrokerReviewPreview() {
             </p>
             <div className="mt-3 grid sm:grid-cols-2 gap-3">
               <div className="rounded-lg bg-white border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">ETF z Core Selection</p>
+                <p className="text-xs text-slate-500">Ze seznamu ETF Selection</p>
                 <p className="mt-0.5 text-xl font-bold tabular-nums text-slate-900">~{coreMonthlyCzk} Kč<span className="text-sm font-medium text-slate-400"> / měsíc</span></p>
                 <p className="text-xs text-slate-500 mt-1">≈ {coreMonthlyCzk * 12} Kč ročně za 12 nákupů</p>
               </div>
               <div className="rounded-lg bg-white border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">ETF mimo Core Selection</p>
+                <p className="text-xs text-slate-500">Mimo tento seznam</p>
                 <p className="mt-0.5 text-xl font-bold tabular-nums text-slate-900">~{otherMonthlyCzk} Kč<span className="text-sm font-medium text-slate-400"> / měsíc</span></p>
                 <p className="text-xs text-slate-500 mt-1">≈ {otherMonthlyCzk * 12} Kč ročně za 12 nákupů</p>
               </div>
             </div>
             <p className="text-xs text-slate-500 mt-3 leading-relaxed">
-              Volbou fondu z Core Selection ušetříte zhruba <span className="font-medium text-slate-700">{(otherMonthlyCzk - coreMonthlyCzk) * 12} Kč ročně</span>.
-              U dlouhodobého investování je to citelný rozdíl – proto u DEGIRO vyplatí preferovat Core Selection.
+              Volbou fondu z ETF Selection ušetříte zhruba <span className="font-medium text-slate-700">{(otherMonthlyCzk - coreMonthlyCzk) * 12} Kč ročně</span>.
+              U dlouhodobého investování je to citelný rozdíl – proto u DEGIRO vyplatí preferovat ETF Selection.
             </p>
           </div>
         </section>
@@ -464,7 +465,7 @@ export default async function BrokerReviewPreview() {
               <h3 className="font-semibold text-emerald-700 flex items-center gap-2"><Check className="w-4 h-4" /> JE pro vás, pokud</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate-600">
                 {[
-                  'Stavíte levné dlouhodobé ETF portfolio z Core Selection',
+                  'Stavíte levné dlouhodobé ETF portfolio ze seznamu ETF Selection',
                   'Chcete v zádech banku pod evropskou regulací',
                   'Vkládáte peníze v korunách a chcete konverzi CZK/EUR zdarma',
                 ].map((t) => (
@@ -500,7 +501,7 @@ export default async function BrokerReviewPreview() {
               ['1', 'Registrace přes web', 'Vyplňte formulář. Připravte si občanku nebo pas a daňové identifikační číslo (DIČ).'],
               ['2', 'Ověření totožnosti', 'Doložte totožnost a projděte ověřením podle pravidel proti praní špinavých peněz.'],
               ['3', 'První vklad v korunách', 'Pošlete peníze bankovním převodem v Kč. Minimální vklad je 0 EUR.'],
-              ['4', 'Vyhledání ETF', 'Najděte fond podle ISIN a ověřte, zda patří do Core Selection (nižší poplatek). Pozor: některé US ETF nejsou kvůli chybějící KID/PRIIPS dokumentaci dostupné.'],
+              ['4', 'Vyhledání ETF', 'Najděte fond podle ISIN a ověřte, zda patří do ETF Selection (nižší poplatek). Pozor: některé US ETF nejsou kvůli chybějící KID/PRIIPS dokumentaci dostupné.'],
               ['5', 'Zadání pokynu', 'Zadejte nákupní pokyn, zkontrolujte poplatek a potvrďte obchod.'],
             ].map(([n, t, d]) => (
               <li key={n} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
@@ -560,7 +561,7 @@ export default async function BrokerReviewPreview() {
               <div className="text-sm text-slate-600 leading-relaxed space-y-2.5">
                 <p>
                   DEGIRO je <span className="font-medium text-slate-900">dobrá volba pro levné dlouhodobé ETF investování</span>.
-                  Kombinace nízkého poplatku za ETF z Core Selection (1 EUR), vkladů v korunách zdarma a banky pod evropskou
+                  Kombinace nízkého poplatku za ETF ze seznamu ETF Selection (1 EUR), vkladů v korunách zdarma a banky pod evropskou
                   regulací z něj dělá rozumný výchozí účet pro pasivní investory, kteří pravidelně nakupují celé kusy fondů.
                 </p>
                 <p>
@@ -614,7 +615,7 @@ export default async function BrokerReviewPreview() {
             {([
               [ShieldCheck, 'Nezávislé hodnocení', 'Jednotná metodika pro všechny brokery, žádné placené pořadí.'],
               [BadgeCheck, 'Bez provizí a reklam', 'Nekomerční vzdělávací obsah – nebereme provize ani reklamu.'],
-              [Database, 'Aktuální data', `Z veřejných zdrojů a ceníku DEGIRO, aktualizováno ${dateStr}.`],
+              [Database, 'Ověřená data', `Z veřejných zdrojů a ceníku DEGIRO. Naposledy ručně ověřeno ${editorialCheckDateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -661,7 +662,7 @@ export default async function BrokerReviewPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: ceník DEGIRO, ČNB, zákon o daních z příjmů. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: ceník DEGIRO, ČNB, zákon o daních z příjmů. Poplatky a podmínky jsme naposledy ručně ověřili <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
               <p className="flex items-start gap-1.5"><ListChecks className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Hodnocení {degiroOverall}/100 je vážený průměr šesti kritérií podle naší jednotné metodiky.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční ani daňové doporučení. Investice nesou riziko ztráty.</p>
             </div>

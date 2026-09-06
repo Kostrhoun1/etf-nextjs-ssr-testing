@@ -10,7 +10,7 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import CistyPlatWidget from '@/components/design-preview/CistyPlatWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -20,8 +20,6 @@ export const metadata: Metadata = {
 };
 
 export default async function CistyPlatPreview() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -122,7 +120,7 @@ export default async function CistyPlatPreview() {
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Sazby ověřeny {editorialCheckDateStr}</span>
                   <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Sazby a slevy pro rok 2026</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -277,7 +275,7 @@ export default async function CistyPlatPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: zákon o daních z příjmů, sazby pojistného ČSSZ a zdravotních pojišťoven pro rok 2026. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: zákon o daních z příjmů, sazby pojistného ČSSZ a zdravotních pojišťoven pro rok 2026, průměrná mzda dle nařízení vlády č. 365/2025 Sb., minimální mzda dle sdělení MPSV č. 356/2025 Sb. Všechny sazby, slevy a limity ve výpočtu jsme naposledy ručně ověřili <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time> a od té doby se nezměnily.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Kalkulačka má orientační a vzdělávací charakter. Nezahrnuje benefity, stravenky, nadlimitní příjmy ani zvláštní situace. Pro závazný výpočet se obraťte na mzdovou účtárnu.</p>
             </div>
           </div>

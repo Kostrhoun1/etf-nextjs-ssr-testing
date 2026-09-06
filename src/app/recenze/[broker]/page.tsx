@@ -11,7 +11,7 @@ import { brokers } from '@/data/brokerData';
 import { reviewHref, reviewCanonical } from '@/components/design-preview/brokerReviewHref';
 import { getBrokerContent } from '@/components/design-preview/brokerContent';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
 
 export const revalidate = 86400;
 
@@ -39,9 +39,6 @@ export default async function BrokerReviewPreview(
   const b = brokers.find((x) => x.id === broker);
   if (!b) notFound();
   const c = getBrokerContent(b.id);
-
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const facts: { icon: typeof Wallet; label: string; value: string }[] = [
     { icon: Wallet, label: 'Poplatek za ETF', value: b.etfFee },
@@ -104,7 +101,7 @@ export default async function BrokerReviewPreview(
             </div>
             {c?.tagline && <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">{c.tagline}</p>}
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Ceník ověřen {editorialCheckDateStr}</span>
             </div>
           </div>
         </section>
@@ -192,6 +189,14 @@ export default async function BrokerReviewPreview(
             <Link href="/kde-koupit" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400"><ArrowLeft className="w-4 h-4" /> Kde koupit ETF</Link>
           </div>
         </section>
+
+        <p className="pb-8 text-xs text-slate-400">
+          Zdroj dat: veřejný ceník {b.name}, ČNB. Poplatky, ochranu prostředků a zdanění
+          dividend jsme naposledy ručně ověřili{' '}
+          <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>. Ceníky
+          kontrolujeme jednou měsíčně, broker je ale může změnit kdykoli – před založením
+          účtu si podmínky ověřte i na jeho webu.
+        </p>
 
         <InvestmentDisclaimer variant="box" />
       </main>

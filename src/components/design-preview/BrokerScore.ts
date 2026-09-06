@@ -14,7 +14,7 @@ export type ScoreRow = {
 };
 
 export const degiroScores: ScoreRow[] = [
-  { label: 'Poplatky za ETF', score: 86, weight: 0.25, note: 'Core Selection 1 EUR, ostatní 3 EUR – levné pro dlouhodobé nákupy.' },
+  { label: 'Poplatky za ETF', score: 86, weight: 0.25, note: 'ETF Selection 1 EUR, ostatní 3 EUR – levné pro dlouhodobé nákupy.' },
   { label: 'Regulace a ochrana', score: 90, weight: 0.20, note: 'Banka flatexDEGIRO pod BaFin (DE) a DNB/AFM (NL), ochrana 100 000 EUR.' },
   { label: 'Nabídka a platforma', score: 84, weight: 0.20, note: '3000+ ETF, 31 burz, WebTrader a aplikace; chybí demo účet.' },
   { label: 'Čeština a podpora', score: 68, weight: 0.15, note: 'Částečná čeština, podpora jen 9–17 v pracovní dny (ne 24/7).' },

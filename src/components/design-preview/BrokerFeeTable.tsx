@@ -6,8 +6,8 @@ type FeeRow = { type: string; fee: string; note: string };
 
 const rows: FeeRow[] = [
   { type: 'Vklad / výběr (CZK)', fee: 'Zdarma', note: 'Bankovním převodem v korunách, bez minima.' },
-  { type: 'ETF z Core Selection', fee: '1 EUR', note: '~200+ zvýhodněných ETF s nižším manipulačním poplatkem.' },
-  { type: 'ETF mimo Core Selection', fee: '3 EUR', note: 'Ostatní ETF – jednorázový manipulační poplatek za pokyn.' },
+  { type: 'ETF ze seznamu ETF Selection', fee: '1 EUR', note: '~200+ zvýhodněných ETF s nižším manipulačním poplatkem.' },
+  { type: 'ETF mimo tento seznam', fee: '3 EUR', note: 'Ostatní ETF – jednorázový manipulační poplatek za pokyn.' },
   { type: 'Americké akcie', fee: '1 EUR + 1 USD', note: 'Manipulační poplatek a poplatek za zpracování.' },
   { type: 'Evropské akcie', fee: '~2–3 EUR', note: 'Podle burzy (3,90 EUR pro hlavní evropské burzy).' },
   { type: 'České akcie (BCPP)', fee: '~3 EUR', note: 'Plus 35% srážka z dividend – viz sekce o daních.' },

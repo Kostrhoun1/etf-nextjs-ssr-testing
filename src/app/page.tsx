@@ -78,7 +78,7 @@ const BROKER_PICK: { id: string; forWhom: string }[] = [
   { id: 'xtb', forWhom: 'Akcie i ETF bez poplatku, česká podpora 24/7.' },
   { id: 'trading212', forWhom: 'Nulové poplatky a frakční ETF pro malé částky.' },
   { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.' },
-  { id: 'degiro', forWhom: 'Levné nákupy z Core Selection pro buy-and-hold.' },
+  { id: 'degiro', forWhom: 'Levné nákupy ze seznamu ETF Selection pro buy-and-hold.' },
   { id: 'fio', forWhom: 'Český broker, dividendy z ČR akcií jen 15 %.' },
 ];
 const HOME_BROKERS = BROKER_PICK

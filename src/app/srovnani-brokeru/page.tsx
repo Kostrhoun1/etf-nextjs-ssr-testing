@@ -13,6 +13,7 @@ import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruCl
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { brokers } from '@/data/brokerData';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
+import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
 
 export const revalidate = 86400;
 
@@ -106,7 +107,6 @@ export default async function SrovnaniBrokeruPage() {
   const modified = firstOfMonth.toISOString();
   const etfCount = await getTotalETFCount();
   const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
-  const dateStr = firstOfMonth.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -190,7 +190,7 @@ export default async function SrovnaniBrokeruPage() {
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
             <span>6 brokerů</span>
             <span aria-hidden>·</span>
-            <span>aktualizováno {dateStr}</span>
+            <span>ceníky ověřeny {editorialCheckDateStr}</span>
             <span aria-hidden>·</span>
             <span>redakční skóre /100</span>
           </p>
@@ -314,6 +314,13 @@ export default async function SrovnaniBrokeruPage() {
               Není to placené pořadí a čísla neurčuje žádný broker.
             </span>
           </div>
+          <p className="mt-3 text-xs text-slate-400">
+            Zdroj dat: veřejné ceníky brokerů, ČNB. Poplatky, ochranu prostředků a zdanění
+            dividend jsme naposledy ručně ověřili{' '}
+            <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>. Ceníky
+            kontrolujeme jednou měsíčně, brokeři je ale mohou změnit kdykoli – před
+            založením účtu si podmínky ověřte i na webu brokera.
+          </p>
         </section>
 
         {/* Disclaimer na úplný konec */}
