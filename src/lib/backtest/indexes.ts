@@ -121,6 +121,7 @@ export const INDEXES: IndexDef[] = [
     note: 'Zdroj Russell 2000 (USA).',
     proxyEtf: { isin: 'IE000LRGEN55', name: 'Vanguard Russell 2000 US Small-Cap', ter: 0.002 } },
   { code: 'us_dividend', ticker: 'VYM', currency: 'USD', name: 'Dividendové akcie – US', group: 'factor', since: '2006-11-16',
+    proxyEtf: { isin: 'IE000V04SL39', name: 'Xtrackers MSCI USA High Dividend (nejbližší)', ter: 0.0025 },
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj FTSE High Dividend Yield (USA). Evropský ETF na přesně tento index neexistuje — nejblíž je US high-dividend s jinou metodikou.' },
   { code: 'us_min_vol', ticker: 'USMV', currency: 'USD', name: 'Minimální volatilita – US', group: 'factor', since: '2011-10-20',

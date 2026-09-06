@@ -64,7 +64,11 @@ function WeightList({ e, prefix, n }: { e: ComparisonETF; prefix: string; n: num
   );
 }
 
-type Row = { label: string; cell: (e: ComparisonETF) => React.ReactNode; best?: (e: ComparisonETF) => boolean; top?: boolean };
+/* `omit` = řádek, pro který nemá ANI JEDEN porovnávaný fond hodnotu. Takový řádek
+   se nevykresluje: sloupec plný pomlček nevypadá jako chybějící údaj, ale jako
+   rozbitý nástroj. Týká se hlavně bety, korelace a tracking erroru, které máme
+   ve zlomku záznamů (beta 0 z 5 064, tracking error 258). */
+type Row = { label: string; cell: (e: ComparisonETF) => React.ReactNode; best?: (e: ComparisonETF) => boolean; top?: boolean; omit?: boolean };
 type Section = { title: string; rows: Row[] };
 
 export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
@@ -78,9 +82,13 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
 
   const perf = (period: string, label: string, best?: boolean): Row => ({
     label, cell: (e) => <Perf v={ret(e, period)} />, best: best ? (e) => ret(e, '1y') === bestR1 && bestR1 !== -Infinity : undefined,
+    /* Týká se hlavně starších kalendářních roků – `return_2021` má v DB jen 5 záznamů,
+       takže řádek „Rok 2021" byl u drtivé většiny porovnání jen trojice pomlček. */
+    omit: etfs.every((e) => ret(e, period) == null),
   });
   const riskRow = (label: string, key: string, suffix = ' %'): Row => ({
     label, cell: (e) => { const v = num(raw(e)[key]); return v == null ? <span className="text-slate-400">—</span> : <span className="tabular-nums text-slate-700">{v.toLocaleString('cs-CZ', { maximumFractionDigits: 2 })}{suffix}</span>; },
+    omit: etfs.every((e) => num(raw(e)[key]) == null),
   });
 
   const sections: Section[] = [
@@ -88,6 +96,9 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
       title: 'Základní informace',
       rows: [
         { label: 'Ticker', cell: (e) => <span className="font-semibold text-slate-800">{e.primary_ticker ?? '—'}</span> },
+        /* ISIN je jediný identifikátor, podle kterého se zadává pokyn u brokera –
+           musí být vidět vždy, i když má fond ticker. */
+        { label: 'ISIN', cell: (e) => <span className="font-mono text-xs text-slate-700">{e.isin}</span> },
         { label: 'Poskytovatel', cell: (e) => str(e.fund_provider) ?? '—' },
         { label: 'Sledovaný index', cell: (e) => str(e.index_name) ?? '—' },
         { label: 'Zaměření', cell: (e) => str(raw(e).investment_focus) ?? str(e.region) ?? '—' },
@@ -157,6 +168,11 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
     },
   ];
 
+  /* Vyhodit prázdné řádky a sekce, které tím zůstaly bez obsahu. */
+  const visibleSections = sections
+    .map((s) => ({ ...s, rows: s.rows.filter((r) => !r.omit) }))
+    .filter((s) => s.rows.length > 0);
+
   const colW = etfs.length + 1;
 
   return (
@@ -174,13 +190,13 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
               {etfs.map((e) => (
                 <th key={e.isin} className="py-3 px-2.5 sm:px-4 text-left align-top bg-slate-50">
                   <Link href={`/etf/${e.isin}`} className="font-semibold text-teal-700 hover:text-teal-800 leading-tight block">{e.name.length > 32 ? e.name.slice(0, 32) + '…' : e.name}</Link>
-                  <span className="text-xs text-slate-400 font-normal">{e.primary_ticker ?? e.isin}</span>
+                  <span className="text-xs text-slate-400 font-normal">{e.primary_ticker ? `${e.primary_ticker} · ${e.isin}` : e.isin}</span>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {sections.map((sec) => (
+            {visibleSections.map((sec) => (
               <React.Fragment key={sec.title}>
                 <tr>
                   <td colSpan={colW} className="bg-slate-100/70 px-2.5 sm:px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{sec.title}</td>
@@ -209,7 +225,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
             </Link>
           ))}
         </div>
-        {sections.map((sec) => (
+        {visibleSections.map((sec) => (
           <div key={sec.title}>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">{sec.title}</h3>
             <div className="space-y-2">

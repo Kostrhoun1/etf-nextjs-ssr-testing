@@ -21,40 +21,74 @@ import InfoTip from '@/components/design-preview/InfoTip';
  * používáme lokální přepínač měny – do API se posílá stejně.
  */
 
+import { INDEX_BY_CODE, type IndexDef } from '@/lib/backtest/indexes';
+
 type Currency = 'EUR' | 'CZK' | 'USD';
 type ContributionFrequency = 'none' | 'monthly' | 'quarterly' | 'yearly';
 
-// === Nabídka indexů – 1:1 z originálu (data uložená v EUR) ===
-const AVAILABLE_INDEXES = [
-  // „od RRRR" = začátek denních dat v naší DB (viz index_historical_data) – drženo u VŠECH indexů.
-  { indexCode: 'sp500', name: 'S&P 500 (od 1993)', category: 'Akcie', isin: 'IE00B5BMR087', etfName: 'iShares Core S&P 500', ter: 0.0007 },
-  { indexCode: 'us_total_market', name: 'US Total Stock Market (od 2001)', category: 'Akcie', isin: 'IE00B3XXRP09', etfName: 'Vanguard Total Stock Market', ter: 0.0003 },
-  { indexCode: 'msci_eafe', name: 'MSCI EAFE – vyspělé mimo USA (od 2001)', category: 'Akcie', isin: 'IE00B4L5Y983', etfName: 'iShares MSCI EAFE', ter: 0.002 },
-  { indexCode: 'world_ex_us', name: 'Svět mimo USA – vyspělé + EM (od 1996)', category: 'Akcie', isin: 'US9219097683', etfName: 'Vanguard Total International Stock', ter: 0.0008 },
-  { indexCode: 'ftse_europe', name: 'FTSE Europe (od 2005)', category: 'Akcie', isin: 'IE00B945VV12', etfName: 'Vanguard FTSE Developed Europe', ter: 0.001 },
-  { indexCode: 'msci_em', name: 'MSCI Emerging Markets (od 2003)', category: 'Akcie', isin: 'IE00BKM4GZ66', etfName: 'iShares Core MSCI EM', ter: 0.0018 },
-  { indexCode: 'ftse_all_world', name: 'FTSE All-World (od 2008)', category: 'Akcie', isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World', ter: 0.0022 },
-  { indexCode: 'eur_govt_bond', name: 'EUR vládní dluhopisy (od 2009)', category: 'Dluhopisy EUR', isin: 'IE00B4WXJJ64', etfName: 'iShares Core EUR Govt Bond', ter: 0.0007 },
-  { indexCode: 'eur_govt_bond_1_3y', name: 'EUR vládní dluhopisy 1–3 roky (od 2008)', category: 'Dluhopisy EUR', isin: 'IE00B14X4Q57', etfName: 'iShares EUR Govt Bond 1-3yr', ter: 0.002 },
-  { indexCode: 'eur_govt_bond_3_7y', name: 'EUR vládní dluhopisy 3–7 let (od 2009)', category: 'Dluhopisy EUR', isin: 'IE00B3VTML14', etfName: 'iShares EUR Govt Bond 3-7yr', ter: 0.002 },
-  { indexCode: 'eur_govt_bond_15_30y', name: 'EUR vládní dluhopisy 15–30 let (od 2008)', category: 'Dluhopisy EUR', isin: 'IE00B1FZS913', etfName: 'iShares EUR Govt Bond 15-30yr', ter: 0.002 },
-  { indexCode: 'eur_corp_bond', name: 'EUR firemní dluhopisy (od 2009)', category: 'Dluhopisy EUR', isin: 'IE00B3F81R35', etfName: 'iShares Core EUR Corp Bond', ter: 0.002 },
-  { indexCode: 'us_treasury_1_3y', name: 'US státní dluhopisy 1–3 roky (od 2002)', category: 'Dluhopisy USD', isin: 'IE00BYXPSP02', etfName: 'iShares USD Treasury Bond 1-3yr', ter: 0.0007 },
-  { indexCode: 'us_treasury_7_10y', name: 'US státní dluhopisy 7–10 let (od 2002)', category: 'Dluhopisy USD', isin: 'IE00B3VWN518', etfName: 'iShares USD Treasury Bond 7-10yr', ter: 0.0007 },
-  { indexCode: 'us_treasury_20y', name: 'US státní dluhopisy 20+ let (od 2002)', category: 'Dluhopisy USD', isin: 'IE00BSKRJZ44', etfName: 'iShares USD Treasury Bond 20+yr', ter: 0.0007 },
-  { indexCode: 'us_aggregate_bond', name: 'US agregátní dluhopisy (od 2003)', category: 'Dluhopisy USD', isin: 'IE00BYXYYM63', etfName: 'iShares US Aggregate Bond', ter: 0.0025 },
-  { indexCode: 'us_corp_bond_ig', name: 'US firemní dluhopisy IG (od 2002)', category: 'Dluhopisy USD', isin: 'IE00BYXYYL56', etfName: 'iShares USD Corporate Bond', ter: 0.002 },
-  // Faktory jsou AMERICKÉ (Russell / MSCI USA) → i proxy ETF je US, ne World. Ověřeno z DB 16.7.2026.
-  { indexCode: 'us_value', name: 'Value – US, hodnotové akcie (od 2000)', category: 'Akcie – faktory', isin: 'IE000US24HF4', etfName: 'Vanguard Russell 1000 US Value', ter: 0.0016 },
-  { indexCode: 'us_growth', name: 'Growth – US, růstové akcie (od 2000)', category: 'Akcie – faktory', isin: 'IE000NITTFF2', etfName: 'iShares Russell 1000 Growth', ter: 0.0018 },
-  { indexCode: 'us_small_cap', name: 'Small cap – US, malé firmy (od 2000)', category: 'Akcie – faktory', isin: 'IE000LRGEN55', etfName: 'Vanguard Russell 2000 US Small-Cap', ter: 0.002 },
-  { indexCode: 'us_dividend', name: 'Dividendové akcie – US (od 2006)', category: 'Akcie – faktory', isin: 'IE000V04SL39', etfName: 'Xtrackers MSCI USA High Dividend (nejbližší)', ter: 0.0025 },
-  { indexCode: 'us_min_vol', name: 'Minimální volatilita – US (od 2011)', category: 'Akcie – faktory', isin: 'IE00BDB7J586', etfName: 'Xtrackers MSCI USA Min Volatility', ter: 0.002 },
-  { indexCode: 'us_momentum', name: 'Momentum – US (reálné ETF od 2013)', category: 'Akcie – faktory', isin: 'IE00BD1F4N50', etfName: 'iShares Edge MSCI USA Momentum Factor', ter: 0.002 },
-  { indexCode: 'us_quality', name: 'Quality – US, kvalitní firmy (reálné ETF od 2013)', category: 'Akcie – faktory', isin: 'IE00BD1F4L37', etfName: 'iShares Edge MSCI USA Quality Factor', ter: 0.002 },
-  { indexCode: 'gold', name: 'Zlato (od 2004)', category: 'Komodity', isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold', ter: 0.0012 },
-  { indexCode: 'commodities', name: 'Komodity – diverzifikované (od 2006)', category: 'Komodity', isin: 'IE00BDFL4P12', etfName: 'iShares Diversified Commodity', ter: 0.0019 },
+/* === Nabídka indexů — ODVOZENÁ Z MANIFESTU ===
+ *
+ * Dřív tu byla druhá natvrdo psaná kopie 26 indexů včetně proxy ETF a TER. Manifest
+ * `src/lib/backtest/indexes.ts` přitom o sobě říká, že je jediná pravda — a měl pravdu
+ * i fakticky: kopie tvrdila u eur_govt_bond_3_7y „od 2009", zatímco v DB data začínají
+ * 2008-01-31. Přesně tenhle typ rozdvojení stál za incidentem 15.7.2026.
+ *
+ * Držíme tu UŽ JEN SEZNAM KÓDŮ a jejich pořadí. Manifest má `inBacktest: true` u 37 indexů,
+ * ale nástroj vědomě nabízí těchto 26 — 11 sektorových indexů sem (zatím) nepatří, proto
+ * se nabídka nesmí odvozovat prostým filtrem `inBacktest`.
+ * Názvy, proxy ETF, TER i „odkdy" se berou z manifestu.
+ */
+const BACKTEST_INDEX_CODES: string[] = [
+  'sp500',
+  'us_total_market',
+  'msci_eafe',
+  'world_ex_us',
+  'ftse_europe',
+  'msci_em',
+  'ftse_all_world',
+  'eur_govt_bond',
+  'eur_govt_bond_1_3y',
+  'eur_govt_bond_3_7y',
+  'eur_govt_bond_15_30y',
+  'eur_corp_bond',
+  'us_treasury_1_3y',
+  'us_treasury_7_10y',
+  'us_treasury_20y',
+  'us_aggregate_bond',
+  'us_corp_bond_ig',
+  'us_value',
+  'us_growth',
+  'us_small_cap',
+  'us_dividend',
+  'us_min_vol',
+  'us_momentum',
+  'us_quality',
+  'gold',
+  'commodities',
 ];
+
+/** Popisek „odkdy": u spliced řad se uvádí až rok reálného ETF, ne začátek dopočtené historie. */
+const sinceLabel = (i: IndexDef) =>
+  i.splicedFrom ? `reálné ETF od ${i.splicedFrom.slice(0, 4)}` : `od ${i.since.slice(0, 4)}`;
+
+const categoryOf = (i: IndexDef) =>
+  i.group === 'bond' ? (i.currency === 'EUR' ? 'Dluhopisy EUR' : 'Dluhopisy USD')
+  : i.group === 'factor' ? 'Akcie – faktory'
+  : i.group === 'commodity' ? 'Komodity'
+  : 'Akcie';
+
+const AVAILABLE_INDEXES = BACKTEST_INDEX_CODES.map((code) => {
+  const i = INDEX_BY_CODE[code];
+  if (!i) throw new Error(`BacktestWidget: index '${code}' není v manifestu indexes.ts`);
+  return {
+    indexCode: i.code,
+    name: `${i.name} (${sinceLabel(i)})`,
+    category: categoryOf(i),
+    isin: i.proxyEtf?.isin ?? '',
+    etfName: i.proxyEtf?.name ?? '',
+    ter: i.proxyEtf?.ter ?? 0,
+  };
+});
 
 // === Hotová portfolia – 1:1 z originálu ===
 const PRESET_PORTFOLIOS = [

@@ -253,7 +253,21 @@ export default async function ETFDetailPreview(
   const ticker = etf.primary_ticker || '—';
   const allTickers = uniqueTickers(etf as unknown as Record<string, unknown>);
   const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  /* DATUM MUSÍ BÝT OD TOHOTO FONDU, ne globální MAX(updated_at) přes celou tabulku.
+     Scraper neprojde každý den všech 5 064 fondů – k 6. 9. 2026 bylo 313 záznamů
+     starších než 30 dní. Globální razítko u nich tvrdilo, že jsou čerstvé, což je
+     přesně ten typ automaticky se posouvajícího data, jaké jsme vyhodili u ceníků
+     brokerů (viz src/lib/editorial-check.ts). Fallback na globální datum jen tehdy,
+     když fond vlastní `updated_at` nemá. */
+  const fundUpdated = (() => {
+    const iso = (etf as unknown as Record<string, unknown>).updated_at;
+    const d = iso ? new Date(String(iso)) : null;
+    return d && !Number.isNaN(d.getTime()) ? d : null;
+  })();
+  const dataDate = fundUpdated ?? (await getDataDate(today));
+  const dateStr = dataDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const staleDays = Math.floor((today.getTime() - dataDate.getTime()) / 864e5);
+  const isStale = staleDays > 30;
 
   // krátký název pro nadpis – odvozený z názvu fondu (ne napevno)
   const shortName = etf.name.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)/, '').trim();
@@ -750,7 +764,7 @@ export default async function ETFDetailPreview(
             {([
               [ShieldCheck, 'Nezávislá data', 'Parametry fondu z justETF a vlastní databáze, bez placeného pořadí.'],
               [BadgeCheck, 'Výnos v korunách', 'Jako jediný srovnávač přepočítáváme výnosy kurzem ČNB do Kč.'],
-              [Database, 'Aktuální čísla', `Data fondu aktualizována ${dateStr}.`],
+              [Database, isStale ? 'Starší data' : 'Aktuální čísla', `Data tohoto fondu aktualizována ${dateStr}${isStale ? ` – před ${staleDays} dny` : ''}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -775,7 +789,7 @@ export default async function ETFDetailPreview(
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400">
               <p className="flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5" /> Zdroje: justETF{etf.fund_provider ? ', ' + etf.fund_provider : ''}, ČNB (kurz USD/CZK). Aktualizováno {dateStr}.
+                <Database className="w-3.5 h-3.5" /> Zdroje: justETF{etf.fund_provider ? ', ' + etf.fund_provider : ''}, ČNB (kurz USD/CZK). Data tohoto fondu aktualizována {dateStr}{isStale ? ` (před ${staleDays} dny)` : ''}.
               </p>
             </div>
           </div>
