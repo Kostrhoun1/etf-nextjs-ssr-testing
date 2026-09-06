@@ -73,6 +73,22 @@ export default async function PortfolioDetailPreview(
   const perf1y = weighted('return_1y_czk');
   const perf3y = weighted('return_3y_czk');
 
+  /* NÁKLADY PORTFOLIA. Vážený TER složek + kolik to dělá v korunách ročně.
+     Samotné „0,18 %" čtenáři nic neřekne; „1 800 Kč ročně z milionu" ano – a je to
+     přesně to číslo, které o strategii rozhoduje víc než odhad výnosu.
+     Pokud některá složka TER v databázi nemá, vážíme jen pokrytou část a řekneme to. */
+  const NAKLADY_PRIKLAD = 1_000_000;
+  const terInfo = (() => {
+    let sum = 0, w = 0;
+    for (const a of model.allocations) {
+      const v = ret[a.isin]?.ter_numeric;
+      if (v != null) { sum += v * a.percentage; w += a.percentage; }
+    }
+    if (w <= 0) return null;
+    const ter = sum / w;
+    return { ter, pokryti: w, uplne: w >= 99.5, korunRocne: Math.round((ter / 100) * NAKLADY_PRIKLAD) };
+  })();
+
   // Kolísavost portfolia: vážený průměr přeceňuje riziko (ignoruje diverzifikaci).
   // Počítáme přes kovarianční vzorec s konzervativní cross-asset korelací 0,3,
   // takže je vidět reálný efekt diverzifikace (nižší vol než u čistě akciového indexu).
@@ -129,6 +145,15 @@ export default async function PortfolioDetailPreview(
       value: model.expectedReturn,
     },
     { icon: ShieldCheck, label: <InfoTip label="Největší historický propad hodnoty od vrcholu ke dnu.">Max. pokles</InfoTip>, value: model.maxDrawdown },
+    ...(terInfo ? [{
+      icon: Wallet,
+      label: (
+        <InfoTip label={`Vážený průměr ročních poplatků (TER) fondů v portfoliu podle jejich vah${terInfo.uplne ? '' : ` – z ${Math.round(terInfo.pokryti)} % portfolia, u zbytku poplatek v databázi nemáme`}. Strhává se průběžně z hodnoty fondu, nikoli fakturou.`}>
+          Roční poplatek
+        </InfoTip>
+      ),
+      value: `${terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`,
+    }] : []),
     { icon: CalendarDays, label: 'Doporučený horizont', value: model.horizon },
     { icon: Layers, label: 'Podíl akcií', value: `${model.stocksPct} %` },
   ];
@@ -223,6 +248,7 @@ export default async function PortfolioDetailPreview(
                   <th className="py-2.5 px-4 font-medium">Fond</th>
                   <th className="py-2.5 px-4 font-medium">Třída</th>
                   <th className="py-2.5 px-4 font-medium text-right">Váha</th>
+                  <th className="py-2.5 px-4 font-medium text-right">TER</th>
                   <th className="py-2.5 px-4 font-medium text-right">Výnos 1R (Kč)</th>
                 </tr>
               </thead>
@@ -240,12 +266,27 @@ export default async function PortfolioDetailPreview(
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-700">{a.percentage} %</td>
+                    <td className="py-3 px-4 text-right tabular-nums text-slate-600">{ret[a.isin]?.ter_numeric != null ? `${ret[a.isin]!.ter_numeric!.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %` : '—'}</td>
                     <td className={`py-3 px-4 text-right tabular-nums font-medium ${(ret[a.isin]?.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ret[a.isin]?.return_1y_czk ?? null)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {terInfo && (
+            <p className="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-3.5 text-sm text-slate-700 leading-relaxed">
+              <span className="font-medium text-slate-900">Kolik portfolio stojí:</span>{' '}
+              vážený roční poplatek je{' '}
+              <span className="font-semibold tabular-nums">{terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</span>
+              {' '}– z investovaného milionu korun tedy{' '}
+              <span className="font-semibold tabular-nums">{terInfo.korunRocne.toLocaleString('cs-CZ')} Kč ročně</span>.
+              {!terInfo.uplne && ` Počítáno z ${Math.round(terInfo.pokryti)} % portfolia – u zbylých fondů poplatek v databázi nemáme.`}
+              {' '}Poplatek se strhává průběžně z hodnoty fondu, žádnou fakturu nedostanete.
+              K tomu připočtěte náklady brokera (poplatek za nákup a případnou měnovou konverzi) –
+              ty se u{' '}
+              <Link href="/kde-koupit" className="text-teal-700 underline underline-offset-2 hover:text-teal-800">jednotlivých brokerů liší</Link>.
+            </p>
+          )}
         </section>
 
         {/* HISTORICKÁ VÝKONNOST – reálný backtest (dlouhodobě + chování v krizích) */}

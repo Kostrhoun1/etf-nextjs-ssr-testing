@@ -8,7 +8,7 @@ import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
 
-type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div';
+type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
 
 const num = (v: number | null | undefined) => (v == null || Number.isNaN(v) ? null : Number(v));
@@ -135,6 +135,9 @@ export default function ScreenerUI({
   const [terMax, setTerMax] = useState<string>('');
   const [sizeMin, setSizeMin] = useState<string>('');
   const [divMin, setDivMin] = useState<string>('');
+  const [domicile, setDomicile] = useState('all');
+  const [provider, setProvider] = useState('all');
+  const [minAge, setMinAge] = useState('all');
   const [advOpen, setAdvOpen] = useState(false);
 
   const [sortKey, setSortKey] = useState<SortKey>('size');
@@ -209,11 +212,14 @@ export default function ScreenerUI({
     if (g('ter')) setTerMax(g('ter')!);
     if (g('minvel')) setSizeMin(g('minvel')!);
     if (g('divmin')) setDivMin(g('divmin')!);
+    if (g('domicil')) setDomicile(g('domicil')!);
+    if (g('poskytovatel')) setProvider(g('poskytovatel')!);
+    if (g('stari')) setMinAge(g('stari')!);
     if (g('sort')) setSortKey(g('sort') as SortKey);
     if (g('smer')) setSortDir(g('smer') as SortDir);
     // Pokročilé filtry rozbalit, když z odkazu nějaký přišel – jinak by nebylo
     // vidět, proč je výsledek zúžený.
-    if (['vyplata','region','replikace','mena','zajisteni','velikost','styl','rating','paka','ter','minvel','divmin'].some((k) => p.get(k))) {
+    if (['vyplata','region','replikace','mena','zajisteni','velikost','styl','rating','paka','ter','minvel','divmin','domicil','poskytovatel','stari'].some((k) => p.get(k))) {
       setAdvOpen(true);
     }
     restored.current = true;
@@ -238,11 +244,14 @@ export default function ScreenerUI({
     put('ter', terMax, '');
     put('minvel', sizeMin, '');
     put('divmin', divMin, '');
+    put('domicil', domicile, 'all');
+    put('poskytovatel', provider, 'all');
+    put('stari', minAge, 'all');
     put('sort', sortKey, 'size');
     put('smer', sortDir, 'desc');
     const qs = p.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [q, category, dist, region, indexName, repl, currency, hedging, sizeCat, factor, minRating, leveraged, terMax, sizeMin, divMin, sortKey, sortDir]);
+  }, [q, category, dist, region, indexName, repl, currency, hedging, sizeCat, factor, minRating, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge, sortKey, sortDir]);
 
   // Odvozená pole už jsou předpočítaná na serveru – jen je přemapujeme do tvaru,
   // který filtr očekává (žádné skenování/regexy přes celou sadu na klientu).
@@ -258,7 +267,9 @@ export default function ScreenerUI({
     })), [rows]);
 
   // Volby filtrů + počty kategorií přicházejí předpočítané ze serveru (nad celou DB).
-  const { regions, currencies, replications, categories, indexGroups } = {
+  const { regions, currencies, replications, categories, indexGroups, domiciles, providers } = {
+    domiciles: options.domiciles,
+    providers: options.providers,
     regions: options.regions,
     currencies: options.currencies,
     replications: options.replications,
@@ -307,9 +318,17 @@ export default function ScreenerUI({
       if (terMaxN != null && num(e.ter_numeric) != null && num(e.ter_numeric)! > terMaxN) return false;
       if (sizeMinN != null && (size == null || size < sizeMinN)) return false;
       if (divMinN != null) { const d = num(e.current_dividend_yield_numeric); if (d == null || d < divMinN) return false; }
+      if (domicile !== 'all' && e._dom !== domicile) return false;
+      if (provider !== 'all' && e.fund_provider !== provider) return false;
+      if (minAge !== 'all') {
+        // Fond bez data vzniku filtr na stáří NEPROJDE – tvrdit „je starší než X let"
+        // bez data by bylo horší než ho vynechat.
+        if (e._year == null) return false;
+        if (new Date().getFullYear() - e._year < Number(minAge)) return false;
+      }
       return true;
     });
-  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, factor, minRating, leveraged, terMax, sizeMin, divMin]);
+  }, [enriched, q, category, dist, region, indexName, repl, currency, hedging, sizeCat, factor, minRating, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge]);
 
   const filtered = useMemo(() => {
     const list = [...filteredRows];
@@ -338,6 +357,7 @@ export default function ScreenerUI({
         case 'r3': return pickReturn(o, '3y', cur);
         case 'r5': return pickReturn(o, '5y', cur);
         case 'div': return num(e.current_dividend_yield_numeric);
+        case 'vol': return num(e.volatility_1y);
       }
     };
     list.sort((A, B) => {
@@ -364,14 +384,16 @@ export default function ScreenerUI({
   const reset = () => {
     setQ(''); setCategory('all'); setDist('all'); setRegion('all'); setIndexName('all');
     setRepl('all'); setCurrency('all'); setHedging('all'); setSizeCat('all'); setFactor('all'); setMinRating(0);
-    setLeveraged(false); setTerMax(''); setSizeMin(''); setDivMin(''); setShown(PAGE);
+    setLeveraged(false); setTerMax(''); setSizeMin(''); setDivMin('');
+    setDomicile('all'); setProvider('all'); setMinAge('all'); setShown(PAGE);
   };
   // Kategorie je samostatný tab, do odznaku „Pokročilé filtry“ ji nepočítáme.
   const activeCount =
     (dist !== 'all' ? 1 : 0) + (region !== 'all' ? 1 : 0) +
     (indexName !== 'all' ? 1 : 0) + (repl !== 'all' ? 1 : 0) + (currency !== 'all' ? 1 : 0) +
     (hedging !== 'all' ? 1 : 0) + (sizeCat !== 'all' ? 1 : 0) + (factor !== 'all' ? 1 : 0) + (minRating > 0 ? 1 : 0) +
-    (leveraged ? 1 : 0) + (terMax !== '' ? 1 : 0) + (sizeMin !== '' ? 1 : 0) + (divMin !== '' ? 1 : 0);
+    (leveraged ? 1 : 0) + (terMax !== '' ? 1 : 0) + (sizeMin !== '' ? 1 : 0) + (divMin !== '' ? 1 : 0) +
+    (domicile !== 'all' ? 1 : 0) + (provider !== 'all' ? 1 : 0) + (minAge !== 'all' ? 1 : 0);
   const anyFilter = activeCount > 0 || q !== '' || category !== 'all';
 
   /* ────────────────────────────────────────────────────────────────────────
@@ -402,6 +424,9 @@ export default function ScreenerUI({
       terMax && `TER max: ${terMax} %`,
       sizeMin && `min. velikost: ${sizeMin} mil. EUR`,
       divMin && `min. div. výnos: ${divMin} %`,
+      domicile !== 'all' && `domicil: ${domicile}`,
+      provider !== 'all' && `poskytovatel: ${provider}`,
+      minAge !== 'all' && `min. stáří: ${minAge} let`,
     ].filter(Boolean).join(', ') || 'žádné (celá databáze)';
 
     const hlavicka = [
@@ -414,16 +439,18 @@ export default function ScreenerUI({
       '',
     ];
 
-    const sloupce = ['Název','ISIN','Ticker','Kategorie','Region','Sledovaný index','TER (%)','Velikost (mil. EUR)','Měna fondu','Typ výplaty','Replikace','Div. výnos (%)',`YTD (${curLabel[cur]}, %)`,`1 rok (${curLabel[cur]}, %)`,`3 roky (${curLabel[cur]}, %)`,'Hodnocení','Páka'];
+    const sloupce = ['Název','ISIN','Ticker','Poskytovatel','Kategorie','Region','Sledovaný index','Domicil','Rok vzniku','TER (%)','Velikost (mil. EUR)','Měna fondu','Typ výplaty','Replikace','Div. výnos (%)',`YTD (${curLabel[cur]}, %)`,`1 rok (${curLabel[cur]}, %)`,`3 roky (${curLabel[cur]}, %)`,`5 let (${curLabel[cur]}, %)`,'Volatilita 1r (%)','Hodnocení','Páka'];
 
     const radky = filtered.map(({ e, region: reg, indexLabel, ratingVal }) => {
       const o = e as unknown as Record<string, unknown>;
       return [
-        e.name, e.isin, e.primary_ticker ?? '', e.category ?? '', reg ?? '', indexLabel ?? '',
+        e.name, e.isin, e.primary_ticker ?? '', e.fund_provider ?? '', e.category ?? '', reg ?? '', indexLabel ?? '',
+        e._dom ?? '', e._year != null ? String(e._year) : '',
         dec(num(e.ter_numeric)), dec(num(e.fund_size_numeric), 0), e.fund_currency ?? '',
         distTxt[distKind(e.distribution_policy)], e._repl ?? '',
         dec(num(e.current_dividend_yield_numeric)),
         dec(pickReturn(o, 'ytd', cur), 1), dec(pickReturn(o, '1y', cur), 1), dec(pickReturn(o, '3y', cur), 1),
+        dec(pickReturn(o, '5y', cur), 1), dec(num(e.volatility_1y), 1),
         ratingVal != null ? String(ratingVal) : '', e.is_leveraged ? 'ano' : '',
       ].map((v) => q2(String(v))).join(';');
     });
@@ -527,6 +554,27 @@ export default function ScreenerUI({
                 {replications.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
             </Field>
+            <Field label="Domicil fondu">
+              <select aria-label="Domicil fondu" value={domicile} onChange={bump(setDomicile)} className={selCls}>
+                <option value="all">Všechny domicily</option>
+                {domiciles.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </Field>
+            <Field label="Poskytovatel">
+              <select aria-label="Poskytovatel fondu" value={provider} onChange={bump(setProvider)} className={selCls}>
+                <option value="all">Všichni poskytovatelé</option>
+                {providers.map((v) => <option key={v} value={v}>{v}</option>)}
+              </select>
+            </Field>
+            <Field label="Minimální stáří fondu">
+              <select aria-label="Minimální stáří fondu" value={minAge} onChange={bump(setMinAge)} className={selCls}>
+                <option value="all">Bez omezení</option>
+                <option value="3">3 roky a více</option>
+                <option value="5">5 let a více</option>
+                <option value="10">10 let a více</option>
+                <option value="15">15 let a více</option>
+              </select>
+            </Field>
             <Field label="Měna fondu">
               <select aria-label="Měna fondu" value={currency} onChange={bump(setCurrency)} className={selCls}>
                 <option value="all">Všechny měny</option>
@@ -602,7 +650,7 @@ export default function ScreenerUI({
 
       {/* TABULKA – desktop */}
       <div className="mt-3 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto">
-        <table className="w-full min-w-[52rem] text-sm">
+        <table className="w-full min-w-[64rem] text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
               <SortH k="name" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Fond</SortH>
@@ -611,6 +659,8 @@ export default function ScreenerUI({
               <SortH k="ytd" right tip="YTD (Year To Date) = výnos od začátku letošního roku, přepočtený do zvolené měny." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>YTD ({curLabel[cur]})</SortH>
               <SortH k="r1" right tip="Výnos za poslední 1 rok (kumulativně), přepočtený do zvolené měny." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>1R ({curLabel[cur]})</SortH>
               <SortH k="r3" right tip="Výnos za poslední 3 roky (kumulativně, ne ročně), přepočtený do zvolené měny." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>3R ({curLabel[cur]})</SortH>
+              <SortH k="r5" right tip="Výnos za posledních 5 let (kumulativně, ne ročně), přepočtený do zvolené měny. Pětiletý horizont řekne o fondu víc než jeden rok." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>5L ({curLabel[cur]})</SortH>
+              <SortH k="vol" right tip="Volatilita za 1 rok = jak moc cena fondu kolísala. Vyšší číslo znamená divočejší průběh, ne nutně horší fond." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Kolísavost</SortH>
               <SortH k="div" right tip="Dividendový výnos = roční dividenda vůči ceně fondu v procentech. U akumulačních fondů se dividendy reinvestují uvnitř." sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Div.</SortH>
               <th className="py-2.5 px-3 font-medium text-center" title="Typ výplaty: ACC (akumulační) = dividendy se reinvestují uvnitř fondu. DIST (distribuční) = dividendy se vyplácejí na účet.">Typ</th>
               <th className="py-2.5 px-3 font-medium text-center"><span className="sr-only">Porovnat</span></th>
@@ -631,10 +681,12 @@ export default function ScreenerUI({
                 </td>
                 <td className="py-3 px-3 text-right tabular-nums font-medium text-slate-800">{ter(num(e.ter_numeric))}</td>
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{money(num(e.fund_size_numeric), e.fund_currency)}</td>
-                {(() => { const o = e as unknown as Record<string, unknown>; const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur); return (<>
+                {(() => { const o = e as unknown as Record<string, unknown>; const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur), r5 = pickReturn(o, '5y', cur), vol = num(e.volatility_1y); return (<>
                 <td className={`py-3 px-3 text-right tabular-nums ${(ytd ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ytd)}</td>
                 <td className={`py-3 px-3 text-right tabular-nums font-medium ${(r1 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r1)}</td>
                 <td className={`py-3 px-3 text-right tabular-nums ${(r3 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r3)}</td>
+                <td className={`py-3 px-3 text-right tabular-nums ${(r5 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r5)}</td>
+                <td className="py-3 px-3 text-right tabular-nums text-slate-600">{vol == null ? '—' : `${vol.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %`}</td>
                 </>); })()}
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{e.current_dividend_yield_numeric != null ? `${Number(e.current_dividend_yield_numeric).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}</td>
                 <td className="py-3 px-3 text-center">

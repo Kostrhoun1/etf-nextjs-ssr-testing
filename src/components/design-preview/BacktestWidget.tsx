@@ -22,6 +22,7 @@ import InfoTip from '@/components/design-preview/InfoTip';
  */
 
 import { INDEX_BY_CODE, type IndexDef } from '@/lib/backtest/indexes';
+import type { RebalancingStrategy } from '@/lib/backtest/types';
 
 type Currency = 'EUR' | 'CZK' | 'USD';
 type ContributionFrequency = 'none' | 'monthly' | 'quarterly' | 'yearly';
@@ -230,6 +231,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const [activePreset, setActivePreset] = useState<string | null>(defaultPreset ?? 'sp500-100');
   const [activeStyle, setActiveStyle] = useState<string | null>(null);
   const [editComposition, setEditComposition] = useState(false);
+  /* Engine i API rebalancování umí devět strategií, ale widget dosud natvrdo posílal
+     'yearly' – volba nešla nikde nastavit. Přitom to, jak často se portfolio vrací
+     k cílovým vahám, výsledkem znatelně hýbe. */
+  const [rebalancing, setRebalancing] = useState<RebalancingStrategy>('yearly');
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
   // Vážený roční poplatek portfolia (TER) – kolik ročně stojí držení celého portfolia.
@@ -318,7 +323,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             portfolio, startDate: start, endDate, initialAmount,
-            rebalancingStrategy: 'yearly', currency: cur, contributions,
+            rebalancingStrategy: rebalancing, currency: cur, contributions,
           }),
         });
         if (!response.ok) {
@@ -420,6 +425,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     if (mena === 'CZK' || mena === 'EUR' || mena === 'USD') setCurrency(mena);
     const freq = p.get('freq');
     if (freq === 'none' || freq === 'monthly' || freq === 'quarterly' || freq === 'yearly') setContributionFrequency(freq);
+    const vyv = p.get('vyvazovani');
+    if (vyv) setRebalancing(vyv as RebalancingStrategy);
     const vklad = p.get('vklad');
     if (vklad && /^\d+$/.test(vklad)) setContributionAmount(parseInt(vklad, 10));
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
@@ -451,9 +458,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     if (contributionFrequency !== 'monthly') p.set('freq', contributionFrequency);
     if (contributionAmount !== 5000) p.set('vklad', String(contributionAmount));
     if (currency !== 'CZK') p.set('mena', currency);
+    if (rebalancing !== 'yearly') p.set('vyvazovani', rebalancing);
     const qs = p.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}${window.location.hash}` : window.location.pathname + window.location.hash);
-  }, [activeStyle, activePreset, selectedETFs, startDate, endDate, initialAmount, contributionFrequency, contributionAmount, currency]);
+  }, [activeStyle, activePreset, selectedETFs, startDate, endDate, initialAmount, contributionFrequency, contributionAmount, currency, rebalancing]);
 
   const availableToAdd = AVAILABLE_INDEXES.filter((i) => !selectedETFs.some((e) => e.indexCode === i.indexCode));
 
@@ -709,6 +717,29 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 <input id="bt-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
                   className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
               </div>
+            </div>
+
+            {/* Vyvažování */}
+            <div>
+              <label htmlFor="bt-rebal" className="block text-sm text-slate-600 mb-1 flex items-center gap-1">
+                Vyvažování portfolia
+                <InfoTip label="Jak často se portfolio vrací k zadaným vahám. Časté vyvažování drží riziko na uzdě, ale v reálu znamená víc obchodů (poplatky) a u zdaněného účtu i dřívější realizaci zisků – backtest ani jedno nezapočítává. Pásmo 5 % vyvažuje jen tehdy, když se některá složka od cíle odchýlí o víc než 5 procentních bodů.">
+                  <span className="sr-only">vysvětlení</span>
+                </InfoTip>
+              </label>
+              <select id="bt-rebal" value={rebalancing} onChange={(e) => setRebalancing(e.target.value as RebalancingStrategy)}
+                className="w-full sm:w-auto min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none">
+                <option value="yearly">Jednou ročně (výchozí)</option>
+                <option value="none">Vůbec (nechat běžet)</option>
+                <option value="monthly">Měsíčně</option>
+                <option value="quarterly">Čtvrtletně</option>
+                <option value="half-yearly">Pololetně</option>
+                <option value="every-2-years">Jednou za 2 roky</option>
+                <option value="every-3-years">Jednou za 3 roky</option>
+                <option value="tolerance-5">Při odchylce nad 5 %</option>
+                <option value="tolerance-10">Při odchylce nad 10 %</option>
+                <option value="tolerance-20">Při odchylce nad 20 %</option>
+              </select>
             </div>
 
             {/* Měna */}

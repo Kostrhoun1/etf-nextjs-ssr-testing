@@ -449,6 +449,10 @@ export async function getReturnsByIsins(
  * Pro srovnání modelových portfolií se 100% akciovým benchmarkem (S&P 500).
  */
 export type IsinMetrics = {
+  /** Roční poplatek fondu. Bez něj nešlo u modelových portfolií spočítat, kolik
+   *  strategie ročně stojí – přitom je to první otázka, kterou si čtenář položí. */
+  ter_numeric: number | null;
+  name: string | null;
   return_1y_czk: number | null;
   return_3y_czk: number | null;
   volatility_1y: number | null;
@@ -461,13 +465,15 @@ export async function getMetricsByIsins(
   try {
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('isin, return_1y_czk, return_3y_czk, volatility_1y, max_drawdown_1y, max_drawdown_inception')
+      .select('isin, ter_numeric, name, return_1y_czk, return_3y_czk, volatility_1y, max_drawdown_1y, max_drawdown_inception')
       .in('isin', isins);
     if (error || !data) return {};
     const num = (v: unknown) => (v != null ? Number(v) : null);
     const map: Record<string, IsinMetrics> = {};
     for (const row of data as Array<Record<string, unknown>>) {
       map[row.isin as string] = {
+        ter_numeric: num(row.ter_numeric),
+        name: (row.name as string) ?? null,
         return_1y_czk: num(row.return_1y_czk),
         return_3y_czk: num(row.return_3y_czk),
         volatility_1y: num(row.volatility_1y),
@@ -697,6 +703,7 @@ export interface ScreenerETF {
   is_leveraged: boolean | null;
   rating: number | null;
   inception_date: string | null;
+  fund_domicile: string | null;
 }
 
 const SCREENER_COLUMNS = `
@@ -709,7 +716,7 @@ const SCREENER_COLUMNS = `
   return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
   volatility_1y, current_dividend_yield_numeric,
   distribution_policy, replication, index_name, region, investment_focus,
-  fund_currency, currency_risk, category, is_leveraged, rating, inception_date
+  fund_currency, currency_risk, category, is_leveraged, rating, inception_date, fund_domicile
 `;
 
 /**
@@ -769,6 +776,9 @@ export interface ScreenerRow {
   return_ytd: number | null; return_ytd_czk: number | null; return_ytd_usd: number | null;
   return_1y: number | null; return_1y_czk: number | null; return_1y_usd: number | null;
   return_3y: number | null; return_3y_czk: number | null; return_3y_usd: number | null;
+  return_5y: number | null; return_5y_czk: number | null; return_5y_usd: number | null;
+  volatility_1y: number | null;
+  fund_provider: string | null;
   // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
   _region: string | null;
   _hedge: string;   // hedgingType
@@ -777,9 +787,15 @@ export interface ScreenerRow {
   _repl: string;    // 'Fyzická' | 'Syntetická' | '—'
   _blob: string;    // fulltext (name/isin/provider/tickery), lowercase
   _tickers: string[]; // všechny tickery lowercase (pro relevanci hledání)
+  _dom: string | null;   // domicil už počeštěný (je zároveň hodnotou filtru)
+  /** Rok vzniku fondu. `inception_date` je v DB anglický TEXT („8 April 2011"), takže
+   *  se podle něj nedalo řadit. Parsujeme jednou na serveru a posíláme číslo. */
+  _year: number | null;
 }
 
 export interface ScreenerOptions {
+  domiciles: string[];
+  providers: string[];
   regions: string[];
   indexGroups: IndexOptionGroup[];
   currencies: string[];
@@ -794,6 +810,29 @@ function replLabelSrv(r: string | null): string {
   if (s.includes('synth') || s.includes('swap')) return 'Syntetická';
   if (s.includes('physical') || s.includes('full') || s.includes('sampl') || s.includes('optim')) return 'Fyzická';
   return r || '—';
+}
+
+/** Počeštěný domicil. Hodnota slouží zároveň jako hodnota filtru, ať se nemusí
+ *  překládat na dvou místech. */
+const DOM_CS: Record<string, string> = {
+  Ireland: 'Irsko', Luxembourg: 'Lucembursko', Germany: 'Německo', France: 'Francie',
+  Jersey: 'Jersey', Netherlands: 'Nizozemsko', Switzerland: 'Švýcarsko',
+  'United Kingdom': 'Spojené království', Liechtenstein: 'Lichtenštejnsko',
+  Bulgaria: 'Bulharsko', Austria: 'Rakousko', Sweden: 'Švédsko', Italy: 'Itálie', Spain: 'Španělsko',
+};
+function domLabelSrv(d: string | null): string | null {
+  if (!d) return null;
+  return DOM_CS[d] ?? d;
+}
+
+/** Rok vzniku z textového `inception_date` („8 April 2011"). Vrací null, když se
+ *  datum nepodaří přečíst – radši prázdno než smyšlený rok. */
+function inceptionYear(v: string | null): number | null {
+  if (!v) return null;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  return y >= 1970 && y <= new Date().getFullYear() + 1 ? y : null;
 }
 
 const CATEGORY_ORDER = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto'];
@@ -833,6 +872,11 @@ export const getScreenerRows = reactCache(async (): Promise<{
       return_ytd: e.return_ytd, return_ytd_czk: e.return_ytd_czk, return_ytd_usd: e.return_ytd_usd,
       return_1y: e.return_1y, return_1y_czk: e.return_1y_czk, return_1y_usd: e.return_1y_usd,
       return_3y: e.return_3y, return_3y_czk: e.return_3y_czk, return_3y_usd: e.return_3y_usd,
+      return_5y: e.return_5y, return_5y_czk: e.return_5y_czk, return_5y_usd: e.return_5y_usd,
+      volatility_1y: e.volatility_1y,
+      fund_provider: e.fund_provider,
+      _dom: domLabelSrv(e.fund_domicile),
+      _year: inceptionYear(e.inception_date),
       _region: classifyRegion(e),
       _hedge: detectHedging(e.name, e.currency_risk ?? undefined).hedgingType,
       _index: canonicalIndexLabel(e.index_name),
@@ -855,7 +899,18 @@ export const getScreenerRows = reactCache(async (): Promise<{
   const replSet = new Set<string>();
   for (const e of raw) { const l = replLabelSrv(e.replication); if (l !== '—') replSet.add(l); }
 
+  const domSet = new Set<string>();
+  for (const e of raw) { const l = domLabelSrv(e.fund_domicile); if (l) domSet.add(l); }
+  const provSet = new Set<string>();
+  for (const e of raw) { const v = (e.fund_provider ?? '').trim(); if (v) provSet.add(v); }
+
   const options: ScreenerOptions = {
+    // Irsko a Lucembursko drží drtivou většinu fondů → nahoru, zbytek abecedně.
+    domiciles: [...domSet].sort((a, b) => {
+      const rank = (x: string) => (x === 'Irsko' ? 0 : x === 'Lucembursko' ? 1 : 2);
+      return rank(a) - rank(b) || a.localeCompare(b, 'cs');
+    }),
+    providers: [...provSet].sort((a, b) => a.localeCompare(b, 'cs')),
     regions: buildRegionOptions(raw),
     indexGroups: buildIndexOptions(raw).groups,
     currencies: [...new Set(raw.map((e) => e.fund_currency).filter(Boolean))].sort() as string[],
