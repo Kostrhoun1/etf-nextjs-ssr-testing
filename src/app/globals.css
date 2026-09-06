@@ -203,3 +203,53 @@
     font-size: 12px;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TISK / ULOŽENÍ DO PDF.
+   Poradce i běžný čtenář potřebují dostat výstup z obrazovky ven – doteď to nešlo
+   nijak (v repu nebyl žádný export, tiskový styl ani sdílení). Tohle je nejlevnější
+   cesta k listu papíru do klientské složky: Ctrl/Cmd+P → Uložit jako PDF.
+
+   Princip: vypnout ovládací prvky a navigaci (na papíře nefungují), rozbalit
+   posuvné tabulky, srazit barvy na tisknutelné a u odkazů vypsat cíl, aby byl
+   výstup po čase dohledatelný.
+   Prvek, který se nemá tisknout, označ atributem data-print="hide".
+   ──────────────────────────────────────────────────────────────────────────── */
+@media print {
+  /* Barvy pozadí se v tisku standardně zahazují; u odznaků a hlaviček tabulek
+     na nich ale stojí čitelnost. */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  html, body { background: #fff !important; }
+
+  /* Navigace, patička, lišta porovnání a cokoli ručně označené. */
+  header, nav, footer, [data-print='hide'] { display: none !important; }
+
+  /* Ovládací prvky: na papíře jsou to mrtvé obdélníky. Odkazy uvnitř textu
+     necháváme být – ty se tisknou včetně cíle (viz níže). */
+  button, input, select, textarea { display: none !important; }
+
+  /* Sticky prvky se v tisku slepí přes obsah nebo se opakují na každé straně. */
+  .sticky, .fixed { position: static !important; }
+
+  /* Vodorovně posuvné kontejnery (tabulky srovnání, screener) musí na papíře
+     ukázat celý obsah, ne jen výřez. */
+  .overflow-x-auto, .overflow-auto, .overflow-hidden {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  table { width: 100% !important; min-width: 0 !important; font-size: 9pt !important; }
+
+  /* Řádek ani sekce se nemá lámat přes stránky. */
+  tr, li { break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; }
+
+  /* U odkazů vypsat cíl – bez toho je vytištěná stránka nedohledatelná.
+     Vnitřní odkazy (#kotvy) a odkazy bez href se ignorují. */
+  a[href^='http']::after { content: ' (' attr(href) ')'; font-size: 8pt; color: #555; word-break: break-all; }
+
+  /* Zdroj a datum musí být na papíře vidět vždy, i když je na obrazovce v patičce. */
+  [data-print='source'] { display: block !important; margin-top: 8pt; font-size: 8pt; color: #444; }
+
+  @page { margin: 14mm; }
+}

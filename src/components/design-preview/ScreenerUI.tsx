@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star, Loader2 } from 'lucide-react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star, Loader2, Download } from 'lucide-react';
 import type { ScreenerRow, ScreenerOptions } from '@/lib/etf-data';
 import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
@@ -110,12 +110,15 @@ export default function ScreenerUI({
   options,
   initialQ = '',
   initialIndex = '',
+  dataDate = '',
 }: {
   initialRows: ScreenerRow[];
   total: number;
   options: ScreenerOptions;
   initialQ?: string;
   initialIndex?: string;
+  /** Datum dat – jde do hlavičky exportovaného CSV, aby výstup šlo doložit. */
+  dataDate?: string;
 }) {
   const [q, setQ] = useState(initialQ);
   const [category, setCategory] = useState('all');
@@ -179,6 +182,67 @@ export default function ScreenerUI({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialIndex]);
+
+  /* ────────────────────────────────────────────────────────────────────────
+     STAV FILTRŮ V URL.
+     Bez tohohle nešlo výběr nikomu poslat ani ho po čase zopakovat: uživatel si
+     naklikal sestavu, ale odkaz vedl na prázdný screener. Do URL jdou jen hodnoty
+     odlišné od výchozích, ať odkaz zůstane čitelný. Používáme replaceState (ne
+     router.push), aby se nezanášela historie prohlížeče ani netriggeroval re-render
+     serverové komponenty – filtrování běží celé na klientu.
+     ──────────────────────────────────────────────────────────────────────── */
+  const restored = useRef(false);
+
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const g = (k: string) => p.get(k);
+    if (g('kat')) setCategory(g('kat')!);
+    if (g('vyplata')) setDist(g('vyplata')!);
+    if (g('region')) setRegion(g('region')!);
+    if (g('replikace')) setRepl(g('replikace')!);
+    if (g('mena')) setCurrency(g('mena')!);
+    if (g('zajisteni')) setHedging(g('zajisteni')!);
+    if (g('velikost')) setSizeCat(g('velikost')!);
+    if (g('styl')) setFactor(g('styl')!);
+    if (g('rating')) setMinRating(Number(g('rating')) || 0);
+    if (g('paka') === '1') setLeveraged(true);
+    if (g('ter')) setTerMax(g('ter')!);
+    if (g('minvel')) setSizeMin(g('minvel')!);
+    if (g('divmin')) setDivMin(g('divmin')!);
+    if (g('sort')) setSortKey(g('sort') as SortKey);
+    if (g('smer')) setSortDir(g('smer') as SortDir);
+    // Pokročilé filtry rozbalit, když z odkazu nějaký přišel – jinak by nebylo
+    // vidět, proč je výsledek zúžený.
+    if (['vyplata','region','replikace','mena','zajisteni','velikost','styl','rating','paka','ter','minvel','divmin'].some((k) => p.get(k))) {
+      setAdvOpen(true);
+    }
+    restored.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!restored.current) return;
+    const p = new URLSearchParams();
+    const put = (k: string, v: string, def: string) => { if (v !== def) p.set(k, v); };
+    put('q', q, '');
+    put('kat', category, 'all');
+    put('vyplata', dist, 'all');
+    put('region', region, 'all');
+    put('index', indexName, 'all');
+    put('replikace', repl, 'all');
+    put('mena', currency, 'all');
+    put('zajisteni', hedging, 'all');
+    put('velikost', sizeCat, 'all');
+    put('styl', factor, 'all');
+    if (minRating > 0) p.set('rating', String(minRating));
+    if (leveraged) p.set('paka', '1');
+    put('ter', terMax, '');
+    put('minvel', sizeMin, '');
+    put('divmin', divMin, '');
+    put('sort', sortKey, 'size');
+    put('smer', sortDir, 'desc');
+    const qs = p.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  }, [q, category, dist, region, indexName, repl, currency, hedging, sizeCat, factor, minRating, leveraged, terMax, sizeMin, divMin, sortKey, sortDir]);
 
   // Odvozená pole už jsou předpočítaná na serveru – jen je přemapujeme do tvaru,
   // který filtr očekává (žádné skenování/regexy přes celou sadu na klientu).
@@ -309,6 +373,69 @@ export default function ScreenerUI({
     (hedging !== 'all' ? 1 : 0) + (sizeCat !== 'all' ? 1 : 0) + (factor !== 'all' ? 1 : 0) + (minRating > 0 ? 1 : 0) +
     (leveraged ? 1 : 0) + (terMax !== '' ? 1 : 0) + (sizeMin !== '' ? 1 : 0) + (divMin !== '' ? 1 : 0);
   const anyFilter = activeCount > 0 || q !== '' || category !== 'all';
+
+  /* ────────────────────────────────────────────────────────────────────────
+     EXPORT CSV.
+     Exportuje CELÝ vyfiltrovaný výběr, ne jen zobrazenou stránku. Hlavička nese
+     zdroj dat, datum a použité filtry – bez toho je výstup po čase nedoložitelný
+     a nedá se zopakovat. Oddělovač `;` a desetinná čárka kvůli českému Excelu,
+     BOM kvůli diakritice.
+     ──────────────────────────────────────────────────────────────────────── */
+  const exportCsv = () => {
+    const dec = (v: number | null, d = 2) => (v == null ? '' : v.toFixed(d).replace('.', ','));
+    const q2 = (v: string) => (/[";\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+    const distTxt = { acc: 'Akumulační', dist: 'Distribuční', unknown: 'Neuvedeno' };
+
+    const aktivni = [
+      q && `hledání: ${q}`,
+      category !== 'all' && `kategorie: ${category}`,
+      dist !== 'all' && `výplata: ${dist}`,
+      region !== 'all' && `region: ${region}`,
+      indexName !== 'all' && `index: ${indexName}`,
+      repl !== 'all' && `replikace: ${repl}`,
+      currency !== 'all' && `měna fondu: ${currency}`,
+      hedging !== 'all' && `zajištění: ${hedging}`,
+      sizeCat !== 'all' && `velikost: ${sizeCat}`,
+      factor !== 'all' && `styl: ${factor}`,
+      minRating > 0 && `min. hodnocení: ${minRating}`,
+      leveraged && 'včetně pákových',
+      terMax && `TER max: ${terMax} %`,
+      sizeMin && `min. velikost: ${sizeMin} mil. EUR`,
+      divMin && `min. div. výnos: ${divMin} %`,
+    ].filter(Boolean).join(', ') || 'žádné (celá databáze)';
+
+    const hlavicka = [
+      `# Export ze srovnávače ETF – etfpruvodce.cz`,
+      `# Vyexportováno: ${new Date().toLocaleString('cs-CZ')}`,
+      `# Data k datu: ${dataDate || 'neuvedeno'} (zdroj: justETF, kurzy ČNB)`,
+      `# Použité filtry: ${aktivni}`,
+      `# Fondů ve výběru: ${filtered.length} z ${total} v databázi`,
+      `# Výnosy přepočtené do: ${curLabel[cur]}`,
+      '',
+    ];
+
+    const sloupce = ['Název','ISIN','Ticker','Kategorie','Region','Sledovaný index','TER (%)','Velikost (mil. EUR)','Měna fondu','Typ výplaty','Replikace','Div. výnos (%)',`YTD (${curLabel[cur]}, %)`,`1 rok (${curLabel[cur]}, %)`,`3 roky (${curLabel[cur]}, %)`,'Hodnocení','Páka'];
+
+    const radky = filtered.map(({ e, region: reg, indexLabel, ratingVal }) => {
+      const o = e as unknown as Record<string, unknown>;
+      return [
+        e.name, e.isin, e.primary_ticker ?? '', e.category ?? '', reg ?? '', indexLabel ?? '',
+        dec(num(e.ter_numeric)), dec(num(e.fund_size_numeric), 0), e.fund_currency ?? '',
+        distTxt[distKind(e.distribution_policy)], e._repl ?? '',
+        dec(num(e.current_dividend_yield_numeric)),
+        dec(pickReturn(o, 'ytd', cur), 1), dec(pickReturn(o, '1y', cur), 1), dec(pickReturn(o, '3y', cur), 1),
+        ratingVal != null ? String(ratingVal) : '', e.is_leveraged ? 'ano' : '',
+      ].map((v) => q2(String(v))).join(';');
+    });
+
+    const csv = '\uFEFF' + [...hlavicka, sloupce.map(q2).join(';'), ...radky].join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `etf-vyber-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const bump = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => { setter(e.target.value); setShown(PAGE); };
   const bumpN = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => { setter(e.target.value); setShown(PAGE); };
@@ -459,7 +586,18 @@ export default function ScreenerUI({
         ) : (
           <p className="inline-flex items-center gap-2 text-sm text-slate-500"><Loader2 className="w-3.5 h-3.5 animate-spin text-teal-600" /> Načítám celou databázi ({total.toLocaleString('cs-CZ')} fondů) pro filtrování…</p>
         )}
-        <CurrencyToggle size="sm" />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={!full || filtered.length === 0}
+            title="Stáhne celý vyfiltrovaný výběr jako CSV (otevře se v Excelu) včetně zdroje a data dat."
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download className="w-3.5 h-3.5" /> Stáhnout CSV
+          </button>
+          <CurrencyToggle size="sm" />
+        </div>
       </div>
 
       {/* TABULKA – desktop */}

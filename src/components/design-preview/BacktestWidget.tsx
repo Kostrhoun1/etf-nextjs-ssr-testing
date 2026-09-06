@@ -379,6 +379,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const runBacktestRef = useRef(runBacktest);
   runBacktestRef.current = runBacktest;
   const didAutoRunRef = useRef(false);
+  const urlRestored = useRef(false);
 
   // Předvyplnění z URL (pro sdílené odkazy, např. z FB / článků):
   //   /backtest?portfolio=buffett-90-10&start=2002-07-01&amount=1000000&contrib=none&run=1
@@ -399,17 +400,60 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const contrib = p.get('contrib');
     if (contrib === 'none') { setContributionFrequency('none'); setContributionAmount(0); }
     else if (contrib && /^\d+$/.test(contrib)) { setContributionAmount(parseInt(contrib, 10)); setContributionFrequency('monthly'); }
+    // VLASTNÍ SLOŽENÍ: ?slozeni=sp500:60,eur_govt_bond:40 – bez tohohle šlo sdílet
+    // jen hotový preset a vlastnoručně sestavené portfolio zmizelo i s refreshem.
+    const slozeni = p.get('slozeni');
+    if (!hasPreset && !style && slozeni) {
+      const parsed = slozeni.split(',').map((part) => {
+        const [code, w] = part.split(':');
+        const idx = AVAILABLE_INDEXES.find((i) => i.indexCode === code);
+        if (!idx) return null;
+        const weight = Number(w);
+        if (!Number.isFinite(weight) || weight <= 0) return null;
+        return { isin: idx.isin, name: idx.etfName, ter: idx.ter, indexCode: idx.indexCode, indexName: idx.name, weight };
+      }).filter(Boolean) as SelectedETF[];
+      if (parsed.length) { setSelectedETFs(parsed); setActivePreset(null); setEditComposition(true); }
+    }
+    const end = p.get('do');
+    if (end && /^\d{4}-\d{2}-\d{2}$/.test(end)) setEndDate(end);
+    const mena = p.get('mena');
+    if (mena === 'CZK' || mena === 'EUR' || mena === 'USD') setCurrency(mena);
+    const freq = p.get('freq');
+    if (freq === 'none' || freq === 'monthly' || freq === 'quarterly' || freq === 'yearly') setContributionFrequency(freq);
+    const vklad = p.get('vklad');
+    if (vklad && /^\d+$/.test(vklad)) setContributionAmount(parseInt(vklad, 10));
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
     // ZÁMĚRNĚ nescrollujeme – uživatel má vidět předvyplněná (editovatelná) pole; výsledek
     // je spočítaný a čeká, až k němu přirozeně dorolluje.
-    if ((hasPreset || style) && p.get('run') === '1') {
+    if ((hasPreset || style || p.get('slozeni')) && p.get('run') === '1') {
       setTimeout(() => {
         if (!didAutoRunRef.current) { didAutoRunRef.current = true; runBacktestRef.current(); }
       }, 80);
     }
+    urlRestored.current = true;
     // Jen jednou při načtení stránky.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ZÁPIS STAVU DO URL. Dřív se do URL nedostalo nic – nasimulovaný backtest zmizel
+     s refreshem a nešel nikomu poslat. Preset se zapisuje jako `portfolio=<id>`
+     (odkaz zůstane čitelný), vlastní složení jako `slozeni=kod:vaha,...`.
+     replaceState, ať se nezanáší historie při každé změně částky. */
+  useEffect(() => {
+    if (!urlRestored.current) return;
+    const p = new URLSearchParams();
+    if (activeStyle) p.set('styl', activeStyle);
+    else if (activePreset) p.set('portfolio', activePreset);
+    else if (selectedETFs.length) p.set('slozeni', selectedETFs.map((e) => `${e.indexCode}:${e.weight}`).join(','));
+    if (startDate !== '2005-01-01') p.set('start', startDate);
+    if (endDate !== new Date().toISOString().split('T')[0]) p.set('do', endDate);
+    if (initialAmount !== 100000) p.set('amount', String(initialAmount));
+    if (contributionFrequency !== 'monthly') p.set('freq', contributionFrequency);
+    if (contributionAmount !== 5000) p.set('vklad', String(contributionAmount));
+    if (currency !== 'CZK') p.set('mena', currency);
+    const qs = p.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}${window.location.hash}` : window.location.pathname + window.location.hash);
+  }, [activeStyle, activePreset, selectedETFs, startDate, endDate, initialAmount, contributionFrequency, contributionAmount, currency]);
 
   const availableToAdd = AVAILABLE_INDEXES.filter((i) => !selectedETFs.some((e) => e.indexCode === i.indexCode));
 

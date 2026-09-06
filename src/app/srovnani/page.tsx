@@ -116,7 +116,7 @@ export default async function SrovnaniScreenerPreview(
 
         {/* SCREENER – hlavní obsah stránky (výpis fondů z databáze) */}
         <section id="screener" className="scroll-mt-16">
-          <ScreenerUI initialRows={initialRows} total={total} options={options} initialQ={q ?? ''} initialIndex={index ?? ''} />
+          <ScreenerUI initialRows={initialRows} total={total} options={options} initialQ={q ?? ''} initialIndex={index ?? ''} dataDate={dateStr} />
         </section>
 
         {/* Ukázkový souboj – featured (až POD samotným výpisem fondů) */}
