@@ -468,6 +468,50 @@ export default function InvesticniKalkulackaWidget() {
         </div>
       )}
 
+      {/* TABULKA PO LETECH.
+          Graf ukáže tvar, ale ne konkrétní čísla – a právě ta lidi zajímají („kolik
+          budu mít v desátém roce a kolik z toho je úrok"). Sloupec „Výnos za rok" se
+          dopočítává jako přírůstek hodnoty minus vklady v daném roce, aby bylo vidět,
+          jak podíl výnosů na růstu časem přebírá vedení nad vlastními vklady. */}
+      {hasData && (
+        <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+          <div className="flex items-baseline justify-between gap-3 flex-wrap">
+            <h3 className="text-sm font-semibold text-slate-900">Vývoj po letech</h3>
+            <p className="text-xs text-slate-500">Hodnoty na konci každého roku{taxRate > 0 ? ', po zdanění' : ''}.</p>
+          </div>
+          <div className="mt-3 -mx-4 md:mx-0 overflow-x-auto">
+            <table className="w-full min-w-[30rem] text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+                  <th className="py-2 px-3 md:px-4 text-left font-medium">Rok</th>
+                  <th className="py-2 px-3 md:px-4 text-right font-medium">Vloženo celkem</th>
+                  <th className="py-2 px-3 md:px-4 text-right font-medium">Výnos za rok</th>
+                  <th className="py-2 px-3 md:px-4 text-right font-medium">Zhodnocení celkem</th>
+                  <th className="py-2 px-3 md:px-4 text-right font-medium">Hodnota</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((r, i) => {
+                  const predchozi = i === 0 ? initialInvestment : results[i - 1].netValue;
+                  const vkladyLetos = r.totalInvested - (i === 0 ? initialInvestment : results[i - 1].totalInvested);
+                  const vynosLetos = r.netValue - predchozi - vkladyLetos;
+                  const zhodnoceniCelkem = r.netValue - r.totalInvested;
+                  return (
+                    <tr key={r.year} className="border-t border-slate-100">
+                      <td className="py-2 px-3 md:px-4 tabular-nums text-slate-700">{r.year}.</td>
+                      <td className="py-2 px-3 md:px-4 text-right tabular-nums text-slate-600">{fmtCZK(r.totalInvested)}</td>
+                      <td className="py-2 px-3 md:px-4 text-right tabular-nums text-emerald-600">{fmtCZK(vynosLetos)}</td>
+                      <td className="py-2 px-3 md:px-4 text-right tabular-nums font-medium text-emerald-700">{fmtCZK(zhodnoceniCelkem)}</td>
+                      <td className="py-2 px-3 md:px-4 text-right tabular-nums font-semibold text-slate-900">{fmtCZK(r.netValue)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Výsledkový panel */}
       {hasData && (
         <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">

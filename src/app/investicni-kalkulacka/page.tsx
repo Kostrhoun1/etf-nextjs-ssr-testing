@@ -109,30 +109,30 @@ export default async function InvesticniKalkulackaPreview() {
 
         {/* HERO */}
         <section className="pb-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
+          <div className="rounded-2xl bg-slate-900 text-white px-5 py-5 md:px-9 md:py-8">
             <div className="md:flex md:items-center md:justify-between gap-8">
               <div className="max-w-xl">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Investiční kalkulačka</h1>
                 <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
                   Spočítejte, na kolik narostou vaše peníze díky{' '}
                   <InfoTip label="Výnosy se reinvestují a samy dál vydělávají – úrok z úroku. Čím delší horizont, tím silnější efekt.">složenému úročení</InfoTip>
-                  {' '}– jednorázový i pravidelný vklad, v přepočtu na koruny.
+                  <span className="hidden md:inline"> – jednorázový i pravidelný vklad, v přepočtu na koruny</span>.
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-                  <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
-                  <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výsledky v korunách</span>
+                  <span className="hidden md:inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výsledky v korunách</span>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2.5">
-                  <Link href="#kalkulacka" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Spustit kalkulačku</Link>
+                <div className="mt-4 md:mt-5 flex flex-wrap gap-2.5">
+                  <Link href="#kalkulacka" className="hidden md:inline-block rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Spustit kalkulačku</Link>
                   <Link href="/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít vhodný ETF</Link>
                 </div>
               </div>
 
               {/* Mini-vysvětlení principu */}
-              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
+              <div className="hidden md:grid mt-6 md:mt-0 md:w-72 shrink-0 md:grid-cols-1 gap-2.5">
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Vstupujete</p>
                   <p className="text-lg font-bold tabular-nums">Vklad + výnos</p>
@@ -153,6 +153,12 @@ export default async function InvesticniKalkulackaPreview() {
           </div>
         </section>
 
+        <section id="kalkulacka" className="pb-10 scroll-mt-16">
+          <SectionHead title="Spočítejte si svůj výnos" desc="Zadejte vklady, dobu a očekávaný roční výnos. Výsledek i graf se přepočítají hned." />
+          <InvesticniKalkulackaWidget />
+        </section>
+
+        {/* CO JE SLOŽENÉ ÚROČENÍ – edukace vetkaná */}
         {/* PROČ NA SLOŽENÉM ÚROČENÍ ZÁLEŽÍ – edukace NAD kalkulačkou */}
         <section className="pb-10">
           <SectionHead title="Proč funguje pravidelné investování" desc="Krátké vysvětlení principu, než si spočítáte vlastní případ." />
@@ -171,12 +177,6 @@ export default async function InvesticniKalkulackaPreview() {
         </section>
 
         {/* KALKULAČKA */}
-        <section id="kalkulacka" className="pb-10 scroll-mt-16">
-          <SectionHead title="Spočítejte si svůj výnos" desc="Zadejte vklady, dobu a očekávaný roční výnos. Výsledek i graf se přepočítají hned." />
-          <InvesticniKalkulackaWidget />
-        </section>
-
-        {/* CO JE SLOŽENÉ ÚROČENÍ – edukace vetkaná */}
         <section className="pb-10">
           <SectionHead title="Co je složené úročení" desc="Princip, který se schovává za každým číslem v kalkulačce." />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
