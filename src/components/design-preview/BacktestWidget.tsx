@@ -602,7 +602,9 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     max={100}
                     value={etf.weight}
                     onChange={(e) => setWeight(etf.indexCode, Number(e.target.value))}
-                    className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-right text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    /* pr-7 dělá místo pro znak „%" vpravo. S px-2 se číslo (pole je
+                       zarovnané doprava) tisklo přímo přes něj – „60 %" vypadalo jako „6Ø". */
+                    className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-2 pr-7 py-1.5 text-right text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">%</span>
                 </div>
