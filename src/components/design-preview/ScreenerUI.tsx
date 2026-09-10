@@ -108,23 +108,19 @@ export default function ScreenerUI({
   initialRows,
   total,
   options,
-  initialQ = '',
-  initialIndex = '',
   dataDate = '',
 }: {
   initialRows: ScreenerRow[];
   total: number;
   options: ScreenerOptions;
-  initialQ?: string;
-  initialIndex?: string;
   /** Datum dat – jde do hlavičky exportovaného CSV, aby výstup šlo doložit. */
   dataDate?: string;
 }) {
-  const [q, setQ] = useState(initialQ);
+  const [q, setQ] = useState('');
   const [category, setCategory] = useState('all');
   const [dist, setDist] = useState('all');
   const [region, setRegion] = useState('all');
-  const [indexName, setIndexName] = useState(initialIndex || 'all');
+  const [indexName, setIndexName] = useState('all');
   const [repl, setRepl] = useState('all');
   const [currency, setCurrency] = useState('all');
   const [hedging, setHedging] = useState('all');
@@ -164,28 +160,6 @@ export default function ScreenerUI({
     return () => { cancelled = true; };
   }, [full]);
 
-  // Vyhledávání z hlavičky (?q=) přijde jako initialQ. Když se změní (i při soft-navigaci
-  // na už načtené stránce), převezmeme ho a doscrollujeme na výsledky, ať je vidět efekt.
-  useEffect(() => {
-    if (initialQ) {
-      setQ(initialQ);
-      setShown(PAGE);
-      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQ]);
-
-  // Předvybraný index (?index=) – proklik ze srovnání světových indexů. Nastaví
-  // filtr „Sledovaný index" a doscrolluje na vyfiltrované výsledky.
-  useEffect(() => {
-    if (initialIndex) {
-      setIndexName(initialIndex);
-      setShown(PAGE);
-      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialIndex]);
-
   /* ────────────────────────────────────────────────────────────────────────
      STAV FILTRŮ V URL.
      Bez tohohle nešlo výběr nikomu poslat ani ho po čase zopakovat: uživatel si
@@ -195,10 +169,20 @@ export default function ScreenerUI({
      serverové komponenty – filtrování běží celé na klientu.
      ──────────────────────────────────────────────────────────────────────── */
   const restored = useRef(false);
+  /* Přišel v URL dotaz/index? Pak se do načtení celé databáze nesmí ukázat
+     „Žádný fond neodpovídá filtrům“ – server posílá jen prvních 50 řádků a
+     hledaný fond mezi nimi zpravidla není. Blikne prázdný výsledek a teprve
+     pak se objeví ten správný. */
+  const urlQuery = useRef(false);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     const g = (k: string) => p.get(k);
+    // ?q= (hledání z hlavičky) a ?index= (proklik ze srovnání indexů) chodily dřív
+    // jako props ze serveru; ten je kvůli cachování číst nesmí (viz komentář
+    // v src/app/srovnani/page.tsx), takže je přebíráme tady.
+    if (g('q')) { setQ(g('q')!); urlQuery.current = true; }
+    if (g('index')) { setIndexName(g('index')!); urlQuery.current = true; }
     if (g('kat')) setCategory(g('kat')!);
     if (g('vyplata')) setDist(g('vyplata')!);
     if (g('region')) setRegion(g('region')!);
@@ -223,6 +207,12 @@ export default function ScreenerUI({
       setAdvOpen(true);
     }
     restored.current = true;
+    // Přišlo hledání z hlavičky nebo proklik na index → doscrollovat na výsledky,
+    // ať je efekt odkazu vidět (dřív to dělaly efekty navázané na props).
+    if (urlQuery.current) {
+      setShown(PAGE);
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, []);
 
   useEffect(() => {
@@ -464,6 +454,9 @@ export default function ScreenerUI({
     URL.revokeObjectURL(url);
   };
 
+  // Dotaz z URL a ještě nemáme celou databázi → nejde o „nic nenalezeno“, ale o načítání.
+  const cekaNaData = !full && urlQuery.current;
+
   const bump = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => { setter(e.target.value); setShown(PAGE); };
   const bumpN = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => { setter(e.target.value); setShown(PAGE); };
 
@@ -701,7 +694,11 @@ export default function ScreenerUI({
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan={9} className="py-10 text-center text-sm text-slate-400">Žádný fond neodpovídá filtrům. <button onClick={reset} className="text-teal-700 hover:underline">Vymazat filtry</button></td></tr>
+              <tr><td colSpan={11} className="py-10 text-center text-sm text-slate-400">
+                {cekaNaData
+                  ? <span className="inline-flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin text-teal-600" /> Hledám ve všech {total.toLocaleString('cs-CZ')} fondech…</span>
+                  : <>Žádný fond neodpovídá filtrům. <button onClick={reset} className="text-teal-700 hover:underline">Vymazat filtry</button></>}
+              </td></tr>
             )}
           </tbody>
         </table>
@@ -756,7 +753,9 @@ export default function ScreenerUI({
         })}
         {filtered.length === 0 && (
           <div className="rounded-lg border border-slate-200 bg-white py-10 text-center text-sm text-slate-400">
-            Žádný fond neodpovídá filtrům. <button onClick={reset} className="text-teal-700 hover:underline">Vymazat filtry</button>
+            {cekaNaData
+              ? <span className="inline-flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin text-teal-600" /> Hledám ve všech {total.toLocaleString('cs-CZ')} fondech…</span>
+              : <>Žádný fond neodpovídá filtrům. <button onClick={reset} className="text-teal-700 hover:underline">Vymazat filtry</button></>}
           </div>
         )}
       </div>

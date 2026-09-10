@@ -24,6 +24,15 @@ const POPULAR_CATEGORIES: { label: string; slug: string; note: string }[] = [
 ];
 
 export const revalidate = 86400;
+/* POZOR – proč tahle stránka NESMÍ číst searchParams:
+   V Next.js 15 udělá už samotné přečtení `searchParams` z routy DYNAMICKOU a
+   `revalidate` výše se pak ignoruje. Stránka se tím renderovala při KAŽDÉM
+   požadavku (x-vercel-cache: MISS, no-store) a pokaždé tahala z databáze všech
+   ~5 000 fondů → 4,2–4,8 s odezvy a spotřeba Fluid CPU z free tieru na každé
+   načtení. Změřeno na produkci 9. 9. 2026.
+   `?q=` a `?index=` si proto přebírá ScreenerUI na klientu z window.location –
+   pro SEO to nic neznamená (canonical míří na čisté /srovnani) a filtrování
+   stejně celé běží na klientu nad daty z /api/etf/screener. */
 export async function generateMetadata(): Promise<Metadata> {
   const n = await getTotalETFCount();
   const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
@@ -35,12 +44,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function SrovnaniScreenerPreview(
-  { searchParams }: { searchParams: Promise<{ q?: string; index?: string }> },
-) {
-  const { q, index } = await searchParams;
+export default async function SrovnaniScreenerPreview() {
   const { rows, options, total } = await getScreenerRows();
-  const initialRows = buildInitialScreenerRows(rows, q ?? '', 50, index);
+  const initialRows = buildInitialScreenerRows(rows, '', 50);
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -116,7 +122,7 @@ export default async function SrovnaniScreenerPreview(
 
         {/* SCREENER – hlavní obsah stránky (výpis fondů z databáze) */}
         <section id="screener" className="scroll-mt-16">
-          <ScreenerUI initialRows={initialRows} total={total} options={options} initialQ={q ?? ''} initialIndex={index ?? ''} dataDate={dateStr} />
+          <ScreenerUI initialRows={initialRows} total={total} options={options} dataDate={dateStr} />
         </section>
 
         {/* Ukázkový souboj – featured (až POD samotným výpisem fondů) */}
