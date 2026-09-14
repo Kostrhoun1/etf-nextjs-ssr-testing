@@ -46,10 +46,42 @@ async function loadManifest() {
   return import(join(out, 'indexes.js'))
 }
 
+/**
+ * fetch s opakováním pro PŘECHODNÉ chyby.
+ *
+ * PROČ: 14. 9. 2026 shodil celý workflow jediný `upsert 504: Gateway Timeout`
+ * u us_total_market. Data přitom byla v pořádku (běhy před i po prošly) a kvůli
+ * jednomu výpadku na straně Supabase padl noční sync i kontrola integrity.
+ * Přechodná chyba sítě není důvod hlásit poplach o ztrátě dat.
+ *
+ * Opakujeme jen to, co má smysl opakovat: 408/429 a 5xx plus síťové výjimky.
+ * 4xx (špatný klíč, špatné schéma) se NEOPAKUJE – to je skutečná chyba a má
+ * spadnout hned, ať ji nezamaskujeme.
+ */
+async function fetchRetry(url, init = {}, { pokusy = 4, popis = 'požadavek' } = {}) {
+  let posledni
+  for (let i = 1; i <= pokusy; i++) {
+    try {
+      const res = await fetch(url, init)
+      if (res.ok) return res
+      const prechodna = res.status === 408 || res.status === 429 || res.status >= 500
+      if (!prechodna || i === pokusy) return res
+      posledni = `HTTP ${res.status}`
+    } catch (e) {
+      if (i === pokusy) throw e
+      posledni = e.message
+    }
+    const cekat = 2000 * 2 ** (i - 1) // 2 s, 4 s, 8 s
+    console.error(`   ↻ ${popis}: ${posledni} – pokus ${i}/${pokusy}, zkouším znovu za ${cekat / 1000} s`)
+    await new Promise((r) => setTimeout(r, cekat))
+  }
+  throw new Error(`${popis}: vyčerpány pokusy (${posledni})`)
+}
+
 /** Denní adj-close z Yahoo. Vrací i měnu, ať ji můžeme ověřit proti manifestu. */
 async function fetchYahoo(ticker, range, interval = '1d') {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+  const res = await fetchRetry(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, { popis: `Yahoo ${ticker}` })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const r = (await res.json())?.chart?.result?.[0]
   if (!r) throw new Error('prázdná odpověď')
@@ -64,11 +96,15 @@ async function fetchYahoo(ticker, range, interval = '1d') {
 async function upsert(rows) {
   if (DRY || !rows.length) return rows.length
   for (let i = 0; i < rows.length; i += 500) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/index_historical_data?on_conflict=index_code,date`, {
-      method: 'POST',
-      headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify(rows.slice(i, i + 500)),
-    })
+    const res = await fetchRetry(
+      `${SUPABASE_URL}/rest/v1/index_historical_data?on_conflict=index_code,date`,
+      {
+        method: 'POST',
+        headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(rows.slice(i, i + 500)),
+      },
+      { popis: `upsert dávky ${i / 500 + 1}` },
+    )
     if (!res.ok) throw new Error(`upsert ${res.status}: ${(await res.text()).slice(0, 160)}`)
   }
   return rows.length
