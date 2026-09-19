@@ -156,8 +156,19 @@ export const INDEXES: IndexDef[] = [
   { code: 'us_corp_bond_ig', ticker: 'LQD', currency: 'USD', name: 'US firemní dluhopisy (IG)', group: 'bond', since: '2002-07-30',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00BYXYYL56', name: 'iShares USD Corporate Bond', ter: 0.002 } },
-  { code: 'eur_govt_bond', ticker: 'IEAG.L', currency: 'EUR', name: 'EUR vládní dluhopisy', group: 'bond', since: '2009-03-06',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+  // ZDROJ VYMĚNĚN 19. 9. 2026. Původní ticker IEAG.L přestal na Yahoo existovat (HTTP 404)
+  // a shodil noční sync. Při hledání náhrady se ukázalo, že IEAG je podle pojmenování iShares
+  // "€ AGGREGATE Bond" (vládní I FIREMNÍ dluhopisy) – řada označená jako "EUR vládní dluhopisy"
+  // tedy byla plněná agregátním fondem. Ověřeno na živých listingech: IEGA = Govt, IEAC = Corp,
+  // IEAG = Aggregate.
+  // Nový zdroj XGLE.DE = Xtrackers II Eurozone Government Bond, tedy skutečně vládní, a s delší
+  // historií (od 2008-01, dřív 2009-03). Yahoo dává pro evropské listingy v plné historii jen
+  // MĚSÍČNÍ data (prověřeno 23 tickerů, denní zdroj pro EUR vládní dluhopisy neexistuje) →
+  // `monthly: true`, stejně jako u tří košů níže. Engine to řeší forward-fillem.
+  // Dopad na čísla ve stejném okně (2009-03→2026-09): CAGR 1,25 % → 1,73 %, vol 4,82 % → 5,07 %,
+  // max. pokles −21,0 % → −21,6 %. Delší durace vládních dluhopisů, sedí.
+  { code: 'eur_govt_bond', ticker: 'XGLE.DE', currency: 'EUR', name: 'EUR vládní dluhopisy', group: 'bond', since: '2008-01-31',
+    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B4WXJJ64', name: 'iShares Core EUR Govt Bond', ter: 0.0007 } },
   { code: 'eur_corp_bond', ticker: 'IEAC.L', currency: 'EUR', name: 'EUR firemní dluhopisy', group: 'bond', since: '2009-03-06',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,

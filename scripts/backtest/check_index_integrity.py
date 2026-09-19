@@ -39,6 +39,7 @@ MAX_GAP_DAYS = 10       # díra uvnitř řady delší než tohle = poplach
 # prahy (5/10 dní) by je vždy shodily. Dostávají volnější limity — ne úplnou výjimku: když se zdroj
 # zastaví na víc než ~měsíc, i tak to poznáme. Kontrola ÚBYTEK řádků platí pro všechny stejně přísně.
 MONTHLY_INDEXES = {
+    'eur_govt_bond',        # zdroj vymenen 19.9.2026 na XGLE.DE (mesicni) - viz indexes.ts
     'eur_govt_bond_1_3y',
     'eur_govt_bond_3_7y',
     'eur_govt_bond_15_30y',
