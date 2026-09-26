@@ -17,6 +17,7 @@ import CompareButton from '@/components/design-preview/CompareButton';
 import EtfReturns from '@/components/design-preview/EtfReturns';
 import EtfCalendarReturns, { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
 import { getDataDate } from '@/lib/etf-data';
+import { isHeadFund } from '@/lib/etf-head';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -27,9 +28,6 @@ import { getDataDate } from '@/lib/etf-data';
 export const revalidate = 2592000;
 export const dynamicParams = true;
 
-/* Práh „hlavy" pro Google indexaci (mil. EUR AUM). ≥ 2 000 = ~329 největších
-   a nejhledanějších fondů. Viz experiment níže. */
-const HEAD_MIN_SIZE = 2000;
 
 /* Unikátní tickery fondu (primary + burzovní, dedup case-insensitive, pryč „-").
    Lidé hledají podle tickeru, ne ISIN – a `primary_ticker` NENÍ spolehlivě ten
@@ -74,8 +72,9 @@ export async function generateMetadata(
   //   podřezávali.
   // - Google: indexovat jen „hlavu" (velké/hledané fondy ≥ HEAD_MIN_SIZE), aby 4500+
   //   šablonových detailů nedělalo na mladé doméně thin-content bloat; dlouhý ocas
-  //   necháme googlebot-noindex. Po 2–4 týdnech vyhodnotit a případně rozšířit.
-  const isHead = Number(fund?.fund_size_numeric ?? 0) >= HEAD_MIN_SIZE;
+  //   necháme googlebot-noindex. Práh + seznam hlavy: src/lib/etf-head.ts (hlava
+  //   musí být i v sitemap.ts, jinak ji Google neobjeví).
+  const isHead = isHeadFund(fund?.fund_size_numeric);
   return {
     // Brand „| ETF průvodce.cz" doplní layout template – neduplikovat.
     title: titleTk ? `${name} (${titleTk}): výnos v Kč, TER` : `${name} – detail fondu, výnos v Kč`,

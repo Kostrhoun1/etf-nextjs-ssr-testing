@@ -1,16 +1,23 @@
 import type { MetadataRoute } from 'next';
 import { categoryConfigs } from '@/lib/etf-data';
 import { portfolioModels } from '@/components/design-preview/portfolioData';
+import { fetchHeadIsins } from '@/lib/etf-head';
 
 /* Dynamická sitemapa – jen INDEXOVATELNÉ produkční URL (root routy nového webu).
-   Vynecháno záměrně: /etf/[isin] (noindex – tenký obsah), /broker, /srovnani/porovnani,
-   /prehled (noindex). etf detaily otevřeme do indexace později. */
+   Vynecháno záměrně: /broker, /srovnani/porovnani, /prehled (noindex).
+
+   /etf/[isin]: jen „hlava" (AUM ≥ HEAD_MIN_SIZE z lib/etf-head), tedy detaily, které
+   nemají googlebot-noindex. Dlouhý ocas do sitemapy nepatří – Googlu bychom
+   posílali URL, které mu sami zakazujeme. */
 const BASE = 'https://etfpruvodce.cz';
 const BROKERS = ['degiro', 'xtb', 'trading212', 'ibkr', 'fio', 'portu'];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+/* Sitemapa sahá do DB → jedna URL, přegenerovat stačí raz za den (1 ISR write/den). */
+export const revalidate = 86400;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const paths: { p: string; pr: number }[] = [
+  const paths: { p: string; pr: number; cf?: 'weekly' | 'monthly' }[] = [
     { p: '', pr: 1 },
     { p: '/srovnani', pr: 0.9 },
     { p: '/zebricky', pr: 0.9 },
@@ -57,11 +64,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const s of Object.keys(categoryConfigs)) paths.push({ p: `/nejlepsi-etf/${s}`, pr: 0.7 });
   for (const m of portfolioModels) paths.push({ p: `/portfolio-strategie/${m.slug}`, pr: 0.6 });
   for (const b of BROKERS) paths.push({ p: `/recenze/${b}`, pr: 0.6 });
+  // changefreq monthly = pravda: detaily fondů mají ISR revalidate 30 dní. Týdenní
+  // hint by zval crawlera častěji a každý expirovaný render je Vercel ISR Write.
+  for (const isin of await fetchHeadIsins()) paths.push({ p: `/etf/${isin}`, pr: 0.5, cf: 'monthly' });
 
-  return paths.map(({ p, pr }) => ({
+  return paths.map(({ p, pr, cf }) => ({
     url: BASE + p,
     lastModified: now,
-    changeFrequency: 'weekly' as const,
+    changeFrequency: cf ?? 'weekly',
     priority: pr,
   }));
 }
