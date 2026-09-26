@@ -42,7 +42,30 @@ if (readFileSync(`public/${kandidati[0]}`, 'utf8').trim() !== KEY) {
   process.exit(1);
 }
 
+const spi = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Počkat, až je klíč na webu OPRAVDU vidět.
+ * Workflow se spouští ve chvíli, kdy Vercel ohlásí nasazení jako „success" – ale nový soubor
+ * se na hranu sítě dostává ještě několik minut. 26. 9. 2026 tak první hlášení dostalo 403
+ * a klíč vracel 404 ještě ~5 minut po „success". Bez čekání by to padalo při každé změně
+ * klíče a posílalo falešný e-mail o chybě.
+ */
+async function pockejNaKlic() {
+  const url = `https://${HOST}/${KEY}.txt`;
+  for (let i = 1; i <= 12; i++) {
+    try {
+      const r = await fetch(url, { headers: { 'Cache-Control': 'no-cache' } });
+      if (r.ok && (await r.text()).trim() === KEY) return;
+    } catch { /* síť – zkusíme znovu */ }
+    console.log(`  ⏳ klíč zatím na webu není (pokus ${i}/12), čekám 30 s…`);
+    await spi(30_000);
+  }
+  throw new Error(`klíč ${url} se ani po 6 minutách neobjevil – nasazení ho nejspíš neobsahuje`);
+}
+
 const main = async () => {
+  if (!DRY) await pockejNaKlic();
   const res = await fetch(SITEMAP, { headers: { 'User-Agent': 'etfpruvodce-indexnow' } });
   if (!res.ok) throw new Error(`sitemap HTTP ${res.status}`);
   const xml = await res.text();
@@ -59,24 +82,40 @@ const main = async () => {
     return;
   }
 
+  // 200 = přijato, 202 = přijato, klíč se ověřuje. 400 = špatný požadavek, 422 = URL
+  // nepatří hostu → skutečná chyba konfigurace, padá hned. 429, 5xx a 403 s kódem
+  // SiteVerificationNotCompleted jsou PŘECHODNÉ (ověření nového klíče běží asynchronně,
+  // viz 26. 9. 2026) → opakujeme s rostoucím odstupem, ať nechodí falešné e-maily o chybě.
+  const vyznam = { 200: 'přijato', 202: 'přijato, ověřuje se klíč', 400: 'špatný požadavek',
+    403: 'klíč neověřen', 422: 'URL nepatří hostu', 429: 'příliš mnoho požadavků' };
   for (let i = 0; i < urls.length; i += DAVKA) {
-    const r = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({
-        host: HOST,
-        key: KEY,
-        keyLocation: `https://${HOST}/${KEY}.txt`,
-        urlList: urls.slice(i, i + DAVKA),
-      }),
-    });
-    // 200 = přijato, 202 = přijato, klíč se ověřuje (běžné u prvního hlášení).
-    // 403 = klíč na webu nenalezen, 422 = URL nepatří hostu, 429 = příliš často.
-    const vyznam = { 200: 'přijato', 202: 'přijato, ověřuje se klíč', 400: 'špatný požadavek',
-      403: 'klíč na webu nenalezen', 422: 'URL nepatří hostu', 429: 'příliš mnoho požadavků' }[r.status] ?? '?';
-    const ok = r.status === 200 || r.status === 202;
-    console.log(`  ${ok ? '✅' : '❌'} dávka ${i / DAVKA + 1}: HTTP ${r.status} (${vyznam})`);
-    if (!ok) { console.error(`     ${(await r.text()).slice(0, 200)}`); process.exit(1); }
+    const davka = i / DAVKA + 1;
+    for (let pokus = 1; ; pokus++) {
+      const r = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify({
+          host: HOST,
+          key: KEY,
+          keyLocation: `https://${HOST}/${KEY}.txt`,
+          urlList: urls.slice(i, i + DAVKA),
+        }),
+      });
+      if (r.status === 200 || r.status === 202) {
+        console.log(`  ✅ dávka ${davka}: HTTP ${r.status} (${vyznam[r.status]})`);
+        break;
+      }
+      const telo = (await r.text()).slice(0, 200);
+      const prechodna = r.status === 429 || r.status >= 500 ||
+        (r.status === 403 && telo.includes('SiteVerificationNotCompleted'));
+      if (!prechodna || pokus === 5) {
+        console.error(`  ❌ dávka ${davka}: HTTP ${r.status} (${vyznam[r.status] ?? '?'})\n     ${telo}`);
+        process.exit(1);
+      }
+      const cekat = 30 * 2 ** (pokus - 1); // 30, 60, 120, 240 s
+      console.log(`  ⏳ dávka ${davka}: HTTP ${r.status} – přechodné, zkouším znovu za ${cekat} s (pokus ${pokus}/5)`);
+      await spi(cekat * 1000);
+    }
   }
 };
 
