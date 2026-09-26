@@ -1,0 +1,24 @@
+# Po každém úspěšném produkčním nasazení ohlásí změněné stránky Bingu, Seznamu a dalším
+# přes IndexNow. Proč a proč ne denně – viz komentář v scripts/indexnow.mjs.
+#
+# Spouštěč: Vercel zakládá v GitHubu „deployment" s prostředím „Production" a po dokončení
+# mu nastaví stav „success". V tu chvíli je nový obsah i klíčový soubor opravdu živě.
+name: IndexNow (hlášení změn vyhledávačům)
+
+on:
+  deployment_status:
+  workflow_dispatch:
+
+jobs:
+  indexnow:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Ohlásit URL ze sitemapy
+        run: node scripts/indexnow.mjs
