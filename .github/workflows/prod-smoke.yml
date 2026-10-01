@@ -13,7 +13,7 @@ on:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # zafixováno 1.10.2026: ubuntu-latest od 19.10. přechází na Ubuntu 26 – přejít vědomě a otestovaně
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
