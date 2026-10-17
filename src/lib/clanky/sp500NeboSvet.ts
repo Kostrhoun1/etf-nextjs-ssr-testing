@@ -10,6 +10,7 @@
  * - převod do Kč přes kurzy ČNB: ±0,06 %
  * - dekáda 2000–2009 S&P 500 v Kč −7,3 % ročně = S&P TR v USD −0,95 % ročně × USD/CZK −6,5 % ročně
  */
+import { cache } from 'react';
 import { runBacktest } from '@/lib/backtest/engine';
 import { resampleMonthEnd } from '@/lib/backtest/calculations';
 
@@ -49,7 +50,7 @@ export interface Sp500NeboSvet {
   posledniDen: string;
 }
 
-export async function spoctiSp500NeboSvet(): Promise<Sp500NeboSvet | null> {
+async function spoctiSp500NeboSvetBezCache(): Promise<Sp500NeboSvet | null> {
   try {
     const dnes = new Date();
     const [sp, vt, ex, spUsd, vtUsd, spDek, exDek, spDlouho, exDlouho] = await Promise.all([
@@ -85,3 +86,6 @@ export async function spoctiSp500NeboSvet(): Promise<Sp500NeboSvet | null> {
     return null;
   }
 }
+
+/** V rámci jednoho renderu (generateMetadata + stránka) se počítá jen jednou. */
+export const spoctiSp500NeboSvet = cache(spoctiSp500NeboSvetBezCache);

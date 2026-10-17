@@ -12,6 +12,7 @@
  * start 2003 → přežilo (konec 2024 2,75× vs. zde 3,0× v 10/2026). Měsíční a roční krok se liší
  * jen načasováním výběrů, roky vyčerpání sedí.
  */
+import { cache } from 'react';
 import { nactiStrojCasu, STROJ_PRESETY, type StrojRada } from '@/lib/strojCasu';
 import { cpiLevel } from '@/lib/backtest/inflation';
 
@@ -71,7 +72,7 @@ export interface CtyriProcentaPreset {
 
 export interface CtyriProcenta { presety: CtyriProcentaPreset[]; posledniDen: string }
 
-export async function spoctiCtyriProcenta(): Promise<CtyriProcenta | null> {
+async function spoctiCtyriProcentaBezCache(): Promise<CtyriProcenta | null> {
   try {
     const rady = await nactiStrojCasu(['sp500', 'svet', 'vyvazene']);
     if (rady.length < 3) return null; // nikdy neukázat půlku článku
@@ -95,3 +96,6 @@ export async function spoctiCtyriProcenta(): Promise<CtyriProcenta | null> {
     return null;
   }
 }
+
+/** V rámci jednoho renderu (generateMetadata + stránka) se počítá jen jednou. */
+export const spoctiCtyriProcenta = cache(spoctiCtyriProcentaBezCache);

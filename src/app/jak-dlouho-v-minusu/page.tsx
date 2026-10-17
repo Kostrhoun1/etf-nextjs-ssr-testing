@@ -6,6 +6,7 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
+import { ogImage } from '@/lib/ogImage';
 import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
 import { spoctiPodVodou, type PodVodouPreset, type DlouhoNad } from '@/lib/clanky/podVodou';
 
@@ -14,11 +15,23 @@ import { spoctiPodVodou, type PodVodouPreset, type DlouhoNad } from '@/lib/clank
    nezávisle (S&P DJI, ČNB, ČSÚ) – viz hlavička src/lib/clanky/podVodou.ts. */
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: 'Jak dlouho můžete být v minusu? Data v korunách i po inflaci',
-  description: 'Jak dlouho trvalo, než se investice do akcií po propadu vrátila nad vklad – v korunách a po české inflaci. Nejhorší případy od roku 2000, krize 2008, covid i rok 2022.',
-  alternates: { canonical: '/jak-dlouho-v-minusu' },
-};
+/* Vlastní OG: bez něj se dědí og:url homepage → Facebook by sdílel titulní stranu. */
+export async function generateMetadata(): Promise<Metadata> {
+  const title = 'Jak dlouho můžete být v minusu? Data v korunách i po inflaci';
+  const description = 'Jak dlouho trvalo, než se investice do akcií po propadu vrátila nad vklad – v korunách a po české inflaci. Nejhorší případy od roku 2000, krize 2008, covid i rok 2022.';
+  const d = await spoctiPodVodou();
+  const s0 = d?.presety.find((p) => p.id === 'sp500')?.starty[0];
+  const stat = s0 && s0.start === '2000-01' && s0.nominalne ? doba(s0.nominalne) : undefined;
+  return {
+    title, description,
+    alternates: { canonical: '/jak-dlouho-v-minusu' },
+    openGraph: {
+      title, description, url: '/jak-dlouho-v-minusu', type: 'article',
+      images: [ogImage({ title, eyebrow: 'Co říkají data', stat, statLabel: stat ? 'v minusu po nákupu S&P 500 v lednu 2000 (v Kč)' : undefined })],
+    },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
 const tvar = (n: number, a: string, b: string, c: string) => (n === 1 ? a : n >= 2 && n <= 4 ? b : c);
 /** 175 → „14 let a 7 měsíců" */

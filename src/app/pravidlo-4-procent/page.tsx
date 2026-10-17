@@ -6,6 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
+import { ogImage } from '@/lib/ogImage';
 import { spoctiCtyriProcenta, type CtyriProcentaPreset, type VysledekVyberu } from '@/lib/clanky/ctyriProcenta';
 
 /* Vlna 7 / 7.2 – pravidlo 4 % na českých datech. Čísla se počítají při ISR (1× denně) z řad
@@ -13,11 +14,23 @@ import { spoctiCtyriProcenta, type CtyriProcentaPreset, type VysledekVyberu } fr
    viz hlavička src/lib/clanky/ctyriProcenta.ts. */
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: 'Pravidlo 4 % v korunách: vydrželo by od roku 2000?',
-  description: 'Pravidlo 4 % na skutečných datech v korunách a po české inflaci: kdo začal vybírat v roce 2000, 2003 nebo 2008 – a kdy by mu peníze došly. S&P 500, celý svět i vyvážené portfolio.',
-  alternates: { canonical: '/pravidlo-4-procent' },
-};
+/* Vlastní OG: bez něj se dědí og:url homepage → Facebook by sdílel titulní stranu. */
+export async function generateMetadata(): Promise<Metadata> {
+  const title = 'Pravidlo 4 % v korunách: vydrželo by od roku 2000?';
+  const description = 'Pravidlo 4 % na skutečných datech v korunách a po české inflaci: kdo začal vybírat v roce 2000, 2003 nebo 2008 – a kdy by mu peníze došly. S&P 500, celý svět i vyvážené portfolio.';
+  const d = await spoctiCtyriProcenta();
+  const v = d?.presety.find((p) => p.id === 'sp500')?.starty.find((s) => s.rok === 2000)?.s4;
+  const stat = v?.vycerpano ? letDo(2000, v.vycerpano).replace('letech', 'let').replace('roce', 'rok') : undefined;
+  return {
+    title, description,
+    alternates: { canonical: '/pravidlo-4-procent' },
+    openGraph: {
+      title, description, url: '/pravidlo-4-procent', type: 'article',
+      images: [ogImage({ title, eyebrow: 'Co říkají data', stat, statLabel: stat ? 'vydržel výběr 4 % ze S&P 500 od roku 2000 (v Kč)' : undefined })],
+    },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
 const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v ${MESICE6[m - 1]} ${y}`; };

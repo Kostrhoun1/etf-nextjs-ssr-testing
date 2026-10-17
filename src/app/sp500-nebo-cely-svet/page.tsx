@@ -6,17 +6,31 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { spoctiSp500NeboSvet } from '@/lib/clanky/sp500NeboSvet';
+import { ogImage } from '@/lib/ogImage';
 
 /* Vlna 7 – obsah z dat v korunách. Česky hledaná otázka („s&p 500 nebo msci world", našeptávač
    17. 10. 2026). Čísla se počítají při ISR (1× denně) stejným enginem jako backtest a jsou ověřená
    proti S&P DJI, publikovaným výnosům VT a kurzům ČNB (viz src/lib/clanky/sp500NeboSvet.ts). */
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: 'S&P 500, nebo celý svět? Co vydělalo víc v korunách',
-  description: 'S&P 500 proti akciím celého světa v korunách: výnosy od roku 2008, propady, klouzavá desetiletá období a dekáda 2000–2009, kdy USA prohrávaly. Data, ne názory.',
-  alternates: { canonical: '/sp500-nebo-cely-svet' },
-};
+/* Vlastní OG: bez něj se dědí og:url homepage → Facebook by sdílel titulní stranu. */
+export async function generateMetadata(): Promise<Metadata> {
+  const title = 'S&P 500, nebo celý svět? Co vydělalo víc v korunách';
+  const description = 'S&P 500 proti akciím celého světa v korunách: výnosy od roku 2008, propady, klouzavá desetiletá období a dekáda 2000–2009, kdy USA prohrávaly. Data, ne názory.';
+  const d = await spoctiSp500NeboSvet();
+  const sp = d?.od2008.find((x) => x.id === 'sp500');
+  const sv = d?.od2008.find((x) => x.id === 'svet');
+  const stat = sp && sv ? `${pct(sp.cagr)} vs. ${pct(sv.cagr)}` : undefined;
+  return {
+    title, description,
+    alternates: { canonical: '/sp500-nebo-cely-svet' },
+    openGraph: {
+      title, description, url: '/sp500-nebo-cely-svet', type: 'article',
+      images: [ogImage({ title, eyebrow: 'Co říkají data', stat, statLabel: stat ? 'ročně v Kč od 2008: S&P 500 vs. celý svět' : undefined })],
+    },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
 const pct = (v: number, d = 1) => `${v >= 0 ? '' : '−'}${Math.abs(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
 const pctZ = (v: number, d = 1) => `${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d })} %`;

@@ -16,6 +16,7 @@
  * - totéž reálně: začátek 2018 hodnota ~1,46–1,52 vkladu, ceny ×1,48 → pod vodou do 3/2018 ✓ (219 měsíců)
  * - v USD pod vkladem naposledy 8/2011 (141 měsíců) – sedí s obecně známým „ztraceným desetiletím"
  */
+import { cache } from 'react';
 import { runBacktest } from '@/lib/backtest/engine';
 import { resampleMonthEnd } from '@/lib/backtest/calculations';
 import { nactiStrojCasu, STROJ_PRESETY, type StrojRada } from '@/lib/strojCasu';
@@ -136,7 +137,7 @@ export interface PodVodou {
   posledniDen: string;
 }
 
-export async function spoctiPodVodou(): Promise<PodVodou | null> {
+async function spoctiPodVodouBezCache(): Promise<PodVodou | null> {
   try {
     const rady = await nactiStrojCasu(['sp500', 'svet', 'vyvazene']);
     if (rady.length < 3) return null; // nikdy neukázat půlku článku
@@ -179,3 +180,6 @@ export async function spoctiPodVodou(): Promise<PodVodou | null> {
     return null;
   }
 }
+
+/** V rámci jednoho renderu (generateMetadata + stránka) se počítá jen jednou. */
+export const spoctiPodVodou = cache(spoctiPodVodouBezCache);
