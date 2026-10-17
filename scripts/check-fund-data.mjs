@@ -122,10 +122,20 @@ const main = async () => {
   try {
     const rokNyni = new Date().getFullYear();
     const roky = [rokNyni - 2, rokNyni - 1].filter((y) => y >= 2022 && y <= 2025); // sloupce return_2021–2025
-    const vzorek = ['IE00B5BMR087', 'IE00B4L5Y983', 'IE00BK5BQT80']; // CSPX, IWDA, VWCE
-    const sel = ['isin', ...roky.flatMap((y) => [`return_${y}`, `return_${y}_czk`, `return_${y}_usd`])].join(',');
-    const data = await fetch(`${URL_DB}?select=${sel}&isin=in.(${vzorek.join(',')})`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+    // VŠECHNY fondy, ne vzorek: 17. 10. 2026 nahrál zrušený běh se starým kódem 550 fondů se špatnými
+    // ročními výnosy (VUAA, VWCE…) – vzorek 3 fondů by to chytil jen náhodou. Výpočet je levný.
+    const sel = ['isin', 'name', ...roky.flatMap((y) => [`return_${y}`, `return_${y}_czk`, `return_${y}_usd`])].join(',');
+    const data = [];
+    for (let od = 0; ; od += 1000) {
+      const r = await fetch(`${URL_DB}?select=${sel}&return_${roky[roky.length - 1]}=not.is.null&order=isin`, {
+        headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${od}-${od + 999}` },
+      }).then((x) => x.json());
+      if (!Array.isArray(r)) throw new Error('roční výnosy: neplatná odpověď DB');
+      data.push(...r);
+      if (r.length < 1000) break;
+    }
     const spatne = [];
+    const spatneFondy = new Set();
     for (const y of roky) {
       const [c0, c1, u0, u1] = await Promise.all([kurzCNB(`${y - 1}-12-31`), kurzCNB(`${y}-12-31`), kurzECB(`${y - 1}-12-31`), kurzECB(`${y}-12-31`)]);
       if (!c0 || !c1 || !u0 || !u1) continue;
@@ -134,11 +144,13 @@ const main = async () => {
         if (eur == null) continue;
         const czk = ((1 + eur / 100) * c1 / c0 - 1) * 100;
         const usd = ((1 + eur / 100) * u1 / u0 - 1) * 100;
-        if (f[`return_${y}_czk`] != null && Math.abs(f[`return_${y}_czk`] - czk) > 0.5) spatne.push(`${f.isin} ${y} Kč: DB ${f[`return_${y}_czk`].toFixed(1)} vs. přepočet ${czk.toFixed(1)}`);
-        if (f[`return_${y}_usd`] != null && Math.abs(f[`return_${y}_usd`] - usd) > 0.5) spatne.push(`${f.isin} ${y} USD: DB ${f[`return_${y}_usd`].toFixed(1)} vs. přepočet ${usd.toFixed(1)}`);
+        const dbCzk = f[`return_${y}_czk`] == null ? null : Number(f[`return_${y}_czk`]);
+        const dbUsd = f[`return_${y}_usd`] == null ? null : Number(f[`return_${y}_usd`]);
+        if (dbCzk != null && Math.abs(dbCzk - czk) > 0.5) { spatneFondy.add(f.isin); spatne.push(`${f.isin} ${y} Kč: DB ${dbCzk.toFixed(1)} vs. přepočet ${czk.toFixed(1)}`); }
+        if (dbUsd != null && Math.abs(dbUsd - usd) > 0.5) { spatneFondy.add(f.isin); spatne.push(`${f.isin} ${y} USD: DB ${dbUsd.toFixed(1)} vs. přepočet ${usd.toFixed(1)}`); }
       }
     }
-    if (spatne.length) poplach.push({ co: `Roční výnosy v Kč/USD nesedí s nezávislým přepočtem z kurzů ČNB/ECB (${spatne.length}×)`, ukazka: spatne.slice(0, 6) });
+    if (spatne.length) poplach.push({ co: `Roční výnosy v Kč/USD nesedí s nezávislým přepočtem z kurzů ČNB/ECB – ${spatneFondy.size} fondů z ${data.length}`, ukazka: spatne.slice(0, 6) });
   } catch (e) {
     varovani.push({ co: `Kontrolu ročních výnosů v Kč/USD se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
