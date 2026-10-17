@@ -208,6 +208,39 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
   }
 }
 
+/** Sektorové/faktorové/pákové fondy – podle názvu. Mají v DB občas chybně index „S&P 500" /
+ *  „MSCI World" (audit 17. 10. 2026), takže je nesmíme brát jako „stejný index". */
+export const SPECIFICKY_FOND = /\b(sector|energy|financials?|information technology|technology|health ?care|utilities|industrials?|materials|consumer|communication|real estate|equal weight|value|growth|momentum|quality|min(imum)? vol|dividend|esg|sri|paris|climate|ex[- ]|small ?cap|mid ?cap|leveraged|short|inverse|\dx)\b/i;
+
+export interface PodobnyFond { isin: string; name: string; primary_ticker: string | null; ter_numeric: number | null; fund_size_numeric: number | null; return_1y_czk: number | null }
+
+/**
+ * Podobné fondy pro „Kam dál" na detailu: STEJNÝ index (přesná shoda index_name), bez pákových,
+ * bez fondů se zamrzlými daty, seřazené podle velikosti. Dřív detail radil napevno „postavte
+ * tento fond proti VUAA" i zlatému ETC (deep dive 17. 10. 2026).
+ */
+export async function getPodobneFondy(indexName: string | null, isin: string, nazev: string): Promise<PodobnyFond[]> {
+  if (!indexName || !indexName.trim() || SPECIFICKY_FOND.test(nazev)) return [];
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select('isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk')
+      .eq('index_name', indexName)
+      .neq('isin', isin)
+      .not('is_leveraged', 'is', true)
+      .not('name', 'is', null)
+      .gte('scraping_date', cerstveOd())
+      .not('fund_size_numeric', 'is', null)
+      .order('fund_size_numeric', { ascending: false })
+      .limit(8);
+    if (error || !data) return [];
+    // Bez sektorových „S&P 500 Energy…" s chybně přiřazeným indexem.
+    return (data as PodobnyFond[]).filter((f) => !SPECIFICKY_FOND.test(f.name)).slice(0, 4);
+  } catch {
+    return [];
+  }
+}
+
 /* ---------- Složení vlajkového fondu (pro infografiku kategorie) ---------- */
 
 export interface CompositionSlice {

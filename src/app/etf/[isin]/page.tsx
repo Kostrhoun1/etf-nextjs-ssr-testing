@@ -18,7 +18,8 @@ import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { distKind } from '@/utils/distribution';
 import EtfReturns from '@/components/design-preview/EtfReturns';
 import EtfCalendarReturns, { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
-import { getDataDate } from '@/lib/etf-data';
+import { getDataDate, getPodobneFondy, SPECIFICKY_FOND } from '@/lib/etf-data';
+import { canonicalIndexLabel } from '@/utils/indexNormalization';
 import { isHeadFund } from '@/lib/etf-head';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
@@ -151,6 +152,39 @@ const DOMICILE_CS: Record<string, string> = {
   Netherlands: 'Nizozemsko', Switzerland: 'Švýcarsko', 'United Kingdom': 'Spojené království',
 };
 const domLabel = (d: string | null | undefined) => (d ? DOMICILE_CS[d] ?? d : '—');
+/** Index fondu → index v backtestu. JEN přesné shody, které backtest opravdu má (data
+ *  od emitenta indexu přes ETF proxy) – raději žádný odkaz než odkaz na jiný index. */
+const BACKTEST_INDEX: Record<string, string> = { 'S&P 500': 'sp500', 'FTSE All-World': 'ftse_all_world' };
+/** „Kam dál": žebříček podle toho, co fond je (dřív napevno S&P 500 i u zlata). */
+const zebricekFondu = (canon: string, category: string | null, name: string): [string, string] => {
+  if (!SPECIFICKY_FOND.test(name)) {
+    if (canon === 'S&P 500') return ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF'];
+    if (canon === 'MSCI World') return ['/nejlepsi-etf/nejlepsi-msci-world-etf', 'Nejlepší MSCI World ETF'];
+    if (canon === 'FTSE All-World') return ['/nejlepsi-etf/nejlepsi-celosvetove-etf', 'Nejlepší celosvětové ETF'];
+    if (canon === 'MSCI Emerging Markets') return ['/nejlepsi-etf/nejlepsi-emerging-markets-etf', 'Nejlepší ETF rozvíjejících se trhů'];
+  }
+  if (category === 'Komodity' && /\bgold\b|zlat/i.test(name) && !/miner/i.test(name)) return ['/nejlepsi-etf/nejlepsi-zlato-etf', 'Nejlepší zlaté ETF'];
+  // Sektorové akciové fondy podle názvu (akciové energetické fondy měla DB do 18. 10. 2026
+  // chybně v Komoditách – proto test na akciový index v názvu, ne jen na kategorii).
+  const akciovy = category === 'Akcie' || /\b(msci|s&p|stoxx|ftse|sector|equity)\b/i.test(name);
+  if (akciovy) {
+    if (/\benergy\b|oil & gas/i.test(name)) return ['/nejlepsi-etf/nejlepsi-energeticke-etf', 'Nejlepší energetické ETF'];
+    if (/information technology|\btechnology\b|semiconductor/i.test(name)) return ['/nejlepsi-etf/nejlepsi-technologicke-etf', 'Nejlepší technologické ETF'];
+    if (/health ?care|biotech|pharma/i.test(name)) return ['/nejlepsi-etf/nejlepsi-healthcare-etf', 'Nejlepší healthcare ETF'];
+    if (/financials?|\bbanks?\b/i.test(name)) return ['/nejlepsi-etf/nejlepsi-financni-etf', 'Nejlepší finanční ETF'];
+    if (/dividend/i.test(name)) return ['/nejlepsi-etf/nejlepsi-dividendove-etf', 'Nejlepší dividendové ETF'];
+    if (/small ?cap/i.test(name)) return ['/nejlepsi-etf/nejlepsi-small-cap-etf', 'Nejlepší small cap ETF'];
+  }
+  switch (category) {
+    case 'Akcie': return ['/nejlepsi-etf/nejlepsi-akciove-etf', 'Nejlepší akciové ETF'];
+    case 'Dluhopisy': return ['/nejlepsi-etf/nejlepsi-dluhopisove-etf', 'Nejlepší dluhopisové ETF'];
+    case 'Komodity': return ['/nejlepsi-etf/nejlepsi-komoditni-etf', 'Nejlepší komoditní ETF'];
+    case 'Nemovitosti': return ['/nejlepsi-etf/nejlepsi-realitni-etf', 'Nejlepší realitní ETF'];
+    case 'Krypto': return ['/nejlepsi-etf/nejlepsi-bitcoin-etf', 'Nejlepší bitcoin ETF'];
+    default: return ['/zebricky', 'Žebříčky ETF'];
+  }
+};
+const TICKER_OK = /^[A-Za-z0-9]{1,12}$/;
 /** „sídlo v Irsku" – 6. pád (dřív „sídlo v Irsko"). Neznámá země → „sídlo: X". */
 const DOMICILE_LOK: Record<string, string> = {
   Ireland: 'v Irsku', Luxembourg: 'v Lucembursku', Germany: 'v Německu', France: 've Francii',
@@ -294,6 +328,14 @@ export default async function ETFDetailPreview(
   // Pákové/inverzní produkty (audit 17. 10. 2026: detail 3× pákového ETF ho doporučoval
   // dlouhodobým pasivním investorům a nikde nevaroval).
   const isLev = etf.is_leveraged === true;
+  // Kam dál + kontextové odkazy (deep dive 17. 10. 2026: z detailu na články vedlo 0 z 1 243 prokliků).
+  const canonIdx = canonicalIndexLabel(etf.index_name);
+  const btCode = !isLev && !/\bhedged\b|\bhdg\b/i.test(etf.name || '') && !SPECIFICKY_FOND.test(etf.name || '') ? BACKTEST_INDEX[canonIdx] : undefined;
+  const [zebricekHref, zebricekLabel] = zebricekFondu(canonIdx, (etf as unknown as { category?: string | null }).category ?? null, etf.name || '');
+  const podobne = await getPodobneFondy(etf.index_name, etf.isin, etf.name || '');
+  const souper = podobne.find((f) => f.primary_ticker && TICKER_OK.test(f.primary_ticker));
+  const parHref = souper && etf.primary_ticker && TICKER_OK.test(etf.primary_ticker)
+    ? `/srovnani/${etf.primary_ticker.toLowerCase()}-vs-${souper.primary_ticker!.toLowerCase()}` : null;
   const distText = distLabelOf(dKind);
   const replText = replLabel(etf.replication);
   const domText = domLabel(etf.fund_domicile);
@@ -514,6 +556,24 @@ export default async function ETFDetailPreview(
             desc="Kolik fond reálně vydělal – přepněte měnu podle toho, jak to pocítíte na účtu. Kč zahrnuje pohyb kurzu (bez daní a poplatků brokera)."
           />
           <EtfReturns byCur={returnsByCur} fundCurrency={etf.fund_currency} short={shortPeriods} vol={volForReturns} />
+          {/* USP v jedné větě – jen u čerstvých dat (pravidlo č. 1: raději nic než staré číslo) */}
+          {!isStale && !isLev && czk.y5 != null && (
+            <p className="mt-3 rounded-lg border border-teal-200 bg-teal-50/60 px-4 py-3 text-sm text-slate-700 leading-relaxed">
+              Kdybyste před 5 lety vložili do tohoto fondu <strong>100 000 Kč</strong>, dnes byste měli zhruba{' '}
+              <strong className="tabular-nums">{(Math.round(100000 * (1 + czk.y5 / 100) / 100) * 100).toLocaleString('cs-CZ')} Kč</strong>{' '}
+              <span className="text-slate-500">(po poplatcích fondu, před daní a poplatky brokera; data k {dataDate.toLocaleDateString('cs-CZ')}).</span>
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {btCode && (
+              <Link href={`/backtest?slozeni=${btCode}:100&run=1`} className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
+                Otestovat {canonIdx} na historii v korunách <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+            <Link href="/kolik-vydelaly-etf" className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
+              Kolik ETF vydělaly v korunách dlouhodobě <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </section>
 
         {/* VÝNOS PO KALENDÁŘNÍCH LETECH (+ letošní YTD, měnově citlivé) */}
@@ -571,6 +631,12 @@ export default async function ETFDetailPreview(
               </div>
             ))}
           </div>
+          {(isAcc || isDist) && (
+            <p className="mt-3 text-sm text-slate-600">
+              {isAcc ? 'Fond dividendy reinvestuje – na účet nic nechodí a do prodeje nic nedaníte.' : 'Fond vyplácí dividendy na účet – v Česku je zdaníte 15 %.'}{' '}
+              <Link href="/akumulacni-vs-distribucni-etf" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Akumulační, nebo distribuční – co se vyplatí víc?</Link>
+            </p>
+          )}
         </section>
 
         {/* SLOŽENÍ FONDU */}
@@ -668,7 +734,7 @@ export default async function ETFDetailPreview(
             <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-4">
               <p className="flex items-start gap-2 text-sm text-amber-900/90 leading-relaxed">
                 <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-700" />
-                {etf.fund_currency && etf.fund_currency !== 'CZK' && <>Fond kotuje v {etf.fund_currency}, nesete tak měnové riziko vůči koruně – posílení Kč váš výnos snižuje, oslabení ho zvyšuje.{isHedged ? ' Měnové zajištění (hedged) tlumí jen pohyby uvnitř fondu vůči jeho měně, riziko '+etf.fund_currency+'/CZK ale nese český investor dál.' : ''} </>}
+                {etf.fund_currency && etf.fund_currency !== 'CZK' && <>Fond kotuje v {etf.fund_currency}, nesete tak měnové riziko vůči koruně – posílení Kč váš výnos snižuje, oslabení ho zvyšuje.{isHedged ? ' Měnové zajištění (hedged) tlumí jen pohyby uvnitř fondu vůči jeho měně, riziko '+etf.fund_currency+'/CZK ale nese český investor dál.' : ''} <Link href="/menove-riziko-etf" className="font-medium underline underline-offset-2">Jak moc měna mění výnos v Kč?</Link> </>}
                 {countries[0] && (countries[0].weight ?? 0) > 55 && <>Zhruba {Math.round(countries[0].weight ?? 0)} % fondu míří do jediné země ({trCountry[countries[0].name] ?? countries[0].name}), což zvyšuje koncentraci.</>}
               </p>
             </div>
@@ -717,10 +783,30 @@ export default async function ETFDetailPreview(
         {/* KAM DÁL / POROVNAT */}
         <section className="pb-10">
           <SectionHead title="Kam dál" desc="Porovnejte fond s konkurencí nebo se podívejte na žebříčky." />
+          {podobne.length > 0 && (
+            <div className="mb-3 rounded-lg border border-slate-200 bg-white">
+              <p className="px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Další fondy na index {etf.index_name}</p>
+              <ul className="divide-y divide-slate-100">
+                {podobne.map((f) => (
+                  <li key={f.isin}>
+                    <Link href={`/etf/${f.isin}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
+                      <span className="flex-1 min-w-0">
+                        <span className="block truncate text-sm font-medium text-slate-900">{f.name}</span>
+                        <span className="block text-xs text-slate-500">{f.primary_ticker ?? f.isin} · TER {ter(f.ter_numeric)}</span>
+                      </span>
+                      <ArrowUpRight className="w-4 h-4 shrink-0 text-slate-400" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {([
-              ['/srovnani', 'Porovnat s jiným fondem', Scale, 'Postavte tento fond proti VUAA, SPY5 nebo jinému S&P 500 ETF.'],
-              ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', TrendingUp, 'Žebříček nejlepších fondů sledujících S&P 500.'],
+              parHref && souper
+                ? [parHref, `${etf.primary_ticker} vs ${souper.primary_ticker}`, Scale, `Srovnání s fondem ${souper.primary_ticker} na stejný index – poplatek, velikost a výnos v Kč vedle sebe.`]
+                : ['/srovnani', 'Najít podobný fond', Scale, 'Ve srovnávači vyfiltrujete fondy podle indexu, poplatku i výnosu v Kč.'],
+              [zebricekHref, zebricekLabel, TrendingUp, 'Žebříček fondů z téže kategorie – nejlevnější, největší a nejvýkonnější.'],
               ['/kde-koupit', 'Kde fond koupit', Banknote, 'Srovnání brokerů, u kterých tento fond pořídíte.'],
             ] as [string, string, typeof Scale, string][]).map(([href, label, Icon, desc]) => (
               <Link key={href} href={href} className="group rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
