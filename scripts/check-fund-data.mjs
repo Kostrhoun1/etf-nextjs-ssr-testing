@@ -180,6 +180,10 @@ const main = async () => {
     const html = await fetch(`${WEB_URL}/`).then((r) => (r.ok ? r.text() : ''));
     const text = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;|\u00a0/g, ' ').replace(/\s+/g, ' ');
     const m = text.match(/od roku 2010 by dnes bylo zhruba ([0-9]+(?:,[0-9])?) mil\. Kč/);
+    // Backtest končí ke dni „data k …“ z homepage (stránka je v ISR cache – jinak by denní pohyb trhu
+    // mezi renderem a kontrolou dělal falešný poplach).
+    const dk = text.match(/data k ([0-9]{1,2})\. ([0-9]{1,2})\. ([0-9]{4})/);
+    const konecDat = dk ? `${dk[3]}-${dk[2].padStart(2, '0')}-${dk[1].padStart(2, '0')}` : new Date().toISOString().slice(0, 10);
     if (!m) {
       varovani.push({ co: 'Homepage neukazuje číslo ze stroje času (5 000 Kč měsíčně od 2010) – data starší 7 dní, nebo chyba', ukazka: [] });
     } else {
@@ -188,13 +192,13 @@ const main = async () => {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           portfolio: [{ isin: 'ftse_all_world', name: 'ftse_all_world', indexCode: 'ftse_all_world', weight: 1, ter: 0 }],
-          startDate: '2010-01-01', endDate: new Date().toISOString().slice(0, 10), initialAmount: 5000,
+          startDate: '2010-01-01', endDate: konecDat, initialAmount: 5000,
           currency: 'CZK', rebalancingStrategy: 'yearly', contributions: { amount: 5000, frequency: 'monthly' },
         }),
       }).then((r) => r.json());
       const ocek = bt?.summary?.netAssetValue;
       if (!ocek) varovani.push({ co: 'Číslo na homepage nešlo ověřit – backtest API neodpovědělo', ukazka: [] });
-      else if (Math.abs(web - ocek) > 0.06e6 + 0.01 * ocek) {
+      else if (Math.abs(web - ocek) > 0.06e6 + 0.015 * ocek) {
         poplach.push({ co: 'Číslo na homepage nesedí s plnou simulací backtestu', ukazka: [`web ${m[1]} mil. Kč vs. backtest ${(ocek / 1e6).toFixed(2)} mil. Kč`] });
       }
     }

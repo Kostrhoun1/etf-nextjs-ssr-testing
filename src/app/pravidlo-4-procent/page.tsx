@@ -23,7 +23,7 @@ const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', '�
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v ${MESICE6[m - 1]} ${y}`; };
 /** [2000, 2001, 2002] → „2000, 2001 a 2002“ */
 const vycet = (xs: (string | number)[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} a ${xs.at(-1)}`);
-const krat = (v: number) => v > 0 && v < 0.1 ? 'méně než 0,1×' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}×`;
+const krat = (v: number) => v > 0 && v < 0.1 ? '< 0,1×' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}×`;
 const tvar = (n: number, a: string, b: string, c: string) => (n === 1 ? a : n >= 2 && n <= 4 ? b : c);
 /** Počet let od ledna `rok` do měsíce `ym` (celé roky). */
 const letDo = (rok: number, ym: string) => {
@@ -49,11 +49,12 @@ function Graf({ p, roky }: { p: CtyriProcentaPreset; roky: number[] }) {
   const rady = roky.map((r) => p.starty.find((s) => s.rok === r)?.s4).filter((x): x is VysledekVyberu => !!x);
   if (!rady.length) return null;
   const W = 720, H = 280, L = 44, B = 30, T = 10;
-  const prvni = Number(rady[0].prubeh[0].mesic.slice(0, 4));
-  const posledni = Math.max(...rady.map((r) => Number(r.prubeh.at(-1)!.mesic.slice(0, 4)) + Number(r.prubeh.at(-1)!.mesic.slice(5, 7)) / 12));
+  const t = (ym: string) => Number(ym.slice(0, 4)) + Number(ym.slice(5, 7)) / 12; // konec měsíce
+  const prvni = t(rady[0].prubeh[0].mesic);
+  const posledni = Math.max(...rady.map((r) => t(r.prubeh.at(-1)!.mesic)));
   const max = Math.max(2, ...rady.flatMap((r) => r.prubeh.map((b) => b.hodnota)));
   const yMax = Math.ceil(max);
-  const x = (ym: string) => L + ((Number(ym.slice(0, 4)) + Number(ym.slice(5, 7)) / 12 - prvni - 1 / 12) / (posledni - prvni)) * (W - L - 8);
+  const x = (ym: string) => L + ((t(ym) - prvni) / (posledni - prvni)) * (W - L - 8);
   const y = (v: number) => T + (H - T - B) * (1 - v / yMax);
   const kroky = yMax <= 4 ? 1 : 2;
   return (
@@ -106,10 +107,21 @@ export default async function PravidloCtyriProcenta() {
   const spPozdejiOk = !!sp && posledniSelhani !== undefined && sp.starty.every((s) => s.rok <= posledniSelhani || !s.s4.vycerpano);
   const nejhorsi3 = sp && sv ? [sp, sv].flatMap((p) => p.starty.filter((s) => s.rok <= 2002)) : [];
   const trojkaSelhala = nejhorsi3.filter((s) => s.s3.vycerpano).length;
-  const vyReal = vy ? vy.starty.filter((s) => !s.s4.vycerpano && s.s4.realne! < 1 && s.rok <= 2016) : [];
+  // Jen starty s aspoň 5 lety dat – u čerstvých je „reálně pod 1“ samozřejmost (revize 17. 10.).
+  const rokDat = d ? Number(d.posledniDen.slice(0, 4)) : 0;
+  const vyReal = vy ? vy.starty.filter((s) => !s.s4.vycerpano && s.s4.realne! < 1 && s.rok <= rokDat - 5) : [];
+  // Dluhopisy: tlumily propad? Porovnání nejnižší hodnoty a dnešní hodnoty u startů, kde máme obojí (5+ let dat).
+  const spolecne = vy && sv ? vy.starty.filter((s) => s.rok <= rokDat - 5).flatMap((v) => {
+    const w = sv.starty.find((x) => x.rok === v.rok);
+    return w && !v.s4.vycerpano && !w.s4.vycerpano ? [{ rok: v.rok, vy: v.s4, sv: w.s4 }] : [];
+  }) : [];
+  const krize = spolecne.filter((x) => x.rok >= 2004 && x.rok <= 2008);
+  const rozpeti = (xs: number[]) => xs.length ? `${krat(Math.min(...xs))}–${krat(Math.max(...xs))}` : '';
+  const tlumily = krize.length > 0 && krize.every((x) => x.vy.nejnize > x.sv.nejnize);
+  const vyNiz = spolecne.filter((x) => x.vy.hodnota! < x.sv.hodnota!).length;
 
   const faqs = ok && sp2000 && sv2000 ? [
-    { q: 'Funguje pravidlo 4 % v Česku?', a: `Na českých datech ne vždy. Kdo v lednu 2000 začal vybírat 4 % z akcií S&P 500 (a výběr navyšoval o českou inflaci), měl v korunách prázdné portfolio ${sp2000.s4.vycerpano ? vMesici(sp2000.s4.vycerpano) : '– nevyčerpal'}. U akcií celého světa ${sv2000.s4.vycerpano ? vMesici(sv2000.s4.vycerpano) : 'nevyčerpal'}. ${spPozdejiOk ? `Kdo začal v roce ${posledniSelhani! + 1} nebo později, tomu peníze zatím vydržely. ` : ''}Rozhodlo, jestli hned v prvních letech přišel velký propad.` },
+    { q: 'Funguje pravidlo 4 % v Česku?', a: `Na českých datech ne vždy. Kdo v lednu 2000 začal vybírat 4 % z akcií S&P 500 (a výběr navyšoval o českou inflaci), ${sp2000.s4.vycerpano ? `měl v korunách prázdné portfolio ${vMesici(sp2000.s4.vycerpano)}` : 'tomu portfolio zatím vydrželo'}. ${sv2000.s4.vycerpano ? `U akcií celého světa došly peníze ${vMesici(sv2000.s4.vycerpano)}.` : 'U akcií celého světa zatím vydrželo.'} ${spPozdejiOk ? `Kdo začal v roce ${posledniSelhani! + 1} nebo později, tomu peníze zatím vydržely. ` : ''}Rozhodlo, jestli hned v prvních letech přišel velký propad.` },
     { q: 'Proč to v korunách dopadlo hůř než v amerických studiích?', a: 'Americké studie počítají v dolarech. Českému investorovi v letech 2000–2008 navíc výrazně posílila koruna (dolar z 36 Kč na zhruba 15 Kč), takže dolarové akcie v korunách ztrácely i ve chvílích, kdy v dolarech rostly – a výběry se přitom navyšovaly o českou inflaci.' },
     { q: 'Kolik tedy bezpečně vybírat?', a: `Data neumí říct, kolik je bezpečné pro budoucnost – jen co by vydrželo v minulosti. ${trojkaSelhala === nejhorsi3.length ? 'U nejhorších startů (2000–2002) by z čistě akciového portfolia nevydrželo ani 3 %.' : trojkaSelhala > 0 ? 'U nejhorších startů (2000–2002) by z čistě akciového portfolia v některých případech nevydrželo ani 3 %.' : 'U nejhorších startů (2000–2002) by 3 % z čistě akciového portfolia zatím vydržela.'} Proto se při dlouhé rentě obvykle kombinuje nižší výběr, část v dluhopisech nebo rezervě a ochota ve špatných letech vybírat méně.` },
   ] : [];
@@ -148,10 +160,13 @@ export default async function PravidloCtyriProcenta() {
             <section className="mt-6 rounded-xl border border-teal-200 bg-teal-50/60 p-5 text-[15px] leading-relaxed text-slate-800">
               <p className="font-semibold text-slate-900">Krátká odpověď</p>
               <p className="mt-1.5">
-                Ne vždy. Kdo v lednu 2000 začal z akcií S&amp;P 500 vybírat 4 % ročně (navyšovaných o českou inflaci), měl v korunách
-                prázdné portfolio <strong>{sp2000.s4.vycerpano ? vMesici(sp2000.s4.vycerpano) : 'nikdy'}</strong> – po{' '}
-                {sp2000.s4.vycerpano ? letDo(2000, sp2000.s4.vycerpano) : ''}. Došly peníze startům z {tvar(selhalo(sp).length, 'roku', 'let', 'let')} {vycet(selhalo(sp).map((s) => s.rok))}
-                {spPozdejiOk && <>; kdo začal v roce {selhalo(sp).at(-1)!.rok + 1} a později, tomu zatím vydržely – často s velkou rezervou</>}. O výsledku rozhodlo hlavně to, jestli hned na začátku přišel velký propad.
+                {sp2000.s4.vycerpano ? <>
+                  Ne vždy. Kdo v lednu 2000 začal z akcií S&amp;P 500 vybírat 4 % ročně (navyšovaných o českou inflaci), měl v korunách
+                  prázdné portfolio <strong>{vMesici(sp2000.s4.vycerpano)}</strong> – po {letDo(2000, sp2000.s4.vycerpano)}.{' '}
+                  Došly peníze startům z {tvar(selhalo(sp).length, 'roku', 'let', 'let')} {vycet(selhalo(sp).map((s) => s.rok))}
+                  {spPozdejiOk && <>; kdo začal v roce {selhalo(sp).at(-1)!.rok + 1} a později, tomu zatím vydržely – často s velkou rezervou</>}.
+                </> : <>Na datech od roku 2000 výběr 4 % z akcií S&amp;P 500 zatím vydržel u všech startů – podrobnosti v tabulce níže.</>}{' '}
+                O výsledku rozhodlo hlavně to, jestli hned na začátku přišel velký propad.
               </p>
             </section>
 
@@ -196,7 +211,7 @@ export default async function PravidloCtyriProcenta() {
                 </table>
               </div>
               <p className="mt-2 text-xs text-slate-500">
-                Celý svět = index FTSE All-World (fond VT); před 7/2008, kdy fond nebyl, aproximace 60 % USA + 40 % zbytek světa. Vyvážené = 60 % akcie celého světa, 40 % dluhopisy (data dluhopisového fondu od {vy.od.slice(0, 4)}).
+                Celý svět = celosvětový fond Vanguard VT (index FTSE Global All Cap); před 7/2008, kdy fond nebyl, aproximace 60 % USA + 40 % zbytek světa. Vyvážené = 60 % akcie celého světa, 40 % dluhopisy (data dluhopisového fondu od {vy.od.slice(0, 4)}).
                 U pozdějších startů je období ještě krátké – rozhodující jsou první roky.
               </p>
             </section>
@@ -240,17 +255,26 @@ export default async function PravidloCtyriProcenta() {
               <h2 className="text-xl font-bold tracking-tight text-slate-900">Proč to v korunách dopadlo hůř</h2>
               <p>
                 <strong>Špatný začátek.</strong> Kdo vybírá z portfolia, které hned na začátku spadne o polovinu, prodává levně a ztráta se už
-                nedožene – ani když trh později roste. Startům z let 2000–2002 přišly během prvních let dva velké propady (2000–2002 a 2008).
+                nedožene – ani když trh později roste. Startům z let 2000–2002 přišel velký propad hned na začátku (2000–2002) a další v roce 2008 – dřív, než se portfolio stihlo vzpamatovat.
               </p>
               <p>
                 <strong>Silnější koruna.</strong> Mezi lety 2000 a 2008 posílila koruna k dolaru zhruba z 36 na 15 Kč. Dolarové akcie tím v korunách
                 ztrácely, zatímco výběry rostly s českou inflací.{' '}
                 <Link href="/menove-riziko-etf" className="font-medium text-teal-700 hover:underline">Víc o měnovém riziku</Link>
               </p>
-              {vyReal.length > 0 && selhalo(vy).length === 0 && (
+              {krize.length > 0 && (
                 <p>
-                  <strong>Dluhopisy pomohly, ale ne zadarmo.</strong> Vyvážené portfolio nevyčerpal žádný start, který máme v datech. U startů{' '}
-                  {vycet(vyReal.map((s) => s.rok))} je ale dnes reálně menší než na začátku – přispěla k tomu i vysoká inflace let 2022–2023.
+                  <strong>Dluhopisy {tlumily ? 'tlumily propady, ale stály výnos' : 'propady netlumily tak, jak by se čekalo'}.</strong>{' '}
+                  U startů {krize[0].rok}–{krize.at(-1)!.rok} kleslo vyvážené portfolio (60/40) při výběrech nejníž na {rozpeti(krize.map((x) => x.vy.nejnize))} počáteční
+                  hodnoty, čistě akciové na {rozpeti(krize.map((x) => x.sv.nejnize))}.{' '}
+                  {vyNiz > 0 && <>Dnes je ale vyvážené portfolio menší než akciové {vyNiz === spolecne.length ? `u všech ${spolecne.length} startů` : `u ${vyNiz} z ${spolecne.length} startů`} s aspoň pěti lety dat.{' '}</>}
+                  Jestli by dluhopisy zachránily starty 2000–2002, z našich dat nezjistíme – data dluhopisového fondu začínají až v roce {vy.od.slice(0, 4)}.
+                </p>
+              )}
+              {vyReal.length > 0 && (
+                <p>
+                  Po inflaci je vyvážené portfolio dnes menší než na začátku u {tvar(vyReal.length, 'startu', 'startů', 'startů')} {vycet(vyReal.map((s) => s.rok))}{' '}
+                  (z těch s aspoň pěti lety dat) – přispěla k tomu i vysoká inflace let 2022–2023.
                 </p>
               )}
             </section>

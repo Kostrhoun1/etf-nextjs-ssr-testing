@@ -286,6 +286,12 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
                   Podrobně v backtestu <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
+              {preset?.pozdeji && `${rokStartu}-01` < preset.pozdeji.od && (
+                <p className="mt-3 text-xs text-slate-500">
+                  Backtest počítá celé období s náhradním složením, které tu používáme jen do 6/2008 (celosvětový fond VT existuje až
+                  od roku 2008) – proto vyjde jinak než tady. Stroj času od 7/2008 počítá se skutečným fondem.
+                </p>
+              )}
               <p className="mt-3 text-xs text-slate-500">Scénář si pamatujeme ve vašem prohlížeči – při příští návštěvě uvidíte, o kolik se změnil.</p>
             </>
           )}

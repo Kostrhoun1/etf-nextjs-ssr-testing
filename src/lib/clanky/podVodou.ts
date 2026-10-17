@@ -173,7 +173,7 @@ export async function spoctiPodVodou(): Promise<PodVodou | null> {
       for (let t = i0; t < m.length; t++) if (m[t].value < m[i0 - 1].value) posl = t;
       sp500Usd2000 = posl === m.length - 1 ? null : posl < 0 ? 0 : posl - i0 + 1;
     }
-    return { presety, sp500Usd2000, posledniDen: rady[0].posledniDen };
+    return { presety, sp500Usd2000, posledniDen: rady.map((r) => r.posledniDen).sort()[0] };
   } catch (e) {
     console.error('[pod-vodou] výpočet selhal:', e);
     return null;

@@ -6,7 +6,7 @@
  *
  * OVĚŘENO 17. 10. 2026 (pravidlo č. 1):
  * - S&P 500 (SPY) roční výnosy 2011–2024 vs. S&P DJI: ±0,01–0,27 p. b. (poplatek ETF)
- * - FTSE All-World (VT) roční výnosy 2010–2024 vs. publikované výnosy VT: max ±0,1 p. b.
+ * - celý svět (VT, index FTSE Global All Cap) roční výnosy 2010–2024 vs. publikované výnosy VT: max ±0,1 p. b.
  * - převod do Kč přes kurzy ČNB: ±0,06 %
  * - dekáda 2000–2009 S&P 500 v Kč −7,3 % ročně = S&P TR v USD −0,95 % ročně × USD/CZK −6,5 % ročně
  */
@@ -70,7 +70,7 @@ export async function spoctiSp500NeboSvet(): Promise<Sp500NeboSvet | null> {
     const svetRoky = new Map(vt.returns.annualReturns.map((x) => [x.year, x.return]));
     const posledniRok = dnes.getFullYear() - 1;
     return {
-      od2008: [radek('sp500', 'S&P 500 (USA)', sp), radek('svet', 'Celý svět (FTSE All-World)', vt), radek('mimousa', 'Svět mimo USA', ex)],
+      od2008: [radek('sp500', 'S&P 500 (USA)', sp), radek('svet', 'Celý svět (fond VT)', vt), radek('mimousa', 'Svět mimo USA', ex)],
       usdPropad: { sp500: spUsd.risk.maxDrawdown.depth, svet: vtUsd.risk.maxDrawdown.depth },
       dekada2000: { sp500: spDek.summary.cagr, mimoUsa: exDek.summary.cagr },
       okna10Svet: okna(mesicne(sp), mesicne(vt), 10),

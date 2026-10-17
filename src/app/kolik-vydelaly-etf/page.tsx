@@ -107,7 +107,7 @@ export default async function KolikVydelalyEtf() {
   // 7) Svět vs. USA vs. regiony (100 000 Kč jednorázově, od 2008)
   const indices = [
     { name: 'S&P 500 (USA)', cagr: 11.2, final: 6948451, maxDD: -51.9, accent: 'emerald' as const },
-    { name: 'FTSE All-World (celý svět)', cagr: 8.6, final: 4305791, maxDD: -50.3, accent: 'teal' as const },
+    { name: 'Celý svět (fond VT)', cagr: 8.6, final: 4305791, maxDD: -50.3, accent: 'teal' as const },
     { name: 'Rozvinuté trhy mimo USA (EAFE)', cagr: 4.4, final: 2158874, maxDD: -58.4, accent: 'slate' as const },
     { name: 'Rozvíjející se trhy (EM)', cagr: 3.6, final: 1868875, maxDD: -64.3, accent: 'slate' as const },
   ];
@@ -115,7 +115,7 @@ export default async function KolikVydelalyEtf() {
   const faqs = [
     {
       q: 'Kolik vydělaly světové akcie za posledních zhruba 18 let?',
-      a: 'Podle našich historických dat od poloviny roku 2008 zhodnotil široký index světových akcií (FTSE All-World) v korunách přibližně na čtyřnásobek – ze 100 000 Kč tedy zhruba 400 000 Kč. To odpovídá průměrnému zhodnocení kolem 8–9 % ročně. Jde o orientační výpočet z minulých dat, ne o příslib budoucnosti; budoucí výnos může být výrazně jiný.',
+      a: 'Podle našich historických dat od poloviny roku 2008 zhodnotil široký index světových akcií (celosvětový fond VT) v korunách přibližně na čtyřnásobek – ze 100 000 Kč tedy zhruba 400 000 Kč. To odpovídá průměrnému zhodnocení kolem 8–9 % ročně. Jde o orientační výpočet z minulých dat, ne o příslib budoucnosti; budoucí výnos může být výrazně jiný.',
     },
     {
       q: 'Znamená to, že investování do širokých akciových ETF je bez rizika?',
@@ -299,7 +299,7 @@ export default async function KolikVydelalyEtf() {
                   <text x={chart.W - 2} y="12" textAnchor="end" fontSize="11" fontWeight="600" fill="#94a3b8" fontFamily="sans-serif">Zdroj: etfpruvodce.cz</text>
                 </svg>
               </div>
-              <p className="mt-2 text-xs text-slate-500 leading-relaxed">Skutečný historický vývoj širokého světového indexu (FTSE All-World) přepočtený na vklad 100 000 Kč, od poloviny roku 2008 do současnosti. Hodnoty jsou zaokrouhlené. Minulé výnosy nezaručují ty budoucí.</p>
+              <p className="mt-2 text-xs text-slate-500 leading-relaxed">Skutečný historický vývoj celosvětového fondu Vanguard VT (index FTSE Global All Cap) přepočtený na vklad 100 000 Kč, od poloviny roku 2008 do současnosti. Hodnoty jsou zaokrouhlené. Minulé výnosy nezaručují ty budoucí.</p>
             </div>
           )}
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -394,7 +394,7 @@ export default async function KolikVydelalyEtf() {
                 <text x={bar.W - 2} y="12" textAnchor="end" fontSize="11" fontWeight="600" fill="#94a3b8">Zdroj: etfpruvodce.cz</text>
               </svg>
             </div>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">Roční zhodnocení širokého světového indexu (FTSE All-World) v korunách, po poplatcích. Rok 2026 je neúplný (do data výše). Data k {dateStr}.</p>
+            <p className="mt-2 text-xs text-slate-500 leading-relaxed">Roční zhodnocení celosvětového fondu Vanguard VT (index FTSE Global All Cap) v korunách, po poplatcích. Rok 2026 je neúplný (do data výše). Data k {dateStr}.</p>
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed">Z 19 sledovaných let bylo <strong className="text-slate-700">14 kladných a 5 ztrátových</strong>. Skvělé roky (+20 až +30 %) i ošklivé (−25 % v roce 2008) se střídaly nepravidelně – a přesně proto se nedá &bdquo;počkat si na ten správný rok&ldquo;.</p>
         </section>

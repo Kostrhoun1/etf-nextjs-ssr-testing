@@ -14,7 +14,7 @@ export interface StrojPreset {
   od: string;
   /**
    * Od měsíce `od` (včetně) řada pokračuje výnosy JINÉHO složení (napojení řetězením měsíčních
-   * výnosů). Použití: „celý svět“ = skutečný index FTSE All-World (fond VT) od 7/2008; dřív, kdy
+   * výnosů). Použití: „celý svět“ = skutečný celosvětový fond Vanguard VT (index FTSE Global All Cap) od 7/2008; dřív, kdy
    * VT neexistoval, aproximace 60 % S&P 500 + 40 % svět mimo USA. `start` = první den dat nového
    * složení (potřebujeme konec měsíce PŘED `od`).
    */
@@ -26,7 +26,7 @@ export interface StrojPreset {
 export const STROJ_PRESETY: StrojPreset[] = [
   {
     id: 'svet', nazev: 'Celý svět', nazev2p: 'akcií celého světa',
-    popis: 'Akcie celého světa: index FTSE All-World (fond VT). Před červencem 2008, kdy fond ještě nebyl, přibližně 60 % USA (S&P 500) a 40 % ostatní svět.',
+    popis: 'Akcie celého světa: fond Vanguard VT (index FTSE Global All Cap – velké i malé firmy z vyspělých i rozvíjejících se trhů). Před červencem 2008, kdy fond ještě nebyl, přibližně 60 % USA (S&P 500) a 40 % ostatní svět.',
     slozeni: [{ indexCode: 'sp500', weight: 0.6 }, { indexCode: 'world_ex_us', weight: 0.4 }],
     pozdeji: { od: '2008-07', start: '2008-06-26', slozeni: [{ indexCode: 'ftse_all_world', weight: 1 }] },
     od: '2000-01',
@@ -39,7 +39,7 @@ export const STROJ_PRESETY: StrojPreset[] = [
   },
   {
     id: 'vyvazene', nazev: 'Vyvážené 60/40', nazev2p: 'vyváženého portfolia 60/40',
-    popis: '60 % akcie celého světa (FTSE All-World, před 7/2008 aproximace), 40 % dluhopisy – klidnější průběh za cenu nižšího výnosu.',
+    popis: '60 % akcie celého světa (fond VT, před 7/2008 aproximace), 40 % dluhopisy – klidnější průběh za cenu nižšího výnosu.',
     slozeni: [
       { indexCode: 'sp500', weight: 0.36 }, { indexCode: 'world_ex_us', weight: 0.24 },
       { indexCode: 'us_aggregate_bond', weight: 0.4 },

@@ -74,7 +74,8 @@ const nactiPodleKlice = cache(async (klic: string): Promise<StrojRada[]> => {
           spojene.set(kl[i], h);
         }
         mesicne = spojene;
-        posledniDen = nove.posledniDen < posledniDen ? nove.posledniDen : posledniDen;
+        // Od napojení jsou všechny hodnoty z nové řady → datum dat je její poslední den.
+        posledniDen = nove.posledniDen;
       }
       const klice = [...mesicne.keys()].sort();
       if (klice.length < 24) continue;

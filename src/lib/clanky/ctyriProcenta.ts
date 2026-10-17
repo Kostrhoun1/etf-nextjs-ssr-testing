@@ -28,6 +28,8 @@ export interface VysledekVyberu {
   hodnota: number | null;
   /** Totéž v cenách roku startu (po inflaci). 1 = kupní síla jako na začátku. */
   realne: number | null;
+  /** Nejnižší hodnota (konec měsíce, nominálně) – jak hluboko portfolio při výběrech kleslo. 0 = vyčerpáno. */
+  nejnize: number;
   /** Hodnota na konci každého prosince (a posledního měsíce) – pro graf. */
   prubeh: { mesic: string; hodnota: number }[];
 }
@@ -40,7 +42,7 @@ export function simulujVybery(rada: StrojRada, start: string, sazba: number): Vy
   if (i0 < 0 || i0 >= rada.nav.length) return null;
   const c0 = cpiLevel(`${start}-01`);
   if (!c0) return null;
-  let h = 1;
+  let h = 1, nejnize = 1;
   const prubeh: VysledekVyberu['prubeh'] = [{ mesic: pridej(start, -1), hodnota: 1 }];
   for (let t = i0; t < rada.nav.length; t++) {
     const c = cpiLevel(`${mes(t)}-01`);
@@ -48,14 +50,15 @@ export function simulujVybery(rada: StrojRada, start: string, sazba: number): Vy
     h -= (sazba / 12) * (c / c0);
     if (h <= 0) {
       prubeh.push({ mesic: mes(t), hodnota: 0 });
-      return { start, sazba, vycerpano: mes(t), hodnota: null, realne: null, prubeh };
+      return { start, sazba, vycerpano: mes(t), hodnota: null, realne: null, nejnize: 0, prubeh };
     }
     h *= rada.nav[t] / (t === 0 ? 1 : rada.nav[t - 1]);
+    nejnize = Math.min(nejnize, h);
     if (mes(t).endsWith('-12') || t === rada.nav.length - 1) prubeh.push({ mesic: mes(t), hodnota: h });
   }
   const cKonec = cpiLevel(`${mes(rada.nav.length - 1)}-28`);
   if (!cKonec) return null;
-  return { start, sazba, vycerpano: null, hodnota: h, realne: h / (cKonec / c0), prubeh };
+  return { start, sazba, vycerpano: null, hodnota: h, realne: h / (cKonec / c0), nejnize, prubeh };
 }
 
 export interface CtyriProcentaPreset {
@@ -85,7 +88,8 @@ export async function spoctiCtyriProcenta(): Promise<CtyriProcenta | null> {
       }
       return { id: r.id, nazev: STROJ_PRESETY.find((p) => p.id === r.id)?.nazev ?? r.id, od: r.od, starty };
     });
-    return { presety, posledniDen: rady[0].posledniDen };
+    // Datum dat = nejstarší z konců řad (nikdy netvrdit novější den, než mají všechny presety).
+    return { presety, posledniDen: rady.map((r) => r.posledniDen).sort()[0] };
   } catch (e) {
     console.error('[4-procenta] výpočet selhal:', e);
     return null;

@@ -199,7 +199,7 @@ export default async function Sp500NeboSvet() {
             <section className="mt-8 rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-500 leading-relaxed">
               <p className="font-semibold text-slate-700">Metodika a zdroje</p>
               <p className="mt-1">
-                Data: ETF SPY (S&amp;P 500), VT (FTSE All-World, od 6/2008) a fond VGTSX (svět mimo USA) – denní ceny s reinvesticí dividend,
+                Data: ETF SPY (S&amp;P 500), VT (celý svět, index FTSE Global All Cap, od 6/2008) a fond VGTSX (svět mimo USA) – denní ceny s reinvesticí dividend,
                 po poplatcích fondů, před daní. Převod do korun denním kurzem. Ověřeno: roční výnosy S&amp;P 500 proti S&amp;P Dow Jones Indices
                 (±0,3 p. b.), VT proti publikovaným výnosům fondu (±0,1 p. b.), kurzy proti ČNB. Minulé výnosy nezaručují budoucí.
               </p>
