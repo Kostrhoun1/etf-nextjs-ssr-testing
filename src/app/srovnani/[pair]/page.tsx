@@ -28,6 +28,9 @@ export async function generateStaticParams() {
 function parsePair(slug: string): [string, string] | null {
   const parts = slug.toLowerCase().split('-vs-');
   if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  // Tickery jdou do filtru .or() v dotazu na DB → jen písmena a číslice (čárka/tečka by
+  // filtr rozšířily). Stejné pravidlo hlídá už middleware, tohle je pojistka.
+  if (!parts.every((p) => /^[a-z0-9]{1,12}$/.test(p))) return null;
   return [parts[0].toUpperCase(), parts[1].toUpperCase()];
 }
 
@@ -38,10 +41,10 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { pair } = await params;
   const parsed = parsePair(pair);
-  if (!parsed) return { title: 'Srovnání ETF | ETF průvodce', robots: { index: false, follow: false } };
+  if (!parsed) return { title: 'Srovnání ETF', robots: { index: false, follow: false } };
   const [t1, t2] = parsed;
   const data = await getComparisonETFData(t1, t2);
-  if (!data) return { title: `${t1} vs ${t2} | ETF průvodce`, robots: { index: false, follow: false } };
+  if (!data) return { title: `${t1} vs ${t2}`, robots: { index: false, follow: false } };
   const cheaper = (num(data.etf1.ter_numeric) ?? 9) <= (num(data.etf2.ter_numeric) ?? 9) ? data.etf1 : data.etf2;
   return {
     title: `${t1} vs ${t2}: srovnání ETF, výnos v Kč a který koupit`,

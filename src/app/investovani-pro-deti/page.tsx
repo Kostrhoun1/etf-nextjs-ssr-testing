@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate, getETFsByIsins } from '@/lib/etf-data';
+import { getDataDate, getETFsByIsins, getETFCountLabel } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
@@ -71,6 +71,7 @@ const KID_ISINS = [
 ];
 
 export default async function InvestovaniProDeti() {
+  const pocetFondu = await getETFCountLabel();
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -436,7 +437,7 @@ export default async function InvestovaniProDeti() {
               Hlavní volba není mezi značkami, ale mezi indexy: jen vyspělé trhy (MSCI World) vs. celý svět včetně
               rozvíjejících se trhů (FTSE All-World, MSCI ACWI). Rozdíl rozebírá{' '}
               <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
-              všech {`4 800+`} fondů profiltrujete ve{' '}
+              všech {pocetFondu} fondů profiltrujete ve{' '}
               <Link href="/srovnani" className="text-teal-700 hover:underline">srovnávači</Link>.
             </p>
           </section>

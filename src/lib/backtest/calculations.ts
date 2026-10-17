@@ -159,14 +159,24 @@ export function calculateRollingReturns(
 /**
  * „Underwater" řada – pro každý měsíc, jak hluboko byla hodnota pod dosavadním vrcholem
  * (0 na vrcholech, záporné ve ztrátě). Z EUR NAV (jako ostatní riziko) → start-nezávislé.
+ *
+ * Počítá se z DENNÍ řady a za měsíc se bere NEJHLUBŠÍ bod (ne konec měsíce). Dřív se řada
+ * nejdřív převzorkovala na konce měsíců → dno uprostřed měsíce (např. 9. 3. 2009) v grafu
+ * chybělo a graf ukazoval mělčí propad (~−47 %) než „Max. pokles" v tabulce (−52,8 %,
+ * ten je z denních dat). Teď dno grafu = max. pokles.
  */
 export function calculateDrawdownSeries(nav: TimeSeriesPoint[]): { date: string; drawdown: number }[] {
-  const monthly = resampleMonthEnd(nav)
+  const byMonth = new Map<string, { date: Date; drawdown: number }>()
   let peak = -Infinity
-  return monthly.map((p) => {
+  for (const p of nav) {
     if (p.value > peak) peak = p.value
-    return { date: p.date.toISOString(), drawdown: peak > 0 ? p.value / peak - 1 : 0 }
-  })
+    const dd = peak > 0 ? p.value / peak - 1 : 0
+    const k = `${p.date.getFullYear()}-${p.date.getMonth()}`
+    const prev = byMonth.get(k)
+    // Datum = konec měsíce (poslední bod), hodnota = nejhlubší propad v měsíci.
+    byMonth.set(k, { date: p.date, drawdown: prev ? Math.min(prev.drawdown, dd) : dd })
+  }
+  return [...byMonth.values()].map((x) => ({ date: x.date.toISOString(), drawdown: x.drawdown }))
 }
 
 /**

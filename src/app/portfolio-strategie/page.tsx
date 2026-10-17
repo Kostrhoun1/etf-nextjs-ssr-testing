@@ -18,7 +18,7 @@ import {
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Modelová portfolia z ETF: 5 ověřených strategií pro české investory',
+  title: `Modelová portfolia z ETF: ${portfolioModels.length} ověřených strategií pro české investory`,
   description:
     'Vyberte si hotové modelové portfolio z ETF – Permanentní, Nobelovo, Akciové, Ray Dalio a Dividendové. Reálné složení, konkrétní fondy (ISIN) a verdikt pro koho.',
 };
@@ -144,7 +144,7 @@ export default async function PortfolioStrategieDesignPreview() {
               Modelová portfolia z ETF pro české investory
             </h1>
             <p className="mt-2 max-w-2xl text-sm md:text-base leading-relaxed text-slate-300">
-              5 ověřených strategií – hotové složení tříd aktiv s konkrétními ETF (ISIN) ke koupi u českého brokera.
+              {portfolioModels.length} ověřených strategií – hotové složení tříd aktiv s konkrétními ETF (ISIN) ke koupi u českého brokera.
             </p>
           </div>
         </section>

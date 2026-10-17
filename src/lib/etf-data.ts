@@ -418,6 +418,16 @@ export async function getTotalETFCount(): Promise<number> {
 }
 
 /**
+ * Počet fondů do textu a titulků: zaokrouhleno DOLŮ na stovky („5 100+"), aby text zůstal
+ * pravdivý a titulek se neměnil každý den. Dřív bylo „4 800+" a „4 300+" napevno v kódu.
+ */
+export async function getETFCountLabel(): Promise<string> {
+  const n = await getTotalETFCount();
+  const zaokrouhleno = n > 0 ? Math.floor(n / 100) * 100 : 4800;
+  return `${zaokrouhleno.toLocaleString('cs-CZ')}+`;
+}
+
+/**
  * Korunové výnosy (1R/3R) pro sadu ISINů – pro výpočet výnosu modelových portfolií
  * (vážený průměr výnosů složek). Vrací mapu isin → { return_1y_czk, return_3y_czk }.
  */

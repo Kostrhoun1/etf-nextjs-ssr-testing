@@ -102,7 +102,6 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-        <link rel="alternate" type="application/rss+xml" title="ETF průvodce.cz RSS" href="/rss.xml" />
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

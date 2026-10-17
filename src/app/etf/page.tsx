@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 
-/* Bare /design-preview/etf ukazuje příkladový fond (iShares Core S&P 500). */
+/* Holé /etf nemá vlastní obsah – přehled všech fondů je srovnávač. Trvalé přesměrování
+   (dřív dočasné 307 na jeden příkladový fond, což Google bral jako nejasný signál). */
 export default function ETFDetailIndex() {
-  redirect('/etf/IE00B5BMR087');
+  permanentRedirect('/srovnani');
 }

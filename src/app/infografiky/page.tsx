@@ -35,7 +35,7 @@ export const revalidate = 86400;
 const TOTAL_FALLBACK = 4800;
 
 export const metadata: Metadata = {
-  title: 'Infografiky ETF: výkonnost, poplatky a tržní heatmapa | ETF průvodce',
+  title: 'Infografiky ETF: výkonnost, poplatky a tržní heatmapa',
   description:
     'Vizuální přehledy z dat ETF fondů — nejvýkonnější a nejlevnější fondy a tržní heatmapa sektorů a regionů. Výnosy přepočtené do korun.',
   alternates: { canonical: 'https://etfpruvodce.cz/infografiky' },

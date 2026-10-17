@@ -32,7 +32,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const m = portfolioModels.find((p) => p.slug === slug);
-  if (!m) return { title: 'Portfolio | ETF průvodce', robots: { index: false, follow: false } };
+  if (!m) return { title: 'Portfolio', robots: { index: false, follow: false } };
   return {
     title: `${m.name} – složení, ETF a výnos v Kč`,
     description: `${m.name}: ${m.tagline} Složení z ETF, očekávaný výnos, riziko a historická výkonnost přepočtená do korun.`,

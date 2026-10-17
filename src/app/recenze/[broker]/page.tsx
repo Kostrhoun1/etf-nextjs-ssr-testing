@@ -24,9 +24,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { broker } = await params;
   const b = brokers.find((x) => x.id === broker);
-  if (!b) return { title: 'Recenze brokera | ETF průvodce', robots: { index: false, follow: false } };
+  if (!b) return { title: 'Recenze brokera', robots: { index: false, follow: false } };
   return {
-    title: `${b.name} recenze ${new Date().getFullYear()} – poplatky, ETF, daně | ETF průvodce`,
+    title: `${b.name} recenze ${new Date().getFullYear()} – poplatky, ETF, daně`,
     description: `Recenze brokera ${b.name} pro investování do ETF: poplatky za nákup, konverze měn, zdanění dividend, ochrana prostředků a pro koho se hodí.`,
     alternates: { canonical: `https://etfpruvodce.cz/recenze/${b.id}` },
   };

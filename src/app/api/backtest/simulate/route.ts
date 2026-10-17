@@ -1,21 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { simulateAndSerialize, type SimulateRequestBody } from '@/lib/backtest/simulate'
+import { INDEX_BY_CODE } from '@/lib/backtest/indexes'
+
+/* Limity: endpoint je veřejný a bez přihlášení. Bez nich šel jedním požadavkem zatížit CPU
+   (libovolně dlouhé portfolio, forecastYears=1000 drží v paměti 12 mil. čísel) – na free tieru
+   Vercelu přímá cesta k vyčerpání Fluid CPU. Zjištěno 17. 10. 2026. */
+const MAX_SLOZEK = 15
+const MAX_LET_PROGNOZY = 50
+
+/** Chyby enginu (anglicky) → česky a s radou, co změnit. Ostatní obecně – nevracet interní detaily. */
+function srozumitelne(e: unknown): string {
+  const m = e instanceof Error ? e.message : ''
+  if (/No overlapping data|No valid ETF data/i.test(m))
+    return 'Pro zvolené období nemají všechny složky data. Zkuste pozdější počáteční datum – každý index začíná jinak.'
+  return 'Výpočet se nepodařil. Zkuste prosím jiné období nebo složení.'
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body: SimulateRequestBody = await request.json()
 
     // Validate required fields
-    if (!body.portfolio || body.portfolio.length === 0) {
+    if (!Array.isArray(body.portfolio) || body.portfolio.length === 0 || body.portfolio.length > MAX_SLOZEK) {
       return NextResponse.json(
-        { error: 'Portfolio is required and must not be empty' },
+        { error: `Portfolio musí mít 1 až ${MAX_SLOZEK} složek.` },
         { status: 400 }
       )
+    }
+    // Jen indexy z manifestu – ať nejde z venku poslat libovolný kód do dotazů nad databází.
+    const neznamy = body.portfolio.find((item) => !INDEX_BY_CODE[item.indexCode])
+    if (neznamy) {
+      return NextResponse.json({ error: `Neznámá třída aktiv: ${String(neznamy.indexCode).slice(0, 40)}` }, { status: 400 })
+    }
+    if (body.forecastYears != null) {
+      body.forecastYears = Math.min(Math.max(Math.round(Number(body.forecastYears) || 10), 1), MAX_LET_PROGNOZY)
     }
 
     if (!body.startDate || !body.endDate) {
       return NextResponse.json(
-        { error: 'startDate and endDate are required' },
+        { error: 'Chybí počáteční nebo koncové datum.' },
         { status: 400 }
       )
     }
@@ -24,7 +47,7 @@ export async function POST(request: NextRequest) {
     const totalWeight = body.portfolio.reduce((sum, item) => sum + item.weight, 0)
     if (Math.abs(totalWeight - 1) > 0.01) {
       return NextResponse.json(
-        { error: `Portfolio weights must sum to 1 (got ${totalWeight})` },
+        { error: `Váhy složek musí dát dohromady 100 % (teď ${Math.round(totalWeight * 100)} %).` },
         { status: 400 }
       )
     }
@@ -34,7 +57,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Backtest error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { error: srozumitelne(error) },
       { status: 500 }
     )
   }

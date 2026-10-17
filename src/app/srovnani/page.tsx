@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const n = await getTotalETFCount();
   const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
   return {
-    title: `Srovnávač ETF: filtrujte a porovnejte ${count} fondů | ETF průvodce`,
+    title: `Srovnávač ETF: filtrujte a porovnejte ${count} fondů`,
     description:
       'Interaktivní srovnávač ETF pro české investory. Filtrujte podle TER, typu, replikace a regionu, řaďte podle výnosu v Kč a proklikněte se na detail fondu.',
     alternates: { canonical: '/srovnani' },
@@ -179,7 +179,7 @@ export default async function SrovnaniScreenerPreview() {
               <h2 className="text-base font-bold text-slate-900">Co je srovnávač ETF</h2>
             </div>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Srovnávač je nástroj pro české investory, který nechá <strong className="text-slate-800">filtrovat 4&nbsp;300+ ETF fondů</strong>{' '}
+              Srovnávač je nástroj pro české investory, který nechá <strong className="text-slate-800">filtrovat {total.toLocaleString('cs-CZ')} ETF fondů</strong>{' '}
               podle poplatku (TER), typu výplaty, replikace a regionu. Na rozdíl od zahraničních nástrojů
               ukazuje <strong className="text-slate-800">výnosy přepočtené do korun</strong> – tedy kolik reálně vyděláte vy.
             </p>

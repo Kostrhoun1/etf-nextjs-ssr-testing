@@ -5,7 +5,7 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import HeroSearch from '@/components/home/HeroSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
-  getFeaturedETFs, getTotalETFCount, getMarketSnapshot, getReturnsByIsins,
+  getFeaturedETFs, getTotalETFCount, getETFCountLabel, getMarketSnapshot, getReturnsByIsins,
   getETFsByIsins, categoryConfigs, type ETFBasicInfo,
 } from '@/lib/etf-data';
 import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
@@ -20,14 +20,17 @@ import {
 } from 'lucide-react';
 
 export const revalidate = 3600;
-export const metadata: Metadata = {
-  // Title/description ladí na dotaz „etf" (pozice ~10, dřív CTR 0 %): konkrétní číslo fondů
-  // + USP „výnosy v Kč" místo obecných frází; bez ★ znaků, které Google trestá přepsáním snippetu.
-  title: 'Srovnání 4 800+ ETF fondů, výnosy v Kč – ETF průvodce.cz',
-  description:
-    'Kolik reálně vydělaly ETF? Výnosy 4 800+ fondů přepočtené do korun, žebříčky pro rok 2026, backtest portfolia a investiční kalkulačky. Zdarma a česky.',
-  alternates: { canonical: '/' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pocet = await getETFCountLabel();
+  return {
+    // Title/description ladí na dotaz „etf" (pozice ~10, dřív CTR 0 %): konkrétní číslo fondů
+    // + USP „výnosy v Kč" místo obecných frází; bez ★ znaků, které Google trestá přepsáním snippetu.
+    title: `Srovnání ${pocet} ETF fondů, výnosy v Kč – ETF průvodce.cz`,
+    description:
+      `Kolik reálně vydělaly ETF? Výnosy ${pocet} fondů přepočtené do korun, žebříčky pro rok 2026, backtest portfolia a investiční kalkulačky. Zdarma a česky.`,
+    alternates: { canonical: '/' },
+  };
+}
 
 const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
 /** Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Ověřeno proti justETF. */
@@ -94,7 +97,7 @@ const TOOLS = [
   { href: '/backtest', label: 'Backtest portfolia', desc: 'Historická simulace od roku 2000', icon: History },
   { href: '/fire-kalkulacka', label: 'FIRE kalkulačka', desc: 'Kdy dosáhnete nezávislosti', icon: Flame },
   { href: '/kurzovy-dopad', label: 'Kurzový dopad', desc: 'Vliv kurzu na korunový výnos', icon: RefreshCw },
-  { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: '5 ověřených strategií', icon: LayoutGrid },
+  { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: `${portfolioModels.length} ověřených strategií`, icon: LayoutGrid },
   { href: '/fire', label: 'Průvodce FIRE', desc: 'Kolik potřebujete k nezávislosti', icon: BookOpen },
   { href: '/dane-z-etf', label: 'Daně z ETF', desc: 'Kdy platíte a kdy ne (2026)', icon: Landmark },
   { href: '/svetove-etf-indexy', label: 'Světové ETF: který index', desc: 'MSCI World vs FTSE All-World vs S&P 500', icon: Globe },

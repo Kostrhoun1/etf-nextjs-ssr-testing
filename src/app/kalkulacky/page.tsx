@@ -15,7 +15,7 @@ export const revalidate = 86400;
 const DAN_ROK = new Date().getFullYear();
 
 export const metadata: Metadata = {
-  title: 'Kalkulačky a nástroje pro investory | ETF průvodce',
+  title: 'Kalkulačky a nástroje pro investory',
   description:
     `Rozcestník kalkulaček pro investory: složené úročení, poplatky ETF, kurzový dopad do korun, Monte Carlo, FIRE, hypotéka i čistá mzda ${DAN_ROK}. Vše přehledně na jednom místě.`,
   alternates: { canonical: '/kalkulacky' },

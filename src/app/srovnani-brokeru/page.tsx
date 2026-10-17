@@ -18,7 +18,7 @@ import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-ch
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Srovnání brokerů pro ETF 2026 – poplatky, daně, skóre | ETF průvodce',
+  title: 'Srovnání brokerů pro ETF 2026 – poplatky, daně, skóre',
   description:
     '6 brokerů pro ETF se skóre /100: srovnání poplatků za nákup, konverze měn a zdanění českých dividend 15 vs 35 %. Redakční hodnocení pro české investory.',
   alternates: { canonical: '/srovnani-brokeru' },

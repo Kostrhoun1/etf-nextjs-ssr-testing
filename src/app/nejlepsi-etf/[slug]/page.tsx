@@ -54,9 +54,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const cfg = categoryConfigs[slug];
-  if (!cfg) return { title: 'Žebříček ETF | ETF průvodce', robots: { index: false, follow: false } };
+  if (!cfg) return { title: 'Žebříček ETF', robots: { index: false, follow: false } };
   return {
-    title: `${cfg.title} – srovnání a výnosy v Kč | ETF průvodce`,
+    title: `${cfg.title} – srovnání a výnosy v Kč`,
     description: cfg.metaDescription || cfg.description,
     alternates: { canonical: `/nejlepsi-etf/${slug}` },
   };

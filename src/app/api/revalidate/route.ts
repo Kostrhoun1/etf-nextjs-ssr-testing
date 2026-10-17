@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
 import { categoryConfigs } from '@/lib/etf-data';
 
 // Kategorie žebříčků – dynamicky z konfigurace (vždy v sync s reálnými routami)
@@ -23,20 +24,26 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Verify secret key
-    const secret = body.secret;
-    const expectedSecret = process.env.REVALIDATE_SECRET || 'etf_refresh_2025';
-
-    if (secret !== expectedSecret) {
-      return NextResponse.json(
-        { error: 'Invalid secret' },
-        { status: 401 }
-      );
+    // OVĚŘENÍ HESLA. Dřív tu byl záložní řetězec 'etf_refresh_2025' přímo v kódu – a protože
+    // REVALIDATE_SECRET na Vercelu nastavený NENÍ, platil právě on. Repo je veřejné, takže kdokoli
+    // mohl vynutit přegenerování stránek a spálit ISR zápisy až k auto-pauze projektu (free tier).
+    // Zjištěno 17. 10. 2026. Bez nastavené proměnné je endpoint teď prostě VYPNUTÝ.
+    // Pozn.: scraper (etf-astro/scraper/final_scraper.py) posílá jiné heslo, takže jeho volání
+    // selhávalo i předtím – vypnutím se nic nerozbije; web drží čerstvost přes ISR revalidate.
+    const expected = process.env.REVALIDATE_SECRET;
+    const secret = typeof body.secret === 'string' ? body.secret : '';
+    const ok = !!expected && secret.length === expected.length
+      && timingSafeEqual(Buffer.from(secret), Buffer.from(expected));
+    if (!ok) {
+      return NextResponse.json({ error: 'Invalid secret' }, { status: 401 });
     }
 
     const revalidatedPaths: string[] = [];
     const type = body.type || 'all';
-    const isins = body.isins || [];
+    // Jen platné ISINy a nanejvýš 200 – ať jeden požadavek nespálí tisíce ISR zápisů.
+    const isins: string[] = (Array.isArray(body.isins) ? body.isins : [])
+      .filter((x: unknown): x is string => typeof x === 'string' && /^[A-Z]{2}[A-Z0-9]{10}$/.test(x))
+      .slice(0, 200);
 
     // Type: 'etf' - Revalidate specific ETF detail pages
     if (type === 'etf' && isins.length > 0) {

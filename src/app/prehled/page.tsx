@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Náhled nového webu – rozcestník | ETF průvodce',
+  title: 'Náhled nového webu – rozcestník',
   robots: { index: false, follow: false },
 };
 

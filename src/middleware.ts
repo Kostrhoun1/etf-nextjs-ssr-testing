@@ -6,6 +6,42 @@ function isISIN(str: string): boolean {
   return /^[A-Z]{2}[A-Z0-9]{10}$/i.test(str);
 }
 
+/**
+ * Platný ISIN = formát + kontrolní číslice (Luhn přes číslice z písmen A=10…Z=35).
+ * Ověřeno 17. 10. 2026: všech 5 146 ISINů v databázi projde, smyšlené (ZZ000000TEST,
+ * překlep v poslední číslici) ne.
+ */
+function isinPlatny(s: string): boolean {
+  if (!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(s)) return false;
+  const cifry = s.split('').map((c) => (c >= 'A' ? String(c.charCodeAt(0) - 55) : c)).join('');
+  let sum = 0;
+  let dvakrat = false;
+  for (let i = cifry.length - 1; i >= 0; i--) {
+    let d = cifry.charCodeAt(i) - 48;
+    if (dvakrat) { d *= 2; if (d > 9) d -= 9; }
+    sum += d;
+    dvakrat = !dvakrat;
+  }
+  return sum % 10 === 0;
+}
+
+/** Dvojice srovnání: „vwce-vs-iwda" – jen písmena a číslice (hodnoty jdou do dotazu na DB). */
+const PAR_SROVNANI = /^[a-z0-9]{1,12}-vs-[a-z0-9]{1,12}$/i;
+
+/**
+ * Nesmyslné adresy (boti zkoušejí /etf/cokoli) → rovnou statická 404 BEZ volání databáze
+ * a BEZ zápisu do ISR cache. Dřív každá taková adresa spustila funkci, dotaz do Supabase
+ * a uložila si 404 do cache (free tier Vercelu má limit ISR zápisů, viz vercel-free-tier-isr).
+ * Rewrite na neexistující cestu vykreslí předgenerovanou stránku 404 se stavem 404.
+ */
+function dekoduj(s: string): string {
+  try { return decodeURIComponent(s); } catch { return s; } // rozbité %xx nesmí shodit middleware
+}
+
+function nesmysl(request: NextRequest) {
+  return NextResponse.rewrite(new URL('/_neplatna-adresa', request.url));
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
@@ -17,6 +53,15 @@ export async function middleware(request: NextRequest) {
     newUrl.host = 'etfpruvodce.cz';
     return NextResponse.redirect(newUrl, 301);
   }
+
+  // /etf/<ISIN>: neplatný ISIN = stránka nemůže existovat
+  const etfDetail = pathname.match(/^\/etf\/([^/]+)\/?$/);
+  if (etfDetail && !isinPlatny(dekoduj(etfDetail[1]))) return nesmysl(request);
+
+  // /srovnani/<a>-vs-<b>: jen tvar dvojice tickerů. Výjimka: statická podstránka /srovnani/porovnani
+  // (kurátorská /srovnani/vwce-vs-cspx tvar dvojice splňuje).
+  const dvojice = pathname.match(/^\/srovnani\/([^/]+)\/?$/);
+  if (dvojice && dvojice[1] !== 'porovnani' && !PAR_SROVNANI.test(dekoduj(dvojice[1]))) return nesmysl(request);
 
   // Handle /etf/ticker/[ticker] - redirect to ISIN page (prevent duplicate content)
   if (pathname.startsWith('/etf/ticker/')) {

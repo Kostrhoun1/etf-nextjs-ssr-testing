@@ -16,7 +16,7 @@ import { categoryConfigs, getFeaturedETFs, getTotalETFCount } from '@/lib/etf-da
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Žebříčky ETF – nejlepší fondy podle třídy, indexu i tématu | ETF průvodce',
+  title: 'Žebříčky ETF – nejlepší fondy podle třídy, indexu i tématu',
   description:
     'Rozcestník všech žebříčků ETF: nejlepší akciové, dluhopisové, S&P 500, světové i tematické fondy. Řazení podle velikosti, hodnocení a výnosů přepočtených do korun.',
   alternates: { canonical: '/zebricky' },

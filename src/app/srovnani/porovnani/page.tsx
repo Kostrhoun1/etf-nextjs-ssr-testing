@@ -8,7 +8,7 @@ import PorovnaniTable from '@/components/design-preview/PorovnaniTable';
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
-  title: 'Porovnání ETF vedle sebe | ETF průvodce',
+  title: 'Porovnání ETF vedle sebe',
   description: 'Detailní porovnání vybraných ETF fondů vedle sebe – poplatky, výnosy v Kč, riziko, typ a daně.',
   robots: { index: false, follow: false },
 };
