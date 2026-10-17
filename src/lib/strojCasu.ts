@@ -23,10 +23,10 @@ import { STROJ_PRESETY, type StrojRada } from '@/lib/strojCasuVypocet';
 export * from '@/lib/strojCasuVypocet';
 
 /** Měsíční řady pro všechny presety. Chyba u jednoho presetu ho vynechá (nikdy neukázat půlku dat). */
-export async function nactiStrojCasu(): Promise<StrojRada[]> {
+export async function nactiStrojCasu(jen?: string[]): Promise<StrojRada[]> {
   const konec = new Date();
   const vysledek: StrojRada[] = [];
-  for (const p of STROJ_PRESETY) {
+  for (const p of STROJ_PRESETY.filter((x) => !jen || jen.includes(x.id))) {
     try {
       // Start = poslední obchodní den měsíce PŘED `od` → NAV[0] = konec prvního měsíce.
       const [y, m] = p.od.split('-').map(Number);

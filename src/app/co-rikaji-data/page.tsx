@@ -21,6 +21,7 @@ const SKUPINY: { nadpis: string; popis: string; polozky: { href: string; titulek
     nadpis: 'Kolik se dá vydělat – v korunách',
     popis: 'Výnosy po přepočtu do Kč, tedy tak, jak je uvidíte na účtu.',
     polozky: [
+      { href: '/stroj-casu', titulek: 'Korunový stroj času', text: 'Kolik byste dnes měli, kdybyste začali investovat od roku 2000, 2010 nebo 2016 – v korunách.' },
       { href: '/kolik-vydelaly-etf', titulek: 'Kolik vydělaly ETF a akcie', text: 'Datový rozbor výnosů hlavních trhů v korunách za posledních zhruba 18 let.' },
       { href: '/backtest', titulek: 'Backtest portfolia', text: 'Otestujte vlastní složení na historických datech – výnos, propady a krize v Kč.' },
       { href: '/infografiky', titulek: 'Infografiky', text: 'Výkonnost, poplatky a tržní heatmapa na jeden pohled.' },

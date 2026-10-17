@@ -207,7 +207,7 @@ Ověřuje se na 375 px před i po nasazení, screenshoty před/po.
 
 **Otevřené:** předpoklady výnosů FIRE strategií (7,7/8,8/9,8 % nominálně v USD před TER) ověřit z dat v Kč (Vlna 7).
 
-## Vlna 6 – Pravidelné vracení: „Korunový stroj času"
+## Vlna 6 – Pravidelné vracení: „Korunový stroj času"  ·  ◐ v1 hotová na větvi `faze4` (17. 10.)
 
 Jeden widget, který odpoví: *„Kdybych od [rok] posílal [částka] Kč měsíčně do [svět / S&P 500
 / 60/40 / konkrétní fond], kolik bych měl dnes – a jaké byly nejhorší chvíle?"*
@@ -226,6 +226,8 @@ Jeden widget, který odpoví: *„Kdybych od [rok] posílal [částka] Kč měs�
 - Podle firemního procesu UX expert od začátku (agent s prohlížečem, test na mobilu).
 - **Podmínka:** Vlna 2 + nezávislé ověření předpočtu (vzorek scénářů přepočítat mimo engine,
   kotva SPDR/ČNB).
+
+**Stav v1 (17. 10. 2026, větev `faze4`):** /stroj-casu (4 presety: Celý svět, S&P 500, Vyvážené 60/40, Zlato; měsíčně + jednorázově; rok startu; graf; nejhorší chvíle; sdílený odkaz s parametry; „od minulé návštěvy" v localStorage), blok s ověřeným číslem v úvodu homepage (H1 bez neověřitelného „Největší"). **Ověření:** `scripts/overeni-stroj-casu.mjs` – stroj vs. plný backtest 0,13–0,33 % (vklad na začátku měsíce); S&P 500 TR (S&P DJI) ±0,27 p. b./rok; převod Kč přes ČNB ±0,06 %. Zbývá: OG karta per scénář, napojení na detail fondu a články, UX review (běží).
 
 **K rozhodnutí:** e-mailový „korunový report" jednou měsíčně (vaše dřívější ANO pro e-mail
 list). Potřebuje službu pro rozesílání a formulář se souhlasem – žádné cookies. Navrhuju až

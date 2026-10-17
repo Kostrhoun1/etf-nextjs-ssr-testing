@@ -10,6 +10,7 @@ import {
   getETFsByIsins, categoryConfigs, type ETFBasicInfo,
 } from '@/lib/etf-data';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
+import { nactiStrojCasu, spocitejStroj } from '@/lib/strojCasu';
 import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
 import { brokers } from '@/data/brokerData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
@@ -208,6 +209,10 @@ export default async function DesignPreviewV2() {
     getETFsByIsins(STARTER_ISINS),
     getDataDate(new Date()),
   ]);
+  // USP v čísle: 5 000 Kč měsíčně do celého světa od 2010 → dnes ≈ X Kč (Korunový stroj času,
+  // ověřeno proti backtestu ±0,3 % a kurzům ČNB). Bez dat se blok neukáže (pravidlo č. 1).
+  const strojSvet = (await nactiStrojCasu(['svet']))[0];
+  const heroCislo = strojSvet ? spocitejStroj(strojSvet, '2010-01', 5000, 0) : null;
 
   // Výnos portfolia = vážený průměr korunových výnosů jeho ETF složek (přes dostupné složky).
   const portfolioPerf = portfolioModels.map((p) => {
@@ -253,7 +258,8 @@ export default async function DesignPreviewV2() {
           <div className="rounded-2xl bg-slate-900 text-white px-4 py-5 md:px-9 md:py-9">
             <div className="md:flex md:items-start md:justify-between gap-10">
               <div className="md:max-w-lg">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Největší srovnávač ETF pro české investory</h1>
+                {/* Dřív „Největší srovnávač ETF" – tvrzení, které nejde doložit; USP je výnos v korunách. */}
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Srovnávač ETF s výnosy v korunách</h1>
                 <p className="mt-2 md:mt-2.5 text-slate-300 text-sm md:text-base leading-relaxed">
                   <span className="md:hidden">{totalCount.toLocaleString('cs-CZ')} fondů s výnosy přepočtenými do korun.</span>
                   <span className="hidden md:inline">Nezávislá data {totalCount.toLocaleString('cs-CZ')} fondů — výnosy přepočtené do korun, poplatky a daně. Vše česky.</span>
@@ -263,6 +269,16 @@ export default async function DesignPreviewV2() {
                   <span className="md:hidden">100% nezávislý, bez reklam</span>
                   <span className="hidden md:inline">100% nezávislý a nekomerční — žádné provize, žádná reklama</span>
                 </p>
+                {heroCislo && (
+                  <Link href="/stroj-casu" className="group mt-4 block rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10 transition-colors">
+                    <span className="block text-sm text-slate-300">5 000 Kč měsíčně do akcií celého světa od roku 2010 by dnes bylo zhruba</span>
+                    <span className="mt-0.5 block text-2xl font-bold tabular-nums text-white">
+                      {(heroCislo.hodnota / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč
+                      <span className="ml-2 text-sm font-normal text-slate-300">vloženo {(heroCislo.vlozeno / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 })} mil.</span>
+                    </span>
+                    <span className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-teal-300 group-hover:text-teal-200">Spočítat svůj případ <ArrowRight className="w-4 h-4" /></span>
+                  </Link>
+                )}
                 <div className="mt-4 md:mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
                   <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                     <LayoutGrid className="w-4 h-4" /> Prozkoumat všechny fondy
