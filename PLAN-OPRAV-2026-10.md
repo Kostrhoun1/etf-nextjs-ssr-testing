@@ -300,3 +300,17 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
 | Číslo na homepage bez data a bez hlídání stáří | datum + skrytí při datech > 7 dní + denní kontrola proti plné simulaci (`check-fund-data.mjs`) |
 | FAQ kalkulačky popisovalo „roční výnos / 12“ | popis efektivní měsíční sazby |
 
+
+## Stav 17. 10. 2026 večer
+
+- ✅ **faze3 nasazena na produkci** (6c8315c) po opravném scrapu; produkce ověřena: stránky/přesměrování OK,
+  zlatá sada žebříčků bez chyb, roční výnosy v Kč/USD sedí u všech dnes stažených fondů, žádné chyby z prohlížečů.
+- ✅ Scraper: checkpoint platí jen pro stejnou verzi kódu (zrušený běh se starým kódem nahrál 550 fondů se špatnými
+  ročními výnosy) – opraveno v etf-astro 1c75cf9, data přehrána opravným scrapem.
+- ⏳ **faze4 – nasadit 18. 10.**, pak HNED: `gh workflow run sync-indexes.yml -f full=true` (opravený loader přepíše
+  posunuté měsíční řady EUR státních dluhopisů) a ověřit: `eur_govt_bond_15_30y` k 2023-12-31 ≈ denní adjclose IBGL
+  k 29. 12. 2023 (ne hodnota z konce ledna). Dokud to neproběhne, backtest EUR státních dluhopisů je posunutý o měsíc.
+- ⏳ Na rozhodnutí: úklid vadných bodů v `eur_corp_bond` (10 všedních konců měsíců mimo řadu) – do té doby
+  vyřazeno z „konkrétního fondu“ v backtestu.
+- Backtest konkrétního fondu (faze4): 213 fondů, ověřeno proti skutečným ročním výnosům 2022–2025; MSCI World chybí
+  (data indexu nemáme – kandidát: URTH od 2012 přes manifest + loader).
