@@ -289,7 +289,7 @@ export default async function JakDlouhoVMinusu() {
                 <div key={p.id} className="mt-4">
                   <h3 className="font-semibold text-slate-900">{p.nazev}{p.id === 'vyvazene' ? <span className="font-normal text-slate-500"> (od {od(p.od)})</span> : null}</h3>
                   <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                    <table className="w-full text-sm tabular-nums">
+                    <table className="w-full text-xs sm:text-sm tabular-nums">
                       <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                         <tr><th className="px-2 sm:px-3 py-2">Po</th><th className="px-2 sm:px-3 py-2 text-right">Naráz</th><th className="px-2 sm:px-3 py-2 text-right">Naráz, po inflaci</th><th className="px-2 sm:px-3 py-2 text-right">Pravidelně</th><th className="px-2 sm:px-3 py-2 text-right">Pravidelně, po inflaci</th></tr>
                       </thead>
@@ -332,7 +332,7 @@ export default async function JakDlouhoVMinusu() {
                 pod nákupní cenu (konce měsíců, v korunách):
               </p>
               <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table className="w-full text-sm tabular-nums">
+                <table className="w-full text-xs sm:text-sm tabular-nums">
                   <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                     <tr><th className="px-3 py-2">Do čeho</th><th className="px-3 py-2 text-right">Typicky</th><th className="px-3 py-2 text-right">1 z 10 nákupů</th><th className="px-3 py-2 text-right">Nejhůř</th><th className="px-3 py-2 text-right">Pokles přes 20 %</th></tr>
                   </thead>

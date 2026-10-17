@@ -58,11 +58,11 @@ function KrizeRadek({ k }: { k: Krize }) {
   ) : <span className="text-slate-400">—</span>;
   return (
     <tr className="align-top">
-      <td className="px-3 py-2.5"><span className="font-medium text-slate-900">{k.nazev}</span><span className="block text-xs text-slate-500">{k.popis}</span></td>
-      <td className="px-3 py-2.5">{bunka(r('sp', 'CZK'))}</td>
-      <td className="px-3 py-2.5">{bunka(r('sp', 'USD'))}</td>
-      <td className="px-3 py-2.5">{bunka(r('svet', 'CZK'))}</td>
-      <td className="px-3 py-2.5">{bunka(r('mimousa', 'CZK'))}</td>
+      <td className="px-2 sm:px-3 py-2.5"><span className="font-medium text-slate-900">{k.nazev}</span><span className="block text-xs text-slate-500">{k.popis}</span></td>
+      <td className="px-2 sm:px-3 py-2.5">{bunka(r('sp', 'CZK'))}</td>
+      <td className="px-2 sm:px-3 py-2.5">{bunka(r('sp', 'USD'))}</td>
+      <td className="px-2 sm:px-3 py-2.5">{bunka(r('svet', 'CZK'))}</td>
+      <td className="px-2 sm:px-3 py-2.5">{bunka(r('mimousa', 'CZK'))}</td>
     </tr>
   );
 }
@@ -318,7 +318,7 @@ export default async function Sp500NeboSvet() {
                 roku 2008, pro starší krize proto ukazujeme i svět mimo USA.
               </p>
               <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table className="w-full text-sm">
+                <table className="w-full text-xs sm:text-sm">
                   <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                     <tr><th className="px-3 py-2.5">Krize</th><th className="px-3 py-2.5">S&amp;P 500 v Kč</th><th className="px-3 py-2.5">S&amp;P 500 v USD</th><th className="px-3 py-2.5">Svět v Kč</th><th className="px-3 py-2.5">Mimo USA v Kč</th></tr>
                   </thead>
