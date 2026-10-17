@@ -243,7 +243,7 @@ Pořadí podle unikátnosti a toho, jak moc koruna mění závěr zahraničních
 | # | Téma | Unikát (předběžně) | Chybí | Externí kotva |
 |---|---|---|---|---|
 | 7.1 | **Zajišťovat měnu? Koruna to obrací** | Koruna tlumí krize (2008 −47 % v Kč vs. −51 % v USD), ale 2000–03 propad prohloubila; CZK-hedged ETF v DB nejsou | Řada sazeb ČNB/Fed (náklad zajištění) | Kurzy z cnb.cz, SPY ze SPDR, reálná hEUR třída |
-| 7.2 | **Pravidlo 4 % v korunách** | Start 2000 vyčerpal portfolio do 2012, start 2003 přežil | Výběry v enginu; dluhopisy před 2002 | Replika publikovaných výsledků v USD (Pfau / PV), CPI ČSÚ |
+| 7.2 | ✅ **Pravidlo 4 % v korunách** (faze4, `/pravidlo-4-procent`, 17. 10.) | S&P 500: start 2000 → došlo 1/2012, 2001 → 7/2013, 2002 → 2/2020; od 2003 vydrželo. I 3 % u startů 2000–2001 nevydrželo | – | Nezávislý roční přepočet (S&P DJI TR, ČNB k 31. 12., míra inflace ČSÚ): roky vyčerpání 2012 / 2013 / 2020 sedí |
 | 7.3 | **Naráz, nebo postupně – v korunách** | Jednorázově vyhrálo v USD 70 %, v Kč 57 % | Skript přes všechna okna; ověřit na globálních akciích | Nejdřív trefit ~2/3 Vanguardu v USD |
 | 7.4 | **Akumulační vs. distribuční při 15% dani** | Čistě česká daňová úloha; před daní Acc = Dist | Dividendový výnos (Shiller) | Factsheety emitenta; daně jen dle `/dane-z-etf` |
 | 7.5 | ✅ **Jak dlouho jsi v minusu – v Kč a reálně** (faze4, `/jak-dlouho-v-minusu`, 17. 10.) | S&P 500 od 1/2000: v Kč pod vkladem do 7/2014 (USD do 8/2011), reálně do 3/2018; po 10 letech pod vkladem jen nákupy 1/2000–6/2002. Starý odhad „reálně do 10/2016“ byl z dat před opravou vadných ticků – neplatí | – | Ověřeno: řada celý svět 60/40 vs. nezávislý přepočet z ročních výnosů S&P DJI + VGTSX a kurzů ČNB: 2021 2,345/2,339, 2022 1,997/1,995, 2023 2,407/2,402; S&P 2014-07 a 2018-03 trefeno z ročních dat |
@@ -286,3 +286,17 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
 | Vracející se uživatelé | změřit před Vlnou 6 | růst po stroji času |
 | Chyby v datech (denní kontrola) | 12 + 78 + 236 + 13 + 316 + 106 | 0 nevysvětlených |
 | Chyby z prohlížečů (`client_errors`) | sbírá se od 17. 10. | bez opakujících se |
+
+## Revize faze4 nezávislým agentem (17. 10. 2026) – opraveno před nasazením
+
+| Nález | Oprava |
+|---|---|
+| Stroj času „Nejhorší chvíle“ ignoroval propad v 1. měsíci (S&P 500 od 2008: −30 % místo −36 %) | vrchol začíná nákupní cenou |
+| „Celý svět“ = celé 60 % USA / 40 % svět → nadsazeno ~0,9 p. b./rok (hero 3,2 → 3,0 mil. Kč, kalkulačka 8,6 → 8,0 %) | od 7/2008 skutečný FTSE All-World (VT), dřív přiznaná aproximace; ZAMERNA-ROZHODNUTI.md |
+| Zaokrouhlení na tisíce → „zisk +0 Kč“ u malých částek | 3 platné číslice |
+| Neplatný preset v URL ukázal čísla jiného presetu | validace proti načteným presetům, bez fallbacku |
+| Napevno zapsaná tvrzení v článcích („o polovinu kratší“, „vyhrál S&P 500“, „nejhorší případ“) | věty podmíněné daty |
+| Chyba dat při ISR → stránka „nepodařilo se načíst“ na celý den | výjimka → Next drží poslední dobrou verzi |
+| Číslo na homepage bez data a bez hlídání stáří | datum + skrytí při datech > 7 dní + denní kontrola proti plné simulaci (`check-fund-data.mjs`) |
+| FAQ kalkulačky popisovalo „roční výnos / 12“ | popis efektivní měsíční sazby |
+
