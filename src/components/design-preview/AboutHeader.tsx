@@ -3,15 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, Menu, X } from 'lucide-react';
+import SiteNav, { NAV_LINKS } from '@/components/design-preview/SiteNav';
 
-const NAV = [
-  { href: '/pruvodce', label: 'Co jsou ETF' },
-  { href: '/zebricky', label: 'Žebříčky' },
-  { href: '/srovnani', label: 'Srovnání' },
-  { href: '/portfolio-strategie', label: 'Portfolia' },
-  { href: '/kalkulacky', label: 'Kalkulačky' },
-  { href: '/kde-koupit', label: 'Kde koupit' },
-];
+const NAV = NAV_LINKS; // sdílené se SiteNav
 
 /** Sdílená hlavička (vzor homepage) s mobilním hamburgerem. */
 export default function AboutHeader() {
@@ -27,11 +21,7 @@ export default function AboutHeader() {
           ETF průvodce.cz
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="hover:text-slate-900">{n.label}</Link>
-          ))}
-        </nav>
+        <SiteNav />
 
         <div className="flex items-center gap-2">
           <Link href="/srovnani" className="hidden sm:inline-flex rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnávač</Link>
@@ -40,7 +30,7 @@ export default function AboutHeader() {
             aria-label={open ? 'Zavřít menu' : 'Otevřít menu'}
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
-            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+            className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
           >
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -48,7 +38,7 @@ export default function AboutHeader() {
       </div>
 
       {open && (
-        <nav className="md:hidden border-t border-slate-200 bg-white">
+        <nav className="lg:hidden border-t border-slate-200 bg-white">
           <div className="max-w-6xl mx-auto px-4 py-2 flex flex-col">
             {NAV.map((n) => (
               <Link

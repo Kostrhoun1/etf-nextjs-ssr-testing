@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import { getFeaturedETFs, getTotalETFCount, type ETFBasicInfo , getDataDate } from '@/lib/etf-data';
 import {
   TrendingUp, TrendingDown, ArrowRight, ArrowDown, ArrowUpRight, User, CalendarDays, BookOpen,
@@ -16,6 +17,9 @@ import InfoTip from '@/components/design-preview/InfoTip';
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
+  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+  alternates: { canonical: '/pruvodce' },
   title: 'Co jsou ETF? Jednoduchý průvodce pro začátečníky 2026',
   description:
     'ETF jednoduše vysvětleno: jak fungují, co je TER, akumulační vs distribuční, daně v ČR a výnosy přepočtené do korun. Průvodce pro začátečníky.',
@@ -223,14 +227,7 @@ export default async function GuidePreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <HeaderSearch />
         </div>
       </header>

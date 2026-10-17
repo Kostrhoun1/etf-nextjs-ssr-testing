@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, Check, X, AlertTriangle, Info,
   ShieldCheck, Wallet, Landmark, Banknote, Percent, Layers, Coins,
@@ -169,13 +170,7 @@ export default async function BrokerReviewPreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <HeaderSearch />
           <Link href="/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
         </div>

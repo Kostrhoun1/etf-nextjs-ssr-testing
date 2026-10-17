@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
   Percent, Landmark, Wallet, Coins, Layers, Receipt, Scale, ShieldCheck,
@@ -16,6 +17,9 @@ import InfoTip from '@/components/design-preview/InfoTip';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
+  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+  alternates: { canonical: '/kalkulacka' },
   title: 'Kalkulačka poplatků ETF: dopad TER na výnos za 30 let',
   description:
     'Spočítejte v korunách, kolik vás roční poplatek (TER) stojí za 30 let. Srovnání levného ETF vs. bankovní fond + nejlevnější ETF z naší databáze.',
@@ -123,13 +127,7 @@ export default async function FeeCalculatorPreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <HeaderSearch />
         </div>
       </header>

@@ -104,7 +104,7 @@ export default function HeaderSearch() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => { if (results.length) setOpen(true); }}
-          className="w-36 xl:w-52 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none"
+          className="w-36 xl:w-44 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none"
         />
         {loading && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin shrink-0" />}
       </div>

@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, Trophy, Info, ShieldCheck,
   User, CalendarDays, Database, BadgeCheck, Wallet, Coins, Layers, Landmark,
@@ -20,6 +21,9 @@ import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-ch
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
+  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+  alternates: { canonical: '/kde-koupit' },
   title: 'Kde koupit ETF v Česku 2026: srovnání 6 brokerů',
   description:
     'Kde koupit ETF? Jednotné skóre 6 brokerů – XTB a Trading 212 s 0% poplatkem, DEGIRO ETF Selection od 0 EUR, daně 15 vs 35 %. Verdikt a tabulka na první pohled.',
@@ -152,14 +156,7 @@ export default async function KdeKoupitPreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="text-slate-900 font-medium">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <HeaderSearch />
           <Link href="/srovnani-brokeru" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Srovnat brokery</Link>
         </div>

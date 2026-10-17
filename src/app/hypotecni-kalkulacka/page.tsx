@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
   Coins, Wallet, Scale, Landmark, ShieldCheck, Crown, HelpCircle, BookOpen,
@@ -16,6 +17,9 @@ import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
+  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+  alternates: { canonical: '/hypotecni-kalkulacka' },
   title: 'Hypoteční kalkulačka: měsíční splátka a přeplacení na úrocích',
   description:
     'Spočítejte si měsíční splátku hypotéky i kolik celkem přeplatíte na úrocích. Zadejte cenu nemovitosti, vlastní zdroje, sazbu a dobu splatnosti – výsledek v korunách včetně grafu.',
@@ -94,14 +98,7 @@ export default async function HypotecniKalkulackaPreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="text-teal-700 font-medium">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <div className="flex items-center gap-2">
             <HeaderSearch />
             <Link href="/kalkulacky" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Kalkulačky</Link>

@@ -1,63 +1,43 @@
-# ETF Pruvodce - LLM Information
+# ETF průvodce.cz
 
-> ETF pruvodce.cz is the largest Czech website about ETF funds, providing comprehensive analysis, comparison, and ratings of ETF funds for Czech investors.
+> Czech website about ETF funds for Czech investors. Its focus: how much an investor actually earns in Czech crowns (CZK) – fund returns are converted to CZK with Czech National Bank exchange rates. Fund data (5,100+ UCITS ETFs and ETCs) are updated daily; every figure shows the date it refers to.
 
-## About This Site
+## Main sections
 
-ETF pruvodce.cz offers:
-- Database of 2000+ ETF funds with detailed analysis
-- ETF comparison tools and calculators
-- Broker reviews and comparisons
-- Educational content about ETF investing
-- Portfolio strategy guides
+- Homepage: https://etfpruvodce.cz/
+- ETF screener (filter and compare all funds, returns in CZK): https://etfpruvodce.cz/srovnani
+- ETF rankings by category, index and theme: https://etfpruvodce.cz/zebricky
+- Portfolio backtest on historical data in CZK: https://etfpruvodce.cz/backtest
+- Data-driven answers for investors (returns in CZK, currency risk, lump sum vs. DCA, accumulating vs. distributing): https://etfpruvodce.cz/co-rikaji-data
+- Model portfolios: https://etfpruvodce.cz/portfolio-strategie
+- Calculators: https://etfpruvodce.cz/kalkulacky
+- Where to buy ETFs (broker comparison): https://etfpruvodce.cz/kde-koupit
+- ETF basics guide: https://etfpruvodce.cz/pruvodce
+- Taxes on ETFs in the Czech Republic: https://etfpruvodce.cz/dane-z-etf
 
-## Main Sections
+## ETF detail pages
 
-- Homepage: https://www.etfpruvodce.cz/
-- ETF Comparison: https://www.etfpruvodce.cz/srovnani-etf
-- Best ETF 2025: https://www.etfpruvodce.cz/nejlepsi-etf
-- Where to Buy ETF: https://www.etfpruvodce.cz/kde-koupit-etf
-- Portfolio Strategies: https://www.etfpruvodce.cz/portfolio-strategie
-- Calculators: https://www.etfpruvodce.cz/kalkulacky
-- What are ETFs: https://www.etfpruvodce.cz/co-jsou-etf
+Pattern: https://etfpruvodce.cz/etf/{ISIN}
 
-## ETF Detail Pages
+- https://etfpruvodce.cz/etf/IE00B4L5Y983 (iShares Core MSCI World)
+- https://etfpruvodce.cz/etf/IE00B5BMR087 (iShares Core S&P 500)
+- https://etfpruvodce.cz/etf/IE00BK5BQT80 (Vanguard FTSE All-World)
 
-Individual ETF pages follow the pattern:
-- https://www.etfpruvodce.cz/etf/{ISIN}
+## ETF comparisons
 
-Examples:
-- https://www.etfpruvodce.cz/etf/IE00B4L5Y983 (iShares Core MSCI World)
-- https://www.etfpruvodce.cz/etf/IE00B5BMR087 (iShares Core S&P 500)
-- https://www.etfpruvodce.cz/etf/IE00BK5BQT80 (Vanguard FTSE All-World)
+Pattern: https://etfpruvodce.cz/srovnani/{ticker1}-vs-{ticker2}
 
-## Popular ETF Comparisons
+- https://etfpruvodce.cz/srovnani/vwce-vs-cspx
+- https://etfpruvodce.cz/srovnani/vwce-vs-iwda
+- https://etfpruvodce.cz/srovnani/cspx-vs-vuaa
 
-- VWCE vs CSPX: https://www.etfpruvodce.cz/srovnani-etf/vwce-vs-cspx
-- IWDA vs CSPX: https://www.etfpruvodce.cz/srovnani-etf/iwda-vs-cspx
-- VWCE vs IWDA: https://www.etfpruvodce.cz/srovnani-etf/vwce-vs-iwda
+## Data and method
 
-## Broker Reviews
+- Fund data (TER, size, returns in EUR): scraped daily from justETF; returns in CZK and USD are converted with CNB/ECB exchange rates.
+- Backtests use index histories with month-end or daily data, converted to CZK per day.
+- Returns are after fund fees (TER), before taxes and broker fees.
 
-- DEGIRO: https://www.etfpruvodce.cz/degiro-recenze
-- XTB: https://www.etfpruvodce.cz/xtb-recenze
-- Trading 212: https://www.etfpruvodce.cz/trading212-recenze
-- Interactive Brokers: https://www.etfpruvodce.cz/interactive-brokers-recenze
-- Portu: https://www.etfpruvodce.cz/portu-recenze
+## About
 
-## Financial Calculators
-
-- Investment Calculator: https://www.etfpruvodce.cz/kalkulacky/investicni-kalkulacka
-- FIRE Calculator: https://www.etfpruvodce.cz/kalkulacky/fire-kalkulacka
-- Portfolio Backtest: https://www.etfpruvodce.cz/kalkulacky/backtest-portfolia
-- Monte Carlo Simulator: https://www.etfpruvodce.cz/kalkulacky/monte-carlo-simulator
-
-## Contact
-
-- Website: https://www.etfpruvodce.cz
-- Email: info@etfpruvodce.cz
-- About: https://www.etfpruvodce.cz/o-nas
-
-## Language
-
-Primary language: Czech (cs-CZ)
+- About the site: https://etfpruvodce.cz/o-nas
+- Language: Czech (cs-CZ)

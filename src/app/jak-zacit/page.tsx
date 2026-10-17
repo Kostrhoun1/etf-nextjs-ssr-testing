@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import { getTotalETFCount , getDataDate } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, User, CalendarDays, BookOpen,
@@ -279,14 +280,7 @@ export default async function HowToStartPreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <HeaderSearch />
         </div>
       </header>

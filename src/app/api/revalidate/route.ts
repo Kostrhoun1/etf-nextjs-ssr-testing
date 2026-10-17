@@ -82,7 +82,6 @@ export async function POST(request: NextRequest) {
         '/',
         '/srovnani',
         '/zebricky',
-        '/kategorie',
         '/kde-koupit',
       ];
       for (const path of corePaths) {

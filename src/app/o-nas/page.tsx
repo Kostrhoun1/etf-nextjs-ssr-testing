@@ -16,6 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const n = await getTotalETFCount();
   const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
   return {
+  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+  alternates: { canonical: '/o-nas' },
     title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
     description:
       `Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12+ let v bankovnictví (MONETA Money Bank, Česká spořitelna). Nezávislý srovnávač ${count} ETF s výnosy přepočtenými do korun.`,

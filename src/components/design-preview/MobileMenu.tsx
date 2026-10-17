@@ -3,18 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, Search } from 'lucide-react';
+import { NAV_LINKS } from '@/components/design-preview/SiteNav';
 
 /* Mobilní navigace nového webu (hledání + hamburger).
-   Zobrazuje se jen na mobilu/tabletu (md:hidden); na desktopu je klasické menu + HeaderSearch.
+   Zobrazuje se pod 1024 px (lg:hidden) – stejně jako HeaderSearch od lg; na desktopu je SiteNav + HeaderSearch.
    POZOR: HeaderSearch je `hidden lg:block`, takže pod 1024 px je JEDINÉ hledání tohle. */
-const LINKS: { href: string; label: string }[] = [
-  { href: '/pruvodce', label: 'Co jsou ETF' },
-  { href: '/zebricky', label: 'Žebříčky' },
-  { href: '/srovnani', label: 'Srovnání' },
-  { href: '/portfolio-strategie', label: 'Portfolia' },
-  { href: '/kalkulacky', label: 'Kalkulačky' },
-  { href: '/kde-koupit', label: 'Kde koupit' },
-];
+// Odkazy jsou sdílené s desktopovou navigací (SiteNav.tsx).
+const LINKS = NAV_LINKS;
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
@@ -29,7 +24,7 @@ export default function MobileMenu() {
   const closeAll = () => { setOpen(false); setSearchOpen(false); };
 
   return (
-    <div className="md:hidden flex items-center">
+    <div className="lg:hidden flex items-center">
       {/* Hledání jako VLASTNÍ tlačítko v hlavičce – dřív bylo schované až v hamburgeru,
           takže ho na mobilu nikdo nenašel. */}
       <button

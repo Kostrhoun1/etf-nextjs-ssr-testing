@@ -134,14 +134,14 @@ vyhrávají na Seznamu, nevede sitemapa.
 | 3.1 | ✅ **Detail fondu: kontextové odkazy s větou a číslem pro daný fond.** Akumulační/distribuční → článek; měnové riziko (žlutý box) → `/menove-riziko-etf`; výkonnost v Kč → `/kolik-vydelaly-etf` a „Otestovat od roku 2005" → `/backtest?slozeni=<index>:100&run=1` (jen pokud fond spolehlivě mapuje na index) | `src/app/etf/[isin]/page.tsx` ř. ~484, 508, 641, 677+ | referrer `/etf/` → článek: 0 z 1 243 |
 | 3.2 | ✅ **„Kam dál" podle kategorie fondu** (dnes natvrdo S&P 500 – zlatý fond radí „postavte proti VUAA") + 3–5 podobných fondů (stejný index/kategorie) + odkaz na existující dvojici | tamtéž ř. 687–718 | proklik detail → detail (83); Seznam „v indexu" 1 140 z 2 269 |
 | 3.3 | ✅ **Srovnání dvojic do sitemapy** (POPULAR_PAIRS) + vlastní canonical; `vwce-vs-cspx` má canonical na adresu s 308 | `src/app/sitemap.ts`, `srovnani/vwce-vs-cspx/page.tsx` | Seznam+Bing na `/srovnani/*`: 26 / 90 dní |
-| 3.4 | **Navigace:** přidat „Backtest" a „Co říkají data" (hub `/data`: kolik vydělaly ETF, DCA, měnové riziko, akum. vs. dist., ETF vs. akcie). Hlavičku vytáhnout do jedné sdílené komponenty (dnes je v každé `page.tsx` zvlášť) | `MobileMenu.tsx`, nová `SiteHeader` | prokliky na hub |
+| 3.4 | ✅ **Navigace:** přidat „Backtest" a „Co říkají data" (hub `/data`: kolik vydělaly ETF, DCA, měnové riziko, akum. vs. dist., ETF vs. akcie). Hlavičku vytáhnout do jedné sdílené komponenty (dnes je v každé `page.tsx` zvlášť) | `MobileMenu.tsx`, nová `SiteHeader` | prokliky na hub |
 | 3.5 | ◐ (portfolia hotová: 0 výpočtů při načtení místo 2, dřív ~6 s CPU na zobrazení; `/backtest` zatím ne – výsledek má ~1 MB, chce zmenšit) **Backtest ukáže výsledek hned po otevření** – výchozí preset předpočítaný na serveru v ISR, API až po změně. Totéž pro `/portfolio-strategie/[slug]` (dnes 2× `simulate` ≈ 6 s CPU na každé zobrazení!) | `backtest/page.tsx`, `BacktestWidget.tsx`, `PortfolioBacktest.tsx`; mrtvý `heroExample.ts` použít nebo smazat | podíl návštěv backtestu s interakcí |
 | 3.6 | **Nástroje → důkazy:** pod výsledkem jedna karta s tvrzením a číslem (pravidelný vklad → „Naráz, nebo postupně?"; USD index → měnové riziko; kalkulačka → „Proč 7 %? Skutečné výnosy v Kč") | `BacktestWidget.tsx`, `InvesticniKalkulackaWidget.tsx` | referrer `/backtest` → článek: 1 / 90 dní |
-| 3.7 | `/akumulacni-vs-distribucni-etf` není slepá ulička; `/kategorie` (sirotek) nalinkovat nebo sloučit | články | – |
+| 3.7 | ✅ `/akumulacni-vs-distribucni-etf` není slepá ulička; `/kategorie` (sirotek) nalinkovat nebo sloučit | články | – |
 | 3.8 | ✅ Sitemapa: skutečný `lastmod` (dnes čas buildu u všech URL) | `sitemap.ts` | – |
-| 3.9 | `llms.txt` aktualizovat (staré www URL, „2000+ fondů", „Best ETF 2025") | `public/llms.txt` | – |
-| 3.10 | IndexNow posílat jen změněné URL, ne celou sitemapu po každém deployi | `scripts/indexnow.mjs` | – |
-| 3.11 | Canonical pro `/backtest` a kalkulačky (URL s parametry z FB, 301 z Buffetta) | stránky nástrojů | – |
+| 3.9 | ✅ `llms.txt` aktualizovat (staré www URL, „2000+ fondů", „Best ETF 2025") | `public/llms.txt` | – |
+| 3.10 | ⏸ odloženo (většina deployů mění sdílené části → stejně by se hlásilo vše; přínos neprokázaný) – IndexNow posílat jen změněné URL, ne celou sitemapu po každém deployi | `scripts/indexnow.mjs` | – |
+| 3.11 | ✅ Canonical pro `/backtest` a kalkulačky (URL s parametry z FB, 301 z Buffetta) | stránky nástrojů | – |
 
 | 3.12 | ✅ **Srovnání podle ISINu:** lidé píšou i „ie00b5bmr087 vs ie00bfmxxd54" (Google našeptává desítky kombinací). ISINy do popisu a na stránku dvojice; URL s ISINy → 301 na tickerovou | `[pair]/page.tsx`, `etf-data.ts` (getComparisonETFData) | – |
 | 3.13 | ✅ **„Stejný fond, jiný ticker"** (CSPX vs SXR8, IWDA vs SWDA vs EUNL, VUAA vs VUAG) – častý dotaz, dnes 404/noindex. Místo toho stránka „jde o stejný fond (ISIN …), liší se burzou a měnou obchodování" + tabulka burz | `[pair]/page.tsx` | – |

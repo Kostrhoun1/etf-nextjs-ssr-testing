@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
   Wallet, Receipt, BadgePercent, HelpCircle, BookOpen, Scale, Landmark,
@@ -14,6 +15,9 @@ import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-ch
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
+  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+  alternates: { canonical: '/cisty-plat' },
   title: 'Kalkulačka čisté mzdy 2026: výpočet čistého platu z hrubého',
   description:
     'Spočítejte si čistou mzdu z hrubé podle pravidel pro rok 2026 – pojistné, daň 15/23 %, sleva na poplatníka i na děti. Včetně nákladů zaměstnavatele.',
@@ -82,14 +86,7 @@ export default async function CistyPlatPreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="hover:text-slate-900">Portfolia</Link>
-            <Link href="/kalkulacky" className="text-teal-700 font-medium">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <HeaderSearch />
         </div>
       </header>

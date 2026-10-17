@@ -29,6 +29,8 @@ const nextConfig: NextConfig = {
       { source: '/nejlepsi-etf/nejlepsi-clean-energy-etf', destination: '/nejlepsi-etf/nejlepsi-obnovitelne-zdroje-etf', permanent: true },
       { source: '/nejlepsi-etf/nejlepsi-nemovitostni-etf', destination: '/nejlepsi-etf/nejlepsi-realitni-etf', permanent: true },
       { source: '/nejlepsi-etf/nejlepsi-zlate-etf', destination: '/nejlepsi-etf/nejlepsi-zlato-etf', permanent: true },
+      // /kategorie: osiřelý duplikát žebříčku S&P 500 (nic na něj neodkazovalo), 17. 10. 2026.
+      { source: '/kategorie', destination: '/nejlepsi-etf/nejlepsi-sp500-etf', permanent: true },
       // === CUTOVER: staré URL (starý web) → nové routy nového designu ===
       { source: '/srovnani-etf', destination: '/srovnani', permanent: true },
       { source: '/srovnani-etf/:pair', destination: '/srovnani/:pair', permanent: true },

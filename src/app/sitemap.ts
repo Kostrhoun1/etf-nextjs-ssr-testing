@@ -22,12 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // datum posledních dat (MAX scraping_date). Ostatní lastmod nemají – žádné datum je poctivější
   // než falešné. Detaily fondů se cachují až 30 dní, takže ani ty datum dat nedostanou.
   const dataDate = await getDataDate(new Date());
-  const DATA_PAGES = /^(|\/srovnani|\/zebricky|\/kategorie|\/nejlepsi-etf\/.*|\/srovnani\/[a-z0-9]+-vs-[a-z0-9]+)$/;
+  const DATA_PAGES = /^(|\/srovnani|\/zebricky|\/nejlepsi-etf\/.*|\/srovnani\/[a-z0-9]+-vs-[a-z0-9]+)$/;
   const paths: { p: string; pr: number; cf?: 'weekly' | 'monthly' }[] = [
     { p: '', pr: 1 },
     { p: '/srovnani', pr: 0.9 },
     { p: '/zebricky', pr: 0.9 },
-    { p: '/kategorie', pr: 0.7 },
     { p: '/portfolio-strategie', pr: 0.8 },
     { p: '/kde-koupit', pr: 0.8 },
     { p: '/srovnani-brokeru', pr: 0.7 },
@@ -40,6 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { p: '/akumulacni-vs-distribucni-etf', pr: 0.7 },
     { p: '/svetove-etf-indexy', pr: 0.8 },
     { p: '/kolik-vydelaly-etf', pr: 0.8 },
+    { p: '/co-rikaji-data', pr: 0.8 },
     { p: '/kolik-investovat-mesicne', pr: 0.8 },
     { p: '/jaky-sp500-etf', pr: 0.8 },
     { p: '/dca-vs-jednorazova', pr: 0.8 },

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
 import InfoTip from '@/components/design-preview/InfoTip';
 import StructuredData from '@/components/SEO/StructuredData';
 import {
@@ -18,6 +19,9 @@ import {
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
+  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+  alternates: { canonical: '/portfolio-strategie' },
   title: `Modelová portfolia z ETF: ${portfolioModels.length} ověřených strategií pro české investory`,
   description:
     'Vyberte si hotové modelové portfolio z ETF – Permanentní, Nobelovo, Akciové, Ray Dalio a Dividendové. Reálné složení, konkrétní fondy (ISIN) a verdikt pro koho.',
@@ -119,14 +123,7 @@ export default async function PortfolioStrategieDesignPreview() {
             ETF průvodce.cz
           </Link>
           <MobileMenu />
-          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/pruvodce" className="hover:text-slate-900">Co jsou ETF</Link>
-            <Link href="/zebricky" className="hover:text-slate-900">Žebříčky</Link>
-            <Link href="/srovnani" className="hover:text-slate-900">Srovnání</Link>
-            <Link href="/portfolio-strategie" className="text-teal-700 font-medium">Portfolia</Link>
-            <Link href="/kalkulacky" className="hover:text-slate-900">Kalkulačky</Link>
-            <Link href="/kde-koupit" className="hover:text-slate-900">Kde koupit</Link>
-          </nav>
+          <SiteNav />
           <HeaderSearch />
         </div>
       </header>
