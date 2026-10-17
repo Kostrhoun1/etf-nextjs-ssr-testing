@@ -30,13 +30,16 @@ export const metadata: Metadata = {
 };
 
 /* Budoucí hodnota pravidelného měsíčního vkladu (spořicí anuita). */
+// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně" bylo opravdu 7 % ročně. Dřív r/12
+// = 7,23 % ročně (audit výpočtů 17. 10. 2026; stejně jako investiční kalkulačka).
+const mesicni = (annual: number) => Math.pow(1 + annual, 1 / 12) - 1;
 const fv = (pmt: number, annual: number, years: number) => {
-  const r = annual / 12, n = years * 12;
+  const r = mesicni(annual), n = years * 12;
   return pmt * ((Math.pow(1 + r, n) - 1) / r);
 };
 /* Kolik měsíčně je potřeba na cílovou částku. */
 const need = (target: number, annual: number, years: number) => {
-  const r = annual / 12, n = years * 12;
+  const r = mesicni(annual), n = years * 12;
   return target / ((Math.pow(1 + r, n) - 1) / r);
 };
 
@@ -111,9 +114,9 @@ export default async function KolikInvestovat() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">Kolik investovat měsíčně</span>
@@ -134,7 +137,7 @@ export default async function KolikInvestovat() {
               když investujete 30 let při modelovém výnosu ~7 % ročně (nominálně, před inflací).
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="/investicni-kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              <Link href="/investicni-kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                 <Calculator className="w-4 h-4" /> Spočítat pro moje číslo
               </Link>
               <Link href="/fire" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">

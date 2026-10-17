@@ -204,8 +204,8 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <Link href="/faktorove-etf" className="hover:text-slate-600">Faktorové ETF</Link>
@@ -222,7 +222,7 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
             <h1 className="mt-3 text-2xl md:text-4xl font-bold tracking-tight leading-tight max-w-3xl">{cfg.h1}</h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">{cfg.lead}</p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                 <Scale className="w-4 h-4" /> Otestovat v backtestu
               </Link>
               <Link href="/faktorove-etf" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
@@ -443,7 +443,7 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
               <p className="text-lg font-semibold">Otestujte si to na vlastní čísla</p>
               <p className="text-sm text-slate-300 mt-1">V backtestu najdete faktor v kategorii „Akcie – faktory“ – zkuste ho i v kombinaci s indexem.</p>
             </div>
-            <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white hover:bg-teal-500 transition-colors whitespace-nowrap">
+            <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-medium text-white hover:bg-teal-800 transition-colors whitespace-nowrap">
               <Calculator className="w-4 h-4" /> Spustit backtest
             </Link>
           </div>

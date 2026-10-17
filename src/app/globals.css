@@ -253,3 +253,21 @@
 
   @page { margin: 14mm; }
 }
+
+/* KONTRAST (UX audit 17. 10. 2026, WCAG AA 4,5:1). Šedý popisný text slate-400 měl na bílém
+   kontrast 2,6:1 (447 výskytů) a zelená čísla emerald-600 3,8:1. Hromadná náhrada tříd nejde –
+   část je na tmavých plochách, kde by tmavší barva kontrast naopak zhoršila. Proto ztmavujeme
+   jen MIMO tmavé plochy (Selectors 4 :not() s komplexním selektorem – Chrome 88+, Safari 9+,
+   Firefox 84+). */
+.text-slate-400:not(:is(.bg-slate-900, .bg-slate-700, .bg-teal-700, .bg-teal-800) *) {
+  color: rgb(100 116 139); /* slate-500 – 4,8:1 na bílé */
+}
+.text-emerald-600:not(:is(.bg-slate-900, .bg-slate-700, .bg-teal-700, .bg-teal-800) *) {
+  color: rgb(4 120 87); /* emerald-700 – 5,5:1 na bílé */
+}
+
+/* KLIKACÍ PLOCHY (WCAG 2.2 AA: min. 24 × 24 px). Odkazy v drobečkové navigaci měly výšku 16 px. */
+nav[aria-label="Drobečková navigace"] a {
+  display: inline-block;
+  padding-block: 4px;
+}

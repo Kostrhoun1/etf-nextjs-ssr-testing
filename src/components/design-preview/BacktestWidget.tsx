@@ -520,8 +520,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               return (
                 <button
                   key={preset.id}
+                  type="button"
+                  aria-pressed={on}
                   onClick={() => applyPreset(preset.id)}
-                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${on ? 'border-teal-600 bg-teal-600 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${on ? 'border-teal-600 bg-teal-700 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
                 >
                   {PRESET_SHORT[preset.id] ?? preset.name}
                 </button>
@@ -545,8 +547,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               return (
                 <button
                   key={s.code}
+                  type="button"
+                  aria-pressed={on}
                   onClick={() => { applyFactor(s.code); setTimeout(() => runBacktestRef.current(), 90); }}
-                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${on ? 'border-teal-600 bg-teal-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
+                  className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${on ? 'border-teal-600 bg-teal-700 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
                 >
                   {s.label}
                 </button>
@@ -843,6 +847,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           >
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Počítám historický vývoj…</> : <><Zap className="w-4 h-4" /> Otestovat na historii</>}
           </button>
+          {/* Čtečky obrazovky: oznámit začátek a konec výpočtu (vizuálně to ukazuje tlačítko). */}
+          <p aria-live="polite" className="sr-only">{loading ? 'Počítám historický vývoj…' : result ? 'Výsledek backtestu je připravený.' : ''}</p>
           {totalWeight !== 100 && (
             <span className="flex items-center gap-1.5 text-sm text-amber-600">
               <AlertTriangle className="w-4 h-4 shrink-0" /> Součet vah musí být 100 %

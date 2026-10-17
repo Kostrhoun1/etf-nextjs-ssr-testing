@@ -176,9 +176,9 @@ export default async function BrokerReviewPreview() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <Link href="/kde-koupit" className="hover:text-slate-600">Kde koupit ETF</Link>
@@ -217,7 +217,7 @@ export default async function BrokerReviewPreview() {
                     href={BROKER_HREF}
                     target="_blank"
                     rel="nofollow noopener"
-                    className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500 inline-flex items-center gap-1.5"
+                    className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 inline-flex items-center gap-1.5"
                   >
                     Přejít na web DEGIRO <ArrowUpRight className="w-4 h-4" />
                   </a>

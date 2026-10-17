@@ -182,13 +182,28 @@ Ověřuje se na 375 px před i po nasazení, screenshoty před/po.
 | 5.2 | **Hero homepage na USP:** „Kolik by vám dnes vydělalo 5 000 Kč měsíčně od roku 2010? **X Kč**" + „Spočítat svůj případ" / „Najít fond". Číslo předpočítané v ISR stejným enginem a ověřené 3 kroky | „Největší srovnávač ETF" – žádná částka v Kč |
 | 5.3 | ◐ (hero na mobilu 2 řádky + štítek data; hvězdičky = metodika → rozhodnutí majitele: 5★/4★ má 80 % fondů nad 1 mld €, velikost+správce = 35 bodů ze 100) **Srovnávač na mobilu:** hero na 2 řádky; ve výchozím pohledu bez komodit a peněžního trhu (dnes v top 25 zlato ETC a XEON); rychlé volby „Celý svět / S&P 500 / Dluhopisy"; hvězdičky skrýt nebo přeškálovat (5/5 skoro všem) | hero 380 px před filtry |
 | 5.4 | ✅ (+ OPRAVENA CHYBA VÝPOČTU: 7 % p.a. úročilo 7,23 % – výsledek o 3 % nadsazený; ověřeno nezávisle 2 938 999 Kč) **Investiční kalkulačka:** pole jako v backtestu (`inputMode="numeric"`, mezery v tisících); výsledek v pruhu, který zůstane vidět při posouvání | `type="number"`, šipky 16 px, výsledek ~930 px dolů |
-| 5.5 | **Klikací plochy ≥ 44 px:** odkazy „vše" (36×16), drobečková navigace (16 px), InfoTip (30×30) | |
-| 5.6 | **Kontrast:** `text-slate-400` → 500/600 (447×, 2,6:1); `text-emerald-600` → 700 (83×, 3,8:1); hlavní tlačítko `bg-teal-600` → 700 (3,7:1) | |
-| 5.7 | **Čtečky obrazovky:** `aria-pressed` u presetů backtestu, `aria-live` u „Počítám…", odkaz „přeskočit na obsah" | |
-| 5.8 | Patička stránek: autor + „12 let praxe" + „Nezávislý" + disclaimer + patička (~1 000 px na mobilu) → jeden kompaktní blok | |
+| 5.5 | ✅ (drobečky a „vše" ≥ 24 px; InfoTip 30 px vyhovuje) **Klikací plochy ≥ 44 px:** odkazy „vše" (36×16), drobečková navigace (16 px), InfoTip (30×30) | |
+| 5.6 | ✅ (CSS: slate-400→500 a emerald-600→700 mimo tmavé plochy; 37 tlačítek teal-600→700) **Kontrast:** `text-slate-400` → 500/600 (447×, 2,6:1); `text-emerald-600` → 700 (83×, 3,8:1); hlavní tlačítko `bg-teal-600` → 700 (3,7:1) | |
+| 5.7 | ✅ (skip link, aria-pressed, aria-live, popisky drobečků) **Čtečky obrazovky:** `aria-pressed` u presetů backtestu, `aria-live` u „Počítám…", odkaz „přeskočit na obsah" | |
+| 5.8 | ✅ (patička na mobilu ve 2 sloupcích, odkazy Backtest + Co říkají data) Patička stránek: autor + „12 let praxe" + „Nezávislý" + disclaimer + patička (~1 000 px na mobilu) → jeden kompaktní blok | |
 | 5.9 | Modelová portfolia: hlavní číslo 10 let p.a. v Kč + max. propad, ne roční výnos (nesoutěžit v krátkodobém výnosu) | |
 
 ---
+
+## Audit výpočtů nástrojů (17. 10. 2026) – ✅ opraveno a ověřeno nezávisle
+
+| Nástroj | Chyba | Oprava ověřena |
+|---|---|---|
+| Kurzový dopad | historické scénáře OBRÁCENĚ (březen 2020 „−17,7 %" místo +7,3 %; 2017 „+14,4 %" místo −12,2 %); VaR z celého portfolia; „celková kolísavost" mix; nefunkční pole kurzů | −12,17 % / +7,32 % z kurzů ČNB; VaR 146 038 Kč |
+| Backtest – rebalancování | „měsíčně" = denně, „ročně" = každý den v prosinci; „při odchylce" nedělalo nic | měsíčně 510 597, čtvrtletně 525 564, ročně 531 121 = nezávislá simulace na korunu |
+| Investiční kalkulačka, Kolik investovat měsíčně, Investování pro děti | r/12 → 7 % p.a. úročilo 7,23 % (+2–8 %) | 2 938 999; 855/1 970/5 846 Kč; 420 918 Kč |
+| Čistý plat | chyběl daňový bonus na děti; důchodce 0 % místo 0,6 % | 23 000 + 2 děti → bonus 2 247 (Money.cz); 25 000 → 24 047; důchodce 38 525 |
+| Nouzová rezerva | plán ignoroval současné úspory | kroky „splněno / 4 měsíce" = Čas do cíle |
+| Monte Carlo | „Všepočasní" součet 92 % → nešlo spustit; dolarové výnosy neoznačené | spustitelné; metodika uvádí USD bez kurzu |
+| FIRE kalkulačka | výsledek se měnil při každém načtení | pevné semínko: 19/24/32 let (nezávisle 19,2/24,8/32,4) |
+| Kalkulačka poplatků | r − TER místo (1+r)(1−TER)−1 (−5 %); popisek plochy | 4 416 696 Kč = přesný výpočet |
+
+**Otevřené:** předpoklady výnosů FIRE strategií (7,7/8,8/9,8 % nominálně v USD před TER) ověřit z dat v Kč (Vlna 7).
 
 ## Vlna 6 – Pravidelné vracení: „Korunový stroj času"
 

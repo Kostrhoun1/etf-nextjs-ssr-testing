@@ -166,9 +166,9 @@ export default async function KolikVydelalyEtf() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">Kolik vydělaly ETF</span>
@@ -189,7 +189,7 @@ export default async function KolikVydelalyEtf() {
               širokého indexu světových akcií v číslech: kolik vydělal, o kolik cestou spadl a co z toho plyne pro váš horizont.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                 <Calculator className="w-4 h-4" /> Otestovat vlastní portfolio
               </Link>
               <Link href="/pruvodce" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
@@ -596,7 +596,7 @@ export default async function KolikVydelalyEtf() {
               i dobu zotavení – vše v korunách. Orientačně, na reálných historických datech.
             </p>
             <div className="mt-5 flex flex-wrap justify-center gap-2.5">
-              <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                 <Calculator className="w-4 h-4" /> Otevřít backtest
               </Link>
               <Link href="/kolik-investovat-mesicne" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">

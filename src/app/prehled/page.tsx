@@ -75,7 +75,7 @@ export default function PrehledNovehoWebu() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 pb-16">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-16">
         <section className="py-8 md:py-10">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
             <Briefcase className="w-3.5 h-3.5" /> Rozcestník redesignu

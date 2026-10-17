@@ -110,6 +110,8 @@ export default function RootLayout({
         <AuthorSchema />
       </head>
       <body className={`${inter.className} antialiased overflow-x-clip`}>
+        {/* Přístupnost: z klávesnice/čtečky rovnou na obsah, bez procházení navigace. */}
+        <a href="#obsah" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-teal-800 focus:shadow-lg focus:ring-2 focus:ring-teal-600">Přeskočit na obsah</a>
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
         <ClientErrorReporter />
         <CurrencyProvider>

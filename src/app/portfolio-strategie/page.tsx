@@ -128,7 +128,7 @@ export default async function PortfolioStrategieDesignPreview() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
         {/* 1. Intro panel */}
         <section className="py-7">
           <nav aria-label="Drobečková navigace" className="mb-3 text-xs text-slate-500">

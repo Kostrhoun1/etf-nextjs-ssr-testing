@@ -168,33 +168,39 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
       2 * usdWeight * eurWeight * usdVolatility * eurVolatility * correlation,
   );
 
-  const assetVolatility = 0.16;
-  const portfolioVolatility =
-    (currencyVolatility * currencyExposure + assetVolatility * (1 - currencyExposure)) * 100;
+  // Kolísavost portfolia ZPŮSOBENÁ KURZEM (v % hodnoty celého portfolia). Dřív se míchala s akciovou
+  // volatilitou přiřazenou jen korunové části → nesmyslné číslo („celková kolísavost" 10,5 %).
+  const portfolioVolatility = currencyVolatility * currencyExposure * 100;
 
   const maxDrawdown = portfolioVolatility * 2.2;
 
-  const valueAtRisk = portfolioValue * currencyVolatility * 1.65;
+  // VaR jen z části vystavené kurzu (dřív z celého portfolia včetně korunové části).
+  const valueAtRisk = (unhedgedUsd + unhedgedEur) * currencyVolatility * 1.65;
 
   const currentUnhedgedExposure = unhedgedUsd + unhedgedEur;
+  // Skutečné pohyby kurzu podle ČNB (17. 10. 2026 opraveno – scénáře byly OBRÁCENĚ: březen 2020
+  // byl veden jako ztráta −17,7 %, ačkoli koruna oslabila a zahraniční aktiva v Kč vydělala; rok
+  // 2017 jako zisk +14,4 %, ačkoli koruna po konci intervencí posílila a investor ztratil).
+  //   2017:     USD/CZK 25,819 (2. 1.) → 21,291 (29. 12.) = −17,5 %; EUR/CZK 27,020 → 25,540 = −5,5 %
+  //   III/2020: USD/CZK 22,952 (2. 3.) → 24,943 (31. 3.)  = +8,7 %;  EUR/CZK 25,525 → 27,325 = +7,1 %
+  const HIST = {
+    r2017: { usd: 21.291 / 25.819 - 1, eur: 25.540 / 27.020 - 1 },
+    r2020: { usd: 24.943 / 22.952 - 1, eur: 27.325 / 25.525 - 1 },
+  };
+  const dopad = (h: { usd: number; eur: number }) =>
+    currentUnhedgedExposure > 0 && portfolioValue > 0 ? ((unhedgedUsd * h.usd + unhedgedEur * h.eur) / portfolioValue) * 100 : 0;
   const historicalAnalysis = {
     worstCase: {
-      period: 'Pandemická krize 2020 (březen)',
-      usdCzkImpact: -22,
-      eurCzkImpact: -15,
-      totalPortfolioImpact:
-        currentUnhedgedExposure > 0 && portfolioValue > 0
-          ? ((unhedgedUsd * -0.22 + unhedgedEur * -0.15) / portfolioValue) * 100
-          : 0,
+      period: 'Posílení koruny 2017 (konec intervencí ČNB)',
+      usdCzkImpact: HIST.r2017.usd * 100,
+      eurCzkImpact: HIST.r2017.eur * 100,
+      totalPortfolioImpact: dopad(HIST.r2017),
     },
     bestCase: {
-      period: 'Zásah ČNB 2017',
-      usdCzkImpact: 18,
-      eurCzkImpact: 12,
-      totalPortfolioImpact:
-        currentUnhedgedExposure > 0 && portfolioValue > 0
-          ? ((unhedgedUsd * 0.18 + unhedgedEur * 0.12) / portfolioValue) * 100
-          : 0,
+      period: 'Oslabení koruny v březnu 2020 (pandemie)',
+      usdCzkImpact: HIST.r2020.usd * 100,
+      eurCzkImpact: HIST.r2020.eur * 100,
+      totalPortfolioImpact: dopad(HIST.r2020),
     },
     averageImpact: currencyExposure * 100 * 0.08,
   };
@@ -370,30 +376,6 @@ export default function KurzovyDopadWidget() {
             max={1_000_000_000}
             step="50000"
             onChange={(v) => setPortfolioValue(Math.max(0, v))}
-            suffix="Kč"
-          />
-          <NumberField
-            id="usdCzk"
-            label={
-              <InfoTip label="Kolik korun stojí jeden americký dolar. Když dolar posílí (číslo roste), vaše dolarové ETF mají v přepočtu na koruny vyšší hodnotu.">Kurz USD/CZK</InfoTip>
-            }
-            value={currentUsdCzk}
-            step="0.1"
-            min={10}
-            max={40}
-            onChange={(v) => setCurrentUsdCzk(Math.max(0, v))}
-            suffix="Kč"
-          />
-          <NumberField
-            id="eurCzk"
-            label={
-              <InfoTip label="Kolik korun stojí jedno euro. Ovlivňuje korunový výnos části portfolia v evropských aktivech.">Kurz EUR/CZK</InfoTip>
-            }
-            value={currentEurCzk}
-            step="0.1"
-            min={15}
-            max={35}
-            onChange={(v) => setCurrentEurCzk(Math.max(0, v))}
             suffix="Kč"
           />
         </div>
@@ -629,11 +611,11 @@ export default function KurzovyDopadWidget() {
               <p className="text-xs text-teal-200 mt-1">část portfolia citlivá na kurz</p>
             </div>
             <div className="sm:border-l sm:border-white/15 sm:pl-5">
-              <p className="text-sm text-teal-100">Celková kolísavost</p>
+              <p className="text-sm text-teal-100">Kolísavost z kurzu</p>
               <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1">
                 {results.riskMetrics.portfolioVolatility.toFixed(1)} %
               </p>
-              <p className="text-xs text-teal-200 mt-1">roční výkyv hodnoty (odhad)</p>
+              <p className="text-xs text-teal-200 mt-1">roční výkyv hodnoty jen kvůli kurzu (odhad)</p>
             </div>
             <div className="sm:border-l sm:border-white/15 sm:pl-5">
               <p className="text-sm text-teal-100">

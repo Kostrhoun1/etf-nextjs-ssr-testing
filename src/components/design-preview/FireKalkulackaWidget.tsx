@@ -119,11 +119,24 @@ function computeFire(params: {
   };
 }
 
-/* Normální rozdělení (Box-Muller). Klientský Math.random je tu v pořádku. */
-function randNormal(mean: number, sd: number): number {
+/* Deterministický generátor (Mulberry32, jako Monte Carlo). Dřív Math.random → výsledek
+   („FIRE za 25 let") se měnil při každém načtení stránky (audit výpočtů 17. 10. 2026). */
+function createRng(seed: number): () => number {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* Normální rozdělení (Box-Muller). */
+function randNormal(mean: number, sd: number, rng: () => number): number {
   let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
+  while (u === 0) u = rng();
+  while (v === 0) v = rng();
   return mean + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
@@ -166,6 +179,7 @@ function computeFireRange(params: {
   const YEARS = 50, MONTHS = YEARS * 12;
 
   const yearsReached: number[] = [];
+  const rng = createRng(20261017); // stejné vstupy ⇒ stejný výsledek
   const perYear: number[][] = Array.from({ length: YEARS + 1 }, () => []);
 
   for (let s = 0; s < sims; s++) {
@@ -185,7 +199,7 @@ function computeFireRange(params: {
           else pv -= ev.amount; // oneoffExpense
         }
       }
-      pv *= (1 + randNormal(mMean, mVol));
+      pv *= (1 + randNormal(mMean, mVol, rng));
       if (pv < 0) pv = 0;
       if (reached === null && pv >= targetReal) reached = m;
       if (m % 12 === 0) perYear[m / 12].push(pv);

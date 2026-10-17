@@ -189,7 +189,7 @@ export default async function PairComparePage(
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <Head />
 
-      <main className="max-w-6xl mx-auto px-4 pb-24">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-24">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
           <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>
@@ -310,7 +310,7 @@ function StejnyFond({ etf, tk1, tk2 }: { etf: ComparisonETF; tk1: string; tk2: s
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Head />
-      <main className="max-w-3xl mx-auto px-4 pb-24">
+      <main id="obsah" className="max-w-3xl mx-auto px-4 pb-24">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
           <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>

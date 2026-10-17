@@ -154,9 +154,9 @@ export default async function DipPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">DIP – dlouhodobý investiční produkt</span>
@@ -178,7 +178,7 @@ export default async function DipPage() {
               běžný účet s ETF jednodušší, rozebíráme dál – v korunách a bez prodeje.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="#vyplati-se" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+              <Link href="#vyplati-se" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                 <Target className="w-4 h-4" /> Vyplatí se to zrovna vám?
               </Link>
               <Link href="#kolik-zpet" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">

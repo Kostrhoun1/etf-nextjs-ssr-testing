@@ -100,9 +100,9 @@ export default async function AboutPage() {
 
       <AboutHeader />
 
-      <main className="max-w-4xl mx-auto px-4">
+      <main id="obsah" className="max-w-4xl mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">O nás</span>

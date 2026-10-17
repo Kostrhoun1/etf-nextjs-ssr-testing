@@ -68,7 +68,7 @@ export default function CoRikajiData() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 pb-20">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-20">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
           <span className="text-slate-700">Co říkají data</span>

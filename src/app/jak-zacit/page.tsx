@@ -285,9 +285,9 @@ export default async function HowToStartPreview() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">Jak začít investovat do ETF</span>
@@ -315,7 +315,7 @@ export default async function HowToStartPreview() {
                   <span className="inline-flex items-center gap-1.5"><ListChecks className="w-3.5 h-3.5" /> 7 kroků</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
-                  <Link href="#kroky" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Začít prvním krokem</Link>
+                  <Link href="#kroky" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Začít prvním krokem</Link>
                   <Link href="/pruvodce" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Co je ETF?</Link>
                 </div>
               </div>

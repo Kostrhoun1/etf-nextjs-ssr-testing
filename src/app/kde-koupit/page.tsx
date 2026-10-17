@@ -162,9 +162,9 @@ export default async function KdeKoupitPreview() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
+      <main id="obsah" className="max-w-6xl mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <span className="text-slate-600">Kde koupit ETF</span>
@@ -188,7 +188,7 @@ export default async function KdeKoupitPreview() {
                   <span className="inline-flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5" /> {brokers.length} hodnocených platforem</span>
                 </div>
                 <div className="mt-5 flex gap-2.5">
-                  <Link href="#verdikt" className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">Náš verdikt</Link>
+                  <Link href="#verdikt" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Náš verdikt</Link>
                   <Link href="#srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Srovnání brokerů</Link>
                 </div>
               </div>

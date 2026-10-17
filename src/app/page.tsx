@@ -157,7 +157,7 @@ function DataPanel({ title, href, etfs, metric }: { title: string; href: string;
     <div className="min-w-0 rounded-xl border border-slate-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        <Link href={href} className="text-xs text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">vše <ArrowRight className="w-3 h-3" /></Link>
+        <Link href={href} className="text-xs text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 py-1.5 -my-1.5 px-1 -mx-1">vše <ArrowRight className="w-3 h-3" /></Link>
       </div>
       <ul className="divide-y divide-slate-50">
         {etfs.slice(0, 5).map((etf, i) => (
@@ -236,7 +236,7 @@ export default async function DesignPreviewV2() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 pb-24">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-24">
         {/* 1. HERO – USP + vyhledávání + dvojí cesta (vím co hledám / začátečník) */}
         <section className="py-4 md:py-7">
           {/* Na MOBILU je hero záměrně stručné: dlouhý úvod tlačil reálný obsah (startovací
@@ -256,7 +256,7 @@ export default async function DesignPreviewV2() {
                   <span className="hidden md:inline">100% nezávislý a nekomerční — žádné provize, žádná reklama</span>
                 </p>
                 <div className="mt-4 md:mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-                  <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 transition-colors">
+                  <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                     <LayoutGrid className="w-4 h-4" /> Prozkoumat všechny fondy
                   </Link>
                   <Link href="/vyber-etf" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-200 underline-offset-4 hover:text-white hover:underline transition-colors">

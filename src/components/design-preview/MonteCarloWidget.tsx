@@ -246,8 +246,10 @@ const PRESETS: { id: string; name: string; desc: string; allocation: AssetAlloca
     name: 'Všepočasní',
     desc: 'Široká diverzifikace',
     allocation: {
+      // Dalio: 30 akcie, 40 dlouhé + 15 střednědobé dluhopisy, 7,5 zlato + 7,5 komodity. Komodity
+      // tu nejsou → jejich podíl jde do zlata. Dřív zlato 7 % = součet 92 % → simulace nešla spustit.
       us_large: 30, us_small: 0, emerging: 0, intl_dev: 0, canada: 0,
-      reits: 0, us_high_yield: 0, us_quality_bond: 40, intl_bond: 15, gold: 7, cash: 0,
+      reits: 0, us_high_yield: 0, us_quality_bond: 40, intl_bond: 15, gold: 15, cash: 0,
     },
   },
 ];

@@ -570,8 +570,9 @@ function combinePortfolio(
     marketNav.push({ date, value: marketNavValue })
     prevTotalValue = portfolioValue
 
-    // Rebalance if needed
-    if (shouldRebalance(date, i, rebalancing)) {
+    // Rebalance if needed (kalendářně jen poslední obchodní den období – proto potřebuje příští datum)
+    const nextDate = i + 1 < sortedDates.length ? new Date(sortedDates[i + 1]) : null
+    if (shouldRebalance(date, nextDate, i, rebalancing, holdings, etfSeries.map((e) => e.weight), portfolioValue)) {
       holdings = etfSeries.map(({ weight }) => weight * portfolioValue)
     }
 
@@ -582,32 +583,52 @@ function combinePortfolio(
 }
 
 /**
- * Check if we should rebalance at this date
+ * Rebalancovat v tento den?
+ *
+ * OPRAVENO 17. 10. 2026 (audit výpočtů, pravidlo č. 1):
+ * - Data jsou DENNÍ a podmínka se dřív vyhodnocovala každý obchodní den: „měsíčně" rebalancovalo
+ *   DENNĚ, „ročně" každý den v prosinci, „čtvrtletně" každý den v březnu/červnu/září/prosinci.
+ *   (60/40, 2005–2025: „měsíčně" vycházelo 9,04 % p.a. místo správných 8,08 %.) Teď jen POSLEDNÍ
+ *   obchodní den období = když příští datum patří do jiného období.
+ * - Volby „při odchylce nad X %" dřív nedělaly nic (default: false) = totéž co „vůbec". Teď se
+ *   rebalancuje, když se váha kterékoli složky odchýlí od cíle o víc než X procentních bodů.
  */
 function shouldRebalance(
   date: Date,
+  nextDate: Date | null,
   index: number,
-  strategy: RebalancingStrategy
+  strategy: RebalancingStrategy,
+  holdings: number[],
+  targetWeights: number[],
+  portfolioValue: number,
 ): boolean {
   if (strategy === 'none') return false
   if (index === 0) return false // Don't rebalance on first day
 
-  const month = date.getMonth()
-  const isYearEnd = month === 11 // December
+  if (strategy.startsWith('tolerance-')) {
+    const pasmo = Number(strategy.slice('tolerance-'.length)) / 100
+    if (!(pasmo > 0) || portfolioValue <= 0) return false
+    return holdings.some((h, j) => Math.abs(h / portfolioValue - targetWeights[j]) > pasmo)
+  }
 
+  // Kalendářní strategie: konec období = příští obchodní den už je v jiném období.
+  if (!nextDate) return false // poslední bod řady – rebalancování by už nic neovlivnilo
+  const y = date.getFullYear(), m = date.getMonth()
+  const ny = nextDate.getFullYear(), nm = nextDate.getMonth()
+  const konecRoku = ny !== y
   switch (strategy) {
     case 'monthly':
-      return true
+      return ny !== y || nm !== m
     case 'quarterly':
-      return month % 3 === 2 // March, June, Sept, Dec
+      return konecRoku || Math.floor(nm / 3) !== Math.floor(m / 3)
     case 'half-yearly':
-      return month === 5 || month === 11 // June, December
+      return konecRoku || Math.floor(nm / 6) !== Math.floor(m / 6)
     case 'yearly':
-      return isYearEnd
+      return konecRoku
     case 'every-2-years':
-      return isYearEnd && date.getFullYear() % 2 === 0
+      return konecRoku && y % 2 === 0
     case 'every-3-years':
-      return isYearEnd && date.getFullYear() % 3 === 0
+      return konecRoku && y % 3 === 0
     default:
       return false
   }

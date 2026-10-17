@@ -185,8 +185,10 @@ export default function FeeCalculatorWidget() {
       return;
     }
 
-    const annualETFReturn = Math.max(-0.99, annualReturn - etfTER / 100);
-    const annualActiveReturn = Math.max(-0.99, annualReturn - activeTER / 100);
+    // TER se strhává z hodnoty fondu → čistý výnos = (1 + r)(1 − TER) − 1. Dřív „r − TER", což
+    // dopad poplatku mírně podceňovalo (výchozí příklad o ~5 %; audit výpočtů 17. 10. 2026).
+    const annualETFReturn = Math.max(-0.99, (1 + annualReturn) * (1 - etfTER / 100) - 1);
+    const annualActiveReturn = Math.max(-0.99, (1 + annualReturn) * (1 - activeTER / 100) - 1);
 
     const monthlyETFReturn = Math.pow(1 + annualETFReturn, 1 / 12) - 1;
     const monthlyActiveReturn = Math.pow(1 + annualActiveReturn, 1 / 12) - 1;
@@ -322,7 +324,7 @@ export default function FeeCalculatorWidget() {
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Vývoj hodnoty portfolia v čase</p>
           <FeeChart etf={etfSeries} active={activeSeries} years={investmentPeriod} etfTER={etfTER} activeTER={activeTER} />
           <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-            Obě křivky mají stejný vklad i tržní výnos – rozevírají se jen kvůli rozdílnému poplatku. Tyrkysová plocha mezi nimi je to, co za {investmentPeriod} let zaplatíte navíc na poplatcích.
+            Obě křivky mají stejný vklad i tržní výnos – rozevírají se jen kvůli rozdílnému poplatku. Tyrkysová plocha mezi nimi je to, o co budete mít za {investmentPeriod} let méně – zaplacené poplatky i zhodnocení, o které vás připravily.
           </p>
         </div>
       )}

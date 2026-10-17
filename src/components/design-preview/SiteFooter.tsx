@@ -20,6 +20,7 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
     heading: 'Nástroje',
     links: [
       { href: '/srovnani', label: 'Srovnávač ETF' },
+      { href: '/backtest', label: 'Backtest portfolia' },
       { href: '/zebricky', label: 'Žebříčky ETF' },
       { href: '/portfolio-strategie', label: 'Modelová portfolia' },
       { href: '/kalkulacky', label: 'Kalkulačky' },
@@ -29,6 +30,7 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
   {
     heading: 'Plánování',
     links: [
+      { href: '/co-rikaji-data', label: 'Co říkají data' },
       { href: '/fire', label: 'FIRE a nezávislost' },
       { href: '/kolik-investovat-mesicne', label: 'Kolik investovat měsíčně' },
       { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka' },
@@ -42,9 +44,10 @@ export default function SiteFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white">
       <div className="max-w-6xl mx-auto px-4 py-10">
-        <div className="grid gap-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        {/* Mobil: odkazové sloupce po dvou (dřív pod sebou → patička 978 px; UX audit 17. 10. 2026) */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           {/* Brand + USP */}
-          <div className="min-w-0">
+          <div className="col-span-2 md:col-span-1 min-w-0">
             <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-slate-900">
               <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
               ETF průvodce.cz
@@ -60,7 +63,7 @@ export default function SiteFooter() {
           {/* Odkazové sloupce */}
           {COLUMNS.map((col) => (
             <nav key={col.heading} aria-label={col.heading}>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{col.heading}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{col.heading}</p>
               <ul className="mt-3 space-y-2">
                 {col.links.map((l) => (
                   <li key={l.href}>
@@ -73,7 +76,7 @@ export default function SiteFooter() {
         </div>
 
         {/* Spodní lišta: copyright + disclaimer */}
-        <div className="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+        <div className="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <p>© {year} ETF průvodce.cz</p>
           <p className="max-w-xl text-center sm:text-right leading-relaxed">
             Obsah má vzdělávací charakter a nepředstavuje investiční ani daňové doporučení. Minulá výkonnost nezaručuje budoucí výnosy.

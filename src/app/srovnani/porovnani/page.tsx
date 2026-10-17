@@ -41,7 +41,7 @@ export default async function PorovnaniPreview(
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
         <Head />
-        <main className="max-w-6xl mx-auto px-4 py-16 text-center">
+        <main id="obsah" className="max-w-6xl mx-auto px-4 py-16 text-center">
           <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-teal-50 text-teal-700 mb-4"><Scale className="w-6 h-6" /></span>
           <h1 className="text-xl font-bold text-slate-900">Vyberte fondy k porovnání</h1>
           <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">Přidejte alespoň dva fondy tlačítkem „Do porovnání" ve srovnávači nebo na detailu fondu. Vybrané fondy se pak zobrazí tady vedle sebe.</p>
@@ -54,7 +54,7 @@ export default async function PorovnaniPreview(
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <Head />
-      <main className="max-w-6xl mx-auto px-4 pb-24">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-24">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
           <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>

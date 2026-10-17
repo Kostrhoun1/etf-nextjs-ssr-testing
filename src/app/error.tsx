@@ -15,7 +15,7 @@ export default function Chyba({ error, reset }: { error: Error & { digest?: stri
   }, [error]);
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-20 text-center">
+    <main id="obsah" className="mx-auto max-w-xl px-4 py-20 text-center">
       <p className="text-sm font-medium uppercase tracking-wide text-teal-700">Něco se pokazilo</p>
       <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">Tuhle stránku se nepodařilo zobrazit</h1>
       <p className="mt-3 text-slate-600 leading-relaxed">

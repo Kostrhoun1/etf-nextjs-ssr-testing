@@ -16,6 +16,11 @@ import InfoTip from './InfoTip';
 const SOCIAL_INSURANCE_RATE = 0.071; // 7,1 % (6,5 % důchodové + 0,6 % nemocenské)
 const HEALTH_INSURANCE_RATE = 0.045; // 4,5 %
 const PENSIONER_HEALTH_INSURANCE_RATE = 0.045; // 4,5 % pro důchodce (zůstává)
+// Pracující starobní důchodce: sleva na pojistném 6,5 % (důchodová část) → platí jen 0,6 % nemocenské.
+// Dřív 0 % (audit výpočtů 17. 10. 2026; ověřeno MPSV/ČSSZ: 7,1 % = 6,5 % důchodové + 0,6 % nemocenské).
+const PENSIONER_SOCIAL_DISCOUNT = 0.065;
+// Daňový bonus na děti: jen při měsíčním příjmu ≥ ½ minimální mzdy (2026: 22 400 / 2 = 11 200 Kč).
+const CHILD_BONUS_MIN_INCOME = 11200;
 
 const INCOME_TAX_RATE_BASIC = 0.15; // 15 %
 const INCOME_TAX_RATE_HIGH = 0.23; // 23 %
@@ -48,6 +53,8 @@ interface NetSalaryData {
   taxRate: number;
   taxDeductions: number;
   netTax: number;
+  /** Daňový bonus na děti (vyplácí se, když zvýhodnění na děti převýší daň). */
+  taxBonus: number;
   netSalary: number;
   employerCosts: number;
   taxEffectiveRate: number;
@@ -68,8 +75,8 @@ function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
   let healthInsurance: number;
 
   if (isPensioner) {
-    // Pracující důchodci – 0 % sociální, 4,5 % zdravotní
-    socialInsurance = 0;
+    // Pracující důchodci – 0,6 % sociální (sleva 6,5 %), 4,5 % zdravotní
+    socialInsurance = grossSalary * (SOCIAL_INSURANCE_RATE - PENSIONER_SOCIAL_DISCOUNT);
     healthInsurance = grossSalary * PENSIONER_HEALTH_INSURANCE_RATE;
   } else {
     socialInsurance = grossSalary * SOCIAL_INSURANCE_RATE;
@@ -111,11 +118,16 @@ function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
 
   const totalTaxCredits = monthlyTaxCredit + childTaxCredit + disabilityTaxCredit;
 
-  // Čistá daň (nemůže být záporná)
-  const netTax = Math.max(0, incomeTax - totalTaxCredits);
+  // Pořadí podle zákona: sleva na poplatníka a invaliditu sníží daň nejvýš na nulu; zvýhodnění na děti
+  // se odečte potom a co přebývá, vyplatí se jako DAŇOVÝ BONUS (dřív se zahodil: hrubá 25 000 Kč
+  // a 2 děti → čistá 22 100 místo 24 047 Kč; audit výpočtů 17. 10. 2026).
+  const daňPoSlevách = Math.max(0, incomeTax - monthlyTaxCredit - disabilityTaxCredit);
+  const poDetech = daňPoSlevách - childTaxCredit;
+  const netTax = Math.max(0, poDetech);
+  const taxBonus = poDetech < 0 && grossSalary >= CHILD_BONUS_MIN_INCOME ? -poDetech : 0;
 
   // Čistá mzda
-  const netSalary = grossSalary - totalInsurance - netTax;
+  const netSalary = grossSalary - totalInsurance - netTax + taxBonus;
 
   // Náklady zaměstnavatele
   const employerSocialInsurance = grossSalary * EMPLOYER_SOCIAL_INSURANCE_RATE;
@@ -123,7 +135,7 @@ function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
   const employerCosts = grossSalary + employerSocialInsurance + employerHealthInsurance;
 
   // Efektivní daňová sazba
-  const taxEffectiveRate = (totalInsurance + netTax) / grossSalary;
+  const taxEffectiveRate = (totalInsurance + netTax - taxBonus) / grossSalary;
 
   return {
     grossSalary,
@@ -134,6 +146,7 @@ function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
     taxRate,
     taxDeductions: totalTaxCredits,
     netTax,
+    taxBonus,
     netSalary,
     employerCosts,
     taxEffectiveRate,
@@ -201,7 +214,7 @@ function NumberField({
 /** Vodorovný skládaný pruh: rozpad hrubé mzdy na čistou + odvody + daň. */
 function Breakdown({ data }: { data: NetSalaryData }) {
   const { grossSalary, totalInsurance, netTax, netSalary } = data;
-  const total = Math.max(grossSalary, 1);
+  const total = Math.max(grossSalary + data.taxBonus, 1); // s bonusem je čistá + odvody > hrubá
   const seg = [
     { label: 'Čistá mzda', value: netSalary, color: 'bg-teal-600', text: 'text-teal-700' },
     { label: 'Pojistné', value: totalInsurance, color: 'bg-amber-400', text: 'text-amber-600' },
@@ -436,6 +449,12 @@ export default function CistyPlatWidget() {
               <dt className="font-medium text-slate-900">Daň po slevách</dt>
               <dd className="font-bold text-red-600 tabular-nums">{fmtCZK(data.netTax)}</dd>
             </div>
+            {data.taxBonus > 0 && (
+              <div className="flex justify-between gap-3">
+                <dt className="font-medium text-slate-900">Daňový bonus na děti</dt>
+                <dd className="font-bold text-emerald-700 tabular-nums">+{fmtCZK(data.taxBonus)}</dd>
+              </div>
+            )}
           </dl>
         </div>
       </div>

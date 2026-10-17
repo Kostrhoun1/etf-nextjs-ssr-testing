@@ -524,7 +524,7 @@ export default function ScreenerUI({
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button onClick={() => setAdvOpen((o) => !o)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:border-teal-300 hover:text-teal-700">
             <SlidersHorizontal className="w-3.5 h-3.5" /> Pokročilé filtry
-            {activeCount > 0 && <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-teal-600 text-white text-[11px] font-semibold">{activeCount}</span>}
+            {activeCount > 0 && <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-teal-700 text-white text-[11px] font-semibold">{activeCount}</span>}
           </button>
           {anyFilter && (
             <button onClick={reset} className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-red-600"><X className="w-3.5 h-3.5" /> Vymazat vše</button>

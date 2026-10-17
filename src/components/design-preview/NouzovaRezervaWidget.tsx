@@ -60,6 +60,9 @@ interface EmergencyFundData {
 }
 
 /* ===== VÝPOČET 1:1 z calculateEmergencyFund (řádky 63–217) – NEMĚNIT ===== */
+/** „1 měsíc", „2–4 měsíce", „5+ měsíců" (dřív vždy „měsíců" – „4 měsíců"). */
+const mesice = (n: number) => `${n.toLocaleString('cs-CZ')} ${n === 1 ? 'měsíc' : n >= 2 && n <= 4 ? 'měsíce' : 'měsíců'}`;
+
 function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData {
   const {
     monthlyExpenses,
@@ -140,28 +143,19 @@ function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData 
   const phase2Target = monthlyExpenses * Math.min(3, recommendedMonths); // 3 měsíce
   const phase3Target = recommendedAmount; // Celá částka
 
+  // Kolik měsíců spoření ZBÝVÁ do cíle – počítá se s tím, co už člověk má. Dřív se ignorovaly
+  // současné úspory: „Čas do cíle 4 měsíce" a vedle „plná rezerva – naspoříte za 24 měsíců"
+  // (audit výpočtů 17. 10. 2026). Splněný krok = „splněno".
+  const zbyva = (cil: number) => {
+    const chybi = Math.max(0, cil - currentSavings);
+    if (chybi === 0) return 'splněno';
+    if (monthlySavingCapacity <= 0) return 'N/A';
+    return mesice(Math.ceil(chybi / monthlySavingCapacity));
+  };
   const savingStrategy = {
-    phase1: {
-      target: phase1Target,
-      timeline:
-        monthlySavingCapacity > 0
-          ? `${Math.ceil(phase1Target / monthlySavingCapacity)} měsíců`
-          : 'N/A',
-    },
-    phase2: {
-      target: phase2Target,
-      timeline:
-        monthlySavingCapacity > 0
-          ? `${Math.ceil(phase2Target / monthlySavingCapacity)} měsíců`
-          : 'N/A',
-    },
-    phase3: {
-      target: phase3Target,
-      timeline:
-        monthlySavingCapacity > 0
-          ? `${Math.ceil(phase3Target / monthlySavingCapacity)} měsíců`
-          : 'N/A',
-    },
+    phase1: { target: phase1Target, timeline: zbyva(phase1Target) },
+    phase2: { target: phase2Target, timeline: zbyva(phase2Target) },
+    phase3: { target: phase3Target, timeline: zbyva(phase3Target) },
   };
 
   // Priorita spoření
@@ -609,7 +603,7 @@ export default function NouzovaRezervaWidget() {
           {r.monthsToTarget > 0 ? (
             <>
               <p className="text-lg font-bold text-slate-900 tabular-nums">
-                {r.monthsToTarget.toLocaleString('cs-CZ')} měsíců
+                {mesice(r.monthsToTarget)}
               </p>
               <p className="text-xs text-slate-500 mt-0.5">při současném tempu spoření</p>
             </>
@@ -681,7 +675,9 @@ export default function NouzovaRezervaWidget() {
               <p className="text-xl font-bold text-slate-900 tabular-nums">{fmtCZK(data.target)}</p>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">{desc}</p>
               <p className="text-xs text-slate-400 mt-2">
-                Naspoříte za <span className="text-slate-600 font-medium">{data.timeline}</span>
+                {data.timeline === 'splněno'
+                  ? <span className="text-emerald-700 font-medium">Splněno – tolik už máte</span>
+                  : <>Naspoříte za <span className="text-slate-600 font-medium">{data.timeline}</span></>}
               </p>
             </div>
           ))}

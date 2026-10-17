@@ -472,9 +472,9 @@ export default async function ETFDetailPreview(
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 pb-28">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-28">
         {/* Breadcrumb */}
-        <nav className="py-3 text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
           <Link href="/srovnani" className="hover:text-slate-600">Srovnání ETF</Link>
@@ -532,7 +532,7 @@ export default async function ETFDetailPreview(
               </div>
 
               <div className="mt-5 md:mt-0 md:w-64 shrink-0">
-                <Link href="/kde-koupit" className="flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-500 w-full">
+                <Link href="/kde-koupit" className="flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 w-full">
                   Kde koupit tento fond <ArrowRight className="w-4 h-4" />
                 </Link>
                 <div className="mt-2.5">
