@@ -314,3 +314,9 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
   vyřazeno z „konkrétního fondu“ v backtestu.
 - Backtest konkrétního fondu (faze4): 213 fondů, ověřeno proti skutečným ročním výnosům 2022–2025; MSCI World chybí
   (data indexu nemáme – kandidát: URTH od 2012 přes manifest + loader).
+- ✅ Tři datové články prohloubené (přání majitele „mnohem větší detail“): S&P vs svět (složení, období, měna,
+  7 krizí, klouzavá okna + graf, kolísavost/korelace, nejlevnější fondy), Jak dlouho v minusu (pravděpodobnost
+  po 1–15 letech naráz/pravidelně/reálně, hloubka, rozložení doby), Pravidlo 4 % (úspěšnost 3–5 % přes měsíční
+  starty, max. udržitelný výběr podle roku, pružná varianta, koruny). Každé číslo ověřeno nezávislým skriptem.
+- ⏳ Úklid eur_corp_bond (schválen majitelem 17. 10.) + všech 37 indexů: běží s nasazením faze4
+  (`gh workflow run sync-indexes.yml -f full=true -f uklid=true`), dry-run prošel.
