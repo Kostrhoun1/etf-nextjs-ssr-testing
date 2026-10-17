@@ -38,12 +38,8 @@ MAX_GAP_DAYS = 10       # díra uvnitř řady delší než tohle = poplach
 # čistou denní historii. Rozestupy ~30 dní a ocas až měsíc starý jsou u nich NORMÁLNÍ, takže denní
 # prahy (5/10 dní) by je vždy shodily. Dostávají volnější limity — ne úplnou výjimku: když se zdroj
 # zastaví na víc než ~měsíc, i tak to poznáme. Kontrola ÚBYTEK řádků platí pro všechny stejně přísně.
-MONTHLY_INDEXES = {
-    'eur_govt_bond',        # zdroj vymenen 19.9.2026 na XGLE.DE (mesicni) - viz indexes.ts
-    'eur_govt_bond_1_3y',
-    'eur_govt_bond_3_7y',
-    'eur_govt_bond_15_30y',
-}
+# 17. 10. 2026: EUR dluhopisy jsou DENNÍ (měsíční byly jen kvůli range=max, viz sync-indexes.mjs zásada 8).
+MONTHLY_INDEXES = set()
 MONTHLY_STALE_DAYS = 40   # měsíční ocas bývá až ~měsíc starý + rezerva
 MONTHLY_GAP_DAYS = 40     # ~30denní rozestupy jsou u měsíčních dat v pořádku
 
@@ -103,7 +99,8 @@ def main():
         if gap[0] > gap_limit:
             flags.append(f"DIRA {gap[0]} dni pred {gap[1]}")
         was = prev.get(code)
-        if was and len(d) < was:
+        # Úklid vmíchaných měsíčních bodů (sync --uklid) úbytek řádků ZÁMĚRNĚ způsobí → jen pro ten běh.
+        if was and len(d) < was and os.environ.get('POVOLIT_UBYTEK') != '1':
             flags.append(f"UBYLO {was - len(d)} radku (bylo {was})")
         if flags:
             problems.append(f"{code}: " + "; ".join(flags))

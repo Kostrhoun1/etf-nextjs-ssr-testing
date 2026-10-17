@@ -18,6 +18,10 @@ on:
         description: 'Plný resync celé historie (jinak jen posledních ~30 dnů)'
         type: boolean
         default: false
+      uklid:
+        description: 'S plným resyncem smazat řádky mimo čerstvou denní historii (jednorázově, viz sync-indexes.mjs zásada 9)'
+        type: boolean
+        default: false
 
 concurrency:
   group: sync-indexes
@@ -53,7 +57,7 @@ jobs:
         run: |
           if [ "${{ github.event.schedule }}" = "0 7 * * 0" ] || [ "${{ inputs.full }}" = "true" ]; then
             echo "▶ PLNÝ RESYNC"
-            node scripts/backtest/sync-indexes.mjs --full
+            if [ "${{ inputs.uklid }}" = "true" ]; then node scripts/backtest/sync-indexes.mjs --full --uklid; else node scripts/backtest/sync-indexes.mjs --full; fi
           else
             echo "▶ přírůstkově"
             node scripts/backtest/sync-indexes.mjs
@@ -77,6 +81,8 @@ jobs:
 
       - name: Kontrola integrity dat
         run: python scripts/backtest/check_index_integrity.py
+        env:
+          POVOLIT_UBYTEK: ${{ inputs.uklid == true && '1' || '0' }}
 
       - name: Když integrita selže
         if: failure()

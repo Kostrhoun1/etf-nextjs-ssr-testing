@@ -18,6 +18,14 @@
  *  6. PŘÍRŮSTKOVĚ. Denně jen posledních ~30 dnů (~37 × 20 řádků). Plný resync (`--full`) srovná
  *     dividendový drift adj-close — ten mění historii zpětně, takže samotný append nestačí.
  *  7. SPADNE NAHLAS (exit 1) → CI to musí zařvat, ne spolknout.
+ *  8. GRANULARITA (17. 10. 2026): Yahoo pro `range=max` TIŠE vrací MĚSÍČNÍ data i při interval=1d
+ *     (SPY 406 bodů místo ~8 500). Plný resync tak každou neděli zapsal měsíční svíčky mezi denní
+ *     (US k 1. dni měsíce, EUR k poslednímu dni předchozího) → ~1 800 „vadných bodů“, které engine
+ *     odfiltrovával. Plný resync proto stahuje přes period1/period2 (vrací denní) a každá odpověď
+ *     musí mít `dataGranularity` = požadovaný interval, jinak se NIC nezapíše.
+ *  9. ÚKLID (`--full --uklid`, jednorázově po opravě 8): smaže řádky, které v čerstvé úplné denní
+ *     historii NEJSOU (vmíchané měsíční svíčky, víkendy). Pojistky: jen u úplné historie, max 20 %
+ *     řádků indexu, nikdy v dopočtené části (splicedFrom).
  *
  * SPUŠTĚNÍ:
  *   set -a && . ./.secrets/supabase.env && set +a
@@ -34,6 +42,8 @@ import { join } from 'node:path'
 const FULL = process.argv.includes('--full')
 const DRY = process.argv.includes('--dry-run')
 const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').split('=')[1]
+const UKLID = process.argv.includes('--uklid')
+if (UKLID && !FULL) { console.error('❌ --uklid jen spolu s --full (potřebuje úplnou čerstvou historii).'); process.exit(1) }
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://nbhwnatadyubiuadfakx.supabase.co'
 const KEY = process.env.SUPABASE_KEY
@@ -80,11 +90,16 @@ async function fetchRetry(url, init = {}, { pokusy = 4, popis = 'požadavek' } =
 
 /** Denní adj-close z Yahoo. Vrací i měnu, ať ji můžeme ověřit proti manifestu. */
 async function fetchYahoo(ticker, range, interval = '1d') {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`
+  // range=max vrací i u interval=1d měsíční data → celé období zadáváme explicitně (zásada 8).
+  const obdobi = range === 'max' ? `period1=0&period2=${Math.floor(Date.now() / 1000)}` : `range=${range}`
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&${obdobi}`
   const res = await fetchRetry(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, { popis: `Yahoo ${ticker}` })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const r = (await res.json())?.chart?.result?.[0]
   if (!r) throw new Error('prázdná odpověď')
+  if (r.meta?.dataGranularity && r.meta.dataGranularity !== interval) {
+    throw new Error(`Yahoo vrátil granularitu ${r.meta.dataGranularity} místo ${interval} – nic nezapisuji`)
+  }
   const adj = r.indicators?.adjclose?.[0]?.adjclose || r.indicators?.quote?.[0]?.close || []
   // DATUM V ČASE BURZY, ne v UTC. Měsíční svíčka má časovou značku = půlnoc 1. dne měsíce v čase
   // burzy (Amsterdam: 23:00/22:00 UTC předchozího dne), ale cenu z KONCE měsíce. Dřív se datum bralo
@@ -127,6 +142,31 @@ async function upsert(rows) {
   return rows.length
 }
 
+/** Zásada 9: smaže řádky indexu, které v čerstvé úplné historii nejsou. */
+async function uklid(idx, payload) {
+  const cerstve = new Set(payload.map((r) => r.date))
+  const od = payload[0]?.date
+  if (!od || payload.length < 100) throw new Error('úklid: čerstvá historie je podezřele krátká')
+  const ulozene = []
+  for (let i = 0; ; i += 1000) {
+    const res = await fetchRetry(`${SUPABASE_URL}/rest/v1/index_historical_data?select=date&index_code=eq.${idx.code}&date=gte.${od}&order=date`,
+      { headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${i}-${i + 999}` } }, { popis: `úklid čtení ${idx.code}` })
+    if (!res.ok) throw new Error(`úklid čtení ${res.status}`)
+    const dav = await res.json(); ulozene.push(...dav.map((x) => x.date)); if (dav.length < 1000) break
+  }
+  const smazat = ulozene.filter((d) => !cerstve.has(d) && (!idx.splicedFrom || d >= idx.splicedFrom))
+  // Po upsertu jsou v DB všechny čerstvé řádky → základ = sjednocení (v --dry-run se nezapisuje, proto max).
+  const zaklad = Math.max(ulozene.length, new Set([...ulozene, ...cerstve]).size)
+  if (smazat.length > 0.2 * zaklad) throw new Error(`úklid: ${smazat.length} z ${zaklad} řádků je moc – nemažu`)
+  if (DRY) { console.log(`   úklid ${idx.code}: smazal bych ${smazat.length} (např. ${smazat.slice(0, 3).join(', ')})`); return }
+  for (let i = 0; i < smazat.length; i += 100) {
+    const res = await fetchRetry(`${SUPABASE_URL}/rest/v1/index_historical_data?index_code=eq.${idx.code}&date=in.(${smazat.slice(i, i + 100).join(',')})`,
+      { method: 'DELETE', headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Prefer: 'return=minimal' } }, { popis: `úklid mazání ${idx.code}` })
+    if (!res.ok) throw new Error(`úklid mazání ${res.status}: ${(await res.text()).slice(0, 120)}`)
+  }
+  console.log(`   úklid ${idx.code}: smazáno ${smazat.length} řádků mimo denní historii`)
+}
+
 const main = async () => {
   const { MANAGED_INDEXES, INDEXES } = await loadManifest()
   let targets = MANAGED_INDEXES
@@ -158,6 +198,7 @@ const main = async () => {
       const payload = usable.map((r) => ({ index_code: idx.code, date: r.date, close_price: Number(r.price.toFixed(6)) }))
 
       const n = await upsert(payload)
+      if (UKLID) await uklid(idx, payload)
       const last = payload.at(-1)?.date ?? '-'
       console.log(`${idx.code.padEnd(30)} ${idx.ticker.padEnd(8)} ${String(n).padStart(6)}  OK (do ${last})`)
     } catch (e) {
