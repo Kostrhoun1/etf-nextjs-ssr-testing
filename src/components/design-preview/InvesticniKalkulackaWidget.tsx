@@ -205,7 +205,10 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
   );
 }
 
-export default function InvesticniKalkulackaWidget() {
+/** Skutečné průměrné roční výnosy v Kč (ze stejných dat jako backtest a stroj času), STEJNÉ období. */
+export interface HistorickyVynos { id: string; nazev: string; cagr: number; od: number; do: number }
+
+export default function InvesticniKalkulackaWidget({ historicke = [] }: { historicke?: HistorickyVynos[] }) {
   // Výchozí hodnoty 1:1 z původní komponenty InvestmentCalculatorContent.tsx
   const [initialInvestment, setInitialInvestment] = useState<number>(100000);
   const [recurringInvestment, setRecurringInvestment] = useState<number>(5000);
@@ -326,7 +329,7 @@ export default function InvesticniKalkulackaWidget() {
             label={
               <span className="inline-flex items-center gap-1">
                 Očekávaný výnos{' '}
-                <InfoTip label="p.a. = per annum, tj. ročně. Průměrný roční výnos investice. Globální akciové indexy historicky dosahovaly zhruba 7–10 % ročně před inflací.">
+                <InfoTip label="p.a. = per annum, tj. ročně. Průměrný roční výnos investice. V dolarech akcie dlouhodobě vynášely zhruba 7–10 % ročně; v korunách méně, protože koruna dlouhodobě posilovala – skutečná čísla v Kč najdete pod polem.">
                   p.a.
                 </InfoTip>
               </span>
@@ -338,6 +341,25 @@ export default function InvesticniKalkulackaWidget() {
             onChange={(v) => setAverageReturn(Math.max(0, Math.min(30, v)))}
             suffix="%"
           />
+          {/* Skutečné výnosy v Kč místo odhadu (Vlna 6). Všechny za STEJNÉ období – jinak by rozdíl
+              dělalo období (krize v datech/mimo data), ne strategie. */}
+          {historicke.length > 0 && (
+            <div className="-mt-1">
+              <p className="text-xs text-slate-500">Skutečný průměrný výnos v Kč {historicke[0].od}–{historicke[0].do} (po poplatcích ETF, před daní):</p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {historicke.map((h) => {
+                  const pct = Math.round(h.cagr * 1000) / 10;
+                  const on = Math.abs(averageReturn - pct) < 0.05;
+                  return (
+                    <button key={h.id} type="button" aria-pressed={on} onClick={() => setAverageReturn(pct)}
+                      className={`min-h-[44px] rounded-lg border px-2.5 text-xs transition-colors ${on ? 'border-teal-700 bg-teal-50 text-teal-900' : 'border-slate-200 text-slate-600 hover:border-teal-300'}`}>
+                      {h.nazev} <span className="font-semibold tabular-nums">{pct.toLocaleString('cs-CZ')} %</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <NumberField
             id="tax"
             label={

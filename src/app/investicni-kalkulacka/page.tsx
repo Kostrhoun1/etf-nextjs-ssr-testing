@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
-import InvesticniKalkulackaWidget from '@/components/design-preview/InvesticniKalkulackaWidget';
+import InvesticniKalkulackaWidget, { type HistorickyVynos } from '@/components/design-preview/InvesticniKalkulackaWidget';
+import { nactiStrojCasu, cagrOd, STROJ_PRESETY } from '@/lib/strojCasu';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate } from '@/lib/etf-data';
 
@@ -26,6 +27,15 @@ export const metadata: Metadata = {
 };
 
 export default async function InvesticniKalkulackaPreview() {
+  // Skutečné průměrné roční výnosy v Kč za STEJNÉ období (od 1/2004 – první rok, kdy mají data
+  // všechny tři presety). Ověřeno: CAGR z měsíčních dat vs. backtest ±0,07 p. b.
+  const OBDOBI_OD = '2004-01';
+  const rady = await nactiStrojCasu(['sp500', 'svet', 'vyvazene']);
+  const historicke: HistorickyVynos[] = rady.flatMap((r) => {
+    const c = cagrOd(r, OBDOBI_OD);
+    const p = STROJ_PRESETY.find((x) => x.id === r.id);
+    return c && p ? [{ id: r.id, nazev: p.nazev, cagr: c.cagr, od: 2004, do: Number(r.posledniDen.slice(0, 4)) }] : [];
+  });
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -152,7 +162,7 @@ export default async function InvesticniKalkulackaPreview() {
 
         <section id="kalkulacka" className="pb-10 scroll-mt-16">
           <SectionHead title="Spočítejte si svůj výnos" desc="Zadejte vklady, dobu a očekávaný roční výnos. Výsledek i graf se přepočítají hned." />
-          <InvesticniKalkulackaWidget />
+          <InvesticniKalkulackaWidget historicke={historicke} />
         </section>
 
         {/* CO JE SLOŽENÉ ÚROČENÍ – edukace vetkaná */}

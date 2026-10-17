@@ -95,3 +95,18 @@ export function spocitejStroj(rada: StrojRada, odMesic: string, mesicne: number,
   }
   return { vlozeno, hodnota: prubeh[prubeh.length - 1].hodnota, prubeh, nejhorsiPropad: propad && propad.hloubka < 0 ? propad : null };
 }
+
+/**
+ * Průměrný roční výnos (CAGR) v Kč od začátku měsíce `odMesic` do posledního bodu řady.
+ * Pro srovnání více presetů VŽDY se stejným `odMesic` – jinak by rozdíl dělalo období
+ * (např. 2000 s krachem dot-com vs. 2003 po něm), ne strategie.
+ */
+export function cagrOd(rada: StrojRada, odMesic: string): { cagr: number; roky: number } | null {
+  const [ry, rm] = rada.od.split('-').map(Number);
+  const [sy, sm] = odMesic.split('-').map(Number);
+  const i0 = (sy - ry) * 12 + (sm - rm);
+  if (i0 < 0 || i0 >= rada.nav.length) return null;
+  const zaklad = i0 === 0 ? 1 : rada.nav[i0 - 1];
+  const roky = (rada.nav.length - i0) / 12;
+  return { cagr: Math.pow(rada.nav[rada.nav.length - 1] / zaklad, 1 / roky) - 1, roky };
+}
