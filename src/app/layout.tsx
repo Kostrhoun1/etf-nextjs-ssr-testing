@@ -46,13 +46,14 @@ export async function generateMetadata(): Promise<Metadata> {
   // homepage jako kanonickou URL → stránky se berou jako duplikáty a neindexují se.
   // Homepage má vlastní canonical:'/' ve svém page.tsx; ostatní stránky se
   // self-kanonizují na vlastní URL (žádný tag = Google bere vlastní adresu).
+  // POZOR: ani og:url / og:title / og:description zde NENASTAVOVAT – ze stejného důvodu jako
+  // canonical. Dědily se na 102 stránek bez vlastního openGraph (žebříčky, srovnání, portfolia,
+  // recenze, kalkulačky) a Facebook pak sdílel KAŽDOU z nich jako homepage (audit 17. 10. 2026).
+  // Bez nich si Facebook/LinkedIn vezmou skutečnou adresu, <title> a popis dané stránky.
   openGraph: {
     type: 'website',
     locale: 'cs_CZ',
-    url: 'https://etfpruvodce.cz',
     siteName: 'ETF průvodce.cz',
-    title: `ETF průvodce.cz | Srovnání ${count} ETF fondů`,
-    description: 'Kompletní databáze ETF fondů pro české investory s výkonností přepočítanou do korun. Pokročilé filtry, srovnání brokerů a kalkulačky zdarma!',
     images: [
       {
         url: '/og-cover.jpg',

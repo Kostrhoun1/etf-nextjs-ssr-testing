@@ -31,6 +31,14 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       `Kolik reálně vydělaly ETF? Výnosy ${pocet} fondů přepočtené do korun, žebříčky pro rok 2026, backtest portfolia a investiční kalkulačky. Zdarma a česky.`,
     alternates: { canonical: '/' },
+    // Vlastní openGraph (layout už og:url/title nedává – viz layout.tsx). Obrázek musí být i tady:
+    // openGraph stránky nahrazuje celý openGraph layoutu.
+    openGraph: {
+      type: 'website', locale: 'cs_CZ', siteName: 'ETF průvodce.cz', url: '/',
+      title: `Srovnání ${pocet} ETF fondů, výnosy v Kč – ETF průvodce.cz`,
+      description: `Kolik reálně vydělaly ETF? Výnosy ${pocet} fondů přepočtené do korun, žebříčky, backtest portfolia a kalkulačky. Zdarma a česky.`,
+      images: [{ url: '/og-cover.jpg', width: 1200, height: 630, alt: 'ETF průvodce.cz – srovnání ETF s výnosy v korunách' }],
+    },
   };
 }
 
