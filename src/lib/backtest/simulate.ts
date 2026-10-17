@@ -16,6 +16,8 @@ export interface SimulateRequestBody {
     weight: number
     ter: number
     indexCode: string
+    /** Roční poplatek konkrétního fondu (např. 0.0014 pro VWCE) – engine na něj přepočítá data zdrojového fondu. */
+    feeOverride?: number
   }>
   startDate: string
   endDate: string
@@ -51,6 +53,7 @@ export async function simulateAndSerialize(body: SimulateRequestBody) {
       weight: item.weight,
       ter: item.ter,
       indexCode: item.indexCode,
+      ...(typeof item.feeOverride === 'number' ? { feeOverride: item.feeOverride } : {}),
     })),
     startDate,
     endDate,

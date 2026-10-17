@@ -89,9 +89,10 @@ export function prirazeniFondu(f: FondProPrirazeni): Prirazeni | null {
     if (!/\d/.test(jmeno.replace(/UCITS.*$/i, ''))) return { indexCode: 'eur_govt_bond', shoda: 'blizky', zdroj: 'eurové státní dluhopisy celkově (fond XGLE)' };
     return null;
   }
-  if (/(euro|eur) corp(orate)? bond/i.test(jmeno) && !/0-3|1-5|0-5|financials|high yield/i.test(jmeno)) {
-    return { indexCode: 'eur_corp_bond', shoda: 'blizky', zdroj: 'eurové firemní dluhopisy (fond IEAC)' };
-  }
+  // Eurové firemní dluhopisy ZATÍM NE: řada eur_corp_bond má vadné body na konci měsíců (ve všední den,
+  // filtr enginu je nechytá) – i zdrojový fond IEAC proti skutečnosti ±0,7 p. b./rok (17. 10. 2026).
+  // Vrátit po úklidu dat (PLAN-OPRAV: úklid vadných bodů v historii indexů).
+  if (/(euro|eur) corp(orate)? bond/i.test(jmeno)) return null;
   if (/bond|treasury|gilt|t-bill|money market/i.test(jmeno)) return null;
 
   // ── AKCIE (přísný tvar názvu) ──
@@ -105,9 +106,8 @@ export function prirazeniFondu(f: FondProPrirazeni): Prirazeni | null {
     return { indexCode: 'ftse_all_world', shoda: 'blizky', zdroj: 'celý svět – fond VT (FTSE Global All Cap, od 2008)' };
   }
   if (presne('MSCI Emerging Markets').test(jmeno)) return { indexCode: 'msci_em', shoda: 'stejny', zdroj: 'MSCI Emerging Markets (fond EEM)' };
-  if (presne('MSCI Emerging Markets IMI').test(jmeno) || presne('FTSE Emerging Markets').test(jmeno)) {
-    return { indexCode: 'msci_em', shoda: 'blizky', zdroj: 'rozvíjející se trhy – MSCI Emerging Markets (fond EEM)' };
-  }
+  // MSCI EM IMI / FTSE EM ZATÍM NE: proti datům EEM se roční výnosy liší až o 2,8 p. b. (EMIM 2025:
+  // 19,1 vs. 16,3 %) – na „podobný index“ moc. Čistý MSCI EM sedí ±1 p. b. (ověřeno 17. 10. 2026).
   if (presne('FTSE Developed Europe').test(jmeno)) return { indexCode: 'ftse_europe', shoda: 'blizky', zdroj: 'FTSE Developed Europe All Cap (fond VGK)' };
   if (presne('(MSCI Europe|STOXX Europe 600)').test(jmeno)) return { indexCode: 'ftse_europe', shoda: 'blizky', zdroj: 'evropské akcie – FTSE Developed Europe (fond VGK)' };
   return null;

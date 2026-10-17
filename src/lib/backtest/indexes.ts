@@ -40,11 +40,14 @@ export interface IndexDef {
    *
    * Vyplněno 17. 10. 2026 (factsheety/stránky správců: SSGA SPY 0,0945 %, GLD 0,40 %; Vanguard VT 0,06 %,
    * VGK 0,06 %; iShares EEM 0,72 %, AGG 0,03 %, LQD 0,14 %, IWD/IWF 0,18 %, IWM 0,19 %, SHY/IEF/TLT 0,15 %,
-   * IBGS/IBGX/IBGL 0,15 %, IEAC 0,09 %; Xtrackers XGLE 0,07 %). POZOR: je to DNEŠNÍ poplatek – dřív býval
+   * IBGS 0,10 % (BlackRock snížil z 0,15 %, factsheet 8/2026), IBGX/IBGL 0,15 %, IEAC 0,09 %; Xtrackers XGLE 0,07 %). POZOR: je to DNEŠNÍ poplatek – dřív býval
    * u některých fondů vyšší (VT 2008 ~0,25 %). Přepočet na jiný poplatek proto v prvních letech dat mírně
    * podhodnocuje (konzervativní směr, řádově desetiny p. b. ročně). Výchozí výpočet (bez přepočtu) to neovlivňuje.
    */
   sourceTer?: number
+  /** ISIN zdrojového fondu, když je v naší DB (evropské listingy). Backtest „konkrétního fondu“ pak u přesně
+   *  tohoto fondu poplatek NEpřepočítává – data jsou on sám (17. 10. 2026). */
+  sourceIsin?: string
   /** Data jsou NAV reálného fondu (poplatek v ceně). Engine ho už NEodečítá podruhé (opraveno). */
   dataIsNetOfFees: true
   /** U spliced řad: odkdy jsou data z ETF. Starší část je dopočtená (Ken French) a loader ji nesmí přepsat. */
@@ -174,25 +177,25 @@ export const INDEXES: IndexDef[] = [
   // Dopad na čísla ve stejném okně (2009-03→2026-09): CAGR 1,25 % → 1,73 %, vol 4,82 % → 5,07 %,
   // max. pokles −21,0 % → −21,6 %. Delší durace vládních dluhopisů, sedí.
   { code: 'eur_govt_bond', ticker: 'XGLE.DE', currency: 'EUR', name: 'EUR vládní dluhopisy', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, sourceTer: 0.0007, inBacktest: true, inDashboard: true, managed: true, monthly: true,
+    dataIsNetOfFees: true, sourceIsin: 'LU0290355717', sourceTer: 0.0007, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B4WXJJ64', name: 'iShares Core EUR Govt Bond', ter: 0.0007 } },
   { code: 'eur_corp_bond', ticker: 'IEAC.L', currency: 'EUR', name: 'EUR firemní dluhopisy', group: 'bond', since: '2009-03-06',
-    dataIsNetOfFees: true, sourceTer: 0.0009, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceIsin: 'IE00B3F81R35', sourceTer: 0.0009, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B3F81R35', name: 'iShares Core EUR Corp Bond', ter: 0.002 } },
 
   // Původ dohledán 24.7.2026: čistý total-return (adjclose) z Amsterdam listingů iShares € Govt Bond
   // koší. Yahoo má pro plnou historii jen MĚSÍČNÍ data → `monthly: true`. Nahrazuje starou řadu
   // neznámého původu (3-7y byla navíc nejspíš špatná durace). Ověřená ann. vol (×√12): 1,5 / 3,0 / 11,2 %.
   { code: 'eur_govt_bond_1_3y', ticker: 'IBGS.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 1–3 roky', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true, monthly: true,
+    dataIsNetOfFees: true, sourceIsin: 'IE00B14X4Q57', sourceTer: 0.0010, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B14X4Q57', name: 'iShares EUR Govt Bond 1-3yr', ter: 0.002 } },
   { code: 'eur_govt_bond_3_7y', ticker: 'IBGX.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 3–5 let', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true, sourceTer: 0.0015,
+    dataIsNetOfFees: true, sourceIsin: 'IE00B1FZS681', inBacktest: true, inDashboard: true, managed: true, monthly: true, sourceTer: 0.0015,
     // 17. 10. 2026: data jsou fond iShares € Govt Bond 3-5yr (IBGX.AS, ověřeno: DB 31. 12. 2024 = 155,64 =
     // Yahoo adjclose IBGX), ne 3-7yr – popisek opraven. Kód indexu zůstal kvůli uloženým odkazům a presetům.
     proxyEtf: { isin: 'IE00B1FZS681', name: 'iShares EUR Govt Bond 3-5yr', ter: 0.0015 } },
   { code: 'eur_govt_bond_15_30y', ticker: 'IBGL.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 15–30 let', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true, monthly: true,
+    dataIsNetOfFees: true, sourceIsin: 'IE00B1FZS913', sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B1FZS913', name: 'iShares EUR Govt Bond 15-30yr', ter: 0.002 } },
 
   // ─────────────── KOMODITY ───────────────

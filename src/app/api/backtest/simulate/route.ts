@@ -28,6 +28,14 @@ export async function POST(request: NextRequest) {
       )
     }
     // Jen indexy z manifestu – ať nejde z venku poslat libovolný kód do dotazů nad databází.
+    // Poplatek konkrétního fondu: jen rozumné číslo (0–3 % ročně), a jen u indexu se známým poplatkem
+    // zdroje (sourceTer) – jinak by se poplatek odečetl dvakrát (pravidlo č. 1).
+    const spatnyPoplatek = body.portfolio.find((item) => item.feeOverride !== undefined && (
+      typeof item.feeOverride !== 'number' || !Number.isFinite(item.feeOverride) || item.feeOverride < 0 || item.feeOverride > 0.03 ||
+      INDEX_BY_CODE[item.indexCode]?.sourceTer === undefined))
+    if (spatnyPoplatek) {
+      return NextResponse.json({ error: 'Neplatný poplatek fondu' }, { status: 400 })
+    }
     const neznamy = body.portfolio.find((item) => !INDEX_BY_CODE[item.indexCode])
     if (neznamy) {
       return NextResponse.json({ error: `Neznámá třída aktiv: ${String(neznamy.indexCode).slice(0, 40)}` }, { status: 400 })

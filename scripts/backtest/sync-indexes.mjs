@@ -86,8 +86,25 @@ async function fetchYahoo(ticker, range, interval = '1d') {
   const r = (await res.json())?.chart?.result?.[0]
   if (!r) throw new Error('prázdná odpověď')
   const adj = r.indicators?.adjclose?.[0]?.adjclose || r.indicators?.quote?.[0]?.close || []
+  // DATUM V ČASE BURZY, ne v UTC. Měsíční svíčka má časovou značku = půlnoc 1. dne měsíce v čase
+  // burzy (Amsterdam: 23:00/22:00 UTC předchozího dne), ale cenu z KONCE měsíce. Dřív se datum bralo
+  // v UTC → svíčka za leden se zapsala jako „31. 12.“ a celé měsíční řady eurových dluhopisů byly
+  // posunuté o měsíc (ověřeno 17. 10. 2026: DB „2022-12-31“ = 164,27 = skutečná cena IBGL k 31. 1. 2023;
+  // skutečnost k 30. 12. 2022 = 156,27). Měsíční svíčku proto zapisujeme k POSLEDNÍMU dni jejího měsíce
+  // (u rozběhlého měsíce ke dni poslední ceny).
+  const posun = (r.meta?.gmtoffset ?? 0) * 1000
+  const denBurzy = (t) => new Date(t * 1000 + posun).toISOString().slice(0, 10)
+  const posledniCena = r.meta?.regularMarketTime ? denBurzy(r.meta.regularMarketTime) : null
+  const konecMesice = (d) => { const [y, m] = d.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10) }
   const rows = (r.timestamp || [])
-    .map((t, i) => ({ date: new Date(t * 1000).toISOString().slice(0, 10), price: adj[i] }))
+    .map((t, i) => {
+      let date = denBurzy(t)
+      if (interval === '1mo') {
+        date = konecMesice(date)
+        if (posledniCena && date > posledniCena) date = posledniCena
+      }
+      return { date, price: adj[i] }
+    })
     .filter((x) => Number.isFinite(x.price) && x.price > 0)
   return { currency: r.meta?.currency, rows }
 }

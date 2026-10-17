@@ -171,6 +171,32 @@ const main = async () => {
     if (cizi.length) poplach.push({ co: `Žebříček ${z.slug}: obsahuje fondy, které tam nepatří (páka / jiný region)`, ukazka: ukazka(cizi) });
   }
 
+  // ── POPLATKY ZDROJOVÝCH FONDŮ BACKTESTU (manifest vs. DB) ──
+  // Backtest „konkrétního fondu“ přepočítává data na poplatek vybraného fondu podle sourceTer
+  // v src/lib/backtest/indexes.ts. Když správce poplatek změní (17. 10. 2026: IBGS 0,15 → 0,10 %),
+  // přepočet by byl o rozdíl vedle. U zdrojových fondů, které máme v DB (sourceIsin), to hlídáme.
+  try {
+    const { readFileSync } = await import('node:fs');
+    const manifest = readFileSync(new URL('../src/lib/backtest/indexes.ts', import.meta.url), 'utf8');
+    // Po položkách manifestu (pořadí polí v položce může být různé).
+    const pary = manifest.split(/\n\s*\{ code: /).slice(1).flatMap((blok) => {
+      const code = blok.match(/^'([a-z0-9_]+)'/)?.[1];
+      const isin = blok.match(/sourceIsin: '([A-Z0-9]{12})'/)?.[1];
+      const ter = blok.match(/sourceTer: ([0-9.]+)/)?.[1];
+      return code && isin && ter ? [{ code, isin, ter: Number(ter) }] : [];
+    });
+    if (!pary.length) throw new Error('v manifestu jsem nenašel žádné sourceIsin');
+    const db = await fetch(`${URL_DB}?select=isin,ter_numeric&isin=in.(${pary.map((p) => p.isin).join(',')})`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+    const ruzne = pary.flatMap((p) => {
+      const f = db.find((x) => x.isin === p.isin);
+      const dbTer = f?.ter_numeric == null ? null : Number(f.ter_numeric) / 100;
+      return dbTer != null && Math.abs(dbTer - p.ter) > 0.00005 ? [`${p.code}: manifest ${(p.ter * 100).toFixed(2)} % vs. DB ${(dbTer * 100).toFixed(2)} % (${p.isin})`] : [];
+    });
+    if (ruzne.length) varovani.push({ co: 'Poplatek zdrojového fondu backtestu se změnil – upravit sourceTer v indexes.ts', ukazka: ruzne });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu poplatků zdrojových fondů se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── ČÍSLO NA HOMEPAGE (Korunový stroj času) ──
   // „5 000 Kč měsíčně do akcií celého světa od roku 2010 by dnes bylo zhruba X mil. Kč“ se počítá
   // z měsíčních řad stroje času; tady ho nezávisle přepočítá PLNÁ simulace backtestu (jiná cesta kódu:

@@ -22,6 +22,8 @@ import EtfCalendarReturns, { type CalCol } from '@/components/design-preview/Etf
 import { getDataDate, getPodobneFondy, SPECIFICKY_FOND } from '@/lib/etf-data';
 import { canonicalIndexLabel } from '@/utils/indexNormalization';
 import { isHeadFund } from '@/lib/etf-head';
+import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
+import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -155,7 +157,7 @@ const DOMICILE_CS: Record<string, string> = {
 const domLabel = (d: string | null | undefined) => (d ? DOMICILE_CS[d] ?? d : '—');
 /** Index fondu → index v backtestu. JEN přesné shody, které backtest opravdu má (data
  *  od emitenta indexu přes ETF proxy) – raději žádný odkaz než odkaz na jiný index. */
-const BACKTEST_INDEX: Record<string, string> = { 'S&P 500': 'sp500', 'FTSE All-World': 'ftse_all_world' };
+// Backtest konkrétního fondu: přiřazení fond → historie indexu řeší JEDNO místo (fondNaIndex.ts, 17. 10. 2026).
 /** „Kam dál": žebříček podle toho, co fond je (dřív napevno S&P 500 i u zlata). */
 const zebricekFondu = (canon: string, category: string | null, name: string): [string, string] => {
   if (!SPECIFICKY_FOND.test(name)) {
@@ -331,7 +333,11 @@ export default async function ETFDetailPreview(
   const isLev = etf.is_leveraged === true;
   // Kam dál + kontextové odkazy (deep dive 17. 10. 2026: z detailu na články vedlo 0 z 1 243 prokliků).
   const canonIdx = canonicalIndexLabel(etf.index_name);
-  const btCode = !isLev && !/\bhedged\b|\bhdg\b/i.test(etf.name || '') && !SPECIFICKY_FOND.test(etf.name || '') ? BACKTEST_INDEX[canonIdx] : undefined;
+  const btFond = prirazeniFondu(etf as unknown as FondProPrirazeni);
+  const btTer = etf.ter_numeric == null ? null : Number(etf.ter_numeric) / 100;
+  // Odkaz jen když umíme fond poctivě spočítat: přiřazený index se známým poplatkem zdroje a známé TER fondu.
+  const btCode = btFond && btTer !== null && Number.isFinite(btTer) && INDEX_BY_CODE[btFond.indexCode]?.sourceTer !== undefined ? btFond.indexCode : undefined;
+  const btOd = btCode ? INDEX_BY_CODE[btCode].since.slice(0, 4) : '';
   const [zebricekHref, zebricekLabel] = zebricekFondu(canonIdx, (etf as unknown as { category?: string | null }).category ?? null, etf.name || '');
   const podobne = await getPodobneFondy(etf.index_name, etf.isin, etf.name || '');
   const souper = podobne.find((f) => f.primary_ticker && TICKER_OK.test(f.primary_ticker));
@@ -560,12 +566,11 @@ export default async function ETFDetailPreview(
           )}
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             {btCode && (
-              <Link href={`/backtest?slozeni=${btCode}:100&run=1`} className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
-                Otestovat {canonIdx} na historii v korunách <ArrowRight className="w-4 h-4" />
+              <Link href={`/backtest?fondy=${etf.isin}:100&run=1`} className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
+                Otestovat {etf.primary_ticker && etf.primary_ticker !== '-' ? etf.primary_ticker : 'tento fond'} v backtestu – historie od roku {btOd} v korunách <ArrowRight className="w-4 h-4" />
               </Link>
             )}
-            {/* Stroj času jen při PŘESNÉ shodě indexu s presetem (S&P 500) – preset „Celý svět"
-                je 60/40 USA/zbytek světa, FTSE All-World ani MSCI World přesně neodpovídá. */}
+            {/* Stroj času jen při PŘESNÉ shodě indexu s presetem (S&P 500). */}
             {btCode === 'sp500' && (
               <Link href="/stroj-casu?co=sp500&mesicne=3000&od=2010" className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
                 Kolik by dnes dělalo 3 000 Kč měsíčně od roku 2010 <ArrowRight className="w-4 h-4" />

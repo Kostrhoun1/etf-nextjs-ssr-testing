@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import {
   Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info, Pencil, ArrowRight,
+  Search,
 } from 'lucide-react';
 import Link from 'next/link';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -144,9 +145,22 @@ const FACTOR_STYLES: { code: string; label: string; slug: string; since: string 
   { code: 'us_dividend', label: 'Dividendové', slug: 'dividend', since: '2006-12-01' },
 ];
 
+/** Konkrétní fond (VWCE…) místo třídy aktiv: historie z indexu, výpočet přepočtený na TER fondu. */
+interface FondInfo { isin: string; ticker: string | null; ter: number; zdroj: string; shoda: 'stejny' | 'blizky'; prepocet: boolean }
 interface SelectedETF {
   isin: string; name: string; ter: number; indexCode: string; indexName: string; weight: number;
+  fond?: FondInfo;
 }
+/** Klíč řádku: fond podle ISIN (VWCE i VWRL mají stejný index), třída aktiv podle kódu indexu. */
+const idRadku = (e: SelectedETF) => e.fond?.isin ?? e.indexCode;
+/** Odpověď /api/backtest/fondy */
+type NalezenyFond =
+  | { ok: true; isin: string; ticker: string | null; name: string | null; ter: number; indexCode: string; indexName: string; shoda: 'stejny' | 'blizky'; zdroj: string; prepocet: boolean }
+  | { ok: false; isin: string; ticker: string | null; name: string | null; duvod: string };
+const fondNaRadek = (f: Extract<NalezenyFond, { ok: true }>, weight: number): SelectedETF => ({
+  isin: f.isin, name: f.name ?? f.isin, ter: f.ter, indexCode: f.indexCode, indexName: f.indexName, weight,
+  fond: { isin: f.isin, ticker: f.ticker, ter: f.ter, zdroj: f.zdroj, shoda: f.shoda, prepocet: f.prepocet !== false },
+});
 
 // Sestaví vybrané fondy z hotového portfolia (preset id) – pro applyPreset i pro
 // prvotní naplnění widgetu přes prop defaultPreset (embed v článku).
@@ -272,7 +286,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const addETF = (indexCode: string) => {
     const index = AVAILABLE_INDEXES.find((i) => i.indexCode === indexCode);
     if (!index) return;
-    if (selectedETFs.some((e) => e.indexCode === indexCode)) return;
+    if (selectedETFs.some((e) => !e.fond && e.indexCode === indexCode)) return;
     setActivePreset(null); // vlastní úprava složení → už to není hotový preset
     setSelectedETFs((prev) => [
       ...prev,
@@ -280,15 +294,41 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     ]);
   };
 
-  const removeETF = (indexCode: string) => {
+  const removeETF = (id: string) => {
     setActivePreset(null);
-    setSelectedETFs((prev) => prev.filter((e) => e.indexCode !== indexCode));
+    setSelectedETFs((prev) => prev.filter((e) => idRadku(e) !== id));
   };
 
-  const setWeight = (indexCode: string, weight: number) => {
+  const setWeight = (id: string, weight: number) => {
     setActivePreset(null);
-    setSelectedETFs((prev) => prev.map((e) => (e.indexCode === indexCode ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
+    setSelectedETFs((prev) => prev.map((e) => (idRadku(e) === id ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
   };
+
+  // Přidání konkrétního fondu (hledání podle tickeru/názvu). Váha = zbytek do 100 %.
+  const addFond = (f: Extract<NalezenyFond, { ok: true }>) => {
+    if (selectedETFs.some((e) => e.fond?.isin === f.isin)) return;
+    setActivePreset(null);
+    setActiveStyle(null);
+    setSelectedETFs((prev) => [...prev, fondNaRadek(f, Math.max(0, 100 - prev.reduce((s, e) => s + e.weight, 0)))]);
+    setHledani('');
+    setNalezene([]);
+  };
+  const [hledani, setHledani] = useState('');
+  const [nalezene, setNalezene] = useState<NalezenyFond[]>([]);
+  const [hledam, setHledam] = useState(false);
+  useEffect(() => {
+    const q = hledani.trim();
+    if (q.length < 2) { setNalezene([]); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setHledam(true);
+      try {
+        const r = await fetch(`/api/backtest/fondy?q=${encodeURIComponent(q)}`, { signal: ctrl.signal }).then((x) => x.json());
+        setNalezene(Array.isArray(r.fondy) ? r.fondy : []);
+      } catch { /* zrušeno nebo chyba – necháme prázdné */ } finally { setHledam(false); }
+    }, 250);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [hledani]);
 
   // === Výpočet 1:1 z originálu – stejné tělo požadavku, stejný endpoint ===
   const runBacktest = async (overrideCurrency?: Currency) => {
@@ -316,7 +356,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
 
       // Jeden běh backtestu se stejnými parametry (částky, měna) – jen jiné složení a případně jiný start.
       const simulateOne = async (
-        portfolio: { isin: string; name: string; weight: number; ter: number; indexCode: string }[],
+        portfolio: { isin: string; name: string; weight: number; ter: number; indexCode: string; feeOverride?: number }[],
         start: string,
       ) => {
         const response = await fetch('/api/backtest/simulate', {
@@ -336,6 +376,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
 
       const mainPortfolio = selectedETFs.map((etf) => ({
         isin: etf.isin, name: etf.name, weight: etf.weight / 100, ter: etf.ter, indexCode: etf.indexCode,
+        // Konkrétní fond: data zdrojového fondu přepočtená na poplatek vybraného fondu.
+        ...(etf.fond?.prepocet ? { feeOverride: etf.fond.ter } : {}),
       }));
       const compPortfolios = compareIds.map((id) => {
         const preset = PRESET_PORTFOLIOS.find((p) => p.id === id)!;
@@ -420,6 +462,21 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       }).filter(Boolean) as SelectedETF[];
       if (parsed.length) { setSelectedETFs(parsed); setActivePreset(null); setEditComposition(true); }
     }
+    // KONKRÉTNÍ FONDY: ?fondy=IE00BK5BQT80:70,IE00B14X4Q57:30 (odkaz z detailu fondu, sdílení).
+    // Dohledání je asynchronní → spuštění (run=1) až po načtení fondů.
+    const fondyParam = p.get('fondy');
+    const fondyPromise = !hasPreset && !style && fondyParam ? (async () => {
+      const vahy = new Map(fondyParam.split(',').map((x) => x.split(':')).filter(([i, w]) => /^[A-Z]{2}[A-Z0-9]{10}$/.test(i) && Number(w) > 0).map(([i, w]) => [i, Number(w)] as const));
+      if (!vahy.size) return;
+      try {
+        const r = await fetch(`/api/backtest/fondy?isin=${[...vahy.keys()].join(',')}`).then((x) => x.json());
+        const radky = (r.fondy as NalezenyFond[] ?? []).filter((f): f is Extract<NalezenyFond, { ok: true }> => f.ok).map((f) => fondNaRadek(f, vahy.get(f.isin)!));
+        if (radky.length) {
+          setSelectedETFs((prev) => [...(slozeni ? prev : []), ...radky]);
+          setActivePreset(null); setEditComposition(true);
+        }
+      } catch { /* bez fondů zůstane výchozí složení */ }
+    })() : Promise.resolve();
     const end = p.get('do');
     if (end && /^\d{4}-\d{2}-\d{2}$/.test(end)) setEndDate(end);
     const mena = p.get('mena');
@@ -433,10 +490,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     // Spuštění odložíme na další tick, až se všechny stavy propíšou; ref hlídá jediné spuštění.
     // ZÁMĚRNĚ nescrollujeme – uživatel má vidět předvyplněná (editovatelná) pole; výsledek
     // je spočítaný a čeká, až k němu přirozeně dorolluje.
-    if ((hasPreset || style || p.get('slozeni')) && p.get('run') === '1') {
-      setTimeout(() => {
+    if ((hasPreset || style || p.get('slozeni') || fondyParam) && p.get('run') === '1') {
+      fondyPromise.then(() => setTimeout(() => {
         if (!didAutoRunRef.current) { didAutoRunRef.current = true; runBacktestRef.current(); }
-      }, 80);
+      }, 80));
     }
     urlRestored.current = true;
     // Jen jednou při načtení stránky.
@@ -452,7 +509,11 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const p = new URLSearchParams();
     if (activeStyle) p.set('styl', activeStyle);
     else if (activePreset) p.set('portfolio', activePreset);
-    else if (selectedETFs.length) p.set('slozeni', selectedETFs.map((e) => `${e.indexCode}:${e.weight}`).join(','));
+    else if (selectedETFs.length) {
+      const tridy = selectedETFs.filter((e) => !e.fond), fondy = selectedETFs.filter((e) => e.fond);
+      if (tridy.length) p.set('slozeni', tridy.map((e) => `${e.indexCode}:${e.weight}`).join(','));
+      if (fondy.length) p.set('fondy', fondy.map((e) => `${e.fond!.isin}:${e.weight}`).join(','));
+    }
     if (startDate !== '2005-01-01') p.set('start', startDate);
     if (endDate !== new Date().toISOString().split('T')[0]) p.set('do', endDate);
     if (initialAmount !== 100000) p.set('amount', String(initialAmount));
@@ -464,7 +525,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}${window.location.hash}` : window.location.pathname + window.location.hash);
   }, [activeStyle, activePreset, selectedETFs, startDate, endDate, initialAmount, contributionFrequency, contributionAmount, currency, rebalancing]);
 
-  const availableToAdd = AVAILABLE_INDEXES.filter((i) => !selectedETFs.some((e) => e.indexCode === i.indexCode));
+  const availableToAdd = AVAILABLE_INDEXES.filter((i) => !selectedETFs.some((e) => !e.fond && e.indexCode === i.indexCode));
 
   // Data pro recharts: hodnota portfolia + vložené prostředky (pro kontext).
   // Denní řada má ~5000+ bodů → obří SVG path, na mobilu se dlouho vykresluje a chvíli
@@ -578,7 +639,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           </div>
           {!editComposition && (
             <div className={`rounded-lg border px-3 py-2.5 text-sm ${totalWeight === 100 ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-amber-300 bg-amber-50 text-amber-800'}`}>
-              {selectedETFs.length ? selectedETFs.map((e) => `${e.indexName} ${e.weight} %`).join('  ·  ') : 'Zatím prázdné – vyberte hotové portfolio nebo přidejte třídy aktiv.'}
+              {selectedETFs.length ? selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight} %`).join('  ·  ') : 'Zatím prázdné – vyberte hotové portfolio nebo přidejte třídy aktiv.'}
               {totalWeight !== 100 && (
                 <button type="button" onClick={() => setEditComposition(true)} className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-amber-800 underline underline-offset-2">
                   Součet vah je {totalWeight} % – upravit na 100 % →
@@ -592,12 +653,19 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           </div>
           <div className="space-y-2">
             {selectedETFs.map((etf) => (
-              <div key={etf.indexCode} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
+              <div key={idRadku(etf)} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
                 <div className="flex-1 min-w-0">
-                  <span className="block text-sm font-medium text-slate-900 truncate">{etf.indexName}</span>
-                  <span className="block text-xs text-slate-500 truncate">
-                    přes {etf.name} · TER {fmtPct(etf.ter * 100, 2)}
-                  </span>
+                  {etf.fond ? (<>
+                    <span className="block text-sm font-medium text-slate-900 truncate">{etf.fond.ticker ? `${etf.fond.ticker} · ` : ''}{etf.name}</span>
+                    <span className="block text-xs text-slate-500 truncate" title={etf.fond.zdroj}>
+                      historie: {etf.fond.zdroj}{etf.fond.shoda === 'blizky' ? ' – podobný index' : ''} · TER {fmtPct(etf.ter * 100, 2)}
+                    </span>
+                  </>) : (<>
+                    <span className="block text-sm font-medium text-slate-900 truncate">{etf.indexName}</span>
+                    <span className="block text-xs text-slate-500 truncate">
+                      přes {etf.name} · TER {fmtPct(etf.ter * 100, 2)}
+                    </span>
+                  </>)}
                 </div>
                 <div className="relative w-24 shrink-0">
                   <input
@@ -606,7 +674,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     min={0}
                     max={100}
                     value={etf.weight}
-                    onChange={(e) => setWeight(etf.indexCode, Number(e.target.value))}
+                    onChange={(e) => setWeight(idRadku(etf), Number(e.target.value))}
                     /* pr-7 dělá místo pro znak „%" vpravo. S px-2 se číslo (pole je
                        zarovnané doprava) tisklo přímo přes něj – „60 %" vypadalo jako „6Ø". */
                     className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-2 pr-7 py-1.5 text-right text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -614,8 +682,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">%</span>
                 </div>
                 <button
-                  onClick={() => removeETF(etf.indexCode)}
-                  aria-label={`Odebrat ${etf.indexName}`}
+                  onClick={() => removeETF(idRadku(etf))}
+                  aria-label={`Odebrat ${etf.fond ? (etf.fond.ticker ?? etf.name) : etf.indexName}`}
                   className="flex items-center justify-center w-11 h-11 shrink-0 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -645,6 +713,44 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 ))}
               </select>
             </div>
+          )}
+
+          {/* Přidat konkrétní fond (ticker / název / ISIN) */}
+          <div className="mt-2">
+            <label htmlFor="bt-fond" className="sr-only">Přidat konkrétní fond</label>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700"><Search className="w-4 h-4" /></span>
+              <input id="bt-fond" type="search" value={hledani} onChange={(e) => setHledani(e.target.value)} autoComplete="off"
+                placeholder="Přidat konkrétní fond – ticker nebo název (např. VWCE)"
+                className="flex-1 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
+            </div>
+            {hledani.trim().length >= 2 && (
+              <ul className="mt-1.5 rounded-lg border border-slate-200 bg-white divide-y divide-slate-100 text-sm" aria-live="polite">
+                {hledam && nalezene.length === 0 && <li className="px-3 py-2.5 text-slate-500">Hledám…</li>}
+                {!hledam && nalezene.length === 0 && <li className="px-3 py-2.5 text-slate-500">Nic jsme nenašli.</li>}
+                {nalezene.map((f) => f.ok ? (
+                  <li key={f.isin}>
+                    <button type="button" onClick={() => addFond(f)} className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-teal-50/60">
+                      <span className="block font-medium text-slate-900">{f.ticker ? `${f.ticker} · ` : ''}{f.name}</span>
+                      <span className="block text-xs text-slate-500">historie: {f.zdroj} · TER {fmtPct(f.ter * 100, 2)}</span>
+                    </button>
+                  </li>
+                ) : (
+                  <li key={f.isin} className="px-3 py-2 text-slate-400">
+                    <span className="block">{f.ticker ? `${f.ticker} · ` : ''}{f.name}</span>
+                    <span className="block text-xs">{f.duvod}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {selectedETFs.some((e) => e.fond) && (
+            <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+              Konkrétní fondy počítáme z dlouhé historie indexu (z dat uvedeného fondu), přepočtené na poplatek vybraného fondu.
+              „Podobný index“ = fond sleduje jiný, ale velmi podobný index. Evropské fondy na americké akcie navíc platí daň
+              z dividend (u S&amp;P 500 zhruba 0,2 % ročně), kterou historie amerických fondů neobsahuje.
+            </p>
           )}
 
           {/* Vážený roční poplatek celého portfolia */}
