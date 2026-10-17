@@ -633,6 +633,7 @@ export interface ComparisonETF {
   max_drawdown_1y: number | null;
   current_dividend_yield_numeric: number | null;
   distribution_policy: string | null;
+  distribution_frequency?: string | null;
   replication: string | null;
   index_name: string | null;
   region: string | null;
@@ -681,7 +682,7 @@ export async function getComparisonETFData(
         return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
         volatility_1y, max_drawdown_1y,
         current_dividend_yield_numeric,
-        distribution_policy, replication, index_name, region,
+        distribution_policy, distribution_frequency, replication, index_name, region,
         fund_currency, fund_domicile, total_holdings, inception_date,
         is_leveraged, category,
         ${COMPARISON_TICKER_FIELDS.join(', ')},
@@ -698,8 +699,9 @@ export async function getComparisonETFData(
         ? String(etf.isin) === ticker.toUpperCase()
         : COMPARISON_TICKER_FIELDS.some(f => (etf[f] as string)?.toUpperCase() === ticker.toUpperCase());
 
-    const etf1 = data.find(e => matches(e, ticker1)) as ComparisonETF | undefined;
-    const etf2 = data.find(e => matches(e, ticker2)) as ComparisonETF | undefined;
+    const radky = data as unknown as Record<string, unknown>[];
+    const etf1 = radky.find(e => matches(e, ticker1)) as ComparisonETF | undefined;
+    const etf2 = radky.find(e => matches(e, ticker2)) as ComparisonETF | undefined;
 
     // Stejný ISIN (CSPX vs SXR8) se NEodmítá: je to častý dotaz „je to stejný fond?" a stránka
     // na něj odpoví (dřív 404).

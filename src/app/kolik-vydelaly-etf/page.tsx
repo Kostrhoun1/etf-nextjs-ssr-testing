@@ -49,7 +49,7 @@ export default async function KolikVydelalyEtf() {
     const years: number[] = [];
     for (let y = Math.ceil(equity.startYear / 4) * 4; y < equity.endYear; y += 4) years.push(y);
     const yearX = (y: number) => (y - equity.startYear) / (equity.endYear - equity.startYear);
-    return { W, H, padL, padR, py, px, line, area, yMin, yMax, years, yearX,
+    return { W, H, padL, padR, padT, py, px, line, area, yMin, yMax, years, yearX,
       y100: py(100000), xEnd: px(1), yEndVal: py(equity.finalValue) };
   })();
 

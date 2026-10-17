@@ -13,13 +13,13 @@ const fmtPct = (v: number | null) => {
 export default function ReturnValue({
   etf, period, colored = true, className = '',
 }: {
-  etf: Record<string, unknown> | null | undefined;
+  etf: object | null | undefined;
   period: string;
   colored?: boolean;
   className?: string;
 }) {
   const [cur] = useCurrency();
-  const v = pickReturn(etf, period, cur);
+  const v = pickReturn(etf as Record<string, unknown> | null | undefined, period, cur);
   const color = !colored ? '' : (v ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600';
   return <span className={`tabular-nums ${color} ${className}`}>{fmtPct(v)}</span>;
 }

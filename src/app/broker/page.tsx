@@ -246,8 +246,8 @@ export default async function BrokerReviewPreview() {
         <section className="pb-10">
           <SectionHead title="Rychlá fakta" desc="Nejdůležitější parametry na jeden pohled, bez scrollování celé recenze." />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {facts.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-lg border border-slate-200 bg-white p-4">
+            {facts.map(({ icon: Icon, label, value }, i) => (
+              <div key={i} className="rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center gap-2 text-xs font-medium text-slate-500">
                   <Icon className="w-4 h-4 text-teal-700" /> {label}
                 </span>

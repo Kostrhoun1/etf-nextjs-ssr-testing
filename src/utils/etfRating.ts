@@ -149,7 +149,7 @@ export function calculateETFRating(etf: ETF | ETFListItem): ETFRating | null {
   const inceptionDate = 'inception_date' in etf ? etf.inception_date : '';
   const trackingError = 'tracking_error' in etf ? (etf as ETF).tracking_error : 0;
   
-  const years = getYearsSinceInception(inceptionDate);
+  const years = getYearsSinceInception(inceptionDate ?? '');
   
   // Minimum age requirement: 3 years for rating (same as backend)
   if (years < 3.0) {

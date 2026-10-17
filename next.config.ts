@@ -5,11 +5,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,
-  },
-  experimental: {
-    // Eliminates invalid meta tags in head - helps with SEO
-    strictNextHead: true,
+    // false od 17. 10. 2026: tsc má 0 chyb (dřív 146 a skrytý bug distKind) – build má
+    // typové chyby zastavit, ne je tiše pustit na produkci.
+    ignoreBuildErrors: false,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',

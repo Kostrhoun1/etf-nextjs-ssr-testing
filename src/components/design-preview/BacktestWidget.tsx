@@ -474,7 +474,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const ev = result.evolution;
     const MAX = 400;
     const step = ev.length > MAX ? Math.ceil(ev.length / MAX) : 1;
-    const out: { date: Date; value: number }[] = [];
+    const out: { date: string; value: number }[] = [];
     for (let i = 0; i < ev.length; i += step) out.push({ date: ev[i].date, value: Math.round(ev[i].value) });
     const last = ev[ev.length - 1];
     if (out.length && out[out.length - 1].date !== last.date) out.push({ date: last.date, value: Math.round(last.value) });
