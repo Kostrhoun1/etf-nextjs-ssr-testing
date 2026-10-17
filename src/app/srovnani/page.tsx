@@ -4,6 +4,7 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords, SlidersHorizontal, Coins, Layers } from 'lucide-react';
+import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { getScreenerRows, buildInitialScreenerRows, getDataDate, getTotalETFCount } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
@@ -49,7 +50,8 @@ export default async function SrovnaniScreenerPreview() {
   const { rows, options, total } = await getScreenerRows();
   const initialRows = buildInitialScreenerRows(rows, '', 50);
   const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dataDate = await getDataDate(today);
+  const dateStr = dataDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const datasetSchema = {
     '@context': 'https://schema.org',
@@ -97,20 +99,19 @@ export default async function SrovnaniScreenerPreview() {
           <span className="text-slate-700">Srovnávač ETF</span>
         </nav>
 
-        {/* HERO */}
-        <section className="pb-6">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
+        {/* HERO – na mobilu krátký (dřív 380 px před filtry; UX audit 17. 10. 2026) */}
+        <section className="pb-4 md:pb-6">
+          <div className="rounded-2xl bg-slate-900 text-white px-5 py-5 md:px-9 md:py-8">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Srovnávač ETF</h1>
-            <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">
-              Projděte a porovnejte největší ETF fondy dostupné pro české investory. Filtrujte podle poplatku (TER),
-              typu, replikace a regionu, řaďte podle výnosu <strong className="text-white">přepočteného do korun</strong> a
-              proklikněte se na detail každého fondu.
+            <p className="mt-1.5 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">
+              <span className="md:hidden">Filtrujte a řaďte fondy podle poplatku a výnosu <strong className="text-white">v korunách</strong>.</span>
+              <span className="hidden md:inline">
+                Projděte a porovnejte největší ETF fondy dostupné pro české investory. Filtrujte podle poplatku (TER),
+                typu, replikace a regionu, řaďte podle výnosu <strong className="text-white">přepočteného do korun</strong> a
+                proklikněte se na detail každého fondu.
+              </span>
             </p>
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroj: justETF / vlastní databáze</span>
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
-            </div>
+            <AktualnostDat datum={dataDate} tmavy className="mt-3" />
           </div>
         </section>
 

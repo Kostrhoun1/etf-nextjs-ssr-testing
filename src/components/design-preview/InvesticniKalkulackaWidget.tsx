@@ -45,7 +45,10 @@ interface YearRow {
   tax: number;
 }
 
-// ===== VÝPOČET 1:1 z src/utils/investmentCalculations.ts (calculateInvestment) – NEMĚNIT =====
+// ===== VÝPOČET (původně 1:1 z utils/investmentCalculations.ts, ten už neexistuje) =====
+// 17. 10. 2026 OPRAVENO (pravidlo č. 1): měsíční sazba byla „roční / 12", takže zadaných 7 % p.a.
+// ve skutečnosti úročilo 7,23 % ročně a výsledek za 20 let byl o ~3 % vyšší (3,02 vs. 2,94 mil. Kč
+// u 100 000 + 5 000/měs.). Teď (1 + r)^(1/12) − 1 – zadaný roční výnos je skutečně roční.
 function calculateInvestment(params: {
   initialInvestment: number;
   recurringInvestment: number;
@@ -71,7 +74,7 @@ function calculateInvestment(params: {
 
   for (let year = 1; year <= investmentPeriod; year++) {
     if (recurringFrequency === 'monthly') {
-      const monthlyReturn = annualReturn / 12;
+      const monthlyReturn = Math.pow(1 + annualReturn, 1 / 12) - 1;
       for (let month = 1; month <= 12; month++) {
         currentValue += recurringInvestment;
         totalInvested += recurringInvestment;
@@ -138,13 +141,18 @@ function NumberField({
           <div className="relative">
             <input
               id={id}
-              type="number"
-              inputMode="decimal"
-              step={step}
-              min={min}
-              max={max}
-              value={value}
-              onChange={(e) => onChange(Number(e.target.value))}
+              // Částky v Kč jako text s mezerami mezi tisíci („100 000"), stejně jako backtest;
+              // procenta a roky zůstávají číselné pole (UX audit 17. 10. 2026).
+              type={suffix === 'Kč' ? 'text' : 'number'}
+              inputMode={suffix === 'Kč' ? 'numeric' : 'decimal'}
+              step={suffix === 'Kč' ? undefined : step}
+              min={suffix === 'Kč' ? undefined : min}
+              max={suffix === 'Kč' ? undefined : max}
+              value={suffix === 'Kč' ? (value === 0 ? '' : value.toLocaleString('cs-CZ')) : value}
+              placeholder={suffix === 'Kč' ? '0' : undefined}
+              onChange={(e) => suffix === 'Kč'
+                ? onChange(clamp(Number(e.target.value.replace(/[^0-9]/g, '') || 0)))
+                : onChange(Number(e.target.value))}
               className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
@@ -271,12 +279,11 @@ export default function InvesticniKalkulackaWidget() {
               <div className="relative flex-1">
                 <input
                   id="recurring"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  max={1000000}
-                  value={recurringInvestment}
-                  onChange={(e) => setRecurringInvestment(Math.max(0, Number(e.target.value)))}
+                  type="text"
+                  inputMode="numeric"
+                  value={recurringInvestment === 0 ? '' : recurringInvestment.toLocaleString('cs-CZ')}
+                  placeholder="0"
+                  onChange={(e) => setRecurringInvestment(Math.min(1000000, Number(e.target.value.replace(/[^0-9]/g, '') || 0)))}
                   className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
@@ -364,7 +371,7 @@ export default function InvesticniKalkulackaWidget() {
 
       {/* Souhrn výsledků */}
       {hasData && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div id="vysledek" className="scroll-mt-20 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-600">
@@ -536,6 +543,14 @@ export default function InvesticniKalkulackaWidget() {
             <a href="/backtest" className="font-semibold underline underline-offset-2 hover:text-white">vyzkoušejte backtest</a>
           </p>
         </div>
+      )}
+
+      {/* Mobil: výsledek viditelný i při úpravě vstupů (dřív až ~930 px pod formulářem). */}
+      {hasData && (
+        <a href="#vysledek" className="md:hidden fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
+          <span className="text-xs text-slate-500">Za {investmentPeriod} let</span>
+          <span className="text-base font-bold text-slate-900 tabular-nums">{fmtCZK(finalResult.netValue)}</span>
+        </a>
       )}
     </div>
   );

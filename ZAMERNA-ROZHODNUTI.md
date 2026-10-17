@@ -104,6 +104,10 @@ ověřený; přesměrování na recenzi DEGIRO, ta zůstává), duplicity `globa
 
 **Krátkodobé výnosy (1M/3M/6M) jsou v EUR** a tak jsou i popsané – data je v jiné měně nemají.
 
+**Investiční kalkulačka úročí měsíčně sazbou (1 + r)^(1/12) − 1, ne r/12.** Zadaný „výnos p.a." je tak
+skutečně roční (7 % → 100 000 Kč je po roce 107 000 Kč). Dřív r/12 = 7,23 % ročně a +3 % za 20 let.
+U hypoteční a úvěrové kalkulačky je r/12 SPRÁVNĚ (u úvěrů je sazba p.a. nominální) – neměnit.
+
 ## Obsah a distribuce
 
 **`/buffettovo-portfolio` neexistuje — je tam 301 na `/backtest`.**
