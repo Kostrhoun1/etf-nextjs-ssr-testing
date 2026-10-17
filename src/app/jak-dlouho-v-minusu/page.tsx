@@ -1,0 +1,312 @@
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { Fragment } from 'react';
+import { TrendingUp, ArrowRight, HelpCircle } from 'lucide-react';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
+import MobileMenu from '@/components/design-preview/MobileMenu';
+import SiteNav from '@/components/design-preview/SiteNav';
+import AktualnostDat from '@/components/design-preview/AktualnostDat';
+import { spoctiPodVodou, type PodVodouPreset } from '@/lib/clanky/podVodou';
+
+/* Vlna 7 – obsah z dat v korunách. Otázka, kterou si začínající investor klade po prvním propadu.
+   Čísla se počítají při ISR (1× denně) z řad Korunového stroje času + inflace ČSÚ; ověřeno
+   nezávisle (S&P DJI, ČNB, ČSÚ) – viz hlavička src/lib/clanky/podVodou.ts. */
+export const revalidate = 86400;
+
+export const metadata: Metadata = {
+  title: 'Jak dlouho můžete být v minusu? Data v korunách i po inflaci',
+  description: 'Jak dlouho trvalo, než se investice do akcií po propadu vrátila nad vklad – v korunách a po české inflaci. Nejhorší případy od roku 2000, krize 2008, covid i rok 2022.',
+  alternates: { canonical: '/jak-dlouho-v-minusu' },
+};
+
+const tvar = (n: number, a: string, b: string, c: string) => (n === 1 ? a : n >= 2 && n <= 4 ? b : c);
+/** 175 → „14 let a 7 měsíců" */
+function doba(m: number | null): string {
+  if (m === null) return 'dosud';
+  if (m === 0) return 'ani měsíc';
+  const r = Math.floor(m / 12), mm = m % 12;
+  const roky = r ? `${r} ${tvar(r, 'rok', 'roky', 'let')}` : '';
+  const mes = mm ? `${mm} ${tvar(mm, 'měsíc', 'měsíce', 'měsíců')}` : '';
+  return [roky, mes].filter(Boolean).join(' a ');
+}
+/** Zaokrouhleně na půl roku pro běžný text: 175 → „14,5 roku" */
+function roku(m: number): string {
+  const r = Math.round((m / 12) * 2) / 2;
+  return `${r.toLocaleString('cs-CZ')} ${Number.isInteger(r) ? tvar(r, 'rok', 'roky', 'let') : 'roku'}`;
+}
+const MESICE = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+const MESICE1 = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
+const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
+/** „v lednu 2000" */
+const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v ${MESICE6[m - 1]} ${y}`; };
+const kdy = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE1[m - 1]} ${y}`; };
+const od = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE[m - 1]} ${y}`; };
+const pct = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(Math.round(v * 100))} %`;
+
+/** Události, u kterých čtenáře zajímá „kdybych koupil těsně před…". */
+const UDALOSTI: [string, string][] = [
+  ['2000-01', 'Těsně před splasknutím internetové bubliny'],
+  ['2007-10', 'Na vrcholu před finanční krizí'],
+  ['2015-04', 'Před propadem 2015–2016'],
+  ['2020-02', 'Těsně před covidem'],
+  ['2022-01', 'Před propadem a inflací 2022'],
+];
+
+/** Sloupcový graf: pro každý měsíc startu délka v minusu (nominálně tmavě, po inflaci světle za ním). */
+function Graf({ p }: { p: PodVodouPreset }) {
+  const W = 720, H = 260, L = 34, B = 22, T = 8;
+  const n = p.starty.length;
+  const max = Math.max(...p.starty.map((s, i) => (s.realne ?? n - i)), 12);
+  const yMax = Math.ceil(max / 60) * 60;
+  const bw = (W - L) / n;
+  const y = (m: number) => T + (H - T - B) * (1 - m / yMax);
+  const roky = p.starty.map((s, i) => [s.start, i] as const).filter(([s]) => s.endsWith('-01') && Number(s.slice(0, 4)) % 5 === 0);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img"
+      aria-label={`Graf: jak dlouho byl v minusu ${p.nazev} podle měsíce nákupu, nominálně a po inflaci`}>
+      {Array.from({ length: yMax / 60 + 1 }, (_, k) => k * 60).map((m) => (
+        <g key={m}>
+          <line x1={L} x2={W} y1={y(m)} y2={y(m)} stroke="#e2e8f0" strokeWidth={1} />
+          <text x={L - 6} y={y(m) + 3.5} textAnchor="end" fontSize={10} fill="#64748b">{m / 12} let</text>
+        </g>
+      ))}
+      {p.starty.map((s, i) => {
+        const r = s.realne ?? n - i, nm = s.nominalne ?? n - i;
+        const x = L + i * bw;
+        return (
+          <g key={s.start}>
+            {r > 0 && <rect x={x} y={y(r)} width={Math.max(bw, 1)} height={y(0) - y(r)} fill="#99f6e4" />}
+            {nm > 0 && <rect x={x} y={y(nm)} width={Math.max(bw, 1)} height={y(0) - y(nm)} fill="#0f766e" />}
+          </g>
+        );
+      })}
+      {roky.map(([s, i]) => (
+        <text key={s} x={L + i * bw} y={H - 6} fontSize={10} fill="#64748b">{s.slice(0, 4)}</text>
+      ))}
+    </svg>
+  );
+}
+
+export default async function JakDlouhoVMinusu() {
+  const d = await spoctiPodVodou();
+  const sp = d?.presety.find((p) => p.id === 'sp500');
+  const sv = d?.presety.find((p) => p.id === 'svet');
+  const vy = d?.presety.find((p) => p.id === 'vyvazene');
+  const spDca = sp?.pravidelne.find((x) => x.od === '2000-01');
+
+  const faqs = d && sp && sv && spDca ? [
+    { q: 'Jak dlouho může trvat, než se investice do akcií vrátí nad vklad?', a: `Obvykle měsíce až pár let. V nejhorším případě od roku 2000 ale mnohem déle: kdo koupil S&P 500 ${vMesici(sp.starty[0].start)}, byl v korunách v minusu ${doba(sp.starty[0].nominalne)}, a po započtení české inflace ${doba(sp.starty[0].realne)}. Takové případy se týkaly nákupů na vrcholu internetové bubliny v letech 2000–2002.` },
+    { q: 'Proč byl návrat v korunách delší než v dolarech?', a: `Protože koruna v letech 2000–2008 silně posílila (dolar z 36 Kč na zhruba 15 Kč) a dolarová aktiva tím v Kč ztrácela. S&P 500 od ledna 2000 byl v dolarech v minusu ${sp500UsdText(d.sp500Usd2000)}, v korunách ${doba(sp.starty[0].nominalne)}.` },
+    { q: 'Pomůže pravidelné investování?', a: `Zkrátí to, ale nezruší. Kdo od ledna 2000 posílal do S&P 500 každý měsíc stejnou částku, byl v korunách pod součtem vkladů ${doba(spDca.nominalne)} – v nejhorší chvíli ${pct(spDca.nejhure)} (${kdy(spDca.nejhureKdy)}).` },
+  ] : [];
+  const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+            <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
+            ETF průvodce.cz
+          </Link>
+          <MobileMenu />
+          <SiteNav />
+          <HeaderSearch />
+        </div>
+      </header>
+
+      <main id="obsah" className="max-w-3xl mx-auto px-4 pb-20">
+        <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
+          <Link href="/co-rikaji-data" className="hover:text-slate-700">Co říkají data</Link><span>/</span>
+          <span className="text-slate-700">Jak dlouho v minusu</span>
+        </nav>
+
+        <h1 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-balance">Jak dlouho můžete být v minusu? Data v korunách i po inflaci</h1>
+
+        {!d || !sp || !sv || !vy || !spDca ? (
+          <p className="mt-6 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">Data pro tento rozbor se teď nepodařilo načíst. Zkuste to prosím později.</p>
+        ) : (
+          <>
+            <AktualnostDat datum={new Date(d.posledniDen)} className="mt-3" />
+
+            <section className="mt-6 rounded-xl border border-teal-200 bg-teal-50/60 p-5 text-[15px] leading-relaxed text-slate-800">
+              <p className="font-semibold text-slate-900">Krátká odpověď</p>
+              <p className="mt-1.5">
+                Většinou měsíce až pár let. Nejhorší případ od roku 2000: kdo vložil peníze do S&amp;P 500 {vMesici(sp.starty[0].start)},
+                byl v korunách v minusu <strong>{roku(sp.starty[0].nominalne ?? 0)}</strong> – a po započtení inflace{' '}
+                <strong>{doba(sp.starty[0].realne)}</strong>. Ze všech nákupů od roku 2000 byl po deseti letech pod vkladem jen ten, kdo nakoupil
+                kolem splasknutí internetové bubliny ({kdy(sp.po10.nominalne[0])} – {kdy(sp.po10.nominalne.at(-1)!)}).
+              </p>
+            </section>
+
+            <section className="mt-8">
+              <h2 className="text-xl font-bold tracking-tight">Kdybyste koupili v nejhorší chvíli</h2>
+              <p className="mt-1.5 text-sm text-slate-600">Jednorázová investice, počítáno v korunách. „V minusu“ = do posledního měsíce, kdy byla hodnota pod vkladem.</p>
+              <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-4 py-2.5">Do čeho</th>
+                      <th className="px-4 py-2.5 text-right">V minusu v Kč</th>
+                      <th className="px-4 py-2.5 text-right">Po inflaci</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {UDALOSTI.map(([ym, popis]) => (
+                      <Fragment key={ym}>
+                        <tr className="bg-slate-50 border-t border-slate-200">
+                          <th colSpan={3} scope="colgroup" className="px-4 py-2 text-left font-normal">
+                            <span className="font-semibold text-slate-900">Nákup {kdy(ym)}</span>
+                            <span className="text-slate-500"> · {popis}</span>
+                          </th>
+                        </tr>
+                        {[sp, sv, vy].map((p) => {
+                          const s = p.starty.find((x) => x.start === ym);
+                          return s && (
+                            <tr key={p.id} className="border-t border-slate-100">
+                              <td className="px-4 py-2 text-slate-700">{p.nazev}</td>
+                              <td className="px-4 py-2 text-right tabular-nums">{doba(s.nominalne)}</td>
+                              <td className="px-4 py-2 text-right tabular-nums text-slate-600">{doba(s.realne)}</td>
+                            </tr>
+                          );
+                        })}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {(() => {
+                const znovu = UDALOSTI.flatMap(([ym]) => [sp, sv, vy].map((p) => ({ p, s: p.starty.find((x) => x.start === ym) })))
+                  .filter((x): x is { p: PodVodouPreset; s: NonNullable<typeof x.s> } => !!x.s && x.s.realne !== null && x.s.realneNadPred >= 24);
+                return znovu.length > 0 && (
+                  <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                    Po inflaci byly některé investice dlouho v plusu a pak pod vklad znovu spadly – hlavně kvůli inflaci 2022–2023.
+                    „V minusu“ počítáme až do posledního měsíce pod vkladem:{' '}
+                    {znovu.map(({ p, s }, i) => (
+                      <span key={`${p.id}-${s.start}`}>{i > 0 && '; '}{p.nazev} {vMesici(s.start)} (předtím {doba(s.realneNadPred)} v plusu)</span>
+                    ))}.
+                  </p>
+                );
+              })()}
+              <p className="mt-2 text-xs text-slate-500">Vyvážené portfolio (60 % akcie, 40 % dluhopisy) počítáme od {od(vy.od)} – dřívější data dluhopisového fondu nemáme.</p>
+            </section>
+
+            <section className="mt-8">
+              <h2 className="text-xl font-bold tracking-tight">Všechny měsíce nákupu najednou</h2>
+              <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">
+                {sp.nazev}: každý sloupec je jeden měsíc nákupu, výška ukazuje, jak dlouho pak byla investice v minusu.
+                Tmavě v korunách, světle po inflaci.
+              </p>
+              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3">
+                <Graf p={sp} />
+                <div className="mt-1 flex gap-4 px-1 text-xs text-slate-600">
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-teal-700" /> v korunách</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-teal-200" /> po inflaci</span>
+                </div>
+              </div>
+              <p className="mt-3 text-[15px] text-slate-700 leading-relaxed">
+                U {sp.nikdyPod} z {sp.starty.length} měsíců nákupu ({Math.round((100 * sp.nikdyPod) / sp.starty.length)} %) nebyla hodnota
+                na konci žádného měsíce pod vkladem. Nejdelší čekání se týká nákupů v letech 2000–2003; kdo nakoupil od roku 2004, byl
+                v korunách v minusu nejvýš {doba(Math.max(...sp.starty.filter((x) => x.start >= '2004-01').map((x) => x.nominalne ?? 0)))}.
+              </p>
+            </section>
+
+            <section className="mt-8 text-[15px] text-slate-700 leading-relaxed space-y-3">
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">Proč to v korunách trvalo déle</h2>
+              <p>
+                S&amp;P 500 od ledna 2000 byl v dolarech v minusu {sp500UsdText(d.sp500Usd2000)}, v korunách{' '}
+                <strong>{doba(sp.starty[0].nominalne)}</strong>. Rozdíl udělal kurz: koruna v letech 2000–2008 silně posílila a dolarové investice
+                v ní ztrácely. Funguje to i opačně – v krizi 2008 koruna oslabila a propad v Kč zmírnila.{' '}
+                <Link href="/menove-riziko-etf" className="font-medium text-teal-700 hover:underline">Víc o měnovém riziku</Link>
+              </p>
+            </section>
+
+            <section className="mt-8 text-[15px] text-slate-700 leading-relaxed space-y-3">
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">Inflace prodlužuje čekání</h2>
+              <p>
+                Návrat nad vklad v korunách ještě neznamená, že si za peníze koupíte totéž co na začátku. Nejvíc je to vidět na roce 2022:
+                kdo koupil {sp.nazev} {vMesici('2022-01')}, byl v korunách v minusu {doba(sp.starty.find((s) => s.start === '2022-01')?.nominalne ?? null)},
+                ale po započtení inflace {doba(sp.starty.find((s) => s.start === '2022-01')?.realne ?? null)}. U nákupu těsně před covidem je
+                rozdíl ještě větší: {doba(sp.starty.find((s) => s.start === '2020-02')?.nominalne ?? null)} proti{' '}
+                {doba(sp.starty.find((s) => s.start === '2020-02')?.realne ?? null)}.
+              </p>
+            </section>
+
+            <section className="mt-8 text-[15px] text-slate-700 leading-relaxed space-y-3">
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">A když investujete pravidelně?</h2>
+              <p>
+                Pravidelná investice čekání zkrátí, ale nezruší. Kdo od {od('2000-01')} posílal do S&amp;P 500 každý měsíc stejnou částku, byl pod
+                součtem svých vkladů <strong>{doba(spDca.nominalne)}</strong> (po inflaci {doba(spDca.realne)}). V nejhorší chvíli,{' '}
+                {vMesici(spDca.nejhureKdy)}, měl o {pct(-spDca.nejhure)} méně, než vložil.
+              </p>
+              {sp.pravidelne.find((x) => x.od === '2007-10') && (() => {
+                const x = sp.pravidelne.find((y) => y.od === '2007-10')!;
+                return (
+                  <p>
+                    Kdo začal pravidelně investovat na vrcholu před finanční krizí ({kdy('2007-10')}), byl pod vklady {doba(x.nominalne)},
+                    po inflaci {doba(x.realne)} – zhruba o polovinu kratší doba než při jednorázovém nákupu ve stejný měsíc.
+                  </p>
+                );
+              })()}
+              <p>
+                Vyzkoušejte si vlastní začátek v <Link href="/stroj-casu" className="font-medium text-teal-700 hover:underline">Korunovém stroji času</Link>.
+              </p>
+            </section>
+
+            <section className="mt-8 text-[15px] text-slate-700 leading-relaxed space-y-3">
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">Co si z toho vzít</h2>
+              <p><strong>Akcie jsou na peníze, které nebudete potřebovat roky.</strong> I v historii, kterou známe, bylo možné být v minusu přes deset let.</p>
+              <p><strong>Rezerva a dluhopisy kupují klid.</strong> Vyvážené portfolio padalo méně a z krize 2008 se vrátilo dřív. Peníze na příští rok patří do{' '}
+                <Link href="/nouzova-rezerva" className="font-medium text-teal-700 hover:underline">rezervy</Link>, ne do akcií.</p>
+              <p><strong>Nejhorší případy jsou vzácné, ale skutečné.</strong> Data neříkají, kdy přijde další – jen jak dlouho to v minulosti trvalo.</p>
+            </section>
+
+            <section className="mt-8 grid gap-3 sm:grid-cols-2">
+              {[
+                ['/stroj-casu', 'Korunový stroj času', 'Kolik byste měli dnes, kdybyste začali dřív.'],
+                ['/sp500-nebo-cely-svet', 'S&P 500, nebo celý svět?', 'Co vydělalo víc v korunách.'],
+                ['/dca-vs-jednorazova', 'Naráz, nebo postupně?', 'Jednorázová investice proti pravidelné.'],
+                ['/backtest', 'Backtest portfolia', 'Vlastní složení na historických datech v Kč.'],
+              ].map(([href, t, p]) => (
+                <Link key={href} href={href} className="group rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300">
+                  <span className="flex items-center justify-between text-sm font-semibold text-slate-900">{t}<ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-700" /></span>
+                  <span className="mt-1 block text-xs text-slate-500">{p}</span>
+                </Link>
+              ))}
+            </section>
+
+            <section className="mt-8">
+              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><HelpCircle className="w-5 h-5 text-teal-700" /> Časté dotazy</h2>
+              <div className="mt-3 space-y-2">
+                {faqs.map((f, i) => (
+                  <details key={i} className="group rounded-lg border border-slate-200 bg-white p-4">
+                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" /></summary>
+                    <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+
+            <section className="mt-8 rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-500 leading-relaxed">
+              <p className="font-semibold text-slate-700">Metodika a zdroje</p>
+              <p className="mt-1">
+                Měsíční hodnoty (konec měsíce) z ETF SPY (S&amp;P 500), fondu VGTSX (svět mimo USA; „celý svět“ = 60 % USA + 40 % mimo USA)
+                a fondu AGG (dluhopisy) – s reinvesticí dividend, po poplatcích fondů, před daní, převedeno do korun denním kurzem, roční vyvažování.
+                Nákup na začátku měsíce. Inflace: index spotřebitelských cen ČSÚ (měsíčně od 2015, dříve z ročních průměrů);
+                za měsíce po {kdy('2026-06')} data ČSÚ zatím nejsou, inflaci za ně nezapočítáváme. Propady uvnitř měsíce se neprojeví.
+                Ověřeno nezávisle z ročních výnosů S&amp;P 500 (S&amp;P Dow Jones Indices), kurzů ČNB a míry inflace ČSÚ.
+                Minulé výnosy nezaručují budoucí.
+              </p>
+            </section>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function sp500UsdText(m: number | null) {
+  return doba(m);
+}

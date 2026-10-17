@@ -42,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { p: '/co-rikaji-data', pr: 0.8 },
     { p: '/stroj-casu', pr: 0.8 },
     { p: '/sp500-nebo-cely-svet', pr: 0.8 },
+    { p: '/jak-dlouho-v-minusu', pr: 0.8 },
     { p: '/kolik-investovat-mesicne', pr: 0.8 },
     { p: '/jaky-sp500-etf', pr: 0.8 },
     { p: '/dca-vs-jednorazova', pr: 0.8 },
