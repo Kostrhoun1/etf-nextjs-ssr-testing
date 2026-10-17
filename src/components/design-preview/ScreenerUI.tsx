@@ -244,7 +244,8 @@ export default function ScreenerUI({
       hedge: e._hedge,
       indexLabel: e._index,
       ratingVal: e._rating,
-      blob: e._blob,
+      // Fulltext pro hledání se skládá tady (dřív hotový `_blob` ze serveru = +426 kB v payloadu).
+      blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${e._tickers.join(' ')}`.toLowerCase(),
       tickers: e._tickers,
     })), [rows]);
 

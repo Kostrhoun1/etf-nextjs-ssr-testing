@@ -157,7 +157,7 @@ Podmínka pro 3.1 (věta v Kč) a 3.5: Vlna 2 hotová – jinak ukážeme víc l
 
 | # | Úkol | Dopad |
 |---|---|---|
-| 4.1 | **Payload srovnávače:** vyhodit `_blob` (484 KB, duplikuje název/ISIN/tickery) a `_tickers` (dopočítat v prohlížeči), výnosy na 1 desetinné místo → 4,3 MB → ~1,5 MB | `/srovnani` mobil: Perf 67, LCP 6,8 s |
+| 4.1 | ✅ (gzip 718 → 398 kB, −36 % na fond) **Payload srovnávače:** vyhodit `_blob` (484 KB, duplikuje název/ISIN/tickery) a `_tickers` (dopočítat v prohlížeči), výnosy na 1 desetinné místo → 4,3 MB → ~1,5 MB | `/srovnani` mobil: Perf 67, LCP 6,8 s |
 | 4.2 | ✅ **Backtest:** data indexů a kurzů cachovat v paměti modulu (TTL ~6 h) – dnes 2,8–4,8 s a ~1 MB JSON na každý výpočet | CPU, rychlost nástroje |
 | 4.3 | Grafy (recharts, 95 KB, 47–78 % nevyužito) načítat líně až u výsledku | kalkulačka TBT, backtest LCP |
 | 4.4 | Vypnout preview deploye pro ne-main větve (`git.deploymentEnabled`) | úložiště, méně zbytečných buildů |

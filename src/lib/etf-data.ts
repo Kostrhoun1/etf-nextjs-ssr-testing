@@ -448,9 +448,15 @@ export async function getLastModifiedDate(): Promise<string | null> {
  */
 export async function getTotalETFCount(): Promise<number> {
   try {
+    // Počítá jen fondy, které web opravdu ukazuje (stejná pravidla jako srovnávač): s názvem
+    // a s daty mladšími 30 dní. Dřív se počítaly všechny řádky tabulky → titulek srovnávače
+    // hlásil 5 146 fondů, zatímco srovnávač jich ukazoval méně (pravidlo č. 1).
     const { count, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .not('name', 'is', null)
+      .neq('name', '')
+      .gte('scraping_date', new Date(Date.now() - 30 * 864e5).toISOString());
 
     if (error) {
       console.error('Error getting ETF count:', error);
@@ -840,7 +846,6 @@ export interface ScreenerRow {
   ter_numeric: number | null;
   fund_size_numeric: number | null;
   fund_currency: string | null;
-  distribution_policy: string | null;
   is_leveraged: boolean | null;
   category: string | null;
   current_dividend_yield_numeric: number | null;
@@ -848,7 +853,7 @@ export interface ScreenerRow {
   return_ytd: number | null; return_ytd_czk: number | null; return_ytd_usd: number | null;
   return_1y: number | null; return_1y_czk: number | null; return_1y_usd: number | null;
   return_3y: number | null; return_3y_czk: number | null; return_3y_usd: number | null;
-  return_5y: number | null; return_5y_czk: number | null; return_5y_usd: number | null;
+  return_5y: number | null; return_5y_czk: number | null; return_5y_usd: number | null; // jen pro export CSV
   volatility_1y: number | null;
   fund_provider: string | null;
   // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
@@ -858,13 +863,16 @@ export interface ScreenerRow {
   _rating: number | null;
   _repl: string;    // 'Fyzická' | 'Syntetická' | '—'
   _dist: DistKind;  // typ výplaty – stejná logika jako detail fondu (src/utils/distribution.ts)
-  _blob: string;    // fulltext (name/isin/provider/tickery), lowercase
   _tickers: string[]; // všechny tickery lowercase (pro relevanci hledání)
   _dom: string | null;   // domicil už počeštěný (je zároveň hodnotou filtru)
   /** Rok vzniku fondu. `inception_date` je v DB anglický TEXT („8 April 2011"), takže
    *  se podle něj nedalo řadit. Parsujeme jednou na serveru a posíláme číslo. */
   _year: number | null;
 }
+
+/** Zaokrouhlení pro payload srovnávače (null zůstává null). */
+const r1 = (v: number | null | undefined) => (v == null ? null : Math.round(Number(v) * 10) / 10);
+const r2 = (v: number | null | undefined) => (v == null ? null : Math.round(Number(v) * 100) / 100);
 
 export interface ScreenerOptions {
   domiciles: string[];
@@ -941,17 +949,18 @@ export const getScreenerRows = reactCache(async (): Promise<{
       name: e.name,
       primary_ticker: e.primary_ticker,
       ter_numeric: e.ter_numeric,
-      fund_size_numeric: e.fund_size_numeric,
+      fund_size_numeric: r1(e.fund_size_numeric),
       fund_currency: e.fund_currency,
-      distribution_policy: e.distribution_policy,
       is_leveraged: e.is_leveraged,
       category: e.category,
-      current_dividend_yield_numeric: e.current_dividend_yield_numeric,
-      return_ytd: e.return_ytd, return_ytd_czk: e.return_ytd_czk, return_ytd_usd: e.return_ytd_usd,
-      return_1y: e.return_1y, return_1y_czk: e.return_1y_czk, return_1y_usd: e.return_1y_usd,
-      return_3y: e.return_3y, return_3y_czk: e.return_3y_czk, return_3y_usd: e.return_3y_usd,
-      return_5y: e.return_5y, return_5y_czk: e.return_5y_czk, return_5y_usd: e.return_5y_usd,
-      volatility_1y: e.volatility_1y,
+      // Zaokrouhleno na přesnost, jakou srovnávač zobrazuje (dřív 4 desetinná místa → 4,3 MB
+      // nezkomprimovaného JSONu, LCP /srovnani na mobilu 6,8 s; audit 17. 10. 2026).
+      current_dividend_yield_numeric: r2(e.current_dividend_yield_numeric),
+      return_ytd: r1(e.return_ytd), return_ytd_czk: r1(e.return_ytd_czk), return_ytd_usd: r1(e.return_ytd_usd),
+      return_1y: r1(e.return_1y), return_1y_czk: r1(e.return_1y_czk), return_1y_usd: r1(e.return_1y_usd),
+      return_3y: r1(e.return_3y), return_3y_czk: r1(e.return_3y_czk), return_3y_usd: r1(e.return_3y_usd),
+      return_5y: r1(e.return_5y), return_5y_czk: r1(e.return_5y_czk), return_5y_usd: r1(e.return_5y_usd),
+      volatility_1y: r1(e.volatility_1y),
       fund_provider: e.fund_provider,
       _dom: domLabelSrv(e.fund_domicile),
       _year: inceptionYear(e.inception_date),
@@ -961,7 +970,6 @@ export const getScreenerRows = reactCache(async (): Promise<{
       _rating: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
       _repl: replLabelSrv(e.replication),
       _dist: distKind(e.distribution_policy, e.distribution_frequency),
-      _blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${uniqTickers.join(' ')}`.toLowerCase(),
       _tickers: uniqTickers,
     };
   });
@@ -1020,7 +1028,7 @@ export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50,
     return 0;
   };
   return base
-    .filter((r) => r._blob.includes(term))
+    .filter((r) => `${r.name} ${r.isin} ${r.fund_provider ?? ''} ${r._tickers.join(' ')}`.toLowerCase().includes(term))
     .sort((a, b) => relevance(b) - relevance(a))
     .slice(0, n);
 }
