@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 
 // Helper to detect if string is ISIN format (2 letters + 10 alphanumeric)
 function isISIN(str: string): boolean {
@@ -69,8 +70,9 @@ export async function middleware(request: NextRequest) {
 
     if (ticker) {
       try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        // Dřív env NEXT_PUBLIC_SUPABASE_ANON_KEY = zakázaný legacy klíč → přesměrování vracelo 404.
+        const supabaseUrl = SUPABASE_URL;
+        const supabaseKey = SUPABASE_PUBLISHABLE_KEY;
 
         if (supabaseUrl && supabaseKey) {
           // Fetch ISIN for this ticker from database
@@ -120,8 +122,8 @@ export async function middleware(request: NextRequest) {
         if (isId1ISIN && isId2ISIN) {
           try {
             // Fetch tickers for these ISINs from Supabase
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+            const supabaseUrl = SUPABASE_URL;
+            const supabaseKey = SUPABASE_PUBLISHABLE_KEY;
 
             if (supabaseUrl && supabaseKey) {
               const response = await fetch(

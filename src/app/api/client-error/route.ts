@@ -9,17 +9,12 @@
  * Nenastavuje cookies, IP nezapisuje.
  */
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 
 // Zápis jde VEŘEJNÝM (publishable) klíčem: tabulka má RLS politiku „anon smí jen INSERT" –
 // nikdy SELECT/UPDATE/DELETE (ověřeno 17. 10. 2026: zápis 201, čtení [], smazání nic nesmaže,
-// příliš dlouhé pole 400). Služební klíč nejde: produkční SUPABASE_SERVICE_ROLE_KEY je starý
-// legacy JWT, který Supabase 26. 4. 2026 zakázal. Až se vymění za sb_secret_, použije se ten.
-const sluzebniKlic = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/\s+/g, '');
-const db = createClient(
-  'https://nbhwnatadyubiuadfakx.supabase.co',
-  sluzebniKlic?.startsWith('sb_secret_') ? sluzebniKlic : 'sb_publishable_IrdFtruv53Z2RbXNRRWCcw_K0TD4_ml',
-  { auth: { persistSession: false } },
-);
+// příliš dlouhé pole 400). Proč web nemá tajný klíč vůbec: src/lib/supabase-config.ts.
+const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
 
 const POVOLENE_HOSTY = /^(etfpruvodce\.cz|www\.etfpruvodce\.cz|localhost(:\d+)?|[a-z0-9-]+\.vercel\.app)$/i;
 const MAX_TELO = 8000;

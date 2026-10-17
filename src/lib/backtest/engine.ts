@@ -49,42 +49,20 @@ export async function loadExchangeRates(
   startDate?: Date,
   endDate?: Date
 ): Promise<ExchangeRate[]> {
-  const allData: Array<{ date: string; eur_usd: string; eur_czk: string; usd_czk: string }> = []
-  const pageSize = 1000
-  let offset = 0
-  let hasMore = true
+  const vse = await zMezipameti('kurzy', nactiVsechnyKurzy)
+  return vse.filter((r) => (!startDate || r.date >= denZacatek(startDate)) && (!endDate || r.date <= denKonec(endDate)))
+}
 
-  while (hasMore) {
-    let query = supabaseAdmin
+async function nactiVsechnyKurzy(): Promise<ExchangeRate[]> {
+  const rows = await nactiVseStrankovane<{ date: string; eur_usd: string; eur_czk: string; usd_czk: string }>(
+    'kurzy',
+    (from, to) => supabaseAdmin
       .from('exchange_rates_historical')
       .select('date, eur_usd, eur_czk, usd_czk')
       .order('date', { ascending: true })
-      .range(offset, offset + pageSize - 1)
-
-    if (startDate) {
-      query = query.gte('date', startDate.toISOString().split('T')[0])
-    }
-    if (endDate) {
-      query = query.lte('date', endDate.toISOString().split('T')[0])
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error('Error loading exchange rates:', error)
-      break
-    }
-
-    if (data && data.length > 0) {
-      allData.push(...data)
-      offset += pageSize
-      hasMore = data.length === pageSize
-    } else {
-      hasMore = false
-    }
-  }
-
-  return allData.map((row) => ({
+      .range(from, to),
+  )
+  return rows.map((row) => ({
     date: new Date(row.date),
     eurUsd: parseFloat(row.eur_usd),
     eurCzk: parseFloat(row.eur_czk),
@@ -240,6 +218,52 @@ export function convertTimeSeriesFromEur(
 }
 
 // ============================================================
+// MEZIPAMĚŤ A STRÁNKOVÁNÍ DAT
+// ============================================================
+
+/**
+ * Historie indexů a kurzů se mění jednou denně (noční job), ale každý výpočet backtestu je
+ * dřív stahoval celé znovu – 2,8–4,8 s na výpočet (technický audit 17. 10. 2026). Teď se drží
+ * v paměti instance 6 h (Vercel Fluid instance znovu používá) a filtrují se podle období.
+ * Ukládá se jen KOMPLETNĚ načtená řada; při chybě se záznam zahodí.
+ */
+const MEZIPAMET_TTL_MS = 6 * 3600 * 1000
+const mezipamet = new Map<string, { cas: number; data: Promise<unknown> }>()
+
+function zMezipameti<T>(klic: string, nacti: () => Promise<T>): Promise<T> {
+  const c = mezipamet.get(klic)
+  if (c && Date.now() - c.cas < MEZIPAMET_TTL_MS) return c.data as Promise<T>
+  const data = nacti().catch((e) => { mezipamet.delete(klic); throw e })
+  mezipamet.set(klic, { cas: Date.now(), data })
+  return data
+}
+
+/**
+ * Načte všechny řádky po stránkách (Supabase vrací max. 1000 na dotaz).
+ * PRAVIDLO Č. 1: při chybě HODÍ výjimku. Dřív chybu jen zalogoval a vrátil, co stihl – backtest
+ * pak tiše počítal z useknuté řady (např. bez posledních let) a ukázal špatná čísla.
+ */
+async function nactiVseStrankovane<R>(
+  popis: string,
+  dotaz: (from: number, to: number) => PromiseLike<{ data: R[] | null; error: { message: string } | null }>,
+): Promise<R[]> {
+  const vse: R[] = []
+  const STRANKA = 1000
+  for (let od = 0; ; od += STRANKA) {
+    const { data, error } = await dotaz(od, od + STRANKA - 1)
+    if (error) throw new Error(`Načtení dat (${popis}) selhalo: ${error.message}`)
+    if (!data || data.length === 0) break
+    vse.push(...data)
+    if (data.length < STRANKA) break
+  }
+  return vse
+}
+
+/** Porovnání podle dne (data v DB jsou 'YYYY-MM-DD' bez času). */
+const denZacatek = (d: Date) => new Date(d.toISOString().split('T')[0])
+const denKonec = (d: Date) => new Date(d.toISOString().split('T')[0])
+
+// ============================================================
 // DATA LOADING
 // ============================================================
 
@@ -251,49 +275,21 @@ export async function loadIndexData(
   startDate?: Date,
   endDate?: Date
 ): Promise<IndexData> {
-  // Load data in chunks to handle more than 1000 rows
-  const allData: Array<{ date: string; close_price: string }> = []
-  const pageSize = 1000
-  let offset = 0
-  let hasMore = true
-
-  while (hasMore) {
-    let query = supabaseAdmin
-      .from('index_historical_data')
-      .select('date, close_price')
-      .eq('index_code', indexCode)
-      .order('date', { ascending: true })
-      .range(offset, offset + pageSize - 1)
-
-    if (startDate) {
-      query = query.gte('date', startDate.toISOString().split('T')[0])
-    }
-    if (endDate) {
-      query = query.lte('date', endDate.toISOString().split('T')[0])
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error(`Error loading index data for ${indexCode}:`, error)
-      break
-    }
-
-    if (data && data.length > 0) {
-      allData.push(...data)
-      offset += pageSize
-      hasMore = data.length === pageSize
-    } else {
-      hasMore = false
-    }
-  }
-
+  const vse = await zMezipameti(`index:${indexCode}`, async () => {
+    const rows = await nactiVseStrankovane<{ date: string; close_price: string }>(
+      `index ${indexCode}`,
+      (from, to) => supabaseAdmin
+        .from('index_historical_data')
+        .select('date, close_price')
+        .eq('index_code', indexCode)
+        .order('date', { ascending: true })
+        .range(from, to),
+    )
+    return rows.map((row) => ({ date: new Date(row.date), closePrice: parseFloat(row.close_price) }))
+  })
   return {
     indexCode,
-    data: allData.map((row) => ({
-      date: new Date(row.date),
-      closePrice: parseFloat(row.close_price),
-    })),
+    data: vse.filter((r) => (!startDate || r.date >= denZacatek(startDate)) && (!endDate || r.date <= denKonec(endDate))),
   }
 }
 

@@ -4,6 +4,7 @@
  */
 import { cache as reactCache } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
 import { canonicalIndexLabel, buildIndexOptions, type IndexOptionGroup } from '@/utils/indexNormalization';
 import { distKind, type DistKind } from '@/utils/distribution';
@@ -12,18 +13,8 @@ import { calculateETFRating } from '@/utils/etfRating';
 import type { ETFListItem } from '@/types/etf';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
-// Modern publishable key (sb_publishable_...) – nahrazuje starý legacy service_role
-// JWT, který Supabase zakázal 2026-04-26 ("Legacy API keys are disabled") a kvůli
-// kterému se kategorie/srovnání renderovaly s PRÁZDNÝMI daty (= thin content).
-// Publishable klíč má read-only přístup k veřejné tabulce etf_funds, což pro SSG stačí.
-const SUPABASE_URL = 'https://nbhwnatadyubiuadfakx.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_IrdFtruv53Z2RbXNRRWCcw_K0TD4_ml';
-// Použij env klíč JEN pokud je v novém formátu (sb_secret_/sb_publishable_);
-// starý legacy JWT (eyJ...) je od 2026-04-26 zakázaný, proto ho ignorujeme.
-const envKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/\s+/g, '');
-const SUPABASE_READ_KEY = envKey?.startsWith('sb_') ? envKey : SUPABASE_PUBLISHABLE_KEY;
-
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_READ_KEY);
+// Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 // Types
 export interface ETFBasicInfo {
