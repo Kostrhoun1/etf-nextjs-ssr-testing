@@ -6,7 +6,7 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
-import { spoctiPodVodou, type PodVodouPreset } from '@/lib/clanky/podVodou';
+import { spoctiPodVodou, type PodVodouPreset, type DlouhoNad } from '@/lib/clanky/podVodou';
 
 /* Vlna 7 – obsah z dat v korunách. Otázka, kterou si začínající investor klade po prvním propadu.
    Čísla se počítají při ISR (1× denně) z řad Korunového stroje času + inflace ČSÚ; ověřeno
@@ -39,6 +39,7 @@ const MESICE1 = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'č
 const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
 /** „v lednu 2000" */
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v ${MESICE6[m - 1]} ${y}`; };
+const plusMesicu = (ym: string, n: number) => { const [y, m] = ym.split('-').map(Number); return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7); };
 const kdy = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE1[m - 1]} ${y}`; };
 const od = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE[m - 1]} ${y}`; };
 const pct = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(Math.round(v * 100))} %`;
@@ -93,6 +94,20 @@ export default async function JakDlouhoVMinusu() {
   const sv = d?.presety.find((p) => p.id === 'svet');
   const vy = d?.presety.find((p) => p.id === 'vyvazene');
   const spDca = sp?.pravidelne.find((x) => x.od === '2000-01');
+
+  // Poznámky k číslům, kde investice byla dlouho nad vkladem a pak pod něj krátce spadla (přísná doba pak působí přehnaně).
+  const poznamky: { klic: string; p: PodVodouPreset; ym: string; co: string; d: DlouhoNad }[] = [];
+  if (sp && sv && vy) {
+    for (const [ym] of UDALOSTI) for (const p of [sp, sv, vy]) {
+      const s = p.starty.find((x) => x.start === ym);
+      if (s?.dlouhoNadNominalne) poznamky.push({ klic: `${p.id}-${ym}-n`, p, ym, co: 'v korunách', d: s.dlouhoNadNominalne });
+      if (s?.dlouhoNadRealne) poznamky.push({ klic: `${p.id}-${ym}-r`, p, ym, co: 'po inflaci', d: s.dlouhoNadRealne });
+    }
+  }
+  const znacka = (klic: string) => {
+    const i = poznamky.findIndex((x) => x.klic === klic);
+    return i < 0 ? null : <sup className="ml-0.5 text-teal-700"><a href={`#pozn-${i + 1}`}>{i + 1}</a></sup>;
+  };
 
   const faqs = d && sp && sv && spDca ? [
     { q: 'Jak dlouho může trvat, než se investice do akcií vrátí nad vklad?', a: `Obvykle měsíce až pár let. V nejhorším případě od roku 2000 ale mnohem déle: kdo koupil S&P 500 ${vMesici(sp.starty[0].start)}, byl v korunách v minusu ${doba(sp.starty[0].nominalne)}, a po započtení české inflace ${doba(sp.starty[0].realne)}. Takové případy se týkaly nákupů na vrcholu internetové bubliny v letech 2000–2002.` },
@@ -167,8 +182,8 @@ export default async function JakDlouhoVMinusu() {
                           return s && (
                             <tr key={p.id} className="border-t border-slate-100">
                               <td className="px-4 py-2 text-slate-700">{p.nazev}</td>
-                              <td className="px-4 py-2 text-right tabular-nums">{doba(s.nominalne)}</td>
-                              <td className="px-4 py-2 text-right tabular-nums text-slate-600">{doba(s.realne)}</td>
+                              <td className="px-4 py-2 text-right tabular-nums">{doba(s.nominalne)}{znacka(`${p.id}-${ym}-n`)}</td>
+                              <td className="px-4 py-2 text-right tabular-nums text-slate-600">{doba(s.realne)}{znacka(`${p.id}-${ym}-r`)}</td>
                             </tr>
                           );
                         })}
@@ -177,19 +192,18 @@ export default async function JakDlouhoVMinusu() {
                   </tbody>
                 </table>
               </div>
-              {(() => {
-                const znovu = UDALOSTI.flatMap(([ym]) => [sp, sv, vy].map((p) => ({ p, s: p.starty.find((x) => x.start === ym) })))
-                  .filter((x): x is { p: PodVodouPreset; s: NonNullable<typeof x.s> } => !!x.s && x.s.realne !== null && x.s.realneNadPred >= 24);
-                return znovu.length > 0 && (
-                  <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-                    Po inflaci byly některé investice dlouho v plusu a pak pod vklad znovu spadly – hlavně kvůli inflaci 2022–2023.
-                    „V minusu“ počítáme až do posledního měsíce pod vkladem:{' '}
-                    {znovu.map(({ p, s }, i) => (
-                      <span key={`${p.id}-${s.start}`}>{i > 0 && '; '}{p.nazev} {vMesici(s.start)} (předtím {doba(s.realneNadPred)} v plusu)</span>
-                    ))}.
-                  </p>
-                );
-              })()}
+              {poznamky.length > 0 && (
+                <ol className="mt-2 space-y-1 text-xs text-slate-500 leading-relaxed">
+                  {poznamky.map(({ klic, p, ym, co, d }, i) => (
+                    <li key={klic} id={`pozn-${i + 1}`}>
+                      <sup className="mr-0.5 text-teal-700">{i + 1}</sup>
+                      {p.nazev}, nákup {vMesici(ym)}, {co}: investice byla nad vkladem už od {od(plusMesicu(ym, d.od))}, a to souvisle {doba(d.delka)}.
+                      Pak pod vklad ještě klesla, celkem na {doba(d.znovuPodMesicu)} (nejvíc o {pct(-d.hloubka)}) – a „v minusu“ počítáme až do posledního
+                      takového měsíce.
+                    </li>
+                  ))}
+                </ol>
+              )}
               <p className="mt-2 text-xs text-slate-500">Vyvážené portfolio (60 % akcie, 40 % dluhopisy) počítáme od {od(vy.od)} – dřívější data dluhopisového fondu nemáme.</p>
             </section>
 

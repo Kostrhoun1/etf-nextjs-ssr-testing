@@ -26,12 +26,19 @@ const pridej = (ym: string, n: number) => {
   return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7);
 };
 
+/**
+ * Investice byla dlouho (≥ 2 roky souvisle) nad vkladem a pak pod něj znovu spadla – tehdy přísná
+ * „doba v minusu“ (do posledního měsíce pod vkladem) může působit přehnaně, tak to stránka vysvětlí.
+ * Indexy jsou měsíce od nákupu (0 = konec měsíce nákupu).
+ */
+export interface DlouhoNad { od: number; delka: number; znovuPodMesicu: number; hloubka: number }
+
 export interface StartPodVodou {
   start: string;             // YYYY-MM (nákup na začátku měsíce = cena konce předchozího)
   nominalne: number | null;  // měsíců v minusu (0 = nikdy pod vkladem, null = dosud v minusu)
   realne: number | null;
-  /** Nejdelší souvislý úsek (měsíce) reálně NAD vkladem před posledním propadem pod vklad – „byl dlouho v plusu a pak znovu spadl". */
-  realneNadPred: number;
+  dlouhoNadNominalne: DlouhoNad | null;
+  dlouhoNadRealne: DlouhoNad | null;
 }
 
 export interface PravidelnePodVodou { od: string; nominalne: number | null; realne: number | null; nejhure: number; nejhureKdy: string }
@@ -52,6 +59,27 @@ export interface PodVodouPreset {
 /** Délka v minusu pro řazení – „dosud" = do konce dat. */
 const delka = (x: number | null, zbyva: number) => (x === null ? zbyva : x);
 
+/**
+ * r[k] = hodnota / vklad na konci k-tého měsíce od nákupu. Doba v minusu = do posledního měsíce pod
+ * vkladem (PŘÍSNĚ – „trvalý návrat“; rozhodnutí 17. 10. 2026: měkčí pravidla vždy nějaký skutečný
+ * pokles schovala, viz ZAMERNA-ROZHODNUTI.md). Navíc nejdelší souvislý úsek nad vkladem před tím.
+ */
+function prehled(r: number[]): { mesicu: number | null; dlouhoNad: DlouhoNad | null } {
+  const n = r.length;
+  let posl = -1;
+  for (let k = 0; k < n; k++) if (r[k] < 1) posl = k;
+  const mesicu = posl === n - 1 ? null : posl + 1;
+  let nej = { od: -1, delka: 0 }, zac = -1;
+  for (let k = 0; k <= posl; k++) {
+    if (r[k] >= 1) { if (zac < 0) zac = k; }
+    else if (zac >= 0) { if (k - zac > nej.delka) nej = { od: zac, delka: k - zac }; zac = -1; }
+  }
+  if (nej.delka < 24) return { mesicu, dlouhoNad: null };
+  let znovuPodMesicu = 0, nejnize = 1;
+  for (let k = nej.od + nej.delka; k <= posl; k++) if (r[k] < 1) { znovuPodMesicu++; nejnize = Math.min(nejnize, r[k]); }
+  return { mesicu, dlouhoNad: { od: nej.od, delka: nej.delka, znovuPodMesicu, hloubka: nejnize - 1 } };
+}
+
 function analyzuj(rada: StrojRada): StartPodVodou[] {
   const n = rada.nav.length;
   const mes = rada.nav.map((_, t) => pridej(rada.od, t));
@@ -60,20 +88,15 @@ function analyzuj(rada: StrojRada): StartPodVodou[] {
   for (let i = 0; i < n; i++) {
     const zaklad = i === 0 ? 1 : rada.nav[i - 1];
     const cpi0 = cpiLevel(`${mes[i]}-01`);
-    let nom = -1, real = -1, usek = 0, nejdelsi = 0, nejdelsiPredPoslednim = 0;
+    const nom: number[] = [], real: number[] = [];
     for (let t = i; t < n; t++) {
-      const pomer = rada.nav[t] / zaklad;
-      if (pomer < 1) nom = t;
       const c = cpiKonec[t];
-      if (cpi0 && c && pomer < c / cpi0) { real = t; nejdelsiPredPoslednim = nejdelsi; usek = 0; }
-      else { usek++; nejdelsi = Math.max(nejdelsi, usek); }
+      if (!cpi0 || !c) throw new Error(`chybí inflace pro ${mes[t]}`); // raději žádný článek než špatné číslo
+      nom.push(rada.nav[t] / zaklad);
+      real.push(rada.nav[t] / zaklad / (c / cpi0));
     }
-    out.push({
-      start: mes[i],
-      nominalne: nom === n - 1 ? null : nom < 0 ? 0 : nom - i + 1,
-      realne: real === n - 1 ? null : real < 0 ? 0 : real - i + 1,
-      realneNadPred: nejdelsiPredPoslednim,
-    });
+    const pn = prehled(nom), pr = prehled(real);
+    out.push({ start: mes[i], nominalne: pn.mesicu, realne: pr.mesicu, dlouhoNadNominalne: pn.dlouhoNad, dlouhoNadRealne: pr.dlouhoNad });
   }
   return out;
 }
