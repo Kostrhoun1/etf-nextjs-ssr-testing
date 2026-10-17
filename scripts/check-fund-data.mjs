@@ -124,10 +124,13 @@ const main = async () => {
     const roky = [rokNyni - 2, rokNyni - 1].filter((y) => y >= 2022 && y <= 2025); // sloupce return_2021–2025
     // VŠECHNY fondy, ne vzorek: 17. 10. 2026 nahrál zrušený běh se starým kódem 550 fondů se špatnými
     // ročními výnosy (VUAA, VWCE…) – vzorek 3 fondů by to chytil jen náhodou. Výpočet je levný.
+    // Jen fondy stažené za poslední 3 dny: fondy mimo nabídku (scraper je už nestahuje) mají stará čísla
+    // a hlásí je samostatné varování „už není v nabídce“ – tady by dělaly falešný poplach (17. 10.: 61 ks).
+    const cerstveOd = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10);
     const sel = ['isin', 'name', ...roky.flatMap((y) => [`return_${y}`, `return_${y}_czk`, `return_${y}_usd`])].join(',');
     const data = [];
     for (let od = 0; ; od += 1000) {
-      const r = await fetch(`${URL_DB}?select=${sel}&return_${roky[roky.length - 1]}=not.is.null&order=isin`, {
+      const r = await fetch(`${URL_DB}?select=${sel}&return_${roky[roky.length - 1]}=not.is.null&scraping_date=gte.${cerstveOd}&order=isin`, {
         headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${od}-${od + 999}` },
       }).then((x) => x.json());
       if (!Array.isArray(r)) throw new Error('roční výnosy: neplatná odpověď DB');
