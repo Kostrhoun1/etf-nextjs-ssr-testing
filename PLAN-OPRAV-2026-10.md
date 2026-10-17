@@ -133,15 +133,21 @@ vyhrávají na Seznamu, nevede sitemapa.
 |---|---|---|---|
 | 3.1 | **Detail fondu: kontextové odkazy s větou a číslem pro daný fond.** Akumulační/distribuční → článek; měnové riziko (žlutý box) → `/menove-riziko-etf`; výkonnost v Kč → `/kolik-vydelaly-etf` a „Otestovat od roku 2005" → `/backtest?slozeni=<index>:100&run=1` (jen pokud fond spolehlivě mapuje na index) | `src/app/etf/[isin]/page.tsx` ř. ~484, 508, 641, 677+ | referrer `/etf/` → článek: 0 z 1 243 |
 | 3.2 | **„Kam dál" podle kategorie fondu** (dnes natvrdo S&P 500 – zlatý fond radí „postavte proti VUAA") + 3–5 podobných fondů (stejný index/kategorie) + odkaz na existující dvojici | tamtéž ř. 687–718 | proklik detail → detail (83); Seznam „v indexu" 1 140 z 2 269 |
-| 3.3 | **Srovnání dvojic do sitemapy** (POPULAR_PAIRS) + vlastní canonical; `vwce-vs-cspx` má canonical na adresu s 308 | `src/app/sitemap.ts`, `srovnani/vwce-vs-cspx/page.tsx` | Seznam+Bing na `/srovnani/*`: 26 / 90 dní |
+| 3.3 | ✅ **Srovnání dvojic do sitemapy** (POPULAR_PAIRS) + vlastní canonical; `vwce-vs-cspx` má canonical na adresu s 308 | `src/app/sitemap.ts`, `srovnani/vwce-vs-cspx/page.tsx` | Seznam+Bing na `/srovnani/*`: 26 / 90 dní |
 | 3.4 | **Navigace:** přidat „Backtest" a „Co říkají data" (hub `/data`: kolik vydělaly ETF, DCA, měnové riziko, akum. vs. dist., ETF vs. akcie). Hlavičku vytáhnout do jedné sdílené komponenty (dnes je v každé `page.tsx` zvlášť) | `MobileMenu.tsx`, nová `SiteHeader` | prokliky na hub |
 | 3.5 | **Backtest ukáže výsledek hned po otevření** – výchozí preset předpočítaný na serveru v ISR, API až po změně. Totéž pro `/portfolio-strategie/[slug]` (dnes 2× `simulate` ≈ 6 s CPU na každé zobrazení!) | `backtest/page.tsx`, `BacktestWidget.tsx`, `PortfolioBacktest.tsx`; mrtvý `heroExample.ts` použít nebo smazat | podíl návštěv backtestu s interakcí |
 | 3.6 | **Nástroje → důkazy:** pod výsledkem jedna karta s tvrzením a číslem (pravidelný vklad → „Naráz, nebo postupně?"; USD index → měnové riziko; kalkulačka → „Proč 7 %? Skutečné výnosy v Kč") | `BacktestWidget.tsx`, `InvesticniKalkulackaWidget.tsx` | referrer `/backtest` → článek: 1 / 90 dní |
 | 3.7 | `/akumulacni-vs-distribucni-etf` není slepá ulička; `/kategorie` (sirotek) nalinkovat nebo sloučit | články | – |
-| 3.8 | Sitemapa: skutečný `lastmod` (dnes čas buildu u všech URL) | `sitemap.ts` | – |
+| 3.8 | ✅ Sitemapa: skutečný `lastmod` (dnes čas buildu u všech URL) | `sitemap.ts` | – |
 | 3.9 | `llms.txt` aktualizovat (staré www URL, „2000+ fondů", „Best ETF 2025") | `public/llms.txt` | – |
 | 3.10 | IndexNow posílat jen změněné URL, ne celou sitemapu po každém deployi | `scripts/indexnow.mjs` | – |
 | 3.11 | Canonical pro `/backtest` a kalkulačky (URL s parametry z FB, 301 z Buffetta) | stránky nástrojů | – |
+
+| 3.12 | ✅ **Srovnání podle ISINu:** lidé píšou i „ie00b5bmr087 vs ie00bfmxxd54" (Google našeptává desítky kombinací). ISINy do popisu a na stránku dvojice; URL s ISINy → 301 na tickerovou | `[pair]/page.tsx`, `etf-data.ts` (getComparisonETFData) | – |
+| 3.13 | ✅ **„Stejný fond, jiný ticker"** (CSPX vs SXR8, IWDA vs SWDA vs EUNL, VUAA vs VUAG) – častý dotaz, dnes 404/noindex. Místo toho stránka „jde o stejný fond (ISIN …), liší se burzou a měnou obchodování" + tabulka burz | `[pair]/page.tsx` | – |
+| 3.14 | ✅ **POPULAR_PAIRS podle našeptávače** (17. 10. 2026): vwce-vs-cspx, cspx-vs-vuaa, vwce-vs-iwda, iwda-vs-cspx, vwce-vs-vwrl, vuaa-vs-vusa, sxr8-vs-vuaa, cspx-vs-spyl, eunl-vs-vwce, iwda-vs-vwra, cspx-vs-sxr8, iwda-vs-swda, vuaa-vs-vuag; u sourozeneckých tříd (Acc/Dist) věta „stejný index, liší se výplatou" + odkaz na akum. vs. dist. | `src/lib/pairs.ts` | – |
+
+**Jak lidé srovnání hledají (našeptávač Google a Seznam, 17. 10. 2026):** fond proti fondu skoro výhradně TICKERY s „vs" (vwce vs cspx); časté je i ISIN vs ISIN a dotazy na tickery téhož fondu (iwda swda eunl). Česky s „nebo" hlavně na úrovni indexů a typů: „msci world nebo s&p 500", „nasdaq 100 nebo s&p 500", „etf akumulační nebo distribuční", „etf v eur nebo usd", „etf nebo podílové fondy", „dip nebo etf". Seznam srovnávací dotazy prakticky nenašeptává – lidé tam hledají název fondu a ISIN (→ detail fondu). Našeptávač ukazuje, co se píše často, ne objemy; Google mísí i zahraniční uživatele.
 
 Podmínka pro 3.1 (věta v Kč) a 3.5: Vlna 2 hotová – jinak ukážeme víc lidem špatná čísla.
 
@@ -223,6 +229,7 @@ Pořadí podle unikátnosti a toho, jak moc koruna mění závěr zahraničních
 | 7.4 | **Akumulační vs. distribuční při 15% dani** | Čistě česká daňová úloha; před daní Acc = Dist | Dividendový výnos (Shiller) | Factsheety emitenta; daně jen dle `/dane-z-etf` |
 | 7.5 | **Jak dlouho jsi v minusu – v Kč a reálně** | Vklad 2000 reálně pod vodou do 10/2016; 35 z 202 desetiletých oken reálně ve ztrátě | Reálné propady v enginu | SPY oficiálně, −51 % 2008, ČNB |
 | 7.6 | Replika Schwabova „načasování" v Kč | nejsdílitelnější karta | malý skript | trefit Schwabova čísla v USD |
+| 7.7 | **„MSCI World nebo S&P 500?" a „Nasdaq 100 nebo S&P 500?" – v korunách** | česky hledané dotazy (našeptávač); backtest v Kč umí odpovědět | nic – data indexů máme | publikované výnosy indexů (MSCI, S&P), kurzy ČNB |
 
 Distribuce každého tématu: FB karta (obrázek, čísla v Kč, odkaz v komentáři – ověřený
 nejlepší kanál), zkrácená verze na Seznam Médium (ne kopie) podpořená z FB v prvních 24–48 h.

@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
-import { categoryConfigs } from '@/lib/etf-data';
+import { categoryConfigs, getDataDate } from '@/lib/etf-data';
 import { portfolioModels } from '@/components/design-preview/portfolioData';
 import { fetchHeadIsins } from '@/lib/etf-head';
+import { SITEMAP_PAIRS } from '@/lib/pairs';
 
 /* Dynamická sitemapa – jen INDEXOVATELNÉ produkční URL (root routy nového webu).
    Vynecháno záměrně: /broker, /srovnani/porovnani, /prehled (noindex).
@@ -16,7 +17,12 @@ const BROKERS = ['degiro', 'xtb', 'trading212', 'ibkr', 'fio', 'portu'];
 export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
+  // lastmod: dřív u VŠECH URL čas buildu – pro vyhledávače bezcenné (deep dive 17. 10. 2026).
+  // Teď: stránky, jejichž čísla se denně přepočítávají z dat fondů (revalidate ≤ 1 den), dostanou
+  // datum posledních dat (MAX scraping_date). Ostatní lastmod nemají – žádné datum je poctivější
+  // než falešné. Detaily fondů se cachují až 30 dní, takže ani ty datum dat nedostanou.
+  const dataDate = await getDataDate(new Date());
+  const DATA_PAGES = /^(|\/srovnani|\/zebricky|\/kategorie|\/nejlepsi-etf\/.*|\/srovnani\/[a-z0-9]+-vs-[a-z0-9]+)$/;
   const paths: { p: string; pr: number; cf?: 'weekly' | 'monthly' }[] = [
     { p: '', pr: 1 },
     { p: '/srovnani', pr: 0.9 },
@@ -64,13 +70,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const s of Object.keys(categoryConfigs)) paths.push({ p: `/nejlepsi-etf/${s}`, pr: 0.7 });
   for (const m of portfolioModels) paths.push({ p: `/portfolio-strategie/${m.slug}`, pr: 0.6 });
   for (const b of BROKERS) paths.push({ p: `/recenze/${b}`, pr: 0.6 });
+  for (const pair of SITEMAP_PAIRS) paths.push({ p: `/srovnani/${pair}`, pr: 0.6 });
   // changefreq monthly = pravda: detaily fondů mají ISR revalidate 30 dní. Týdenní
   // hint by zval crawlera častěji a každý expirovaný render je Vercel ISR Write.
   for (const isin of await fetchHeadIsins()) paths.push({ p: `/etf/${isin}`, pr: 0.5, cf: 'monthly' });
 
   return paths.map(({ p, pr, cf }) => ({
     url: BASE + p,
-    lastModified: now,
+    ...(DATA_PAGES.test(p) ? { lastModified: dataDate } : {}),
     changeFrequency: cf ?? 'weekly',
     priority: pr,
   }));

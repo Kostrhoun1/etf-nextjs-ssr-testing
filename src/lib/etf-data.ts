@@ -614,6 +614,9 @@ export interface ComparisonETF {
   category: string | null;
 }
 
+/** Burzy fondu (pro odpověď „stejný fond, jiný ticker" – kde a v jaké měně se obchoduje). */
+const COMPARISON_LISTING_FIELDS = Array.from({ length: 10 }, (_, i) => [`exchange_${i + 1}_name`, `exchange_${i + 1}_currency`]).flat();
+
 const COMPARISON_TICKER_FIELDS = [
   'primary_ticker',
   'exchange_1_ticker', 'exchange_2_ticker', 'exchange_3_ticker', 'exchange_4_ticker', 'exchange_5_ticker',
@@ -629,8 +632,13 @@ export async function getComparisonETFData(
   ticker2: string
 ): Promise<{ etf1: ComparisonETF; etf2: ComparisonETF } | null> {
   try {
+    // Symbol = ticker NEBO ISIN (lidé hledají i „ie00b5bmr087 vs ie00bfmxxd54" – našeptávač
+    // Googlu 17. 10. 2026). Hodnoty jsou už ověřené ([a-z0-9]{1,12}) v middleware i parsePair.
+    const jeIsin = (x: string) => /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x.toUpperCase());
     const orConditions = [ticker1, ticker2]
-      .map(symbol => COMPARISON_TICKER_FIELDS.map(field => `${field}.eq.${symbol}`).join(','))
+      .map(symbol => jeIsin(symbol)
+        ? `isin.eq.${symbol.toUpperCase()}`
+        : COMPARISON_TICKER_FIELDS.map(field => `${field}.eq.${symbol}`).join(','))
       .join(',');
 
     const { data, error } = await supabaseAdmin
@@ -646,21 +654,26 @@ export async function getComparisonETFData(
         distribution_policy, replication, index_name, region,
         fund_currency, fund_domicile, total_holdings, inception_date,
         is_leveraged, category,
-        ${COMPARISON_TICKER_FIELDS.join(', ')}
+        ${COMPARISON_TICKER_FIELDS.join(', ')},
+        ${COMPARISON_LISTING_FIELDS.join(', ')}
       `)
       .or(orConditions);
 
-    if (error || !data || data.length < 2) {
+    if (error || !data || data.length < 1) {
       return null;
     }
 
     const matches = (etf: Record<string, unknown>, ticker: string) =>
-      COMPARISON_TICKER_FIELDS.some(f => (etf[f] as string)?.toUpperCase() === ticker.toUpperCase());
+      jeIsin(ticker)
+        ? String(etf.isin) === ticker.toUpperCase()
+        : COMPARISON_TICKER_FIELDS.some(f => (etf[f] as string)?.toUpperCase() === ticker.toUpperCase());
 
     const etf1 = data.find(e => matches(e, ticker1)) as ComparisonETF | undefined;
     const etf2 = data.find(e => matches(e, ticker2)) as ComparisonETF | undefined;
 
-    if (!etf1 || !etf2 || etf1.isin === etf2.isin) {
+    // Stejný ISIN (CSPX vs SXR8) se NEodmítá: je to častý dotaz „je to stejný fond?" a stránka
+    // na něj odpoví (dřív 404).
+    if (!etf1 || !etf2) {
       return null;
     }
 

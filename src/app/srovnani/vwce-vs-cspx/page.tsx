@@ -19,7 +19,8 @@ export const revalidate = 86400;
 /* Pilot: VWCE vs CSPX. V produkci by ticker1/ticker2 přišly z URL slugu. */
 const TICKER1 = 'VWCE';
 const TICKER2 = 'CSPX';
-const CANONICAL = 'https://etfpruvodce.cz/srovnani-etf/vwce-vs-cspx';
+// Dřív /srovnani-etf/… = adresa s přesměrováním 308 → canonical mířil na redirect.
+const CANONICAL = 'https://etfpruvodce.cz/srovnani/vwce-vs-cspx';
 
 export const metadata: Metadata = {
   title: 'VWCE vs CSPX: srovnání 2026 a které ETF koupit',
