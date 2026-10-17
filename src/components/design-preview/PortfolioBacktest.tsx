@@ -150,14 +150,19 @@ function AnnualBars({ data }: { data: AnnualRet[] }) {
   );
 }
 
-export default function PortfolioBacktest({ config, portfolioName }: { config: BacktestConfig; portfolioName: string }) {
+export default function PortfolioBacktest({ config, portfolioName, initialCzk }: {
+  config: BacktestConfig; portfolioName: string;
+  /** Předpočet v Kč ze serveru (src/lib/backtest/predpocet.ts) – v Kč se pak API nevolá vůbec. */
+  initialCzk?: { pf: Result; bench: Result } | null;
+}) {
   const [cur] = useCurrency();
-  const [pf, setPf] = useState<Result | null>(null);
-  const [bench, setBench] = useState<Result | null>(null);
-  const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading');
+  const [pf, setPf] = useState<Result | null>(initialCzk?.pf ?? null);
+  const [bench, setBench] = useState<Result | null>(initialCzk?.bench ?? null);
+  const [state, setState] = useState<'loading' | 'ok' | 'error'>(initialCzk ? 'ok' : 'loading');
 
   useEffect(() => {
     let alive = true;
+    if (cur === 'CZK' && initialCzk) { setPf(initialCzk.pf); setBench(initialCzk.bench); setState('ok'); return; }
     setState('loading');
     Promise.all([
       fetchBacktest(config.items, config.start, cur),
@@ -168,7 +173,7 @@ export default function PortfolioBacktest({ config, portfolioName }: { config: B
       else setState('error');
     });
     return () => { alive = false; };
-  }, [config, cur]);
+  }, [config, cur, initialCzk]);
 
   const startYear = useMemo(() => new Date(config.start).getFullYear(), [config.start]);
   const annualByYearBench = useMemo(() => {

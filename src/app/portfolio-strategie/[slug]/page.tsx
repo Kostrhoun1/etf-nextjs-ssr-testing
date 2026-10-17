@@ -12,9 +12,10 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { PortfolioBar } from '@/components/design-preview/portfolioComponents';
 import {
-  portfolioModels, ASSET_COLORS, RISK_PILL, PORTFOLIO_BACKTEST,
+  portfolioModels, ASSET_COLORS, RISK_PILL, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK,
 } from '@/components/design-preview/portfolioData';
 import PortfolioBacktest from '@/components/design-preview/PortfolioBacktest';
+import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
 import { getMetricsByIsins , getDataDate } from '@/lib/etf-data';
 
@@ -51,6 +52,11 @@ export default async function PortfolioDetailPreview(
   if (!model) notFound();
   const content = getPortfolioContent(slug);
   const btConfig = PORTFOLIO_BACKTEST[slug];
+  // Výchozí (Kč) backtest se počítá tady, jednou za ISR render – ne 2× v prohlížeči při každém zobrazení.
+  const [btPf, btBench] = btConfig
+    ? await Promise.all([predpocitejPortfolio(btConfig.items, btConfig.start), predpocitejPortfolio([BACKTEST_BENCHMARK], btConfig.start)])
+    : [null, null];
+  const btInitial = btPf && btBench ? { pf: btPf, bench: btBench } : null;
   // Kurátorský max. pokles strategie (číslo z „do −15 %").
   const pfMaxDD = -(parseInt(model.maxDrawdown.replace(/[^0-9]/g, ''), 10) || 0);
 
@@ -294,7 +300,7 @@ export default async function PortfolioDetailPreview(
           <section className="pb-8">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Historická výkonnost a chování v krizích</h2>
             <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech od roku 2008 – dlouhodobý růst, kolísavost, nejhlubší propady a co se dělo v krizích. Vše přepočtené do zvolené měny.</p>
-            <PortfolioBacktest config={btConfig} portfolioName={model.name} />
+            <PortfolioBacktest config={btConfig} portfolioName={model.name} initialCzk={btInitial} />
           </section>
         ) : cmp ? (
           <section className="pb-8">
