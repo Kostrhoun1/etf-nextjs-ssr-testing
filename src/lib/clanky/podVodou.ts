@@ -55,6 +55,14 @@ export interface PodVodouPreset {
   po10: { celkem: number; nominalne: string[]; realne: string[] };
   nikdyPod: number;
   pravidelne: PravidelnePodVodou[];
+  /** Podíl startů v minusu po N letech držení (jednorázově) – jen starty, které N let dat mají. */
+  poLetech: { roky: number; startu: number; nom: number; real: number; dcaStartu: number; dcaNom: number; dcaReal: number }[];
+  /** Po 5 letech v minusu (jednorázově, nominálně) podle roku nákupu: [rok, v minusu, celkem]. */
+  pet: [string, number, number][];
+  /** Nejhlubší pokles pod nákupní cenu (jednorázově), rozložení přes starty s aspoň 5 lety dat. */
+  hloubka: { median: number; p90: number; nejhorsi: number; nejhorsiStart: string; podil20: number; startu: number };
+  /** Rozložení doby v minusu (nominálně / reálně) přes starty s aspoň 10 lety dat. */
+  doba: { median: number; p75: number; p90: number; medianReal: number; p75Real: number; p90Real: number; startu: number };
 }
 
 /** Délka v minusu pro řazení – „dosud" = do konce dat. */
@@ -130,6 +138,55 @@ function pravidelne(rada: StrojRada, od: string): PravidelnePodVodou | null {
   };
 }
 
+const ROKY_DRZENI = [1, 2, 3, 5, 10, 15];
+
+/** Podíly „v minusu po N letech“ pro jednorázový nákup i pravidelné investování (stejná částka každý měsíc). */
+function poLetech(rada: StrojRada): PodVodouPreset['poLetech'] {
+  const n = rada.nav.length;
+  const mes = rada.nav.map((_, t) => pridej(rada.od, t));
+  const cpiS = mes.map((m) => cpiLevel(`${m}-01`)), cpiK = mes.map((m) => cpiLevel(`${m}-28`));
+  const navPred = (i: number) => (i === 0 ? 1 : rada.nav[i - 1]);
+  return ROKY_DRZENI.map((roky) => {
+    const k = roky * 12;
+    let startu = 0, nom = 0, real = 0, dcaStartu = 0, dcaNom = 0, dcaReal = 0;
+    for (let i = 0; i + k - 1 < n - 1; i++) {   // konec okna = konec měsíce i+k−1; poslední (rozběhlý) měsíc vynecháváme
+      const t = i + k - 1;
+      const pomer = rada.nav[t] / navPred(i);
+      const infl = (cpiK[t] ?? NaN) / (cpiS[i] ?? NaN);
+      if (!Number.isFinite(infl)) continue;
+      startu++; if (pomer < 1) nom++; if (pomer < infl) real++;
+      // pravidelně: 1 Kč na začátku každého měsíce i..t
+      let podily = 0, vkladyReal = 0;
+      for (let j = i; j <= t; j++) { podily += 1 / navPred(j); vkladyReal += (cpiK[t] ?? NaN) / (cpiS[j] ?? NaN); }
+      const hodnota = podily * rada.nav[t];
+      if (!Number.isFinite(vkladyReal)) continue;
+      dcaStartu++; if (hodnota < k) dcaNom++; if (hodnota < vkladyReal) dcaReal++;
+    }
+    return { roky, startu, nom: nom / Math.max(1, startu), real: real / Math.max(1, startu), dcaStartu, dcaNom: dcaNom / Math.max(1, dcaStartu), dcaReal: dcaReal / Math.max(1, dcaStartu) };
+  }).filter((x) => x.startu >= 12);
+}
+
+const kvantil = (xs: number[], p: number) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.max(0, Math.round(p * (s.length - 1))))]; };
+
+function hloubka(rada: StrojRada): PodVodouPreset['hloubka'] {
+  const n = rada.nav.length, mes = rada.nav.map((_, t) => pridej(rada.od, t));
+  const xs: { d: number; start: string }[] = [];
+  for (let i = 0; i + 60 < n; i++) {
+    const z = i === 0 ? 1 : rada.nav[i - 1];
+    let min = 1; for (let t = i; t < n; t++) min = Math.min(min, rada.nav[t] / z);
+    xs.push({ d: min - 1, start: mes[i] });
+  }
+  const d = xs.map((x) => x.d);
+  const nej = xs.reduce((a, b) => (b.d < a.d ? b : a));
+  return { median: kvantil(d, 0.5), p90: kvantil(d, 0.1), nejhorsi: nej.d, nejhorsiStart: nej.start, podil20: d.filter((x) => x <= -0.2).length / d.length, startu: d.length };
+}
+
+function doba(starty: StartPodVodou[], n: number): PodVodouPreset['doba'] {
+  const s10 = starty.filter((_, i) => n - i >= 120);
+  const nom = s10.map((s, i) => s.nominalne ?? n - i), real = s10.map((s, i) => s.realne ?? n - i);
+  return { median: kvantil(nom, 0.5), p75: kvantil(nom, 0.75), p90: kvantil(nom, 0.9), medianReal: kvantil(real, 0.5), p75Real: kvantil(real, 0.75), p90Real: kvantil(real, 0.9), startu: s10.length };
+}
+
 export interface PodVodou {
   presety: PodVodouPreset[];
   /** S&P 500 od 1/2000 v dolarech – pro srovnání, o kolik to koruna prodloužila. */
@@ -158,6 +215,17 @@ async function spoctiPodVodouBezCache(): Promise<PodVodou | null> {
         po10: { celkem: s10.length, nominalne: pod10('nominalne'), realne: pod10('realne') },
         nikdyPod: starty.filter((s) => s.nominalne === 0).length,
         pravidelne: ['2000-01', '2003-10', '2007-10'].map((od) => pravidelne(r, od)).filter((x): x is PravidelnePodVodou => !!x),
+        poLetech: poLetech(r),
+        pet: (() => {
+          const mes = r.nav.map((_, t) => pridej(r.od, t)), po = new Map<string, [number, number]>();
+          for (let i = 0; i + 59 < r.nav.length - 1; i++) {
+            const y = mes[i].slice(0, 4), z = i === 0 ? 1 : r.nav[i - 1], x = po.get(y) ?? [0, 0];
+            po.set(y, [x[0] + (r.nav[i + 59] / z < 1 ? 1 : 0), x[1] + 1]);
+          }
+          return [...po.entries()].map(([y, [a, b]]) => [y, a, b] as [string, number, number]);
+        })(),
+        hloubka: hloubka(r),
+        doba: doba(starty, n),
       };
     });
 
