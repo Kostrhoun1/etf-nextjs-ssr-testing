@@ -246,7 +246,7 @@ Pořadí podle unikátnosti a toho, jak moc koruna mění závěr zahraničních
 | 7.2 | **Pravidlo 4 % v korunách** | Start 2000 vyčerpal portfolio do 2012, start 2003 přežil | Výběry v enginu; dluhopisy před 2002 | Replika publikovaných výsledků v USD (Pfau / PV), CPI ČSÚ |
 | 7.3 | **Naráz, nebo postupně – v korunách** | Jednorázově vyhrálo v USD 70 %, v Kč 57 % | Skript přes všechna okna; ověřit na globálních akciích | Nejdřív trefit ~2/3 Vanguardu v USD |
 | 7.4 | **Akumulační vs. distribuční při 15% dani** | Čistě česká daňová úloha; před daní Acc = Dist | Dividendový výnos (Shiller) | Factsheety emitenta; daně jen dle `/dane-z-etf` |
-| 7.5 | **Jak dlouho jsi v minusu – v Kč a reálně** | Vklad 2000 reálně pod vodou do 10/2016; 35 z 202 desetiletých oken reálně ve ztrátě | Reálné propady v enginu | SPY oficiálně, −51 % 2008, ČNB |
+| 7.5 | ✅ **Jak dlouho jsi v minusu – v Kč a reálně** (faze4, `/jak-dlouho-v-minusu`, 17. 10.) | S&P 500 od 1/2000: v Kč pod vkladem do 7/2014 (USD do 8/2011), reálně do 3/2018; po 10 letech pod vkladem jen nákupy 1/2000–6/2002. Starý odhad „reálně do 10/2016“ byl z dat před opravou vadných ticků – neplatí | – | Ověřeno: řada celý svět 60/40 vs. nezávislý přepočet z ročních výnosů S&P DJI + VGTSX a kurzů ČNB: 2021 2,345/2,339, 2022 1,997/1,995, 2023 2,407/2,402; S&P 2014-07 a 2018-03 trefeno z ročních dat |
 | 7.6 | Replika Schwabova „načasování" v Kč | nejsdílitelnější karta | malý skript | trefit Schwabova čísla v USD |
 | 7.7 | **„MSCI World nebo S&P 500?" a „Nasdaq 100 nebo S&P 500?" – v korunách** | česky hledané dotazy (našeptávač); backtest v Kč umí odpovědět | nic – data indexů máme | publikované výnosy indexů (MSCI, S&P), kurzy ČNB |
 
