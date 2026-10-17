@@ -79,6 +79,9 @@ export async function generateMetadata(): Promise<Metadata> {
   },
   other: {
     'google-site-verification': 'xcO4Z-AnzPYJ288SOKyYz4KphoizdnaitN7V8e1yXKc',
+    // Seznam Webmaster (search.seznam.cz/wmt) – ověření vlastnictví, osobní Seznam účet.
+    // Neodstraňovat: bez něj Seznam Webmaster přestane ukazovat data o indexaci.
+    'seznam-wmt': 'iFpr9DXojGjJlaJLLC30J107n0voWcrc',
   },
   verification: {
     google: 'xcO4Z-AnzPYJ288SOKyYz4KphoizdnaitN7V8e1yXKc',
