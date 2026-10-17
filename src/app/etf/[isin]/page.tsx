@@ -564,6 +564,13 @@ export default async function ETFDetailPreview(
                 Otestovat {canonIdx} na historii v korunách <ArrowRight className="w-4 h-4" />
               </Link>
             )}
+            {/* Stroj času jen při PŘESNÉ shodě indexu s presetem (S&P 500) – preset „Celý svět"
+                je 60/40 USA/zbytek světa, FTSE All-World ani MSCI World přesně neodpovídá. */}
+            {btCode === 'sp500' && (
+              <Link href="/stroj-casu?co=sp500&mesicne=3000&od=2010" className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
+                Kolik by dnes dělalo 3 000 Kč měsíčně od roku 2010 <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
             <Link href="/kolik-vydelaly-etf" className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
               Kolik ETF vydělaly v korunách dlouhodobě <ArrowRight className="w-4 h-4" />
             </Link>

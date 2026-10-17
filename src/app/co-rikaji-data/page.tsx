@@ -45,6 +45,7 @@ const SKUPINY: { nadpis: string; popis: string; polozky: { href: string; titulek
     nadpis: 'Jaký fond vybrat',
     popis: 'Rozdíly mezi indexy a fondy, které se nejčastěji porovnávají.',
     polozky: [
+      { href: '/sp500-nebo-cely-svet', titulek: 'S&P 500, nebo celý svět?', text: 'Co vydělalo víc v korunách – od roku 2008 i v dekádě 2000–2009, kdy USA prohrávaly.' },
       { href: '/svetove-etf-indexy', titulek: 'Světové indexy', text: 'MSCI World, FTSE All-World, ACWI a S&P 500 – v čem se liší.' },
       { href: '/jaky-sp500-etf', titulek: 'Který S&P 500 ETF', text: 'CSPX, VUAA, VUSA a SPYL vedle sebe – poplatky a výnos v Kč.' },
       { href: '/faktorove-etf', titulek: 'Faktorové ETF', text: 'Value, momentum, kvalita a další faktory – co skutečně ukazují data v korunách.' },
