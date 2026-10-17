@@ -6,15 +6,20 @@
  * při ověřování) – chyba, kterou nikdo nepřečetl do hodiny, by zmizela. Do logů se píše dál
  * (značka [client-error]) jen pro živé ladění.
  *
- * Zápis jde přes service role (sb_secret_) – tabulka má RLS bez politik, takže veřejný
- * publishable klíč do ní zapsat ani z ní číst nesmí. Nenastavuje cookies, IP nezapisuje.
+ * Nenastavuje cookies, IP nezapisuje.
  */
 import { createClient } from '@supabase/supabase-js';
 
+// Zápis jde VEŘEJNÝM (publishable) klíčem: tabulka má RLS politiku „anon smí jen INSERT" –
+// nikdy SELECT/UPDATE/DELETE (ověřeno 17. 10. 2026: zápis 201, čtení [], smazání nic nesmaže,
+// příliš dlouhé pole 400). Služební klíč nejde: produkční SUPABASE_SERVICE_ROLE_KEY je starý
+// legacy JWT, který Supabase 26. 4. 2026 zakázal. Až se vymění za sb_secret_, použije se ten.
 const sluzebniKlic = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/\s+/g, '');
-const db = sluzebniKlic?.startsWith('sb_secret_')
-  ? createClient('https://nbhwnatadyubiuadfakx.supabase.co', sluzebniKlic, { auth: { persistSession: false } })
-  : null;
+const db = createClient(
+  'https://nbhwnatadyubiuadfakx.supabase.co',
+  sluzebniKlic?.startsWith('sb_secret_') ? sluzebniKlic : 'sb_publishable_IrdFtruv53Z2RbXNRRWCcw_K0TD4_ml',
+  { auth: { persistSession: false } },
+);
 
 const POVOLENE_HOSTY = /^(etfpruvodce\.cz|www\.etfpruvodce\.cz|localhost(:\d+)?|[a-z0-9-]+\.vercel\.app)$/i;
 const MAX_TELO = 8000;
@@ -47,12 +52,8 @@ export async function POST(req: Request) {
     ua: kratce(req.headers.get('user-agent'), 200),
   };
   console.error('[client-error]', JSON.stringify(zaznam));
-  if (db) {
-    const { error } = await db.from('client_errors').insert(zaznam);
-    // Selhání zápisu hlásíme do logu, ale prohlížeči vracíme pořád 204 – nemá to ovlivnit.
-    if (error) console.error('[client-error] zápis do client_errors selhal:', error.message);
-  } else {
-    console.error('[client-error] SUPABASE_SERVICE_ROLE_KEY chybí nebo není sb_secret_ – chyba se neuloží trvale');
-  }
+  const { error } = await db.from('client_errors').insert(zaznam);
+  // Selhání zápisu hlásíme do logu, ale prohlížeči vracíme pořád 204 – nemá to ovlivnit.
+  if (error) console.error('[client-error] zápis do client_errors selhal:', error.message);
   return new Response(null, { status: 204 });
 }
