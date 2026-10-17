@@ -35,6 +35,9 @@ const SKUPINY: { nadpis: string; popis: string; polozky: { href: string; titulek
       { href: '/akumulacni-vs-distribucni-etf', titulek: 'Akumulační, nebo distribuční?', text: 'Reinvestovat dividendy, nebo je vyplácet – a co to znamená pro daně v Česku.' },
       { href: '/etf-vs-akcie', titulek: 'ETF, nebo jednotlivé akcie?', text: 'Srovnání pro začátečníka s daty v korunách.' },
       { href: '/fire', titulek: 'Finanční nezávislost (FIRE)', text: 'Kolik potřebujete na finanční nezávislost v českých podmínkách.' },
+      { href: '/kolik-investovat-mesicne', titulek: 'Kolik investovat měsíčně', text: 'Kolik odkládat na milion nebo na rentu – spočítané v korunách.' },
+      { href: '/dip', titulek: 'DIP: vyplatí se?', text: 'Dlouhodobý investiční produkt – daňové výhody a pro koho dávají smysl.' },
+      { href: '/investovani-pro-deti', titulek: 'Investování pro děti', text: 'Kolik se dá naspořit do 18 let a jak účet založit.' },
     ],
   },
   {

@@ -136,7 +136,7 @@ vyhrávají na Seznamu, nevede sitemapa.
 | 3.3 | ✅ **Srovnání dvojic do sitemapy** (POPULAR_PAIRS) + vlastní canonical; `vwce-vs-cspx` má canonical na adresu s 308 | `src/app/sitemap.ts`, `srovnani/vwce-vs-cspx/page.tsx` | Seznam+Bing na `/srovnani/*`: 26 / 90 dní |
 | 3.4 | ✅ **Navigace:** přidat „Backtest" a „Co říkají data" (hub `/data`: kolik vydělaly ETF, DCA, měnové riziko, akum. vs. dist., ETF vs. akcie). Hlavičku vytáhnout do jedné sdílené komponenty (dnes je v každé `page.tsx` zvlášť) | `MobileMenu.tsx`, nová `SiteHeader` | prokliky na hub |
 | 3.5 | ◐ (portfolia hotová: 0 výpočtů při načtení místo 2, dřív ~6 s CPU na zobrazení; `/backtest` zatím ne – výsledek má ~1 MB, chce zmenšit) **Backtest ukáže výsledek hned po otevření** – výchozí preset předpočítaný na serveru v ISR, API až po změně. Totéž pro `/portfolio-strategie/[slug]` (dnes 2× `simulate` ≈ 6 s CPU na každé zobrazení!) | `backtest/page.tsx`, `BacktestWidget.tsx`, `PortfolioBacktest.tsx`; mrtvý `heroExample.ts` použít nebo smazat | podíl návštěv backtestu s interakcí |
-| 3.6 | **Nástroje → důkazy:** pod výsledkem jedna karta s tvrzením a číslem (pravidelný vklad → „Naráz, nebo postupně?"; USD index → měnové riziko; kalkulačka → „Proč 7 %? Skutečné výnosy v Kč") | `BacktestWidget.tsx`, `InvesticniKalkulackaWidget.tsx` | referrer `/backtest` → článek: 1 / 90 dní |
+| 3.6 | ✅ **Nástroje → důkazy:** pod výsledkem jedna karta s tvrzením a číslem (pravidelný vklad → „Naráz, nebo postupně?"; USD index → měnové riziko; kalkulačka → „Proč 7 %? Skutečné výnosy v Kč") | `BacktestWidget.tsx`, `InvesticniKalkulackaWidget.tsx` | referrer `/backtest` → článek: 1 / 90 dní |
 | 3.7 | ✅ `/akumulacni-vs-distribucni-etf` není slepá ulička; `/kategorie` (sirotek) nalinkovat nebo sloučit | články | – |
 | 3.8 | ✅ Sitemapa: skutečný `lastmod` (dnes čas buildu u všech URL) | `sitemap.ts` | – |
 | 3.9 | ✅ `llms.txt` aktualizovat (staré www URL, „2000+ fondů", „Best ETF 2025") | `public/llms.txt` | – |
@@ -178,7 +178,7 @@ Ověřuje se na 375 px před i po nasazení, screenshoty před/po.
 
 | # | Úkol | Dnes |
 |---|---|---|
-| 5.1 | **Homepage zkrátit na ~polovinu:** z 20 dlaždic nástrojů nechat 6 (backtest, investiční kalkulačka, srovnávač, portfolia, FIRE, Co říkají data), zbytek na `/kalkulacky`; 3× „Prozkoumat fondy" → 1×; tři trust bloky → jeden | 9 331 px ≈ 11,5 obrazovky |
+| 5.1 | ◐ (mobil 9 331 → 6 957 px: 6 dlaždic místo 18, na mobilu 3 položky v panelech/portfoliích/brokerech, pryč duplicitní trust karty; zbývá patička 978 px – bod 5.8) **Homepage zkrátit na ~polovinu:** z 20 dlaždic nástrojů nechat 6 (backtest, investiční kalkulačka, srovnávač, portfolia, FIRE, Co říkají data), zbytek na `/kalkulacky`; 3× „Prozkoumat fondy" → 1×; tři trust bloky → jeden | 9 331 px ≈ 11,5 obrazovky |
 | 5.2 | **Hero homepage na USP:** „Kolik by vám dnes vydělalo 5 000 Kč měsíčně od roku 2010? **X Kč**" + „Spočítat svůj případ" / „Najít fond". Číslo předpočítané v ISR stejným enginem a ověřené 3 kroky | „Největší srovnávač ETF" – žádná částka v Kč |
 | 5.3 | **Srovnávač na mobilu:** hero na 2 řádky; ve výchozím pohledu bez komodit a peněžního trhu (dnes v top 25 zlato ETC a XEON); rychlé volby „Celý svět / S&P 500 / Dluhopisy"; hvězdičky skrýt nebo přeškálovat (5/5 skoro všem) | hero 380 px před filtry |
 | 5.4 | **Investiční kalkulačka:** pole jako v backtestu (`inputMode="numeric"`, mezery v tisících); výsledek v pruhu, který zůstane vidět při posouvání | `type="number"`, šipky 16 px, výsledek ~930 px dolů |

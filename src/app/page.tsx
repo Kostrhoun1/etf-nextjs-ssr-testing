@@ -88,25 +88,15 @@ const HOME_BROKERS = BROKER_PICK
   .sort((a, b) => (b.broker!.rating ?? 0) - (a.broker!.rating ?? 0));
 
 /* Jen nástroje relevantní k výběru ETF a portfoliu (osekáno z 12). */
+/* Homepage ukazuje jen 6 nejsilnějších vstupů; ostatní nástroje jsou na /kalkulacky a články
+   na /co-rikaji-data (UX audit 17. 10. 2026: 18 dlaždic = homepage 11,5 obrazovky na mobilu). */
 const TOOLS = [
-  { href: '/kolik-vydelaly-etf', label: 'Kolik vydělaly ETF a akcie', desc: 'Kompletní datový rozbor v Kč (2008–2026)', icon: LineChart },
-  { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Budoucí hodnota investice', icon: Calculator },
-  { href: '/kalkulacka', label: 'Kalkulačka poplatků', desc: 'Kolik vás stojí TER za 30 let', icon: PieChart },
-  { href: '/backtest', label: 'Backtest portfolia', desc: 'Historická simulace od roku 2000', icon: History },
-  { href: '/fire-kalkulacka', label: 'FIRE kalkulačka', desc: 'Kdy dosáhnete nezávislosti', icon: Flame },
-  { href: '/kurzovy-dopad', label: 'Kurzový dopad', desc: 'Vliv kurzu na korunový výnos', icon: RefreshCw },
+  { href: '/backtest', label: 'Backtest portfolia', desc: 'Jak by vaše portfolio vydělalo v minulosti (v Kč)', icon: History },
+  { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Kolik naspoříte pravidelnou investicí', icon: Calculator },
+  { href: '/kolik-vydelaly-etf', label: 'Kolik vydělaly ETF', desc: 'Datový rozbor výnosů v korunách', icon: LineChart },
   { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: `${portfolioModels.length} ověřených strategií`, icon: LayoutGrid },
-  { href: '/fire', label: 'Průvodce FIRE', desc: 'Kolik potřebujete k nezávislosti', icon: BookOpen },
-  { href: '/dane-z-etf', label: 'Daně z ETF', desc: 'Kdy platíte a kdy ne (2026)', icon: Landmark },
-  { href: '/svetove-etf-indexy', label: 'Světové ETF: který index', desc: 'MSCI World vs FTSE All-World vs S&P 500', icon: Globe },
-  { href: '/menove-riziko-etf', label: 'Měnové riziko a zajištění', desc: 'Potřebujete hedged fond? (pohled v Kč)', icon: ShieldCheck },
-  { href: '/kolik-investovat-mesicne', label: 'Kolik investovat měsíčně', desc: 'Kolik na milion nebo rentu (v Kč)', icon: Wallet },
-  { href: '/jaky-sp500-etf', label: 'Který S&P 500 ETF', desc: 'CSPX vs VUAA vs VUSA vs SPYL', icon: Landmark },
-  { href: '/dca-vs-jednorazova', label: 'DCA vs. jednorázová', desc: 'Investovat naráz, nebo postupně? (data)', icon: LineChart },
-  { href: '/investovani-pro-deti', label: 'Investování pro děti', desc: 'Kolik naspoříte do 18 let (v Kč)', icon: Sparkles },
-  { href: '/dip', label: 'DIP: vyplatí se?', desc: 'Dlouhodobý investiční produkt (daně, v Kč)', icon: Landmark },
-  { href: '/etf-vs-akcie', label: 'ETF, nebo jednotlivé akcie?', desc: 'Proč většina akcií zaostává (data v Kč)', icon: PieChart },
-  { href: '/faktorove-etf', label: 'Faktorové ETF', desc: 'Fungují po nákladech? Co říkají data (v Kč)', icon: LineChart },
+  { href: '/fire', label: 'Finanční nezávislost', desc: 'Kolik potřebujete na FIRE (v Kč)', icon: Flame },
+  { href: '/co-rikaji-data', label: 'Co říkají data', desc: 'Naráz, nebo postupně? Měnové riziko? Daně?', icon: BookOpen },
 ];
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
@@ -171,7 +161,8 @@ function DataPanel({ title, href, etfs, metric }: { title: string; href: string;
       </div>
       <ul className="divide-y divide-slate-50">
         {etfs.slice(0, 5).map((etf, i) => (
-          <li key={etf.isin}>
+          // Na mobilu jen první 3 (UX audit: panely pod sebou = 1 371 px); celé pořadí přes „vše".
+          <li key={etf.isin} className={i >= 3 ? 'hidden md:block' : undefined}>
             <Link href={`/etf/${etf.isin}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors">
               <span className="text-xs text-slate-400 tabular-nums w-4">{i + 1}</span>
               <span className="flex-1 min-w-0">
@@ -368,11 +359,11 @@ export default async function DesignPreviewV2() {
             <Link href="/portfolio-strategie" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všechna portfolia <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            {portfolioPerf.map((p) => {
+            {portfolioPerf.map((p, pi) => {
               const Icon = PORTFOLIO_ICON[p.id] ?? LayoutGrid;
               const pos1 = (p.return1y ?? 0) >= 0;
               return (
-                <Link key={p.slug} href={`/portfolio-strategie/${p.slug}`} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
+                <Link key={p.slug} href={`/portfolio-strategie/${p.slug}`} className={`group ${pi >= 3 ? 'hidden sm:flex' : 'flex'} flex-col rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all`}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 group-hover:bg-teal-100 transition-colors shrink-0"><Icon className="w-5 h-5" /></span>
                     <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium leading-none ${RISK_PILL[p.risk]}`}>{p.risk}</span>
@@ -445,10 +436,10 @@ export default async function DesignPreviewV2() {
         <section className="pb-10">
           <div className="flex items-end justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold tracking-tight">Nástroje a kalkulačky</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Bezplatné nástroje pro výběr ETF a plánování portfolia.</p>
+              <h2 className="text-lg font-bold tracking-tight">Nástroje a odpovědi z dat</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Spočítejte si svůj případ – v korunách.</p>
             </div>
-            <Link href="/kalkulacky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">všechny <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/kalkulacky" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">všechny nástroje <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {TOOLS.map((t) => (
@@ -471,8 +462,8 @@ export default async function DesignPreviewV2() {
             <Link href="/kde-koupit" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">plné srovnání <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {HOME_BROKERS.map(({ id, forWhom, broker }) => (
-              <Link key={id} href={reviewHref[id] ?? '/kde-koupit'} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
+            {HOME_BROKERS.map(({ id, forWhom, broker }, bi) => (
+              <Link key={id} href={reviewHref[id] ?? '/kde-koupit'} className={`group ${bi >= 3 ? 'hidden sm:flex' : 'flex'} flex-col rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all`}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-slate-900 text-sm">{broker!.name}</span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700 tabular-nums" title={`Naše skóre ${broker!.rating} ze 100`}>
@@ -510,14 +501,6 @@ export default async function DesignPreviewV2() {
           </div>
         </section>
 
-        <section className="grid sm:grid-cols-3 gap-4 pb-12">
-          {[[ShieldCheck, 'Nezávislé a nekomerční', 'Žádné provize, žádná reklama, žádné placené pořadí.', '/o-nas'], [Star, '12 let praxe ve financích', 'Obsah od experta, ne anonymně.', '/o-nas'], [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/kde-koupit']].map(([Icon, t, d, href]: any) => (
-            <Link key={t} href={href} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-all">
-              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
-              <span><span className="block font-semibold text-sm">{t}</span><span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{d}</span></span>
-            </Link>
-          ))}
-        </section>
       </main>
 
     </div>
