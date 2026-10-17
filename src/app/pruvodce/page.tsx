@@ -289,8 +289,24 @@ export default async function GuidePreview() {
           </div>
         </section>
 
+        {/* ROZCESTNÍK – „Průvodce“ v menu zastřešuje i datové články a portfolia (menu 6 položek, 17. 10. 2026) */}
+        <section className="pb-7">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              ['#obsah-pruvodce', 'Základy ETF', 'Co je ETF, jak funguje, jak vybrat a koupit – čtěte níže.'],
+              ['/co-rikaji-data', 'Co říkají data', 'Odpovědi z dat v korunách: měnové riziko, naráz vs. postupně, daně…'],
+              ['/portfolio-strategie', 'Modelová portfolia', 'Hotová portfolia z ETF a jak si vedla v korunách.'],
+            ].map(([href, t, p]) => (
+              <Link key={href} href={href} className="rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300">
+                <span className="block text-sm font-semibold text-slate-900">{t}</span>
+                <span className="mt-1 block text-xs text-slate-500 leading-relaxed">{p}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* OBSAH / KOTVY */}
-        <section className="pb-9">
+        <section id="obsah-pruvodce" className="pb-9 scroll-mt-20">
           <GuideTOC items={toc} />
         </section>
 
