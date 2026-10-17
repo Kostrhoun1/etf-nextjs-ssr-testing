@@ -165,7 +165,7 @@ Podmínka pro 3.1 (věta v Kč) a 3.5: Vlna 2 hotová – jinak ukážeme víc l
 | 4.6 | ✅ Supabase URL a klíč na jednom místě (dnes 6 míst); jeden serverový klient s publishable klíčem | méně chyb při výměně klíčů |
 | 4.7 | ✅ (178 souborů; ověřeno grafem importů a buildem) **Mrtvý kód:** 175 z 321 souborů v `src` (27 tis. řádků) je nedosažitelných – smazat najednou podle grafu importů | přehlednost, rychlejší build |
 | 4.8 | ✅ (146 → 0; build zase hlídá typy) `tsc` 146 chyb → 0 v živých souborech, pak `ignoreBuildErrors: false` (ať build chytí skutečné bugy jako `distKind`) | prevence chyb |
-| 4.9 | Supabase advisor: `is_user_admin(email)` jde volat anonymně → odebrat EXECUTE pro anon; Postgres záplaty (vaše tlačítko v dashboardu) | bezpečnost |
+| 4.9 | ✅ is_user_admin: EXECUTE odebráno (17. 10., nic ji nepoužívalo; anonymní volání teď 401). Zbývá na majiteli: upgrade Postgresu, Auth OTP/leaked passwords v dashboardu. Supabase advisor: `is_user_admin(email)` jde volat anonymně → odebrat EXECUTE pro anon; Postgres záplaty (vaše tlačítko v dashboardu) | bezpečnost |
 
 **Nedělat:** přepis na Next 16 / Tailwind 4, ladění CSS a fontů kvůli Lighthouse body,
 zkracování `revalidate`, předgenerování všech 5 146 detailů.

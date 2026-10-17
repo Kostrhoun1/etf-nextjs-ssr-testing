@@ -528,6 +528,13 @@ export default function InvesticniKalkulackaWidget() {
             Jde o nominální částku (výnos je před inflací). V dnešní kupní síle bude kvůli inflaci nižší –
             při 2–3 % inflaci ročně zhruba o třetinu za 30 let.
           </p>
+          {/* Odkud vzít očekávaný výnos – skutečná data místo odhadu (deep dive 17. 10. 2026) */}
+          <p className="mt-3 text-sm text-teal-50">
+            Jaký výnos je realistický?{' '}
+            <a href="/kolik-vydelaly-etf" className="font-semibold underline underline-offset-2 hover:text-white">Kolik ETF skutečně vydělaly v korunách</a>
+            {' '}·{' '}
+            <a href="/backtest" className="font-semibold underline underline-offset-2 hover:text-white">vyzkoušejte backtest</a>
+          </p>
         </div>
       )}
     </div>

@@ -5,8 +5,9 @@ import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Legend,
 } from 'recharts';
 import {
-  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info, Pencil,
+  Plus, Trash2, AlertTriangle, Zap, TrendingDown, TrendingUp, Activity, Coins, Loader2, Info, Pencil, ArrowRight,
 } from 'lucide-react';
+import Link from 'next/link';
 import InfoTip from '@/components/design-preview/InfoTip';
 
 /**
@@ -1267,6 +1268,25 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     </details>
                   )}
                 </div>
+              </div>
+            );
+          })()}
+
+          {/* Navazující otázky – podle toho, co si člověk právě spočítal (dřív z backtestu vedl na
+              články za 90 dní 1 proklik; deep dive 17. 10. 2026). Bez čísel – ta jsou v článcích ověřená. */}
+          {(() => {
+            const karty: { href: string; titulek: string; text: string }[] = [];
+            if (contributionFrequency !== 'none' && contributionAmount > 0) karty.push({ href: '/dca-vs-jednorazova', titulek: 'Naráz, nebo postupně?', text: 'Počítáte s pravidelnými vklady. Co říkají data o jednorázové investici proti průměrování.' });
+            if (resultCurrency === 'CZK' && selectedETFs.some((e) => !!INDEX_BY_CODE[e.indexCode])) karty.push({ href: '/menove-riziko-etf', titulek: 'Kolik z výsledku dělá kurz koruny?', text: 'Indexy jsou v cizí měně – výnos v Kč zvyšuje i snižuje pohyb kurzu.' });
+            if (!karty.length) return null;
+            return (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {karty.map((k) => (
+                  <Link key={k.href} href={k.href} className="group rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors">
+                    <span className="flex items-center justify-between text-sm font-semibold text-slate-900">{k.titulek}<ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-700" /></span>
+                    <span className="mt-1 block text-xs text-slate-500 leading-relaxed">{k.text}</span>
+                  </Link>
+                ))}
               </div>
             );
           })()}
