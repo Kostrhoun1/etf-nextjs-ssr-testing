@@ -227,7 +227,7 @@ Jeden widget, který odpoví: *„Kdybych od [rok] posílal [částka] Kč měs�
 - **Podmínka:** Vlna 2 + nezávislé ověření předpočtu (vzorek scénářů přepočítat mimo engine,
   kotva SPDR/ČNB).
 
-**Stav v1 (17. 10. 2026, větev `faze4`):** /stroj-casu (4 presety: Celý svět, S&P 500, Vyvážené 60/40, Zlato; měsíčně + jednorázově; rok startu; graf; nejhorší chvíle; sdílený odkaz s parametry; „od minulé návštěvy" v localStorage), blok s ověřeným číslem v úvodu homepage (H1 bez neověřitelného „Největší"). **Ověření:** `scripts/overeni-stroj-casu.mjs` – stroj vs. plný backtest 0,13–0,33 % (vklad na začátku měsíce); S&P 500 TR (S&P DJI) ±0,27 p. b./rok; převod Kč přes ČNB ±0,06 %. Zbývá: OG karta per scénář, napojení na detail fondu a články, UX review (běží).
+**Stav v1 (17. 10. 2026, větev `faze4`):** /stroj-casu (4 presety: Celý svět, S&P 500, Vyvážené 60/40, Zlato; měsíčně + jednorázově; rok startu; graf; nejhorší chvíle; sdílený odkaz s parametry; „od minulé návštěvy" v localStorage), blok s ověřeným číslem v úvodu homepage (H1 bez neověřitelného „Největší"). **Ověření:** `scripts/overeni-stroj-casu.mjs` – stroj vs. plný backtest 0,13–0,33 % (vklad na začátku měsíce); S&P 500 TR (S&P DJI) ±0,27 p. b./rok; převod Kč přes ČNB ±0,06 %. UX review zapracováno (pruh s výsledkem na mobilu, obnova uloženého scénáře, OG s vlastní URL a číslem, české pády, rychlé volby roku, větší ovládání, prázdný stav, aria). Zbývá: napojení na detail fondu a články.
 
 **K rozhodnutí:** e-mailový „korunový report" jednou měsíčně (vaše dřívější ANO pro e-mail
 list). Potřebuje službu pro rozesílání a formulář se souhlasem – žádné cookies. Navrhuju až

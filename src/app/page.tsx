@@ -270,13 +270,13 @@ export default async function DesignPreviewV2() {
                   <span className="hidden md:inline">100% nezávislý a nekomerční — žádné provize, žádná reklama</span>
                 </p>
                 {heroCislo && (
-                  <Link href="/stroj-casu" className="group mt-4 block rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10 transition-colors">
+                  <Link href="/stroj-casu?co=svet&mesicne=5000&od=2010" className="group mt-4 block rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10 transition-colors">
                     <span className="block text-sm text-slate-300">5 000 Kč měsíčně do akcií celého světa od roku 2010 by dnes bylo zhruba</span>
                     <span className="mt-0.5 block text-2xl font-bold tabular-nums text-white">
                       {(heroCislo.hodnota / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč
-                      <span className="ml-2 text-sm font-normal text-slate-300">vloženo {(heroCislo.vlozeno / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 })} mil.</span>
+                      <span className="ml-2 text-sm font-normal text-slate-300">vloženo {Math.round(heroCislo.vlozeno).toLocaleString('cs-CZ')} Kč</span>
                     </span>
-                    <span className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-teal-300 group-hover:text-teal-200">Spočítat svůj případ <ArrowRight className="w-4 h-4" /></span>
+                    <span className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-teal-300 group-hover:text-teal-200">Spočítat s vlastní částkou <ArrowRight className="w-4 h-4" /></span>
                   </Link>
                 )}
                 <div className="mt-4 md:mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">

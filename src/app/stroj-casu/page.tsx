@@ -5,17 +5,33 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import StrojCasuWidget from '@/components/design-preview/StrojCasuWidget';
-import { nactiStrojCasu } from '@/lib/strojCasu';
+import { nactiStrojCasu, spocitejStroj } from '@/lib/strojCasu';
+import { ogImage } from '@/lib/ogImage';
 
 /* Korunový stroj času (Vlna 6). Řady se počítají při ISR renderu (1× denně) stejným enginem
    jako backtest; prohlížeč jen násobí – žádný výpočet na serveru při každé návštěvě. */
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: 'Korunový stroj času: kolik byste dnes měli, kdybyste investovali od roku…',
-  description: 'Kdybyste od roku 2010 posílali 5 000 Kč měsíčně do akcií celého světa, kolik byste měli dnes? Spočítejte si svůj případ v korunách – na skutečných historických datech.',
-  alternates: { canonical: '/stroj-casu' },
-};
+/* Vlastní OG (UX review: dřív se dědilo og:url homepage → Facebook sdílel titulní stranu).
+   Číslo v obrázku = výchozí scénář, spočítaný stejně jako na stránce. generateMetadata BEZ
+   searchParams → stránka zůstává statická (ISR); obrázek per scénář by ji udělal dynamickou. */
+export async function generateMetadata(): Promise<Metadata> {
+  const svet = (await nactiStrojCasu(['svet']))[0];
+  const v = svet ? spocitejStroj(svet, '2010-01', 5000, 0) : null;
+  const stat = v ? `${(v.hodnota / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč` : undefined;
+  const title = 'Kolik byste dnes měli, kdybyste začali investovat dřív?';
+  const description = 'Korunový stroj času: kolik by dnes měly vaše pravidelné investice od roku 2000, 2010 nebo 2020 – v korunách, na skutečných historických datech včetně krizí.';
+  return {
+    title: 'Korunový stroj času: kolik byste dnes měli, kdybyste investovali od roku…',
+    description,
+    alternates: { canonical: '/stroj-casu' },
+    openGraph: {
+      title, description, url: '/stroj-casu', type: 'website',
+      images: [ogImage({ title, eyebrow: 'Korunový stroj času', stat, statLabel: stat ? '5 000 Kč měsíčně do akcií celého světa od roku 2010' : undefined })],
+    },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
 export default async function StrojCasuStranka() {
   const rady = await nactiStrojCasu();
@@ -42,11 +58,14 @@ export default async function StrojCasuStranka() {
           <span className="text-slate-700">Korunový stroj času</span>
         </nav>
 
-        <section className="py-4 max-w-3xl">
+        <section className="py-2 md:py-4 max-w-3xl">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-balance">Korunový stroj času</h1>
-          <p className="mt-3 text-base text-slate-600 leading-relaxed">
-            Kolik byste měli dnes, kdybyste začali investovat dřív? Vyberte, do čeho, kolik měsíčně a od kterého roku –
-            výsledek je v korunách, na skutečných historických datech včetně krizí a pohybu kurzu koruny.
+          <p className="mt-2 md:mt-3 text-base text-slate-600 leading-relaxed">
+            <span className="md:hidden">Kolik byste měli dnes, kdybyste začali dřív? Na skutečných datech v korunách.</span>
+            <span className="hidden md:inline">
+              Kolik byste měli dnes, kdybyste začali investovat dřív? Vyberte, do čeho, kolik měsíčně a od kterého roku –
+              výsledek je v korunách, na skutečných historických datech včetně krizí a pohybu kurzu koruny.
+            </span>
           </p>
         </section>
 
