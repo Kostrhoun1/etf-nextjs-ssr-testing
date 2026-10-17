@@ -37,6 +37,12 @@ export interface IndexDef {
    * Data jsou NAV reálného fondu, tj. poplatek je UŽ V CENĚ. `sourceTer` je roční poplatek TOHO fondu
    * (ne proxy ETF!) — engine podle něj umí data přepočítat na jiný poplatek (pokročilé nastavení) nebo
    * ukázat čistý index. Ověřený z oficiálního zdroje správce. Chybí-li, engine bere data beze změny.
+   *
+   * Vyplněno 17. 10. 2026 (factsheety/stránky správců: SSGA SPY 0,0945 %, GLD 0,40 %; Vanguard VT 0,06 %,
+   * VGK 0,06 %; iShares EEM 0,72 %, AGG 0,03 %, LQD 0,14 %, IWD/IWF 0,18 %, IWM 0,19 %, SHY/IEF/TLT 0,15 %,
+   * IBGS/IBGX/IBGL 0,15 %, IEAC 0,09 %; Xtrackers XGLE 0,07 %). POZOR: je to DNEŠNÍ poplatek – dřív býval
+   * u některých fondů vyšší (VT 2008 ~0,25 %). Přepočet na jiný poplatek proto v prvních letech dat mírně
+   * podhodnocuje (konzervativní směr, řádově desetiny p. b. ročně). Výchozí výpočet (bez přepočtu) to neovlivňuje.
    */
   sourceTer?: number
   /** Data jsou NAV reálného fondu (poplatek v ceně). Engine ho už NEodečítá podruhé (opraveno). */
@@ -59,22 +65,22 @@ export interface IndexDef {
 export const INDEXES: IndexDef[] = [
   // ─────────────── REGIONY / AKCIOVÉ TRHY ───────────────
   { code: 'sp500', ticker: 'SPY', currency: 'USD', name: 'S&P 500 (USA)', group: 'region', since: '1993-01-29',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.000945, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007 } },
   { code: 'us_total_market', ticker: 'VTI', currency: 'USD', name: 'Celý americký trh', group: 'region', since: '2001-06-15',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B3XXRP09', name: 'Vanguard Total Stock Market', ter: 0.0003 } },
+    proxyEtf: { isin: 'IE00B52SFT06', name: 'iShares MSCI USA (nejbližší)', ter: 0.0003 } },
   { code: 'msci_eafe', ticker: 'EFA', currency: 'USD', name: 'Vyspělé trhy mimo USA', group: 'region', since: '2001-08-27',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B4L5Y983', name: 'iShares MSCI EAFE', ter: 0.002 } },
+    proxyEtf: { isin: 'IE00085PWS28', name: 'Amundi MSCI World ex USA (nejbližší)', ter: 0.0015 } },
   { code: 'ftse_europe', ticker: 'VGK', currency: 'USD', name: 'Evropa', group: 'region', since: '2005-03-10',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0006, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B945VV12', name: 'Vanguard FTSE Developed Europe', ter: 0.001 } },
   { code: 'msci_em', ticker: 'EEM', currency: 'USD', name: 'Rozvíjející se trhy', group: 'region', since: '2003-04-14',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0072, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00BKM4GZ66', name: 'iShares Core MSCI EM', ter: 0.0018 } },
   { code: 'ftse_all_world', ticker: 'VT', currency: 'USD', name: 'Celý svět', group: 'region', since: '2008-06-26',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0006, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00BK5BQT80', name: 'Vanguard FTSE All-World', ter: 0.0022 } },
   // POZOR: VGTSX je podílový FOND, ne ETF — proto historie až od 1996 (ETF tehdy neexistovalo).
   // Dohledáno 15.7.2026 podle shody data startu (1996-04-29) a hodnoty (0,00 %). Nikde to nebylo zapsáno.
@@ -109,15 +115,15 @@ export const INDEXES: IndexDef[] = [
   // FAKTORY JSOU AMERICKÉ: data = US indexy (Russell / MSCI USA), proto i proxy ETF musí být US, ne World.
   // Dřív tu byly World faktorové ETF → míchání jablek s hruškami. Opraveno 16.7.2026, US UCITS ověřeny z naší DB.
   { code: 'us_value', ticker: 'IWD', currency: 'USD', name: 'Value – US (hodnotové akcie)', group: 'factor', since: '2000-05-26',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0018, inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj Russell 1000 Value (USA).',
     proxyEtf: { isin: 'IE000US24HF4', name: 'Vanguard Russell 1000 US Value', ter: 0.0016 } },
   { code: 'us_growth', ticker: 'IWF', currency: 'USD', name: 'Growth – US (růstové akcie)', group: 'factor', since: '2000-05-26',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0018, inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj Russell 1000 Growth (USA). Protějšek k Value.',
     proxyEtf: { isin: 'IE000NITTFF2', name: 'iShares Russell 1000 Growth', ter: 0.0018 } },
   { code: 'us_small_cap', ticker: 'IWM', currency: 'USD', name: 'Small cap – US (malé firmy)', group: 'factor', since: '2000-05-26',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0019, inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj Russell 2000 (USA).',
     proxyEtf: { isin: 'IE000LRGEN55', name: 'Vanguard Russell 2000 US Small-Cap', ter: 0.002 } },
   { code: 'us_dividend', ticker: 'VYM', currency: 'USD', name: 'Dividendové akcie – US', group: 'factor', since: '2006-11-16',
@@ -142,20 +148,20 @@ export const INDEXES: IndexDef[] = [
 
   // ─────────────── DLUHOPISY ───────────────
   { code: 'us_treasury_1_3y', ticker: 'SHY', currency: 'USD', name: 'US státní dluhopisy 1–3 roky', group: 'bond', since: '2002-07-30',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00BYXPSP02', name: 'iShares USD Treasury Bond 1-3yr', ter: 0.0007 } },
   { code: 'us_treasury_7_10y', ticker: 'IEF', currency: 'USD', name: 'US státní dluhopisy 7–10 let', group: 'bond', since: '2002-07-30',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B3VWN518', name: 'iShares USD Treasury Bond 7-10yr', ter: 0.0007 } },
   { code: 'us_treasury_20y', ticker: 'TLT', currency: 'USD', name: 'US státní dluhopisy 20+ let', group: 'bond', since: '2002-07-30',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00BSKRJZ44', name: 'iShares USD Treasury Bond 20+yr', ter: 0.0007 } },
   { code: 'us_aggregate_bond', ticker: 'AGG', currency: 'USD', name: 'US agregátní dluhopisy', group: 'bond', since: '2003-09-29',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0003, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00BYXYYM63', name: 'iShares US Aggregate Bond', ter: 0.0025 } },
   { code: 'us_corp_bond_ig', ticker: 'LQD', currency: 'USD', name: 'US firemní dluhopisy (IG)', group: 'bond', since: '2002-07-30',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00BYXYYL56', name: 'iShares USD Corporate Bond', ter: 0.002 } },
+    dataIsNetOfFees: true, sourceTer: 0.0014, inBacktest: true, inDashboard: true, managed: true,
+    proxyEtf: { isin: 'IE00BYXYYJ35', name: 'iShares USD Corporate Bond', ter: 0.002 } },
   // ZDROJ VYMĚNĚN 19. 9. 2026. Původní ticker IEAG.L přestal na Yahoo existovat (HTTP 404)
   // a shodil noční sync. Při hledání náhrady se ukázalo, že IEAG je podle pojmenování iShares
   // "€ AGGREGATE Bond" (vládní I FIREMNÍ dluhopisy) – řada označená jako "EUR vládní dluhopisy"
@@ -168,28 +174,30 @@ export const INDEXES: IndexDef[] = [
   // Dopad na čísla ve stejném okně (2009-03→2026-09): CAGR 1,25 % → 1,73 %, vol 4,82 % → 5,07 %,
   // max. pokles −21,0 % → −21,6 %. Delší durace vládních dluhopisů, sedí.
   { code: 'eur_govt_bond', ticker: 'XGLE.DE', currency: 'EUR', name: 'EUR vládní dluhopisy', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
+    dataIsNetOfFees: true, sourceTer: 0.0007, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B4WXJJ64', name: 'iShares Core EUR Govt Bond', ter: 0.0007 } },
   { code: 'eur_corp_bond', ticker: 'IEAC.L', currency: 'EUR', name: 'EUR firemní dluhopisy', group: 'bond', since: '2009-03-06',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0009, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B3F81R35', name: 'iShares Core EUR Corp Bond', ter: 0.002 } },
 
   // Původ dohledán 24.7.2026: čistý total-return (adjclose) z Amsterdam listingů iShares € Govt Bond
   // koší. Yahoo má pro plnou historii jen MĚSÍČNÍ data → `monthly: true`. Nahrazuje starou řadu
   // neznámého původu (3-7y byla navíc nejspíš špatná durace). Ověřená ann. vol (×√12): 1,5 / 3,0 / 11,2 %.
   { code: 'eur_govt_bond_1_3y', ticker: 'IBGS.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 1–3 roky', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
+    dataIsNetOfFees: true, sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B14X4Q57', name: 'iShares EUR Govt Bond 1-3yr', ter: 0.002 } },
-  { code: 'eur_govt_bond_3_7y', ticker: 'IBGX.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 3–7 let', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
-    proxyEtf: { isin: 'IE00B3VTML14', name: 'iShares EUR Govt Bond 3-7yr', ter: 0.002 } },
+  { code: 'eur_govt_bond_3_7y', ticker: 'IBGX.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 3–5 let', group: 'bond', since: '2008-01-31',
+    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true, sourceTer: 0.0015,
+    // 17. 10. 2026: data jsou fond iShares € Govt Bond 3-5yr (IBGX.AS, ověřeno: DB 31. 12. 2024 = 155,64 =
+    // Yahoo adjclose IBGX), ne 3-7yr – popisek opraven. Kód indexu zůstal kvůli uloženým odkazům a presetům.
+    proxyEtf: { isin: 'IE00B1FZS681', name: 'iShares EUR Govt Bond 3-5yr', ter: 0.0015 } },
   { code: 'eur_govt_bond_15_30y', ticker: 'IBGL.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 15–30 let', group: 'bond', since: '2008-01-31',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true, monthly: true,
+    dataIsNetOfFees: true, sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true, monthly: true,
     proxyEtf: { isin: 'IE00B1FZS913', name: 'iShares EUR Govt Bond 15-30yr', ter: 0.002 } },
 
   // ─────────────── KOMODITY ───────────────
   { code: 'gold', ticker: 'GLD', currency: 'USD', name: 'Zlato', group: 'commodity', since: '2004-11-18',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.004, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B4ND3602', name: 'iShares Physical Gold', ter: 0.0012 } },
   { code: 'commodities', ticker: 'DBC', currency: 'USD', name: 'Komodity (diverzifikované)', group: 'commodity', since: '2006-02-06',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
