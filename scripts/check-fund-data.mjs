@@ -109,6 +109,40 @@ const main = async () => {
   const bezPolitiky = fondy.filter((x) => !x.distribution_policy).length;
   if (bezPolitiky) varovani.push({ co: `${bezPolitiky} fondů bez typu výplaty (akumulační/distribuční) – filtr je u nich nenajde`, ukazka: [] });
 
+  // ── ROČNÍ VÝNOSY V KČ/USD: nezávislý přepočet z kurzů ČNB a ECB ──
+  // Do 17. 10. 2026 scraper převáděl KAŽDÝ kalendářní rok kurzem „před 365 dny → dnes", takže
+  // všechny roky dostaly stejný měnový efekt posledních 12 měsíců (SXR8 2025 v USD +0,02 % místo
+  // +17,6 %). Kontrola: pro velké fondy přepočítá rok Y z EUR výnosu kurzy k 31. 12. Y−1 a 31. 12. Y.
+  const kurzCNB = async (d) => {
+    const t = await fetch(`https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt?date=${d.split('-').reverse().join('.')}`).then((r) => r.text());
+    const radek = t.split('\n').find((l) => l.split('|')[3] === 'EUR');
+    return radek ? Number(radek.split('|')[4].replace(',', '.')) : null;
+  };
+  const kurzECB = async (d) => (await fetch(`https://api.frankfurter.dev/v1/${d}?base=EUR&symbols=USD`).then((r) => r.json())).rates?.USD ?? null;
+  try {
+    const rokNyni = new Date().getFullYear();
+    const roky = [rokNyni - 2, rokNyni - 1].filter((y) => y >= 2022 && y <= 2025); // sloupce return_2021–2025
+    const vzorek = ['IE00B5BMR087', 'IE00B4L5Y983', 'IE00BK5BQT80']; // CSPX, IWDA, VWCE
+    const sel = ['isin', ...roky.flatMap((y) => [`return_${y}`, `return_${y}_czk`, `return_${y}_usd`])].join(',');
+    const data = await fetch(`${URL_DB}?select=${sel}&isin=in.(${vzorek.join(',')})`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+    const spatne = [];
+    for (const y of roky) {
+      const [c0, c1, u0, u1] = await Promise.all([kurzCNB(`${y - 1}-12-31`), kurzCNB(`${y}-12-31`), kurzECB(`${y - 1}-12-31`), kurzECB(`${y}-12-31`)]);
+      if (!c0 || !c1 || !u0 || !u1) continue;
+      for (const f of data) {
+        const eur = f[`return_${y}`];
+        if (eur == null) continue;
+        const czk = ((1 + eur / 100) * c1 / c0 - 1) * 100;
+        const usd = ((1 + eur / 100) * u1 / u0 - 1) * 100;
+        if (f[`return_${y}_czk`] != null && Math.abs(f[`return_${y}_czk`] - czk) > 0.5) spatne.push(`${f.isin} ${y} Kč: DB ${f[`return_${y}_czk`].toFixed(1)} vs. přepočet ${czk.toFixed(1)}`);
+        if (f[`return_${y}_usd`] != null && Math.abs(f[`return_${y}_usd`] - usd) > 0.5) spatne.push(`${f.isin} ${y} USD: DB ${f[`return_${y}_usd`].toFixed(1)} vs. přepočet ${usd.toFixed(1)}`);
+      }
+    }
+    if (spatne.length) poplach.push({ co: `Roční výnosy v Kč/USD nesedí s nezávislým přepočtem z kurzů ČNB/ECB (${spatne.length}×)`, ukazka: spatne.slice(0, 6) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu ročních výnosů v Kč/USD se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── ZLATÁ SADA ŽEBŘÍČKŮ (živý web) ──
   // Ověřuje, že v kategorii JSOU fondy, které tam patří, a NEJSOU tam pákové produkty a fondy
   // „ex <region>" (audit 17. 10. 2026: japonské obsahovaly „ex Japan", čínské „ex-China", ropa
