@@ -36,6 +36,8 @@ const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', '�
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v ${MESICE6[m - 1]} ${y}`; };
 /** [2000, 2001, 2002] → „2000, 2001 a 2002“ */
 const vycet = (xs: (string | number)[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} a ${xs.at(-1)}`);
+const MESICE2 = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+const od = (ym: string) => `${MESICE2[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
 const krat = (v: number) => v > 0 && v < 0.1 ? '< 0,1×' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}×`;
 const tvar = (n: number, a: string, b: string, c: string) => (n === 1 ? a : n >= 2 && n <= 4 ? b : c);
 /** Počet let od ledna `rok` do měsíce `ym` (celé roky). */
@@ -262,6 +264,123 @@ export default async function PravidloCtyriProcenta() {
                   </tbody>
                 </table>
               </div>
+            </section>
+
+
+            {/* ─── HLOUBKA ─── */}
+            <section className="mt-10">
+              <h2 className="text-xl font-bold tracking-tight">Úspěšnost podle výše výběru</h2>
+              <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">
+                Místo lednových startů teď bereme <strong>každý měsíc</strong>, ze kterého máme aspoň 15 let dat
+                (od {od(sp.od)} do {od(sp.uspesnostDo)}), a sledujeme, jestli peníze vydržely až do dneška. Výběr se každý měsíc navyšuje o českou inflaci.
+              </p>
+              <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <tr><th className="px-2 sm:px-3 py-2.5">Výběr ročně</th>{[sp, sv, vy].map((p) => <th key={p.id} className="px-2 sm:px-3 py-2.5">{p.nazev}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 tabular-nums">
+                    {sp.uspesnost.map((u, i) => (
+                      <tr key={u.sazba} className="align-top">
+                        <td className="px-2 sm:px-3 py-2 font-medium text-slate-900">{(u.sazba * 100).toLocaleString('cs-CZ')} %</td>
+                        {[sp, sv, vy].map((p) => {
+                          const x = p.uspesnost[i];
+                          return (
+                            <td key={p.id} className="px-2 sm:px-3 py-2">
+                              {x.vycerpano === 0
+                                ? <span className="text-emerald-700">vydrželo vše</span>
+                                : <span className="text-red-700">došlo u {Math.round((100 * x.vycerpano) / x.startu)} %</span>}
+                              <span className="block text-xs text-slate-500">{x.startu} startů{x.nejdrivRoky !== null ? `, nejdřív po ${Math.round(x.nejdrivRoky)} letech` : ''}</span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                „Došlo“ = portfolio se vyčerpalo dřív než dnes. Starty jsou staré 15 až {Math.round((Date.now() - new Date(`${sp.od}-01`).getTime()) / (365.25 * 864e5))} let – americké studie
+                počítají s 30 lety, takže skutečné riziko pro dlouhou rentu je spíš vyšší. Vyvážené portfolio má data až od {od(vy.od)}, nezahrnuje tedy starty z let 2000–2002.
+              </p>
+            </section>
+
+            <section className="mt-10">
+              <h2 className="text-xl font-bold tracking-tight">Kolik šlo vybírat podle roku začátku</h2>
+              <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">
+                Nejvyšší roční výběr (navyšovaný o inflaci), se kterým by portfolio při startu v lednu daného roku <strong>vydrželo dodnes</strong>.
+                U pozdějších startů je období ještě krátké, proto ukazujeme jen roky s aspoň 15 lety dat.
+              </p>
+              <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-sm tabular-nums">
+                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <tr><th className="px-2 sm:px-3 py-2.5">Start</th>{[sp, sv, vy].map((p) => <th key={p.id} className="px-2 sm:px-3 py-2.5 text-right">{p.nazev}</th>)}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {sp.starty.filter((s0) => s0.rok <= Number(sp.uspesnostDo.slice(0, 4))).map((s0) => (
+                      <tr key={s0.rok}>
+                        <td className="px-2 sm:px-3 py-1.5 font-medium text-slate-900">{s0.rok}</td>
+                        {[sp, sv, vy].map((p) => {
+                          const x = p.starty.find((y) => y.rok === s0.rok);
+                          const v = x?.maxSazba;
+                          return <td key={p.id} className={`px-2 sm:px-3 py-1.5 text-right ${v != null && v < 0.04 ? 'text-red-700' : ''}`}>{v != null ? `${(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %` : <span className="text-slate-400">—</span>}</td>;
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">Červeně = méně než 4 %. Přesnost 0,05 p. b. „Dodnes“ znamená různě dlouhá období – start {sp.starty[0].rok} je {Number(d.posledniDen.slice(0, 4)) - sp.starty[0].rok} let, start {Number(sp.uspesnostDo.slice(0, 4))} {Number(d.posledniDen.slice(0, 4)) - Number(sp.uspesnostDo.slice(0, 4))} let.</p>
+            </section>
+
+            <section className="mt-10">
+              <h2 className="text-xl font-bold tracking-tight">Pomohl by pružný výběr?</h2>
+              <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">
+                Jednoduchá úprava: výběr se navyšuje o inflaci jen jednou ročně a <strong>jen po roce, kdy portfolio nebylo ve ztrátě</strong>.
+                Po špatném roce zůstane na loňské částce. Pro nejhorší roky startu a výběr 4 %:
+              </p>
+              <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <tr><th className="px-2 sm:px-3 py-2.5">Start</th><th className="px-2 sm:px-3 py-2.5">Pevně (s inflací)</th><th className="px-2 sm:px-3 py-2.5">Pružně</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 tabular-nums">
+                    {[2000, 2001, 2002].flatMap((rok) => [sp, sv].map((p) => {
+                      const x = p.starty.find((y) => y.rok === rok);
+                      return x && (
+                        <tr key={`${rok}-${p.id}`}>
+                          <td className="px-2 sm:px-3 py-2"><span className="font-medium text-slate-900">{rok}</span><span className="block text-xs text-slate-500">{p.nazev}</span></td>
+                          <td className="px-2 sm:px-3 py-2"><Bunka v={x.s4} rok={rok} /></td>
+                          <td className="px-2 sm:px-3 py-2"><Bunka v={x.pruzne4} rok={rok} /></td>
+                        </tr>
+                      );
+                    }))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">Cenou pružnosti je nižší příjem: v letech po ztrátě vybíráte reálně méně, než jste plánovali.</p>
+            </section>
+
+            <section className="mt-10">
+              <h2 className="text-xl font-bold tracking-tight">Co to znamená v korunách</h2>
+              <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">Kolik měsíčně dává portfolio při různé výši výběru – a kolik byste potřebovali naspořit na 40 000 Kč měsíčně:</p>
+              <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-sm tabular-nums">
+                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <tr><th className="px-3 py-2.5">Výběr ročně</th><th className="px-3 py-2.5 text-right">Z 10 mil. Kč měsíčně</th><th className="px-3 py-2.5 text-right">Potřeba na 40 000 Kč/měs.</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {[0.03, 0.035, 0.04, 0.045, 0.05].map((r) => (
+                      <tr key={r}>
+                        <td className="px-3 py-2">{(r * 100).toLocaleString('cs-CZ')} %</td>
+                        <td className="px-3 py-2 text-right">{Math.round((10_000_000 * r) / 12).toLocaleString('cs-CZ')} Kč</td>
+                        <td className="px-3 py-2 text-right">{(Math.round((40_000 * 12) / r / 100_000) / 10).toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} mil. Kč</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">Před daní a poplatky; první rok, další roky se částka zvyšuje o inflaci. Přesný výpočet pro vaše výdaje: <Link href="/fire-kalkulacka" className="text-teal-700 hover:underline">FIRE kalkulačka</Link>.</p>
             </section>
 
             <section className="mt-8 text-[15px] text-slate-700 leading-relaxed space-y-3">

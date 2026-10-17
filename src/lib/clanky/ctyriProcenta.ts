@@ -62,12 +62,87 @@ export function simulujVybery(rada: StrojRada, start: string, sazba: number): Vy
   return { start, sazba, vycerpano: null, hodnota: h, realne: h / (cKonec / c0), nejnize, prubeh };
 }
 
+/**
+ * PRUŽNÁ varianta: výběr se navyšuje o inflaci jen jednou ročně (v lednu) a jen když portfolio za
+ * předchozí kalendářní rok nebylo ve ztrátě. Jinak zůstává na loňské částce (jednoduchá verze
+ * „guardrails“). Vrací totéž co simulujVybery.
+ */
+export function simulujPruzne(rada: StrojRada, start: string, sazba: number): VysledekVyberu | null {
+  const mes = (i: number) => pridej(rada.od, i);
+  const [ry, rm] = rada.od.split('-').map(Number);
+  const [sy, sm] = start.split('-').map(Number);
+  const i0 = (sy - ry) * 12 + (sm - rm);
+  if (i0 < 0 || i0 >= rada.nav.length) return null;
+  const c0 = cpiLevel(`${start}-01`);
+  if (!c0) return null;
+  let h = 1, nejnize = 1, rocniVyber = sazba, hodnotaLoni = 1, cLoni = c0;
+  const prubeh: VysledekVyberu['prubeh'] = [{ mesic: pridej(start, -1), hodnota: 1 }];
+  for (let t = i0; t < rada.nav.length; t++) {
+    const m = mes(t);
+    if (t > i0 && m.endsWith('-01')) {
+      const c = cpiLevel(`${m}-01`);
+      if (!c) return null;
+      if (h >= hodnotaLoni) rocniVyber *= c / cLoni;   // jen po roce bez ztráty
+      cLoni = c; hodnotaLoni = h;
+    }
+    h -= rocniVyber / 12;
+    if (h <= 0) {
+      prubeh.push({ mesic: m, hodnota: 0 });
+      return { start, sazba, vycerpano: m, hodnota: null, realne: null, nejnize: 0, prubeh };
+    }
+    h *= rada.nav[t] / (t === 0 ? 1 : rada.nav[t - 1]);
+    nejnize = Math.min(nejnize, h);
+    if (m.endsWith('-12') || t === rada.nav.length - 1) prubeh.push({ mesic: m, hodnota: h });
+  }
+  const cKonec = cpiLevel(`${mes(rada.nav.length - 1)}-28`);
+  if (!cKonec) return null;
+  return { start, sazba, vycerpano: null, hodnota: h, realne: h / (cKonec / c0), nejnize, prubeh };
+}
+
+/** Nejvyšší roční sazba (pevný výběr s inflací), která pro daný start dosud nevyčerpala portfolio. Půlení intervalu, přesnost 0,05 p. b. */
+function maxUdrzitelna(rada: StrojRada, start: string): number | null {
+  let lo = 0.005, hi = 0.2;
+  if (!simulujVybery(rada, start, lo) || simulujVybery(rada, start, lo)!.vycerpano) return null;
+  while (hi - lo > 0.0005) {
+    const mid = (lo + hi) / 2;
+    if (simulujVybery(rada, start, mid)!.vycerpano) hi = mid; else lo = mid;
+  }
+  return lo;
+}
+
+export interface Uspesnost { sazba: number; startu: number; vycerpano: number; nejdrivRoky: number | null }
+
+/** Úspěšnost sazeb přes VŠECHNY měsíční starty s aspoň `minLet` lety dat (vydrželo do konce dat). */
+function uspesnost(rada: StrojRada, sazby: number[], minLet: number): Uspesnost[] {
+  const n = rada.nav.length;
+  return sazby.map((sazba) => {
+    let startu = 0, vycerpano = 0, nejdriv: number | null = null;
+    for (let i = 0; i + minLet * 12 <= n - 1; i++) {
+      const st = pridej(rada.od, i);
+      const v = simulujVybery(rada, st, sazba);
+      if (!v) continue;
+      startu++;
+      if (v.vycerpano) {
+        vycerpano++;
+        const [a, b] = [st, v.vycerpano].map((x) => { const [y, m] = x.split('-').map(Number); return y * 12 + m; });
+        const roky = (b - a) / 12;
+        nejdriv = nejdriv === null ? roky : Math.min(nejdriv, roky);
+      }
+    }
+    return { sazba, startu, vycerpano, nejdrivRoky: nejdriv };
+  });
+}
+
 export interface CtyriProcentaPreset {
   id: string;
   nazev: string;
   od: string;
   /** Start v lednu každého roku (od prvního úplného roku dat do roku před posledním). */
-  starty: { rok: number; s4: VysledekVyberu; s35: VysledekVyberu; s3: VysledekVyberu }[];
+  starty: { rok: number; s4: VysledekVyberu; s35: VysledekVyberu; s3: VysledekVyberu; pruzne4: VysledekVyberu; maxSazba: number | null }[];
+  /** Úspěšnost 3–5 % přes měsíční starty s aspoň 15 lety dat. */
+  uspesnost: Uspesnost[];
+  /** Měsíc posledního startu, který má 15 let dat. */
+  uspesnostDo: string;
 }
 
 export interface CtyriProcenta { presety: CtyriProcentaPreset[]; posledniDen: string }
@@ -84,10 +159,13 @@ async function spoctiCtyriProcentaBezCache(): Promise<CtyriProcenta | null> {
         const s4 = simulujVybery(r, `${rok}-01`, 0.04);
         const s35 = simulujVybery(r, `${rok}-01`, 0.035);
         const s3 = simulujVybery(r, `${rok}-01`, 0.03);
-        if (!s4 || !s35 || !s3) throw new Error(`simulace ${r.id} ${rok} selhala`);
-        starty.push({ rok, s4, s35, s3 });
+        const pruzne4 = simulujPruzne(r, `${rok}-01`, 0.04);
+        if (!s4 || !s35 || !s3 || !pruzne4) throw new Error(`simulace ${r.id} ${rok} selhala`);
+        starty.push({ rok, s4, s35, s3, pruzne4, maxSazba: maxUdrzitelna(r, `${rok}-01`) });
       }
-      return { id: r.id, nazev: STROJ_PRESETY.find((p) => p.id === r.id)?.nazev ?? r.id, od: r.od, starty };
+      const usp = uspesnost(r, [0.03, 0.035, 0.04, 0.045, 0.05], 15);
+      return { id: r.id, nazev: STROJ_PRESETY.find((p) => p.id === r.id)?.nazev ?? r.id, od: r.od, starty, uspesnost: usp,
+        uspesnostDo: pridej(r.od, r.nav.length - 1 - 15 * 12) };
     });
     // Datum dat = nejstarší z konců řad (nikdy netvrdit novější den, než mají všechny presety).
     return { presety, posledniDen: rady.map((r) => r.posledniDen).sort()[0] };
