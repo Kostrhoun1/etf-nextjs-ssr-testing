@@ -1,0 +1,25 @@
+# Denní kontrola „nesmyslů" v datech fondů – po doběhnutí scraperu (etf-astro).
+# Co a proč hlídá, a proč má dvě úrovně (poplach vs. varování): scripts/check-fund-data.mjs.
+#
+# Poplach (selhání → e-mail) jen když se rozbije přísun dat. Varování o známých nedostatcích
+# kvality se objeví v přehledu běhu (Summary), e-mail neposílají.
+name: Kontrola dat fondů
+
+on:
+  schedule:
+    # Scraper v etf-astro dobíhá mezi ~11:30 a ~13:45 UTC → 15:30 s rezervou.
+    - cron: '30 15 * * *'
+  workflow_dispatch:
+
+jobs:
+  kontrola:
+    runs-on: ubuntu-24.04  # zafixováno 1.10.2026: ubuntu-latest od 19.10. přechází na Ubuntu 26 – přejít vědomě a otestovaně
+    env:
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Zkontrolovat data fondů
+        run: node scripts/check-fund-data.mjs

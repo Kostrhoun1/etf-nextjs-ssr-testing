@@ -5,6 +5,7 @@ import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import ClientErrorReporter from '@/components/ClientErrorReporter';
 import AuthorSchema from '@/components/SEO/AuthorSchema';
 import CompareTray from '@/components/design-preview/CompareTray';
 import SiteFooter from '@/components/design-preview/SiteFooter';
@@ -111,6 +112,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased overflow-x-clip`}>
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
+        <ClientErrorReporter />
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
