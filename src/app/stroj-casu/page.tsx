@@ -92,6 +92,22 @@ export default async function StrojCasuStranka() {
             </p>
           </div>
         </section>
+
+        <section className="mt-6 max-w-4xl">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Co říkají data dál</h2>
+          <div className="mt-2 grid gap-3 sm:grid-cols-3">
+            {[
+              ['/jak-dlouho-v-minusu', 'Jak dlouho můžete být v minusu?', 'Návrat po propadech – v Kč i po inflaci.'],
+              ['/sp500-nebo-cely-svet', 'S&P 500, nebo celý svět?', 'Co vydělalo víc v korunách.'],
+              ['/pravidlo-4-procent', 'Pravidlo 4 % v korunách', 'Vydržel by výběr 4 % ročně od roku 2000?'],
+            ].map(([href, t, p]) => (
+              <Link key={href} href={href} className="rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300">
+                <span className="block text-sm font-semibold text-slate-900">{t}</span>
+                <span className="mt-1 block text-xs text-slate-500">{p}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );

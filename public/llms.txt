@@ -15,6 +15,13 @@
 - ETF basics guide: https://etfpruvodce.cz/pruvodce
 - Taxes on ETFs in the Czech Republic: https://etfpruvodce.cz/dane-z-etf
 
+## Data studies (all figures computed daily from the same data as the backtest, in CZK)
+
+- Time machine – what regular investing since 2000/2010/2020 would be worth today in CZK: https://etfpruvodce.cz/stroj-casu
+- S&P 500 vs. the whole world, returns in CZK since 2008 and 2000–2009: https://etfpruvodce.cz/sp500-nebo-cely-svet
+- How long an investment can stay below the amount invested, in CZK and after Czech inflation: https://etfpruvodce.cz/jak-dlouho-v-minusu
+- The 4 % withdrawal rule on Czech data (CZK, Czech inflation) – which start years ran out of money: https://etfpruvodce.cz/pravidlo-4-procent
+
 ## ETF detail pages
 
 Pattern: https://etfpruvodce.cz/etf/{ISIN}

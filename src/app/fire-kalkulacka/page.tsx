@@ -40,8 +40,8 @@ export default async function FireKalkulackaPreview() {
       a: 'Vychází z pravidla 4 % (Trinity Study): potřebná částka je 25násobek vašich ročních výdajů. Při výdajích 40 000 Kč měsíčně (480 000 Kč ročně) vychází cíl na 12 milionů Kč. Z takového portfolia pak můžete vybírat zhruba 4 % ročně, aniž byste jistinu rychle vyčerpali.',
     },
     {
-      q: 'Co je pravidlo 4 % a je bezpečné?',
-      a: 'Pravidlo 4 % říká, že pokud první rok vyberete 4 % portfolia a dál výběr jen navyšujete o inflaci, portfolio s vysokou pravděpodobností vydrží 30 a více let. Pro velmi dlouhé renty (40+ let) je opatrnější použít 3–3,5 %. Jde o pravděpodobnostní odhad z historických dat, ne o záruku.',
+      q: 'Co je pravidlo 4 % a je spolehlivé?',
+      a: 'Pravidlo 4 % říká, že první rok vyberete 4 % portfolia a dál výběr jen navyšujete o inflaci. V amerických datech (Trinity Study) takový výběr obvykle vydržel 30 let. Na českých datech v korunách to ale neplatilo vždy: kdo začal z akcií vybírat v letech 2000–2002, tomu peníze došly (podrobně v článku Pravidlo 4 % v korunách). Pro dlouhou rentu je proto rozumné počítat s nižším výběrem, částí v dluhopisech nebo rezervě a ochotou ve špatných letech vybírat méně. Jde o odhad z historie, ne o záruku.',
     },
     {
       q: 'Jak je v kalkulačce zohledněna inflace?',
@@ -115,7 +115,7 @@ export default async function FireKalkulackaPreview() {
                 <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
                   Spočítejte si, v kolika letech vám naspořené portfolio uživí výdaje a budete moct přestat pracovat.
                   Stojí na pravidle{' '}
-                  <InfoTip label="Pravidlo 4 % (Trinity Study): cílem je 25násobek ročních výdajů. Z takového portfolia můžete vybírat zhruba 4 % ročně a s vysokou pravděpodobností vám vydrží desítky let.">
+                  <InfoTip label="Pravidlo 4 % (Trinity Study): cílem je 25násobek ročních výdajů. V amerických datech výběr 4 % ročně obvykle vydržel 30 let; na českých datech při nešťastném začátku (2000–2002) nevydržel.">
                     <span className="text-teal-200 underline decoration-dotted">4 %</span>
                   </InfoTip>{' '}
                   a počítá v korunách.
@@ -141,7 +141,7 @@ export default async function FireKalkulackaPreview() {
                   <p className="text-xs text-slate-400">ročních výdajů</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Bezpečný výběr</p>
+                  <p className="text-xs text-slate-400">Obvyklý výběr</p>
                   <p className="text-lg font-bold tabular-nums text-teal-300">~4 %</p>
                   <p className="text-xs text-slate-400">ročně z portfolia</p>
                 </div>
@@ -166,6 +166,10 @@ export default async function FireKalkulackaPreview() {
                 <span className="underline decoration-dotted">pravidlo 4 %</span>
               </InfoTip>
               ) a tím získáte cílovou částku. Pak sledujete, kdy k ní vaše portfolio doroste.
+            </p>
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+              Pozor, 4 % není záruka: na českých datech by výběr 4 % ze startu v letech 2000–2002 nevydržel.{' '}
+              <Link href="/pravidlo-4-procent" className="font-medium text-teal-700 hover:underline">Jak by pravidlo 4 % dopadlo v korunách</Link>
             </p>
 
             <ul className="mt-5 grid sm:grid-cols-3 gap-3">

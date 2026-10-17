@@ -541,7 +541,7 @@ export default function FireKalkulackaWidget() {
               <p className="mt-1">
                 Zkuste zvýšit měsíční spoření, snížit cílové výdaje nebo zvolit agresivnější strategii.
                 Cílová částka (
-                <InfoTip label="Pravidlo 4 % (Trinity Study): při výběru 4 % ročně portfolio s vysokou pravděpodobností vydrží desítky let. Odpovídá 25násobku ročních výdajů.">
+                <InfoTip label="Pravidlo 4 % (Trinity Study): v amerických datech výběr 4 % ročně obvykle vydržel 30 let; na českých datech při nešťastném začátku (2000–2002) nevydržel. Odpovídá 25násobku ročních výdajů.">
                   pravidlo 4 %
                 </InfoTip>
                 ) vychází na <strong>{fmtCZK(result.fireTarget)}</strong> v dnešních cenách.
@@ -587,7 +587,7 @@ export default function FireKalkulackaWidget() {
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-white/15 pt-4">
             <div>
               <p className="text-sm text-teal-100">Cílová částka (
-                <InfoTip label="Pravidlo 4 % (Trinity Study): 25násobek ročních výdajů. Z takového portfolia můžete vybírat ~4 % ročně a s vysokou pravděpodobností vydrží.">
+                <InfoTip label="Pravidlo 4 % (Trinity Study): 25násobek ročních výdajů. V amerických datech výběr ~4 % ročně obvykle vydržel 30 let – záruka to ale není.">
                   <span className="text-teal-50 underline decoration-dotted">pravidlo 4 %</span>
                 </InfoTip>
                 )
