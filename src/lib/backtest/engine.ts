@@ -259,6 +259,29 @@ async function nactiVseStrankovane<R>(
   return vse
 }
 
+/**
+ * VADNÉ TICKY v index_historical_data (audit 17. 10. 2026, pravidlo č. 1).
+ * Body datované o VÍKENDU a 1. DNE V MĚSÍCI pocházejí ze starého měsíčního zdroje s jinou úrovní
+ * ceny (jiné očištění o dividendy): odchylka od sousedních dnů 3,6–4,1 % proti 0,9 % u běžných dnů.
+ * S&P 500 má 1. 1. 2010 cenu 79,95 mezi 83,17 a 84,58 → backtest od 1. 1. 2010 ukazoval o 3,9 % víc.
+ * Loader je nemaže (upsert, nikdy delete), proto se vynechávají PŘI ČTENÍ – jen v úsecích s denními
+ * daty (soused do 5 dnů na obě strany); řady a období jen s měsíčními daty zůstávají celé. Vynechání
+ * i správného bodu je neškodné: ceny jsou úrovně, výnos mezi zbylými body se nemění.
+ * Úklid přímo v DB = rozhodnutí majitele (PLAN-OPRAV-2026-10.md).
+ */
+function bezVadnychTicku(indexCode: string, body: Array<{ date: Date; closePrice: number }>) {
+  if (INDEX_BY_CODE[indexCode]?.monthly) return body
+  const DEN = 864e5
+  return body.filter((b, i) => {
+    const dow = b.date.getUTCDay()
+    const podezrely = dow === 0 || dow === 6 || b.date.getUTCDate() === 1
+    if (!podezrely) return true
+    const pred = body[i - 1], po = body[i + 1]
+    const denniUsek = pred && po && b.date.getTime() - pred.date.getTime() <= 5 * DEN && po.date.getTime() - b.date.getTime() <= 5 * DEN
+    return !denniUsek
+  })
+}
+
 /** Porovnání podle dne (data v DB jsou 'YYYY-MM-DD' bez času). */
 const denZacatek = (d: Date) => new Date(d.toISOString().split('T')[0])
 const denKonec = (d: Date) => new Date(d.toISOString().split('T')[0])
@@ -285,7 +308,7 @@ export async function loadIndexData(
         .order('date', { ascending: true })
         .range(from, to),
     )
-    return rows.map((row) => ({ date: new Date(row.date), closePrice: parseFloat(row.close_price) }))
+    return bezVadnychTicku(indexCode, rows.map((row) => ({ date: new Date(row.date), closePrice: parseFloat(row.close_price) })))
   })
   return {
     indexCode,

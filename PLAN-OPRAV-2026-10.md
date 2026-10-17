@@ -203,6 +203,8 @@ Ověřuje se na 375 px před i po nasazení, screenshoty před/po.
 | FIRE kalkulačka | výsledek se měnil při každém načtení | pevné semínko: 19/24/32 let (nezávisle 19,2/24,8/32,4) |
 | Kalkulačka poplatků | r − TER místo (1+r)(1−TER)−1 (−5 %); popisek plochy | 4 416 696 Kč = přesný výpočet |
 
+**Vadné body v historii indexů (17. 10. 2026)** – body datované o víkendu a 1. dne v měsíci (starý měsíční zdroj, jiná úroveň ceny; odchylka od sousedů 3,6–4,1 % vs. 0,9 %). Backtest od 1. 1. 2010 dával 720 748 USD – víc než samotný index S&P 500 TR (702 720). ✅ Engine je při čtení vynechává (jen v denních úsecích) → 681 279 USD; roční výnosy 2011–2024 sedí s S&P DJI na 0,01–0,27 p. b. (poplatek ETF). ⏸ Úklid v DB (smazat ~1 800 bodů) a hlídání v check_index_integrity.py = rozhodnutí majitele.
+
 **Otevřené:** předpoklady výnosů FIRE strategií (7,7/8,8/9,8 % nominálně v USD před TER) ověřit z dat v Kč (Vlna 7).
 
 ## Vlna 6 – Pravidelné vracení: „Korunový stroj času"

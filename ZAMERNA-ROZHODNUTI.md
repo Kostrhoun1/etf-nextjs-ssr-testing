@@ -79,7 +79,7 @@ používá `resampleMonthEnd`. Není to nepřesnost — zdrojová denní data ma
 na začátku měsíce (splice denního ETF a měsíčního zdroje; např. `ftse_all_world` 2008-10-01 =
 23.09 mezi 29.39 a 27.40), které denní σ×√252 nafukovaly (All-World 13 % → 31 %). Month-end sampling
 je zahodí. **Nevracet na denní „kvůli přesnosti"** — reintrodukuje to bug. Drawdown už jede stejně.
-Zbývá úklid: vyčistit vadné ticky přímo v `index_historical_data` (integrity check je nechytá –
+Od 17. 10. 2026 je engine při čtení vynechává (`bezVadnychTicku` v engine.ts: víkendy a 1. den v měsíci v denních úsecích) – NEodstraňovat, jinak se vrátí chybné výsledky backtestů začínajících 1. dne v měsíci. Zbývá úklid: vyčistit vadné ticky přímo v `index_historical_data` (integrity check je nechytá –
 hlídá ocas/díry/počty, ne odlehlé hodnoty).
 
 ## Data fondů a žebříčky (audit dat 17. 10. 2026)
