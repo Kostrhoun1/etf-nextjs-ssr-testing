@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Share2, Check, History, Minus, Plus } from 'lucide-react';
-import { STROJ_PRESETY, spocitejStroj, type StrojRada } from '@/lib/strojCasuVypocet';
+import { STROJ_PRESETY, spocitejStroj, vlozenoVDnesnichCenach, type StrojRada } from '@/lib/strojCasuVypocet';
+import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
 
 /* Korunový stroj času (Vlna 6, 17. 10. 2026). Data = měsíční řady hodnoty portfolia v Kč
    spočítané na serveru STEJNÝM enginem jako backtest (src/lib/strojCasu.ts); tady se jen násobí –
@@ -20,6 +21,8 @@ const fmtHodnota = (v: number) =>
   v >= 1_000_000 ? `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč` : fmtKc(Math.round(v / 1000) * 1000);
 const MESICE_6P = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE_6P[m - 1]} ${y}`; };
+const MESICE_1P = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
+const mesic1p = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE_1P[m - 1]} ${y}`; };
 const datum = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ').replace(/ /g, ' ');
 
 /* Rychlé volby roku – jedním klepnutím příběh krize a návratu. */
@@ -102,6 +105,11 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
   const prazdne = mesicne === 0 && naraz === 0;
   const vysledek = useMemo(
     () => (rada && !prazdne ? spocitejStroj(rada, `${rokStartu}-01`, mesicne, naraz) : null),
+    [rada, rokStartu, mesicne, naraz, prazdne],
+  );
+
+  const vlozenoReal = useMemo(
+    () => (rada && !prazdne ? vlozenoVDnesnichCenach(rada, `${rokStartu}-01`, mesicne, naraz) : null),
     [rada, rokStartu, mesicne, naraz, prazdne],
   );
 
@@ -232,6 +240,16 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
                 {' · '}
                 {zisk >= 0 ? 'zisk' : 'ztráta'} <strong className={`tabular-nums ${zisk >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{zisk >= 0 ? '+' : '−'}{fmtHodnota(Math.abs(zisk))}</strong>
               </p>
+              {vlozenoReal !== null && (() => {
+                const realne = vysledek.hodnota - vlozenoReal;
+                return (
+                  <p className="mt-1.5 text-sm text-slate-600">
+                    Po inflaci: vklady odpovídají v dnešních cenách <span className="tabular-nums">{fmtHodnota(vlozenoReal)}</span>
+                    {' · '}reálně {realne >= 0 ? 'navíc' : 'méně'}{' '}
+                    <strong className={`tabular-nums ${realne >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{realne >= 0 ? '+' : '−'}{fmtHodnota(Math.abs(realne))}</strong>
+                  </p>
+                );
+              })()}
               {zmena && Math.abs(zmena.rozdil) >= 1 && (
                 <p className="mt-3 flex flex-wrap items-center gap-x-1.5 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900">
                   <History className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -265,7 +283,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
       </div>
       <p className="border-t border-slate-100 px-5 py-3 text-xs text-slate-500 leading-relaxed md:px-7">
         Data k {datum(rada.posledniDen)}. Vklad vždy na začátku měsíce, portfolio se jednou ročně vyvažuje.
-        Výnosy jsou po poplatcích fondů (ETF), před daní a poplatky brokera, přepočtené do korun denním kurzem. Minulost nezaručuje budoucí výnosy.
+        Výnosy jsou po poplatcích fondů (ETF), před daní a poplatky brokera, přepočtené do korun denním kurzem. Inflace podle ČSÚ (poslední zveřejněný měsíc: {mesic1p(CPI_LAST_MONTH)}). Minulost nezaručuje budoucí výnosy.
       </p>
 
       {/* Mobil: výsledek stále na očích, když je hlavní číslo mimo obrazovku */}

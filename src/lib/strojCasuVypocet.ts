@@ -1,7 +1,10 @@
 /**
- * Korunový stroj času – presety, typy a výpočet. ČISTÝ modul bez importů: používá ho server
- * (homepage, předpočet) i prohlížeč (widget). Data načítá src/lib/strojCasu.ts.
+ * Korunový stroj času – presety, typy a výpočet. ČISTÝ modul (jediný import = tabulka inflace ČSÚ,
+ * taky bez závislostí): používá ho server (homepage, předpočet) i prohlížeč (widget).
+ * Data načítá src/lib/strojCasu.ts.
  */
+import { cpiLevel } from '@/lib/backtest/inflation';
+
 export interface StrojPreset {
   id: string;
   nazev: string;
@@ -109,4 +112,25 @@ export function cagrOd(rada: StrojRada, odMesic: string): { cagr: number; roky: 
   const zaklad = i0 === 0 ? 1 : rada.nav[i0 - 1];
   const roky = (rada.nav.length - i0) / 12;
   return { cagr: Math.pow(rada.nav[rada.nav.length - 1] / zaklad, 1 / roky) - 1, roky };
+}
+
+/**
+ * Vklady přepočtené na dnešní ceny (česká inflace, ČSÚ): Σ vklad_m × CPI[poslední] / CPI[začátek m].
+ * Hodnota portfolia NAD tímto číslem = reálný zisk (koupíte si za to víc, než za co jste spořili).
+ * CPI za měsíce po posledním zveřejněném (CPI_LAST_MONTH) drží poslední známou hodnotu.
+ */
+export function vlozenoVDnesnichCenach(rada: StrojRada, odMesic: string, mesicne: number, jednorazove: number): number | null {
+  const [ry, rm] = rada.od.split('-').map(Number);
+  const [sy, sm] = odMesic.split('-').map(Number);
+  const i0 = (sy - ry) * 12 + (sm - rm);
+  if (i0 < 0 || i0 >= rada.nav.length) return null;
+  const cKonec = cpiLevel(`${pridejMesice(rada.od, rada.nav.length - 1)}-28`);
+  if (!cKonec) return null;
+  let soucet = 0;
+  for (let i = i0; i < rada.nav.length; i++) {
+    const c = cpiLevel(`${pridejMesice(rada.od, i)}-01`);
+    if (!c) return null;
+    soucet += (mesicne + (i === i0 ? jednorazove : 0)) * (cKonec / c);
+  }
+  return soucet;
 }
