@@ -148,3 +148,19 @@ Zkoušeli jsme dvě: „návrat, který vydržel rok“ (S&P 500 v USD od 2000 b
 6 měsíců, ačkoli v letech 2022–23 byl pod vkladem dalších 15 měsíců v několika úsecích). Každé měkké
 pravidlo skutečný pokles schovalo. Místo toho: u čísel, kde investice byla ≥ 2 roky souvisle nad vkladem
 a pak znovu spadla, je číslovaná poznámka (od kdy byla nad vkladem, kolik měsíců a jak hluboko pak spadla).
+
+## „Celý svět“ ve stroji času = FTSE All-World (VT) od 7/2008, dřív aproximace 60/40 (17. 10. 2026)
+
+`src/lib/strojCasuVypocet.ts` (`pozdeji`), `src/lib/strojCasu.ts`. Řada je NAPOJENÁ: do 6/2008 (kdy VT nebyl)
+60 % S&P 500 + 40 % VGTSX, od 7/2008 měsíční výnosy skutečného indexu. Dřív byla celá řada 60/40 a „akcie
+celého světa“ tím nadsazovala výnos o ~0,9 p. b. ročně (USA mají v indexu méně než 60 % po většinu historie).
+Totéž u „Vyvážené 60/40“ (od 7/2008 60 % VT + 40 % AGG). Ověřeno: měsíční výnosy napojené řady od 7/2008 =
+přímý backtest VT (rozdíl 1e-15). Starty před 7/2008 jsou aproximace – stránky to uvádějí v metodice.
+Odkaz „Podrobně v backtestu“ používá složení platné pro zvolený rok (`slozeniProStart`).
+
+## Články z dat: chybějící data = výjimka, ne prázdná stránka (17. 10. 2026)
+
+`/stroj-casu`, `/sp500-nebo-cely-svet`, `/jak-dlouho-v-minusu`, `/pravidlo-4-procent` při chybě dat VYHODÍ
+výjimku. Záměr: Next při ISR ponechá poslední dobrou verzi (jinak by den visela hláška „nepodařilo se
+načíst“). Při buildu bez dat build selže – to je správně (raději nenasadit). Homepage blok s číslem se
+naopak jen skryje, když jsou data starší 7 dní.

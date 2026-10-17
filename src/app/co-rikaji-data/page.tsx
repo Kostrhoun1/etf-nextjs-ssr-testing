@@ -47,6 +47,7 @@ const SKUPINY: { nadpis: string; popis: string; polozky: { href: string; titulek
     polozky: [
       { href: '/sp500-nebo-cely-svet', titulek: 'S&P 500, nebo celý svět?', text: 'Co vydělalo víc v korunách – od roku 2008 i v dekádě 2000–2009, kdy USA prohrávaly.' },
       { href: '/jak-dlouho-v-minusu', titulek: 'Jak dlouho můžete být v minusu?', text: 'Jak dlouho trvalo, než se investice po propadu vrátila nad vklad – v korunách a po inflaci.' },
+      { href: '/pravidlo-4-procent', titulek: 'Pravidlo 4 % v korunách', text: 'Vydržel by výběr 4 % ročně od roku 2000? Na skutečných datech v Kč a po české inflaci.' },
       { href: '/svetove-etf-indexy', titulek: 'Světové indexy', text: 'MSCI World, FTSE All-World, ACWI a S&P 500 – v čem se liší.' },
       { href: '/jaky-sp500-etf', titulek: 'Který S&P 500 ETF', text: 'CSPX, VUAA, VUSA a SPYL vedle sebe – poplatky a výnos v Kč.' },
       { href: '/faktorove-etf', titulek: 'Faktorové ETF', text: 'Value, momentum, kvalita a další faktory – co skutečně ukazují data v korunách.' },

@@ -115,7 +115,7 @@ function pravidelne(rada: StrojRada, od: string): PravidelnePodVodou | null {
     const vklady = t - i0 + 1;
     const cT = cpiLevel(`${mes[t]}-28`);
     let vkladyReal = 0;
-    for (let k = i0; k <= t; k++) { const c0 = cpiStart[k]; vkladyReal += cT && c0 ? cT / c0 : 1; }
+    for (let k = i0; k <= t; k++) { const c0 = cpiStart[k]; if (!cT || !c0) return null; vkladyReal += cT / c0; }
     if (hodnota < vklady) nom = t;
     if (hodnota < vkladyReal) real = t;
     if (hodnota / vklady < nejhure) { nejhure = hodnota / vklady; nejhureKdy = mes[t]; }
@@ -145,8 +145,8 @@ export async function spoctiPodVodou(): Promise<PodVodou | null> {
       const n = r.nav.length;
       const nejhorsi = (k: 'nominalne' | 'realne') =>
         starty.reduce((b, s, i) => (delka(s[k], n - i) > delka(b.s[k], n - b.i) ? { s, i } : b), { s: starty[0], i: 0 }).s;
-      const s10 = starty.filter((_, i) => n - i > 120);
-      const pod10 = (k: 'nominalne' | 'realne') => s10.filter((s) => s[k] === null || s[k]! > 120).map((s) => s.start);
+      const s10 = starty.filter((_, i) => n - i >= 120); // máme hodnotu po 10 letech (konec 120. měsíce)
+      const pod10 = (k: 'nominalne' | 'realne') => s10.filter((s) => s[k] === null || s[k]! >= 120).map((s) => s.start);
       return {
         id: r.id,
         nazev: STROJ_PRESETY.find((p) => p.id === r.id)?.nazev ?? r.id,
@@ -171,7 +171,7 @@ export async function spoctiPodVodou(): Promise<PodVodou | null> {
     if (i0 > 0) {
       let posl = -1;
       for (let t = i0; t < m.length; t++) if (m[t].value < m[i0 - 1].value) posl = t;
-      sp500Usd2000 = posl === m.length - 1 ? null : posl - i0 + 1;
+      sp500Usd2000 = posl === m.length - 1 ? null : posl < 0 ? 0 : posl - i0 + 1;
     }
     return { presety, sp500Usd2000, posledniDen: rady[0].posledniDen };
   } catch (e) {

@@ -62,7 +62,7 @@ export default async function FireHub() {
     },
     {
       q: 'Funguje pravidlo 4 % i pro české investory?',
-      a: 'Matematika je stejná – vychází z historie globálních akcií a dluhopisů. Pro velmi dlouhou rentu (40+ let) nebo opatrnější plán se používá 3–3,5 %, což znamená vyšší cílovou částku. Jde o pravděpodobnostní odhad z minulosti, ne o záruku; osobní situaci probírejte s finančním či daňovým poradcem.',
+      a: 'Pravidlo pochází z amerických dat v dolarech. Na českých datech v korunách by při nešťastném začátku nevydrželo: kdo začal z akcií vybírat v letech 2000–2002, tomu peníze došly (rozbor najdete v článku Pravidlo 4 % v korunách). Pro dlouhou rentu se proto používá spíš 3–3,5 %, část v dluhopisech nebo rezervě a pružné výběry. Jde o odhad z minulosti, ne o záruku; osobní situaci probírejte s finančním či daňovým poradcem.',
     },
     {
       q: 'Co rozhoduje o tom, jak rychle FIRE dosáhnu?',
@@ -226,7 +226,8 @@ export default async function FireHub() {
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Pravidlo 4 % vychází z historických dat globálních akcií a dluhopisů (tzv. Trinity Study). Pro velmi dlouhou
             rentu (40+ let) nebo opatrnější plán použijte 3–3,5 %, což cílovou částku zvedne. Není to záruka – jen
-            pravděpodobnostní odhad z minulosti.
+            pravděpodobnostní odhad z minulosti.{' '}
+            <Link href="/pravidlo-4-procent" className="font-medium text-teal-700 hover:underline">Jak by pravidlo 4 % dopadlo v korunách od roku 2000</Link>
           </p>
           <div className="mt-4">
             <Link href="/fire-kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">

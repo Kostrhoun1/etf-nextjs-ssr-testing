@@ -47,7 +47,7 @@ export default async function InvesticniKalkulackaPreview() {
     },
     {
       q: 'Jak kalkulačka počítá pravidelné investování?',
-      a: 'U měsíčního vkladu kalkulačka simuluje rok po měsících: každý měsíc přičte váš vklad a poté na celou hodnotu portfolia aplikuje měsíční výnos (roční výnos dělený dvanácti). U ročního vkladu přičte vklad jednou za rok a aplikuje celý roční výnos. Výsledek je tak srovnatelný s reálným pravidelným investováním.',
+      a: 'U měsíčního vkladu kalkulačka simuluje rok po měsících: každý měsíc přičte váš vklad a poté na celou hodnotu portfolia aplikuje měsíční výnos odpovídající zadanému ročnímu (při 7 % ročně je to zhruba 0,565 % měsíčně, aby za 12 měsíců vyšlo přesně 7 %). U ročního vkladu přičte vklad jednou za rok a aplikuje celý roční výnos. Výsledek je tak srovnatelný s reálným pravidelným investováním.',
     },
     {
       q: 'Jaký výnos mám do kalkulačky zadat?',

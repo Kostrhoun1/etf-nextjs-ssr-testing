@@ -212,7 +212,9 @@ export default async function DesignPreviewV2() {
   // USP v čísle: 5 000 Kč měsíčně do celého světa od 2010 → dnes ≈ X Kč (Korunový stroj času,
   // ověřeno proti backtestu ±0,3 % a kurzům ČNB). Bez dat se blok neukáže (pravidlo č. 1).
   const strojSvet = (await nactiStrojCasu(['svet']))[0];
-  const heroCislo = strojSvet ? spocitejStroj(strojSvet, '2010-01', 5000, 0) : null;
+  // Starší data než 7 dní = číslo by lhalo o „dnes“ → blok se neukáže (revize 17. 10. 2026).
+  const strojCerstvy = strojSvet && Date.now() - new Date(strojSvet.posledniDen).getTime() < 7 * 864e5;
+  const heroCislo = strojSvet && strojCerstvy ? spocitejStroj(strojSvet, '2010-01', 5000, 0) : null;
 
   // Výnos portfolia = vážený průměr korunových výnosů jeho ETF složek (přes dostupné složky).
   const portfolioPerf = portfolioModels.map((p) => {
@@ -276,6 +278,7 @@ export default async function DesignPreviewV2() {
                       {(heroCislo.hodnota / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč
                       <span className="ml-2 text-sm font-normal text-slate-300">vloženo {Math.round(heroCislo.vlozeno).toLocaleString('cs-CZ')} Kč</span>
                     </span>
+                    <span className="mt-0.5 block text-xs text-slate-400">data k {new Date(strojSvet!.posledniDen).toLocaleDateString('cs-CZ', { timeZone: 'UTC' })}</span>
                     <span className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-teal-300 group-hover:text-teal-200">Spočítat s vlastní částkou <ArrowRight className="w-4 h-4" /></span>
                   </Link>
                 )}

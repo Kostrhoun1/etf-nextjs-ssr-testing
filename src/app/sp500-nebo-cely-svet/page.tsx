@@ -26,11 +26,14 @@ const kc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
 
 export default async function Sp500NeboSvet() {
   const d = await spoctiSp500NeboSvet();
+  // Chybějící data = výjimka: Next pak při ISR ponechá poslední dobrou verzi stránky (místo
+  // „nepodařilo se načíst“ na celý den). Při buildu selže build – raději než nasadit prázdnou stránku.
+  if (!d) throw new Error('sp500-nebo-cely-svet: data se nenačetla');
   const sp = d?.od2008.find((x) => x.id === 'sp500');
   const sv = d?.od2008.find((x) => x.id === 'svet');
 
   const faqs = d && sp && sv ? [
-    { q: 'Je lepší investovat do S&P 500, nebo do celého světa?', a: `Posledních zhruba 18 let vyhrál S&P 500: od poloviny roku 2008 vydělal v korunách ${pct(sp.cagr)} ročně proti ${pct(sv.cagr)} u akcií celého světa. Neplatí to ale vždy – v dekádě 2000–2009 ztrácel S&P 500 v korunách ${pct(Math.abs(d.dekada2000.sp500))} ročně a zbytek světa dopadl lépe (${pct(d.dekada2000.mimoUsa)} ročně). Kdo neumí předpovědět, který region povede příště, drží celý svět.` },
+    { q: 'Je lepší investovat do S&P 500, nebo do celého světa?', a: `${sp.cagr > sv.cagr ? 'Od poloviny roku 2008 vyhrál S&P 500' : 'Od poloviny roku 2008 vyhrály akcie celého světa'}: S&P 500 vydělal v korunách ${pct(sp.cagr)} ročně, akcie celého světa ${pct(sv.cagr)}. ${sp.cagr > sv.cagr ? 'Neplatí to ale vždy' : 'A neplatilo to jen teď'} – v dekádě 2000–2009 ztrácel S&P 500 v korunách ${pct(Math.abs(d.dekada2000.sp500))} ročně a zbytek světa dopadl lépe (${pct(d.dekada2000.mimoUsa)} ročně). Kdo neumí předpovědět, který region povede příště, drží celý svět.` },
     { q: 'Proč byl propad v roce 2008 v korunách menší než v dolarech?', a: `Protože koruna v krizi oslabila – dolarová aktiva v Kč tím ztratila méně. Od poloviny 2008 byl nejhlubší propad S&P 500 v dolarech ${pct(d.usdPropad.sp500)}, v korunách jen ${pct(sp.maxPokles)}. Neplatí to vždy: když koruna posiluje, výsledek v Kč naopak zhorší.` },
     { q: 'Kolik z celého světa tvoří USA?', a: 'V indexech celého světa (FTSE All-World, MSCI ACWI) tvoří americké firmy zhruba 60–65 % – kdo drží celý svět, má tedy USA stejně jako hlavní část portfolia, jen ne celé.' },
   ] : [];
@@ -72,7 +75,7 @@ export default async function Sp500NeboSvet() {
               <p className="mt-1.5">
                 Od poloviny roku 2008 vydělal S&amp;P 500 v korunách <strong>{pct(sp.cagr)} ročně</strong>, akcie celého světa{' '}
                 <strong>{pct(sv.cagr)} ročně</strong>. Ze 100 000 Kč by bylo {kc(sp.konec)} proti {kc(sv.konec)}.
-                Jenže v dekádě <strong>2000–2009 ztrácel S&amp;P 500 v korunách {pct(Math.abs(d.dekada2000.sp500))} ročně</strong> a zbytek světa
+                {sp.cagr > sv.cagr ? 'Jenže' : 'A'} v dekádě <strong>2000–2009 ztrácel S&amp;P 500 v korunách {pct(Math.abs(d.dekada2000.sp500))} ročně</strong> a zbytek světa
                 na tom byl lépe. Která část světa povede příště, dopředu nikdo neví – proto evidence mluví spíš pro celý svět.
               </p>
             </section>
@@ -116,7 +119,7 @@ export default async function Sp500NeboSvet() {
                   <strong>S&amp;P 500 proti celému světu (od 2008):</strong> S&amp;P 500 byl lepší{' '}
                   <strong>{d.okna10Svet.vyhra === d.okna10Svet.celkem ? `ve všech ${d.okna10Svet.celkem}` : `v ${d.okna10Svet.vyhra} z ${d.okna10Svet.celkem}`}</strong> desetiletých obdobích,
                   {d.okna10Svet.min > 0 ? <> o {pb(d.okna10Svet.min)} až {pb(d.okna10Svet.max)} ročně.</> : <> rozdíl od {pb(d.okna10Svet.min, true)} do {pb(d.okna10Svet.max, true)} ročně.</>}
-                  Tohle je ale jedna éra – éra amerických technologických firem.
+                  {d.okna10Svet.vyhra > d.okna10Svet.celkem / 2 && 'Tohle je ale jedna éra – éra amerických technologických firem.'}
                 </li>
                 <li className="rounded-lg border border-slate-200 bg-white p-4">
                   <strong>S&amp;P 500 proti světu mimo USA (od 2000):</strong> S&amp;P 500 byl lepší v{' '}
@@ -157,7 +160,7 @@ export default async function Sp500NeboSvet() {
                 40 % – Evropa, Japonsko, rozvíjející se trhy. Ty v posledních letech brzdily, v dekádě 2000–2009 naopak táhly.
               </p>
               <p>
-                <strong>Minulý vítěz není záruka.</strong> Poslední roky jasně patřily USA; o deset let dřív to bylo obráceně. Data neříkají,
+                <strong>Minulý vítěz není záruka.</strong> {sp.cagr > sv.cagr ? 'Poslední roky patřily USA; v dekádě 2000–2009 to bylo obráceně.' : 'Poslední roky ani dekáda 2000–2009 USA nepřály – ale ani to neříká nic o budoucnosti.'} Data neříkají,
                 která varianta vyhraje příště – říkají, jak velký může být rozdíl, když se trefíte vedle.
               </p>
               <p>

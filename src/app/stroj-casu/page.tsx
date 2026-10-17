@@ -5,7 +5,7 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import StrojCasuWidget from '@/components/design-preview/StrojCasuWidget';
-import { nactiStrojCasu, spocitejStroj } from '@/lib/strojCasu';
+import { nactiStrojCasu, spocitejStroj, STROJ_PRESETY } from '@/lib/strojCasu';
 import { ogImage } from '@/lib/ogImage';
 
 /* Korunový stroj času (Vlna 6). Řady se počítají při ISR renderu (1× denně) stejným enginem
@@ -17,7 +17,8 @@ export const revalidate = 86400;
    searchParams → stránka zůstává statická (ISR); obrázek per scénář by ji udělal dynamickou. */
 export async function generateMetadata(): Promise<Metadata> {
   const svet = (await nactiStrojCasu(['svet']))[0];
-  const v = svet ? spocitejStroj(svet, '2010-01', 5000, 0) : null;
+  const cerstvy = svet && Date.now() - new Date(svet.posledniDen).getTime() < 7 * 864e5;
+  const v = svet && cerstvy ? spocitejStroj(svet, '2010-01', 5000, 0) : null;
   const stat = v ? `${(v.hodnota / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč` : undefined;
   const title = 'Kolik byste dnes měli, kdybyste začali investovat dřív?';
   const description = 'Korunový stroj času: kolik by dnes měly vaše pravidelné investice od roku 2000, 2010 nebo 2020 – v korunách, na skutečných historických datech včetně krizí.';
@@ -35,6 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function StrojCasuStranka() {
   const rady = await nactiStrojCasu();
+  // Chybějící data = výjimka: Next pak při ISR ponechá poslední dobrou verzi stránky (místo
+  // „nepodařilo se načíst“ na celý den). Při buildu selže build – raději než nasadit prázdnou stránku.
+  if (rady.length < STROJ_PRESETY.length) throw new Error(`stroj času: načteno ${rady.length} z ${STROJ_PRESETY.length} presetů`);
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">

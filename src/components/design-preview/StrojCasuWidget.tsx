@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Share2, Check, History, Minus, Plus } from 'lucide-react';
-import { STROJ_PRESETY, spocitejStroj, vlozenoVDnesnichCenach, type StrojRada } from '@/lib/strojCasuVypocet';
+import { STROJ_PRESETY, spocitejStroj, vlozenoVDnesnichCenach, slozeniProStart, type StrojRada } from '@/lib/strojCasuVypocet';
 import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
 
 /* Korunový stroj času (Vlna 6, 17. 10. 2026). Data = měsíční řady hodnoty portfolia v Kč
@@ -16,14 +16,19 @@ import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
 const ULOZENO_KLIC = 'stroj-casu:posledni';
 const fmtKc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
 // Hodnotu zaokrouhlujeme (stroj se od backtestu liší o 0,1–0,3 %): miliony na 1 desetinné místo,
-// jinak na tisíce. VLOŽENO je přesné – tam žádná nejistota není.
-const fmtHodnota = (v: number) =>
-  v >= 1_000_000 ? `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč` : fmtKc(Math.round(v / 1000) * 1000);
+// jinak na 3 platné číslice (revize 17. 10.: pevné tisíce dělaly u malých částek „zisk +0 Kč“).
+// VLOŽENO je přesné – tam žádná nejistota není.
+const fmtHodnota = (v: number) => {
+  if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč`;
+  if (Math.abs(v) < 1000) return fmtKc(v);
+  const krok = 10 ** (Math.floor(Math.log10(Math.abs(v))) - 2);
+  return fmtKc(Math.round(v / krok) * krok);
+};
 const MESICE_6P = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE_6P[m - 1]} ${y}`; };
 const MESICE_1P = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 const mesic1p = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE_1P[m - 1]} ${y}`; };
-const datum = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ').replace(/ /g, ' ');
+const datum = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ', { timeZone: 'UTC' }).replace(/ /g, ' ');
 
 /* Rychlé volby roku – jedním klepnutím příběh krize a návratu. */
 const ROKY_PRIBEH: { rok: number; popis: string }[] = [
@@ -48,7 +53,7 @@ function Graf({ prubeh }: { prubeh: { mesic: string; hodnota: number; vlozeno: n
   return (
     <figure>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img"
-        aria-label={`Hodnota investice rostla z ${fmtKc(prvni.hodnota)} v roce ${prvni.mesic.slice(0, 4)} na ${fmtHodnota(posledni.hodnota)} dnes; vloženo celkem ${fmtKc(posledni.vlozeno)}.`}>
+        aria-label={`Hodnota investice se změnila z ${fmtKc(prvni.hodnota)} v roce ${prvni.mesic.slice(0, 4)} na ${fmtHodnota(posledni.hodnota)} dnes; vloženo celkem ${fmtKc(posledni.vlozeno)}.`}>
         <path d={plocha} fill="rgb(15 118 110 / 0.10)" />
         <path d={cesta('vlozeno')} fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" />
         <path d={cesta('hodnota')} fill="none" stroke="#0f766e" strokeWidth="2.25" />
@@ -79,7 +84,8 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
   const [hlaseni, setHlaseni] = useState('');
   const cisloRef = useRef<HTMLParagraphElement>(null);
 
-  const rada = rady.find((r) => r.id === co) ?? rady[0];
+  // Bez záložního rady[0]: jinak by se pod jménem nenačteného presetu ukázala čísla jiného.
+  const rada = rady.find((r) => r.id === co);
   const prvniRok = rada ? Number(rada.od.slice(0, 4)) + (rada.od.endsWith('-01') ? 0 : 1) : 2000;
   const posledniRok = rada ? Number(rada.posledniDen.slice(0, 4)) - 1 : 2025;
   const rokStartu = Math.min(Math.max(od, prvniRok), posledniRok);
@@ -92,14 +98,16 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     try { u = JSON.parse(localStorage.getItem(ULOZENO_KLIC) || 'null'); } catch { /* bez úložiště */ }
     if (u && typeof u.hodnota === 'number') setMinule(u);
     if (p.get('co') || p.get('mesicne')) {
-      if (STROJ_PRESETY.some((x) => x.id === p.get('co'))) setCo(p.get('co')!);
+      if (dostupne.some((x) => x.id === p.get('co'))) setCo(p.get('co')!);
       if (/^\d+$/.test(p.get('mesicne') ?? '')) setMesicne(Math.min(1_000_000, Number(p.get('mesicne'))));
       if (/^\d+$/.test(p.get('naraz') ?? '')) setNaraz(Math.min(100_000_000, Number(p.get('naraz'))));
       if (/^\d{4}$/.test(p.get('od') ?? '')) setOd(Number(p.get('od')));
-    } else if (u && STROJ_PRESETY.some((x) => x.id === u!.co)) {
+    } else if (u && dostupne.some((x) => x.id === u!.co)) {
       setCo(u.co); setMesicne(u.mesicne); setNaraz(u.naraz); setOd(u.od);
     }
     setPripraveno(true);
+    // Jen jednou při načtení: `dostupne` plyne z dat stránky, během návštěvy se nemění.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const prazdne = mesicne === 0 && naraz === 0;
@@ -141,11 +149,12 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     && minule.naraz === naraz && minule.od === rokStartu && minule.den < rada.posledniDen
     ? { rozdil: vysledek.hodnota - minule.hodnota, pct: (vysledek.hodnota / minule.hodnota - 1) * 100, den: minule.den } : null;
 
-  const nazev = STROJ_PRESETY.find((p) => p.id === co)?.nazev ?? '';
+  const preset = STROJ_PRESETY.find((p) => p.id === co);
   const sdilet = async () => {
     const url = window.location.href;
-    const text = vysledek
-      ? `${mesicne ? `${fmtKc(mesicne)} měsíčně` : fmtKc(naraz)} do ${nazev === 'Celý svět' ? 'akcií celého světa' : nazev} od ${rokStartu} → dnes zhruba ${fmtHodnota(vysledek.hodnota)}. Kolik byste měli vy?`
+    const castky = [naraz ? `${fmtKc(naraz)} na začátku` : '', mesicne ? `${fmtKc(mesicne)} měsíčně` : ''].filter(Boolean).join(' a ');
+    const text = vysledek && preset
+      ? `${castky} do ${preset.nazev2p} od ${rokStartu} → dnes zhruba ${fmtHodnota(vysledek.hodnota)}. Kolik byste měli vy?`
       : 'Korunový stroj času';
     try {
       if (navigator.share) { await navigator.share({ title: 'Korunový stroj času', text, url }); return; }
@@ -153,7 +162,8 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     } catch { /* zrušeno */ }
   };
 
-  const slozeniBt = STROJ_PRESETY.find((p) => p.id === co)?.slozeni.map((s) => `${s.indexCode}:${Math.round(s.weight * 100)}`).join(',');
+  // Složení platné pro zvolený start (u „celého světa“ od 2009 skutečný index → backtest dá totéž číslo).
+  const slozeniBt = preset && slozeniProStart(preset, `${rokStartu}-01`).map((s) => `${s.indexCode}:${Math.round(s.weight * 100)}`).join(',');
   // Backtest dává první měsíční vklad jako počáteční částku (vklady od 2. měsíce) → stejné vloženo.
   const backtestHref = `/backtest?slozeni=${slozeniBt}&start=${rokStartu}-01-01&amount=${naraz + mesicne}&vklad=${mesicne}&run=1`;
 
@@ -179,7 +189,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">{STROJ_PRESETY.find((p) => p.id === co)?.popis}</p>
+            <p className="mt-2 text-xs text-slate-500 leading-relaxed">{preset?.popis}</p>
           </fieldset>
 
           <div className="grid grid-cols-2 gap-3">

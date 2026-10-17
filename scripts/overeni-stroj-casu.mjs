@@ -13,10 +13,11 @@
  * SPUŠTĚNÍ: node scripts/overeni-stroj-casu.mjs [base-url]   (výchozí http://localhost:3005)
  */
 const BASE = process.argv[2] || 'http://localhost:3005';
+// Starty 2010 a 2016 leží po napojení „celého světa“ na skutečný index (7/2008) → složení po napojení.
 const PRESETY = {
-  svet: [{ indexCode: 'sp500', weight: 0.6 }, { indexCode: 'world_ex_us', weight: 0.4 }],
+  svet: [{ indexCode: 'ftse_all_world', weight: 1 }],
   sp500: [{ indexCode: 'sp500', weight: 1 }],
-  vyvazene: [{ indexCode: 'sp500', weight: 0.36 }, { indexCode: 'world_ex_us', weight: 0.24 }, { indexCode: 'us_aggregate_bond', weight: 0.4 }],
+  vyvazene: [{ indexCode: 'ftse_all_world', weight: 0.6 }, { indexCode: 'us_aggregate_bond', weight: 0.4 }],
   zlato: [{ indexCode: 'gold', weight: 1 }],
 };
 const KONEC = new Date().toISOString().slice(0, 10);

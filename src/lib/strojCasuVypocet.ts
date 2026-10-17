@@ -12,37 +12,53 @@ export interface StrojPreset {
   slozeni: { indexCode: string; weight: number }[];
   /** První měsíc s daty všech složek a kurzem koruny (YYYY-MM). */
   od: string;
+  /**
+   * Od měsíce `od` (včetně) řada pokračuje výnosy JINÉHO složení (napojení řetězením měsíčních
+   * výnosů). Použití: „celý svět“ = skutečný index FTSE All-World (fond VT) od 7/2008; dřív, kdy
+   * VT neexistoval, aproximace 60 % S&P 500 + 40 % svět mimo USA. `start` = první den dat nového
+   * složení (potřebujeme konec měsíce PŘED `od`).
+   */
+  pozdeji?: { od: string; start: string; slozeni: { indexCode: string; weight: number }[] };
+  /** Název ve 2. pádě pro věty „do …“ (sdílení). */
+  nazev2p: string;
 }
 
 export const STROJ_PRESETY: StrojPreset[] = [
   {
-    id: 'svet', nazev: 'Celý svět',
-    popis: 'Akcie celého světa: 60 % USA (S&P 500) a 40 % ostatní svět včetně rozvíjejících se trhů.',
+    id: 'svet', nazev: 'Celý svět', nazev2p: 'akcií celého světa',
+    popis: 'Akcie celého světa: index FTSE All-World (fond VT). Před červencem 2008, kdy fond ještě nebyl, přibližně 60 % USA (S&P 500) a 40 % ostatní svět.',
     slozeni: [{ indexCode: 'sp500', weight: 0.6 }, { indexCode: 'world_ex_us', weight: 0.4 }],
+    pozdeji: { od: '2008-07', start: '2008-06-26', slozeni: [{ indexCode: 'ftse_all_world', weight: 1 }] },
     od: '2000-01',
   },
   {
-    id: 'sp500', nazev: 'S&P 500',
+    id: 'sp500', nazev: 'S&P 500', nazev2p: 'S&P 500',
     popis: '500 největších amerických firem.',
     slozeni: [{ indexCode: 'sp500', weight: 1 }],
     od: '2000-01',
   },
   {
-    id: 'vyvazene', nazev: 'Vyvážené 60/40',
-    popis: '60 % akcie celého světa, 40 % dluhopisy – klidnější průběh za cenu nižšího výnosu.',
+    id: 'vyvazene', nazev: 'Vyvážené 60/40', nazev2p: 'vyváženého portfolia 60/40',
+    popis: '60 % akcie celého světa (FTSE All-World, před 7/2008 aproximace), 40 % dluhopisy – klidnější průběh za cenu nižšího výnosu.',
     slozeni: [
       { indexCode: 'sp500', weight: 0.36 }, { indexCode: 'world_ex_us', weight: 0.24 },
       { indexCode: 'us_aggregate_bond', weight: 0.4 },
     ],
+    pozdeji: { od: '2008-07', start: '2008-06-26', slozeni: [{ indexCode: 'ftse_all_world', weight: 0.6 }, { indexCode: 'us_aggregate_bond', weight: 0.4 }] },
     od: '2003-10',
   },
   {
-    id: 'zlato', nazev: 'Zlato',
+    id: 'zlato', nazev: 'Zlato', nazev2p: 'zlata',
     popis: 'Fyzické zlato.',
     slozeni: [{ indexCode: 'gold', weight: 1 }],
     od: '2004-12',
   },
 ];
+
+/** Složení platné pro start v měsíci `odMesic` (pro odkaz do backtestu). */
+export function slozeniProStart(p: StrojPreset, odMesic: string) {
+  return p.pozdeji && odMesic >= p.pozdeji.od ? p.pozdeji.slozeni : p.slozeni;
+}
 
 export interface StrojRada {
   id: string;
@@ -85,7 +101,7 @@ export function spocitejStroj(rada: StrojRada, odMesic: string, mesicne: number,
   let podily = 0; // počet „podílů" NAV, které vklady koupily
   let vlozeno = 0;
   const prubeh: StrojVysledek['prubeh'] = [];
-  let vrchol = 0;
+  let vrchol = navPred(i0); // nákupní cena je první vrchol – propad v 1. měsíci se počítá
   let propad: StrojVysledek['nejhorsiPropad'] = null;
   for (let i = i0; i < nav.length; i++) {
     const vklad = mesicne + (i === i0 ? jednorazove : 0);
