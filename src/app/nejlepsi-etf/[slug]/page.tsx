@@ -5,11 +5,12 @@ import { notFound } from 'next/navigation';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
   TrendingUp, ArrowRight, ArrowLeft, Trophy, Coins, AlertTriangle,
-  CalendarDays, Database, HelpCircle, Wallet, BookOpen, ChevronDown,
+  Database, HelpCircle, Wallet, BookOpen, ChevronDown,
 } from 'lucide-react';
 import { getTopETFsForCategory, getFlagshipComposition, categoryConfigs, type ETFBasicInfo , getDataDate } from '@/lib/etf-data';
 import { ter, money, pct, shortName, RankPanel, SectionHead, CompositionInfographic, CategoryIndexes } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent } from '@/components/design-preview/categoryContent';
+import AktualnostDat, { nejstarsiDatum } from '@/components/design-preview/AktualnostDat';
 import { topIndexesForCategory } from '@/components/design-preview/indexDescriptions';
 import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
@@ -74,7 +75,8 @@ export default async function CategoryDetailPreview(
   const content = getCategoryContent(slug);
 
   const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dataDate = await getDataDate(today);
+  const nejstarsi = nejstarsiDatum(etfs);
 
   // Tři žebříčky z dat kategorie.
   const byTer = [...etfs].filter((e) => e.ter_numeric != null && e.ter_numeric > 0).sort((a, b) => (a.ter_numeric! - b.ter_numeric!)).slice(0, 5);
@@ -167,9 +169,9 @@ export default async function CategoryDetailPreview(
               <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">{cfg.description}</p>
               <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                 <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> {etfs.length} fondů</span>
-                <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> {dateStr}</span>
                 <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
               </div>
+              <AktualnostDat datum={dataDate} nejstarsi={nejstarsi} tmavy className="mt-3" />
             </div>
 
             {/* Infografika „co v tom je" – hned nahoře, ať to ožije */}
@@ -225,6 +227,7 @@ export default async function CategoryDetailPreview(
           <section className="pb-8">
             <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
               <SectionHead title="Žebříčky podle kritéria" desc="Nejlevnější, největší a nejvýkonnější fondy v kategorii – z reálných dat." className="mb-0" />
+              <AktualnostDat datum={dataDate} nejstarsi={nejstarsi} />
               <CurrencyToggle size="sm" />
             </div>
             <div className="grid gap-4 md:grid-cols-3">

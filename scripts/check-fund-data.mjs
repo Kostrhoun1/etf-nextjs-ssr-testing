@@ -22,6 +22,7 @@
 import { appendFileSync } from 'node:fs';
 
 const KEY = process.env.SUPABASE_KEY;
+const WEB_URL = process.env.WEB_URL || 'https://etfpruvodce.cz'; // pro test proti lokálnímu buildu
 const URL_DB = 'https://nbhwnatadyubiuadfakx.supabase.co/rest/v1/etf_funds';
 const ISIN_CSV = 'https://raw.githubusercontent.com/Kostrhoun1/etf-astro/main/scraper/ISIN.csv';
 if (!KEY) { console.error('❌ Chybí SUPABASE_KEY'); process.exit(1); }
@@ -29,13 +30,27 @@ if (!KEY) { console.error('❌ Chybí SUPABASE_KEY'); process.exit(1); }
 // ── prahy POPLACHU (17. 10. 2026: 5 146 fondů, 6,4 % starších 30 dní, ~94 % čerstvých) ──
 const MIN_FONDU = 4500;          // hromadný úbytek = něco smazalo/nenačetlo data
 const MAX_STARE_30D = 0.15;      // přes 15 % fondů neaktualizovaných 30 dní = scraper selhává plošně
-const MIN_CERSTVE_3D = 0.70;     // pod 70 % aktualizovaných za 3 dny = scraper přestal běžet
+const MIN_CERSTVE_3D = 0.70;
+const MAX_FALESNE_CERSTVE = 20;   // po opravě 51199ba má být 0; pár kusů = fondy, které justETF dočasně nevrátil     // pod 70 % aktualizovaných za 3 dny = scraper přestal běžet
                                  // (tohle se projeví hned druhý den, stáří 30 dní až po měsíci)
 
 const CYKLUS = /(short duration|short maturity|short[- ]term|ultrashort|ultra short)/i;
 
+// Zlatá sada: ISINy, které v žebříčku MUSÍ být (vlajkové fondy), a názvy, které tam být NESMÍ.
+const ZLATA_SADA = [
+  { slug: 'nejlepsi-sp500-etf', musi: ['IE00B5BMR087'], nesmi: /equal weight|sector|ex[- ]/i },          // CSPX/SXR8
+  { slug: 'nejlepsi-msci-world-etf', musi: ['IE00B4L5Y983'], nesmi: /all[- ]world|acwi|ex[- ]usa/i },    // IWDA/EUNL
+  { slug: 'nejlepsi-celosvetove-etf', musi: ['IE00BK5BQT80'] },                                          // VWCE
+  { slug: 'nejlepsi-emerging-markets-etf', musi: ['IE00BKM4GZ66'], nesmi: /\bEMU\b/i },                 // EIMI/EMIM
+  { slug: 'nejlepsi-japonske-etf', nesmi: /ex[- ]?japan/i },
+  { slug: 'nejlepsi-cinske-etf', nesmi: /ex[- .]*china/i },
+  { slug: 'nejlepsi-zlato-etf', musi: ['IE00B4ND3602'] },                                               // SGLN
+  { slug: 'nejlepsi-ropa-etf' },
+  { slug: 'nejlepsi-nasdaq-etf', nesmi: /biotech/i },
+];
+
 async function nactiFondy() {
-  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at';
+  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date';
   let all = [];
   for (let off = 0; ; off += 1000) {
     const r = await fetch(`${URL_DB}?select=${cols}&order=isin&limit=1000&offset=${off}`,
@@ -52,7 +67,10 @@ const main = async () => {
   const isinList = await fetch(ISIN_CSV).then((r) => (r.ok ? r.text() : ''))
     .then((t) => new Set(t.split(/\r?\n/).map((l) => l.split(',')[0].trim()).filter((x) => /^[A-Z]{2}[A-Z0-9]{10}$/.test(x))));
 
-  const dni = (x) => (Date.now() - new Date(x.updated_at)) / 864e5;
+  // Stáří = scraping_date (kdy scraper data opravdu stáhl). NE updated_at: ten do 17. 10. 2026
+  // přepisoval i upsert starých dat z checkpointů → kontrola hlásila 331 starých fondů místo 665.
+  const dni = (x) => (Date.now() - new Date(x.scraping_date || x.updated_at)) / 864e5;
+  const dniUpd = (x) => (Date.now() - new Date(x.updated_at)) / 864e5;
   const n = fondy.length;
   const poplach = [], varovani = [];
   const ukazka = (arr, f = (x) => `${x.isin} ${String(x.name || '(bez názvu)').slice(0, 40)}`) => arr.slice(0, 5).map(f);
@@ -65,6 +83,11 @@ const main = async () => {
   const cerstve = fondy.filter((x) => dni(x) <= 3).length;
   if (cerstve / n < MIN_CERSTVE_3D)
     poplach.push({ co: `Za poslední 3 dny aktualizováno jen ${cerstve} fondů (${(100 * cerstve / n).toFixed(0)} %) – běží scraper?`, ukazka: [] });
+  // Symptom chyby z 17. 10. 2026: řádek se „aktualizoval" (updated_at), ale data jsou stará
+  // (scraping_date) – scraper nahrává stará data místo nových (např. starý checkpoint z cache).
+  const falesneCerstve = fondy.filter((x) => x.scraping_date && dni(x) > 7 && dniUpd(x) <= 3);
+  if (falesneCerstve.length > MAX_FALESNE_CERSTVE)
+    poplach.push({ co: `${falesneCerstve.length} fondů má dnešní updated_at, ale data starší 7 dní – scraper nahrává stará data`, ukazka: ukazka(falesneCerstve, (x) => `${x.isin} ${String(x.name).slice(0, 30)} data z ${String(x.scraping_date).slice(0, 10)}`) });
   const ter = fondy.filter((x) => x.ter_numeric != null && (Number(x.ter_numeric) < 0 || Number(x.ter_numeric) > 5));
   if (ter.length) poplach.push({ co: `${ter.length} fondů s nemožným TER (< 0 nebo > 5 %)`, ukazka: ukazka(ter, (x) => `${x.isin} TER ${x.ter_numeric}`) });
 
@@ -78,13 +101,29 @@ const main = async () => {
     varovani.push({ co: `Seznam ISIN scraperu se nepodařilo načíst (${isinList.size} položek) – kontrola zmizelých fondů vynechána`, ukazka: [] });
   }
   const zaseklé = fondy.filter((x) => dni(x) > 90 && isinList.has(x.isin));
-  if (zaseklé.length) varovani.push({ co: `${zaseklé.length} fondů je v nabídce, ale scraper je přes 90 dní neaktualizoval`, ukazka: ukazka(zaseklé, (x) => `${x.isin} ${String(x.name).slice(0, 34)} (${String(x.updated_at).slice(0, 10)})`) });
+  if (zaseklé.length) varovani.push({ co: `${zaseklé.length} fondů je v nabídce, ale scraper je přes 90 dní neaktualizoval`, ukazka: ukazka(zaseklé, (x) => `${x.isin} ${String(x.name).slice(0, 34)} (data z ${String(x.scraping_date || x.updated_at).slice(0, 10)})`) });
   const paka = fondy.filter((x) => x.is_leveraged && CYKLUS.test(x.name || ''));
   if (paka.length) varovani.push({ co: `${paka.length} fondů s krátkou durací označených jako pákové (skryté ve srovnávači)`, ukazka: ukazka(paka) });
   const extrem = fondy.filter((x) => !x.is_leveraged && x.return_1y != null && Math.abs(Number(x.return_1y)) > 150);
   if (extrem.length) varovani.push({ co: `${extrem.length} NEpákových fondů s ročním výnosem přes ±150 % – ověřit, jestli je číslo skutečné`, ukazka: ukazka(extrem, (x) => `${x.isin} ${String(x.name).slice(0, 34)} ${x.return_1y} %`) });
   const bezPolitiky = fondy.filter((x) => !x.distribution_policy).length;
   if (bezPolitiky) varovani.push({ co: `${bezPolitiky} fondů bez typu výplaty (akumulační/distribuční) – filtr je u nich nenajde`, ukazka: [] });
+
+  // ── ZLATÁ SADA ŽEBŘÍČKŮ (živý web) ──
+  // Ověřuje, že v kategorii JSOU fondy, které tam patří, a NEJSOU tam pákové produkty a fondy
+  // „ex <region>" (audit 17. 10. 2026: japonské obsahovaly „ex Japan", čínské „ex-China", ropa
+  // vedla 2× pákovým WTI). Selhání = POPLACH – žebříčky jsou nejnavštěvovanější stránky z Bingu.
+  for (const z of ZLATA_SADA) {
+    let html = '';
+    try { html = await fetch(`${WEB_URL}/nejlepsi-etf/${z.slug}`).then((r) => (r.ok ? r.text() : '')); } catch { /* níže */ }
+    if (!html) { poplach.push({ co: `Žebříček /nejlepsi-etf/${z.slug} se nenačetl`, ukazka: [] }); continue; }
+    const isiny = new Set([...html.matchAll(/\/etf\/([A-Z]{2}[A-Z0-9]{10})/g)].map((m) => m[1]));
+    const chybi = (z.musi || []).filter((i) => !isiny.has(i));
+    const byName = new Map(fondy.map((f) => [f.isin, f]));
+    const cizi = [...isiny].map((i) => byName.get(i)).filter((f) => f && (f.is_leveraged || (z.nesmi && z.nesmi.test(f.name || ''))));
+    if (chybi.length) poplach.push({ co: `Žebříček ${z.slug}: chybí fondy, které tam patří`, ukazka: chybi });
+    if (cizi.length) poplach.push({ co: `Žebříček ${z.slug}: obsahuje fondy, které tam nepatří (páka / jiný region)`, ukazka: ukazka(cizi) });
+  }
 
   // ── CHYBY Z PROHLÍŽEČŮ za 24 h (tabulka client_errors, plní /api/client-error) ──
   // Zatím jen VAROVÁNÍ: běžnou úroveň ještě neznáme. Poplach doplnit, až bude pár týdnů dat.

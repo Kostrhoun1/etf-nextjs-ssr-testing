@@ -30,7 +30,7 @@ než žádné číslo.
 
 ---
 
-## Vlna 1 – Bezpečnost a zjevné nesmysly  ·  větev `faze1`  ·  stav: otestováno lokálně, nasazuje se
+## Vlna 1 – Bezpečnost a zjevné nesmysly  ·  ✅ NASAZENO 17. 10. 2026 (7664fc8), smoke test produkce prošel
 
 | # | Úkol | Stav |
 |---|---|---|
@@ -46,8 +46,8 @@ než žádné číslo.
 | 1.10 | Odkaz na neexistující `/rss.xml` pryč; `/etf` 307 na jeden fond → 308 na `/srovnani` | ✅ |
 | 1.10b | Česká stránka 404 (dřív výchozí anglická Next.js – i u všech dosavadních 404) | ✅ |
 | 1.10c | Počet fondů v titulku homepage, na `/dip` a `/investovani-pro-deti` („4 800+" napevno) → zaokrouhleno dolů na stovky („5 100+") | ✅ |
-| 1.11 | Smoke test: nesmyslný ISIN → 404 bez `x-vercel-cache: HIT`; revalidate bez hesla → 401; backtest S&P 500 – dno grafu = max. pokles | ✅ lokálně (prod build), ☐ produkce |
-| 1.12 | Deploy s autorem `tomas.kostrhoun1@gmail.com` → ověřit, že ho Vercel přiřadí účtu Kostrhoun1 → teprve pak doporučit přepnutí repa na soukromé | ☐ |
+| 1.11 | Smoke test: nesmyslný ISIN → 404 bez `x-vercel-cache: HIT`; revalidate bez hesla → 401; backtest S&P 500 – dno grafu = max. pokles | ✅ lokálně i produkce |
+| 1.12 | Deploy s autorem `tomas.kostrhoun1@gmail.com` → GitHub ho přiřadil účtu Kostrhoun1, Vercel nasadil → repo lze přepnout na soukromé | ✅ |
 
 **Vaše rozhodnutí k Vlně 1** (nic z toho neudělám sám – jde o přístupy a nastavení účtů):
 - **Repo na soukromé** – až po bodě 1.12. Dřív bylo veřejné, protože Vercel Hobby neumí
@@ -65,7 +65,7 @@ než žádné číslo.
 
 ---
 
-## Vlna 2 – Správnost dat  ·  PRIORITA  ·  stav: čeká na výsledky auditu
+## Vlna 2 – Správnost dat  ·  PRIORITA  ·  stav: scraper opraven a na main (51199ba, 9dbaf2d); web hotov na větvi `faze2`, nasazení 18. 10. po nočním scrapu
 
 Cíl: každé číslo, kategorie a filtr na webu sedí. A když se data rozbijí, víme to do druhého
 dne – ne náhodou za měsíc.
@@ -84,7 +84,21 @@ dne – ne náhodou za měsíc.
 | 2.8 | Nekonzistence Acc vs. Dist stejného fondu (Vanguard S&P 500: 5 let 86,79 % vs. 89,80 %) | ? (audit) | Ověřit u emitenta; pokud chyba scrapu, kontrola „sourozenecké třídy se liší o > 2 p. b." |
 | 2.9 | Homepage panel „Nejvýkonnější (1R)": výnos v měně fondu (ne v Kč), vedou komoditní ETC (zemní plyn +194 %), na mobilu přetéká | 1 panel, všechny návštěvy homepage | `return_1y_czk`, jen akciové ETF, `min-w-0`; zvážit nahrazení panelem „Nejlevnější světové ETF" |
 | 2.10 | Duplicitní žebříčky `nejlepsi-zlate-etf` vs `nejlepsi-zlato-etf` (+ nemovitostní) – obě v sitemapě s vlastním canonical | 2–4 stránky | 301 na jednu, vyřadit ze sitemapy |
-| 2.x | **Nové nálezy auditu dat** | – | doplní se po dokončení auditu |
+| 2.11 | **ZAMRZLÁ DATA: ~640 fondů má výnosy/AUM/složení z dubna–července, web píše „aktualizováno dnes"** (VUAA YTD +5 % vs. skutečných +18,5 %; EUWAX Gold 1R +37,7 % vs. +3,7 %; zamrzlý fond vede „Nejvyšší výnos" ve 22 z 53 kategorií). Příčina: CI každou noc obnovil checkpointy ze zrušeného běhu 26. 4., scraper dávky přeskočil a nahrál dubnová data; upsert přepsal `updated_at`. Totéž: 41 nových fondů se do DB nikdy nedostalo, 170 fondů s rozbitým složením (součet zemí > 101 %) | 640 + 41 | ✅ scraper opraven (51199ba: checkpoint jen < 20 h a jen ISINy dávky), cache smazány – projeví se nočním během 18. 10.; ☐ web a monitoring měřit `scraping_date`, ne `updated_at`; ☐ zamrzlé (> 7 dní) nedávat do žebříčků výnosů a ukázat datum |
+| 2.12 | **Roční výnosy po letech v Kč a USD o 2–4 p. b. vedle** (SXR8 2025: web +4,2 %, správně +0,1 %) – scraper bere kurz „před 365 dny → dnes" místo 31. 12. Y−1 → 31. 12. Y | všechny detaily | `etf-astro/scraper/performance_converter.py:58,72,94,104` |
+| 2.13 | **3× pákový ETF doporučen „jako praktická volba pro dlouhodobé investory"**, žádné varování | 175 pákových | detail: varovný box + jiný text; `etf/[isin]/page.tsx:728` |
+| 2.14 | **Pákové produkty vyhrávají „Nejvyšší výnos" v kategoriích** (ropa WTI 2x +272 %, banky 3x, Nasdaq 3x) | 3 kategorie, 17 fondů v 7 | `getTopETFsForCategory` bez filtru `is_leveraged` |
+| 2.15 | **Kategorie obsahují cizí fondy** (prostá shoda podřetězce): japonské ← „ex Japan"; čínské ← „ex-China" (všech top 5); emerging ← „MSCI EMU"; americké ← „World ex USA"; tech ← „AI" v Taiwan/Sustainable/Daily; DAX ← MDAX/TecDAX; STOXX 600 ← sektory; nasdaq ← Biotech; MSCI World ← FTSE All-World/ACWI; cloud ← Quantum; bitcoin ← altcoiny | 13 kategorií | vylučovací pravidla v `etf-data.ts` + zlatá sada |
+| 2.16 | **Filtr „nezajištěné" vyřadí 94 nezajištěných fondů** („Unhedged" obsahuje „hedged"); „Hdg" kód nezná (17 zajištěných vede jako nezajištěné) | 111 | `utils/hedgingDetection.ts:94` |
+| 2.17 | **Krátkodobé výnosy (1M/3M/6M) popsané jako „USD", ale jsou v EUR** | ~3 180 detailů | `EtfReturns.tsx:104` |
+| 2.18 | **Energetické akciové ETF zařazené jako komodity** (chybí v „energetické", jsou v „komoditních") | 29 | scraper `final_scraper.py:2479` – testovat equity první |
+| 2.19 | Chybí index u 59 % fondů a ticker u 20 % – parser selže a prázdno přepíše starou hodnotu; FAQ pak píše „fond sledující index  s fyzická replikací", „Je — vhodný" | 3 017 / 1 049 | scraper: při neúspěchu nepřepisovat; web: nevypisovat věty s prázdnou hodnotou + skloňování |
+| 2.20 | Index „S&P 500"/„MSCI World" přiřazen i sektorovým a faktorovým fondům (90 ze 186 / 138 z 256) | 228 | scraper záloha podle názvu |
+| 2.21 | „ETF zdarma na DEGIRO" = jen 50 největších fondů (vč. Xetra-Gold); sloupec `degiro_free` se nepoužívá | 1 stránka | filtrovat podle `degiro_free`, nebo přejmenovat |
+| 2.22 | Další duplicitní kategorie: celosvetove = globalni; obnovitelne-zdroje = clean-energy; realitni = nemovitostni | 3 páry | 301 |
+| 2.23 | YTD „v Kč" u 172 fondů mladších 1 roku je ve skutečnosti EUR | 172 | scraper + web bez tichého fallbacku |
+
+**Audit potvrdil jako správné:** přepočet 1R/3R/5R/YTD do Kč a USD (12 fondů vs. kurz ČNB, odchylka 0,1–0,3 p. b.); EUR výnosy, AUM a TER proti justETF; regiony; řazení a min. velikost v kategoriích; vlajkové fondy ve svých kategoriích; stejný čerstvý fond ukazuje stejné číslo napříč webem; srovnávač = všech 5 146 fondů.
 
 ### 2B. Pojistky, aby se chyby nevracely (automaticky, každý den)
 

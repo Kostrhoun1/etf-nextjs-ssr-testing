@@ -50,7 +50,7 @@ const HEATMAP_CATEGORIES: { slug: string; label: string }[] = [
   { slug: 'nejlepsi-technologicke-etf', label: 'Technologie' },
   { slug: 'nejlepsi-financni-etf', label: 'Finance' },
   { slug: 'nejlepsi-energeticke-etf', label: 'Energetika' },
-  { slug: 'nejlepsi-nemovitostni-etf', label: 'Nemovitosti' },
+  { slug: 'nejlepsi-realitni-etf', label: 'Nemovitosti' },
 ];
 
 async function getHeatmapTiles(): Promise<InfografikyHeatTile[]> {

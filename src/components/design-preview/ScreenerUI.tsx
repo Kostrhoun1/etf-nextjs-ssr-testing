@@ -23,14 +23,6 @@ const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v >= 1000) return `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${s}`;
   return `${Math.round(v).toLocaleString('cs-CZ')} mil. ${s}`;
 };
-// Prázdná politika se nedomýšlí na akumulační; odvodí se z výplatní frekvence, jinak 'unknown'.
-const distKind = (p: string | null | undefined, freq?: string | null): 'acc' | 'dist' | 'unknown' => {
-  const s = p || '';
-  if (/accumulat|thesaur|capitalis/i.test(s)) return 'acc';
-  if (/distribut/i.test(s)) return 'dist';
-  if (freq && /(quarter|month|annual|semi|dividend|income)/i.test(freq)) return 'dist';
-  return 'unknown';
-};
 const distChip = (k: 'acc' | 'dist' | 'unknown') =>
   k === 'acc'
     ? { cls: 'bg-blue-50 text-blue-700', label: 'ACC' }
@@ -279,8 +271,8 @@ export default function ScreenerUI({
       if (term && !blob.includes(term)) return false;
       if (category !== 'all' && e.category !== category) return false;
       if (!leveraged && e.is_leveraged) return false;
-      if (dist === 'acc' && distKind(e.distribution_policy, e.distribution_frequency) !== 'acc') return false;
-      if (dist === 'dist' && distKind(e.distribution_policy, e.distribution_frequency) !== 'dist') return false;
+      if (dist === 'acc' && e._dist !== 'acc') return false;
+      if (dist === 'dist' && e._dist !== 'dist') return false;
       if (region !== 'all' && reg !== region) return false;
       if (indexName !== 'all' && indexLabel !== indexName) return false;
       if (repl !== 'all' && e._repl !== repl) return false;
@@ -437,7 +429,7 @@ export default function ScreenerUI({
         e.name, e.isin, e.primary_ticker ?? '', e.fund_provider ?? '', e.category ?? '', reg ?? '', indexLabel ?? '',
         e._dom ?? '', e._year != null ? String(e._year) : '',
         dec(num(e.ter_numeric)), dec(num(e.fund_size_numeric), 0), e.fund_currency ?? '',
-        distTxt[distKind(e.distribution_policy)], e._repl ?? '',
+        distTxt[e._dist], e._repl ?? '',
         dec(num(e.current_dividend_yield_numeric)),
         dec(pickReturn(o, 'ytd', cur), 1), dec(pickReturn(o, '1y', cur), 1), dec(pickReturn(o, '3y', cur), 1),
         dec(pickReturn(o, '5y', cur), 1), dec(num(e.volatility_1y), 1),
@@ -683,7 +675,7 @@ export default function ScreenerUI({
                 </>); })()}
                 <td className="py-3 px-3 text-right tabular-nums text-slate-600">{e.current_dividend_yield_numeric != null ? `${Number(e.current_dividend_yield_numeric).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}</td>
                 <td className="py-3 px-3 text-center">
-                  {(() => { const c = distChip(distKind(e.distribution_policy, e.distribution_frequency)); return (
+                  {(() => { const c = distChip(e._dist); return (
                   <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${c.cls}`}>
                     {c.label}
                   </span>); })()}
@@ -742,7 +734,7 @@ export default function ScreenerUI({
                 </div>
               </dl>
               <div className="mt-3 flex items-center justify-between gap-2">
-                {(() => { const c = distChip(distKind(e.distribution_policy, e.distribution_frequency)); return (
+                {(() => { const c = distChip(e._dist); return (
                 <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${c.cls}`}>
                   {c.label}
                 </span>); })()}

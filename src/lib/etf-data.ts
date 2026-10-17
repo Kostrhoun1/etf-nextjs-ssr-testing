@@ -6,6 +6,7 @@ import { cache as reactCache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
 import { canonicalIndexLabel, buildIndexOptions, type IndexOptionGroup } from '@/utils/indexNormalization';
+import { distKind, type DistKind } from '@/utils/distribution';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { calculateETFRating } from '@/utils/etfRating';
 import type { ETFListItem } from '@/types/etf';
@@ -38,6 +39,7 @@ export interface ETFBasicInfo {
   return_ytd_usd: number | null;
   return_1y: number | null;
   return_1y_czk: number | null;
+  scraping_date?: string | null;
   return_1y_usd: number | null;
   return_3y: number | null;
   return_3y_czk: number | null;
@@ -103,7 +105,8 @@ const ETF_SELECT_FIELDS = `
   replication,
   fund_domicile,
   fund_currency,
-  index_name
+  index_name,
+  scraping_date
 `;
 
 /**
@@ -164,6 +167,16 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
     // Default: filter out very small funds
     query = query.not('fund_size_numeric', 'is', null);
     query = query.gte('fund_size_numeric', 10);
+
+    // Pojistky správnosti (audit dat 17. 10. 2026):
+    // - pákové a inverzní produkty do žebříčků nepatří (vyhrávaly „Nejvyšší výnos": WTI 2x +272 %);
+    // - fond bez názvu je rozbitý řádek ze scraperu;
+    // - fond se zamrzlými daty (scraper ho 14+ dní neaktualizoval) by ukazoval staré výnosy
+    //   jako dnešní (VUAA: YTD +5 % místo +18,5 %). Měří se scraping_date, NE updated_at –
+    //   ten přepisoval i upsert starých dat.
+    query = query.not('is_leveraged', 'is', true);
+    query = query.not('name', 'is', null);
+    query = query.gte('scraping_date', cerstveOd());
 
     // Apply sorting
     const sortBy = config.sortBy || 'fund_size_numeric';
@@ -291,14 +304,20 @@ export async function getFeaturedETFs(): Promise<{
       .select(ETF_SELECT_FIELDS)
       .not('fund_size_numeric', 'is', null)
       .gte('fund_size_numeric', 100)
+      .gte('scraping_date', cerstveOd())
       .order('fund_size_numeric', { ascending: false })
       .limit(20);
 
-    // Fetch top by 1Y performance
+    // Fetch top by 1Y performance – V KORUNÁCH a jen AKCIOVÉ fondy (audit 17. 10. 2026: panel
+    // ukazoval výnos v měně fondu a vedly ho komoditní ETC – zemní plyn +194 %, stříbro –
+    // hned nad blokem „Kterým ETF začít"; navíc fondy se zamrzlými daty z dubna).
     const byPerformancePromise = supabaseAdmin
       .from('etf_funds')
       .select(ETF_SELECT_FIELDS)
-      .not('return_1y', 'is', null)
+      .eq('category', 'Akcie')
+      .not('name', 'is', null)
+      .gte('scraping_date', cerstveOd())
+      .not('return_1y_czk', 'is', null)
       .not('fund_size_numeric', 'is', null)
       .gte('fund_size_numeric', 50)
       // Vyloučit páková ETP – jinak žebříček "nejvýkonnější" ovládnou produkty
@@ -306,7 +325,7 @@ export async function getFeaturedETFs(): Promise<{
       // Pozn.: vysoké 1Y výnosy nepákových fondů (např. MSCI Korea ~+210 %) jsou
       // REÁLNÉ (korejský chip-supercyklus 2025–2026, ověřeno proti justETF) – NEfiltrovat.
       .not('is_leveraged', 'is', true)
-      .order('return_1y', { ascending: false })
+      .order('return_1y_czk', { ascending: false })
       .limit(20);
 
     // Fetch top rated
@@ -332,6 +351,7 @@ export async function getFeaturedETFs(): Promise<{
       // ETF" nepatří (nejsou to klasické ETF a mají jiné náklady – spread/storage).
       .gt('ter_numeric', 0)
       .lte('ter_numeric', 0.15)
+      .gte('scraping_date', cerstveOd())
       .order('ter_numeric', { ascending: true })
       .limit(20);
 
@@ -359,7 +379,7 @@ export async function getFeaturedETFs(): Promise<{
   }
 }
 
-/* Reálné datum poslední aktualizace dat (MAX updated_at) – data se počítají denně,
+/* Reálné datum poslední aktualizace dat (MAX scraping_date) – data se počítají denně,
    takže zobrazujeme skutečné čerstvé datum, ne 1. v měsíci (web musí působit up‑to‑date).
    Cacheováno pro celý render (dedup napříč generateMetadata + komponentou). */
 const _dataDate = reactCache(async (): Promise<Date | null> => {
@@ -378,10 +398,13 @@ export async function getDataDate(fallback: Date): Promise<Date> {
  */
 export async function getLastModifiedDate(): Promise<string | null> {
   try {
+    // scraping_date = kdy scraper data fondu opravdu stáhl. updated_at to NEní: do 17. 10. 2026
+    // ho přepisoval i upsert starých dat z checkpointů (dubnová data hlásila „dnes").
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('updated_at')
-      .order('updated_at', { ascending: false })
+      .select('scraping_date')
+      .not('scraping_date', 'is', null)
+      .order('scraping_date', { ascending: false })
       .limit(1)
       .single();
 
@@ -389,7 +412,7 @@ export async function getLastModifiedDate(): Promise<string | null> {
       return null;
     }
 
-    return data.updated_at;
+    return data.scraping_date;
   } catch (error) {
     console.error('Error in getLastModifiedDate:', error);
     return null;
@@ -703,6 +726,8 @@ export interface ScreenerETF {
   volatility_1y: number | null;
   current_dividend_yield_numeric: number | null;
   distribution_policy: string | null;
+  distribution_frequency: string | null;
+  scraping_date: string | null;
   replication: string | null;
   index_name: string | null;
   region: string | null;
@@ -725,8 +750,8 @@ const SCREENER_COLUMNS = `
   return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
   return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
   volatility_1y, current_dividend_yield_numeric,
-  distribution_policy, replication, index_name, region, investment_focus,
-  fund_currency, currency_risk, category, is_leveraged, rating, inception_date, fund_domicile
+  distribution_policy, distribution_frequency, replication, index_name, region, investment_focus,
+  fund_currency, currency_risk, category, is_leveraged, rating, inception_date, fund_domicile, scraping_date
 `;
 
 /**
@@ -795,6 +820,7 @@ export interface ScreenerRow {
   _index: string;   // kanonický label indexu
   _rating: number | null;
   _repl: string;    // 'Fyzická' | 'Syntetická' | '—'
+  _dist: DistKind;  // typ výplaty – stejná logika jako detail fondu (src/utils/distribution.ts)
   _blob: string;    // fulltext (name/isin/provider/tickery), lowercase
   _tickers: string[]; // všechny tickery lowercase (pro relevanci hledání)
   _dom: string | null;   // domicil už počeštěný (je zároveň hodnotou filtru)
@@ -857,7 +883,12 @@ export const getScreenerRows = reactCache(async (): Promise<{
   options: ScreenerOptions;
   total: number;
 }> => {
-  const raw = await getScreenerETFData();
+  // Fondy bez názvu jsou rozbité řádky ze scraperu (12 k 17. 10. 2026) – do srovnávače nepatří.
+  // Fondy se zamrzlými daty (scraper je 30+ dní neaktualizoval – typicky už nejsou v nabídce)
+  // by ukazovaly staré výnosy jako dnešní; detail fondu zůstává dostupný s varováním.
+  const zamrzleOd = Date.now() - 30 * 864e5;
+  const raw = (await getScreenerETFData()).filter((e) =>
+    e.name && e.name.trim() !== '' && (!e.scraping_date || new Date(e.scraping_date).getTime() >= zamrzleOd));
 
   const rows: ScreenerRow[] = raw.map((e) => {
     const tickers = [
@@ -892,6 +923,7 @@ export const getScreenerRows = reactCache(async (): Promise<{
       _index: canonicalIndexLabel(e.index_name),
       _rating: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
       _repl: replLabelSrv(e.replication),
+      _dist: distKind(e.distribution_policy, e.distribution_frequency),
       _blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${uniqTickers.join(' ')}`.toLowerCase(),
       _tickers: uniqTickers,
     };
@@ -966,6 +998,10 @@ export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50,
  *  (MSCI World Semiconductors, World Health Care) i faktorové (World Value/Momentum/Small Cap).
  *  Změřeno 2026-08: 95 z 346 fondů se slovem „World" bylo tohoto typu.
  *  POZOR: nepoužívat u sektorových kategorií – tam ty fondy naopak patří. */
+/** Fond, který scraper neaktualizoval déle, se v žebříčcích neukazuje (viz getTopETFsForCategory). */
+export const CERSTVOST_DNI = 14;
+export const cerstveOd = () => new Date(Date.now() - CERSTVOST_DNI * 864e5).toISOString();
+
 const BROAD_MARKET_EXCLUDES = [
   'Semiconductor', 'Information Technology', 'Technology', 'Health Care', 'Healthcare',
   'Energy', 'Financial', 'Bank', 'Insurance', 'Industrial', 'Materials', 'Utilities',
@@ -1064,8 +1100,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší MSCI World ETF fondy - globální diverzifikované ETF pro dlouhodobé investování.',
     filters: {
       category: 'Akcie',
-      nameContains: ['MSCI World', 'World'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      nameContains: ['MSCI World'],
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'ex USA', 'ex-USA', 'ex EMU', 'ex Europe', 'ACWI', 'All-World', 'All World'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1079,7 +1115,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší technologické ETF fondy - přehled ETF na IT sektor, Nasdaq a tech společnosti.',
     filters: {
       category: 'Akcie',
-      nameContains: ['Technology', 'Tech', 'Nasdaq', 'Information', 'Digital', 'AI', 'Cloud', 'Semiconductor'],
+      nameContains: ['Technology', 'Tech', 'Nasdaq', 'Information', 'Digital', ' AI ', 'Cloud', 'Semiconductor'],
+      nameExcludes: ['Biotech', 'Fintech', 'Medtech', 'Healthtech'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1121,7 +1158,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Emerging', 'EM ', 'MSCI EM'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'EMU'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1150,7 +1187,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší Bitcoin ETF fondy - přehled ETF a ETP na Bitcoin a kryptoměny.',
     filters: {
       categories: ['Krypto', 'Komodity'],
-      nameContains: ['Bitcoin', 'BTC', 'Crypto', 'Blockchain'],
+      nameContains: ['Bitcoin', 'BTC'],
       minFundSize: 10,
     },
     sortBy: 'fund_size_numeric',
@@ -1210,21 +1247,6 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     sortOrder: 'desc',
     limit: 50,
   },
-  'nejlepsi-globalni-etf': {
-    slug: 'nejlepsi-globalni-etf',
-    title: 'Nejlepší globální ETF',
-    description: 'Top globální diverzifikované ETF fondy',
-    metaDescription: 'Nejlepší globální ETF fondy - přehled celosvětově diverzifikovaných ETF.',
-    filters: {
-      category: 'Akcie',
-      nameContains: ['World', 'Global', 'All-World', 'ACWI', 'All Country'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
-      minFundSize: 100,
-    },
-    sortBy: 'fund_size_numeric',
-    sortOrder: 'desc',
-    limit: 50,
-  },
   'nejlepsi-americke-etf': {
     slug: 'nejlepsi-americke-etf',
     title: 'Nejlepší americké ETF',
@@ -1233,7 +1255,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['USA', 'US ', 'United States', 'America', 'S&P', 'Nasdaq', 'Dow Jones'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'ex USA', 'ex-USA', 'ex US', 'ex-US'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1248,7 +1270,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Japan', 'Nikkei', 'TOPIX'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'ex Japan', 'ex-Japan'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1263,7 +1285,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['China', 'Chinese', 'CSI', 'Hong Kong', 'Hang Seng'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'ex China', 'ex-China', 'ex. China'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1307,6 +1329,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Value'],
+      nameExcludes: ['Value-Chain', 'Value Chain'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1403,6 +1426,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     description: 'Top ETF fondy na obnovitelné zdroje energie',
     metaDescription: 'Nejlepší ETF na obnovitelné zdroje - přehled ETF na solární, větrnou a čistou energii.',
     filters: {
+      category: 'Akcie',
       nameContains: ['Clean Energy', 'Solar', 'Wind', 'Renewable', 'Green Energy'],
       minFundSize: 50,
     },
@@ -1479,18 +1503,6 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     sortOrder: 'desc',
     limit: 30,
   },
-  'etf-zdarma-degiro': {
-    slug: 'etf-zdarma-degiro',
-    title: 'ETF zdarma na Degiro',
-    description: 'Nejlepší ETF z nabídky Degiro bez poplatků',
-    metaDescription: 'ETF zdarma na Degiro - přehled nejlepších ETF z bezplatné nabídky Degiro brokera.',
-    filters: {
-      minFundSize: 100,
-    },
-    sortBy: 'fund_size_numeric',
-    sortOrder: 'desc',
-    limit: 50,
-  },
   'nejlepsi-ai-etf': {
     slug: 'nejlepsi-ai-etf',
     title: 'Nejlepší AI ETF',
@@ -1498,7 +1510,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší AI ETF fondy - přehled ETF na umělou inteligenci, machine learning a big data.',
     filters: {
       category: 'Akcie',
-      nameContains: ['Artificial Intelligence', ' AI ', 'Machine Learning', 'Big Data', 'Robotics', 'Automation'],
+      nameContains: ['Artificial Intelligence', ' AI ', 'Machine Learning', 'Big Data'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1549,20 +1561,6 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     sortOrder: 'desc',
     limit: 50,
   },
-  'nejlepsi-clean-energy-etf': {
-    slug: 'nejlepsi-clean-energy-etf',
-    title: 'Nejlepší Clean Energy ETF',
-    description: 'Top ETF fondy na čistou energii',
-    metaDescription: 'Nejlepší Clean Energy ETF fondy - přehled ETF na obnovitelné zdroje a čistou energii.',
-    filters: {
-      category: 'Akcie',
-      nameContains: ['Clean Energy', 'Renewable', 'Solar', 'Wind', 'Green Energy'],
-      minFundSize: 50,
-    },
-    sortBy: 'fund_size_numeric',
-    sortOrder: 'desc',
-    limit: 30,
-  },
   'nejlepsi-cloud-etf': {
     slug: 'nejlepsi-cloud-etf',
     title: 'Nejlepší cloud ETF',
@@ -1571,6 +1569,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Cloud', 'Computing', 'SaaS', 'Software'],
+      nameExcludes: ['Quantum'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1585,6 +1584,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['DAX'],
+      nameExcludes: ['MDAX', 'TecDAX', 'SDAX', 'DivDAX', 'DAXplus'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1641,24 +1641,12 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Nasdaq', 'NASDAQ', 'Nasdaq-100', 'NDX'],
+      nameExcludes: ['Biotech'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
     sortOrder: 'desc',
     limit: 30,
-  },
-  'nejlepsi-nemovitostni-etf': {
-    slug: 'nejlepsi-nemovitostni-etf',
-    title: 'Nejlepší nemovitostní ETF',
-    description: 'Top nemovitostní ETF fondy (REITs)',
-    metaDescription: 'Nejlepší nemovitostní ETF fondy - přehled REITs ETF pro investice do nemovitostí.',
-    filters: {
-      category: 'Nemovitosti',
-      minFundSize: 50,
-    },
-    sortBy: 'fund_size_numeric',
-    sortOrder: 'desc',
-    limit: 50,
   },
   'nejlepsi-robotika-etf': {
     slug: 'nejlepsi-robotika-etf',
@@ -1682,21 +1670,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['STOXX 600', 'STOXX600', 'Europe 600'],
+      nameExcludes: ['Banks', 'Basic Resources', 'Utilities', 'Insurance', 'Health Care', 'Technology', 'Oil & Gas', 'Telecommunications', 'Automobiles', 'Chemicals', 'Construction', 'Financial Services', 'Food & Beverage', 'Industrial Goods', 'Media', 'Personal & Household', 'Real Estate', 'Retail', 'Travel & Leisure', 'Optimised'],
       minFundSize: 100,
-    },
-    sortBy: 'fund_size_numeric',
-    sortOrder: 'desc',
-    limit: 30,
-  },
-  'nejlepsi-zlate-etf': {
-    slug: 'nejlepsi-zlate-etf',
-    title: 'Nejlepší zlaté ETF',
-    description: 'Top ETF fondy na zlato',
-    metaDescription: 'Nejlepší zlaté ETF fondy - přehled ETF a ETC na fyzické zlato.',
-    filters: {
-      category: 'Komodity',
-      nameContains: ['Gold', 'Zlato'],
-      minFundSize: 10,
     },
     sortBy: 'fund_size_numeric',
     sortOrder: 'desc',

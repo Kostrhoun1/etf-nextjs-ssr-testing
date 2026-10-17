@@ -22,6 +22,13 @@ const nextConfig: NextConfig = {
       // (www→apex řeší Vercel domény + middleware; kanonická doména je apex etfpruvodce.cz)
       // Smazaný Buffettův článek → rovnou plný backtest s předvyplněným 90/10.
       { source: '/buffettovo-portfolio', destination: '/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1', permanent: true },
+      // Zrušené žebříčky (17. 10. 2026): duplicity se stejnými fondy jako jiná kategorie a
+      // „ETF zdarma na DEGIRO" (ukazovala jen 50 největších fondů; seznam zdarma nejde udržet ověřený).
+      { source: '/nejlepsi-etf/etf-zdarma-degiro', destination: '/recenze/degiro', permanent: true },
+      { source: '/nejlepsi-etf/nejlepsi-globalni-etf', destination: '/nejlepsi-etf/nejlepsi-celosvetove-etf', permanent: true },
+      { source: '/nejlepsi-etf/nejlepsi-clean-energy-etf', destination: '/nejlepsi-etf/nejlepsi-obnovitelne-zdroje-etf', permanent: true },
+      { source: '/nejlepsi-etf/nejlepsi-nemovitostni-etf', destination: '/nejlepsi-etf/nejlepsi-realitni-etf', permanent: true },
+      { source: '/nejlepsi-etf/nejlepsi-zlate-etf', destination: '/nejlepsi-etf/nejlepsi-zlato-etf', permanent: true },
       // === CUTOVER: staré URL (starý web) → nové routy nového designu ===
       { source: '/srovnani-etf', destination: '/srovnani', permanent: true },
       { source: '/srovnani-etf/:pair', destination: '/srovnani/:pair', permanent: true },

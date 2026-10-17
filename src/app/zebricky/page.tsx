@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { categoryConfigs, getFeaturedETFs, getTotalETFCount } from '@/lib/etf-data';
+import { categoryConfigs, getFeaturedETFs, getTotalETFCount, getDataDate } from '@/lib/etf-data';
+import AktualnostDat from '@/components/design-preview/AktualnostDat';
 
 export const revalidate = 86400;
 
@@ -63,7 +64,6 @@ const GROUP_DEFS: { title: string; icon: typeof Layers; intro: string; slugs: st
     intro: 'Geografické zaměření – svět, USA, Evropa, Asie či rozvíjející se trhy.',
     slugs: [
       'nejlepsi-celosvetove-etf',
-      'nejlepsi-globalni-etf',
       'nejlepsi-americke-etf',
       'nejlepsi-evropske-etf',
       'nejlepsi-japonske-etf',
@@ -96,7 +96,6 @@ const GROUP_DEFS: { title: string; icon: typeof Layers; intro: string; slugs: st
       'nejlepsi-robotika-etf',
       'nejlepsi-cloud-etf',
       'nejlepsi-kyberbezpecnost-etf',
-      'nejlepsi-clean-energy-etf',
       'nejlepsi-obnovitelne-zdroje-etf',
       'nejlepsi-biotechnologie-etf',
       'nejlepsi-defense-etf',
@@ -134,7 +133,6 @@ const POPULAR_SLUGS = [
   'nejlepsi-sp500-etf',
   'nejlepsi-celosvetove-etf',
   'nejlevnejsi-etf',
-  'etf-zdarma-degiro',
 ];
 
 /* Pomocná čísla. */
@@ -145,9 +143,10 @@ const fmtTer = (n: number | null) =>
   n == null ? '—' : `${n.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
 
 export default async function ZebrickyPage() {
-  const [featured, totalCount] = await Promise.all([
+  const [featured, totalCount, dataDate] = await Promise.all([
     getFeaturedETFs(),
     getTotalETFCount(),
+    getDataDate(new Date()),
   ]);
   const total = totalCount || 4800;
 
@@ -159,7 +158,7 @@ export default async function ZebrickyPage() {
 
   // Duplicitní SEO varianty stejného obsahu – kanonickou ponecháváme, druhou skrýváme,
   // aby se uživateli ani v „Dalších žebříčcích" nezobrazovaly dvě totožné dlaždice.
-  const DUPLICATE_SLUGS = ['nejlepsi-nemovitostni-etf', 'nejlepsi-zlate-etf'];
+  const DUPLICATE_SLUGS: string[] = []; // duplicity zrušeny 17. 10. 2026 (301 v next.config.ts)
 
   // Vše, co je zařazené ve skupinách nebo v „nejhledanějších" (+ skryté duplicity).
   const covered = new Set<string>([
@@ -263,6 +262,7 @@ export default async function ZebrickyPage() {
             <span aria-hidden>·</span>
             <span>výnosy přepočtené do korun</span>
           </p>
+          <AktualnostDat datum={dataDate} className="mt-3" />
         </section>
 
         {/* 2. Nejhledanější */}

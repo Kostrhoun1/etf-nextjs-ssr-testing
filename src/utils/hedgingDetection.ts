@@ -57,41 +57,22 @@ export function detectHedging(etfName: string, currencyRisk?: string): HedgingIn
   // Fallback na detekci ze jména
   const name = etfName.toLowerCase();
 
-  // Detekce specifických měnových zajištění
-  if (name.includes('eur hedged')) {
-    return {
-      isHedged: true,
-      hedgedCurrency: 'EUR',
-      hedgingType: 'eur_hedged'
-    };
+  // „Unhedged" obsahuje „hedged" – dřív se proto 94 výslovně NEzajištěných fondů (např.
+  // „… USD Unhedged", nejlevnější S&P 500) hlásilo jako zajištěné (audit 17. 10. 2026).
+  if (/\b(unhedged|not hedged)\b/.test(name)) {
+    return { isHedged: false, hedgedCurrency: null, hedgingType: 'unhedged' };
   }
 
-  if (name.includes('usd hedged')) {
-    return {
-      isHedged: true,
-      hedgedCurrency: 'USD',
-      hedgingType: 'usd_hedged'
-    };
-  }
-
-  if (name.includes('gbp hedged')) {
-    return {
-      isHedged: true,
-      hedgedCurrency: 'GBP',
-      hedgingType: 'gbp_hedged'
-    };
-  }
-
-  if (name.includes('chf hedged')) {
-    return {
-      isHedged: true,
-      hedgedCurrency: 'CHF',
-      hedgingType: 'chf_hedged'
-    };
+  // Měna zajištění: „EUR Hedged", „EUR Hdg", „EUR-Hedged", „Hedged to EUR". Zkratku „Hdg"
+  // (Invesco, …) kód dřív neznal → 17 zajištěných fondů vedl jako nezajištěné.
+  const mena = name.match(/\b(eur|usd|gbp|chf)[\s-]*(?:hedged|hdg)\b/) || name.match(/\b(?:hedged|hdg)\s+(?:to\s+)?(eur|usd|gbp|chf)\b/);
+  if (mena) {
+    const m = mena[1].toUpperCase() as 'EUR' | 'USD' | 'GBP' | 'CHF';
+    return { isHedged: true, hedgedCurrency: m, hedgingType: `${m.toLowerCase()}_hedged` as HedgingInfo['hedgingType'] };
   }
 
   // Obecné hedging patterny
-  if (name.includes('hedged') || name.includes('hedge')) {
+  if (/\b(hedged|hdg)\b/.test(name)) {
     return {
       isHedged: true,
       hedgedCurrency: null,

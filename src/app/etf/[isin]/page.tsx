@@ -14,6 +14,8 @@ import {
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import CompareButton from '@/components/design-preview/CompareButton';
+import AktualnostDat from '@/components/design-preview/AktualnostDat';
+import { distKind } from '@/utils/distribution';
 import EtfReturns from '@/components/design-preview/EtfReturns';
 import EtfCalendarReturns, { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
 import { getDataDate } from '@/lib/etf-data';
@@ -136,19 +138,7 @@ const dateLabel = (raw: string | null | undefined) => {
 /* ---------- odvození popisků z dat (žádné hodnoty napevno) ---------- */
 // Tri-state politika: 'acc' | 'dist' | 'unknown'. Prázdná politika se NIKDY
 // nedomýšlí na akumulační – radši se odvodí z výplatní frekvence, jinak „neuvedeno".
-const PAYOUT_FREQ = /(quarter|month|annual|semi|dividend|income)/i;
-const distKind = (
-  policy: string | null | undefined,
-  freq?: string | null,
-): 'acc' | 'dist' | 'unknown' => {
-  const p = policy || '';
-  if (/accumulat|thesaur|capitalis/i.test(p)) return 'acc';
-  if (/distribut/i.test(p)) return 'dist';
-  // politika chybí → výplatní frekvence je definiční signál distribuce
-  if (freq && PAYOUT_FREQ.test(freq)) return 'dist';
-  return 'unknown';
-};
-const distLabelOf = (kind: 'acc' | 'dist' | 'unknown') =>
+const distLabelOf = (kind: ReturnType<typeof distKind>) =>
   kind === 'acc' ? 'Akumulační' : kind === 'dist' ? 'Distribuční' : 'Neuvedeno';
 const replLabel = (rep: string | null | undefined) => {
   const s = (rep || '').toLowerCase();
@@ -161,6 +151,23 @@ const DOMICILE_CS: Record<string, string> = {
   Netherlands: 'Nizozemsko', Switzerland: 'Švýcarsko', 'United Kingdom': 'Spojené království',
 };
 const domLabel = (d: string | null | undefined) => (d ? DOMICILE_CS[d] ?? d : '—');
+/** „sídlo v Irsku" – 6. pád (dřív „sídlo v Irsko"). Neznámá země → „sídlo: X". */
+const DOMICILE_LOK: Record<string, string> = {
+  Ireland: 'v Irsku', Luxembourg: 'v Lucembursku', Germany: 'v Německu', France: 've Francii',
+  Netherlands: 'v Nizozemsku', Switzerland: 've Švýcarsku', 'United Kingdom': 've Spojeném království',
+};
+const sidloVeta = (d: string | null | undefined, slovo = 'sídlo') => (d ? (DOMICILE_LOK[d] ? `${slovo} ${DOMICILE_LOK[d]}` : `${slovo} v zemi ${DOMICILE_CS[d] ?? d}`) : null);
+/** „s fyzickou replikací" (dřív „s fyzická replikací"). */
+const replikaceVeta = (rep: string | null | undefined) => {
+  const t = replLabel(rep);
+  if (t.startsWith('Syntetická')) return 'se syntetickou replikací (swap)';
+  if (t === 'Fyzická') return 's fyzickou replikací';
+  return null;
+};
+/** Popis description_cs je u části fondů ve skutečnosti anglicky (audit 17. 10. 2026) –
+ *  takový neukazovat jako český. Hrubý test: žádná diakritika a 3+ časté anglické výrazy. */
+const jeAnglicky = (t: string) =>
+  !/[ěščřžýáíéůúňťď]/i.test(t) && (t.match(/\b(the|and|of|fund|which|invests|index|shares)\b/gi) || []).length >= 3;
 const volDesc = (v: number | null) =>
   v == null ? 'Data o kolísavosti nejsou k dispozici.'
     : v < 10 ? 'Nízká kolísavost.'
@@ -224,7 +231,8 @@ export default async function ETFDetailPreview(
 ) {
   const { isin } = await params;
   const { data } = await supabaseAdmin.from('etf_funds').select('*').eq('isin', isin).single();
-  if (!data) notFound();
+  // Fond bez názvu = rozbitý řádek ze scraperu (12 k 17. 10. 2026, bez TER, měny i data vzniku).
+  if (!data || !String((data as { name?: string }).name ?? '').trim()) notFound();
 
   const etf = data as ETF;
   // CZK přepočty (NEJSOU v typu ETF, ale jsou v DB)
@@ -252,21 +260,25 @@ export default async function ETFDetailPreview(
   const ticker = etf.primary_ticker || '—';
   const allTickers = uniqueTickers(etf as unknown as Record<string, unknown>);
   const today = new Date();
-  /* DATUM MUSÍ BÝT OD TOHOTO FONDU, ne globální MAX(updated_at) přes celou tabulku.
+  /* DATUM MUSÍ BÝT OD TOHOTO FONDU (scraping_date = kdy scraper data fondu opravdu stáhl).
+     NE updated_at: ten do 17. 10. 2026 přepisoval i upsert starých dat z checkpointů,
+     takže ~640 fondů s dubnovými čísly hlásilo „aktualizováno včera" (audit dat).
+     Původní poznámka: ne globální MAX(updated_at) přes celou tabulku.
      Scraper neprojde každý den všech 5 064 fondů – k 6. 9. 2026 bylo 313 záznamů
      starších než 30 dní. Globální razítko u nich tvrdilo, že jsou čerstvé, což je
      přesně ten typ automaticky se posouvajícího data, jaké jsme vyhodili u ceníků
      brokerů (viz src/lib/editorial-check.ts). Fallback na globální datum jen tehdy,
      když fond vlastní `updated_at` nemá. */
   const fundUpdated = (() => {
-    const iso = (etf as unknown as Record<string, unknown>).updated_at;
+    const iso = (etf as unknown as Record<string, unknown>).scraping_date ?? (etf as unknown as Record<string, unknown>).updated_at;
     const d = iso ? new Date(String(iso)) : null;
     return d && !Number.isNaN(d.getTime()) ? d : null;
   })();
   const dataDate = fundUpdated ?? (await getDataDate(today));
   const dateStr = dataDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const staleDays = Math.floor((today.getTime() - dataDate.getTime()) / 864e5);
-  const isStale = staleDays > 30;
+  // 7 dní: scraper běží denně – týden bez aktualizace už znamená, že s fondem něco je.
+  const isStale = staleDays > 7;
 
   // krátký název pro nadpis – odvozený z názvu fondu (ne napevno)
   const shortName = etf.name.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)/, '').trim();
@@ -279,6 +291,9 @@ export default async function ETFDetailPreview(
   const dKind = distKind(etf.distribution_policy, etf.distribution_frequency);
   const isAcc = dKind === 'acc';
   const isDist = dKind === 'dist';
+  // Pákové/inverzní produkty (audit 17. 10. 2026: detail 3× pákového ETF ho doporučoval
+  // dlouhodobým pasivním investorům a nikde nevaroval).
+  const isLev = etf.is_leveraged === true;
   const distText = distLabelOf(dKind);
   const replText = replLabel(etf.replication);
   const domText = domLabel(etf.fund_domicile);
@@ -309,8 +324,9 @@ export default async function ETFDetailPreview(
     ytd: true,
     vals: {
       EUR: num(r.return_ytd as number),
-      CZK: num(r.return_ytd_czk as number) ?? num(r.return_ytd as number),
-      USD: num(r.return_ytd_usd as number) ?? num(r.return_ytd as number),
+      // Bez přepočtu NEukazovat EUR jako Kč/USD (dřív tichý fallback – 172 mladých fondů).
+      CZK: num(r.return_ytd_czk as number),
+      USD: num(r.return_ytd_usd as number),
     },
   };
   const hasYtd = ytdCol.vals.EUR != null || ytdCol.vals.CZK != null || ytdCol.vals.USD != null;
@@ -463,6 +479,20 @@ export default async function ETFDetailPreview(
                   <Badge icon={Landmark}>Domicil {domText}</Badge>
                   {isDist && divYield != null && <Badge icon={Banknote}>Div. výnos {pct(divYield).replace('+', '')}</Badge>}
                 </div>
+                {isLev && (
+                  <p className="mt-3 flex items-start gap-1.5 rounded-lg border border-red-300/50 bg-red-500/15 px-3 py-2 text-xs text-red-100">
+                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                    <span><strong>Pákový produkt.</strong> Násobí denní pohyb trhu a každý den se přenastavuje – za delší dobu se výnos může od násobku indexu výrazně lišit a lze přijít o celou investici. Není určený k dlouhodobému investování.</span>
+                  </p>
+                )}
+                {isStale ? (
+                  <p className="mt-3 inline-flex items-start gap-1.5 rounded-lg border border-amber-300/40 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-100">
+                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                    <span>Data tohoto fondu jsou z <strong>{dataDate.toLocaleDateString('cs-CZ')}</strong> (před {staleDays} dny) – čísla nemusí odpovídat dnešku.</span>
+                  </p>
+                ) : (
+                  <AktualnostDat datum={dataDate} tmavy className="mt-3" />
+                )}
               </div>
 
               <div className="mt-5 md:mt-0 md:w-64 shrink-0">
@@ -677,9 +707,9 @@ export default async function ETFDetailPreview(
           <SectionHead title="O fondu" />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <p className="text-sm text-slate-600 leading-relaxed">
-              {etf.description_cs && etf.description_cs.trim() !== ''
+              {etf.description_cs && etf.description_cs.trim() !== '' && !jeAnglicky(etf.description_cs)
                 ? cleanDesc(etf.description_cs)
-                : `${etf.name} je ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}fond sledující index ${etf.index_name} s nákladovostí ${ter(etf.ter_numeric)} ročně a sídlem v ${etf.fund_domicile === 'Ireland' ? 'Irsku' : etf.fund_domicile}.`}
+                : `${etf.name} je ${isLev ? 'pákový produkt (ETP) ' : `${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}fond `}${etf.index_name ? `sledující index ${etf.index_name} ` : ''}s nákladovostí ${ter(etf.ter_numeric)} ročně${sidloVeta(etf.fund_domicile, 'sídlem') ? ` a ${sidloVeta(etf.fund_domicile, 'sídlem')}` : ''}.`}
             </p>
           </div>
         </section>
@@ -724,8 +754,15 @@ export default async function ETFDetailPreview(
           <div className="space-y-2">
             {[
               {
-                q: `Je ${ticker} (${shortName}) vhodný pro dlouhodobé investování?`,
-                a: `Je to ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}fond sledující index ${etf.index_name} s ${replText.toLowerCase()} replikací. Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_currency)}, roční poplatek ${ter(etf.ter_numeric)} a sídlo v ${domText}. ${isAcc ? 'Akumulační politika a nízké náklady z něj dělají praktickou volbu pro dlouhodobé pasivní investory.' : isDist ? 'Distribuční politika se hodí těm, kdo chtějí z investice pravidelný příjem.' : ''} Vhodnost pro vás ale závisí na vašem cíli a horizontu.`,
+                q: `Je ${ticker !== '—' ? `${ticker} (${shortName})` : shortName} vhodný pro dlouhodobé investování?`,
+                a: isLev
+                  ? `Pro dlouhodobé držení obecně ne. Jde o pákový (nebo inverzní) produkt, který násobí DENNÍ pohyb ${etf.index_name ? `indexu ${etf.index_name}` : 'podkladového trhu'} a každý den se přenastavuje. Za delší období se proto jeho výnos může výrazně lišit od násobku výnosu indexu – při kolísavém trhu i směrem dolů – a o investici lze přijít i úplně. Je určený ke krátkodobému obchodování zkušenými investory.`
+                  : [
+                      `Je to ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}fond${etf.index_name ? ` sledující index ${etf.index_name}` : ''}${replikaceVeta(etf.replication) ? ` ${replikaceVeta(etf.replication)}` : ''}.`,
+                      `Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_currency)}, roční poplatek ${ter(etf.ter_numeric)}${sidloVeta(etf.fund_domicile) ? ` a ${sidloVeta(etf.fund_domicile)}` : ''}.`,
+                      isAcc ? 'Akumulační politika a nízké náklady z něj dělají praktickou volbu pro dlouhodobé pasivní investory.' : isDist ? 'Distribuční politika se hodí těm, kdo chtějí z investice pravidelný příjem.' : '',
+                      'Vhodnost pro vás ale závisí na vašem cíli a horizontu.',
+                    ].filter(Boolean).join(' '),
               },
               {
                 q: 'Vyplácí tento fond dividendy?',
@@ -737,7 +774,7 @@ export default async function ETFDetailPreview(
               },
               {
                 q: 'Musím jako Čech vyplňovat formulář W-8BEN?',
-                a: `Ne. W-8BEN se týká amerických (US-domiciled) fondů. Tento fond sídlí v ${domText}, takže srážkovou daň z amerických dividend řeší správce fondu na úrovni fondu (u irského domicilu 15 % místo 30 % díky daňové smlouvě s USA).`,
+                a: `Ne. W-8BEN se týká amerických (US-domiciled) fondů. Tento fond sídlí ${etf.fund_domicile && DOMICILE_LOK[etf.fund_domicile] ? DOMICILE_LOK[etf.fund_domicile] : `v zemi ${domText}`}, takže srážkovou daň z amerických dividend řeší správce fondu na úrovni fondu (u irského domicilu 15 % místo 30 % díky daňové smlouvě s USA).`,
               },
               {
                 q: 'Proč ukazujete výnos v korunách?',

@@ -7,8 +7,10 @@ import { useCurrency, curLabel, type Currency } from '@/components/design-previe
 type Vals = { ytd: number | null; y1: number | null; y3: number | null; y5: number | null };
 type ByCur = Record<Currency, Vals>;
 
-/* Krátká období (1M/3M/6M) – v měně fondu (u kratších období není měnový přepočet
-   v datech spolehlivý), proto je držíme mimo přepínač měny a jasně to označíme. */
+/* Krátká období (1M/3M/6M) – data je mají jen v EUR (báze justETF), bez přepočtu do Kč/USD,
+   proto je držíme mimo přepínač měny a jasně to označíme. Dřív se popisovala „v měně fondu"
+   (u USD fondu tedy „USD"), přestože čísla jsou v EUR (audit 17. 10. 2026: SXR8 1M „+5,1 % USD",
+   v USD přitom +2,1 %). */
 type ShortPeriods = { m1: number | null; m3: number | null; m6: number | null };
 type Vol = { v3: number | null; v5: number | null };
 
@@ -70,7 +72,6 @@ export default function EtfReturns({
 
   const hasShort = short && (short.m1 != null || short.m3 != null || short.m6 != null);
   const hasVol = vol && (vol.v3 != null || vol.v5 != null);
-  const baseSym = fundCurrency || 'měna fondu';
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
@@ -98,10 +99,10 @@ export default function EtfReturns({
         })}
       </div>
 
-      {/* Krátká období – v měně fondu (bez měnového přepočtu) */}
+      {/* Krátká období – v EUR (bez měnového přepočtu) */}
       {hasShort && (
         <div className="mt-4 pt-4 border-t border-slate-100">
-          <p className="text-xs font-medium text-slate-500 mb-2">Krátkodobý vývoj ({baseSym}, v měně fondu)</p>
+          <p className="text-xs font-medium text-slate-500 mb-2">Krátkodobý vývoj (v EUR, bez přepočtu do Kč)</p>
           <div className="grid grid-cols-3 gap-3 text-sm">
             {[
               { label: '1 měsíc', value: short!.m1 },

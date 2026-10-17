@@ -5,9 +5,10 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import HeroSearch from '@/components/home/HeroSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import {
-  getFeaturedETFs, getTotalETFCount, getETFCountLabel, getMarketSnapshot, getReturnsByIsins,
+  getFeaturedETFs, getTotalETFCount, getETFCountLabel, getDataDate, getMarketSnapshot, getReturnsByIsins,
   getETFsByIsins, categoryConfigs, type ETFBasicInfo,
 } from '@/lib/etf-data';
+import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
 import { brokers } from '@/data/brokerData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
@@ -55,12 +56,8 @@ const STARTER_META: Record<string, { tag: string; icon: typeof Globe; why: strin
   IE00B4L5Y983: { tag: 'Rozvinuté trhy', icon: Building2, why: 'Zhruba 1 500 firem z vyspělých zemí (MSCI World) bez rozvíjejících se trhů. Klasická a osvědčená volba.' },
 };
 
-/* Počet kategorií žebříčků – shodná logika jako /design-preview/zebricky
-   (bez duplicitních SEO slugů), ať homepage neuvádí nižší, zastaralé číslo. */
-const DUPLICATE_CATEGORY_SLUGS = ['nejlepsi-nemovitostni-etf', 'nejlepsi-zlate-etf'];
-const CATEGORY_COUNT = Object.keys(categoryConfigs).filter(
-  (s) => !DUPLICATE_CATEGORY_SLUGS.includes(s),
-).length;
+/* Počet kategorií žebříčků (duplicity zrušeny 17. 10. 2026 – 301 v next.config.ts). */
+const CATEGORY_COUNT = Object.keys(categoryConfigs).length;
 
 const CATEGORIES = [
   { href: '/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'Celosvětové', icon: Globe },
@@ -166,7 +163,7 @@ function PerfBar({ v }: { v: number | null }) {
 
 function DataPanel({ title, href, etfs, metric }: { title: string; href: string; etfs: ETFBasicInfo[]; metric: 'ter' | 'return' | 'size' }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
         <Link href={href} className="text-xs text-teal-700 hover:text-teal-800 inline-flex items-center gap-1">vše <ArrowRight className="w-3 h-3" /></Link>
@@ -182,7 +179,7 @@ function DataPanel({ title, href, etfs, metric }: { title: string; href: string;
               </span>
               {metric === 'ter' && <span className="tabular-nums text-sm font-medium text-slate-700">{ter(etf.ter_numeric)}</span>}
               {metric === 'size' && <span className="tabular-nums text-sm font-medium text-slate-700">{money(etf.fund_size_numeric, etf.fund_currency)}</span>}
-              {metric === 'return' && <PerfBar v={etf.return_1y} />}
+              {metric === 'return' && <PerfBar v={etf.return_1y_czk ?? null} />}
             </Link>
           </li>
         ))}
@@ -203,12 +200,13 @@ export default async function DesignPreviewV2() {
   const allPortfolioIsins = Array.from(
     new Set(portfolioModels.flatMap((p) => p.allocations.map((a) => a.isin))),
   );
-  const [featured, totalCount, markets, isinReturns, starters] = await Promise.all([
+  const [featured, totalCount, markets, isinReturns, starters, dataDate] = await Promise.all([
     getFeaturedETFs(),
     getTotalETFCount(),
     getMarketSnapshot(),
     getReturnsByIsins(allPortfolioIsins),
     getETFsByIsins(STARTER_ISINS),
+    getDataDate(new Date()),
   ]);
 
   // Výnos portfolia = vážený průměr korunových výnosů jeho ETF složek (přes dostupné složky).
@@ -326,14 +324,15 @@ export default async function DesignPreviewV2() {
             <div>
               <h2 className="text-lg font-bold tracking-tight">Rychlý přehled fondů</h2>
               <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější ETF na jeden pohled.</p>
+              <AktualnostDat datum={dataDate} className="mt-2" />
             </div>
             <Link href="/srovnani" className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
               Filtrovat všechny fondy <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 [&>*]:min-w-0">
             <DataPanel title="Největší fondy" href="/srovnani" etfs={featured.bySize || []} metric="size" />
-            <DataPanel title="Nejvýkonnější (1R)" href="/srovnani" etfs={featured.byPerformance || []} metric="return" />
+            <DataPanel title="Nejvýkonnější akciové (1R v Kč)" href="/srovnani" etfs={featured.byPerformance || []} metric="return" />
             <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" etfs={featured.lowCost || []} metric="ter" />
           </div>
           <Link href="/srovnani" className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm font-semibold text-teal-800 hover:bg-teal-50 hover:border-teal-300 transition-colors">
