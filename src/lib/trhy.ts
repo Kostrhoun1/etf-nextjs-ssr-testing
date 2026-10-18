@@ -27,12 +27,31 @@ export interface RadekTrhu {
   nejlevnejsi: FondTrhu | null;
   stejnyTer: number; // kolik dalších fondů má stejné TER jako vítěz
   nejvetsi: FondTrhu | null;
+  /** Medián výnosu 12 měs. v Kč přes platné fondy trhu (bez odlehlých). */
   median: number | null;
   min: number | null;
   max: number | null;
   nejvykonnejsi: FondTrhu | null;
   odlehle: FondTrhu[];
   nejstarsi: string | null;
+}
+
+/**
+ * PRAVIDLO „NEJLEVNĚJŠÍ FOND“ – jedno pro homepage i žebříčky (revize kola 4, 18. 10. 2026).
+ * Dřív homepage u S&P 500 ukazovala SPYL (Acc) a žebříček SPY5 (Dist) – oba TER 0,03 %.
+ *   1. kandidáti: čerstvá data (scraping_date ≤ CERSTVOST_DNI), TER > 0 (TER 0 = chyba zdroje),
+ *      velikost ≥ MIN_VELIKOST_VITEZE (100 mil. €),
+ *   2. nejnižší TER,
+ *   3. při shodě TER akumulační třída (distribution_policy obsahuje „accum“) před distribuční,
+ *   4. při shodě i v tom větší fond (fund_size_numeric).
+ * Žebříčky mají převzít `porovnejNejlevnejsi` + `jeAkumulacni` (stejné pořadí kritérií).
+ */
+export const jeAkumulacni = (distributionPolicy: unknown) => /accum/i.test(String(distributionPolicy ?? ''));
+export function porovnejNejlevnejsi(
+  a: { ter: number | null; acc: boolean; velikost: number | null },
+  b: { ter: number | null; acc: boolean; velikost: number | null },
+) {
+  return (a.ter ?? Infinity) - (b.ter ?? Infinity) || Number(b.acc) - Number(a.acc) || (b.velikost ?? 0) - (a.velikost ?? 0);
 }
 
 const kratky = (n: string) => n.replace(/\s+UCITS\b.*$/i, '').replace(/\s+\(.*?\)\s*$/, '').trim();
@@ -54,7 +73,7 @@ export function spocitejTrh(trh: Trh, fondy: FondTrhu[], ted = Date.now()): Rade
   const velke = (xs: FondTrhu[]) => xs.filter((f) => (f.velikost ?? 0) >= MIN_VELIKOST_VITEZE);
 
   const sTer = velke(cerstve.filter((f) => f.ter != null && f.ter > 0))
-    .sort((a, b) => a.ter! - b.ter! || Number(b.acc) - Number(a.acc) || (b.velikost ?? 0) - (a.velikost ?? 0));
+    .sort(porovnejNejlevnejsi);
   const nejlevnejsi = sTer[0] ?? null;
   const stejnyTer = nejlevnejsi ? sTer.filter((f) => f !== nejlevnejsi && f.ter === nejlevnejsi.ter).length : 0;
   const nejvetsi = [...cerstve].filter((f) => f.velikost != null).sort((a, b) => b.velikost! - a.velikost!)[0] ?? null;
@@ -94,7 +113,7 @@ export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
       velikost: r.fund_size_numeric == null ? null : Number(r.fund_size_numeric),
       r1: r.return_1y_czk == null ? null : Number(r.return_1y_czk),
       scrapingDate: r.scraping_date == null ? null : String(r.scraping_date),
-      acc: /accum/i.test(String(r.distribution_policy ?? '')),
+      acc: jeAkumulacni(r.distribution_policy),
     }]),
   );
   return TRHY.map((t) => spocitejTrh(t, t.isins.map((i) => podleIsin.get(i)).filter((f): f is FondTrhu => Boolean(f))));

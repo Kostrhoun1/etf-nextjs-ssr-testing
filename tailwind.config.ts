@@ -9,6 +9,11 @@ export default {
 		"./src/**/*.{ts,tsx}",
 	],
 	prefix: "",
+	// hover: jen na zařízeních s myší (@media (hover: hover) and (pointer: fine)). Na mobilu jinak
+	// zůstával hover stav na tlačítku po klepnutí (např. kvíz) – revize kola 4, 18. 10. 2026.
+	future: {
+		hoverOnlyWhenSupported: true,
+	},
 	theme: {
 		container: {
 			center: true,

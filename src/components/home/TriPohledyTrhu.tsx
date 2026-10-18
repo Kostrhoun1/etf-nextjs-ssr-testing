@@ -8,24 +8,29 @@ import EmitentLogo from '@/components/home/EmitentLogo';
 import type { RadekTrhu, FondTrhu } from '@/lib/trhy';
 import { mer } from '@/lib/mereni';
 
-/* Tři pohledy na fondy podle trhu (homepage, 18. 10. 2026): nejlevnější / největší / nejvýkonnější.
+/* Tři pohledy na fondy podle trhu (homepage, 18. 10. 2026): nejlevnější / největší / nejvyšší výnos.
    Všechny panely jsou ve HTML (server), JS jen přepíná záložky (WAI-ARIA tabs, šipky).
    Revize (art director + test s uživateli): krátké záložky, stejné pořadí trhů ve všech pohledech,
    hlavní číslo = údaj o vítězném fondu (ne „medián“), žádné odstavce pod tabulkou.
    Odkaz pod tabulkou vede tam, kde data odpovídají pohledu (ne na srovnávač s chybným TER 0 %). */
 
 type Pohled = 'ter' | 'size' | 'r1';
-const POHLEDY: { id: Pohled; label: string; sloupec: string; dalsi: { href: string; text: string } }[] = [
+const POHLEDY: { id: Pohled; label: string; kratce?: string; sloupec: string; dalsi: { href: string; text: string } }[] = [
   { id: 'ter', label: 'Nejlevnější', sloupec: 'Poplatek (TER)', dalsi: { href: '/nejlepsi-etf/nejlevnejsi-etf', text: 'Žebříček nejlevnějších ETF' } },
   { id: 'size', label: 'Největší', sloupec: 'Velikost fondu', dalsi: { href: '/srovnani?sort=size&smer=desc', text: 'Všechny fondy podle velikosti' } },
-  { id: 'r1', label: 'Nejvýkonnější', sloupec: 'Výnos 12 měs. v Kč', dalsi: { href: '/srovnani?kat=Akcie&sort=r1&smer=desc', text: 'Všechny fondy podle výkonu' } },
+  // Revize kola 4: fondy na stejný index mají skoro stejný výnos (rozdíl desetiny p. b. = poplatek, třída, burza).
+  // Pohled zůstává (majitel chtěl tři), ale poctivě: „Nejvyšší výnos“ + rozdíl proti mediánu trhu.
+  { id: 'r1', label: 'Nejvyšší výnos', kratce: 'Výnos', sloupec: 'Výnos 12 měs. v Kč', dalsi: { href: '/srovnani?kat=Akcie&sort=r1&smer=desc', text: 'Všechny fondy podle výnosu' } },
 ];
 
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
 /** Výnos se znaménkem (− je skutečné minus, ne pomlčka – čtečky i barvoslepí). */
-const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${cz(Math.abs(v))} %`);
-const terF = (v: number | null) => (v == null ? '—' : `${cz(v, 2)} %`);
-const mld = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 1000)} mld €` : `${Math.round(v)} mil €`);
+const znamenko = (v: number) => (v > 0 ? '+' : v < 0 ? '−' : '');
+const pct = (v: number | null) => (v == null ? '—' : `${znamenko(v)}${cz(Math.abs(v))}\u00a0%`);
+const terF = (v: number | null) => (v == null ? '—' : `${cz(v, 2)}\u00a0%`);
+const mld = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 1000)}\u00a0mld.\u00a0€` : `${Math.round(v)}\u00a0mil.\u00a0€`);
+/** Rozdíl v procentních bodech (výnos fondu − medián trhu). */
+const pb = (v: number | null) => (v == null ? '—' : `${znamenko(Math.round(v * 10) / 10)}${cz(Math.abs(v))}\u00a0p.\u00a0b.`);
 
 function Fond({ f }: { f: FondTrhu | null }) {
   if (!f) return <span className="text-slate-500">—</span>;
@@ -70,9 +75,10 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
             tabIndex={pohled === p.id ? 0 : -1}
             onClick={() => { setPohled(p.id); mer('zalozka', { s: 'trhy', c: p.id }); }}
             onKeyDown={(e) => onKey(e, i)}
-            className={`min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors ${pohled === p.id ? 'bg-white text-teal-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`min-h-11 md:min-h-10 rounded-lg px-3 text-sm font-semibold transition-colors ${pohled === p.id ? 'bg-teal-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
-            {p.label}
+            {/* Mobil (třetina z 390 px): „Nejvyšší výnos“ se lámalo na dva řádky → krátký popisek. */}
+            {p.kratce ? <><span className="sm:hidden">{p.kratce}</span><span className="hidden sm:inline">{p.label}</span></> : p.label}
           </button>
         ))}
       </div>
@@ -82,19 +88,24 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
             <li className="hidden md:grid md:grid-cols-[12rem_minmax(0,1fr)_11rem_7rem_7rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
               <span>Trh</span>
-              <span>{p.id === 'ter' ? 'Nejlevnější fond' : p.id === 'size' ? 'Největší fond' : 'Nejvýkonnější fond'}</span>
+              <span>{p.id === 'ter' ? 'Nejlevnější fond' : p.id === 'size' ? 'Největší fond' : 'Fond s nejvyšším výnosem'}</span>
               <span className="text-right">
                 {p.id === 'ter'
                   ? <InfoTip label="TER = roční poplatek fondu, strhává se z jeho hodnoty. Syntetické (swapové) fondy mohou mít navíc swap poplatek – detail u fondu.">{p.sloupec}</InfoTip>
                   : p.sloupec}
               </span>
-              <span className="text-right">{p.id === 'size' ? 'Poplatek (TER)' : 'Velikost'}</span>
+              <span className="text-right">
+                {p.id === 'r1'
+                  ? <InfoTip label="Výnos fondu minus medián výnosů všech fondů na tentýž trh (12 měsíců v Kč). Fondy na stejný index se liší hlavně poplatkem, třídou a burzou – rozdíl bývá v desetinách procentního bodu.">Proti mediánu</InfoTip>
+                  : p.id === 'size' ? 'Poplatek (TER)' : 'Velikost'}
+              </span>
               <span className="text-right">{p.id === 'r1' ? 'Poplatek (TER)' : '12 měs. v Kč'}</span>
             </li>
             {radky.map((r) => {
               const f = p.id === 'ter' ? r.nejlevnejsi : p.id === 'size' ? r.nejvetsi : r.nejvykonnejsi;
               const hlavni = p.id === 'ter' ? terF(f?.ter ?? null) : p.id === 'size' ? mld(f?.velikost ?? null) : pct(f?.r1 ?? null);
-              const vedlejsi = p.id === 'size' ? terF(f?.ter ?? null) : mld(f?.velikost ?? null); // r1: velikost
+              const rozdil = f?.r1 != null && r.median != null ? f.r1 - r.median : null;
+              const vedlejsi = p.id === 'size' ? terF(f?.ter ?? null) : p.id === 'r1' ? pb(rozdil) : mld(f?.velikost ?? null);
               const barva = p.id === 'r1' && f?.r1 != null ? (f.r1 >= 0 ? 'text-emerald-700' : 'text-red-700') : 'text-slate-900';
               return (
                 <li key={r.trh.id} className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[12rem_minmax(0,1fr)_11rem_7rem_7rem] gap-x-6 gap-y-1 px-4 md:px-5 py-3 items-center">
@@ -108,6 +119,9 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
                     {hlavni}
                     {/* Mobil nemá hlavičku sloupců → popisek přímo u čísla (test s uživateli). */}
                     <span className="md:hidden block text-[11px] font-normal text-slate-500">{p.id === 'ter' ? 'poplatek ročně' : p.id === 'size' ? 'velikost fondu' : '12 měs. v Kč'}</span>
+                    {p.id === 'r1' && rozdil != null && (
+                      <span className="md:hidden block whitespace-nowrap text-[11px] font-normal text-slate-500">{pb(rozdil)} proti mediánu</span>
+                    )}
                     {p.id === 'ter' && r.stejnyTer > 0 && (
                       <span className="block whitespace-nowrap text-xs font-normal text-slate-500">a {r.stejnyTer} {r.stejnyTer === 1 ? 'další fond' : r.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'} za {terF(f?.ter ?? null)}</span>
                     )}
@@ -122,9 +136,13 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
               );
             })}
           </ul>
-          {p.id === 'r1' && radky.some((r) => r.odlehle.length > 0) && (
-            // Pravidlo č. 1: vyřazení přiznat stručně (podrobnosti a upozornění na detailu fondu).
-            <p className="mt-2 text-xs text-slate-500">Fondy s neověřeným výnosem v přehledu neukazujeme.</p>
+          {p.id === 'r1' && (
+            // Poctivost pohledu: rozdíly mezi fondy na stejný index jsou malé (ZAMERNA-ROZHODNUTI.md).
+            // Pravidlo č. 1: vyřazení odlehlých hodnot přiznat stručně.
+            <p className="mt-2 text-xs text-slate-500 text-pretty">
+              Fondy na stejný index se liší hlavně poplatkem a třídou, proto je rozdíl proti mediánu trhu malý.
+              {radky.some((r) => r.odlehle.length > 0) && ' Fondy s neověřeným výnosem neukazujeme.'}
+            </p>
           )}
         </div>
       ))}

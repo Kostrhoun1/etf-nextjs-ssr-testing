@@ -283,3 +283,13 @@ select.vyber {
   background-size: 1.1rem;
   padding-right: 2.1rem;
 }
+
+/* Lišta porovnání (CompareTray) je position: fixed dole. Když je vidět, nastaví --lista-porovnani
+   na svou výšku → stránka dostane stejnou rezervu dole, aby lišta nepřekryla patičku ani upozornění
+   (revize kola 4, 18. 10. 2026). Bez lišty je proměnná nenastavená = 0. */
+html {
+  scroll-padding-bottom: var(--lista-porovnani, 0px);
+}
+body {
+  padding-bottom: var(--lista-porovnani, 0px);
+}

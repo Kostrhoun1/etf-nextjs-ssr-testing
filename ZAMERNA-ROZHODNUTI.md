@@ -97,6 +97,13 @@ zkontroluj jeho `scraping_date`, ne filtr.
 **Panel „Nejvýkonnější" na homepage = jen akciové fondy, výnos v Kč.** Dřív ho vedly komoditní ETC
 (zemní plyn +194 %) hned nad „Kterým ETF začít". Vysoké výnosy akciových fondů (Korea ~+100 % za rok)
 jsou skutečné – ověřeno proti justETF.
+**Tabulka trhů na homepage (6 širokých trhů): záložka „Nejvyšší výnos“ ZŮSTÁVÁ** (majitel chtěl tři pohledy
+TER / velikost / výkon), ale poctivě (revize kola 4, 18. 10. 2026): sloupec „Proti mediánu“ (výnos fondu −
+medián trhu, p. b.) + věta, že fondy na stejný index se liší hlavně poplatkem a třídou. Rozdíly jsou 0,3–0,6 p. b.
+– to je záměr ukázat, ne chyba. Neodstraňovat záložku ani nevracet název „Nejvýkonnější“ bez kontextu.
+**„Nejlevnější fond“ = jedno pravidlo** (`porovnejNejlevnejsi` v src/lib/trhy.ts): čerstvá data, TER > 0,
+velikost ≥ 100 mil. €, nejnižší TER → při shodě akumulační → při shodě větší fond. U S&P 500 proto SPYL (Acc)
+před SPY5 (Dist), oba 0,03 %. Žebříčky mají převzít totéž.
 
 **Zrušené žebříčky → 301:** `etf-zdarma-degiro` (rozhodnutí majitele: seznam „zdarma" nejde udržet
 ověřený; přesměrování na recenzi DEGIRO, ta zůstává), duplicity `globalni`→`celosvetove`,

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import HeroSearch from '@/components/home/HeroSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import {
   getTotalETFCount, getETFCountLabel, getLastModifiedDate, getReturnsByIsins,
   getETFsByIsins, categoryConfigs, CERSTVOST_DNI, type ETFBasicInfo,
@@ -24,7 +25,7 @@ export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
   const pocet = await getETFCountLabel();
   return {
-    // Title/description ladí na dotaz „etf" (pozice ~10, dřív CTR 0 %): konkrétní číslo fondů
+    // Title/description ladí na dotaz „etf" (pozice ~10, dřív CTR 0 %): konkrétní číslo fondů
     // + USP „výnosy v Kč" místo obecných frází; bez ★ znaků, které Google trestá přepsáním snippetu.
     title: `Srovnání ${pocet} ETF fondů, výnosy v Kč – ETF průvodce.cz`,
     description:
@@ -41,19 +42,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
+const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')}\u00a0%`);
 /** Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Ověřeno proti justETF. */
 const curSym = (_c?: string | null) => '€';
 const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v == null) return '—';
   const s = curSym(cur);
-  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} mld ${s}`;
-  return `${Math.round(v)} mil ${s}`;
+  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')}\u00a0mld.\u00a0${s}`;
+  return `${Math.round(v)}\u00a0mil.\u00a0${s}`;
 };
 /** Výnos se znaménkem; záporný se skutečným „−“ (ne jen barvou – a11y). */
 const pct = (v: number | null) => {
   if (v == null) return '—';
-  return `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1).replace('.', ',')} %`;
+  return `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1).replace('.', ',')}\u00a0%`;
 };
 const short = (n: string) => n.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)/, '').trim();
 
@@ -118,14 +119,14 @@ const PORTFOLIA_MOBIL = new Set(['dividendove-portfolio', 'permanentni-portfolio
 type Poplatek = { popisek: string; hodnota: string; smena: string };
 // Poplatek na kartě je ručně zkrácený a OVĚŘENÝ u ceníku brokera (18. 10. 2026; zdroje a datum v
 // brokerData.ts → CENIKY_OVERENY, denní kontrola hlídá stáří). Dřív se bral
-// z brokerData.etfFee ořezem před první čárkou → Portu „0,24-1 % ročně“ se ukazoval jako „0“.
+// z brokerData.etfFee ořezem před první čárkou → Portu „0,24-1 % ročně“ se ukazoval jako „0“.
 const BROKER_PICK: { id: string; forWhom: string; poplatek: Poplatek }[] = [
-  { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.', poplatek: { popisek: 'Vše v ceně', hodnota: '0,24–1 % ročně', smena: 'v ceně' } },
-  { id: 'xtb', forWhom: 'ETF bez provize do 100 000 € měsíčně, česká podpora v pracovní dny.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 € do 100 000 €/měs.', smena: '0,5 %' } },
-  { id: 'trading212', forWhom: 'Bez provize, koupíte i část podílu (od 1 €).', poplatek: { popisek: 'Nákup ETF', hodnota: '0 €', smena: '0,15 %' } },
-  { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.', poplatek: { popisek: 'Nákup ETF', hodnota: '0,05 %, min. 1,25 € + poplatek burzy', smena: '0,002 % (min. 2 USD)' } },
-  { id: 'degiro', forWhom: 'Levné nákupy vybraných ETF pro dlouhodobé držení.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 € u vybraných, jinak 3 €', smena: 'CZK↔EUR zdarma' } },
-  { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.', poplatek: { popisek: 'Nákup ETF', hodnota: 'Xetra 3,95 € do 1 400 €', smena: 'v kurzu banky' } },
+  { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.', poplatek: { popisek: 'Vše v ceně', hodnota: '0,24–1 % ročně', smena: 'v ceně' } },
+  { id: 'xtb', forWhom: 'ETF bez provize do 100 000 € měsíčně, česká podpora v pracovní dny.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 € do 100 000 €/měs.', smena: '0,5 %' } },
+  { id: 'trading212', forWhom: 'Bez provize, koupíte i část podílu (od 1 €).', poplatek: { popisek: 'Nákup ETF', hodnota: '0 €', smena: '0,15 %' } },
+  { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.', poplatek: { popisek: 'Nákup ETF', hodnota: '0,05 %, min. 1,25 € + poplatek burzy', smena: '0,002 % (min. 2 USD)' } },
+  { id: 'degiro', forWhom: 'Levné nákupy vybraných ETF pro dlouhodobé držení.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 € u vybraných, jinak 3 €', smena: 'CZK↔EUR zdarma' } },
+  { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.', poplatek: { popisek: 'Nákup ETF', hodnota: 'Xetra 3,95 € do 1 400 €', smena: 'v kurzu banky' } },
 ];
 /* Robo-poradce (Portu) je jiný typ služby (spravuje portfolio za roční poplatek) – v tabulce zvlášť
    za brokery, ať nepůsobí jako „nejlevnější broker“ (revize 18. 10. 2026). */
@@ -144,8 +145,8 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
   },
   {
     q: 'Jak se ETF v Česku daní?',
-    a: <>Zisk z prodeje je osvobozen, pokud fond držíte déle než 3 roky (<InfoTip label="Časový test: po 3 letech držení je zisk z prodeje cenných papírů v ČR osvobozen od daně z příjmu. Od roku 2026 bez horního limitu.">časový test</InfoTip>), nebo když <strong>úhrn vašich prodejů</strong> za rok nepřekročí 100 000 Kč (hodnotový test – jde o hrubé příjmy, ne zisk). Jinak se zisk daní 15 % (u vysokých příjmů 23 %). Dividendy se daní 15 % – u akumulačních fondů to ale řešit nemusíte, reinvestují se uvnitř fondu.</>,
-    plain: 'Zisk z prodeje ETF je v ČR osvobozen po 3 letech držení (časový test, od 2026 bez limitu) nebo když úhrn prodejů za rok nepřekročí 100 000 Kč hrubých příjmů (ne zisku). Jinak se daní 15 %, u vysokých příjmů 23 %. Dividendy se daní 15 %; u akumulačních fondů se reinvestují uvnitř fondu a daň neřešíte.',
+    a: <>Zisk z prodeje je osvobozen, pokud fond držíte déle než 3 roky (<InfoTip label="Časový test: po 3 letech držení je zisk z prodeje cenných papírů v ČR osvobozen od daně z příjmu. Od roku 2026 bez horního limitu.">časový test</InfoTip>), nebo když <strong>úhrn vašich prodejů</strong> za rok nepřekročí 100 000 Kč (hodnotový test – jde o hrubé příjmy, ne zisk). Jinak se zisk daní 15 % (u vysokých příjmů 23 %). Dividendy se daní 15 % – u akumulačních fondů to ale řešit nemusíte, reinvestují se uvnitř fondu.</>,
+    plain: 'Zisk z prodeje ETF je v ČR osvobozen po 3 letech držení (časový test, od 2026 bez limitu) nebo když úhrn prodejů za rok nepřekročí 100 000 Kč hrubých příjmů (ne zisku). Jinak se daní 15 %, u vysokých příjmů 23 %. Dividendy se daní 15 %; u akumulačních fondů se reinvestují uvnitř fondu a daň neřešíte.',
     href: '/pruvodce',
   },
   {
@@ -156,8 +157,8 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
   },
   {
     q: 'Co je TER a kolik je rozumné?',
-    a: <>TER (celková nákladovost) je roční poplatek fondu v procentech. Strhává se průběžně z hodnoty fondu – nic neplatíte zvlášť, jen je výnos o tuto částku nižší. U fondů na široké indexy (celý svět, S&P 500) se dnes pohybuje většinou mezi 0,03 a 0,25 % ročně, výjimečně i výš; nejlevnější fondy pro každý trh ukazujeme výše.</>,
-    plain: 'TER (celková nákladovost) je roční poplatek fondu v procentech. Strhává se průběžně z hodnoty fondu – nic neplatíte zvlášť, jen je výnos o tuto částku nižší. U fondů na široké indexy (celý svět, S&P 500) se dnes pohybuje většinou mezi 0,03 a 0,25 % ročně, výjimečně i výš.',
+    a: <>TER (celková nákladovost) je roční poplatek fondu v procentech. Strhává se průběžně z hodnoty fondu – nic neplatíte zvlášť, jen je výnos o tuto částku nižší. U fondů na široké indexy (celý svět, S&P 500) se dnes pohybuje většinou mezi 0,03 a 0,25 % ročně, výjimečně i výš; nejlevnější fondy pro každý trh ukazujeme výše.</>,
+    plain: 'TER (celková nákladovost) je roční poplatek fondu v procentech. Strhává se průběžně z hodnoty fondu – nic neplatíte zvlášť, jen je výnos o tuto částku nižší. U fondů na široké indexy (celý svět, S&P 500) se dnes pohybuje většinou mezi 0,03 a 0,25 % ročně, výjimečně i výš.',
     href: '/srovnani',
   },
   {
@@ -168,8 +169,8 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
   },
   {
     q: 'Kolik peněz stačí na začátek?',
-    a: <>Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek podílu, takže limituje spíš poplatek za nákup než cena fondu. Při menších pravidelných částkách (např. 2 000 Kč měsíčně) dává smysl broker bez poplatku za nákup ETF – srovnání najdete níže.</>,
-    plain: 'Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek podílu, takže limituje spíš poplatek za nákup než cena fondu. Při menších pravidelných částkách (např. 2 000 Kč měsíčně) dává smysl broker bez poplatku za nákup ETF.',
+    a: <>Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek podílu, takže limituje spíš poplatek za nákup než cena fondu. Při menších pravidelných částkách (např. 2 000 Kč měsíčně) dává smysl broker bez poplatku za nákup ETF – srovnání najdete níže.</>,
+    plain: 'Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek podílu, takže limituje spíš poplatek za nákup než cena fondu. Při menších pravidelných částkách (např. 2 000 Kč měsíčně) dává smysl broker bez poplatku za nákup ETF.',
     href: '/kde-koupit',
   },
   {
@@ -240,20 +241,22 @@ export default async function DesignPreviewV2() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+        {/* Stejná hlavička jako na ostatních stránkách (logo · navigace · hledání). Dřív tu hledání chybělo
+            a navigace kvůli justify-between ujela doprava (revize kola 4). Hledání v hero zůstává. */}
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight whitespace-nowrap">
             <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
             ETF průvodce.cz
           </Link>
           <MobileMenu />
           <SiteNav />
-          {/* Desktopové hledací pole v hlavičce na homepage ne – hlavní akcí je hledání v hero (na mobilu zůstává ikona v menu). */}
+          <HeaderSearch />
         </div>
       </header>
 
       <main id="obsah" className="max-w-6xl mx-auto px-4 pb-12">
         {/* S1 HERO – co web dělá, hledání (rozumí češtině), dvě rovnocenné cesty (vím co hledám /
-            nevím co koupit), řádek důvěry s datem. Vpravo další žebříčky (GA4: 25 % přechodů). */}
+            nevím co koupit), řádek důvěry s datem. Vpravo další žebříčky (GA4: 25 % přechodů). */}
         <section data-sekce="hero" className="py-4 md:py-7">
           <div className="rounded-2xl bg-slate-900 text-white px-4 py-6 md:px-10 md:py-10 md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:gap-12">
             <div className="min-w-0">
@@ -303,14 +306,14 @@ export default async function DesignPreviewV2() {
         {trhy && trhy.length > 0 && datumText && (
           <section data-sekce="trhy" className="pt-4 pb-12" aria-labelledby="h-trhy">
             <Nadpis id="h-trhy" meta={`data k ${datumText}`} podnadpis="Šest hlavních trhů, jen fondy na široké indexy.">
-              Nejlevnější, největší a nejvýkonnější ETF
+              Nejlevnější, největší a nejvýnosnější ETF
             </Nadpis>
             <TriPohledyTrhu radky={trhy} />
           </section>
         )}
 
         {/* S3 KTERÝM ETF ZAČÍT – 3 nejnavštěvovanější detaily fondů (GA4 90 dní). Výnos jako průměr
-            ročně za 5 let (12 měsíců svádělo ke čtení „ETF vydělá 20 % ročně“ – test s uživateli). */}
+            ročně za 5 let (12 měsíců svádělo ke čtení „ETF vydělá 20 % ročně“ – test s uživateli). */}
         {starters.length > 0 && (
           <section data-sekce="zacit" className="pb-12" aria-labelledby="h-zacit">
             <Nadpis id="h-zacit" meta={datumText ? `data k ${datumText}` : undefined} podnadpis={`Nejčastěji otevírané fondy u nás – široce rozložené, levné a akumulační. Pro orientaci, ne jako doporučení.${starsiText ? ` U některého fondu jsou data starší (${starsiText}).` : ''}`}>
@@ -434,7 +437,7 @@ export default async function DesignPreviewV2() {
                     {robo && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}
                   </span>
                   <span className="hidden sm:block text-sm text-slate-600">{forWhom}</span>
-                  {/* Nákup + směna měny u všech (test s uživateli: XTB bez 0,5 % za směnu vypadal nejlevnější). */}
+                  {/* Nákup + směna měny u všech (test s uživateli: XTB bez 0,5 % za směnu vypadal nejlevnější). */}
                   <span className="order-3 sm:order-none col-span-2 sm:col-span-1 text-sm text-slate-700">
                     {poplatek.hodnota}{poplatek.popisek === 'Vše v ceně' && <span className="text-slate-500"> (vše v ceně)</span>}
                     <span className="block text-xs text-slate-500">Směna měny: {poplatek.smena}</span>

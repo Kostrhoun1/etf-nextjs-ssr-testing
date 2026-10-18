@@ -14,6 +14,7 @@ import { COMPARE_MAX } from '@/components/design-preview/compareStore';
 import { platnyTicker } from '@/lib/ticker';
 import { anglickeTermy, skoreHledani } from '@/lib/hledaniCz';
 import EmitentLogo from '@/components/home/EmitentLogo';
+import { TipTlacitko } from '@/components/design-preview/InfoTip';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
@@ -102,45 +103,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/* Vysvětlivka v hlavičce tabulky. Tabulka je v kontejneru s overflow-x-auto, který by běžný
-   absolutní tooltip ořízl → tooltip je `position: fixed` podle polohy ikony. Funguje na hover,
-   fokus i tap (dotyk). */
+/* Vysvětlivka v hlavičce tabulky – sdílené řešení s InfoTip (bublina position: fixed v portálu,
+   poloha z getBoundingClientRect, nikdy nepřeteče okno; hover, fokus, tap, Escape). Tabulka je
+   v kontejneru s overflow-x-auto, který by běžný absolutní tooltip ořízl. */
 function HeadTip({ k, label }: { k: string; label: string }) {
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const ref = useRef<HTMLButtonElement>(null);
-  // Dotyk/klik spustí nejdřív focus (ukáže) a hned click – ten nesmí tooltip zase schovat. Click zavírá jen
-  // tooltip, který už nějakou dobu svítí (druhé klepnutí).
-  const ukazanoV = useRef(0);
-  const ukaz = () => { const r = ref.current?.getBoundingClientRect(); if (r) { if (!pos) ukazanoV.current = Date.now(); setPos({ x: r.left + r.width / 2, y: r.bottom + 6 }); } };
-  useEffect(() => {
-    if (!pos) return;
-    const skryj = () => setPos(null);
-    window.addEventListener('scroll', skryj, true);
-    window.addEventListener('resize', skryj);
-    return () => { window.removeEventListener('scroll', skryj, true); window.removeEventListener('resize', skryj); };
-  }, [pos]);
-  const w = 256;
-  return (
-    <>
-      <button
-        ref={ref} type="button" aria-label={`Co znamená ${label}`}
-        onMouseEnter={ukaz} onMouseLeave={() => setPos(null)} onFocus={ukaz} onBlur={() => setPos(null)}
-        onClick={(e) => { e.stopPropagation(); if (pos && Date.now() - ukazanoV.current > 400) setPos(null); else ukaz(); }}
-        className="inline-flex items-center justify-center p-1.5 -m-1 rounded text-slate-400 hover:text-teal-700 focus:outline-none focus-visible:text-teal-700"
-      >
-        <Info className="w-3 h-3" aria-hidden="true" />
-      </button>
-      {pos && (
-        <span
-          role="tooltip"
-          style={{ position: 'fixed', top: pos.y, left: Math.max(8, Math.min(pos.x - w / 2, (typeof window !== 'undefined' ? window.innerWidth : 1200) - w - 8)), width: w }}
-          className="z-50 rounded-lg bg-slate-900 px-3 py-2 text-left text-xs font-normal normal-case tracking-normal leading-relaxed text-white shadow-lg"
-        >
-          {VYSVETLIVKY[k]}
-        </span>
-      )}
-    </>
-  );
+  return <TipTlacitko obsah={VYSVETLIVKY[k]} ariaLabel={`Co znamená ${label}`} maly />;
 }
 
 /* Skupiny sloupců (majitel 18. 10. 2026: „špatně se v tom čte“): svislá linka mezi skupinami Fond | parametry |

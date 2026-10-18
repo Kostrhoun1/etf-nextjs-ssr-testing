@@ -16,6 +16,9 @@ export default function CompareTray() {
   const [hledani, setHledani] = useState(false);
   const pathname = usePathname();
   const boxRef = useRef<HTMLDivElement>(null);
+  const listaRef = useRef<HTMLDivElement>(null);
+  const radaRef = useRef<HTMLDivElement>(null);
+  const [preteka, setPreteka] = useState(false);
 
   useEffect(() => {
     const sync = () => setItems(getCompare());
@@ -35,13 +38,41 @@ export default function CompareTray() {
   }, [hledani]);
 
   // Na stránce porovnání lišta jen zakrývala tabulku a nabízela „Porovnat“ toho, co už člověk vidí.
-  if (!ready || items.length === 0 || pathname?.startsWith('/srovnani/porovnani')) return null;
+  const viditelna = ready && items.length > 0 && !pathname?.startsWith('/srovnani/porovnani');
+
+  // Rezerva dole: lišta nesmí překrýt patičku ani upozornění na konci stránky (revize kola 4).
+  // Výšku lišty (+ 8 px vzduchu) předáváme CSS proměnnou --lista-porovnani → body padding-bottom
+  // a scroll-padding v globals.css. ResizeObserver: lišta mění výšku (zalomení, safe-area).
+  useEffect(() => {
+    const root = document.documentElement;
+    const el = listaRef.current;
+    if (!viditelna || !el) { root.style.removeProperty('--lista-porovnani'); return; }
+    const nastav = () => root.style.setProperty('--lista-porovnani', `${Math.ceil(el.getBoundingClientRect().height) + 8}px`);
+    nastav();
+    const ro = new ResizeObserver(nastav);
+    ro.observe(el);
+    return () => { ro.disconnect(); root.style.removeProperty('--lista-porovnani'); };
+  }, [viditelna]);
+
+  // Zeslabení pravého okraje jen když řada štítků opravdu přetéká (dřív maska 80 % zhasla 3. štítek,
+  // i když se vešel – revize kola 4). Zeslabí se jen posledních 1,5 rem, zbytek štítku zůstane čitelný.
+  useEffect(() => {
+    const el = radaRef.current;
+    if (!viditelna || !el) return;
+    const zmer = () => setPreteka(el.scrollWidth > el.clientWidth + 1);
+    zmer();
+    const ro = new ResizeObserver(zmer);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [viditelna, items]);
+
+  if (!viditelna) return null;
 
   const href = `/srovnani/porovnani?isins=${items.map((i) => i.isin).join(',')}`;
   const plno = items.length >= COMPARE_MAX;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+    <div ref={listaRef} data-print="hide" className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
       <div ref={boxRef} className="pointer-events-auto relative max-w-4xl mx-auto">
         {hledani && (
           <div className="absolute bottom-full left-0 right-0 mb-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-slate-900/15">
@@ -57,12 +88,13 @@ export default function CompareTray() {
             />
           </div>
         )}
-        <div className="rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-lg shadow-slate-900/10 px-3 py-2.5 flex items-center gap-2 sm:gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white/95 backdrop-blur shadow-lg shadow-slate-900/10 px-3 py-2.5 flex items-center gap-1.5 sm:gap-3">
           <span className="hidden sm:flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Scale className="w-4 h-4" /></span>
           {/* Posuvná řada štítků; na mobilu ji pravý okraj zeslabí, ať je vidět, že pokračuje (místo „uříznutého“ štítku). */}
-          <div className={`flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] ${items.length >= 3 ? '[mask-image:linear-gradient(to_right,black_80%,transparent)] sm:[mask-image:none]' : ''}`}>
+          <div ref={radaRef} className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]"
+            style={preteka ? { WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 1.5rem), transparent)', maskImage: 'linear-gradient(to right, black calc(100% - 1.5rem), transparent)' } : undefined}>
             {items.map((it) => (
-              <span key={it.isin} className="inline-flex items-center gap-1 shrink-0 rounded-full bg-slate-100 pl-2.5 pr-1 py-1 text-xs font-medium text-slate-700">
+              <span key={it.isin} className="inline-flex items-center gap-0.5 sm:gap-1 shrink-0 rounded-full bg-slate-100 pl-2 sm:pl-2.5 pr-0.5 sm:pr-1 py-1 text-xs font-medium text-slate-700">
                 {it.label}
                 <button type="button" aria-label={`Odebrat ${it.label}`} onClick={() => removeCompare(it.isin)} className="flex items-center justify-center w-5 h-5 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600">
                   <X className="w-3 h-3" />
@@ -82,8 +114,9 @@ export default function CompareTray() {
           )}
           <button type="button" onClick={() => clearCompare()} className="hidden sm:inline text-xs text-slate-400 hover:text-slate-600 shrink-0">Vymazat</button>
           {items.length >= 2 ? (
-            <Link href={href} className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 sm:px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 shrink-0">
-              Porovnat ({items.length}) <ArrowRight className="w-4 h-4" />
+            /* Mobil: „Porovnat“ bez počtu a šipky – počet je vidět na štítcích a 3 štítky se tak vejdou (revize kola 4). */
+            <Link href={href} aria-label={`Porovnat ${items.length} fondy`} className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 sm:px-4 min-h-10 text-sm font-medium text-white hover:bg-teal-800 shrink-0">
+              Porovnat<span className="hidden sm:inline"> ({items.length})</span> <ArrowRight className="hidden sm:block w-4 h-4" />
             </Link>
           ) : (
             <span className="inline-flex items-center rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-500 shrink-0 sm:hidden">vyberte ještě 1</span>
