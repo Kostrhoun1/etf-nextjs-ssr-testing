@@ -415,3 +415,12 @@ Výnosy v Kč na detailu i backtest prošly nezávislou kontrolou (justETF + ČN
 - Žebříčky: živá čísla na kartách /zebricky, plná tabulka fondů kategorie; celosvětový žebříček má jako největší EUNL (MSCI World).
 - Brokeři: Portu mimo skóre brokerů, spočítaný řádek „nákup za 5 000 Kč stojí…“, mobilní hlavička, sjednotit /kde-koupit a /srovnani-brokeru.
 - /kalkulacky zmiňuje hypotéky a úvěry (redakční hranice) – rozhodne majitel.
+
+## ⏳ Scraper: tickery, indexy, peněžní trh (připraveno 18. 10. 2026 v noci, NEsloučeno)
+
+etf-astro větev `oprava-tickery-indexy` (9110c84): tabulka burz podle data-testid (~1 045 fondů bez tickeru / s „-“),
+index z řádku „Index“ místo odhadu z názvu (~3 080 prázdných + ~2 000 odhadnutých, nově i „®“), Money Market →
+kategorie „Peněžní trh“ (54 fondů). Test před/po na 17 profilech: scratchpad data-scraper/out_*.json.
+**Sloučit do main až ve stejný den jako deploy webu, který s novými daty počítá** (indexNormalization, podobné fondy
+podle index_name s „®“, záložka Peněžní trh). Po prvním běhu ověřit SQL na produkci (pravidlo 6); varování
+v check-fund-data (tickery, indexy, peněžní trh) musí zmizet.
