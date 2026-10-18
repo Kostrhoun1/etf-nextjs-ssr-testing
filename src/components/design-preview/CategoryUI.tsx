@@ -351,7 +351,7 @@ export function CategoryIndexes({ indexes, total, sloupce = 2 }: { indexes: { in
       {rest > 0 && (
         <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
           <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          Zbývajících {rest} z {total} fondů sleduje méně časté nebo specifické indexy (sektorové, zajištěné, pákové apod.).
+          Zbývajících {rest} z {total} fondů sleduje jiný index nebo ho v datech nemá uvedený.
         </p>
       )}
     </>

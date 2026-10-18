@@ -81,8 +81,15 @@ function zajisteni(nazev: string): string | null {
   if (swisscanto) return swisscanto[1];
   const h = detectHedging(nazev);
   if (!h.isHedged) return null;
-  return h.hedgedCurrency ?? nazev.match(/hedged to ([A-Z]{3})/i)?.[1]?.toUpperCase() ?? 'ano';
+  return h.hedgedCurrency
+    ?? nazev.match(/[Hh]edged (?:to )?\(?([A-Z]{3})\b/)?.[1]   // „hedged to JPY“, „hedged (CHF)“
+    ?? nazev.match(/\b([A-Z]{3}) Daily Hedged/)?.[1]                          // WisdomTree „GBP Daily Hedged“
+    ?? 'ano';
 }
+
+/** Krátký název fondu: bez „UCITS ETF…“ a koncové závorky. (shortName z CategoryUI maže všechno od první
+ *  závorky po poslední – „UBS ETF (CH) Gold (USD) A-dis“ pak bylo „UBS ETF A-dis“.) */
+const nazevFondu = (n: string) => n.replace(/\s+UCITS\b.*$/i, '').replace(/\s+\([^()]*\)\s*$/, '').trim() || n;
 
 const num = (v: unknown): number | null => (v == null || Number.isNaN(Number(v)) ? null : Number(v));
 const fmtDatum = (d: Date) => d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
@@ -158,7 +165,7 @@ export default async function CategoryDetailPreview(
     const k = distKind(e.distribution_policy);
     return {
       isin: e.isin,
-      nazev: shortName(e.name),
+      nazev: nazevFondu(e.name),
       ticker: platnyTicker(e.primary_ticker),
       ter: num(e.ter_numeric),
       velikost: num(e.fund_size_numeric),
@@ -267,7 +274,7 @@ export default async function CategoryDetailPreview(
                         <span className="mt-0.5 md:mt-2.5 flex items-center gap-2.5 min-w-0 md:pr-8">
                           <span className="hidden md:inline-flex"><EmitentLogo nazev={etf.name} size={32} /></span>
                           <span className="min-w-0">
-                            <span className="block text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 truncate md:whitespace-normal md:line-clamp-2">{shortName(etf.name)}</span>
+                            <span className="block text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 truncate md:whitespace-normal md:line-clamp-2">{nazevFondu(etf.name)}</span>
                             <span className="block text-xs text-slate-500">{tk ?? `${etf.isin.slice(0, 2)}…${etf.isin.slice(-4)}`}<span className="md:hidden"> · {popis}</span></span>
                           </span>
                         </span>
