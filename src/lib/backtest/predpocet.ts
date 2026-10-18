@@ -13,6 +13,7 @@ export interface PortfolioVysledek {
   returns: { annualReturns: { year: number; return: number }[]; positiveYears: number; totalYears: number }
   risk: { maxDrawdown: { depth: number; lengthMonths: number; recovered: boolean; troughDate: string } }
   evolution: { date: string; value: number }[]
+  stressPeriods?: { key: string; name: string; drop: number; recoveryMonths: number | null; troughDate: string }[]
 }
 
 export const POCATECNI_VKLAD: Record<Currency, number> = { CZK: 100000, EUR: 4000, USD: 4500 }
@@ -45,6 +46,7 @@ export async function predpocitejPortfolio(items: Polozka[], start: string, cur:
       returns: { annualReturns: r.returns.annualReturns, positiveYears: r.returns.positiveYears, totalYears: r.returns.totalYears },
       risk: { maxDrawdown: r.risk.maxDrawdown },
       evolution: mesicni,
+      stressPeriods: (r as unknown as { stressPeriods?: PortfolioVysledek['stressPeriods'] }).stressPeriods ?? [],
     }
   } catch (e) {
     console.error('[predpocet] backtest portfolia selhal:', e)

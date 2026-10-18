@@ -59,7 +59,13 @@ export default async function PortfolioDetailPreview(
     : [null, null];
   const btInitial = btPf && btBench ? { pf: btPf, bench: btBench } : null;
   // Kurátorský max. pokles strategie (číslo z „do −15 %").
-  const pfMaxDD = -(parseInt(model.maxDrawdown.replace(/[^0-9]/g, ''), 10) || 0);
+  // Max. pokles: skutečný z backtestu (stejné období a měna jako srovnání), kurátorský odhad „do −40 %“ jen
+  // když backtest chybí. Dřív byla na stránce tři různá čísla (revize 18. 10. 2026).
+  const btDD = btPf?.risk.maxDrawdown.depth;
+  const benchDD = btBench?.risk.maxDrawdown.depth;
+  const ddZBacktestu = btDD != null && benchDD != null;
+  const pfMaxDD = ddZBacktestu ? btDD! * 100 : -(parseInt(model.maxDrawdown.replace(/[^0-9]/g, ''), 10) || 0);
+  const btOd = btConfig ? new Date(btConfig.start).getFullYear() : null;
 
   const today = new Date();
   const dateStr = (await getDataDate(today))
@@ -119,12 +125,12 @@ export default async function PortfolioDetailPreview(
     ret1y: { pf: perf1y, sp: sp.return_1y_czk },
     ret3y: { pf: perf3y, sp: sp.return_3y_czk },
     vol: { pf: pfVol, sp: sp.volatility_1y },
-    maxdd: { pf: pfMaxDD, sp: sp.max_drawdown_all },
+    maxdd: { pf: pfMaxDD, sp: ddZBacktestu ? benchDD! * 100 : sp.max_drawdown_all },
   } : null;
   const fmtVol = (v: number | null) =>
     v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
   const fmtDD = (v: number | null) =>
-    v == null ? '—' : `${Math.round(v)} %`;
+    v == null ? '—' : `${v < 0 ? '−' : ''}${Math.abs(Math.round(v))} %`;
   const cmpNarrative = (() => {
     if (!cmp) return '';
     const parts: string[] = [];
@@ -132,7 +138,7 @@ export default async function PortfolioDetailPreview(
       parts.push(`Kolísavost tohoto portfolia je ${fmtVol(cmp.vol.pf)} oproti ${fmtVol(cmp.vol.sp)} u čistě akciového S&P 500 – ${cmp.vol.pf < cmp.vol.sp ? 'tedy klidnější průběh s menšími výkyvy' : 'srovnatelný průběh'}.`);
     }
     if (cmp.maxdd.pf != null && cmp.maxdd.sp != null) {
-      parts.push(`Nejhorší historický propad portfolia je zhruba ${fmtDD(cmp.maxdd.pf)} proti ${fmtDD(cmp.maxdd.sp)} u S&P 500 – ${cmp.maxdd.pf > cmp.maxdd.sp + 3 ? 'v krizích tedy ztrácí méně a rychleji se vzpamatuje' : cmp.maxdd.pf < cmp.maxdd.sp - 3 ? 'toto portfolio tedy padá v krizích ještě hlouběji než samotný index' : 'propady jsou podobně hluboké jako u čistě akciového indexu'}.`);
+      parts.push(`Nejhorší historický propad portfolia je zhruba ${fmtDD(cmp.maxdd.pf)} proti ${fmtDD(cmp.maxdd.sp)} ${ddZBacktestu ? `u 100% globálních akcií (od ${btOd}, v Kč)` : 'u S&P 500'} – ${cmp.maxdd.pf > cmp.maxdd.sp + 3 ? 'v krizích tedy ztrácí méně' : cmp.maxdd.pf < cmp.maxdd.sp - 3 ? 'toto portfolio tedy padá v krizích ještě hlouběji než samotný index' : 'propady jsou podobně hluboké jako u čistě akciového indexu'}.`);
     }
     if (cmp.ret1y.pf != null && cmp.ret1y.sp != null) {
       parts.push(`Ve výnosu za poslední rok ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostává za' : 'vede nad'} S&P 500: ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)}.`);
@@ -156,7 +162,7 @@ export default async function PortfolioDetailPreview(
       ),
       value: model.expectedReturn,
     },
-    { icon: ShieldCheck, label: <InfoTip label="Největší historický propad hodnoty od vrcholu ke dnu.">Max. pokles</InfoTip>, value: model.maxDrawdown },
+    { icon: ShieldCheck, label: <InfoTip label="Největší historický propad hodnoty od vrcholu ke dnu.">Max. pokles</InfoTip>, value: ddZBacktestu ? `${fmtDD(pfMaxDD)} (od ${btOd})` : model.maxDrawdown },
     ...(terInfo ? [{
       icon: Wallet,
       label: (

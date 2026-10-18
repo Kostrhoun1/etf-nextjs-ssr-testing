@@ -99,7 +99,7 @@ export function PortfolioCard({ model, returns }: { model: PortfolioModel; retur
         <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
           <span className="text-xs text-slate-500">
             <InfoTip label="Vážený průměr korunových výnosů jednotlivých ETF složek za poslední rok podle jejich váhy v portfoliu, z naší databáze. Bez rebalancingu. Minulá výkonnost nezaručuje budoucí výnosy.">
-              Reálný výnos za 1 rok (Kč)
+              Výnos za 12 měs. v Kč
             </InfoTip>
           </span>
           <span className={`tabular-nums text-sm font-bold ${real1y >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
