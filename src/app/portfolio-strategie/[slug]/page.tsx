@@ -7,13 +7,13 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import { notFound } from 'next/navigation';
 import {
   TrendingUp, ArrowRight, ArrowLeft, ShieldCheck, Target, CalendarDays,
-  Layers, Wallet, BookOpen, Settings2, ThumbsUp, TrendingDown,
+  Layers, Wallet, BookOpen, Settings2, ThumbsUp, TrendingDown, History,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { PortfolioBar } from '@/components/design-preview/portfolioComponents';
+import { PortfolioBar, RizikoTecky, fmtPct } from '@/components/design-preview/portfolioComponents';
 import {
-  portfolioModels, ASSET_COLORS, RISK_PILL, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK,
+  portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, barvaSlozky, nazevSlozky, backtestOdkaz,
 } from '@/components/design-preview/portfolioData';
 import PortfolioBacktest from '@/components/design-preview/PortfolioBacktest';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
@@ -37,7 +37,7 @@ export async function generateMetadata(
   if (!m) return { title: 'Portfolio', robots: { index: false, follow: false } };
   return {
     title: `${m.name} – složení, ETF a výnos v Kč`,
-    description: `${m.name}: ${m.tagline} Složení z ETF, očekávaný výnos, riziko a historická výkonnost přepočtená do korun.`,
+    description: `${m.name}: ${m.tagline} Složení z ETF, riziko a historická výkonnost v korunách od roku 2008.`,
     alternates: { canonical: `/portfolio-strategie/${slug}` },
   };
 }
@@ -64,7 +64,9 @@ export default async function PortfolioDetailPreview(
   const btDD = btPf?.risk.maxDrawdown.depth;
   const benchDD = btBench?.risk.maxDrawdown.depth;
   const ddZBacktestu = btDD != null && benchDD != null;
-  const pfMaxDD = ddZBacktestu ? btDD! * 100 : -(parseInt(model.maxDrawdown.replace(/[^0-9]/g, ''), 10) || 0);
+  // Bez backtestu žádný odhad „do −X %“ (pravidlo č. 1) → „—“.
+  const pfMaxDD = ddZBacktestu ? btDD! * 100 : null;
+  const btLink = backtestOdkaz(slug);
   const btOd = btConfig ? new Date(btConfig.start).getFullYear() : null;
 
   const today = new Date();
@@ -156,13 +158,13 @@ export default async function PortfolioDetailPreview(
     {
       icon: TrendingUp,
       label: (
-        <InfoTip label="Nominální odhad před inflací a daněmi. Reálný (kupní síla) výnos je zhruba o inflaci nižší.">
-          Očekávaný výnos
+        <InfoTip label={`Průměrné roční zhodnocení (CAGR) v backtestu od ${btOd ?? '—'} do dneška, v Kč, po poplatcích fondů, rebalancování jednou ročně. Historie, ne odhad budoucnosti.`}>
+          {`Ročně od ${btOd ?? '—'} (Kč)`}
         </InfoTip>
       ),
-      value: model.expectedReturn,
+      value: btPf ? pct(btPf.summary.cagr * 100) : '—',
     },
-    { icon: ShieldCheck, label: <InfoTip label="Největší historický propad hodnoty od vrcholu ke dnu.">Max. pokles</InfoTip>, value: ddZBacktestu ? `${fmtDD(pfMaxDD)} (od ${btOd})` : model.maxDrawdown },
+    { icon: ShieldCheck, label: <InfoTip label="Největší propad hodnoty od vrcholu ke dnu v témže backtestu (v Kč).">{`Max. pokles od ${btOd ?? '—'}`}</InfoTip>, value: fmtDD(pfMaxDD) },
     ...(terInfo ? [{
       icon: Wallet,
       label: (
@@ -173,7 +175,7 @@ export default async function PortfolioDetailPreview(
       value: `${terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`,
     }] : []),
     { icon: CalendarDays, label: 'Doporučený horizont', value: model.horizon },
-    { icon: Layers, label: 'Podíl akcií', value: `${model.stocksPct} %` },
+    { icon: Layers, label: 'Podíl akcií', value: fmtPct(model.stocksPct) },
   ];
 
   return (
@@ -196,7 +198,7 @@ export default async function PortfolioDetailPreview(
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link>
           <span>/</span>
-          <Link href="/portfolio-strategie" className="hover:text-slate-700">Portfolia</Link>
+          <Link href="/portfolio-strategie" className="hover:text-slate-700">Modelová portfolia</Link>
           <span>/</span>
           <span className="text-slate-700">{model.name}</span>
         </nav>
@@ -204,13 +206,18 @@ export default async function PortfolioDetailPreview(
         {/* HERO */}
         <section className="pb-7">
           <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${RISK_PILL[model.risk]}`}>{model.risk}</span>
+            <RizikoTecky risk={model.risk} inverse />
             <h1 className="mt-3 text-2xl md:text-3xl font-bold tracking-tight leading-tight">{model.name}</h1>
             <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">{model.tagline}</p>
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Data k {dateStr}</span>
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
             </div>
+            {btLink && (
+              <Link href={btLink} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white hover:bg-teal-500">
+                <History className="w-4 h-4" /> Otestovat v backtestu
+              </Link>
+            )}
           </div>
         </section>
 
@@ -232,28 +239,53 @@ export default async function PortfolioDetailPreview(
         )}
 
         {/* STATISTIKY */}
-        <section className="pb-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <section data-sekce="statistiky" className="pb-8">
+          <div className={`grid grid-cols-2 gap-3 ${stats.length === 5 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
             {stats.map((s, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400"><s.icon className="w-3.5 h-3.5" /> {s.label}</div>
+              <div key={i} className={`rounded-xl border border-slate-200 bg-white p-4 ${i === stats.length - 1 && stats.length % 2 ? "col-span-2 lg:col-span-1" : ""}`}>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500"><s.icon className="w-3.5 h-3.5 shrink-0" /> {s.label}</div>
                 <div className="mt-1 text-lg font-bold tabular-nums text-slate-900">{s.value}</div>
               </div>
             ))}
           </div>
+          {btConfig?.proxyNote && (
+            <p className="mt-2 text-xs text-amber-700">Část složení počítáme v backtestu přes podobný index – čísla jsou orientační (podrobnosti pod grafem).</p>
+          )}
         </section>
 
         {/* SLOŽENÍ */}
-        <section className="pb-8">
+        <section data-sekce="slozeni" className="pb-8">
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Složení portfolia</h2>
           <p className="text-sm text-slate-500 mb-4 leading-relaxed">Rozdělení mezi třídy aktiv a konkrétní ETF fondy, kterými portfolio poskládáte.</p>
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <PortfolioBar model={model} />
           </div>
 
-          {/* Holdings tabulka */}
-          <div className="mt-4 rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[34rem] text-sm">
+          {/* Mobil: fondy jako karty (tabulka se na 390 px ořezávala – „8“ bez %) */}
+          <ul className="mt-4 space-y-2.5 md:hidden">
+            {model.allocations.map((a, i) => {
+              const r1 = ret[a.isin]?.return_1y_czk ?? null;
+              const ter = ret[a.isin]?.ter_numeric;
+              return (
+                <li key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link href={`/etf/${a.isin}`} className="font-medium leading-snug text-teal-700 hover:text-teal-800">{a.etfName}</Link>
+                    <span className="shrink-0 text-lg font-bold tabular-nums text-slate-900">{fmtPct(a.percentage)}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                    <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: barvaSlozky(a) }} />{a.label}</span>
+                    <span>TER <span className="tabular-nums text-slate-700">{ter != null ? `${ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %` : '—'}</span></span>
+                    <span>1 rok v Kč <span className={`tabular-nums font-medium ${r1 == null ? 'text-slate-400' : r1 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(r1)}</span></span>
+                  </div>
+                  <span className="mt-1 block font-mono text-[11px] text-slate-400">{a.isin}</span>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop: tabulka fondů */}
+          <div className="mt-4 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-left text-xs uppercase tracking-wide">
                   <th className="py-2.5 px-4 font-medium">Fond</th>
@@ -272,13 +304,13 @@ export default async function PortfolioDetailPreview(
                     </td>
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center gap-1.5 text-slate-600">
-                        <span className={`inline-block h-2.5 w-2.5 rounded-full ${ASSET_COLORS[a.cls].dot}`} />
-                        {ASSET_COLORS[a.cls].label}
+                        <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: barvaSlozky(a) }} />
+                        {nazevSlozky(a)}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-700">{a.percentage} %</td>
+                    <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-700 whitespace-nowrap">{fmtPct(a.percentage)}</td>
                     <td className="py-3 px-4 text-right tabular-nums text-slate-600">{ret[a.isin]?.ter_numeric != null ? `${ret[a.isin]!.ter_numeric!.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %` : '—'}</td>
-                    <td className={`py-3 px-4 text-right tabular-nums font-medium ${(ret[a.isin]?.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ret[a.isin]?.return_1y_czk ?? null)}</td>
+                    <td className={`py-3 px-4 text-right tabular-nums font-medium whitespace-nowrap ${ret[a.isin]?.return_1y_czk == null ? 'text-slate-400' : (ret[a.isin]?.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ret[a.isin]?.return_1y_czk ?? null)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -302,7 +334,7 @@ export default async function PortfolioDetailPreview(
 
         {/* HISTORICKÁ VÝKONNOST – reálný backtest (dlouhodobě + chování v krizích) */}
         {btConfig ? (
-          <section className="pb-8">
+          <section data-sekce="historie" className="pb-8">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Historická výkonnost a chování v krizích</h2>
             <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech od roku 2008 – dlouhodobý růst, kolísavost, nejhlubší propady a co se dělo v krizích. Vše přepočtené do zvolené měny.</p>
             <PortfolioBacktest config={btConfig} portfolioName={model.name} initialCzk={btInitial} />
@@ -366,19 +398,20 @@ export default async function PortfolioDetailPreview(
         <section className="pb-8">
           <div className="rounded-xl border border-teal-200 bg-teal-50 p-5">
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-700"><Target className="w-4 h-4" /> Pro koho se hodí</p>
-            <p className="mt-2 text-sm text-teal-900/90 leading-relaxed">„{model.forWhom}"</p>
+            <p className="mt-2 text-sm text-teal-900/90 leading-relaxed">„{model.forWhom}“</p>
           </div>
         </section>
 
         {/* CTA */}
         <section className="pb-8">
           <div className="flex flex-wrap gap-3">
-            <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800">Porovnat tyto ETF <ArrowRight className="w-4 h-4" /></Link>
-            <Link href="/kde-koupit" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Kde je koupit</Link>
+            {btLink && <Link href={btLink} className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><History className="w-4 h-4" /> Otestovat v backtestu</Link>}
+            <Link href="/kde-koupit" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Kde ETF koupit <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Porovnat ETF</Link>
             {slug === 'globalni-jadro-small-cap-value' && (
               <Link href="/faktorove-etf" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Proč jen small-cap value? <ArrowRight className="w-4 h-4" /></Link>
             )}
-            <Link href="/portfolio-strategie" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400"><ArrowLeft className="w-4 h-4" /> Všechna portfolia</Link>
+            <Link href="/portfolio-strategie" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400"><ArrowLeft className="w-4 h-4" /> Všechna modelová portfolia</Link>
           </div>
         </section>
 

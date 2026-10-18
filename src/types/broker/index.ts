@@ -3,9 +3,18 @@ export interface Broker {
   name: string;
   logo: string;
   description: string;
-  rating: number;
+  /** Redakční skóre 0–100. null = robo-poradce (Portu) – jiná kategorie, skóre brokerů se na něj nevztahuje. */
+  rating: number | null;
+  /** Robo-poradce (spravuje portfolio za roční poplatek) – ve srovnání brokerů zvlášť, bez skóre. */
+  robo?: boolean;
+  /** Oficiální web brokera (bez affiliate parametrů). */
+  web?: string;
   regulation: string;
   protection: string;
+  /** Ochrana rozdělená podle typu majetku – hotovost vs cenné papíry nejsou srovnatelné (revize 18. 10. 2026). */
+  ochrana?: { hotovost: string; cennePapiry: string };
+  /** Strukturovaný ceník nákupu UCITS ETF (Xetra) pro výpočet „kolik stojí nákup za X Kč“. */
+  nakup?: CenikNakupu;
   etfFee: string;
   managementFee: string;
   fxFee: string;
@@ -21,6 +30,16 @@ export interface Broker {
   specialFeatures: string[];
   pros: string[];
   cons: string[];
+}
+
+/** Ceník nákupu evropského ETF (Xetra, EUR) z ceníku brokera. Pásma podle objemu pokynu v EUR:
+ *  poplatek = max(pevneEur + procento % z objemu, minEur). */
+export interface CenikNakupu {
+  pasma: { doEur: number | null; procento: number; minEur: number; pevneEur: number }[];
+  /** K provizi se připočítávají poplatky burzy (výši neznáme → zobrazit „+ poplatky burzy“). */
+  plusBurza?: boolean;
+  /** Směna CZK→EUR. null = bez samostatného poplatku, náklad je v kurzu (výši neznáme → „—“). */
+  smena: { procento: number; minUsd: number } | null;
 }
 
 export interface BrokerFeature {

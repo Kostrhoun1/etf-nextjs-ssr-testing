@@ -8,11 +8,14 @@ import StructuredData from '@/components/SEO/StructuredData';
 import {
   PortfolioGrid,
   PortfolioVerdictTable,
+  type HistorieMap,
 } from '@/components/design-preview/portfolioComponents';
-import { portfolioModels } from '@/components/design-preview/portfolioData';
+import { portfolioModels, PORTFOLIO_BACKTEST } from '@/components/design-preview/portfolioData';
+import { FaqSeznam } from '@/components/design-preview/brokerUI';
+import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getReturnsByIsins, getTotalETFCount } from '@/lib/etf-data';
 import {
-  TrendingUp, ArrowRight, LayoutGrid, PieChart, Scale, ShieldCheck,
+  TrendingUp, LayoutGrid, PieChart, Scale, ShieldCheck,
   History, Activity, Search, Landmark, BookOpen, Trophy,
 } from 'lucide-react';
 
@@ -24,7 +27,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/portfolio-strategie' },
   title: `Modelová portfolia z ETF: ${portfolioModels.length} ověřených strategií pro české investory`,
   description:
-    'Vyberte si hotové modelové portfolio z ETF – Permanentní, Nobelovo, Akciové, Ray Dalio a Dividendové. Reálné složení, konkrétní fondy (ISIN) a verdikt pro koho.',
+    'Hotová modelová portfolia z ETF – Permanentní, All Weather, Nobelovo, 60/40, Akciové, Dividendové a Svět + malé firmy. Složení, konkrétní fondy (ISIN) a historie v korunách od roku 2008.',
 };
 
 const BASE = 'https://etfpruvodce.cz';
@@ -37,7 +40,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'Jak vybrat portfolio podle své povahy?',
-    a: 'Rozhodněte se podle toho, jak velký propad unesete. Konzervativní portfolia (Permanentní, Ray Dalio) mají méně akcií a mírnější výkyvy, agresivní (Akciové) má 80 % v akciích a počítá s propady i kolem 40 %, ale dlouhodobě nabízí nejvyšší růst.',
+    a: 'Rozhodněte se podle toho, jak velký propad unesete. Konzervativní portfolia (Permanentní, All Weather) mají méně akcií a mírnější výkyvy; akciová portfolia rostla v historii nejvíc, ale propadala se nejhlouběji – skutečný největší pokles každého portfolia od roku 2008 vidíte přímo na kartě.',
   },
   {
     q: 'Jak často rebalancovat?',
@@ -60,6 +63,20 @@ export default async function PortfolioStrategieDesignPreview() {
   const returns: Record<string, number | null> = {};
   for (const isin of allIsins) returns[isin] = returnsRaw[isin]?.return_1y_czk ?? null;
   const etfCount = await getTotalETFCount();
+
+  // Historie z backtestu (CAGR, max. pokles v Kč) – předpočet jednou za ISR render, stejné jádro jako /backtest.
+  const historie: HistorieMap = Object.fromEntries(await Promise.all(portfolioModels.map(async (m) => {
+    const cfg = PORTFOLIO_BACKTEST[m.slug];
+    const r = cfg ? await predpocitejPortfolio(cfg.items, cfg.start) : null;
+    const evo = r?.evolution ?? [];
+    return [m.slug, r && evo.length > 1 ? {
+      cagr: r.summary.cagr, maxPokles: r.risk.maxDrawdown.depth, od: evo[0].date.slice(0, 10), do: evo[evo.length - 1].date.slice(0, 10), proxy: cfg?.proxyNote,
+    } : null] as const;
+  })));
+  const hodnoty = Object.values(historie).filter((h): h is NonNullable<typeof h> => !!h);
+  const historieDo = hodnoty.map((h) => h.do).sort().pop();
+  const historieOd = hodnoty.map((h) => h.od).sort()[0];
+  const mr = (iso: string) => `${Number(iso.slice(5, 7))}/${iso.slice(0, 4)}`;
   const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
 
   // SCHEMA: BreadcrumbList + ItemList (5 detailů) + FAQPage synchronizovaný se zněním FAQ.
@@ -95,7 +112,7 @@ export default async function PortfolioStrategieDesignPreview() {
   };
 
   const TOOLS = [
-    { href: '/backtest', label: 'Backtest portfolia', desc: 'Historická simulace strategie od roku 2000', icon: History },
+    { href: '/backtest', label: 'Backtest portfolia', desc: 'Historie vlastního složení v korunách', icon: History },
     { href: '/monte-carlo', label: 'Monte Carlo simulátor', desc: 'Pravděpodobnostní výhled vývoje portfolia', icon: Activity },
     { href: '/srovnani', label: 'Srovnávač ETF', desc: 'Porovnejte konkrétní fondy do portfolia', icon: Search },
     { href: '/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera pro české investory', icon: Landmark },
@@ -141,13 +158,16 @@ export default async function PortfolioStrategieDesignPreview() {
               Modelová portfolia z ETF pro české investory
             </h1>
             <p className="mt-2 max-w-2xl text-sm md:text-base leading-relaxed text-slate-300">
-              {portfolioModels.length} ověřených strategií – hotové složení tříd aktiv s konkrétními ETF (ISIN) ke koupi u českého brokera.
+              {portfolioModels.length} hotových strategií s konkrétními ETF a jejich historií v korunách od roku 2008.
+            </p>
+            <p className="mt-4 max-w-2xl rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-sm leading-relaxed text-slate-200">
+              <span className="font-semibold text-white">Investujete malé částky?</span> Začít můžete i jediným světovým akciovým ETF a další složky přidat, až portfolio poroste.
             </p>
           </div>
         </section>
 
         {/* 2. Edukace ikonová */}
-        <section className="pb-2">
+        <section data-sekce="pojmy" className="pb-2">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
             <h2 className="text-lg font-bold tracking-tight text-slate-900">Co je modelové portfolio</h2>
             <p className="mt-1 text-sm text-slate-500">
@@ -176,19 +196,20 @@ export default async function PortfolioStrategieDesignPreview() {
           </div>
         </section>
 
-        {/* 3. JÁDRO: mřížka 5 karet */}
-        <section className="py-8">
+        {/* 3. JÁDRO: karty seřazené od nejklidnějšího */}
+        <section data-sekce="portfolia" className="py-8">
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Vyberte si portfolio podle své povahy</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Každá karta ukazuje reálné složení tříd aktiv i skutečný korunový výnos za poslední rok. Klikněte na detail pro konkrétní ETF s ISIN ke koupi.
+              Seřazeno od nejklidnějšího. Zhodnocení a max. pokles jsou z backtestu v korunách
+              {historieOd && historieDo ? ` (${mr(historieOd)}–${new Date(`${historieDo}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })})` : ''}, po poplatcích fondů.
             </p>
           </div>
-          <PortfolioGrid returns={returns} />
+          <PortfolioGrid returns={returns} historie={historie} />
         </section>
 
         {/* 4. Verdikt pro koho */}
-        <section className="py-4">
+        <section data-sekce="pro-koho" className="py-4">
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Pro koho je která strategie</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
@@ -199,7 +220,7 @@ export default async function PortfolioStrategieDesignPreview() {
         </section>
 
         {/* 5. Prolinkování na nástroje */}
-        <section className="py-8">
+        <section data-sekce="nastroje" className="py-8">
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Ověřte si portfolio nástroji</h2>
             <p className="mt-1 text-sm text-slate-500">Simulujte vývoj a najděte si konkrétní fondy i brokera.</p>
@@ -216,21 +237,9 @@ export default async function PortfolioStrategieDesignPreview() {
         </section>
 
         {/* 6. FAQ */}
-        <section className="py-4">
-          <div className="mb-4">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Časté otázky</h2>
-          </div>
-          <div className="space-y-2.5">
-            {FAQ.map((f) => (
-              <details key={f.q} className="group rounded-lg border border-slate-200 bg-white">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900">
-                  {f.q}
-                  <ArrowRight className="h-4 w-4 shrink-0 text-teal-700 transition-transform group-open:rotate-90" />
-                </summary>
-                <p className="border-t border-slate-100 px-4 py-3 text-sm leading-relaxed text-slate-600">{f.a}</p>
-              </details>
-            ))}
-          </div>
+        <section data-sekce="faq" className="py-4">
+          <h2 className="mb-4 text-xl md:text-2xl font-bold tracking-tight text-slate-900">Časté otázky</h2>
+          <FaqSeznam items={FAQ} />
         </section>
 
         {/* Trust / metodika */}
