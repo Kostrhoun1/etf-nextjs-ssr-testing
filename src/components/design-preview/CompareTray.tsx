@@ -83,7 +83,7 @@ export default function CompareTray() {
               Porovnat ({items.length}) <ArrowRight className="w-4 h-4" />
             </Link>
           ) : (
-            <span className="inline-flex items-center rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-500 shrink-0 sm:hidden">ještě 1 fond</span>
+            <span className="inline-flex items-center rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-500 shrink-0 sm:hidden">vyberte ještě 1</span>
           )}
         </div>
       </div>

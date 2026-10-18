@@ -92,7 +92,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function HeadTip({ k, label }: { k: string; label: string }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
-  const ukaz = () => { const r = ref.current?.getBoundingClientRect(); if (r) setPos({ x: r.left + r.width / 2, y: r.bottom + 6 }); };
+  // Dotyk/klik spustí nejdřív focus (ukáže) a hned click – ten nesmí tooltip zase schovat. Click zavírá jen
+  // tooltip, který už nějakou dobu svítí (druhé klepnutí).
+  const ukazanoV = useRef(0);
+  const ukaz = () => { const r = ref.current?.getBoundingClientRect(); if (r) { if (!pos) ukazanoV.current = Date.now(); setPos({ x: r.left + r.width / 2, y: r.bottom + 6 }); } };
   useEffect(() => {
     if (!pos) return;
     const skryj = () => setPos(null);
@@ -106,7 +109,7 @@ function HeadTip({ k, label }: { k: string; label: string }) {
       <button
         ref={ref} type="button" aria-label={`Co znamená ${label}`}
         onMouseEnter={ukaz} onMouseLeave={() => setPos(null)} onFocus={ukaz} onBlur={() => setPos(null)}
-        onClick={(e) => { e.stopPropagation(); if (pos) setPos(null); else ukaz(); }}
+        onClick={(e) => { e.stopPropagation(); if (pos && Date.now() - ukazanoV.current > 400) setPos(null); else ukaz(); }}
         className="inline-flex items-center justify-center p-1.5 -m-1 rounded text-slate-400 hover:text-teal-700 focus:outline-none focus-visible:text-teal-700"
       >
         <Info className="w-3 h-3" aria-hidden="true" />
