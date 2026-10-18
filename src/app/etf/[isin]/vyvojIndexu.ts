@@ -25,23 +25,25 @@ export interface VyvojIndexu {
 const DEN = 864e5;
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-export async function nactiVyvojIndexu(indexCode: string): Promise<VyvojIndexu | null> {
+/**
+ * @param konecDat Den, ke kterému platí data fondu (datumCen(scraping_date), 'YYYY-MM-DD').
+ *   Graf MUSÍ končit stejným dnem jako výnosy fondu v tabulce (revize kola 2, 18. 10. 2026: graf končil
+ *   9. 10., tabulka 16. 10. → 5R +88,1 % vs. +79,9 %). Když řada indexu nebo kurz koruny ten den
+ *   chybí (svátek v USA, měsíční řada, kurz ještě nenahraný), vrací null → graf se neukáže.
+ */
+export async function nactiVyvojIndexu(indexCode: string, konecDat: string): Promise<VyvojIndexu | null> {
   const def = INDEX_BY_CODE[indexCode];
   if (!def) return null;
   try {
     const [idx, kurzy] = await Promise.all([loadIndexData(indexCode), loadExchangeRates()]);
     if (!kurzy.length) return null;
-    // Kurzy se do DB nahrávají jednou týdně → body indexu po posledním kurzu by se přepočetly až týden
-    // starým kurzem (ověřeno 18. 10. 2026: SPY 16. 10. kurzem z 9. 10. = 1R o 0,7 p. b. vedle proti ČNB).
-    // Pravidlo č. 1: graf končí posledním dnem, pro který kurz opravdu máme.
-    const posledniKurz = kurzy[kurzy.length - 1].date.getTime();
-    const kc = convertIndexSeriesToCurrency(idx.data.filter((b) => b.date.getTime() <= posledniKurz), def.currency, 'CZK', kurzy)
+    // Kurz koruny přesně na den konce (jinak by se poslední bod přepočetl starším kurzem).
+    if (!kurzy.some((k) => iso(k.date) === konecDat)) return null;
+    const kc = convertIndexSeriesToCurrency(idx.data.filter((b) => iso(b.date) <= konecDat), def.currency, 'CZK', kurzy)
       .filter((b) => Number.isFinite(b.closePrice) && b.closePrice > 0);
     if (kc.length < 24) return null;
     const posl = kc[kc.length - 1];
-    // Zastaralá řada = žádný graf (denní: 10 dní, měsíční: 45 dní).
-    const stari = (Date.now() - posl.date.getTime()) / DEN;
-    if (stari > (def.monthly ? 45 : 10)) return null;
+    if (iso(posl.date) !== konecDat) return null; // index ten den nemá cenu → žádný graf
 
     // Podvzorkování: posledních ~13 měsíců denně (1R začíná přesně o rok dřív), do ~6 let po týdnech
     // (poslední obchodní den týdne), dřív po měsících.

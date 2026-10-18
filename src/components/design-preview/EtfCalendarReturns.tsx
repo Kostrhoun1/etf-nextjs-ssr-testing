@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { useCurrency, curLabel, type Currency } from '@/components/design-preview/currencyStore';
 
@@ -19,8 +18,9 @@ const pct = (v: number | null) => {
    Data jsou přepočtená do zvolené měny (return_<rok>_czk/_usd), letošní sloupec
    používá return_ytd_* a je viditelně odlišený. Sloupce stojí na nulové ose – záporné
    roky jdou dolů (dřív rostly nahoru jen v jiné barvě, 18. 10. 2026).
-   `nadpis` = sloupce jako hlavní graf stránky (u fondů bez spolehlivé časové řady). */
-export default function EtfCalendarReturns({ cols, nadpis }: { cols: CalCol[]; nadpis?: string }) {
+   Kolo 3 (18. 10. 2026): bez vlastního rámu a přepínače měny – sedí v kartě grafu sekce Výkonnost
+   (GrafVykonnosti.tsx), přepínač měny je na stránce jen jeden (v hlavičce sekce). */
+export default function EtfCalendarReturns({ cols }: { cols: CalCol[] }) {
   const [cur] = useCurrency();
   const [aktivni, setAktivni] = useState<number | null>(null);
   const data = cols.map((c) => ({ ...c, v: c.vals[cur] })).filter((c) => c.v != null);
@@ -28,21 +28,12 @@ export default function EtfCalendarReturns({ cols, nadpis }: { cols: CalCol[]; n
   const maxKl = Math.max(0, ...data.map((c) => c.v!));
   const maxZap = Math.max(0, ...data.map((c) => -c.v!));
   const rozsah = maxKl + maxZap || 1;
-  const VYSKA = nadpis ? 168 : 132;
+  const VYSKA = 168;
   const hKl = (maxKl / rozsah) * VYSKA;
   const hZap = (maxZap / rozsah) * VYSKA;
 
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white ${nadpis ? 'p-4 md:p-6' : 'p-4 md:p-5'}`}>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        {nadpis ? (
-          <p className="text-sm text-slate-500">
-            <InfoTip label={`Výnos fondu za každý kalendářní rok ${cur === 'CZK' ? 'přepočtený do korun – zahrnuje pohyb kurzu' : cur === 'USD' ? 'v dolarech' : 'v eurech'}. Poslední sloupec je letošek od 1. ledna.`}>{nadpis}</InfoTip>
-          </p>
-        ) : <span />}
-        <CurrencyToggle size="sm" />
-      </div>
-
+    <div>
       <div className="grid gap-1.5 sm:gap-4" style={{ gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))` }}>
         {data.map((c, i) => {
           const pos = c.v! >= 0;
@@ -70,8 +61,9 @@ export default function EtfCalendarReturns({ cols, nadpis }: { cols: CalCol[]; n
         })}
       </div>
 
-      <p className="mt-3 text-xs text-slate-400">
-        V {curLabel[cur]} · {data[data.length - 1].ytd ? `letos od 1. 1. ${data[data.length - 1].year}` : 'kalendářní roky'}
+      <p className="mt-3 text-xs text-slate-400 leading-relaxed">
+        <InfoTip label={`Výnos fondu za každý kalendářní rok ${cur === 'CZK' ? 'přepočtený do korun – zahrnuje pohyb kurzu' : cur === 'USD' ? 'v dolarech' : 'v eurech'}. Skutečná data fondu, ne indexu.`}>Výnos fondu v {curLabel[cur]}</InfoTip>
+        {' · '}{data[data.length - 1].ytd ? `letos = od 1. 1. ${data[data.length - 1].year}` : 'kalendářní roky'}
       </p>
     </div>
   );

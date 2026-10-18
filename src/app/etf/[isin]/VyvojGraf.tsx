@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import type { BodVyvoje } from './vyvojIndexu';
+import { kulateKroky } from '@/lib/osyGrafu';
 
 /* Graf „Vývoj 10 000 Kč“ na detailu fondu (18. 10. 2026). Řadu dodá server (vyvojIndexu.ts);
    tady se jen přepočítá na start 10 000 Kč ve zvoleném období. Žádná data se nedomýšlejí:
@@ -26,31 +27,24 @@ const datum = (s: string, dlouhe = true) =>
   new Date(s).toLocaleDateString('cs-CZ', dlouhe ? { day: 'numeric', month: 'numeric', year: 'numeric' } : { month: 'numeric', year: 'numeric' });
 const DEN = 864e5;
 
-/** „Hezké“ kroky osy Y (1, 2, 2,5, 5 × 10^n). */
-function krokOsy(rozsah: number, cil = 4) {
-  const hrubý = rozsah / cil;
-  const mag = 10 ** Math.floor(Math.log10(hrubý));
-  const n = hrubý / mag;
-  return (n < 1.5 ? 1 : n < 2.25 ? 2 : n < 3.5 ? 2.5 : n < 7.5 ? 5 : 10) * mag;
-}
-
 export default function VyvojGraf({
   body,
-  popis,
   zdroj,
   konec,
   mesicni,
-  datumDat,
+  podnadpis,
+  rozdilPoznamka,
 }: {
   body: BodVyvoje[];
-  /** Co graf ukazuje, např. „index S&P 500 (fond SPY)“. */
-  popis: string;
   /** Doplněk do tooltipu – odkud jsou data a proč to není přímo fond. */
   zdroj: string;
+  /** Poslední den řady = den dat fondu (vyvojIndexu.ts to vynucuje). */
   konec: string;
   mesicni: boolean;
-  /** Datum dat fondu (scraping_date) – když graf končí o víc než 3 dny dřív, řekneme proč. */
-  datumDat?: string;
+  /** Co přesně graf ukazuje, např. „Index S&P 500 (fond SPY) – ne přímo SXR8“. */
+  podnadpis: string;
+  /** Neutrální šedá poznámka pod grafem (proč se může lišit od výnosu fondu). */
+  rozdilPoznamka?: string;
 }) {
   const roku = (new Date(body[body.length - 1][0]).getTime() - new Date(body[0][0]).getTime()) / (365.25 * DEN);
   const nabidka = OBDOBI.filter((o) => o.roky === 0 || o.roky <= roku + 0.02);
@@ -92,14 +86,12 @@ export default function VyvojGraf({
   const L = 8, R = 62, T = 12, B = 26;
   const vals = rada.map((p) => p.v);
   const min = Math.min(...vals, VKLAD), max = Math.max(...vals, VKLAD);
-  const krok = krokOsy(max - min || 1);
-  const y0 = Math.floor(min / krok) * krok, y1 = Math.ceil(max / krok) * krok;
+  const mrizka = kulateKroky(max, min, 4); // kulaté kroky jako ostatní grafy webu (osyGrafu.ts)
+  const y0 = mrizka[0], y1 = mrizka[mrizka.length - 1];
   const x = (t: number) => L + ((t - rada[0].t) / (posledni.t - rada[0].t || 1)) * (W - L - R);
   const y = (v: number) => T + (1 - (v - y0) / (y1 - y0 || 1)) * (H - T - B);
   const cesta = rada.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
   const plocha = `${cesta}L${x(posledni.t).toFixed(1)},${H - B}L${x(rada[0].t).toFixed(1)},${H - B}Z`;
-  const mrizka: number[] = [];
-  for (let v = y0; v <= y1 + 1e-6; v += krok) mrizka.push(v);
 
   // Popisky osy X: roky (u 1R měsíce), max ~6 popisků
   const osaX: { t: number; text: string }[] = [];
@@ -125,18 +117,18 @@ export default function VyvojGraf({
   const kladny = zmena >= 0;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-6">
+    <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-slate-500">
-            <InfoTip label={<>Simulace: 10 000 Kč vložených na začátku období, bez dalších vkladů. {zdroj} Přepočet do Kč historickými kurzy ECB, bez daní a poplatků brokera.</>}>Vývoj 10 000 Kč</InfoTip>
+        <div className="min-w-0">
+          <p className="text-xs text-slate-500">
+            <InfoTip label={<>Simulace: 10 000 Kč vložených na začátku období, bez dalších vkladů. {zdroj} Přepočet do Kč denními kurzy ECB, bez daní a poplatků brokera.</>}>{podnadpis}</InfoTip>
           </p>
-          <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2.5">
+          <p className="mt-1 flex flex-wrap items-baseline gap-x-2.5">
             <span className="text-2xl md:text-3xl font-bold tabular-nums text-slate-900">{kc(posledni.v)}</span>
             <span className={`text-sm font-semibold tabular-nums ${kladny ? 'text-emerald-700' : 'text-red-600'}`}>{pct(zmena)}</span>
             {pa != null && <span className="text-xs tabular-nums text-slate-500">{pct(pa)} p.a.</span>}
-            <span className="text-xs tabular-nums text-slate-400">{datum(rada[0].d, !mesicni)} – {datum(posledni.d, !mesicni)}</span>
           </p>
+          <p className="text-xs tabular-nums text-slate-400">{datum(rada[0].d, !mesicni)} – {datum(posledni.d, !mesicni)}</p>
         </div>
         <div role="group" aria-label="Období grafu" className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
           {nabidka.map((o) => (
@@ -191,14 +183,9 @@ export default function VyvojGraf({
         )}
       </div>
 
-      <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-        Vývoj podle: {popis} · v Kč · data k {datum(konec)}
+      <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+        V Kč · data k {datum(konec)}{rozdilPoznamka ? ` · ${rozdilPoznamka}` : ''}
       </p>
-      {datumDat && new Date(datumDat).getTime() - new Date(konec).getTime() > 3 * DEN && (
-        <p className="mt-1 text-xs text-amber-700 leading-relaxed">
-          Graf končí {datum(konec)} – novější kurz koruny zatím nemáme. Proto se může lišit od výnosů fondu k {datum(datumDat)}.
-        </p>
-      )}
     </div>
   );
 }
