@@ -1,18 +1,20 @@
 import { Metadata } from 'next';
-import type { ReactNode } from 'react';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
-  TrendingUp, ArrowRight, User, Database, Calculator,
-  Scale, Landmark, HelpCircle, BookOpen, PiggyBank, Clock, Repeat, History,
+  TrendingUp, User, Database, Calculator,
+  Scale, Landmark, BookOpen, History,
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvesticniKalkulackaWidget, { type HistorickyVynos } from '@/components/design-preview/InvesticniKalkulackaWidget';
 import { nactiStrojCasu, cagrOd, STROJ_PRESETY } from '@/lib/strojCasu';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { FaqSeznam } from '@/components/design-preview/brokerUI';
+import { simulateAndSerialize } from '@/lib/backtest/simulate';
+import { scenarSkutecnosti, shrnSkutecnost, type SkutecnostVysledek } from '@/lib/kalkulackaSkutecnost';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -41,6 +43,16 @@ export default async function InvesticniKalkulackaPreview() {
   // Všechny volby musí mít STEJNÝ konec období (jinak by srovnání neplatilo) – jinak je raději nezobrazit.
   const stejneObdobi = historicke.every((h) => h.doDen === historicke[0]?.doDen);
 
+  // „A jak by to dopadlo doopravdy?“ – výchozí scénář (100 000 Kč + 5 000 Kč měsíčně, 20 let, S&P 500) spočítaný
+  // při ISR STEJNÝM jádrem jako /backtest (simulateAndSerialize). Při chybě null → karta ukáže „—“.
+  let skutecnost: SkutecnostVysledek | null = null;
+  try {
+    const sc = scenarSkutecnosti({ presetId: 'sp500', roky: 20, jednorazove: 100000, pravidelne: 5000, frekvence: 'monthly' });
+    skutecnost = shrnSkutecnost(sc, await simulateAndSerialize(sc.body));
+  } catch (e) {
+    console.error('[kalkulacka] výchozí historický scénář selhal:', e);
+  }
+
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
     {
@@ -53,7 +65,11 @@ export default async function InvesticniKalkulackaPreview() {
     },
     {
       q: 'Jaký výnos mám do kalkulačky zadat?',
-      a: 'Orientaci dají rychlé volby pod polem výnosu: kolik skutečně vynesly S&P 500, akcie celého světa a portfolio 60/40 v korunách od ledna 2004 (po poplatcích fondů, před daní). Výchozích 7 % je zaokrouhlený předpoklad, ne předpověď – budoucí výnos nikdo nezaručí. Jak by stejné vklady dopadly na skutečných datech i s propady, ukáže backtest.',
+      a: 'Orientaci dají rychlé volby pod polem výnosu: kolik skutečně vynesly S&P 500, akcie celého světa a portfolio 60/40 v korunách od ledna 2004 (po poplatcích fondů, před daní). Výchozích 7 % je zaokrouhlený předpoklad, ne předpověď – budoucí výnos nikdo nezaručí. Jak by stejné vklady dopadly na skutečných datech i s propady, ukazuje karta „A jak by to dopadlo doopravdy?“ pod výsledkem (stejný výpočet jako backtest).',
+    },
+    {
+      q: 'Proč se skutečná historie liší od kalkulačky se stejným výnosem?',
+      a: 'Průměrné roční zhodnocení trhu (CAGR) a zhodnocení vašich pravidelných vkladů nejsou totéž. Pozdější vklady jsou investované kratší dobu a zažijí jiné roky než počáteční vklad – když po propadu přijde silný růst, vklady nakoupené levně vydělají víc, než napovídá průměr trhu. Proto u historie ukazujeme i „zhodnocení vkladů“ (XIRR): stálý roční výnos, který by ze stejných vkladů udělal stejnou částku. To číslo je s kalkulačkou přímo srovnatelné.',
     },
     {
       q: 'Počítá kalkulačka s poplatky a inflací?',
@@ -124,50 +140,13 @@ export default async function InvesticniKalkulackaPreview() {
         </section>
 
         <section id="kalkulacka" className="pb-12 scroll-mt-16">
-          <InvesticniKalkulackaWidget historicke={stejneObdobi ? historicke : []} />
-        </section>
-
-        {/* CO JE SLOŽENÉ ÚROČENÍ – krátce, ve třech kartách (dřív dvě sekce s odstavci) */}
-        <section data-sekce="kalk-slozene-uroceni" className="pb-10">
-          <SectionHead title="Co je složené úročení" desc="100 000 Kč při 7 % ročně je po roce 107 000 Kč; druhý rok se 7 % počítá už ze 107 000 Kč = 114 490 Kč." />
-          <div className="grid sm:grid-cols-3 gap-3">
-            {([
-              [Repeat, 'Výnos z výnosů', 'Připsaný výnos se reinvestuje a sám dál vydělává – ne jen původní vklad.'],
-              [Clock, 'Čas je klíčový', 'Dvojnásobek let neznamená dvojnásobek peněz, ale výrazně víc.'],
-              [PiggyBank, 'Pravidelnost vyhrává', (
-                <>
-                  <InfoTip label="Pravidelné investování stejné částky v čase rozkládá nákupy do různých cen a snižuje riziko špatného načasování.">Pravidelné vklady</InfoTip>
-                  {' '}rozkládají riziko špatného načasování.
-                </>
-              )],
-            ] as [typeof Repeat, string, ReactNode][]).map(([Icon, t, d]) => (
-              <div key={t} className="flex items-start gap-3 sm:block rounded-lg border border-slate-200 bg-white p-4">
-                <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700 sm:mb-3"><Icon className="w-4 h-4" /></span>
-                <span className="block">
-                  <span className="block font-medium text-slate-900 text-sm">{t}</span>
-                  <span className="block text-xs text-slate-500 mt-1 leading-relaxed">{d}</span>
-                </span>
-              </div>
-            ))}
-          </div>
+          <InvesticniKalkulackaWidget historicke={stejneObdobi ? historicke : []} skutecnostVychozi={skutecnost} />
         </section>
 
         {/* FAQ */}
         <section data-sekce="faq" className="pb-10">
           <SectionHead title="Časté dotazy" />
-          <div className="space-y-2">
-            {faqs.map((f) => (
-              <details key={f.q} className="group rounded-lg border border-slate-200 bg-white">
-                <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none min-h-[44px]">
-                  <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
-                    <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
-                  </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
-                </summary>
-                <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
-              </details>
-            ))}
-          </div>
+          <FaqSeznam items={faqs} />
         </section>
 
         {/* POKRAČUJTE DÁL */}

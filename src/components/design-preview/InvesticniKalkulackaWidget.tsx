@@ -11,10 +11,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { AlertTriangle, Sparkles, ChevronUp, ChevronDown, ArrowRight } from 'lucide-react';
+import { Sparkles, ChevronUp, ChevronDown, ArrowRight, Loader2, Repeat, Clock, PiggyBank } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { kulateKroky, fmtOsa } from '@/lib/osyGrafu';
-import { STROJ_PRESETY, slozeniProStart } from '@/lib/strojCasuVypocet';
+import { scenarSkutecnosti, shrnSkutecnost, type SkutecnostVysledek } from '@/lib/kalkulackaSkutecnost';
 
 /**
  * Interaktivní jádro investiční kalkulačky (složené úročení) – redesign.
@@ -227,29 +227,17 @@ const rokyOsy = (n: number) => {
   return out;
 };
 
-/** Odkaz do backtestu se stejnými vklady a horizontem („A jak by to dopadlo doopravdy?“). */
-function odkazDoBacktestu(p: {
-  presetId: string; roky: number; jednorazove: number; pravidelne: number; frekvence: 'monthly' | 'yearly';
-}) {
-  const preset = STROJ_PRESETY.find((x) => x.id === p.presetId) ?? STROJ_PRESETY.find((x) => x.id === 'sp500')!;
-  const dnes = new Date();
-  // Start = stejný měsíc před N lety; nejdřív od prvního měsíce dat presetu (Kč máme od 1/2000).
-  let start = `${dnes.getFullYear() - p.roky}-${String(dnes.getMonth() + 1).padStart(2, '0')}`;
-  const zkraceno = start < preset.od;
-  if (zkraceno) start = preset.od;
-  const slozeni = slozeniProStart(preset, start);
-  const q = new URLSearchParams();
-  if (preset.id === 'sp500') q.set('portfolio', 'sp500-100');
-  else q.set('slozeni', slozeni.map((s) => `${s.indexCode}:${Math.round(s.weight * 100)}`).join(','));
-  q.set('start', `${start}-01`);
-  q.set('amount', String(Math.round(p.jednorazove)));
-  if (p.pravidelne > 0) { q.set('vklad', String(Math.round(p.pravidelne))); q.set('freq', p.frekvence); }
-  else q.set('freq', 'none');
-  q.set('run', '1');
-  return { href: `/backtest?${q.toString()}`, nazev: preset.nazev, start, zkraceno };
-}
+const fmtMil = (v: number) => v >= 1e6
+  ? `${(v / 1e6).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
+  : fmtCZK(Math.round(v / 1000) * 1000);
+const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+const mesRok = (iso: string) => { const d = new Date(iso); return `${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
 
-export default function InvesticniKalkulackaWidget({ historicke = [] }: { historicke?: HistorickyVynos[] }) {
+export default function InvesticniKalkulackaWidget({ historicke = [], skutecnostVychozi = null }: {
+  historicke?: HistorickyVynos[];
+  /** Výchozí scénář „doopravdy“ spočítaný na serveru při ISR (stejné jádro jako /backtest). */
+  skutecnostVychozi?: SkutecnostVysledek | null;
+}) {
   // Výchozí hodnoty 1:1 z původní komponenty InvestmentCalculatorContent.tsx
   const [initialInvestment, setInitialInvestment] = useState<number>(100000);
   const [recurringInvestment, setRecurringInvestment] = useState<number>(5000);
@@ -289,15 +277,44 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
   }, [results, initialInvestment]);
   const osaY = useMemo(() => kulateKroky(chartData.reduce((m, d) => Math.max(m, d.total), 0), 0, 4), [chartData]);
 
-  const warnReturn = averageReturn < 3 || averageReturn > 15;
+  // Neutrální poznámka mimo obvyklé rozpětí (revize 18. 10. 2026: varování „zkontrolujte zadání“ při 0–2 % působilo jako chyba).
+  const poznamkaVynos = averageReturn < 3
+    ? 'Výnos pod 3 % ročně odpovídá spíš spořicímu účtu nebo dluhopisům než akciím.'
+    : averageReturn > 15 ? 'Výnos nad 15 % ročně je výrazně nad dlouhodobou historií velkých akciových trhů v Kč (viz rychlé volby).' : null;
   const hasData = Boolean(finalResult) && investmentPeriod > 0;
 
   // Vybraná rychlá volba (shoda s historickým výnosem) → podle ní i odkaz do backtestu.
   const vybrany = historicke.find((h) => Math.abs(averageReturn - Math.round(h.cagr * 1000) / 10) < 0.05);
-  const backtest = hasData ? odkazDoBacktestu({
+  /* „A jak by to dopadlo doopravdy?“ – STEJNÉ vklady na skutečných datech (stejné API jako /backtest).
+     Výchozí scénář je předpočítaný na serveru; po změně vstupů se po 0,9 s spočítá znovu. */
+  const scenar = useMemo(() => scenarSkutecnosti({
     presetId: vybrany?.id ?? 'sp500', roky: investmentPeriod, jednorazove: initialInvestment,
     pravidelne: recurringInvestment, frekvence: recurringFrequency,
-  }) : null;
+  }), [vybrany?.id, investmentPeriod, initialInvestment, recurringInvestment, recurringFrequency]);
+  const [skutecnost, setSkutecnost] = useState<SkutecnostVysledek | null>(skutecnostVychozi);
+  const [skutecnostStav, setSkutecnostStav] = useState<'ok' | 'pocitam' | 'chyba'>(skutecnostVychozi ? 'ok' : 'pocitam');
+  useEffect(() => {
+    if (skutecnost?.klic === scenar.klic) { setSkutecnostStav('ok'); return; }
+    if (!(scenar.body.initialAmount > 0) && !scenar.body.contributions) { setSkutecnostStav('chyba'); return; }
+    setSkutecnostStav('pocitam');
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/backtest/simulate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(scenar.body), signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        const v = shrnSkutecnost(scenar, await res.json());
+        if (!v) throw new Error('prázdný výsledek');
+        setSkutecnost(v); setSkutecnostStav('ok');
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') setSkutecnostStav('chyba');
+      }
+    }, 900);
+    return () => { clearTimeout(t); ctrl.abort(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenar.klic]);
+  const skutecnostAktualni = skutecnost && skutecnost.klic === scenar.klic ? skutecnost : null;
 
   // Mobil: lišta s výsledkem dole jen když velké číslo není vidět.
   const vysledekRef = useRef<HTMLDivElement>(null);
@@ -309,6 +326,14 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
     io.observe(el);
     return () => io.disconnect();
   }, [hasData]);
+  const listaDole = hasData && !vysledekVidet;
+  useEffect(() => {
+    // Lišta nesmí zakrýt konec patičky – dočasné odsazení těla jen na mobilu (md:hidden lišta).
+    if (!listaDole || window.matchMedia('(min-width: 768px)').matches) return;
+    const puvodni = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = '60px';
+    return () => { document.body.style.paddingBottom = puvodni; };
+  }, [listaDole]);
 
   // Tabulka: milníky po 5 letech + poslední rok; všechny roky na rozklik.
   const radkyTabulky = vsechnyRoky
@@ -441,12 +466,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
           </div>
 
           {/* Kontrola parametrů */}
-          {warnReturn && (
-            <p className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
-              {averageReturn < 3 ? 'Velmi nízký výnos (pod 3 % ročně) – zkontrolujte zadání.' : 'Velmi vysoký výnos (nad 15 % ročně) – zkontrolujte zadání.'}
-            </p>
-          )}
+          {poznamkaVynos && <p className="mt-2 text-xs text-slate-500 leading-relaxed">{poznamkaVynos}</p>}
 
           {/* Daň – do „dalšího nastavení“ (časový test = výchozí 0 %) */}
           <details className="group mt-4 rounded-lg border border-slate-200">
@@ -581,23 +601,49 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
             </p>
           </div>
 
-          {/* Lákadlo: stejné vklady na skutečných datech */}
-          {backtest && (
-            <Link href={backtest.href} data-sekce="kalk-backtest" data-track="kalk-do-backtestu"
-              className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 md:p-6 hover:border-teal-300 transition-colors">
-              <span>
-                <span className="block text-base font-semibold text-slate-900">A jak by to dopadlo doopravdy?</span>
-                <span className="mt-1.5 block text-sm text-slate-600 leading-relaxed">
-                  Stejné vklady do {backtest.nazev === 'Vyvážené 60/40' ? 'portfolia 60/40' : backtest.nazev} od {fmtMesic(backtest.start)} na skutečných
-                  historických datech – i s propady, které kalkulačka se stálým výnosem nevidí.
-                  {backtest.zkraceno && ' (Data v Kč máme od tohoto měsíce, období je proto kratší.)'}
-                </span>
-              </span>
-              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 group-hover:text-teal-800">
-                Spočítat v backtestu <ArrowRight className="w-4 h-4" />
-              </span>
-            </Link>
-          )}
+          {/* Stejné vklady na skutečných datech – SKUTEČNÉ číslo, ne jen odkaz (revize 18. 10. 2026) */}
+          <div data-sekce="kalk-backtest" className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 md:p-6" aria-busy={skutecnostStav === 'pocitam'}>
+            <p className="text-base font-semibold text-slate-900">A jak by to dopadlo doopravdy?</p>
+            <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+              Stejné vklady {scenar.doCeho} od {fmtMesic(scenar.start)} na skutečných historických datech v Kč
+              {scenar.priblizeni && (
+                <> <InfoTip label="Celosvětový fond Vanguard Total World (VT) má data až od 7/2008. Pro dřívější začátek proto počítáme přiblížení: 60 % S&P 500 + 40 % akcie mimo USA (stejně jako preset „USA + zbytek světa“ v backtestu).">
+                  <span className="sr-only">proč</span></InfoTip></>
+              )}
+              {scenar.zkraceno && ' – data v Kč máme až od tohoto měsíce, období je proto kratší než zadaných ' + investmentPeriod + ' ' + let_(investmentPeriod)}:
+            </p>
+            {skutecnostStav === 'chyba' && !skutecnostAktualni ? (
+              <p className="mt-3 text-sm text-slate-500">— <span className="text-xs">Historický výpočet se teď nepodařil.</span></p>
+            ) : (
+              <div className={`mt-3 transition-opacity ${skutecnostStav === 'pocitam' ? 'opacity-40' : ''}`}>
+                <p className="flex items-center gap-2 text-3xl font-bold tracking-tight tabular-nums text-slate-900">
+                  {skutecnost ? fmtCZK(skutecnostAktualni?.hodnota ?? skutecnost.hodnota) : '…'}
+                  {skutecnostStav === 'pocitam' && <Loader2 className="w-5 h-5 animate-spin text-teal-700" aria-label="Počítám" />}
+                </p>
+                {skutecnost && (() => {
+                  const v = skutecnostAktualni ?? skutecnost;
+                  return (
+                    <ul className="mt-2 space-y-1 text-sm text-slate-600">
+                      <li>Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(v.vlozeno)}</span>{!scenar.zkraceno && <> · kalkulačka se stálými {averageReturn.toLocaleString('cs-CZ')} %: <span className="font-semibold tabular-nums text-slate-800">{fmtMil(finalResult.netValue)}</span></>}</li>
+                      {v.irr != null && (
+                        <li>
+                          <InfoTip label="Vnitřní výnosové procento vašich vkladů (XIRR): stálý roční výnos, který by ze stejných vkladů ve stejných dnech udělal stejnou částku. Je přímo srovnatelný s výnosem zadaným do kalkulačky. Od průměrného ročního zhodnocení samotného trhu (CAGR) se liší, protože pozdější vklady byly investované kratší dobu.">Vklady se zhodnocovaly</InfoTip>{' '}
+                          <span className="font-semibold tabular-nums text-slate-800">{fmtPct1(v.irr * 100)} ročně</span>
+                        </li>
+                      )}
+                      <li>Největší propad <span className="font-semibold tabular-nums text-red-600">{fmtPct1(v.maxPokles * 100)}</span> <span className="text-slate-500">(dno {mesRok(v.dnoPoklesu)})</span> – stálý výnos kalkulačky ho nevidí</li>
+                    </ul>
+                  );
+                })()}
+              </div>
+            )}
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pt-4">
+              <span className="text-xs text-slate-500">{skutecnost ? `Data k ${fmtDen((skutecnostAktualni ?? skutecnost).posledniDen.slice(0, 10))}, před daní` : ''}</span>
+              <Link href={scenar.backtestHref} data-track="kalk-do-backtestu" className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-800">
+                Podrobně v backtestu <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       )}
 
@@ -648,7 +694,42 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
       )}
 
       {/* Mobil: výsledek v liště dole, jen když velké číslo není na obrazovce. */}
-      {hasData && !vysledekVidet && (
+      {/* CO JE SLOŽENÉ ÚROČENÍ – příklad se ZADANÝM výnosem (dřív napevno 7 %) */}
+      {(() => {
+        const r = averageReturn / 100;
+        const r1 = Math.round(100000 * (1 + r)), r2 = Math.round(100000 * (1 + r) * (1 + r));
+        const pct = averageReturn.toLocaleString('cs-CZ');
+        return (
+          <section data-sekce="kalk-slozene-uroceni">
+            <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900">Co je složené úročení</h2>
+            <p className="mt-1 mb-4 text-sm text-slate-600 leading-relaxed">
+              100 000 Kč při {pct} % ročně je po roce {fmtCZK(r1)}; druhý rok se {pct} % počítá už z {fmtCZK(r1)} = {fmtCZK(r2)}.
+            </p>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {([
+                [Repeat, 'Výnos z výnosů', 'Připsaný výnos se reinvestuje a sám dál vydělává – ne jen původní vklad.'],
+                [Clock, 'Čas je klíčový', 'Dvojnásobek let neznamená dvojnásobek peněz, ale výrazně víc.'],
+                [PiggyBank, 'Pravidelnost', (
+                  <>
+                    <InfoTip label="Pravidelné investování stejné částky v čase rozkládá nákupy do různých cen a snižuje riziko špatného načasování.">Pravidelné vklady</InfoTip>
+                    {' '}rozkládají riziko špatného načasování.
+                  </>
+                )],
+              ] as [typeof Repeat, string, React.ReactNode][]).map(([Icon, t, d]) => (
+                <div key={t} className="flex items-start gap-3 sm:block rounded-lg border border-slate-200 bg-white p-4">
+                  <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700 sm:mb-3"><Icon className="w-4 h-4" /></span>
+                  <span className="block">
+                    <span className="block font-medium text-slate-900 text-sm">{t}</span>
+                    <span className="block text-xs text-slate-500 mt-1 leading-relaxed">{d}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
+
+      {listaDole && (
         <a href="#vysledek" className="md:hidden fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
           <span className="text-xs text-slate-500">Za {investmentPeriod} {let_(investmentPeriod)}</span>
           <span className="text-base font-bold text-slate-900 tabular-nums">{fmtCZK(finalResult.netValue)}</span>
