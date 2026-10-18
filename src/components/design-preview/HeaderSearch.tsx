@@ -19,7 +19,7 @@ interface Result {
 export default function HeaderSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
-  const [kategorie, setKategorie] = useState<{ href: string; label: string }[]>([]); // české hledání → žebříčky
+  const [kategorie, setKategorie] = useState<{ href: string; label: string; typ?: string }[]>([]); // české hledání → žebříčky
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1); // -1 = žádná položka (Enter → screener)
@@ -120,7 +120,7 @@ export default function HeaderSearch() {
               {kategorie.map((k) => (
                 <li key={k.href}>
                   <Link href={k.href} onClick={() => setOpen(false)} className="flex items-center justify-between gap-2 px-3.5 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50">
-                    Žebříček: {k.label} <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    {k.typ === 'pruvodce' ? k.label : `Žebříček: ${k.label}`} <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   </Link>
                 </li>
               ))}

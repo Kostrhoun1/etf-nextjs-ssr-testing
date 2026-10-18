@@ -20,14 +20,14 @@ interface Result {
 
 export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
   // Na mobilu kratší nápověda (dlouhá se ořízla na „(na…“).
-  const [placeholder, setPlaceholder] = useState('Název, ISIN nebo ticker');
+  const [placeholder, setPlaceholder] = useState('Fond nebo ticker (např. VWCE)');
   useEffect(() => {
-    if (window.matchMedia('(min-width: 640px)').matches) setPlaceholder('Název fondu, ISIN nebo ticker (např. VWCE)');
+    if (window.matchMedia('(min-width: 640px)').matches) setPlaceholder('Hledejte fond nebo ticker (např. VWCE, zlato)');
   }, []);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
   // Žebříčky k dotazu (české hledání: „zlato“ → Nejlepší zlato ETF) – viz src/lib/hledaniCz.ts.
-  const [kategorie, setKategorie] = useState<{ href: string; label: string }[]>([]);
+  const [kategorie, setKategorie] = useState<{ href: string; label: string; typ?: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1); // -1 = žádná položka (Enter → srovnávač)
@@ -95,6 +95,8 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (open && active >= 0 && results[active]) goToEtf(results[active].isin);
+      // Bez fondů, ale s nabídnutou cestou (průvodce/žebříček) → tam, ne do prázdného srovnávače.
+      else if (results.length === 0 && kategorie.length > 0) { setOpen(false); router.push(kategorie[0].href); }
       else goToScreener();
     } else if (e.key === 'Escape') {
       setOpen(false);
@@ -147,7 +149,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
                 <li key={k.href}>
                   <Link href={k.href} onClick={() => setOpen(false)} className="flex items-center gap-3 px-3.5 py-2.5 text-sm hover:bg-slate-50 transition-colors">
                     <span className="inline-flex items-center justify-center min-w-14 shrink-0 rounded-md bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-700"><ListOrdered className="w-3.5 h-3.5" /></span>
-                    <span className="min-w-0 flex-1 font-medium text-slate-900">Žebříček: {k.label}</span>
+                    <span className="min-w-0 flex-1 font-medium text-slate-900">{k.typ === 'pruvodce' ? k.label : `Žebříček: ${k.label}`}</span>
                     <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
                   </Link>
                 </li>

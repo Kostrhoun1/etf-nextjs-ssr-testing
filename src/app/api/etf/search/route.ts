@@ -72,15 +72,20 @@ export async function GET(request: NextRequest) {
     };
 
     const rows = (data ?? []) as unknown as Record<string, unknown>[];
-    const ranked = rows
-      .map((row) => ({ row, s: score(row) }))
+    const skore = rows.map((row) => ({ row, s: score(row) }));
+    // Přesná shoda tickeru („CSPX“) → bez fondů, které ticker jen začínají stejně (šum).
+    const presna = skore.some((x) => x.s === 4) && /^[a-z0-9]{2,8}$/i.test(q);
+    const ranked = skore
+      .filter((x) => !presna || x.s !== 3)
       .sort((a, b) => b.s - a.s || (Number(b.row.fund_size_numeric) || 0) - (Number(a.row.fund_size_numeric) || 0))
       .slice(0, 8)
       .map(({ row }) => ({
         isin: row.isin,
         name: row.name,
         // Ticker: hlavní, jinak z první burzy, kde je (988 fondů nemá hlavní ticker) – nikdy kus ISINu.
-        primary_ticker: TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim()).find((t) => t && t !== '-') ?? null,
+        // Hledaný ticker z jiné burzy („CSPX“) ukázat tak, jak ho uživatel zná; jinak hlavní/první dostupný.
+        primary_ticker: TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim()).find((t) => t && t.toLowerCase() === term)
+          ?? TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim()).find((t) => t && t !== '-') ?? null,
         fund_provider: row.fund_provider,
         fund_size_numeric: row.fund_size_numeric,
         // TER 0 u akcií/dluhopisů je chyba zdroje → null (stejně jako srovnávač).

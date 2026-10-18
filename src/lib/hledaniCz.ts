@@ -24,7 +24,7 @@ const SYNONYMA_KATEGORII: Record<string, string[]> = {
   'nejlepsi-emerging-markets-etf': ['rozvijejici', 'rozvijejici se trhy', 'emerging', 'em'],
   'nejlepsi-zlato-etf': ['gold', 'zlate'],
   'nejlepsi-stribro-etf': ['silver'],
-  'nejlepsi-dluhopisove-etf': ['bond', 'obligace'],
+  'nejlepsi-dluhopisove-etf': ['dluhopisy', 'bond', 'obligace'],
   'nejlepsi-vladni-dluhopisy-etf': ['statni dluhopisy', 'vladni', 'statni', 'treasury', 'government'],
   'nejlepsi-korporatni-dluhopisy-etf': ['firemni dluhopisy', 'korporatni', 'corporate'],
   'nejlepsi-dividendove-etf': ['dividend', 'dividendy'],
@@ -77,6 +77,11 @@ const NAZVY: { kmeny: string[]; termy: string[] }[] = [
   { kmeny: ['ropa', 'ropn'], termy: ['Oil'] },
   { kmeny: ['krypto', 'bitcoin'], termy: ['Bitcoin', 'Crypto'] },
   { kmeny: ['sp500', 's&p500', 'sp 500'], termy: ['S&P 500'] },
+  // Překlepy v názvech emitentů (test s uživateli: „vangard“ nenašel nic).
+  { kmeny: ['vangard', 'vanguar', 'vangaurd'], termy: ['Vanguard'] },
+  { kmeny: ['ishare', 'i shares'], termy: ['iShares'] },
+  { kmeny: ['xtracker', 'extracker'], termy: ['Xtrackers'] },
+  { kmeny: ['amundy'], termy: ['Amundi'] },
 ];
 
 /** Anglické části názvů pro rozšíření hledání (prázdné, když dotaz není česky známý výraz). */
@@ -93,7 +98,7 @@ export function anglickeTermy(dotaz: string): string[] {
   return [...out];
 }
 
-export interface KategorieNavrh { href: string; label: string }
+export interface KategorieNavrh { href: string; label: string; typ?: 'zebricek' | 'pruvodce' }
 
 /**
  * Žebříčky, které odpovídají dotazu (max `limit`). `kategorie` = slug → titulek (z categoryConfigs).
@@ -102,6 +107,10 @@ export interface KategorieNavrh { href: string; label: string }
 export function navrhniKategorie(dotaz: string, kategorie: Record<string, string>, limit = 3): KategorieNavrh[] {
   const q = bezDiakritiky(dotaz);
   if (q.length < 2) return [];
+  // Dotaz začátečníka („jaké etf koupit“, „kterým začít“) → průvodce výběrem, ne nula výsledků
+  // (test s uživateli 18. 10. 2026).
+  const pruvodce: KategorieNavrh[] = /\b(jak[aey]|kter[aeyi]\w*|koupit|zacit|zacatecn\w*|vybrat|vyber|doporuc\w*|co koupit|do ceho)\b/.test(q)
+    ? [{ href: '/vyber-etf', label: 'Nevíte, který ETF koupit? Pomůžeme vybrat (4 otázky, 30 s)', typ: 'pruvodce' }] : [];
   const qk = kmen(q);
   const vysledky: { slug: string; label: string; skore: number }[] = [];
   for (const [slug, titulek] of Object.entries(kategorie)) {
@@ -116,9 +125,9 @@ export function navrhniKategorie(dotaz: string, kategorie: Record<string, string
     }
     if (skore > 0) vysledky.push({ slug, label: titulek, skore });
   }
-  return vysledky
+  return [...pruvodce, ...vysledky
     // Při shodě skóre obecnější (kratší) žebříček napřed: „dluhopisy“ → Dluhopisové ETF před vládními.
     .sort((a, b) => b.skore - a.skore || a.label.length - b.label.length)
     .slice(0, limit)
-    .map((v) => ({ href: `/nejlepsi-etf/${v.slug}`, label: v.label }));
+    .map((v) => ({ href: `/nejlepsi-etf/${v.slug}`, label: v.label, typ: 'zebricek' as const }))];
 }
