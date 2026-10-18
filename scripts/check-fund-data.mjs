@@ -186,6 +186,32 @@ const main = async () => {
     varovani.push({ co: `Kontrolu stáří ceníků brokerů se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── HLEDÁNÍ: české výrazy a tickery (hlavní akce homepage) ──
+  // 18. 10. 2026: „svět“, „zlato“, „dluhopisy“, „dividendové“ vracely 0 výsledků (názvy fondů jsou
+  // anglicky). Teď src/lib/hledaniCz.ts – dotaz musí vrátit fondy a (u českých slov) i žebříček.
+  try {
+    const OCEKAVANI = [
+      { q: 'VWCE', isin: 'IE00BK5BQT80' }, { q: 'IE00B5BMR087', isin: 'IE00B5BMR087' },
+      { q: 'svět', zebricek: 'nejlepsi-celosvetove-etf' }, { q: 'zlato', zebricek: 'nejlepsi-zlato-etf' },
+      { q: 'dluhopisy', zebricek: 'nejlepsi-dluhopisove-etf' }, { q: 'dividendové', zebricek: 'nejlepsi-dividendove-etf' },
+      { q: 'evropa', zebricek: 'nejlepsi-evropske-etf' },
+    ];
+    const chyby = [];
+    for (const o of OCEKAVANI) {
+      const r = await fetch(`${WEB_URL}/api/etf/search?q=${encodeURIComponent(o.q)}`).then((x) => x.json());
+      if (!Array.isArray(r.results)) { chyby.push(`${o.q}: API neodpovědělo`); continue; }
+      if (o.isin && r.results[0]?.isin !== o.isin) chyby.push(`${o.q}: první výsledek ${r.results[0]?.isin ?? 'nic'} místo ${o.isin}`);
+      if (o.zebricek) {
+        if (!('kategorie' in r)) continue; // produkce ještě bez českého hledání (před nasazením)
+        if (!r.kategorie.some((k) => k.href.endsWith(o.zebricek))) chyby.push(`${o.q}: chybí žebříček ${o.zebricek}`);
+        if (r.results.length === 0) chyby.push(`${o.q}: 0 fondů`);
+      }
+    }
+    if (chyby.length) poplach.push({ co: 'Hledání na webu nevrací očekávané výsledky', ukazka: chyby.slice(0, 6) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu hledání se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── ZLATÁ SADA ŽEBŘÍČKŮ (živý web) ──
   // Ověřuje, že v kategorii JSOU fondy, které tam patří, a NEJSOU tam pákové produkty a fondy
   // „ex <region>" (audit 17. 10. 2026: japonské obsahovaly „ex Japan", čínské „ex-China", ropa

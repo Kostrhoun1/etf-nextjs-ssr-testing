@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { categoryConfigs } from '@/lib/etf-data';
+import { anglickeTermy, navrhniKategorie } from '@/lib/hledaniCz';
+
+// slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší zlato ETF).
+const KATEGORIE: Record<string, string> = Object.fromEntries(Object.entries(categoryConfigs).map(([slug, c]) => [slug, c.title]));
 
 const TICKER_FIELDS = [
   'primary_ticker',
@@ -15,8 +20,12 @@ export async function GET(request: NextRequest) {
     if (!query || query.trim().length < 2) {
       return NextResponse.json({ results: [], message: 'Query must be at least 2 characters long' });
     }
-    const q = query.trim();
-    const like = `%${q}%`;
+    const q = query.trim().slice(0, 60);
+    // Znaky, které by rozbily PostgREST filtr (or=…), z dotazu pryč.
+    const bezpecne = q.replace(/[%,()*"\\]/g, ' ').trim();
+    const like = `%${bezpecne}%`;
+    // České výrazy → anglické části názvů fondů („zlato“ → Gold, „svět“ → All-World/MSCI World/ACWI).
+    const termy = anglickeTermy(q);
 
     // Hledá v ISIN, názvu, poskytovateli a VŠECH tickerech (primární + 10 burz).
     const orFilter = [
@@ -24,14 +33,16 @@ export async function GET(request: NextRequest) {
       `name.ilike.${like}`,
       `fund_provider.ilike.${like}`,
       ...TICKER_FIELDS.map((f) => `${f}.ilike.${like}`),
+      ...termy.map((t) => `name.ilike.%${t.replace(/[%,()*"\\]/g, ' ')}%`),
     ].join(',');
+    const kategorie = navrhniKategorie(q, KATEGORIE);
 
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
       .select(`isin, name, fund_provider, fund_size_numeric, rating, ${TICKER_FIELDS.join(', ')}`)
       .or(orFilter)
       .order('fund_size_numeric', { ascending: false, nullsFirst: false })
-      .limit(30);
+      .limit(termy.length ? 60 : 30);
 
     if (error) {
       console.error('Search error:', error);
@@ -50,6 +61,7 @@ export async function GET(request: NextRequest) {
       if (tickers.some((t) => t.startsWith(term))) return 3;
       if (name.startsWith(term)) return 2;
       if (name.includes(term)) return 1;
+      if (termy.some((t) => name.includes(t.toLowerCase()))) return 1;
       return 0;
     };
 
@@ -67,7 +79,7 @@ export async function GET(request: NextRequest) {
         rating: row.rating,
       }));
 
-    return NextResponse.json({ results: ranked, query: q, count: ranked.length });
+    return NextResponse.json({ results: ranked, kategorie, query: q, count: ranked.length });
   } catch (error) {
     console.error('ETF search error:', error);
     return NextResponse.json(

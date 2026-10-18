@@ -116,7 +116,7 @@ const TOOLS = [
   { href: '/backtest', label: 'Backtest portfolia', desc: 'Jak by se portfolio z ETF chovalo v minulosti (v Kč)', icon: History },
   { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Kolik naspoříte pravidelnou investicí', icon: Calculator },
   { href: '/kolik-vydelaly-etf', label: 'Kolik vydělaly ETF', desc: 'Datový rozbor výnosů v korunách', icon: LineChart },
-  { href: '/stroj-casu', label: 'Korunový stroj času', desc: 'Kolik by dnes měla investice od zvoleného roku', icon: Sparkles },
+  { href: '/srovnani/porovnani', label: 'Porovnání ETF vedle sebe', desc: 'Poplatky, výnosy v Kč a riziko vybraných fondů v jedné tabulce', icon: LayoutGrid },
   { href: '/fire', label: 'Finanční nezávislost', desc: 'Kolik potřebujete na FIRE (v Kč)', icon: Flame },
   { href: '/co-rikaji-data', label: 'Co říkají data', desc: 'Naráz, nebo postupně? Měnové riziko? Daně?', icon: BookOpen },
 ];
@@ -340,11 +340,13 @@ export default async function DesignPreviewV2() {
         <section className="pb-10">
           <div className="mb-4">
             <h2 className="text-lg font-bold tracking-tight">Žebříčky ETF</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Nejlevnější a nejvýkonnější fondy a žebříčky podle kategorií. Výkonnost za 12 měsíců v Kč, u každého tématu jen nejlepší fond.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější fondy a žebříčky podle kategorií. U nejvýkonnějších jen jeden fond na téma (např. Korea), výkon za 12 měsíců v Kč.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 [&>*]:min-w-0">
-            <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" hrefLabel="celý žebříček" etfs={featured.lowCost || []} metric="ter" />
+          {/* Tři pohledy (majitel 18. 10. 2026: „líbily se mi ty 3 pohledy“) – velikost, výkon, TER. */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 [&>*]:min-w-0">
+            <DataPanel title="Největší fondy" href="/srovnani" hrefLabel="srovnávač" etfs={featured.bySize || []} metric="size" />
             <DataPanel title="Nejvýkonnější akciové (12 měs., Kč)" href="/srovnani" hrefLabel="srovnávač" etfs={featured.byPerformance || []} metric="return" />
+            <DataPanel title="Nejlevnější (TER)" href="/nejlepsi-etf/nejlevnejsi-etf" hrefLabel="celý žebříček" etfs={featured.lowCost || []} metric="ter" />
           </div>
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {CATEGORIES.map((c) => (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2, ArrowRight } from 'lucide-react';
 
@@ -18,6 +19,7 @@ interface Result {
 export default function HeaderSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
+  const [kategorie, setKategorie] = useState<{ href: string; label: string }[]>([]); // české hledání → žebříčky
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1); // -1 = žádná položka (Enter → screener)
@@ -38,6 +40,7 @@ export default function HeaderSearch() {
     const term = query.trim();
     if (term.length < 2) {
       setResults([]);
+      setKategorie([]);
       setOpen(false);
       setLoading(false);
       return;
@@ -49,6 +52,7 @@ export default function HeaderSearch() {
         const res = await fetch(`/api/etf/search?q=${encodeURIComponent(term)}`, { signal: ctrl.signal });
         const data = res.ok ? await res.json() : { results: [] };
         setResults(data.results ?? []);
+        setKategorie(data.kategorie ?? []);
         setOpen(true);
         setActive(-1);
       } catch {
@@ -111,6 +115,17 @@ export default function HeaderSearch() {
 
       {open && (results.length > 0 || (query.trim().length >= 2 && !loading)) && (
         <div className="absolute right-0 top-full mt-1.5 w-[26rem] max-w-[80vw] rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50">
+          {kategorie.length > 0 && (
+            <ul className="border-b border-slate-100 py-1" aria-label="Žebříčky">
+              {kategorie.map((k) => (
+                <li key={k.href}>
+                  <Link href={k.href} onClick={() => setOpen(false)} className="flex items-center justify-between gap-2 px-3.5 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50">
+                    Žebříček: {k.label} <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
           {results.length > 0 ? (
             <ul className="max-h-[70vh] overflow-y-auto py-1">
               {results.map((r, i) => (
@@ -135,7 +150,12 @@ export default function HeaderSearch() {
               ))}
             </ul>
           ) : (
-            <div className="px-3.5 py-3 text-sm text-slate-500">Žádný fond neodpovídá „{query.trim()}".</div>
+            kategorie.length === 0 && (
+              <div className="px-3.5 py-3 text-sm text-slate-500">
+                Žádný fond neodpovídá „{query.trim()}“.{' '}
+                <Link href="/zebricky" onClick={() => setOpen(false)} className="font-medium text-teal-700 hover:underline">Žebříčky podle trhu</Link>
+              </div>
+            )
           )}
           <button
             type="button"
