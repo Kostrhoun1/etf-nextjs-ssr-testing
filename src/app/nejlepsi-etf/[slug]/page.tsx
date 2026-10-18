@@ -126,6 +126,48 @@ function rozdelRiziko(t: string): [string, string] {
   return [m[1].trim(), zbytek.charAt(0).toUpperCase() + zbytek.slice(1)];
 }
 
+/** „Jak vybrat mezi fondy na stejný index“ – fakta, ne doporučení. Desktop: karta se seznamem.
+ *  Mobil: jeden kompaktní rozbalovací řádek („1 TER · 2 velikost · …“), ať tabulka začíná výš. */
+function JakVybrat({ druh }: { druh: 'akcie' | 'komodita' }) {
+  const nadpis = druh === 'akcie' ? 'Jak vybrat mezi fondy na stejný index' : 'Jak vybrat mezi produkty na stejný podklad';
+  const body: [string, string, React.ReactNode][] = [
+    ['TER', 'Poplatek (TER)', 'strhává se každý rok z hodnoty fondu'],
+    ['velikost', 'Velikost fondu', 'spravovaný majetek; malé fondy správci ruší častěji'],
+    druh === 'akcie'
+      ? ['akum./dist.', 'Akumulační, nebo distribuční', 'dividendy fond reinvestuje, nebo vyplácí']
+      : ['zajištění', 'Zajištěná, nebo nezajištěná třída', 'zajištění tlumí kurz dolaru (ne koruny)'],
+    ['kde koupit', 'Kde ho koupíte', <>ne každý broker má každý fond. <Link href="/kde-koupit" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Kde koupit</Link></>],
+  ];
+  const cislo = (i: number) => (
+    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-teal-800 ring-1 ring-slate-200">{i + 1}</span>
+  );
+  const seznam = (
+    <ol className="space-y-1.5 text-sm text-slate-700">
+      {body.map(([, co, proc], i) => (
+        <li key={co} className="flex gap-2">{cislo(i)}<span><span className="font-medium text-slate-900">{co}</span> – {proc}</span></li>
+      ))}
+    </ol>
+  );
+  return (
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/70" data-sekce="jak-vybrat">
+      <details className="group md:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3.5 py-2.5">
+          <span className="min-w-0">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-600"><ListChecks className="w-3.5 h-3.5 shrink-0" /> {nadpis}</span>
+            <span className="mt-0.5 block truncate text-[13px] text-slate-700">{body.map(([k], i) => `${i + 1} ${k}`).join(' · ')}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="px-3.5 pb-3">{seznam}</div>
+      </details>
+      <div className="hidden md:block p-5">
+        <h3 className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600"><ListChecks className="w-3.5 h-3.5" /> {nadpis}</h3>
+        {seznam}
+      </div>
+    </div>
+  );
+}
+
 const median = (xs: number[]): number | null => {
   if (!xs.length) return null;
   const a = [...xs].sort((x, y) => x - y);
@@ -353,31 +395,7 @@ export default async function CategoryDetailPreview(
                   </div>
                 );
               })}
-              {indexova && (
-                <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3 md:p-5" data-sekce="jak-vybrat">
-                  <h3 className="inline-flex items-center gap-1.5 text-[11px] md:text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    <ListChecks className="w-3.5 h-3.5" /> {indexova === 'akcie' ? 'Jak vybrat mezi fondy na stejný index' : 'Jak vybrat mezi produkty na stejný podklad'}
-                  </h3>
-                  <ol className="mt-2 space-y-1.5 text-sm text-slate-700">
-                    {[
-                      ['Poplatek (TER)', 'strhává se každý rok z hodnoty fondu'],
-                      ['Velikost fondu', 'spravovaný majetek; malé fondy správci ruší častěji'],
-                      indexova === 'akcie'
-                        ? ['Akumulační, nebo distribuční', 'dividendy fond reinvestuje, nebo vyplácí']
-                        : ['Zajištěná, nebo nezajištěná třída', 'zajištění tlumí kurz dolaru (ne koruny)'],
-                    ].map(([co, proc], i) => (
-                      <li key={co} className="flex gap-2">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-teal-800 ring-1 ring-slate-200">{i + 1}</span>
-                        <span><span className="font-medium text-slate-900">{co}</span> – {proc}</span>
-                      </li>
-                    ))}
-                    <li className="flex gap-2">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-teal-800 ring-1 ring-slate-200">4</span>
-                      <span><span className="font-medium text-slate-900">Kde ho koupíte</span> – ne každý broker má každý fond. <Link href="/kde-koupit" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Kde koupit</Link></span>
-                    </li>
-                  </ol>
-                </div>
-              )}
+              {indexova && <JakVybrat druh={indexova} />}
             </div>
           </section>
         )}
