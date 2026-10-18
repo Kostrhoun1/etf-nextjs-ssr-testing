@@ -653,7 +653,7 @@ export default async function ETFDetailPreview(
                   ))}
                 </dl>
                 <div className="mt-4 grid grid-cols-2 gap-2 md:mt-auto md:pt-4 [&_a]:h-11 [&_button]:h-11 md:[&_a]:h-10 md:[&_button]:h-10 [&_a]:py-0 [&_button]:py-0 [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap [&_button]:px-2 [&_a]:px-2">
-                  <Link href="/kde-koupit" className="flex items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-teal-700">
+                  <Link href={`/kde-koupit?isin=${etf.isin}`} className="flex items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-teal-700">
                     Kde koupit <ArrowRight className="w-4 h-4" />
                   </Link>
                   <CompareButton isin={etf.isin} label={hlavniTicker ?? shortName} variant="hero" />
