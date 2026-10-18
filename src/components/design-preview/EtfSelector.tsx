@@ -135,7 +135,7 @@ export default function EtfSelector() {
       <div className="p-6 md:p-8 space-y-4">
         {rec.caution && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900/90 leading-relaxed">
-            <Info className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" /> <span>{rec.caution} {rec.caution === PROPADY && <Link href="/portfolio-strategie" className="font-medium underline underline-offset-2">Portfolia s dluhopisy</Link>}</span>
+            <Info className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" /> <span>{rec.caution} {rec.caution === PROPADY && <Link href="/portfolio-strategie" className="font-medium underline underline-offset-2">Modelová portfolia →</Link>}</span>
           </div>
         )}
         <div className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
