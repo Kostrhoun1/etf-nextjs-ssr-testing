@@ -188,8 +188,10 @@ const main = async () => {
       return statSync(p).isDirectory() ? souboryKodu(p) : /\.(tsx?|mjs)$/.test(n) ? [p] : [];
     });
     const FALLBACK = /return_[\w${}`]*_(czk|usd)\b[^;\n]*\?\?[^;\n]*return_(?![\w${}`]*_(czk|usd)\b)[\w${}`]+/;
+    // 18. 10. 2026: stejný fallback v pickReturn (currency.ts) jako ternár `raw == null ? obj[`return_${period}`] : raw`.
+    const FALLBACK2 = /==\s*null\s*\?\s*\w+\[`return_\$\{\w+\}`\]/;
     const nalezy = souboryKodu('src').flatMap((p) => readFileSync(p, 'utf8').split('\n')
-      .map((l, i) => (FALLBACK.test(l) ? `${p}:${i + 1}` : null)).filter(Boolean));
+      .map((l, i) => (FALLBACK.test(l) || FALLBACK2.test(l) ? `${p}:${i + 1}` : null)).filter(Boolean));
     if (nalezy.length) poplach.push({ co: `Kód ukazuje výnos v EUR místo Kč/USD, když přepočet chybí (${nalezy.length} míst)`, ukazka: nalezy.slice(0, 6) });
   } catch (e) {
     varovani.push({ co: `Kontrolu kódu na fallback EUR→Kč se nepodařilo provést: ${e.message}`, ukazka: [] });
@@ -215,11 +217,14 @@ const main = async () => {
       { q: 'svět', zebricek: 'nejlepsi-celosvetove-etf' }, { q: 'zlato', zebricek: 'nejlepsi-zlato-etf' },
       { q: 'dluhopisy', zebricek: 'nejlepsi-dluhopisove-etf' }, { q: 'dividendové', zebricek: 'nejlepsi-dividendove-etf' },
       { q: 'evropa', zebricek: 'nejlepsi-evropske-etf' },
+      // 18. 10. 2026: „sp500“ dávalo nahoru zajištěné UBS třídy (švýcarské tickery SP500S/E/H) místo CSPX/SXR8.
+      { q: 'sp500', isin: 'IE00B5BMR087', poCeskem: true },
     ];
     const chyby = [];
     for (const o of OCEKAVANI) {
       const r = await fetch(`${WEB_URL}/api/etf/search?q=${encodeURIComponent(o.q)}`).then((x) => x.json());
       if (!Array.isArray(r.results)) { chyby.push(`${o.q}: API neodpovědělo`); continue; }
+      if (o.poCeskem && !('kategorie' in r)) continue; // produkce ještě bez sdílené relevance (před nasazením)
       if (o.isin && r.results[0]?.isin !== o.isin) chyby.push(`${o.q}: první výsledek ${r.results[0]?.isin ?? 'nic'} místo ${o.isin}`);
       if (o.zebricek) {
         if (!('kategorie' in r)) continue; // produkce ještě bez českého hledání (před nasazením)
@@ -230,6 +235,40 @@ const main = async () => {
     if (chyby.length) poplach.push({ co: 'Hledání na webu nevrací očekávané výsledky', ukazka: chyby.slice(0, 6) });
   } catch (e) {
     varovani.push({ co: `Kontrolu hledání se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
+  // ── SROVNÁVAČ: region a kategorie fondů (/api/etf/screener) ──
+  // 18. 10. 2026: filtr Region ukazoval Koreu jako „Evropa“, zlato a krypto jako „Celosvětově“ (2 420 z 5 124
+  // fondů „Celosvětově“). Region se teď bere jen z investment_focus (src/utils/regionClassification.ts).
+  // Nezávislá kontrola z NÁZVU fondu: fond s jednou zemí v názvu musí mít tu zemi; komodita/krypto žádný region.
+  try {
+    const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json());
+    if (!Array.isArray(rows) || rows.length < 1000) throw new Error('API srovnávače nevrátilo data');
+    if (!rows.some((r) => r._region === 'Jižní Korea')) {
+      varovani.push({ co: 'Srovnávač na produkci ještě nemá novou klasifikaci regionu (před nasazením) – kontrola regionu vynechána', ukazka: [] });
+    } else {
+      const ZEME = [[/\bKorea\b/i, 'Jižní Korea'], [/\bJapan\b/i, 'Japonsko'], [/\bIndia\b/i, 'Indie'], [/\bTaiwan\b/i, 'Tchaj-wan'], [/\bBrazil\b/i, 'Brazílie']];
+      const VICE = /(asia|pacific|emerging|\bem\b|world|global|all[- ]country|acwi|ex[- .]|europe|latin|bric|far east|\bAC\b)/i;
+      const spatne = [];
+      for (const r of rows) {
+        if (r.category === 'Akcie' || r.category === 'Dluhopisy') {
+          for (const [re, ocek] of ZEME) {
+            if (re.test(r.name) && !VICE.test(r.name) && r._region !== ocek) spatne.push(`${r.isin} ${String(r.name).slice(0, 40)}: ${r._region ?? '—'} (čekám ${ocek})`);
+          }
+        }
+        if ((r.category === 'Komodity' || r.category === 'Krypto') && r._region != null && /gold|silver|bitcoin|ethereum|crypto|commodit/i.test(r.name) && !/miner/i.test(r.name)) {
+          spatne.push(`${r.isin} ${String(r.name).slice(0, 40)}: komodita/krypto s regionem ${r._region}`);
+        }
+      }
+      if (spatne.length) varovani.push({ co: `${spatne.length} fondů má ve srovnávači region, který nesedí s názvem fondu`, ukazka: spatne.slice(0, 6) });
+      const cel = rows.filter((r) => r._region === 'Celosvětově').length / rows.length;
+      if (cel > 0.4) varovani.push({ co: `${(cel * 100).toFixed(0)} % fondů ve srovnávači je „Celosvětově“ – region se zase odvozuje špatně`, ukazka: [] });
+    }
+    // Peněžní trh: zdroj ho řadí pod „Akcie“ (45 fondů 18. 10. 2026), srovnávač ho přeřazuje do vlastní záložky.
+    const mm = rows.filter((r) => r.category === 'Akcie' && /overnight|money market|€str|\bestr\b/i.test(r.name));
+    if (mm.length) varovani.push({ co: `${mm.length} fondů peněžního trhu je ve srovnávači pod „Akcie“`, ukazka: ukazka(mm) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu regionů srovnávače se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
   // ── TRHY NA HOMEPAGE (src/data/trhyDvojcata.ts): čerstvost, odlehlé výnosy ──
