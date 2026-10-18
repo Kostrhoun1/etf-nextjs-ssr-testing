@@ -65,7 +65,10 @@ export async function nactiVyvojIndexu(indexCode: string): Promise<VyvojIndexu |
       // Poslední bod každého týdne/měsíce, výroční body a vždy úplně poslední bod.
       if (!dalsi || klic(dalsi.date) !== klic(b.date) || vyrocni.has(i)) body.push([iso(b.date), Math.round(b.closePrice * 100) / 100]);
     }
-    return { body, konec: iso(posl.date), zacatek: iso(kc[0].date), mesicni: !!def.monthly };
+    // „Měsíční“ podle skutečných dat na konci řady (EUR dluhopisy mají starou historii měsíční, novou denní).
+    const konecRady = kc.slice(-10);
+    const mesicni = (konecRady[konecRady.length - 1].date.getTime() - konecRady[0].date.getTime()) / DEN > 120;
+    return { body, konec: iso(posl.date), zacatek: iso(kc[0].date), mesicni };
   } catch (e) {
     console.error('[detail fondu] vývoj indexu se nenačetl:', e);
     return null;

@@ -4,7 +4,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { TrendingUp, ArrowRight, ArrowLeft, Scale, Trophy, Coins, Layers, Landmark, ShieldCheck, Info, Wallet, HelpCircle } from 'lucide-react';
+import { TrendingUp, ArrowLeft, Trophy, Coins, Layers, Landmark, ShieldCheck, Info, Wallet, HelpCircle, ChevronDown, Equal } from 'lucide-react';
 import { getComparisonETFData, type ComparisonETF , getDataDate } from '@/lib/etf-data';
 import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
 import SrovnaniParams from '@/components/design-preview/SrovnaniParams';
@@ -13,6 +13,8 @@ import { ter, money, pct } from '@/components/design-preview/CategoryUI';
 import { POPULAR_PAIRS } from '@/lib/pairs';
 import { distKind } from '@/utils/distribution';
 import { platnyTicker } from '@/lib/ticker';
+import { nactiDoplnkyFondu } from '@/lib/srovnaniRocni';
+import SrovnaniRocniVynosy from '@/components/design-preview/SrovnaniRocniVynosy';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -39,6 +41,13 @@ const jeIsin = (x: string) => /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x);
 /** Ticker, pod kterým fond zobrazit: ten z URL (tak ho člověk hledal), u ISINu primární ticker. */
 const zobrazTicker = (urlTok: string, etf: ComparisonETF) =>
   jeIsin(urlTok) ? (etf.primary_ticker && etf.primary_ticker !== '-' ? etf.primary_ticker : urlTok) : urlTok;
+/** Nadpis: když se ticker z URL liší od primárního tickeru fondu, ukázat oba – „CSPX (SXR8)“
+ *  (revize 18. 10. 2026: URL „vwce-vs-cspx“, karta „SXR8“ → člověk nevěděl, jestli je to tentýž fond). */
+const nazevTk = (urlTok: string, etf: ComparisonETF) => {
+  const z = zobrazTicker(urlTok, etf);
+  const p = platnyTicker(etf.primary_ticker);
+  return p && p.toUpperCase() !== z.toUpperCase() ? `${z} (${p})` : z;
+};
 /** Burzy fondu z polí exchange_N_* (jen pro odpověď „stejný fond"). */
 const burzy = (etf: ComparisonETF) => {
   const r = etf as unknown as Record<string, string | null>;
@@ -64,11 +73,13 @@ export async function generateMetadata(
       description: `${k1} a ${k2} jsou tickery téhož fondu ${data.etf1.name} (ISIN ${data.etf1.isin}). Stejný poplatek, složení i výnos – liší se burza a měna obchodování. Přehled všech burz a tickerů.`,
     };
   }
+  // „Nižší TER má…“ jen při rozdílu, který je po zaokrouhlení vidět.
+  const terRozdil = data.etf1.ter_numeric != null && data.etf2.ter_numeric != null && ter(data.etf1.ter_numeric) !== ter(data.etf2.ter_numeric);
   const cheaper = (num(data.etf1.ter_numeric) ?? 9) <= (num(data.etf2.ter_numeric) ?? 9) ? data.etf1 : data.etf2;
   return {
     title: `${k1} vs ${k2}: srovnání ETF, výnos v Kč a který koupit`,
     alternates: { canonical: `/srovnani/${pair.toLowerCase()}` },
-    description: `Detailní souboj ${k1} (${data.etf1.isin}) vs ${k2} (${data.etf2.isin}) pro české investory: poplatek (TER), výnos přepočtený do korun, riziko, index a jasný verdikt. Nižší TER má ${cheaper === data.etf1 ? k1 : k2} (${ter(cheaper.ter_numeric)}).`,
+    description: `Srovnání ${k1} (${data.etf1.isin}) a ${k2} (${data.etf2.isin}) pro české investory: poplatek (TER), výnos přepočtený do korun po letech, riziko a index. ${terRozdil ? `Nižší TER má ${cheaper === data.etf1 ? k1 : k2} (${ter(cheaper.ter_numeric)}).` : `Oba mají TER ${ter(data.etf1.ter_numeric)}.`}`,
   };
 }
 
@@ -122,25 +133,34 @@ export default async function PairComparePage(
   const tk2 = zobrazTicker(t2, etf2);
   if (etf1.isin === etf2.isin) return <StejnyFond etf={etf1} tk1={tk1} tk2={tk2} />;
   const curated = getPairContent(pair);
+  const nz1 = nazevTk(t1, etf1), nz2 = nazevTk(t2, etf2);
+  const doplnky = await nactiDoplnkyFondu([etf1.isin, etf2.isin]);
+  const dp1 = doplnky[etf1.isin], dp2 = doplnky[etf2.isin];
 
   const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Datum = starší ze dvou dat fondů (scraping_date), ne globální datum tabulky (pravidlo č. 1).
+  const datumFondu = [dp1?.scrapingDate, dp2?.scrapingDate].filter(Boolean).map((d) => new Date(String(d))).sort((a, b) => a.getTime() - b.getTime())[0];
+  const dateStr = (datumFondu ?? (await getDataDate(today))).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  // Datový verdikt – kdo vyhrává v čem (jen když jsou data a liší se).
+  // Datový verdikt – kdo vyhrává v čem. Vítěz JEN při rozdílu, který je po zaokrouhlení vidět
+  // (revize 18. 10. 2026: „vyhrál“ fond při +68,2 % vs +68,2 %); u výnosu za 3 roky až od 1 p. b. –
+  // desetina procenta za 3 roky je šum (jiný den ocenění, srážková daň), ne vítězství.
   const pickLower = (a: ComparisonETF, b: ComparisonETF, k: 'ter_numeric') => {
     const va = num(a[k]), vb = num(b[k]);
-    if (va == null || vb == null || va === vb) return null;
+    if (va == null || vb == null || ter(va) === ter(vb)) return null;
     return va < vb ? a : b;
   };
-  const pickHigher = (a: ComparisonETF, b: ComparisonETF, k: 'fund_size_numeric' | 'return_1y_czk' | 'return_3y_czk' | 'total_holdings') => {
+  const pickHigher = (a: ComparisonETF, b: ComparisonETF, k: 'fund_size_numeric' | 'return_3y_czk' | 'total_holdings', prah: number, fmt: (v: number) => string) => {
     const va = num(a[k]), vb = num(b[k]);
-    if (va == null || vb == null || va === vb) return null;
+    if (va == null || vb == null || fmt(va) === fmt(vb) || Math.abs(va - vb) < prah) return null;
     return va > vb ? a : b;
   };
   const terW = pickLower(etf1, etf2, 'ter_numeric');
-  const sizeW = pickHigher(etf1, etf2, 'fund_size_numeric');
-  const r3W = pickHigher(etf1, etf2, 'return_3y_czk');
-  const divW = pickHigher(etf1, etf2, 'total_holdings');
+  const sizeW = pickHigher(etf1, etf2, 'fund_size_numeric', 0, (v) => money(v));
+  const r3W = pickHigher(etf1, etf2, 'return_3y_czk', 1, (v) => pct(v));
+  const r3Shoda = !r3W && num(etf1.return_3y_czk) != null && num(etf2.return_3y_czk) != null;
+  const terShoda = !terW && num(etf1.ter_numeric) != null && num(etf2.ter_numeric) != null;
+  const divW = pickHigher(etf1, etf2, 'total_holdings', 0, (v) => String(v));
   const tkOf = (e: ComparisonETF | null) => (e ? (platnyTicker(e.primary_ticker) ?? '—') : null);
 
   const sameIndex = !!etf1.index_name && etf1.index_name === etf2.index_name;
@@ -180,7 +200,7 @@ export default async function PairComparePage(
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Srovnávač ETF', item: 'https://etfpruvodce.cz/srovnani' },
-      { '@type': 'ListItem', position: 3, name: `${tk1} vs ${tk2}` },
+      { '@type': 'ListItem', position: 3, name: `${nz1} vs ${nz2}` },
     ],
   };
 
@@ -194,23 +214,31 @@ export default async function PairComparePage(
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
           <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>
-          <span className="text-slate-700">{tk1} vs {tk2}</span>
+          <span className="text-slate-700">{nz1} vs {nz2}</span>
         </nav>
 
         {/* HERO */}
-        <section className="pb-6">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">{tk1} vs {tk2}: který ETF koupit?</h1>
+        <section data-sekce="hero" className="pb-6">
+          <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-8">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">{nz1} vs {nz2}: který ETF koupit?</h1>
             <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">
-              Porovnání dvou fondů vedle sebe očima českého investora – poplatky, výnos <strong className="text-white">přepočtený do korun</strong>, riziko a jasný verdikt.
+              Dva fondy vedle sebe očima českého investora – poplatky, výnos <strong className="text-white">přepočtený do korun</strong> a riziko.
             </p>
-            <p className="mt-2 text-xs text-slate-400 font-mono">ISIN {tk1}: {etf1.isin} · ISIN {tk2}: {etf2.isin}</p>
+            <p className="mt-2 text-xs text-slate-400">Data k {dateStr}</p>
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
-              <SrovnaniSoubojKarta etf={etf1} podtitul={etf1.index_name ?? 'Fond 1'} accent="teal" />
-              <SrovnaniSoubojKarta etf={etf2} podtitul={etf2.index_name ?? 'Fond 2'} accent="sky" />
+              <SrovnaniSoubojKarta etf={etf1} ticker={nz1} podtitul={etf1.index_name ?? 'Fond 1'} accent="teal" />
+              <SrovnaniSoubojKarta etf={etf2} ticker={nz2} podtitul={etf2.index_name ?? 'Fond 2'} accent="sky" />
             </div>
           </div>
         </section>
+
+        {/* VÝNOS PO LETECH – skutečné výnosy obou fondů (ne index), v Kč */}
+        {dp1 && dp2 && (
+          <section data-sekce="graf" className="pb-8">
+            <h2 className="mb-3 text-xl md:text-2xl font-bold tracking-tight text-slate-900">Výnos po jednotlivých letech</h2>
+            <SrovnaniRocniVynosy fondy={[{ label: tk1, roky: dp1.roky }, { label: tk2, roky: dp2.roky }]} />
+          </section>
+        )}
 
         {sourozenci && (
           <section className="pb-6">
@@ -231,13 +259,15 @@ export default async function PairComparePage(
         )}
 
         {/* DATOVÝ VERDIKT */}
-        <section className="pb-8">
+        <section data-sekce="verdikt" className="pb-8">
           <div className="mb-4"><h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Kdo vyhrává v čem</h2>
-            <p className="mt-1 text-sm text-slate-500">Z reálných dat obou fondů. „Lepší" závisí na tom, co hledáte.</p></div>
+            <p className="mt-1 text-sm text-slate-500">„Lepší“ závisí na tom, co hledáte.</p></div>
           <div className="grid gap-3 sm:grid-cols-2">
             {terW && <WinRow icon={Coins} label="Nižší poplatek (TER)" winner={tkOf(terW)!} detail={`${ter(terW.ter_numeric)} vs ${ter((terW === etf1 ? etf2 : etf1).ter_numeric)}`} />}
+            {terShoda && <WinRow icon={Equal} label="Poplatek (TER)" winner="Stejný" detail={`oba ${ter(etf1.ter_numeric)} ročně`} />}
             {sizeW && <WinRow icon={Landmark} label="Větší fond (likvidita)" winner={tkOf(sizeW)!} detail={`${money(sizeW.fund_size_numeric, sizeW.fund_currency)} spravovaného majetku`} />}
-            {r3W && <WinRow icon={Trophy} label="Vyšší výnos 3 roky (Kč)" winner={tkOf(r3W)!} detail={`${pct(r3W.return_3y_czk)} v korunách za 3 roky`} />}
+            {r3W && <WinRow icon={Trophy} label="Vyšší výnos 3 roky (Kč)" winner={tkOf(r3W)!} detail={`${pct(r3W.return_3y_czk)} vs ${pct((r3W === etf1 ? etf2 : etf1).return_3y_czk)} v korunách`} />}
+            {r3Shoda && <WinRow icon={Equal} label="Výnos 3 roky (Kč)" winner="Prakticky stejný" detail={`${tk1} ${pct(etf1.return_3y_czk)} · ${tk2} ${pct(etf2.return_3y_czk)} – rozdíl pod 1 p. b.`} />}
             {divW && <WinRow icon={Layers} label="Širší diverzifikace" winner={tkOf(divW)!} detail={`drží ${divW.total_holdings?.toLocaleString('cs-CZ')} firem`} />}
           </div>
           {curated && (curated.pick1 || curated.pick2) && (
@@ -249,14 +279,14 @@ export default async function PairComparePage(
         </section>
 
         {/* TABULKA PARAMETRŮ (s přepínačem měny) */}
-        <section className="pb-10">
+        <section data-sekce="parametry" className="pb-10">
           <div className="mb-4"><h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Srovnání parametrů</h2>
-            <p className="mt-1 text-sm text-slate-500">Klíčové hodnoty vedle sebe. Zelené pole = výhodnější v daném řádku.</p></div>
+            <p className="mt-1 text-sm text-slate-500">Zelené pole = výhodnější hodnota v řádku.</p></div>
           <SrovnaniParams etf1={etf1} etf2={etf2} ticker1={tk1} ticker2={tk2} />
         </section>
 
         {/* ČESKÉ DANĚ */}
-        <section className="pb-10">
+        <section data-sekce="dane" className="pb-10">
           <div className="rounded-xl border border-slate-200 bg-white p-5 md:p-6">
             <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900"><ShieldCheck className="w-5 h-5 text-teal-700" /> Daně a měna pro českého investora</h2>
             <p className="mt-2 text-sm text-slate-700 leading-relaxed max-w-3xl">
@@ -266,14 +296,14 @@ export default async function PairComparePage(
         </section>
 
         {/* FAQ */}
-        <section className="pb-10">
+        <section data-sekce="faq" className="pb-10">
           <div className="mb-4"><h2 className="flex items-center gap-2 text-xl md:text-2xl font-bold tracking-tight text-slate-900"><HelpCircle className="w-5 h-5 text-teal-700" /> Časté dotazy</h2></div>
           <div className="space-y-2 max-w-3xl">
             {[...(curated?.faqs ?? []), ...faqs].map((f, i) => (
               <details key={i} className="group rounded-lg border border-slate-200 bg-white p-4">
-                <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">
+                <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium text-slate-900 list-none">
                   {f.q}
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
+                  <ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" />
                 </summary>
                 <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
@@ -288,7 +318,7 @@ export default async function PairComparePage(
             <Link href={`/etf/${etf2.isin}`} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700"><Wallet className="w-4 h-4" /> Detail {tk2}</Link>
             <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700"><ArrowLeft className="w-4 h-4" /> Zpět do srovnávače</Link>
           </div>
-          <p className="mt-4 text-xs text-slate-400 flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Minulé výnosy nezaručují budoucí vývoj. Datum aktualizace: {dateStr}. „Vítěz" řádku je orientační, ne investiční doporučení.</p>
+          <p className="mt-4 text-xs text-slate-400 flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Data fondů k {dateStr}. Minulé výnosy nezaručují budoucí vývoj; „vítěz“ řádku je orientační, ne investiční doporučení.</p>
         </section>
       </main>
     </div>
@@ -357,7 +387,7 @@ function StejnyFond({ etf, tk1, tk2 }: { etf: ComparisonETF; tk1: string; tk2: s
           {faqs.map((f, i) => (
             <details key={i} className="group rounded-lg border border-slate-200 bg-white p-4" open={i === 0}>
               <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">
-                {f.q}<ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
+                {f.q}<ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" />
               </summary>
               <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</p>
             </details>

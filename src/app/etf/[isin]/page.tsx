@@ -851,9 +851,9 @@ export default async function ETFDetailPreview(
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Další fondy na {etf.index_name ? `index ${etf.index_name}` : 'stejný index'}</h2>
               <Link href={zebricekHref} className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">{zebricekLabel} <ArrowRight className="w-4 h-4" /></Link>
             </div>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-3 items-start">
               {podobne.length > 0 && (
-                <ul className="lg:col-span-2 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+                <ul className="lg:col-span-2 min-w-0 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
                   {podobne.map((f) => {
                     const r1 = odlehleIsin.has(f.isin) ? null : num(f.return_1y_czk);
                     return (
@@ -875,7 +875,7 @@ export default async function ETFDetailPreview(
                 </ul>
               )}
               {parHref && souper && tickerSouper && (
-                <Link href={parHref} className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all">
+                <Link href={parHref} className="group min-w-0 flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all">
                   <span>
                     <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700"><Scale className="w-4 h-4" /></span>
                     <span className="mt-3 block text-lg font-bold text-slate-900">{etf.primary_ticker} vs {tickerSouper}</span>

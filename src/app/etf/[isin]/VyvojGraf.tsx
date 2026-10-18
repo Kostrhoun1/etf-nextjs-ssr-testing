@@ -18,7 +18,10 @@ const OBDOBI = [
 type Obdobi = (typeof OBDOBI)[number]['k'];
 
 const kc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
-const pct = (v: number) => `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+const pct = (v: number) => {
+  const r = Math.round(v * 10) / 10 || 0; // bez „−0,0 %“
+  return `${r > 0 ? '+' : ''}${r.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+};
 const datum = (s: string, dlouhe = true) =>
   new Date(s).toLocaleDateString('cs-CZ', dlouhe ? { day: 'numeric', month: 'numeric', year: 'numeric' } : { month: 'numeric', year: 'numeric' });
 const DEN = 864e5;
