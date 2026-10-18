@@ -34,6 +34,12 @@ const MIN_CERSTVE_3D = 0.70;
 const MAX_FALESNE_CERSTVE = 20;   // po opravě 51199ba má být 0; pár kusů = fondy, které justETF dočasně nevrátil     // pod 70 % aktualizovaných za 3 dny = scraper přestal běžet
                                  // (tohle se projeví hned druhý den, stáří 30 dní až po měsíci)
 
+// ── prahy VAROVÁNÍ úplnosti (18. 10. 2026 před opravou scraperu: 20 % čerstvých fondů bez tickeru,
+//    60 % bez indexu; po opravě větve oprava-tickery-indexy v etf-astro ověřeno na 17 profilech → ~0 %).
+//    Pár fondů bez burzy / bez indexu na justETF je pravda, proto práh, ne nula.
+const MAX_BEZ_TICKERU = 0.05;    // podíl čerstvých fondů bez tickeru
+const MAX_BEZ_INDEXU = 0.05;     // podíl čerstvých fondů bez indexu
+
 const CYKLUS = /(short duration|short maturity|short[- ]term|ultra[- ]?short)/i;
 
 // Zlatá sada: ISINy, které v žebříčku MUSÍ být (vlajkové fondy), a názvy, které tam být NESMÍ.
@@ -52,7 +58,7 @@ const ZLATA_SADA = [
 ];
 
 async function nactiFondy() {
-  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name';
+  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name,primary_ticker,total_exchanges,index_name,investment_focus';
   let all = [];
   for (let off = 0; ; off += 1000) {
     const r = await fetch(`${URL_DB}?select=${cols}&order=isin&limit=1000&offset=${off}`,
@@ -128,6 +134,33 @@ const main = async () => {
   if (paka.length) varovani.push({ co: `${paka.length} fondů s krátkou durací označených jako pákové (skryté ve srovnávači)`, ukazka: ukazka(paka) });
   const extrem = fondy.filter((x) => !x.is_leveraged && x.return_1y != null && Math.abs(Number(x.return_1y)) > 150);
   if (extrem.length) varovani.push({ co: `${extrem.length} NEpákových fondů s ročním výnosem přes ±150 % – ověřit, jestli je číslo skutečné`, ukazka: ukazka(extrem, (x) => `${x.isin} ${String(x.name).slice(0, 34)} ${x.return_1y} %`) });
+  // ── ÚPLNOST: ticker, index, kategorie peněžního trhu (revize webu 18. 10. 2026) ──
+  // Parser burz hledal tabulku podle textu „exchange“ → trefil popis fondu nebo tabulku základních údajů
+  // (fondy na Bloomberg indexy): 988 fondů bez tickeru (iShares Nasdaq 100, Core DAX…), 57 s tickerem „-“.
+  // Index se odhadoval z názvu („S&P 500“ u VIX futures, useknuté „Bloomberg 10“) a 3 083 fondů ho nemělo.
+  // Měří se jen na čerstvých fondech (stažených za 3 dny) – stará data jsou jiná kontrola.
+  const prazdne = (v) => v == null || /^[\s\-–—]*$/.test(String(v));
+  const cerstveFondy = fondy.filter((x) => x.name && dni(x) <= 3);
+  if (cerstveFondy.length >= 1000) {
+    const bezTickeru = cerstveFondy.filter((x) => prazdne(x.primary_ticker));
+    if (bezTickeru.length / cerstveFondy.length > MAX_BEZ_TICKERU)
+      varovani.push({ co: `${bezTickeru.length} čerstvých fondů (${(100 * bezTickeru.length / cerstveFondy.length).toFixed(1)} %) nemá ticker (práh ${MAX_BEZ_TICKERU * 100} %) – parser burz ve scraperu nenašel tabulku burz?`, ukazka: ukazka(bezTickeru, (x) => `${x.isin} ${String(x.name).slice(0, 40)} (burz: ${x.total_exchanges ?? 0})`) });
+    const bezIndexu = cerstveFondy.filter((x) => prazdne(x.index_name));
+    if (bezIndexu.length / cerstveFondy.length > MAX_BEZ_INDEXU)
+      varovani.push({ co: `${bezIndexu.length} čerstvých fondů (${(100 * bezIndexu.length / cerstveFondy.length).toFixed(1)} %) nemá index (práh ${MAX_BEZ_INDEXU * 100} %) – scraper nečte řádek „Index“ z justETF?`, ukazka: ukazka(bezIndexu) });
+  }
+  // Ticker „-“ je značka justETF pro burzu BEZ tickeru, ne ticker – nesmí se dostat do primary_ticker.
+  const tickerPomlcka = fondy.filter((x) => x.primary_ticker != null && String(x.primary_ticker).trim() !== '' && prazdne(x.primary_ticker));
+  if (tickerPomlcka.length) varovani.push({ co: `${tickerPomlcka.length} fondů má jako ticker „-“ (burza bez tickeru) – web ho ukazuje jako ticker`, ukazka: ukazka(tickerPomlcka) });
+  // Fond peněžního trhu (investment_focus „Money Market…“) nepatří do Akcií/Dluhopisů: žebříčky a SQL dotazy
+  // filtrují podle category (srovnávač si ho přeřazuje sám, ostatní stránky ne).
+  const mmSpatne = fondy.filter((x) => /^\s*money market\b/i.test(x.investment_focus || '') && x.category !== 'Peněžní trh');
+  if (mmSpatne.length) {
+    const podle = {};
+    for (const x of mmSpatne) podle[x.category ?? '—'] = (podle[x.category ?? '—'] || 0) + 1;
+    varovani.push({ co: `${mmSpatne.length} fondů peněžního trhu (investment_focus „Money Market“) nemá kategorii „Peněžní trh“ (${Object.entries(podle).map(([k, v]) => `${k}: ${v}`).join(', ')})`, ukazka: ukazka(mmSpatne, (x) => `${x.isin} ${String(x.name).slice(0, 40)} → ${x.category}`) });
+  }
+
   const bezPolitiky = fondy.filter((x) => !x.distribution_policy).length;
   if (bezPolitiky) varovani.push({ co: `${bezPolitiky} fondů bez typu výplaty (akumulační/distribuční) – filtr je u nich nenajde`, ukazka: [] });
 
