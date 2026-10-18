@@ -279,3 +279,8 @@ a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
   18. 10. 2026:** není chyba. Zdroj (justETF) dává výnos v EUR na 2 desetinná místa a ty jsou u fondů na stejný
   index se stejným TER shodné (21,70 %); Kč se počítá z EUR stejným kurzem ČNB → shodný výsledek. VUAA (21,59 %) se liší.
 - **Velikost fondu 0 (např. IE000C75IMX8):** zdroj uvádí „EUR 0m“ = fond pod 0,5 mil. € (nový/malý). Pravdivé.
+- **MSCI World Value +49–50 % za rok (IE00BP3QZB59, IE00BL25JM42; 18. 10. 2026):** skutečnost – burzovní ceny
+  IS3S.DE +49,1 %, XDEV.DE +50,0 % (EUR, 16. 10. 2025 → 16. 10. 2026) proti IWDA.AS +20,0 %. Neopravovat.
+- **iShares MSCI USA Screened (IE00BFNM3G45) a USA CTB Enhanced ESG (IE00BHZPJ890) mají skoro stejnou velikost
+  (16 794 / 16 777 mil. €) a stejně 466 pozic:** tak to uvádí i zdroj (justETF, ověřeno 18. 10. 2026); výnosy se liší
+  (20,93 / 19,36 %). Data odpovídají zdroji.
