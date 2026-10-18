@@ -137,7 +137,12 @@ export default async function PortfolioDetailPreview(
     if (cmp.ret1y.pf != null && cmp.ret1y.sp != null) {
       parts.push(`Ve výnosu za poslední rok ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostává za' : 'vede nad'} S&P 500: ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)}.`);
     }
-    parts.push('To je jádro diverzifikace – menší výkyvy a mělčí propady výměnou za nižší růst. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní korelaci 0,3; protože se aktiva nehýbou stejně, je skutečná ještě nižší.');
+    // Pravidlo č. 1: obecné tvrzení o diverzifikaci jen tam, kde ho data portfolia potvrzují
+    // (test s uživateli 18. 10. 2026: akciové portfolio slibovalo „mělčí propady“ při propadu −33 % vs −32 %).
+    const melci = cmp.maxdd.pf != null && cmp.maxdd.sp != null && cmp.maxdd.pf > cmp.maxdd.sp + 3;
+    parts.push(melci
+      ? 'To je jádro diverzifikace – menší výkyvy a mělčí propady výměnou za nižší růst. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní korelaci 0,3; protože se aktiva nehýbou stejně, je skutečná ještě nižší.'
+      : 'Portfolio je převážně akciové, takže propady jsou podobné jako u akciového indexu. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní korelaci 0,3.');
     return parts.join(' ');
   })();
 

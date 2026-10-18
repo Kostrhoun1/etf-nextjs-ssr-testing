@@ -18,6 +18,13 @@ export function emitentFondu(nazev: string | null | undefined): string | null {
 export default function EmitentLogo({ nazev, size = 20, className = '' }: { nazev: string | null | undefined; size?: number; className?: string }) {
   const k = emitentFondu(nazev);
   if (!k) return null;
+  // iShares má jako ikonu jen černé „i“ – vypadalo jako ikona „info“ (art director 18. 10. 2026) → textová značka.
+  if (k === 'ishares') {
+    return (
+      <span aria-hidden="true" className={`shrink-0 inline-flex items-center justify-center rounded-[4px] bg-black font-bold tracking-tight text-white ${className}`}
+        style={{ width: size, height: size, fontSize: Math.max(6, Math.round(size * 0.28)) }}>iSh</span>
+    );
+  }
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={`/loga-emitentu/${k}.png`} alt="" width={size} height={size} loading="lazy"

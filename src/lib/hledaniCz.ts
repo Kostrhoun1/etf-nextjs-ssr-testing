@@ -16,7 +16,7 @@ const kmen = (slovo: string) => (slovo.length <= 4 ? slovo : slovo.slice(0, Math
 
 /* Doplňková slova k žebříčkům (název kategorie se prohledává vždy). Bez diakritiky. */
 const SYNONYMA_KATEGORII: Record<string, string[]> = {
-  'nejlepsi-celosvetove-etf': ['svet', 'cely svet', 'globalni', 'world', 'all-world', 'acwi'],
+  'nejlepsi-celosvetove-etf': ['svet', 'cely svet', 'globalni', 'world', 'all-world', 'all world', 'acwi'],
   'nejlepsi-msci-world-etf': ['msci world', 'rozvinute trhy', 'vyspele trhy'],
   'nejlepsi-sp500-etf': ['s&p', 'sp500', 'sp 500', 's&p 500', 'snp', 'snp 500', 'snp500'],
   'nejlepsi-americke-etf': ['usa', 'amerika', 'spojene staty'],
@@ -53,7 +53,8 @@ const SYNONYMA_KATEGORII: Record<string, string[]> = {
 
 /* CZ → anglické části názvů fondů (justETF názvy). Klíč = kmen bez diakritiky. */
 const NAZVY: { kmeny: string[]; termy: string[] }[] = [
-  { kmeny: ['svet', 'celosvet', 'globaln'], termy: ['All-World', 'MSCI World', 'ACWI', 'Global'] },
+  // „Celý svět“ = vyspělé i rozvíjející se trhy (jako na homepage); MSCI World je „vyspělé trhy“, ne celý svět.
+  { kmeny: ['svet', 'celosvet', 'globaln', 'all world', 'allworld', 'all-world'], termy: ['All-World', 'ACWI', 'All Country World'] },
   { kmeny: ['zlat'], termy: ['Gold'] },
   { kmeny: ['stribr'], termy: ['Silver'] },
   { kmeny: ['dluhopis', 'obligac'], termy: ['Bond'] },
@@ -116,7 +117,8 @@ export function navrhniKategorie(dotaz: string, kategorie: Record<string, string
   // Dotaz začátečníka („jaké etf koupit“, „kterým začít“) → průvodce výběrem, ne nula výsledků
   // (test s uživateli 18. 10. 2026).
   const pruvodce: KategorieNavrh[] = jeDotazZacatecnika(dotaz)
-    ? [{ href: '/vyber-etf', label: 'Nevíte, který ETF koupit? Pomůžeme vybrat (4 otázky, 30 s)', typ: 'pruvodce' }] : [];
+    ? [{ href: '/vyber-etf', label: 'Nevíte, který ETF koupit? Pomůžeme vybrat (4 otázky, 30 s)', typ: 'pruvodce' },
+       { href: '/jak-zacit', label: 'Jak začít investovat – průvodce krok za krokem', typ: 'pruvodce' }] : [];
   const qk = kmen(q);
   const vysledky: { slug: string; label: string; skore: number }[] = [];
   for (const [slug, titulek] of Object.entries(kategorie)) {

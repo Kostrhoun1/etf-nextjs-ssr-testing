@@ -45,7 +45,8 @@ export default async function KdeKoupitPreview() {
   // Brokeři (bez robo-poradce Portu) seřazení podle skóre pro hlavní tabulku.
   const realBrokers = brokers.filter((b) => b.id !== 'portu').sort((a, b) => b.rating - a.rating);
   const topBroker = realBrokers[0]; // nejvyšší skóre mezi brokery = XTB
-  const zeroFeeCount = brokers.filter((b) => /^0\s*%/.test(b.etfFee) || /bez komisí/i.test(b.etfFee)).length;
+  // 0 % za nákup ETF: „0%“ (Trading 212) i „Akcie a ETF 0 % do 100 000 EUR“ (XTB) – dřív regex chytal jen začátek → „1 brokeři“.
+  const zeroFeeCount = brokers.filter((b) => /(^|\s)0\s*%/.test(b.etfFee) || /bez komisí/i.test(b.etfFee)).length;
   const czSupportCount = brokers.filter((b) => b.czSupport).length;
   const lowTaxCount = brokers.filter((b) => /15/.test(b.czDividends)).length;
 
@@ -197,7 +198,7 @@ export default async function KdeKoupitPreview() {
               {/* Živé metriky z brokerData.ts */}
               <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
                 <KkStarMetric label="Nejvyšší skóre (broker)" value={`${topBroker.rating}/100`} sub={topBroker.name} />
-                <KkStarMetric label="0 % za nákup ETF" value={`${zeroFeeCount} brokeři`} sub="XTB, Trading 212" />
+                <KkStarMetric label="0 % za nákup ETF" value={`${zeroFeeCount} ${zeroFeeCount === 1 ? 'broker' : zeroFeeCount <= 4 ? 'brokeři' : 'brokerů'}`} sub="XTB, Trading 212" />
                 <KkStarMetric label="Česká podpora" value={`${czSupportCount} ze ${brokers.length}`} sub={`${lowTaxCount} s daní 15 %`} />
               </div>
             </div>

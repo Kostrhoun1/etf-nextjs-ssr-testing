@@ -17,6 +17,8 @@ export interface FondTrhu {
   velikost: number | null;
   r1: number | null;
   scrapingDate: string | null;
+  /** Akumulační třída – při shodě TER má přednost (začátečníkům radíme akumulační). */
+  acc: boolean;
 }
 
 export interface RadekTrhu {
@@ -52,7 +54,7 @@ export function spocitejTrh(trh: Trh, fondy: FondTrhu[], ted = Date.now()): Rade
   const velke = (xs: FondTrhu[]) => xs.filter((f) => (f.velikost ?? 0) >= MIN_VELIKOST_VITEZE);
 
   const sTer = velke(cerstve.filter((f) => f.ter != null && f.ter > 0))
-    .sort((a, b) => a.ter! - b.ter! || (b.velikost ?? 0) - (a.velikost ?? 0));
+    .sort((a, b) => a.ter! - b.ter! || Number(b.acc) - Number(a.acc) || (b.velikost ?? 0) - (a.velikost ?? 0));
   const nejlevnejsi = sTer[0] ?? null;
   const stejnyTer = nejlevnejsi ? sTer.filter((f) => f !== nejlevnejsi && f.ter === nejlevnejsi.ter).length : 0;
   const nejvetsi = [...cerstve].filter((f) => f.velikost != null).sort((a, b) => b.velikost! - a.velikost!)[0] ?? null;
@@ -80,7 +82,7 @@ export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
   const isiny = TRHY.flatMap((t) => t.isins);
   const { data, error } = await supabaseAdmin
     .from('etf_funds')
-    .select('isin, name, primary_ticker, exchange_1_ticker, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date')
+    .select('isin, name, primary_ticker, exchange_1_ticker, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, distribution_policy')
     .in('isin', isiny);
   if (error || !data) return null; // raději sekci neukázat než ukázat nesmysl
   const podleIsin = new Map<string, FondTrhu>(
@@ -92,6 +94,7 @@ export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
       velikost: r.fund_size_numeric == null ? null : Number(r.fund_size_numeric),
       r1: r.return_1y_czk == null ? null : Number(r.return_1y_czk),
       scrapingDate: r.scraping_date == null ? null : String(r.scraping_date),
+      acc: /accum/i.test(String(r.distribution_policy ?? '')),
     }]),
   );
   return TRHY.map((t) => spocitejTrh(t, t.isins.map((i) => podleIsin.get(i)).filter((f): f is FondTrhu => Boolean(f))));

@@ -112,17 +112,17 @@ const PORTFOLIA_MOBIL = new Set(['dividendove-portfolio', 'permanentni-portfolio
 /* Kde koupit ETF – kurátorský výběr brokerů pro homepage (parita se starým webem,
    který na homepage jmenoval brokery a dával doporučení). Skóre a jména z brokerData;
    krátká věta „pro koho" jen na homepage, plné srovnání je v sekci Kde koupit. */
-type Poplatek = { popisek: string; hodnota: string };
+type Poplatek = { popisek: string; hodnota: string; smena: string };
 // Poplatek na kartě je ručně zkrácený a OVĚŘENÝ u ceníku brokera (18. 10. 2026; zdroje a datum v
 // brokerData.ts → CENIKY_OVERENY, denní kontrola hlídá stáří). Dřív se bral
 // z brokerData.etfFee ořezem před první čárkou → Portu „0,24-1 % ročně“ se ukazoval jako „0“.
 const BROKER_PICK: { id: string; forWhom: string; poplatek: Poplatek }[] = [
-  { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.', poplatek: { popisek: 'Vše v ceně', hodnota: '0,24–1 % ročně' } },
-  { id: 'xtb', forWhom: 'ETF bez provize do 100 000 € měsíčně, česká podpora v pracovní dny.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 € do 100 000 €/měs.' } },
-  { id: 'trading212', forWhom: 'Bez provize, koupíte i část podílu (od 1 €).', poplatek: { popisek: 'Nákup ETF', hodnota: '0 € (směna měny 0,15 %)' } },
-  { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.', poplatek: { popisek: 'Nákup ETF', hodnota: '0,05 %, min. 1,25 € + poplatek burzy' } },
-  { id: 'degiro', forWhom: 'Levné nákupy vybraných ETF pro dlouhodobé držení.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 € u vybraných, jinak 3 €' } },
-  { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.', poplatek: { popisek: 'Nákup ETF', hodnota: 'Xetra 3,95 € do 1 400 €' } },
+  { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.', poplatek: { popisek: 'Vše v ceně', hodnota: '0,24–1 % ročně', smena: 'v ceně' } },
+  { id: 'xtb', forWhom: 'ETF bez provize do 100 000 € měsíčně, česká podpora v pracovní dny.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 € do 100 000 €/měs.', smena: '0,5 %' } },
+  { id: 'trading212', forWhom: 'Bez provize, koupíte i část podílu (od 1 €).', poplatek: { popisek: 'Nákup ETF', hodnota: '0 €', smena: '0,15 %' } },
+  { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.', poplatek: { popisek: 'Nákup ETF', hodnota: '0,05 %, min. 1,25 € + poplatek burzy', smena: '0,002 % (min. 2 USD)' } },
+  { id: 'degiro', forWhom: 'Levné nákupy vybraných ETF pro dlouhodobé držení.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 € u vybraných, jinak 3 €', smena: 'CZK↔EUR zdarma' } },
+  { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.', poplatek: { popisek: 'Nákup ETF', hodnota: 'Xetra 3,95 € do 1 400 €', smena: 'v kurzu banky' } },
 ];
 /* Robo-poradce (Portu) je jiný typ služby (spravuje portfolio za roční poplatek) – v tabulce zvlášť
    za brokery, ať nepůsobí jako „nejlevnější broker“ (revize 18. 10. 2026). */
@@ -150,6 +150,12 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
     a: <>Akumulační (<InfoTip label="Acc – Accumulating. Dividendy se automaticky reinvestují uvnitř fondu, na účet vám nechodí.">Acc</InfoTip>) dividendy automaticky reinvestuje uvnitř fondu – vhodné pro dlouhodobý růst a bez daňové starosti. Distribuční (<InfoTip label="Dist – Distributing. Dividendy fond pravidelně vyplácí na váš účet.">Dist</InfoTip>) je vyplácí na účet – vhodné, když chcete pravidelný příjem.</>,
     plain: 'Akumulační fond (Acc) dividendy automaticky reinvestuje uvnitř fondu – vhodné pro dlouhodobý růst a bez daňové starosti. Distribuční fond (Dist) je vyplácí na účet – vhodné, když chcete pravidelný příjem.',
     href: '/pruvodce',
+  },
+  {
+    q: 'Co je TER a kolik je rozumné?',
+    a: <>TER (celková nákladovost) je roční poplatek fondu v procentech. Strhává se průběžně z hodnoty fondu – nic neplatíte zvlášť, jen je výnos o tuto částku nižší. U fondů na široké indexy (celý svět, S&P 500) se dnes pohybuje většinou mezi 0,03 a 0,25 % ročně, výjimečně i výš; nejlevnější fondy pro každý trh ukazujeme výše.</>,
+    plain: 'TER (celková nákladovost) je roční poplatek fondu v procentech. Strhává se průběžně z hodnoty fondu – nic neplatíte zvlášť, jen je výnos o tuto částku nižší. U fondů na široké indexy (celý svět, S&P 500) se dnes pohybuje většinou mezi 0,03 a 0,25 % ročně, výjimečně i výš.',
+    href: '/srovnani',
   },
   {
     q: 'Můžu o peníze přijít?',
@@ -241,7 +247,7 @@ export default async function DesignPreviewV2() {
         </div>
       </header>
 
-      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-20">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-12">
         {/* S1 HERO – co web dělá, hledání (rozumí češtině), dvě rovnocenné cesty (vím co hledám /
             nevím co koupit), řádek důvěry s datem. Vpravo další žebříčky (GA4: 25 % přechodů). */}
         <section className="py-4 md:py-7">
@@ -254,7 +260,7 @@ export default async function DesignPreviewV2() {
               <div className="mt-5 md:mt-7">
                 <HeroSearch priklady={['VWCE', 'S&P 500', 'zlato', 'dluhopisy']} />
               </div>
-              <div className="mt-5 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+              <div className="mt-4 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
                 <Link href="/srovnani" className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 min-h-12 text-[15px] font-semibold text-white ring-1 ring-teal-500/40 hover:bg-teal-800 transition-colors">
                   Otevřít srovnávač fondů <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -262,14 +268,13 @@ export default async function DesignPreviewV2() {
                   Nevím, co koupit · 4 otázky
                 </Link>
               </div>
-              <ul className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-slate-300">
-                <li className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-teal-300" aria-hidden="true" />Výnosy v Kč kurzem ČNB</li>
-                <li className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-teal-300" aria-hidden="true" />Denní kontrola dat</li>
-                <li className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-teal-300" aria-hidden="true" />Bez provizí a reklamy</li>
-                {datumText && <li className="text-slate-400">Data k <strong className="font-semibold text-slate-200 tabular-nums">{datumText}</strong></li>}
-              </ul>
+              <p className="mt-4 inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-slate-400">
+                <Check className="w-3.5 h-3.5 text-teal-300" aria-hidden="true" />
+                {datumText && <><span>Data k <strong className="font-semibold text-slate-200 tabular-nums">{datumText}</strong></span><span aria-hidden="true">·</span></>}
+                <span>kurz ČNB</span><span aria-hidden="true">·</span><span>denní kontrola dat</span><span aria-hidden="true">·</span><span>bez provizí a reklamy</span>
+              </p>
             </div>
-            <nav aria-label="Další žebříčky ETF" className="relative mt-6 md:mt-1 -mx-4 md:mx-0">
+            <nav aria-label="Další žebříčky ETF" className="hidden md:block relative md:mt-1">
               <p className="hidden md:block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Další žebříčky</p>
               {/* Mobil: vodorovný posuv s náznakem pokračování (mask fade vpravo). */}
               <ul className="flex md:flex-col gap-2 md:gap-0 overflow-x-auto px-4 md:px-0 pb-1 md:pb-0 [scrollbar-width:none] md:divide-y md:divide-white/10 [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
@@ -340,15 +345,17 @@ export default async function DesignPreviewV2() {
               })}
             </div>
             {/* Co dál – tři kroky (test s uživateli: chyběl krok od výběru k nákupu). */}
-            <ol className="mt-4 flex flex-col sm:flex-row sm:flex-wrap gap-x-8 gap-y-1 text-sm text-slate-600">
+            <ol className="mt-4 flex flex-col sm:flex-row sm:items-center gap-y-1 sm:gap-x-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">
+              <li className="sm:mr-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Jak začít</li>
               {[
                 { href: '/srovnani', t: 'Vyberte fond', d: 've srovnávači nebo výše' },
                 { href: '#brokeri', t: 'Otevřete účet u brokera', d: 'srovnání poplatků níže' },
                 { href: '/jak-zacit', t: 'Nastavte pravidelný nákup', d: 'jak začít krok za krokem' },
               ].map((k, i) => (
-                <li key={k.t}>
-                  <Link href={k.href} className="inline-flex items-center gap-2 min-h-10 hover:text-teal-800">
-                    <span className="font-semibold text-teal-700 tabular-nums">{i + 1}.</span> {k.t}
+                <li key={k.t} className="inline-flex items-center gap-2">
+                  {i > 0 && <ArrowRight className="hidden sm:block w-4 h-4 text-slate-300" aria-hidden="true" />}
+                  <Link href={k.href} className="inline-flex items-center gap-2 min-h-10 font-medium hover:text-teal-800">
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-teal-700 text-[11px] font-semibold text-white tabular-nums">{i + 1}</span> {k.t}
                   </Link>
                 </li>
               ))}
@@ -363,6 +370,9 @@ export default async function DesignPreviewV2() {
             odkaz={{ href: '/portfolio-strategie', text: 'Porovnat portfolia' }}>
             Modelová portfolia z ETF
           </Nadpis>
+          <p className="-mt-2 mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500" aria-label="Legenda složení">
+            {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
+          </p>
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white sm:divide-y-0 sm:border-0 sm:bg-transparent sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3">
             {portfolia.map((p) => (
               <li key={p.slug} className={PORTFOLIA_MOBIL.has(p.slug) ? undefined : 'hidden sm:block'}>
@@ -384,18 +394,7 @@ export default async function DesignPreviewV2() {
                 </Link>
               </li>
             ))}
-            <li className="hidden lg:block">
-              <Link href="/portfolio-strategie" className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-dashed border-slate-300 p-4 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
-                <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
-                  {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
-                </span>
-                <span className="inline-flex items-center gap-1 text-sm font-semibold text-teal-700">Porovnat všech {portfolia.length} <ArrowRight className="w-4 h-4" /></span>
-              </Link>
-            </li>
           </ul>
-          <p className="mt-2 flex lg:hidden flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-            {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
-          </p>
         </section>
 
         {/* S5 KDE ETF KOUPIT – loga, ověřené poplatky (CENIKY_OVERENY); robo-poradce bez srovnání skóre. */}
@@ -405,26 +404,31 @@ export default async function DesignPreviewV2() {
             Kde ETF koupit
           </Nadpis>
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
-            <li className="hidden sm:grid sm:grid-cols-[15rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
-              <span>Broker</span><span>Pro koho</span><span>Poplatek za nákup ETF</span><span className="text-right">Skóre</span>
+            <li className="hidden sm:grid sm:grid-cols-[16rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
+              <span>Broker</span><span>Pro koho</span><span>Poplatky (nákup ETF, směna)</span><span className="text-right">Skóre</span>
             </li>
             {HOME_BROKERS.map(({ id, forWhom, poplatek, broker, robo }, bi) => (
               <li key={id} className={bi >= 4 ? 'hidden sm:block' : undefined}>
-                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[15rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-x-6 gap-y-1 px-4 sm:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
+                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[16rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-x-6 gap-y-1 px-4 sm:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
                   <span className="flex items-center gap-2 min-w-0">
                     {/* Wordmark brokera v jednotném rámečku (obsahuje jméno → bez duplicitního textu); Fio má
                         logo bez čitelného názvu a Portu jen provizorní → jméno textem. */}
-                    {LOGO_BROKERA[id] && (
-                      <span className={`flex items-center h-7 shrink-0 ${id === 'fio' ? 'w-7' : 'w-24'}`}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={LOGO_BROKERA[id]} alt={id === 'fio' ? '' : broker!.name} loading="lazy" className="max-w-full max-h-full object-contain object-left" />
-                      </span>
-                    )}
-                    {(!LOGO_BROKERA[id] || id === 'fio') && <span className="text-[15px] font-semibold text-slate-900 truncate">{broker!.name}</span>}
+                    {/* Jednotný optický rámeček 80×24 pro logo + jméno textem u všech (art director: nemíchat škálu). */}
+                    <span className="flex items-center justify-start w-20 h-6 shrink-0">
+                      {LOGO_BROKERA[id]
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={LOGO_BROKERA[id]} alt="" loading="lazy" className="max-w-full max-h-full object-contain" />
+                        : <span aria-hidden="true" className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-xs font-bold text-slate-600">{broker!.name.charAt(0)}</span>}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-900 truncate">{broker!.name}</span>
                     {robo && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}
                   </span>
                   <span className="hidden sm:block text-sm text-slate-600">{forWhom}</span>
-                  <span className="order-3 sm:order-none col-span-2 sm:col-span-1 text-sm text-slate-700">{poplatek.hodnota}{poplatek.popisek === 'Vše v ceně' && <span className="text-slate-500"> (vše v ceně)</span>}</span>
+                  {/* Nákup + směna měny u všech (test s uživateli: XTB bez 0,5 % za směnu vypadal nejlevnější). */}
+                  <span className="order-3 sm:order-none col-span-2 sm:col-span-1 text-sm text-slate-700">
+                    {poplatek.hodnota}{poplatek.popisek === 'Vše v ceně' && <span className="text-slate-500"> (vše v ceně)</span>}
+                    <span className="block text-xs text-slate-500">Směna měny: {poplatek.smena}</span>
+                  </span>
                   <span className="order-2 sm:order-none text-right text-base font-semibold tabular-nums text-slate-900" title={robo ? 'Robo-poradce hodnotíme jinou metodikou než brokery' : `Naše skóre ${broker!.rating} ze 100`}>
                     {robo ? <span className="text-slate-400">—</span> : <>{broker!.rating}<span className="text-xs font-normal text-slate-500">/100</span></>}
                   </span>

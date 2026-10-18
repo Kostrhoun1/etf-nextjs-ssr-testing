@@ -34,7 +34,7 @@ function Fond({ f }: { f: FondTrhu | null }) {
       <span className="min-w-0 flex flex-col">
         <span className="text-[15px] font-medium leading-snug text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2 md:truncate">{f.nazev}</span>
         {/* Bez tickeru (fondy na Nasdaq-100 ho v datech nemají) ISIN – skutečný identifikátor, stejný rytmus řádku. */}
-        <span className="text-xs text-slate-500">{f.ticker ?? f.isin}</span>
+        <span className="text-xs text-slate-500">{f.ticker ?? <span className="font-mono text-[11px] text-slate-400" title={f.isin}>{`${f.isin.slice(0, 2)}…${f.isin.slice(-4)}`}</span>}</span>
       </span>
     </Link>
   );

@@ -173,7 +173,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
                   >
                     <span className="flex items-center justify-center w-5 h-5 shrink-0"><EmitentLogo nazev={r.name} size={20} /></span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm text-slate-900 truncate"><span className="font-medium">{r.name}</span>{r.primary_ticker && <span className="text-slate-500"> · {r.primary_ticker}</span>}</span>
+                      <span className="flex min-w-0 text-sm text-slate-900"><span className="truncate font-medium">{r.name}</span>{r.primary_ticker && <span className="shrink-0 text-slate-500">&nbsp;· {r.primary_ticker}</span>}</span>
                       <span className="block text-xs text-slate-500 truncate">
                         {r.fund_provider ? `${r.fund_provider} · ` : ''}{r.isin}
                       </span>
