@@ -175,6 +175,17 @@ const main = async () => {
     varovani.push({ co: `Kontrolu kódu na fallback EUR→Kč se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── CENÍKY BROKERŮ: stáří ověření ──
+  // 18. 10. 2026 ověření proti oficiálním ceníkům našlo 6 chyb (IBKR ceník US akcií místo Xetry,
+  // XTB „podpora 24/7“, DEGIRO „česká podpora“…). Ceníky se mění (XTB ~měsíčně) → po 90 dnech varování.
+  try {
+    const m = readFileSync('src/data/brokerData.ts', 'utf8').match(/CENIKY_OVERENY = '(\d{4}-\d{2}-\d{2})'/);
+    const stari = m ? (Date.now() - new Date(m[1])) / 864e5 : Infinity;
+    if (stari > 90) varovani.push({ co: `Ceníky brokerů naposledy ověřeny ${m ? m[1] : '?'} (před ${Math.round(stari)} dny) – ověřit znovu u oficiálních ceníků a aktualizovat CENIKY_OVERENY v src/data/brokerData.ts`, ukazka: [] });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu stáří ceníků brokerů se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── ZLATÁ SADA ŽEBŘÍČKŮ (živý web) ──
   // Ověřuje, že v kategorii JSOU fondy, které tam patří, a NEJSOU tam pákové produkty a fondy
   // „ex <region>" (audit 17. 10. 2026: japonské obsahovaly „ex Japan", čínské „ex-China", ropa

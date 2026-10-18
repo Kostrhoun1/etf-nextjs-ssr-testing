@@ -92,7 +92,7 @@ const FAQ = [
   },
   {
     q: 'Kdo nabízí českou podporu?',
-    a: 'Plně česky komunikují XTB (24/7), Fio (8–18) a Portu (9–17), částečně DEGIRO. Trading 212 a Interactive Brokers nabízejí podporu jen v angličtině.',
+    a: 'Česky komunikují XTB (Po–Pá 8–18), Fio (infolinka Po–Pá 9–17) a Portu (pracovní dny). DEGIRO má web v češtině, ale podporu jen anglicky; Trading 212 a Interactive Brokers nabízejí podporu jen v angličtině.',
   },
   {
     q: 'Jak rychle můžu začít investovat?',

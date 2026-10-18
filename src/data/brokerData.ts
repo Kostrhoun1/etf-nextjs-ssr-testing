@@ -1,5 +1,12 @@
 import { Broker, ComparisonRow } from '../types/broker/index';
 
+/** Kdy byly poplatky a tvrzení níže naposledy OVĚŘENY u oficiálních ceníků brokerů (pravidlo č. 1).
+ *  Zdroje 18. 10. 2026: DEGIRO Přehled poplatků (1. 1. 2026), XTB tabulka poplatků (20. 10. 2026),
+ *  Fio Ceník (od 1. 7. 2026), Trading 212 Terms + helpcentre (13. 10. 2026), IBKR pricing (Germany),
+ *  Portu Sazebník (od 1. 9. 2026). Denní kontrola (scripts/check-fund-data.mjs) varuje po 90 dnech –
+ *  XTB vydává sazebník zhruba každý měsíc. Po novém ověření datum aktualizuj. */
+export const CENIKY_OVERENY = '2026-10-18';
+
 export const brokers: Broker[] = [
   {
     id: 'degiro',
@@ -13,21 +20,21 @@ export const brokers: Broker[] = [
     managementFee: '0 EUR (roční popl. za burzy 2,5 EUR)',
     fxFee: 'CZK/EUR zdarma, ostatní 0,25%',
     fractional: false,
-    czSupport: true,
+    czSupport: false, // ověřeno 18. 10. 2026 (degiro.cz/helpdesk/contact): podpora jen anglicky
     czDividends: '35% (možnost vratky 20%)',
     minDeposit: '0 EUR',
     platforms: ['Web', 'Android', 'iOS'],
     markets: ['EU', 'US', 'Asia'],
     etfCount: '3000+',
     languages: ['čeština', 'angličtina', 'němčina'],
-    customerSupport: '9-17 (pracovní dny)',
+    customerSupport: 'Telefon Po–Pá 8–22, e-mail (anglicky)',
     specialFeatures: ['Core ETF selection', 'Dividend reinvestment', 'Tax reports'],
     pros: [
       'ETF Selection za 0 EUR komise (200+ fondů)',
       'Pouze 1 EUR manipulační poplatek',
       'Bezplatná konverze CZK/EUR',
       'Široká nabídka UCITS ETF',
-      'Česká zákaznická podpora'
+      'Nízký poplatek za ETF Selection (1 EUR)'
     ],
     cons: [
       'Omezení kvůli PRIIPS dokumentaci',
@@ -39,10 +46,10 @@ export const brokers: Broker[] = [
     id: 'xtb',
     name: 'XTB',
     logo: '/lovable-uploads/a7162820-5478-4cd8-9bfd-fd04b80a42ff.png',
-    description: 'Transparentní broker kótovaný na varšavské burze s českou licencí ČNB, bezplatnými ETF obchody a 24/7 podporou.',
+    description: 'Polský broker kótovaný na varšavské burze (licence KNF, v ČR organizační složka), ETF bez provize do 100 000 EUR měsíčně a česká podpora v pracovní dny.',
     rating: 94,
-    regulation: 'Licence ČNB (CZ), kótován na varšavské burze',
-    protection: '~22 000 EUR (polský garanční systém KDPW)',
+    regulation: 'KNF (PL), v ČR organizační složka pod dohledem ČNB',
+    protection: '20 100 EUR (polský garanční systém)',
     etfFee: 'Akcie a ETF 0 % do 100 000 EUR/měs., nad limit 0,2 % (min. 10 EUR)',
     managementFee: '0 EUR',
     fxFee: '0,5%',
@@ -54,12 +61,12 @@ export const brokers: Broker[] = [
     markets: ['EU', 'US', 'UK'],
     etfCount: '9 600+ akcií a ETF (EU, USA)',
     languages: ['čeština', 'polština', 'angličtina'],
-    customerSupport: 'Česká podpora 24/7',
+    customerSupport: 'Česká podpora Po–Pá 8–18',
     specialFeatures: ['Frakční práva', 'Demo účet 200k Kč', 'Vzdělávací sekce', 'Rychlé vklady zdarma'],
     pros: [
       'Investování do akcií a ETF bez komisí',
       'Přes 9 600 akcií a ETF z evropských a amerických burz',
-      'Česká zákaznická podpora dostupná 24/7',
+      'Česká zákaznická podpora (Po–Pá 8–18)',
       'Moderní obchodní platforma xStation 5 zdarma',
       'Možnost XTB demo účtu s 200 000 Kč',
       'Frakční práva pro investice s malým kapitálem',
@@ -83,7 +90,7 @@ export const brokers: Broker[] = [
     protection: '100 000 EUR (hotovost, FPV), 20 000 EUR (cenné papíry, GFOCP)',
     etfFee: '0,29-0,35 % (CZ), 3,95 EUR do 1 400 EUR (XETRA)',
     managementFee: '0 Kč',
-    fxFee: 'Zdarma (dle kurzu banky)',
+    fxFee: 'Bez poplatku, náklad je v kurzu banky (spread)',
     fractional: false,
     czSupport: true,
     czDividends: '15%',
@@ -92,12 +99,12 @@ export const brokers: Broker[] = [
     markets: ['CZ', 'EU', 'US'],
     etfCount: '200+',
     languages: ['čeština'],
-    customerSupport: '8-18 (pracovní dny)',
+    customerSupport: 'Infolinka Po–Pá 9–17, pobočky',
     specialFeatures: ['Czech dividend optimization', 'Free currency exchange', 'Local support'],
     pros: [
       'Česká společnost s lokální podporou',
       'Standardní 15% zdanění českých dividend',
-      'Bezplatná konverze měn',
+      'Pobočky po celé ČR',
       'KID dokumentace v češtině'
     ],
     cons: [
@@ -113,7 +120,7 @@ export const brokers: Broker[] = [
     description: 'Zcela bezpoplatkový broker s moderní mobilní aplikací, frakčním investováním a AutoInvest funkcí.',
     rating: 87,
     regulation: 'FCA (UK), CySEC (EU pro CZ klienty)',
-    protection: '100 000 EUR (německé banky), 20 000 EUR (ICF)',
+    protection: '20 000 EUR (ICF, Kypr)',
     etfFee: '0%',
     managementFee: '0 EUR',
     fxFee: '0,15% (v aplikaci)',
@@ -129,7 +136,7 @@ export const brokers: Broker[] = [
     specialFeatures: ['Pie charts investing', 'Commission-free', 'AutoInvest'],
     pros: [
       'Zcela bezplatné obchodování',
-      'Frakční investování od 1 £',
+      'Frakční investování od 1 EUR',
       'Intuitivní mobilní aplikace',
       'Automatizované investování (Pies)'
     ],
@@ -147,7 +154,7 @@ export const brokers: Broker[] = [
     rating: 85,
     regulation: 'CBI (IE pro CZ klienty), SEC (US)',
     protection: '20 000 EUR (ICF, IE); SIPC jen US entita',
-    etfFee: '$0.005/akcii (min. $1)',
+    etfFee: 'Xetra: 0,05 % (min. 1,25 EUR, Tiered + poplatky burzy), Fixed min. 3 EUR',
     managementFee: '0 EUR (zrušen od 2021)',
     fxFee: '0,002% (min. $2)',
     fractional: true,
@@ -215,7 +222,7 @@ export const comparisonData: ComparisonRow[] = [
   { feature: 'Poplatek nákup ETF', degiro: '1 EUR (ETF Selection), 3 EUR (ostatní ETF)', xtb: '0 % do 100 000 EUR/měs., pak 0,2 %', fio: '0,29-0,35 % (CZ), 3,95 EUR do 1 400 EUR (XETRA)', trading212: '0% (bez limitu)', ibkr: '$0.005/akcii (min. $1)', portu: '0,24-1% ročně (dle částky)' },
   { feature: 'Konverze měn', degiro: 'CZK/EUR zdarma, ostatní 0,25%', xtb: '0,5%', fio: 'Zdarma (dle kurzu banky)', trading212: '0,15%', ibkr: '0,002 % (min. 2 USD)', portu: 'Zahrnut v poplatku' },
   { feature: 'Frakční ETF', degiro: 'Ne', xtb: 'Ano', fio: 'Ne', trading212: 'Ano (od 1 EUR)', ibkr: 'Ano', portu: 'Ano (automaticky)' },
-  { feature: 'Česká podpora', degiro: 'Částečně', xtb: 'Ano (24/7)', fio: 'Ano (8-18)', trading212: 'Ne (pouze AJ)', ibkr: 'Ne', portu: 'Ano (9-17)' },
+  { feature: 'Česká podpora', degiro: 'Ne (pouze AJ)', xtb: 'Ano (Po–Pá 8–18)', fio: 'Ano (Po–Pá 9–17)', trading212: 'Ne (pouze AJ)', ibkr: 'Ne', portu: 'Ano (9-17)' },
   { feature: 'Zdanění CZ dividend', degiro: '35% (vratka možná)', xtb: '35%', fio: '15%', trading212: 'Nevztahuje se', ibkr: '35% (vratka možná)', portu: '15%' },
   { feature: 'AutoInvest/DCA', degiro: 'Ne', xtb: 'Investiční plány', fio: 'Ne', trading212: 'Pies & AutoInvest', ibkr: 'Omezené', portu: 'Plně automatické' },
   { feature: 'Min. vklad', degiro: '0 EUR', xtb: '0 EUR', fio: '0 Kč', trading212: '1 EUR', ibkr: '0 USD', portu: '500 Kč' }

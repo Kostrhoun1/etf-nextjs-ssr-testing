@@ -203,7 +203,7 @@ export default async function BrokerReviewPreview() {
                   <span className="text-white font-medium">Ano</span>, pokud chcete levně nakupovat ETF ze seznamu ETF Selection,
                   vkládat peníze v korunách a mít v zádech banku pod evropskou regulací.{' '}
                   <span className="text-white font-medium">Spíš ne</span>, pokud potřebujete frakční investování,
-                  českou podporu 24/7 nebo investujete do českých dividendových akcií (35% srážka).
+                  českou telefonickou podporu nebo investujete do českých dividendových akcií (35% srážka).
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
@@ -477,7 +477,7 @@ export default async function BrokerReviewPreview() {
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span>Potřebujete českou podporu 24/7 → <Link href="/recenze/xtb" className="text-teal-700 hover:underline">XTB</Link></span>
+                  <span>Potřebujete českou podporu → <Link href="/recenze/xtb" className="text-teal-700 hover:underline">XTB</Link></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />

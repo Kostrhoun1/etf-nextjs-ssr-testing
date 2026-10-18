@@ -41,7 +41,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Bezplatná konverze a vklady/výběry v CZK/EUR – ideální pro českého investora bez měnových ztrát",
       "Bankovní zázemí flatexDEGIRO Bank AG s evropskou regulací (BaFin, DNB/AFM) a segregací klientských prostředků",
       "Široká nabídka přes 3000 ETF a přístup na 31 světových burz",
-      "Nulový minimální vklad a částečně česká podpora i lokalizace platformy"
+      "Nulový minimální vklad a web i platforma v češtině (podpora jen anglicky)"
     ],
     "cons": [
       "České dividendy zdaněny 35 % (místo 15 %) – rozdíl lze řešit jen komplikovanou vratkou přes daňové přiznání",
@@ -73,30 +73,30 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Je DEGIRO bezpečný a v češtině?",
-        "a": "DEGIRO je součástí flatexDEGIRO Bank AG regulované německým BaFinem a nizozemskými DNB/AFM, klientské prostředky jsou segregované a chráněné evropskými garančními schématy. Platforma i zákaznická podpora jsou částečně v češtině, podpora je dostupná v pracovní dny (zhruba 9–17 h)."
+        "a": "DEGIRO je součástí flatexDEGIRO Bank AG regulované německým BaFinem a nizozemskými DNB/AFM, klientské prostředky jsou segregované a chráněné evropskými garančními schématy. Web a platforma jsou v češtině, zákaznická podpora ale komunikuje jen anglicky (telefon v pracovní dny 8–22 h, e-mail)."
       }
     ]
   },
   "xtb": {
-    "tagline": "Polský broker s licencí ČNB, českou podporou 24/7 a nákupem ETF bez poplatku do 100 000 EUR měsíčně.",
+    "tagline": "Polský broker (licence KNF, v ČR pod dohledem ČNB) s českou podporou a nákupem ETF bez provize do 100 000 EUR měsíčně.",
     "intro": [
       "XTB (X-Trade Brokers) je burzovně obchodovaný broker založený v roce 2002 v Polsku, kótovaný na varšavské burze. Pro české investory je klíčové, že působí pod licencí České národní banky a nabízí plnou českou lokalizaci platformy i podporu, což ho řadí mezi nejdostupnější zahraniční brokery pro Čechy.",
-      "Od konkurence se odlišuje kombinací nulových poplatků za nákup akcií a ETF (do měsíčního objemu 100 000 EUR), vlastní platformy xStation 5 a české telefonické podpory dostupné 24/7. Nabízí přes 9 600 akcií a ETF z evropských a amerických burz s reálným vlastnictvím (ne CFD), frakční investování a investiční plány pro pravidelné spoření.",
+      "Od konkurence se odlišuje kombinací nulových poplatků za nákup akcií a ETF (do měsíčního objemu 100 000 EUR), vlastní platformy xStation 5 a české telefonické podpory v pracovní dny. Nabízí přes 9 600 akcií a ETF z evropských a amerických burz s reálným vlastnictvím (ne CFD), frakční investování a investiční plány pro pravidelné spoření.",
       "XTB tak cílí na běžného retailového investora, který chce jednoduše a bez provizí nakupovat ETF v češtině, spíše než na profesionály hledající opce, futures nebo nejnižší možné náklady na velkých objemech."
     ],
-    "forWhom": "XTB se hodí pro začínajícího až středně pokročilého českého ETF investora, který ocení češtinu, podporu 24/7, nulový poplatek za nákup ETF a možnost frakčních podílů i pravidelných investičních plánů. Nevhodný je pro toho, kdo obchoduje opce či futures (XTB je nenabízí), pro investory s velkými měsíčními objemy nad 100 000 EUR (nad limit platí 0,2 %), a pro dividendové investory zaměřené na české akcie kvůli 35% srážkové dani.",
+    "forWhom": "XTB se hodí pro začínajícího až středně pokročilého českého ETF investora, který ocení češtinu, českou podporu, nulový poplatek za nákup ETF a možnost frakčních podílů i pravidelných investičních plánů. Nevhodný je pro toho, kdo obchoduje opce či futures (XTB je nenabízí), pro investory s velkými měsíčními objemy nad 100 000 EUR (nad limit platí 0,2 %), a pro dividendové investory zaměřené na české akcie kvůli 35% srážkové dani.",
     "feesText": [
       "Samotný nákup ETF je u XTB bez provize do souhrnného objemu 100 000 EUR měsíčně, nad tento limit se účtuje 0,2 %. Většina retailových investorů se tak fakticky pohybuje v režimu 0 Kč za obchod. Reálné náklady českého investora ale tvoří hlavně měna: XTB vede účet nejčastěji v EUR nebo CZK a při obchodování ETF denominovaného v jiné měně provádí konverzi se spreadem 0,5 % nad tržním kurzem. Kdo posílá koruny a kupuje ETF v eurech nebo dolarech, zaplatí tuto konverzi na každém nákupu i při případném prodeji. Vklad bankovním (SEPA) převodem je zdarma, platba kartou ale stojí 0,77 % (CZK) nebo 0,70 % (EUR) — proto se vždy vyplatí posílat peníze převodem, ne kartou. Minimální vklad není žádný a poplatek za neaktivitu se neúčtuje po dobu 12 měsíců.",
       "U zdanění dividend je situace dvojí. U ETF a akcií z USA lze díky vyplněnému formuláři W-8BEN dosáhnout snížené srážky 15 % místo 30 %. Naopak u dividend z českých akcií drží XTB jako zahraniční broker srážku 35 % (nesnížených 15 %), což je citelná nevýhoda pro dividendové investory do českých titulů. Pro typického investora do širokých akumulačních ETF (např. celosvětové indexy) je ale zdanění dividend uvnitř fondu řešeno na úrovni fondu a tento problém se ho prakticky netýká."
     ],
     "verdict": [
-      "XTB patří mezi nejsilnější volby pro běžného českého ETF investora. Nabízí nákup ETF bez provize do 100 000 EUR měsíčně, licenci ČNB, plnou češtinu a telefonickou podporu 24/7 — kombinaci, kterou většina zahraničních brokerů nemá. Platforma xStation 5 je moderní a přehledná, frakční podíly a investiční plány usnadňují pravidelné spoření i s malým kapitálem.",
+      "XTB patří mezi nejsilnější volby pro běžného českého ETF investora. Nabízí nákup ETF bez provize do 100 000 EUR měsíčně, dohled ČNB nad českou pobočkou, plnou češtinu a českou telefonickou podporu — kombinaci, kterou většina zahraničních brokerů nemá. Platforma xStation 5 je moderní a přehledná, frakční podíly a investiční plány usnadňují pravidelné spoření i s malým kapitálem.",
       "Slabší stránkou jsou konverzní náklady 0,5 % pro investory obchodující v cizí měně, chybějící opce a futures a zejména 35% srážková daň z dividend českých akcií. Ochrana prostředků přes polský garanční fond KDPW dosahuje jen zhruba 22 000 EUR, což je méně než 100 000 EUR u bankovních brokerů typu Fio nebo DEGIRO. Pro dlouhodobého investora do širokých ETF jsou to však vesměs okrajové výhrady a XTB lze doporučit."
     ],
     "pros": [
       "Nákup akcií a ETF bez provize do objemu 100 000 EUR měsíčně (nad limit 0,2 %)",
       "Licence České národní banky a plná česká lokalizace platformy i dokumentů",
-      "Česká zákaznická podpora dostupná telefonicky 24/7",
+      "Česká zákaznická podpora telefonicky, chatem i e-mailem (Po–Pá 8–18)",
       "Frakční ETF a investiční plány pro automatické pravidelné investování (DCA)",
       "Žádný minimální vklad a bez poplatku za neaktivitu po dobu 12 měsíců",
       "Reálné vlastnictví akcií a ETF (ne CFD) včetně nároku na dividendy"
@@ -119,7 +119,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Nabízí XTB češtinu a českou podporu?",
-        "a": "Ano. Platforma xStation 5, mobilní aplikace i dokumenty jsou plně v češtině a zákaznická podpora je dostupná telefonicky, přes chat i e-mail v češtině, telefonicky dokonce 24/7. Patří to mezi hlavní výhody XTB oproti brokerům jako Trading 212 nebo Interactive Brokers, kteří češtinu nemají."
+        "a": "Ano. Platforma xStation 5, mobilní aplikace i dokumenty jsou plně v češtině a zákaznická podpora je dostupná telefonicky, přes chat i e-mail v češtině, v pracovní dny 8–18 h. Patří to mezi hlavní výhody XTB oproti brokerům jako Trading 212 nebo Interactive Brokers, kteří češtinu nemají."
       },
       {
         "q": "Jaký je minimální vklad u XTB?",
@@ -145,7 +145,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     "forWhom": "Fio e-Broker se hodí pro konzervativního českého investora, který chce mít brokera pod dohledem ČNB, komunikovat výhradně česky a mít vše propojené s domácím bankovním účtem. Sedne i tomu, kdo vedle ETF drží české akcie a dluhopisy na pražské burze a oceňuje férové 15% zdanění českých dividend a jednoduché daňové přiznání. Nevhodný je naopak pro nákladově citlivého ETF investora, který pravidelně posílá menší částky (pevný poplatek 3,95 EUR za pokyn na XETRA malé investice zdecimuje), pro fanoušky frakčních podílů (Fio je neumí) a pro aktivní tradery, kterým bude vadit starší platforma a chudší analytické nástroje.",
     "feesText": [
       "Reálný náklad na nákup ETF je u Fia jeho slabina, i když ceník účinný od 1. 7. 2026 přešel u evropských trhů z procenta na pevné částky. Evropské ETF (typicky irské UCITS fondy, které Češi kupují nejčastěji) na burze XETRA stojí 3,95 EUR za pokyn do objemu 1 400 EUR, 4,95 EUR do 3 000 EUR a nad tuto hranici 0,15 % s minimem 6,95 EUR. Při nákupu za 5 000 Kč tak zaplatíte necelá 2 % vstupního nákladu, při nákupu za 35 000 Kč už jen kolem 0,3 %. Za české ETF na BCPP je to 0,29-0,35 % s minimem 40 Kč. Pro srovnání, u XTB nebo Trading 212 kupujete ETF bez poplatku za nákup. Fio proto dává smysl hlavně při větších, méně častých nákupech, ne při pravidelném měsíčním spoření drobných částek.",
-      "Měnovou konverzi CZK/EUR nebo CZK/USD provádí Fio zdarma, resp. kurzem banky (deviza střed), což je poctivější než skryté 0,5% přirážky u některých konkurentů. Vedení účtu je bez měsíčního poplatku. Klíčová daňová výhoda: dividendy z českých akcií a fondů Fio zdaňuje standardní 15% sazbou. U zahraničních (zejména amerických) ETF pozor na to, že bez platného potvrzení o daňovém domicilu může u dividend hrozit srážka 30-35 %; irské akumulační ETF tuto komplikaci elegantně obcházejí, protože dividendy nevyplácejí. KID dokumentaci a daňové podklady dostanete v češtině, což daňové přiznání citelně zjednodušuje."
+      "Měnovou konverzi CZK/EUR nebo CZK/USD provádí Fio bez samostatného poplatku, náklad je ale v kurzu banky (rozdíl nákup/prodej) – u menších částek může být vyšší než 0,5% přirážka některých konkurentů. Vedení účtu je bez měsíčního poplatku. Klíčová daňová výhoda: dividendy z českých akcií a fondů Fio zdaňuje standardní 15% sazbou. U zahraničních (zejména amerických) ETF pozor na to, že bez platného potvrzení o daňovém domicilu může u dividend hrozit srážka 30-35 %; irské akumulační ETF tuto komplikaci elegantně obcházejí, protože dividendy nevyplácejí. KID dokumentaci a daňové podklady dostanete v češtině, což daňové přiznání citelně zjednodušuje."
     ],
     "verdict": [
       "Fio e-Broker je nejsilnější tam, kde zahraniční brokeři pokulhávají: domácí regulace ČNB, bankovní pojištění hotovosti do 100 000 EUR, kompletní čeština, bankovní zázemí a bezstarostné 15% zdanění českých dividend. Pro investora, který chce jistotu a jednoduchost a nevadí mu za ně zaplatit, je to rozumná a důvěryhodná volba.",
@@ -176,7 +176,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Je platforma a podpora v češtině?",
-        "a": "Ano. Fio e-Broker je ryze český broker, celá platforma, zákaznická podpora i KID dokumentace jsou v češtině. Podpora je dostupná v pracovní dny zhruba od 8 do 18 hodin."
+        "a": "Ano. Fio e-Broker je ryze český broker, celá platforma, zákaznická podpora i KID dokumentace jsou v češtině. Infolinka funguje v pracovní dny 9–17 h, k dispozici jsou i pobočky."
       },
       {
         "q": "Jaký je minimální vklad a platí se poplatek za vedení účtu?",
