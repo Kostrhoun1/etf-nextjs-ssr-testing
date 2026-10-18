@@ -6,11 +6,10 @@ import { cache as reactCache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
-import { canonicalIndexLabel, buildIndexOptions, type IndexOptionGroup } from '@/utils/indexNormalization';
+import { sestavIndexy, type IndexOptionGroup } from '@/utils/indexNormalization';
+import { TRHY } from '@/data/trhyDvojcata';
 import { distKind, type DistKind } from '@/utils/distribution';
 import { detectHedging } from '@/utils/hedgingDetection';
-import { calculateETFRating } from '@/utils/etfRating';
-import type { ETFListItem } from '@/types/etf';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
@@ -884,8 +883,9 @@ export interface ScreenerRow {
   // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
   _region: string | null;
   _hedge: string;   // hedgingType
-  _index: string;   // kanonický label indexu
-  _rating: number | null;
+  _index: string;   // label sledovaného indexu ('' = nevíme – viz sestavIndexy)
+  /** Trh z ručně ověřeného seznamu (src/data/trhyDvojcata.ts – „Celý svět“, „S&P 500“…), jinak null. */
+  _trh: string | null;
   _repl: string;    // 'Fyzická' | 'Syntetická' | '—'
   _dist: DistKind;  // typ výplaty – stejná logika jako detail fondu (src/utils/distribution.ts)
   _tickers: string[]; // všechny tickery lowercase (pro relevanci hledání)
@@ -903,11 +903,15 @@ export interface ScreenerOptions {
   domiciles: string[];
   providers: string[];
   regions: string[];
+  /** Počet fondů (bez pákových) v regionu – stejné pořadí jako `regions`. */
+  regionCounts: number[];
   indexGroups: IndexOptionGroup[];
+  /** Široké trhy z ručně ověřeného seznamu (stejné jako na homepage). */
+  trhy: { id: string; label: string; popis: string; count: number }[];
   currencies: string[];
   replications: string[];
   categories: string[];
-  catCounts: [string, number][]; // serializovatelná náhrada Map
+  catCounts: [string, number][]; // serializovatelná náhrada Map (jen informativní – záložky počítá klient)
 }
 
 /** Popisek replikace – shodně s klientem (ScreenerUI). */
@@ -941,7 +945,14 @@ function inceptionYear(v: string | null): number | null {
   return y >= 1970 && y <= new Date().getFullYear() + 1 ? y : null;
 }
 
-const CATEGORY_ORDER = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto'];
+const CATEGORY_ORDER = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto', 'Peněžní trh'];
+
+/** Kategorie pro srovnávač. Fondy peněžního trhu (overnight/€STR, investment_focus „Money Market“)
+ *  má zdroj pod „Akcie“ (45) a „Dluhopisy“ (9) – v záložce Akcie nemají co dělat (18. 10. 2026).
+ *  Kontrola: scripts/check-fund-data.mjs (VAROVÁNÍ „peněžní trh v akciích“). */
+function kategorieSrovnavace(e: { category: string | null; investment_focus: string | null }): string | null {
+  return /^money market\b/i.test(e.investment_focus ?? '') ? 'Peněžní trh' : e.category;
+}
 
 /**
  * Načte celý screener JAKO kompaktní předpočítané řádky + volby filtrů + počet.
@@ -960,7 +971,12 @@ export const getScreenerRows = reactCache(async (): Promise<{
   const raw = (await getScreenerETFData()).filter((e) =>
     e.name && e.name.trim() !== '' && (!e.scraping_date || new Date(e.scraping_date).getTime() >= zamrzleOd));
 
-  const rows: ScreenerRow[] = raw.map((e) => {
+  // Index každého fondu (čištění nabídky + odvození z názvu, viz src/utils/indexNormalization.ts).
+  const { indexy, skupiny: indexGroups } = sestavIndexy(raw);
+  const trhPodleIsin = new Map<string, string>();
+  for (const t of TRHY) for (const i of t.isins) trhPodleIsin.set(i, t.id);
+
+  const rows: ScreenerRow[] = raw.map((e, idx) => {
     const tickers = [
       e.primary_ticker,
       e.exchange_1_ticker, e.exchange_2_ticker, e.exchange_3_ticker, e.exchange_4_ticker, e.exchange_5_ticker,
@@ -979,7 +995,7 @@ export const getScreenerRows = reactCache(async (): Promise<{
       fund_size_numeric: r1(e.fund_size_numeric),
       fund_currency: e.fund_currency,
       is_leveraged: e.is_leveraged,
-      category: e.category,
+      category: kategorieSrovnavace(e),
       // Zaokrouhleno na přesnost, jakou srovnávač zobrazuje (dřív 4 desetinná místa → 4,3 MB
       // nezkomprimovaného JSONu, LCP /srovnani na mobilu 6,8 s; audit 17. 10. 2026).
       current_dividend_yield_numeric: r2(e.current_dividend_yield_numeric),
@@ -993,22 +1009,26 @@ export const getScreenerRows = reactCache(async (): Promise<{
       _year: inceptionYear(e.inception_date),
       _region: classifyRegion(e),
       _hedge: detectHedging(e.name, e.currency_risk ?? undefined).hedgingType,
-      _index: canonicalIndexLabel(e.index_name),
-      _rating: e.rating ?? calculateETFRating(e as unknown as ETFListItem)?.rating ?? null,
+      _index: indexy[idx],
+      _trh: trhPodleIsin.get(e.isin) ?? null,
       _repl: replLabelSrv(e.replication),
       _dist: distKind(e.distribution_policy, e.distribution_frequency),
       _tickers: uniqTickers,
     };
   });
 
-  // Volby filtrů – z RAW dat (utils čtou původní pole index_name/region).
-  const present = [...new Set(raw.map((e) => e.category).filter((c): c is string => !!c && c !== 'Ostatní'))];
+  // Počty v nabídkách = fondy bez pákových (ty jsou ve výchozím stavu skryté) – ať číslo u volby
+  // sedí s tím, co uživatel po kliknutí uvidí (revize 18. 10. 2026: „Akcie 3 060“ → po kliku 2 953).
+  const bezPaky = rows.filter((r) => !r.is_leveraged);
+
+  // Volby filtrů.
+  const present = [...new Set(rows.map((e) => e.category).filter((c): c is string => !!c && c !== 'Ostatní'))];
   const ordered = CATEGORY_ORDER.filter((c) => present.includes(c));
   const extra = present.filter((c) => !CATEGORY_ORDER.includes(c)).sort((a, b) => a.localeCompare(b));
   const categories = [...ordered, ...extra];
 
   const catCountsMap = new Map<string, number>();
-  for (const e of raw) if (e.category) catCountsMap.set(e.category, (catCountsMap.get(e.category) ?? 0) + 1);
+  for (const e of bezPaky) if (e.category) catCountsMap.set(e.category, (catCountsMap.get(e.category) ?? 0) + 1);
 
   const replSet = new Set<string>();
   for (const e of raw) { const l = replLabelSrv(e.replication); if (l !== '—') replSet.add(l); }
@@ -1018,6 +1038,10 @@ export const getScreenerRows = reactCache(async (): Promise<{
   const provSet = new Set<string>();
   for (const e of raw) { const v = (e.fund_provider ?? '').trim(); if (v) provSet.add(v); }
 
+  const regions = buildRegionOptions(raw.filter((e) => !e.is_leveraged));
+  const regionPocty = new Map<string, number>();
+  for (const r of bezPaky) if (r._region) regionPocty.set(r._region, (regionPocty.get(r._region) ?? 0) + 1);
+
   const options: ScreenerOptions = {
     // Irsko a Lucembursko drží drtivou většinu fondů → nahoru, zbytek abecedně.
     domiciles: [...domSet].sort((a, b) => {
@@ -1025,8 +1049,11 @@ export const getScreenerRows = reactCache(async (): Promise<{
       return rank(a) - rank(b) || a.localeCompare(b, 'cs');
     }),
     providers: [...provSet].sort((a, b) => a.localeCompare(b, 'cs')),
-    regions: buildRegionOptions(raw),
-    indexGroups: buildIndexOptions(raw).groups,
+    regions,
+    regionCounts: regions.map((r) => regionPocty.get(r) ?? 0),
+    indexGroups,
+    trhy: TRHY.map((t) => ({ id: t.id, label: t.label, popis: t.index, count: bezPaky.filter((r) => r._trh === t.id).length }))
+      .filter((t) => t.count > 0),
     currencies: [...new Set(raw.map((e) => e.fund_currency).filter(Boolean))].sort() as string[],
     replications: [...replSet].sort(),
     categories,

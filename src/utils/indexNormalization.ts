@@ -96,6 +96,222 @@ export const POPULAR_INDEXES: string[] = [
 export interface IndexOptionGroup {
   heading: string;
   options: string[];
+  /** Počet fondů (bez pákových) u každé volby – stejné pořadí jako `options`. */
+  counts?: number[];
+  /** Volitelný popisek volby (např. které indexy skupina obsahuje). */
+  notes?: (string | null)[];
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ČIŠTĚNÍ NABÍDKY INDEXŮ PRO SROVNÁVAČ (revize 18. 10. 2026)
+
+   Problém: nabídka měla 537 položek se smetím („stoxx 50 Options“, „iShares“, „BEL“,
+   „U3O8.M“, „WisdomTree Te“, „Government Bond“) a duplicitami („MSCI World ex USA“ vs
+   „ex-USA“, „MSCI EUROPE“ vs „MSCI Europe“). Navíc 3 083 z 5 124 fondů má `index_name`
+   PRÁZDNÝ – např. SPYI (MSCI ACWI IMI) tak ve filtru vůbec nebyl.
+
+   Řešení (pravidlo č. 1 – raději fond bez indexu než se špatným):
+   1) klíč indexu = normalizovaný název bez ®/™, „ex-“ = „ex “, bez koncového „Swap/SF/Index“,
+      bez rozdílu velikosti písmen; zobrazí se nejčastější varianta zápisu,
+   2) do nabídky jen indexy známých poskytovatelů (MSCI, FTSE, S&P…) s aspoň 2 fondy,
+   3) fond bez `index_name` dostane index z NÁZVU jen tehdy, když název KONČÍ přesně
+      známým indexem („Vanguard FTSE All-World“ → FTSE All-World). „iShares MSCI World ESG
+      Screened“ tak NEdostane „MSCI World“ (končí „ESG Screened“, ne „MSCI World“).
+   ───────────────────────────────────────────────────────────────────────── */
+
+/** Indexy, které má smysl poznat z názvu fondu, i když v datech zatím nemají ≥ 2 fondy s `index_name`. */
+const ZNAME_INDEXY = [
+  'MSCI ACWI IMI', 'MSCI ACWI', 'FTSE All-World', 'MSCI World', 'S&P 500', 'Nasdaq 100',
+  'MSCI Emerging Markets IMI', 'MSCI Emerging Markets', 'FTSE Emerging Markets', 'FTSE Developed World',
+  'MSCI Europe', 'STOXX Europe 600', 'EURO STOXX 50', 'MSCI USA', 'MSCI EMU', 'MSCI Japan',
+  'MSCI World Small Cap', 'MSCI USA Small Cap', 'MSCI Europe Small Cap', 'MSCI World Momentum',
+  'MSCI World Quality', 'MSCI World Value', 'MSCI World Minimum Volatility', 'MSCI World ex USA',
+  'FTSE Developed Europe', 'FTSE Japan', 'FTSE North America', 'FTSE 100', 'FTSE 250', 'DAX',
+  'MSCI China', 'MSCI India', 'MSCI Korea', 'MSCI Taiwan', 'MSCI Brazil', 'MSCI Pacific ex Japan',
+  'S&P 500 Equal Weight', 'Russell 2000', 'Dow Jones Industrial Average',
+];
+
+/** Aliasy (klíč lowercase → kanonický zápis). Doplněk k CANONICAL_LABELS. */
+const ALIASY: Record<string, string> = {
+  ...CANONICAL_LABELS,
+  'msci all country world imi': 'MSCI ACWI IMI',
+  'msci ac world imi': 'MSCI ACWI IMI',
+  'msci all country world investable market': 'MSCI ACWI IMI',
+  'msci acwi investable market': 'MSCI ACWI IMI',
+  'msci acwi imi': 'MSCI ACWI IMI',
+  'msci emerging': 'MSCI Emerging Markets',
+  'msci em imi': 'MSCI Emerging Markets IMI',
+  'msci emerging markets imi': 'MSCI Emerging Markets IMI',
+  'ftse all world': 'FTSE All-World',
+  'ftse all-world': 'FTSE All-World',
+  'nasdaq-100': 'Nasdaq 100',
+  'nasdaq100': 'Nasdaq 100',
+  'euro stoxx 50': 'EURO STOXX 50',
+  'stoxx europe 50': 'STOXX Europe 50',
+  'msci europe': 'MSCI Europe',
+  'msci world': 'MSCI World',
+  'msci usa': 'MSCI USA',
+  'ftse developed': 'FTSE Developed World',
+  'ftse developed world': 'FTSE Developed World',
+};
+
+/** Index musí začínat jménem poskytovatele indexů – jinak je to smetí („iShares“, „Government Bond“, „U3O8.M“). */
+const POSKYTOVATEL_INDEXU = /^(msci|s&p|ftse|stoxx|euro stoxx|euro istoxx|istoxx|nasdaq|bloomberg|iboxx|solactive|markit|ice|j\.?p\.? ?morgan|dow jones|russell|dax|mdax|tecdax|sdax|cac|aex|ibex|smi|spi|topix|nikkei|hang seng|csi|morningstar|indxx|marketvector|mvis)\b/i;
+
+/** Čistý zápis indexu k zobrazení: bez metadat třídy, ®/™, „ex-“ = „ex “, bez koncového „Swap/SF/Index/NR/TR/II“. */
+function cistyZapis(raw?: string | null): string {
+  let s = normalizeIndexName(raw).replace(/[®™]/g, '').replace(/\bex-/gi, 'ex ');
+  for (let i = 0; i < 3; i++) s = s.replace(/\s+(swap|sf|index|nr|tr|ii|net total return|net return|total return)$/i, '');
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+/** Klíč indexu (lowercase, s aliasy) – jeden index = jeden klíč bez ohledu na zápis. */
+export function klicIndexu(raw?: string | null): string {
+  const k = cistyZapis(raw).toLowerCase();
+  return (ALIASY[k] ?? k).toLowerCase();
+}
+
+/** Jednoslovné indexy, které jsou skutečné (jinak je jedno slovo useknutý název – „Stoxx“, „STOXX“). */
+const JEDNOSLOVNE = new Set(['dax', 'mdax', 'sdax', 'tecdax', 'smi', 'topix', 'aex']);
+
+/** Je klíč indexu dost čistý pro nabídku? (poskytovatel na začátku, nic useknutého). */
+export function jeCistyIndex(klic: string): boolean {
+  if (!klic || !POSKYTOVATEL_INDEXU.test(klic)) return false;
+  const slova = klic.split(' ');
+  if (slova.length === 1) return JEDNOSLOVNE.has(klic);
+  // „Bloomberg U“ (z „U.S.“) = scraper název useknul na „.“ (další případy chytá jeUseknutyIndex)
+  return slova[slova.length - 1].length > 1;
+}
+
+/**
+ * Je `index_name` useknutý? Scraper ho ořezává na „.“ a „+“ („FTSE All-World Ex-U“ z „Ex-U.S.“,
+ * „Bloomberg 10“ ze tří různých „10+ Year …“ indexů). Pozná se tak, že v názvu fondu po něm
+ * pokračuje písmeno, číslice, tečka nebo plus.
+ */
+export function jeUseknutyIndex(indexName: string | null | undefined, nazev: string | null | undefined): boolean {
+  const s = normalizeIndexName(indexName).toLowerCase();
+  const n = (nazev ?? '').toLowerCase();
+  if (!s || !n) return false;
+  const i = n.indexOf(s);
+  return i >= 0 && /[a-z0-9.+]/.test(n.charAt(i + s.length));
+}
+
+/** Základ názvu fondu pro hledání indexu: před „UCITS/ETF“, bez závorek, měny, „Swap“, „1C“, „II“… */
+function zakladNazvu(nazev: string): string {
+  let s = nazev.split(/\b(UCITS|ETF|ETC|ETN|ETP)\b/i)[0].replace(/\(.*?\)/g, ' ');
+  for (let i = 0; i < 5; i++) {
+    s = s.trim().replace(/\s+(swap|sf|pea|daily|1c|1d|2c|c|d|ii|iii|acc|dist|usd|eur|gbp|chf|jpy|hedged|unhedged|-)$/i, '');
+  }
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+/** Index z názvu fondu: jen když název KONČÍ přesně známým indexem (nejdelší shoda vyhrává). */
+export function indexZNazvu(nazev: string | null | undefined, zname: Set<string>): string | null {
+  return konceNazvu(nazev).find((k) => zname.has(k)) ?? null;
+}
+
+/** Klíče všech „konců“ základu názvu (posledních 1–8 slov) – index musí být na konci názvu. */
+function konceNazvu(nazev: string | null | undefined): string[] {
+  const slova = zakladNazvu(nazev ?? '').split(' ').filter(Boolean);
+  const out: string[] = [];
+  for (let k = Math.min(8, slova.length); k >= 1; k--) out.push(klicIndexu(slova.slice(-k).join(' ')));
+  return out;
+}
+
+/**
+ * Klíč indexu fondu z `index_name` – jen když je čistý, neuseknutý a SEDÍ s názvem fondu, jinak ''.
+ * `index_name` je ve zdroji často jen začátek skutečného indexu: „S&P 500“ mají i fondy na VIX futures,
+ * Buffer, Top 20 nebo Scored & Screened, „MSCI Europe“ i Energy Sector a Small Cap (18. 10. 2026).
+ * Proto: když název fond obsahuje text indexu, musí jím název KONČIT („iShares Core S&P 500“ ano,
+ * „Amundi S&P 500 VIX Futures“ ne). Když ho neobsahuje („iShares MSCI ACWI“ × MSCI All Country World),
+ * nejde to ověřit a bere se údaj ze zdroje.
+ */
+/** Americké indexy – fond na ně musí mít zaměření „United States“ („KraneShares China S&P 500“ je S&P China 500). */
+const AMERICKE = new Set(['s&p 500', 'nasdaq 100', 'msci usa', 'russell 2000', 'dow jones industrial average']);
+
+type FondIndexu = { index_name?: string | null; name?: string | null; investment_focus?: string | null };
+
+function klicZDat(f: FondIndexu): string {
+  const k = klicIndexu(f.index_name);
+  if (!k || !jeCistyIndex(k) || jeUseknutyIndex(f.index_name, f.name)) return '';
+  if (AMERICKE.has(k) && f.investment_focus && !/united states/i.test(f.investment_focus)) return '';
+  const text = cistyZapis(f.index_name).toLowerCase();
+  const nazev = (f.name ?? '').replace(/[®™]/g, '').replace(/\bex-/gi, 'ex ').toLowerCase();
+  if (!nazev.includes(text)) return k;
+  return konceNazvu(f.name).includes(k) ? k : '';
+}
+
+const ZNAME_KLICE = new Set(ZNAME_INDEXY.map((l) => klicIndexu(l)));
+const ZNAME_LABEL = new Map(ZNAME_INDEXY.map((l) => [klicIndexu(l), l]));
+
+/**
+ * Sledovaný index jednoho fondu k zobrazení (porovnání fondů): čistý `index_name`, jinak index
+ * poznaný z názvu (jen ze seznamu známých indexů), jinak null → „—“.
+ */
+export function indexFonduLabel(f: FondIndexu): string | null {
+  const k = klicZDat(f);
+  if (k) return ZNAME_LABEL.get(k) ?? ALIASY[k] ?? cistyZapis(f.index_name);
+  const zn = indexZNazvu(f.name, ZNAME_KLICE);
+  return zn && !(AMERICKE.has(zn) && f.investment_focus && !/united states/i.test(f.investment_focus)) ? ZNAME_LABEL.get(zn) ?? null : null;
+}
+
+/**
+ * Indexy pro srovnávač: index každého fondu (label nebo '') + nabídka s počty.
+ * Počty v nabídce jsou bez pákových produktů (ty jsou ve výchozím stavu skryté) – sedí s tím, co uživatel uvidí.
+ */
+export function sestavIndexy(fondy: (FondIndexu & { is_leveraged?: boolean | null })[]): {
+  indexy: string[];
+  skupiny: IndexOptionGroup[];
+} {
+  // 1) klíč z index_name (jen čisté), varianty zápisu pro výběr zobrazovaného labelu
+  const klice = fondy.map(klicZDat);
+  const varianty = new Map<string, Map<string, number>>();
+  klice.forEach((k, i) => {
+    if (!k) return;
+    const label = cistyZapis(fondy[i].index_name);
+    const m = varianty.get(k) ?? new Map<string, number>();
+    m.set(label, (m.get(label) ?? 0) + 1);
+    varianty.set(k, m);
+  });
+  // 2) známé indexy pro odvození z názvu = curated + z dat s ≥ 2 fondy
+  const pocetKlice = new Map<string, number>();
+  for (const k of klice) if (k) pocetKlice.set(k, (pocetKlice.get(k) ?? 0) + 1);
+  const zname = new Set<string>([...ZNAME_KLICE, ...[...pocetKlice].filter(([, n]) => n >= 2).map(([k]) => k)]);
+  const finalni = klice.map((k, i) => {
+    if (k) return k;
+    const zn = indexZNazvu(fondy[i].name, zname);
+    return zn && !(AMERICKE.has(zn) && fondy[i].investment_focus && !/united states/i.test(fondy[i].investment_focus!)) ? zn : '';
+  });
+
+  // 3) zobrazovaný label pro klíč: alias/curated, jinak nejčastější varianta zápisu
+  const labelKlice = (k: string): string => {
+    if (ZNAME_LABEL.has(k)) return ZNAME_LABEL.get(k)!;
+    if (ALIASY[k]) return ALIASY[k];
+    const m = varianty.get(k);
+    if (!m) return k;
+    return [...m].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0][0];
+  };
+  const indexy = finalni.map((k) => (k ? labelKlice(k) : ''));
+
+  // 4) nabídka: indexy s ≥ 2 fondy bez páky
+  const pocty = new Map<string, number>();
+  indexy.forEach((l, i) => { if (l && !fondy[i].is_leveraged) pocty.set(l, (pocty.get(l) ?? 0) + 1); });
+  const vNabidce = [...pocty].filter(([, n]) => n >= 2);
+  const popularni = POPULAR_INDEXES.filter((p) => pocty.has(p));
+  const popSet = new Set(popularni);
+  const poPoskytovateli = new Map<string, [string, number][]>();
+  for (const [l, n] of vNabidce) {
+    if (popSet.has(l)) continue;
+    const p = getIndexProvider(l);
+    poPoskytovateli.set(p, [...(poPoskytovateli.get(p) ?? []), [l, n]]);
+  }
+  const skupiny: IndexOptionGroup[] = [];
+  if (popularni.length) skupiny.push({ heading: 'Populární indexy', options: popularni, counts: popularni.map((p) => pocty.get(p)!) });
+  [...poPoskytovateli]
+    .map(([heading, items]) => ({ heading, items: items.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])), celkem: items.reduce((s, [, n]) => s + n, 0) }))
+    .sort((a, b) => (a.heading === 'Ostatní indexy' ? 1 : b.heading === 'Ostatní indexy' ? -1 : b.celkem - a.celkem))
+    .forEach(({ heading, items }) => skupiny.push({ heading, options: items.map(([l]) => l), counts: items.map(([, n]) => n) }));
+  return { indexy, skupiny };
 }
 
 /**

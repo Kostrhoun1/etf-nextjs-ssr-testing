@@ -99,6 +99,32 @@ export function anglickeTermy(dotaz: string): string[] {
   return [...out];
 }
 
+/* Úzké varianty (sektory, ESG, opční „income“, páka) – při hledání patří za široké fondy:
+   „sp 500“ nemá nahoře vrátit IT sektor ani zajištěné „Scored & Screened“. */
+const UZKA = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|premium income|covered call|leveraged|\bshort\b|daily|equal weight|\(ch\))/i;
+
+/**
+ * Relevance fondu pro hledaný výraz – JEDNA logika pro našeptávač (/api/etf/search) i srovnávač
+ * (revize 18. 10. 2026: srovnávač na „sp500“ ukázal nahoře zajištěné UBS fondy místo SXR8/CSPX).
+ *   4 = přesná shoda ISIN/tickeru, 3 = začátek tickeru, 2 = název začíná výrazem, 1 = název ho
+ *   obsahuje, 1,0x = shoda přes český výraz / variantu zápisu (`termy` z anglickeTermy, dřívější =
+ *   přesnější); úzké varianty −0,5. 0 = neodpovídá.
+ * `term` = dotaz malými písmeny (oříznutý), `tickers` malými písmeny.
+ */
+export function skoreHledani(term: string, termy: string[], f: { isin: string; name: string; tickers: string[] }): number {
+  const isin = f.isin.toLowerCase();
+  const name = f.name.toLowerCase();
+  if (isin === term || f.tickers.includes(term)) return 4;
+  if (f.tickers.some((t) => t.startsWith(term))) return 3;
+  const dividendovy = /divid/.test(term) || termy.some((t) => /dividend/i.test(t));
+  const uzka = UZKA.test(name) || (!dividendovy && /(high dividend|dividend yield|dividend)/i.test(name)) ? 0.5 : 0;
+  if (name.startsWith(term)) return 2 - uzka;
+  if (name.includes(term)) return 1 - uzka;
+  const i = termy.findIndex((t) => name.includes(t.toLowerCase()));
+  if (i >= 0) return 1 + (termy.length - i) / 100 - uzka;
+  return 0;
+}
+
 /** Dotaz začátečníka („jaké etf koupit“, „kam investovat“, „spořit 2000 měsíčně“) → průvodce výběrem. */
 export function jeDotazZacatecnika(dotaz: string): boolean {
   const q = bezDiakritiky(dotaz);
