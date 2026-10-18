@@ -188,8 +188,10 @@ const main = async () => {
       return statSync(p).isDirectory() ? souboryKodu(p) : /\.(tsx?|mjs)$/.test(n) ? [p] : [];
     });
     const FALLBACK = /return_[\w${}`]*_(czk|usd)\b[^;\n]*\?\?[^;\n]*return_(?![\w${}`]*_(czk|usd)\b)[\w${}`]+/;
+    // Druhý tvar (pickReturn do 18. 10. 2026): `raw == null ? obj[\`return_${period}\`] : raw` – výnos bez měnové přípony v náhradní větvi.
+    const FALLBACK2 = /null\s*\?[^;\n]*`return_\$\{[^}]+\}`\]/;
     const nalezy = souboryKodu('src').flatMap((p) => readFileSync(p, 'utf8').split('\n')
-      .map((l, i) => (FALLBACK.test(l) ? `${p}:${i + 1}` : null)).filter(Boolean));
+      .map((l, i) => (FALLBACK.test(l) || FALLBACK2.test(l) ? `${p}:${i + 1}` : null)).filter(Boolean));
     if (nalezy.length) poplach.push({ co: `Kód ukazuje výnos v EUR místo Kč/USD, když přepočet chybí (${nalezy.length} míst)`, ukazka: nalezy.slice(0, 6) });
   } catch (e) {
     varovani.push({ co: `Kontrolu kódu na fallback EUR→Kč se nepodařilo provést: ${e.message}`, ukazka: [] });
