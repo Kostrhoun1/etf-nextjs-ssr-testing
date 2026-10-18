@@ -17,6 +17,11 @@ interface Result {
 }
 
 export default function HeroSearch() {
+  // Na mobilu kratší nápověda (dlouhá se ořízla na „(na…“).
+  const [placeholder, setPlaceholder] = useState('Název, ISIN nebo ticker');
+  useEffect(() => {
+    if (window.matchMedia('(min-width: 640px)').matches) setPlaceholder('Název fondu, ISIN nebo ticker (např. VWCE)');
+  }, []);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,22 +95,23 @@ export default function HeroSearch() {
   };
 
   return (
-    <div ref={boxRef} className="relative mt-6 md:mt-1 md:w-80 shrink-0">
-      <label className="hidden sm:block text-xs font-medium text-slate-400 mb-1.5">Hledáte konkrétní fond?</label>
-      <div className="flex items-center gap-2 rounded-lg bg-white px-3 h-11">
-        <Search className="w-4 h-4 text-slate-400 shrink-0" />
+    // Hlavní akce homepage (redesign 18. 10. 2026: jsme srovnávač – hledání fondu je první věc,
+    // kterou návštěvník udělá; dřív úzký sloupec vpravo). Viditelné zaměření = WCAG 2.4.7.
+    <div ref={boxRef} className="relative w-full max-w-2xl md:text-left">
+      <div className="flex items-center gap-2.5 rounded-xl bg-white px-4 h-12 md:h-14 ring-2 ring-transparent focus-within:ring-teal-400 transition-shadow">
+        <Search className="w-5 h-5 text-slate-400 shrink-0" />
         <input
           type="search"
           role="combobox"
           aria-expanded={open}
           aria-autocomplete="list"
           aria-label="Hledat ETF podle názvu, ISIN nebo tickeru"
-          placeholder="Název, ISIN nebo ticker…"
+          placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => { if (results.length) setOpen(true); }}
-          className="flex-1 min-w-0 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 outline-none"
+          className="flex-1 min-w-0 bg-transparent text-base text-slate-900 placeholder:text-slate-400 outline-none"
         />
         {loading && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin shrink-0" />}
       </div>
@@ -149,11 +155,12 @@ export default function HeroSearch() {
         </div>
       )}
 
-      <div className="mt-2.5 hidden sm:flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-slate-400">Hledané:</span>
-        <Link href="/nejlepsi-etf/nejlepsi-celosvetove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">MSCI World</Link>
-        <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">S&P 500</Link>
-        <Link href="/nejlepsi-etf/nejlepsi-dividendove-etf" className="rounded-full bg-white/10 px-2.5 py-1 hover:bg-white/20">Dividendové</Link>
+      <div className="mt-3 hidden sm:flex flex-wrap items-center md:justify-center gap-2 text-xs">
+        <span className="text-slate-400">Žebříčky:</span>
+        <Link href="/nejlepsi-etf/nejlepsi-celosvetove-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">Celosvětové</Link>
+        <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">S&P 500</Link>
+        <Link href="/nejlepsi-etf/nejlepsi-dividendove-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">Dividendové</Link>
+        <Link href="/nejlepsi-etf/nejlevnejsi-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">Nejlevnější</Link>
       </div>
     </div>
   );

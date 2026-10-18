@@ -312,6 +312,29 @@ export async function getFlagshipComposition(isin: string): Promise<FlagshipComp
 }
 
 /**
+ * Jeden fond na téma: „nejvýkonnější“ jinak ovládne pět fondů na stejný index (18. 10. 2026:
+ * 5× MSCI Korea od různých emitentů) – pro srovnávač to je šum, ne informace. Téma = poslední
+ * významné slovo názvu před „UCITS“ (Korea, Taiwan, Semiconductor, Energy…); index_name je
+ * v datech nespolehlivý. Pořadí zůstává, bere se první (nejvýkonnější) fond tématu.
+ */
+const BEZ_VYZNAMU = new Set(['sector', 'sect', 'select', 'capped', 'index', 'etf', 'screened', 'swap', 'singlclass',
+  '1c', '1d', 'acc', 'dist', 'usd', 'eur', 'c', 'd', 'ii', 'shares']);
+export function temaFondu(name: string | null | undefined): string {
+  const pred = (name ?? '').split(/\bUCITS\b/i)[0].replace(/\(.*?\)/g, ' ').toLowerCase();
+  const slova = pred.split(/[^a-z0-9&-]+/).filter((w) => w && !BEZ_VYZNAMU.has(w));
+  return (slova[slova.length - 1] ?? pred).replace(/s$/, '');
+}
+export function jedenNaTema<T extends { name?: string | null }>(fondy: T[]): T[] {
+  const videno = new Set<string>();
+  return fondy.filter((f) => {
+    const t = temaFondu(f.name);
+    if (videno.has(t)) return false;
+    videno.add(t);
+    return true;
+  });
+}
+
+/**
  * Get featured ETFs for srovnani-etf page
  * Returns top ETFs by different criteria for initial render
  */
@@ -350,7 +373,7 @@ export async function getFeaturedETFs(): Promise<{
       // REÁLNÉ (korejský chip-supercyklus 2025–2026, ověřeno proti justETF) – NEfiltrovat.
       .not('is_leveraged', 'is', true)
       .order('return_1y_czk', { ascending: false })
-      .limit(20);
+      .limit(120); // víc kandidátů → po sloučení podle tématu (jedenNaTema) zbyde dost různých
 
     // Fetch top rated
     const byRatingPromise = supabaseAdmin
@@ -388,7 +411,7 @@ export async function getFeaturedETFs(): Promise<{
 
     return {
       bySize: (bySizeResult.data || []) as ETFBasicInfo[],
-      byPerformance: (byPerformanceResult.data || []) as ETFBasicInfo[],
+      byPerformance: jedenNaTema((byPerformanceResult.data || []) as ETFBasicInfo[]).slice(0, 20),
       byRating: (byRatingResult.data || []) as ETFBasicInfo[],
       lowCost: (lowCostResult.data || []) as ETFBasicInfo[],
     };

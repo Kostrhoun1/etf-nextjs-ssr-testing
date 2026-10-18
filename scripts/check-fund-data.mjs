@@ -217,21 +217,23 @@ const main = async () => {
     varovani.push({ co: `Kontrolu poplatků zdrojových fondů se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
-  // ── ČÍSLO NA HOMEPAGE (Korunový stroj času) ──
-  // „5 000 Kč měsíčně do akcií celého světa od roku 2010 by dnes bylo zhruba X mil. Kč“ se počítá
+  // ── ČÍSLO STROJE ČASU (/stroj-casu, výchozí scénář) ──
+  // Do 18. 10. 2026 bylo na homepage; majitel ho odtud vyřadil (jsme srovnávač, ne investiční web).
+  // Výchozí scénář /stroj-casu (celý svět, 5 000 Kč měsíčně od 2010) je vykreslený na serveru.
+  // „Dnes byste měli zhruba X mil. Kč“ se počítá
   // z měsíčních řad stroje času; tady ho nezávisle přepočítá PLNÁ simulace backtestu (jiná cesta kódu:
   // denní řada, skutečné vklady). Stroj se od backtestu liší o 0,1–0,4 % (vklad na začátku měsíce),
   // hodnota je zaokrouhlená na 0,1 mil. → tolerance 0,06 mil. + 1 %. Pravidlo č. 1, bod 4.
   try {
-    const html = await fetch(`${WEB_URL}/`).then((r) => (r.ok ? r.text() : ''));
-    const text = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;|\u00a0/g, ' ').replace(/\s+/g, ' ');
-    const m = text.match(/od roku 2010 by dnes bylo zhruba ([0-9]+(?:,[0-9])?) mil\. Kč/);
-    // Backtest končí ke dni „data k …“ z homepage (stránka je v ISR cache – jinak by denní pohyb trhu
+    const html = await fetch(`${WEB_URL}/stroj-casu`).then((r) => (r.ok ? r.text() : ''));
+    const text = html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|\u00a0/g, ' ').replace(/\s+/g, ' ');
+    const m = /Vloženo 1 010 000 Kč/.test(text) ? text.match(/Dnes byste měli zhruba ([0-9]+(?:,[0-9])?) mil\. Kč/) : null;
+    // Backtest končí ke dni „Data k …“ ze stránky (je v ISR cache – jinak by denní pohyb trhu
     // mezi renderem a kontrolou dělal falešný poplach).
-    const dk = text.match(/data k ([0-9]{1,2})\. ([0-9]{1,2})\. ([0-9]{4})/);
+    const dk = text.match(/[Dd]ata k ([0-9]{1,2})\. ([0-9]{1,2})\. ([0-9]{4})/);
     const konecDat = dk ? `${dk[3]}-${dk[2].padStart(2, '0')}-${dk[1].padStart(2, '0')}` : new Date().toISOString().slice(0, 10);
     if (!m) {
-      varovani.push({ co: 'Homepage neukazuje číslo ze stroje času (5 000 Kč měsíčně od 2010) – data starší 7 dní, nebo chyba', ukazka: [] });
+      varovani.push({ co: 'Stroj času neukazuje výchozí scénář (5 000 Kč měsíčně od 2010, vloženo 1 010 000 Kč) – změněný výchozí stav, nebo chyba', ukazka: [] });
     } else {
       const web = Number(m[1].replace(',', '.')) * 1e6;
       const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, {
@@ -243,13 +245,13 @@ const main = async () => {
         }),
       }).then((r) => r.json());
       const ocek = bt?.summary?.netAssetValue;
-      if (!ocek) varovani.push({ co: 'Číslo na homepage nešlo ověřit – backtest API neodpovědělo', ukazka: [] });
+      if (!ocek) varovani.push({ co: 'Číslo stroje času nešlo ověřit – backtest API neodpovědělo', ukazka: [] });
       else if (Math.abs(web - ocek) > 0.06e6 + 0.015 * ocek) {
-        poplach.push({ co: 'Číslo na homepage nesedí s plnou simulací backtestu', ukazka: [`web ${m[1]} mil. Kč vs. backtest ${(ocek / 1e6).toFixed(2)} mil. Kč`] });
+        poplach.push({ co: 'Číslo stroje času (/stroj-casu) nesedí s plnou simulací backtestu', ukazka: [`web ${m[1]} mil. Kč vs. backtest ${(ocek / 1e6).toFixed(2)} mil. Kč`] });
       }
     }
   } catch (e) {
-    varovani.push({ co: `Kontrolu čísla na homepage se nepodařilo provést: ${e.message}`, ukazka: [] });
+    varovani.push({ co: `Kontrolu čísla stroje času se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
   // ── CHYBY Z PROHLÍŽEČŮ za 24 h (tabulka client_errors, plní /api/client-error) ──

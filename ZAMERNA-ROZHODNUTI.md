@@ -164,3 +164,15 @@ Odkaz „Podrobně v backtestu“ používá složení platné pro zvolený rok 
 výjimku. Záměr: Next při ISR ponechá poslední dobrou verzi (jinak by den visela hláška „nepodařilo se
 načíst“). Při buildu bez dat build selže – to je správně (raději nenasadit). Homepage blok s číslem se
 naopak jen skryje, když jsou data starší 7 dní.
+
+## „Největší český průvodce ETF fondy“ zůstává (rozhodnutí majitele 18. 10. 2026)
+
+Ve strukturovaných datech (src/components/SEO/AuthorSchema.tsx – description a slogan) je tvrzení
+„Největší český průvodce ETF fondy“. Expertní posudek ho označil za nedoložitelné; majitel rozhodl,
+že **zůstává**. Neodstraňovat. Počet fondů v textu musí odpovídat realitě (dřív „4300+“, teď „více než 5 000“).
+
+## Homepage = srovnávač, ne investiční web (rozhodnutí majitele 18. 10. 2026)
+
+Na homepage nepatří simulace „kolik by z toho bylo za X let“ (dřív hero box „5 000 Kč měsíčně od 2010
+→ 2,9 mil. Kč“), výnosy modelových portfolií ani dlaždice „Jak si vedou trhy“. Simulace patří do nástrojů
+(/stroj-casu, /backtest). Kontrola čísla stroje času proto hlídá /stroj-casu, ne homepage.

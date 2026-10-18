@@ -327,8 +327,8 @@ export default async function KdeKoupitPreview() {
           </div>
         </section>
 
-        {/* METODIKA SKÓRE */}
-        <section className="pb-10">
+        {/* METODIKA SKÓRE (kotva #metodika – odkaz „Jak hodnotíme“ z homepage) */}
+        <section id="metodika" className="pb-10 scroll-mt-20">
           <SectionHead title="Jak počítáme skóre" desc={`Jednotné srovnání ${brokers.length} platforem na šesti osách. Transparentně, bez placeného pořadí.`} />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <p className="text-sm text-slate-600 leading-relaxed">
