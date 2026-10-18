@@ -4,13 +4,12 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
-  TrendingUp, ShieldCheck, Coins, Receipt, ArrowLeftRight,
-  PieChart, MessageCircle, Landmark, BookOpen, Calculator, BarChart3, Star,
+  TrendingUp, Landmark, BookOpen, Calculator, BarChart3, ArrowRight,
 } from 'lucide-react';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruClient';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
-import { ProfilKarty, RoboKarta, FaqSeznam, doporuceniProfily } from '@/components/design-preview/brokerUI';
+import { RoboKarta, FaqSeznam, AutorBox, doporuceniProfily } from '@/components/design-preview/brokerUI';
 import { brokeriPodleSkore, roboPoradci, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
@@ -30,24 +29,14 @@ export const metadata: Metadata = {
 /* Pořadí dle skóre (jen brokeři); robo-poradce je jiná kategorie bez skóre (revize 18. 10. 2026). */
 const ordered = [...brokeriPodleSkore, ...roboPoradci];
 
-/* Na co u brokera koukat – ikonové vysvětlivky. */
-const WATCH = [
-  { icon: Coins, title: 'Poplatek za nákup', text: 'U malých částek rozhodují pevné a minimální poplatky za pokyn.' },
-  { icon: ArrowLeftRight, title: 'Směna měny', text: 'Přirážka při směně korun na eura se platí při každém nákupu z korun.' },
-  { icon: ShieldCheck, title: 'Regulace a ochrana', text: 'Hotovost a cenné papíry chrání různé systémy s různými limity.' },
-  { icon: Receipt, title: 'Daň z českých dividend', text: '15 nebo 35 % podle brokera. Akumulačních ETF se to netýká.' },
-  { icon: PieChart, title: 'Část podílu', text: 'Frakce umožní investovat přesnou částku, třeba 2 000 Kč měsíčně.' },
-  { icon: MessageCircle, title: 'Česká podpora', text: 'Komunikace a daňové podklady v češtině šetří čas i chyby.' },
-] as const;
-
 const FAQ = [
   {
     q: 'Který broker je pro ETF nejbezpečnější?',
-    a: 'Bezpečnost stojí na regulaci a ochraně, a ta se liší podle typu majetku. Hotovost na účtu u bank (Fio, DEGIRO přes flatexDEGIRO Bank) kryje pojištění vkladů do 100 000 EUR. U ostatních (XTB, Trading 212, IBKR, Portu) kryje hotovost i cenné papíry garanční fond se společným limitem kolem 20 000 EUR. Samotná ETF jsou vedená odděleně od majetku brokera – garanční fond nastupuje, kdyby při krachu brokera chyběla. U IBKR pro české klienty platí irský systém (20 000 EUR); americké SIPC se vztahuje jen na americkou entitu.',
+    a: 'Bezpečnost stojí na regulaci a ochraně, a ta se liší podle typu majetku. Hotovost na účtu u bank (Fio, DEGIRO přes flatexDEGIRO Bank) kryje pojištění vkladů do 100 000 EUR. U ostatních (XTB, Trading 212, IBKR, Portu) kryje hotovost i cenné papíry garanční fond se společným limitem kolem 20 000 EUR. Samotná ETF jsou vedená odděleně od majetku brokera – garanční fond nastupuje, kdyby při krachu brokera chyběla. U IBKR pro české klienty platí irský systém ICCL (90 % ztráty, max. 20 000 EUR, společně pro hotovost i cenné papíry); americké SIPC se vztahuje jen na americkou entitu.',
   },
   {
-    q: 'Jak se daní dividendy – 15 nebo 35 %?',
-    a: 'Jsou to dva různé mechanismy. U amerických cenných papírů je bez formuláře W-8BEN srážková daň 30 %; s W-8BEN ji smlouva ČR–USA snižuje na 15 %. U irských UCITS ETF řeší srážku z amerických dividend správce fondu (15 %) a W-8BEN vůbec neřešíte – proto se pro Čechy volí irské fondy. Sazba 35 % je naopak český strop, který hrozí u dividend z nedoložených či nesmluvních zdrojů (typicky když dividendu vyplácí zahraniční broker bez statusu tuzemského plátce) – rozdíl pak dorovnáte v daňovém přiznání. Jde o zdanění dividend, ne kapitálových zisků.',
+    q: 'Jak se daní dividendy – 15 nebo 35 %?',
+    a: 'Jsou to dva různé mechanismy. U amerických cenných papírů je bez formuláře W-8BEN srážková daň 30 %; s W-8BEN ji smlouva ČR–USA snižuje na 15 %. U irských UCITS ETF řeší srážku z amerických dividend správce fondu (15 %) a W-8BEN vůbec neřešíte – proto se pro Čechy volí irské fondy. Sazba 35 % je naopak český strop, který hrozí u dividend z nedoložených či nesmluvních zdrojů (typicky když dividendu vyplácí zahraniční broker bez statusu tuzemského plátce) – rozdíl pak dorovnáte v daňovém přiznání. Jde o zdanění dividend, ne kapitálových zisků.',
   },
   {
     q: 'Můžu mít účet u více brokerů najednou?',
@@ -149,30 +138,13 @@ export default async function SrovnaniBrokeruPage() {
           <h2 className="sr-only">Srovnávací tabulka brokerů</h2>
           <SrovnaniBrokeruClient profil={profil} />
           <RoboKarta />
+          <Link href="/kde-koupit#verdikt" className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm transition-colors hover:border-teal-300">
+            <span><span className="font-medium text-slate-900">Který broker sedí na vaši situaci</span> <span className="text-slate-500">– a kolik vás stojí nákup pro vaši částku</span></span>
+            <ArrowRight className="h-4 w-4 shrink-0 text-teal-700" />
+          </Link>
         </section>
 
-        <section data-sekce="profily" className="py-10 md:py-14">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Doporučení podle situace</h2>
-          <p className="mt-1 mb-5 text-sm text-slate-500">Jeden broker na každou situaci – stejné doporučení jako v průvodci Kde koupit ETF.</p>
-          <ProfilKarty kurzy={kurzy} />
-        </section>
-
-        <section data-sekce="na-co-koukat" className="pb-10 md:pb-14">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Na co u brokera koukat</h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {WATCH.map((w) => (
-              <div key={w.title} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
-                <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0"><w.icon className="w-5 h-5" /></span>
-                <span>
-                  <span className="block text-sm font-semibold text-slate-900">{w.title}</span>
-                  <span className="block text-sm text-slate-600 mt-0.5 leading-snug">{w.text}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section data-sekce="faq" className="pb-10 md:pb-14">
+        <section data-sekce="faq" className="pt-10 pb-10 md:pt-14 md:pb-14">
           <h2 className="mb-5 text-2xl font-bold tracking-tight text-slate-900">Časté otázky</h2>
           <FaqSeznam items={FAQ} />
         </section>
@@ -194,20 +166,19 @@ export default async function SrovnaniBrokeruPage() {
             ))}
           </div>
 
-          <div className="mt-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-            <span className="flex items-center justify-center w-9 h-9 rounded-full bg-teal-50 text-teal-700 shrink-0"><Star className="w-4 h-4" /></span>
-            <span>
-              <span className="font-medium text-slate-800">Autor: Tomáš Kostrhoun.</span>{' '}
-              Skóre /100 je redakční hodnocení – nejvíc vážíme poplatky za nákup a směnu, zdanění českých dividend a regulaci
-              s ochranou prostředků. Není to placené pořadí. Zdroje: veřejné ceníky brokerů (ověřeny{' '}
-              <time dateTime={cenikyOverenyIso}>{cenikyOverenyStr}</time>), ČNB. Před založením účtu si podmínky ověřte i na webu brokera.
-            </span>
+          <div className="mt-6 space-y-3">
+            <AutorBox>
+              Skóre /100 je redakční hodnocení podle stejných os pro všechny brokery (<Link href="/kde-koupit#metodika" className="text-teal-700 hover:underline">jak skóre počítáme</Link>), není to placené pořadí.
+            </AutorBox>
+            <p className="text-xs leading-relaxed text-slate-500">
+              <span>
+                Zdroje: veřejné ceníky brokerů (ověřeny <time dateTime={cenikyOverenyIso}>{cenikyOverenyStr}</time>), ČNB. Před založením účtu si podmínky ověřte i na webu brokera.
+              </span>
+            </p>
+            <InvestmentDisclaimer variant="inline" />
           </div>
         </section>
 
-        <section className="pb-12">
-          <InvestmentDisclaimer variant="box" />
-        </section>
       </main>
     </div>
   );

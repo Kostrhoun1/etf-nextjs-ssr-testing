@@ -22,13 +22,15 @@ export const brokers: Broker[] = [
     protection: '100 000 EUR (DE), 20 000 EUR (investice)',
     ochrana: { hotovost: '100 000 EUR (pojištění vkladů, flatexDEGIRO Bank)', cennePapiry: '20 000 EUR (německý kompenzační systém)' },
     // ETF Selection: 0 EUR provize + 1 EUR manipulační poplatek; ostatní ETF 3 EUR celkem. Směna CZK/EUR zdarma.
-    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 1 }], smena: { procento: 0, minUsd: 0 } },
+    // Připojení k burze: nejvýš 0,25 % hodnoty účtu, max. 2,5 EUR ročně za burzu (degiro.cz/poplatky, 18. 10. 2026) –
+    // výše závisí na hodnotě účtu, proto ho do výpočtu nákladů nezahrnujeme (jen v poznámce).
+    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 1 }], smena: { procento: 0, minUsd: 0 }, pozn: 'ETF Selection; ostatní ETF 3 EUR', smenaPozn: 'CZK/EUR zdarma' },
     etfFee: '1 EUR (ETF Selection), 3 EUR (ostatní ETF)',
-    managementFee: '0 EUR (roční popl. za burzy 2,5 EUR)',
-    fxFee: 'CZK/EUR zdarma, ostatní 0,25%',
+    managementFee: '0 EUR (připojení k burze až 2,5 EUR ročně za burzu)',
+    fxFee: 'CZK/EUR zdarma, ostatní 0,25 %',
     fractional: false,
     czSupport: false, // ověřeno 18. 10. 2026 (degiro.cz/helpdesk/contact): podpora jen anglicky
-    czDividends: '35% (možnost vratky 20%)',
+    czDividends: '35 % (možnost vratky 20 %)',
     minDeposit: '0 EUR',
     platforms: ['Web', 'Android', 'iOS'],
     markets: ['EU', 'US', 'Asia'],
@@ -60,20 +62,20 @@ export const brokers: Broker[] = [
     protection: '20 100 EUR (polský garanční systém)',
     // Garanční (kompenzační) systémy dle směrnice 97/9/ES kryjí peníze i cenné papíry klienta společným limitem.
     ochrana: { hotovost: 'Do 20 100 EUR – společný limit s cennými papíry', cennePapiry: '20 100 EUR (polský garanční systém)' },
-    // 0 % do 100 000 EUR objemu měsíčně (nad limit 0,2 %, min. 10 EUR); směna CZK→EUR 0,5 %.
-    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.5, minUsd: 0 } },
-    etfFee: 'Akcie a ETF 0 % do 100 000 EUR/měs., nad limit 0,2 % (min. 10 EUR)',
+    // 0 % do 100 000 EUR objemu měsíčně (nad limit 0,2 %, min. 10 EUR); směna CZK→EUR 0,5 %.
+    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.5, minUsd: 0 }, pozn: 'do 100 000 EUR objemu měsíčně' },
+    etfFee: 'Akcie a ETF 0 % do 100 000 EUR/měs., nad limit 0,2 % (min. 10 EUR)',
     managementFee: '0 EUR',
-    fxFee: '0,5%',
+    fxFee: '0,5 %',
     fractional: true,
     czSupport: true,
-    czDividends: '35%',
+    czDividends: '35 %',
     minDeposit: '0 EUR',
     platforms: ['xStation 5', 'Web', 'Android', 'iOS'],
     markets: ['EU', 'US', 'UK'],
     etfCount: '9 600+ akcií a ETF (EU, USA)',
     languages: ['čeština', 'polština', 'angličtina'],
-    customerSupport: 'Česká podpora Po–Pá 8–18',
+    customerSupport: 'Po–Pá 8–18',
     specialFeatures: ['Frakční práva', 'Demo účet 200k Kč', 'Vzdělávací sekce', 'Rychlé vklady zdarma'],
     pros: [
       'Investování do akcií a ETF bez komisí',
@@ -88,7 +90,7 @@ export const brokers: Broker[] = [
     ],
     cons: [
       'Nenabízí obchodování opcí a futures kontraktů',
-      'České akcie mají vysoké zdanění dividend (35 %)',
+      'Z dividend českých akcií srážka 35 %',
       'Platforma může být pro nováčky zpočátku nepřehledná'
     ]
   },
@@ -96,13 +98,13 @@ export const brokers: Broker[] = [
     id: 'fio',
     name: 'Fio e-Broker',
     logo: '/lovable-uploads/55aac89b-3834-421c-8689-34fb13fad2b1.png',
-    description: 'Český broker s lokální podporou a optimálním zdaněním českých dividend (15%).',
+    description: 'Český broker s lokální podporou a srážkou z českých dividend 15 %.',
     rating: 75,
     web: 'https://www.fio.cz/investice',
     regulation: 'ČNB (CZ)',
     protection: '100 000 EUR (hotovost, FPV), 20 000 EUR (cenné papíry, GFOCP)',
     ochrana: { hotovost: '100 000 EUR (Fond pojištění vkladů)', cennePapiry: '20 000 EUR (Garanční fond OCP)' },
-    // Ceník od 1. 7. 2026, XETRA: 3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR, nad 0,15 % (min. 6,95 EUR).
+    // Ceník od 1. 7. 2026, XETRA: 3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR, nad 0,15 % (min. 6,95 EUR).
     // Směna bez poplatku, náklad je v kurzu banky – výši spreadu neznáme → smena: null („—“).
     nakup: {
       pasma: [
@@ -111,13 +113,15 @@ export const brokers: Broker[] = [
         { doEur: null, procento: 0.15, minEur: 6.95, pevneEur: 0 },
       ],
       smena: null,
+      pozn: 'do 1 400 EUR; 4,95 EUR do 3 000 EUR, pak 0,15 %',
+      smenaPozn: 'v kurzu banky, výši ceník neuvádí',
     },
-    etfFee: '0,29-0,35 % (CZ), 3,95 EUR do 1 400 EUR (XETRA)',
+    etfFee: '3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR, nad 0,15 % (min. 6,95 EUR) – Xetra; české ETF 0,29–0,35 %',
     managementFee: '0 Kč',
     fxFee: 'Bez poplatku, náklad je v kurzu banky (spread)',
     fractional: false,
     czSupport: true,
-    czDividends: '15%',
+    czDividends: '15 %',
     minDeposit: '0 Kč',
     platforms: ['Web', 'Android', 'iOS'],
     markets: ['CZ', 'EU', 'US'],
@@ -127,7 +131,7 @@ export const brokers: Broker[] = [
     specialFeatures: ['Czech dividend optimization', 'Free currency exchange', 'Local support'],
     pros: [
       'Česká společnost s lokální podporou',
-      'Standardní 15% zdanění českých dividend',
+      'Z českých dividend srážka 15 %',
       'Pobočky po celé ČR',
       'KID dokumentace v češtině'
     ],
@@ -147,11 +151,11 @@ export const brokers: Broker[] = [
     regulation: 'FCA (UK), CySEC (EU pro CZ klienty)',
     protection: '20 000 EUR (ICF, Kypr)',
     ochrana: { hotovost: 'Do 20 000 EUR – společný limit s cennými papíry', cennePapiry: '20 000 EUR (kyperský fond ICF)' },
-    // 0 % provize; směna CZK→EUR 0,15 % (o víkendu 0,5 %).
-    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.15, minUsd: 0 } },
-    etfFee: '0%',
+    // 0 % provize; směna CZK→EUR 0,15 % (o víkendu 0,5 %).
+    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.15, minUsd: 0 }, smenaPozn: 'o víkendu 0,5 %' },
+    etfFee: '0 %',
     managementFee: '0 EUR',
-    fxFee: '0,15% (v aplikaci)',
+    fxFee: '0,15 % (o víkendu 0,5 %)',
     fractional: true,
     czSupport: false,
     czDividends: '—', // neověřeno, zda T212 české akcie vůbec nabízí (18. 10. 2026) → raději „—“
@@ -183,21 +187,21 @@ export const brokers: Broker[] = [
     rating: 85,
     web: 'https://www.interactivebrokers.ie',
     regulation: 'CBI (IE pro CZ klienty), SEC (US)',
-    protection: '90 % ztráty, max. 20 000 EUR (ICCL, IE); SIPC jen US entita', // interactivebrokers.ie/en/general/security-investor-protection.php, ověřeno 18. 10. 2026
-    ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC jen US entita' },
-    // Tiered: 0,05 % z objemu, min. 1,25 EUR + poplatky burzy; směna 0,002 %, min. 2 USD.
-    nakup: { pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0 }], plusBurza: true, smena: { procento: 0.002, minUsd: 2 } },
-    etfFee: 'Xetra: 0,05 % (min. 1,25 EUR, Tiered + poplatky burzy), Fixed min. 3 EUR',
+    protection: '90 % ztráty, max. 20 000 EUR (ICCL, IE); SIPC jen US entita', // interactivebrokers.ie/en/general/security-investor-protection.php, ověřeno 18. 10. 2026
+    ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC jen US entita' },
+    // Tiered: 0,05 % z objemu, min. 1,25 EUR + poplatky burzy; směna 0,002 %, min. 2 USD.
+    nakup: { pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0 }], plusBurza: true, smena: { procento: 0.002, minUsd: 2 }, pozn: '+ poplatky burzy (plán Tiered)', smenaPozn: 'stačí jednou za větší částku' },
+    etfFee: 'Xetra: 0,05 % (min. 1,25 EUR) + poplatky burzy (plán Tiered), v plánu Fixed min. 3 EUR',
     managementFee: '0 EUR (zrušen od 2021)',
-    fxFee: '0,002% (min. $2)',
+    fxFee: '0,002 % (min. 2 USD za směnu)',
     fractional: true,
     czSupport: false,
-    czDividends: '35%',
+    czDividends: '35 %',
     minDeposit: '0 USD',
     platforms: ['TWS', 'Web', 'Android', 'iOS', 'Desktop'],
     // „175+ trhů“: interactivebrokers.com/en/trading/international-lp.php („more than 175 markets worldwide“, ověřeno 18. 10. 2026).
     // Dřív tu bylo „86 burz“ a „14 000+ akcií a ETF“, v recenzi „150+ burz“ a „150 mil. instrumentů“ → jedno číslo.
-    markets: ['Global - 175+ trhů'],
+    markets: ['Global – 175+ trhů'],
     etfCount: 'Akcie a ETF na 175+ trzích',
     languages: ['angličtina', 'němčina', 'francouzština'],
     customerSupport: '24/7',
@@ -226,22 +230,22 @@ export const brokers: Broker[] = [
     regulation: 'ČNB (CZ)',
     protection: '20 000 EUR (Garanční fond OCP)',
     ochrana: { hotovost: 'Do 20 000 EUR – společný limit s cennými papíry', cennePapiry: '20 000 EUR (Garanční fond OCP)' },
-    etfFee: '0,24-1% ročně (dle částky)',
-    managementFee: '0,24-1 % ročně (dle objemu a fixace)',
+    etfFee: '0,24–1 % ročně (dle částky)',
+    managementFee: '0,24–1 % ročně (dle objemu a fixace)',
     fxFee: 'Zahrnut v poplatku',
     fractional: true,
     czSupport: true,
-    czDividends: '15%',
+    czDividends: '15 %',
     minDeposit: '500 Kč',
     platforms: ['Web', 'Android', 'iOS'],
     markets: ['ETF', 'Akcie', 'Krypto', 'české akcie'],
     etfCount: 'ETF portfolia, jednotlivé akcie, krypto',
     languages: ['čeština'],
-    customerSupport: '9-17 (pracovní dny)',
+    customerSupport: 'Pracovní dny 9–17',
     specialFeatures: ['Robo-advisor', 'Investiční rezerva', 'Dětské účty', 'Krypto portfolia'],
     pros: [
       'Velmi uživatelský přístup',
-      'Nízké poplatky (0,24-1% ročně)',
+      'Roční poplatek 0,24–1 % z hodnoty',
       'Nízký minimální vklad (500 Kč)',
       'Automatická správa portfolia',
       'Flexibilní investování'
@@ -294,3 +298,50 @@ export function nakladNakupu(b: Broker, castkaKc: number, k: Kurzy): NakladNakup
   const smenaKc = s == null ? null : Math.max((s.procento / 100) * castkaKc, s.minUsd * k.usdCzk);
   return { provizeKc, smenaKc, celkemKc: smenaKc == null ? null : provizeKc + smenaKc, plusBurza: !!b.nakup.plusBurza };
 }
+
+/* ---------- Krátké popisy ceníku – JEDINÉ znění pro /kde-koupit, /srovnani-brokeru i recenze ----------
+   Denní kontrola (scripts/check-fund-data.mjs) porovnává hodnoty vykreslené na stránkách (atributy data-poplatek,
+   data-smena) a při rozdílu varuje. Jednotky jednotně: poplatek za nákup v EUR (ceník Xetry), směna v %. */
+const nbsp = ' ';
+const cislo = (v: number) => v.toLocaleString('cs-CZ', { maximumFractionDigits: 3 });
+
+/** „0 EUR“, „1 EUR“, „0,05 %, min. 1,25 EUR“, „od 3,95 EUR“; null = broker nemá ceník nákupu (robo-poradce). */
+export function popisPoplatku(b: Broker): string | null {
+  const c = b.nakup;
+  if (!c) return null;
+  const p = c.pasma;
+  if (p.length > 1) return `od ${cislo(p[0].pevneEur)}${nbsp}EUR`;
+  if (p[0].procento > 0) return `${cislo(p[0].procento)}${nbsp}%, min.${nbsp}${cislo(p[0].minEur)}${nbsp}EUR`;
+  return `${cislo(p[0].pevneEur)}${nbsp}EUR`;
+}
+
+/** Směna CZK→EUR: „0 %“, „0,5 %“, „0,002 %, min. 2 USD“; „—“ = výši neznáme (Fio: náklad je v kurzu banky). */
+export function popisSmeny(b: Broker): string | null {
+  const c = b.nakup;
+  if (!c) return null;
+  if (c.smena == null) return '—';
+  const z = `${cislo(c.smena.procento)}${nbsp}%`;
+  return c.smena.minUsd > 0 ? `${z}, min.${nbsp}${cislo(c.smena.minUsd)}${nbsp}USD` : z;
+}
+
+/** Min. vklad jednotně: „bez minima“ místo „0 EUR / 0 Kč / 0 USD“. */
+export const popisMinVkladu = (b: Broker) => (/^0\s/.test(b.minDeposit) ? 'bez minima' : b.minDeposit.replace(' ', nbsp));
+
+/** Kryje garanční systém hotovost i cenné papíry jedním společným limitem? (na rozdíl od pojištění vkladů u banky) */
+export const spolecnyLimit = (b: Broker) => !!b.ochrana?.hotovost.includes('společný limit');
+
+/** „90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC jen US entita“ → hodnota + poznámka (jednotky jednotně v EUR). */
+export function rozdelOchranu(t: string | undefined): { v: string; pozn?: string } {
+  if (!t) return { v: '—' };
+  const v = t.split(' – ')[0].split(' (')[0];
+  const pozn = t.slice(v.length).replace(/[()]/g, '').replace(/^\s*–\s*/, '').trim();
+  return { v: nezlomit(v), pozn: pozn || undefined };
+}
+/** Čísla a jednotky se nelámou („20 000 EUR“ nikdy „20 / 000 EUR“). */
+export const nezlomit = (t: string) => t.replace(/(\d) (?=\d{3}\b)/g, '$1 ').replace(/(\d) (EUR|USD|Kč|%)/g, '$1 $2');
+/** Ochrana hotovosti; u společného limitu poznámka „společný limit pro hotovost i cenné papíry“. */
+export function ochranaHotovosti(b: Broker) {
+  const r = rozdelOchranu(b.ochrana?.hotovost);
+  return spolecnyLimit(b) ? { v: r.v, pozn: 'společný limit pro hotovost i cenné papíry' } : r;
+}
+export const ochranaPapiru = (b: Broker) => rozdelOchranu(b.ochrana?.cennePapiry);

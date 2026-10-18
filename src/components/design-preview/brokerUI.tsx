@@ -1,21 +1,14 @@
 /* Sdílené stavební prvky stránek o brokerech (/kde-koupit, /srovnani-brokeru, /recenze/[broker]).
  * Serverové komponenty – žádný 'use client' (InfoTip je klientský list, to nevadí).
  * Jeden zdroj doporučení i spočítaných nákladů, ať si stránky neodporují (revize 18. 10. 2026). */
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ChevronDown, Sparkles, Coins, Layers, Globe, Landmark, Bot } from 'lucide-react';
-import InfoTip from '@/components/design-preview/InfoTip';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
-import { brokers, brokeriPodleSkore, nakladNakupu, provizeEur, type Kurzy } from '@/data/brokerData';
-import { datumKurzu } from '@/lib/kurzCnb';
+import { brokers, brokeriPodleSkore, nakladNakupu, provizeEur, popisSmeny, type Kurzy } from '@/data/brokerData';
 import type { Broker } from '@/types/broker/index';
 
 export const najdiBrokera = (id: string) => brokers.find((b) => b.id === id)!;
-
-/* ---------- Formátování ---------- */
-const kc = (v: number) =>
-  `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')} Kč`;
-const proc = (v: number) => `${v.toLocaleString('cs-CZ', { maximumFractionDigits: 2 })} %`;
-const eur = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 })} EUR`;
 
 /* ---------- Logo (čtvercová ikona z public/loga-brokeru, stejný režim jako homepage) ---------- */
 export function BrokerLogo({ id, size = 'md' }: { id: string; size?: 'sm' | 'md' | 'lg' }) {
@@ -60,9 +53,9 @@ export function FaqSeznam({ items }: { items: readonly { q: string; a: string }[
 /* ---------- Doporučení podle profilu – JEDINÝ zdroj pro /kde-koupit i /srovnani-brokeru ---------- */
 export interface Profil { id: string; icon: typeof Sparkles; profil: string; brokerId: string; proc: string }
 
-/** Profily → jeden broker na profil. Částky v důvodech se počítají z ceníků (brokerData), ne natvrdo. */
-/** Sazba směny CZK→EUR z ceníku (strukturovaně), jinak textový popis. */
-const smena = (b: Broker) => b.nakup?.smena ? proc(b.nakup.smena.procento) : b.fxFee;
+/** Profily → jeden broker na profil. Částky v důvodech se počítají z ceníků (brokerData), ne natvrdo.
+ *  Sazba směny = sdílený popis z brokerData (stejné znění jako tabulky). */
+const smena = (b: Broker) => popisSmeny(b) ?? b.fxFee;
 
 export function doporuceniProfily(kurzy: Kurzy | null): Profil[] {
   const t212 = najdiBrokera('trading212');
@@ -130,71 +123,22 @@ export function ProfilKarty({ kurzy }: { kurzy: Kurzy | null }) {
   );
 }
 
-/* ---------- Kolik stojí jeden nákup ETF (spočítané z ceníků) ---------- */
-export const CASTKY_NAKUPU = [2000, 5000] as const;
+/* ---------- Kolik stojí nákup ETF ----------
+   Živý přepočet pro zadanou částku je klientská komponenta NakladyKalkulacka (/kde-koupit). Tady jen příkladová
+   částka pro hero a recenze. */
+export const CASTKA_PRIKLAD = 2000;
 
-function BunkaNakladu({ b, castka, kurzy }: { b: Broker; castka: number; kurzy: Kurzy }) {
-  const n = nakladNakupu(b, castka, kurzy);
-  if (!n) return <span className="text-slate-400">—</span>;
-  const rozpis = `poplatek ${kc(n.provizeKc)} + směna ${n.smenaKc == null ? '—' : kc(n.smenaKc)}`;
-  const celkem = n.celkemKc ?? n.provizeKc;
-  const druhy = n.celkemKc == null ? '+ kurz banky' : `${n.plusBurza ? '+ burza · ' : ''}${proc((n.celkemKc / castka) * 100)}`;
+/* ---------- Autor – jeden box pro všechny stránky o brokerech ----------
+   Fotka autora v repu není (public/ prohledáno 18. 10. 2026) → iniciály v kroužku jako na /o-nas, ne ikona. */
+export function AutorBox({ children }: { children?: ReactNode }) {
   return (
-    <span className="block leading-tight">
-      <span className="block font-semibold text-slate-900">{kc(celkem)}</span>
-      <span className="block text-xs text-slate-500 mt-0.5">{druhy}</span>
-      <span className="hidden sm:block text-xs text-slate-400 mt-0.5">{rozpis}</span>
-    </span>
-  );
-}
-
-export function NakladyNakupu({ kurzy, zvyraznit }: { kurzy: Kurzy | null; zvyraznit?: string }) {
-  const rady = brokeriPodleSkore.filter((b) => b.nakup);
-  if (!kurzy) {
-    // Pravidlo č. 1: bez aktuálního kurzu ČNB žádné korunové částky – jen ceník v EUR.
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        Aktuální kurz ČNB se nepodařilo načíst, proto náklady v korunách teď neukazujeme. Ceníky v EUR najdete v{' '}
-        <Link href="/srovnani-brokeru" className="font-medium underline underline-offset-2">detailním srovnání</Link>.
-      </div>
-    );
-  }
-  const serazene = [...rady].sort((a, b) => {
-    const na = nakladNakupu(a, CASTKY_NAKUPU[0], kurzy), nb = nakladNakupu(b, CASTKY_NAKUPU[0], kurzy);
-    const va = na?.celkemKc ?? (na ? na.provizeKc + 1e6 : 1e9), vb = nb?.celkemKc ?? (nb ? nb.provizeKc + 1e6 : 1e9);
-    return va - vb;
-  });
-  return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-left text-xs text-slate-500">
-          <tr>
-            <th className="px-3 py-2.5 font-medium sm:px-4">Broker</th>
-            {CASTKY_NAKUPU.map((c) => (
-              <th key={c} className="px-3 py-2.5 font-medium sm:px-4">Nákup za {c.toLocaleString('cs-CZ')}&nbsp;Kč</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 tabular-nums">
-          {serazene.map((b) => (
-            <tr key={b.id} className={b.id === zvyraznit ? 'bg-teal-50/60' : undefined}>
-              <td className="px-3 py-3 align-top sm:px-4">
-                <Link href={reviewHref[b.id]} className="flex items-center gap-2 font-medium text-slate-900 hover:text-teal-700">
-                  <BrokerLogo id={b.id} size="sm" />
-                  <span className="leading-tight">{b.name.replace('-', '\u2011')}</span>
-                </Link>
-              </td>
-              {CASTKY_NAKUPU.map((c) => (
-                <td key={c} className="px-3 py-3 align-top sm:px-4"><BunkaNakladu b={b} castka={c} kurzy={kurzy} /></td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-100 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-500">
-        <span>Kurz ČNB k {datumKurzu(kurzy)}: 1 EUR = {kurzy.eurCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })} Kč</span>
-        <InfoTip label={`Jeden nákup evropského ETF na burze Xetra (v EUR) z korunového účtu: poplatek za nákup + směna CZK→EUR podle ceníku. DEGIRO = fondy z výběru ETF Selection (ostatní 3 EUR). IBKR: minimum ${eur(1.25)} za pokyn a 2 USD za směnu, plus poplatky burzy. Fio směnu zvlášť neúčtuje, náklad je v kurzu banky – jeho výši ceník neuvádí. Nepočítáme roční poplatek DEGIRO za burzu ani víkendovou přirážku Trading 212.`}>Jak počítáme</InfoTip>
-      </div>
+    <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-50 text-sm font-bold tracking-tight text-teal-700">TK</span>
+      <p className="text-sm leading-relaxed text-slate-600">
+        <span className="block font-semibold text-slate-900">Tomáš Kostrhoun</span>
+        {children ?? 'Brokery srovnáváme podle veřejných ceníků, bez provizí a placeného pořadí.'}{' '}
+        <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
+      </p>
     </div>
   );
 }

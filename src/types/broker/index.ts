@@ -38,6 +38,10 @@ export interface CenikNakupu {
   pasma: { doEur: number | null; procento: number; minEur: number; pevneEur: number }[];
   /** K provizi se připočítávají poplatky burzy (výši neznáme → zobrazit „+ poplatky burzy“). */
   plusBurza?: boolean;
+  /** Krátká poznámka k poplatku za nákup do srovnávací tabulky (podmínka, pásma). */
+  pozn?: string;
+  /** Krátká poznámka ke směně (víkend, v kurzu banky, …). */
+  smenaPozn?: string;
   /** Směna CZK→EUR. null = bez samostatného poplatku, náklad je v kurzu (výši neznáme → „—“). */
   smena: { procento: number; minUsd: number } | null;
 }

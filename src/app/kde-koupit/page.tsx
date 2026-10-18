@@ -7,14 +7,15 @@ import {
   TrendingUp, ArrowRight, ShieldCheck, User, CalendarDays, Percent, Layers, Landmark,
   Headphones, ListChecks, Table2,
 } from 'lucide-react';
-import InfoTip from '@/components/design-preview/InfoTip';
 import {
-  ProfilKarty, NakladyNakupu, FaqSeznam, BrokerLogo, CASTKY_NAKUPU,
+  ProfilKarty, FaqSeznam, BrokerLogo, AutorBox, CASTKA_PRIKLAD,
 } from '@/components/design-preview/brokerUI';
+import NakladyKalkulacka from '@/components/design-preview/NakladyKalkulacka';
+import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { brokers, brokeriPodleSkore, nakladNakupu, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
 
-/* /kde-koupit = PRŮVODCE „kde koupit ETF“: rozhodnutí podle profilu + spočítané náklady jednoho nákupu.
+/* /kde-koupit = PRŮVODCE „kde koupit ETF“: živě spočítané náklady pro zadanou částku + rozhodnutí podle profilu.
    Detailní tabulka parametrů je jen na /srovnani-brokeru (dřív se stránky překrývaly – dvě tabulky,
    dvojí doporučení, revize 18. 10. 2026). Doporučení i náklady jsou ze sdíleného brokerUI. */
 
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/kde-koupit' },
   title: 'Kde koupit ETF v Česku 2026: který broker a kolik stojí nákup',
   description:
-    'Kde koupit ETF? Doporučení brokera podle toho, jak investujete, a spočítané náklady nákupu za 2 000 a 5 000 Kč u XTB, Trading 212, DEGIRO, IBKR a Fio – poplatek i směna měny.',
+    'Kde koupit ETF? Kolik stojí nákup pro vaši měsíční částku u XTB, Trading 212, DEGIRO, IBKR a Fio – poplatek i směna měny podle kurzu ČNB – a který broker sedí na vaši situaci.',
 };
 
 const kcText = (v: number) =>
@@ -38,7 +39,7 @@ export default async function KdeKoupitPage() {
   // Hero: nejlevnější nákup za 2 000 Kč – spočítané z ceníků, ne natvrdo.
   const nejlevnejsi = kurzy
     ? brokeriPodleSkore
-        .map((b) => ({ b, n: nakladNakupu(b, CASTKY_NAKUPU[0], kurzy) }))
+        .map((b) => ({ b, n: nakladNakupu(b, CASTKA_PRIKLAD, kurzy) }))
         .filter((x) => x.n?.celkemKc != null && !x.n.plusBurza)
         .sort((a, b) => a.n!.celkemKc! - b.n!.celkemKc!)[0]
     : null;
@@ -57,15 +58,15 @@ export default async function KdeKoupitPage() {
   const faqs = [
     {
       q: 'Kde koupím ETF nejlevněji?',
-      a: 'Skutečný náklad = poplatek za nákup + směna korun na eura. U malých nákupů vycházejí nejlevněji brokeři bez provize s levnou směnou (tabulka výše je spočítaná z ceníků). U větších jednorázových nákupů se vyplatí pevný poplatek bez přirážky za směnu (DEGIRO). Minimální poplatky (IBKR, Fio) prodražují hlavně malé částky.',
+      a: 'Skutečný náklad = poplatek za nákup + směna korun na eura. U malých nákupů vycházejí nejlevněji brokeři bez provize s levnou směnou (tabulka výše je spočítaná z ceníků). U větších jednorázových nákupů vychází levněji pevný poplatek bez přirážky za směnu (DEGIRO). Minimální poplatky (IBKR, Fio) prodražují hlavně malé částky.',
     },
     {
       q: 'Jsou ETF u DEGIRO opravdu zdarma?',
       a: 'Ne úplně. Fondy z výběru ETF Selection koupíte za 1 EUR manipulační poplatek, ostatní ETF za 3 EUR. Směna CZK/EUR je zdarma, takže u jednoho většího nákupu měsíčně jsou náklady nízké.',
     },
     {
-      q: 'Proč některý broker sráží 35 % z dividend?',
-      a: 'U dividend z českých akcií rozhoduje, zda broker umí doložit, komu dividenda patří. Fio a Portu srazí 15 %, zahraniční brokeři se sběrným účtem (XTB, DEGIRO, IBKR) 35 %. U akumulačních ETF se vás to přímo netýká – dividendy řeší fond uvnitř.',
+      q: 'Proč některý broker sráží 35 % z dividend?',
+      a: 'U dividend z českých akcií rozhoduje, zda broker umí doložit, komu dividenda patří. Fio a Portu srazí 15 %, zahraniční brokeři se sběrným účtem (XTB, DEGIRO, IBKR) 35 %. U akumulačních ETF se vás to přímo netýká – dividendy řeší fond uvnitř.',
     },
     {
       q: 'Co je frakční nákup a kdy ho potřebuju?',
@@ -138,7 +139,7 @@ export default async function KdeKoupitPage() {
               <div className="max-w-xl">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Kde koupit ETF v Česku {year}</h1>
                 <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Vyberte brokera podle toho, jak investujete, a podívejte se, kolik vás jeden nákup reálně stojí – poplatek i směna korun na eura.
+                  Zadejte, kolik investujete měsíčně, a uvidíte, kolik vás nákup ETF u každého brokera stojí – poplatek i směna korun na eura.
                 </p>
                 <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" /><Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link></span>
@@ -146,8 +147,8 @@ export default async function KdeKoupitPage() {
                   <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /><span>Bez provizí a reklamy</span></span>
                 </p>
               </div>
-              {/* Tři fakta pod sebou (dřív tři úzké sloupce na mobilu). */}
-              <dl className="mt-6 md:mt-0 md:w-[22rem] shrink-0 divide-y divide-white/10 rounded-xl border border-white/10 bg-white/5 text-sm">
+              {/* Tři fakta – jen desktop; na mobilu je hned pod hero živý přepočet (stejná čísla, bez duplicity). */}
+              <dl className="hidden md:block mt-6 md:mt-0 md:w-[22rem] shrink-0 divide-y divide-white/10 rounded-xl border border-white/10 bg-white/5 text-sm">
                 <div className="flex items-center justify-between gap-3 px-4 py-2.5">
                   <dt className="text-slate-400">Nejlevnější nákup za {'2\u00a0000\u00a0Kč'}</dt>
                   <dd className="text-right font-semibold tabular-nums whitespace-nowrap">
@@ -167,21 +168,20 @@ export default async function KdeKoupitPage() {
           </div>
         </section>
 
-        {/* 1. DOPORUČENÍ PODLE PROFILU */}
-        <section id="verdikt" data-sekce="profily" className="pb-10 scroll-mt-20">
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Kterého brokera zvolit</h2>
-          <p className="mt-1 mb-4 text-sm text-slate-500">Jeden broker na každou situaci. Stejné doporučení najdete i ve srovnání brokerů.</p>
-          <ProfilKarty kurzy={kurzy} />
+        {/* 1. SPOČÍTANÉ NÁKLADY – živě pro zadanou částku (na mobilu i desktopu PŘED kartami brokerů) */}
+        <section id="naklady" data-sekce="naklady" className="pb-10 scroll-mt-20">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Kolik vás stojí nákup ETF</h2>
+          <p className="mt-1 mb-4 text-sm text-slate-500">
+            Poplatek za nákup + směna korun na eura podle ceníků brokerů. Nulová provize neznamená nulový náklad.
+          </p>
+          <NakladyKalkulacka kurzy={kurzy} />
         </section>
 
-        {/* 2. SPOČÍTANÉ NÁKLADY */}
-        <section id="naklady" data-sekce="naklady" className="pb-10 scroll-mt-20">
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Kolik stojí jeden nákup ETF</h2>
-          <p className="mt-1 mb-4 text-sm text-slate-500">
-            Poplatek za nákup + směna korun na eura, spočítané z ceníků brokerů. Nulová{' '}
-            <InfoTip label="Poplatek brokera za provedení jednoho nákupu nebo prodeje.">provize</InfoTip> neznamená nulový náklad.
-          </p>
-          <NakladyNakupu kurzy={kurzy} />
+        {/* 2. DOPORUČENÍ PODLE PROFILU */}
+        <section id="verdikt" data-sekce="profily" className="pb-10 scroll-mt-20">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Který broker sedí na vaši situaci</h2>
+          <p className="mt-1 mb-4 text-sm text-slate-500">Jeden broker na každou situaci, podle ceníků a parametrů výše.</p>
+          <ProfilKarty kurzy={kurzy} />
         </section>
 
         {/* 3. TŘI KROKY */}
@@ -241,25 +241,16 @@ export default async function KdeKoupitPage() {
         </section>
 
         {/* Autor + zdroje */}
-        <section data-sekce="autor" className="pb-12">
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <div className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-500 shrink-0"><User className="w-5 h-5" /></span>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <span className="block font-semibold text-slate-900">Tomáš Kostrhoun</span>
-                Brokery srovnáváme nezávisle podle veřejných ceníků, bez provizí a placeného pořadí.{' '}
-                <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
-              </p>
-            </div>
-            {/* Text v jednom <span> – smíšený text ve flexu se lámal na samostatné sloupce („2026 .“). */}
-            <p className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-500 leading-relaxed">
-              <span>
-                Zdroje: veřejné ceníky brokerů (ověřeny <time dateTime={cenikyOverenyIso}>{cenikyOverenyStr}</time>), kurzovní lístek ČNB.
-                Brokeři mohou ceník změnit kdykoli – před založením účtu si podmínky ověřte na jejich webu.
-                Obsah má vzdělávací charakter a není investičním doporučením.
-              </span>
-            </p>
-          </div>
+        <section data-sekce="autor" className="space-y-3 pb-12">
+          <AutorBox />
+          {/* Text v jednom <span> – smíšený text ve flexu se lámal na samostatné sloupce („2026 .“). */}
+          <p className="text-xs text-slate-500 leading-relaxed">
+            <span>
+              Zdroje: veřejné ceníky brokerů (ověřeny <time dateTime={cenikyOverenyIso}>{cenikyOverenyStr}</time>), kurzovní lístek ČNB.
+              Brokeři mohou ceník změnit kdykoli – před založením účtu si podmínky ověřte na jejich webu.
+            </span>
+          </p>
+          <InvestmentDisclaimer variant="inline" />
         </section>
       </main>
     </div>
