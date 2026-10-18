@@ -100,15 +100,11 @@ const ETF_SELECT_FIELDS = `
   scraping_date
 `;
 
-/**
- * Get top ETFs for a specific category page
- * Used by /nejlepsi-etf/* pages
- */
-export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETFBasicInfo[]> {
-  try {
-    let query = supabaseAdmin
-      .from('etf_funds')
-      .select(ETF_SELECT_FIELDS);
+/* eslint-disable @typescript-eslint/no-explicit-any -- builder Supabase dotazu má generický typ podle selectu */
+/** Filtr kategorie + společné pojistky – sdílí ho výpis žebříčku i počet fondů (getCategoryCount).
+ *  JS zrcadlo pro rozcestník /zebricky: odpovidaKategorii v src/lib/zebricky.ts (musí se shodovat). */
+function filtrKategorie(q: any, config: CategoryConfig): any {
+    let query = q;
 
     // Apply category filter (simple eq - works well alone)
     if (config.filters.category) {
@@ -168,6 +164,32 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
     query = query.not('is_leveraged', 'is', true);
     query = query.not('name', 'is', null);
     query = query.gte('scraping_date', cerstveOd());
+    // Žebříček řazený podle hodnocení vynechává fondy bez hodnocení (dřív jen ve výpisu – počet pak nesouhlasil).
+    if (config.sortBy === 'rating') query = query.not('rating', 'is', null);
+    return query;
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+/** Kolik fondů do žebříčku celkem patří (bez ohledu na limit výpisu). null = chyba dotazu. */
+export async function getCategoryCount(config: CategoryConfig): Promise<number | null> {
+  try {
+    const { count, error } = await filtrKategorie(
+      supabaseAdmin.from('etf_funds').select('isin', { count: 'exact', head: true }), config);
+    if (error) { console.error(`Error counting ETFs for ${config.slug}:`, error); return null; }
+    return count ?? null;
+  } catch (error) {
+    console.error(`Error in getCategoryCount for ${config.slug}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get top ETFs for a specific category page
+ * Used by /nejlepsi-etf/* pages
+ */
+export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETFBasicInfo[]> {
+  try {
+    let query = filtrKategorie(supabaseAdmin.from('etf_funds').select(ETF_SELECT_FIELDS), config);
 
     // Apply sorting
     const sortBy = config.sortBy || 'fund_size_numeric';
@@ -175,9 +197,8 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
     // Secondary sort by fund size when sorting by rating (to prefer larger funds at same rating)
-    // Also exclude ETFs without rating when sorting by rating
+    // (fondy bez hodnocení vyřadí už filtrKategorie)
     if (sortBy === 'rating') {
-      query = query.not('rating', 'is', null);
       query = query.order('fund_size_numeric', { ascending: false });
     }
 
@@ -1083,6 +1104,16 @@ const BROAD_MARKET_EXCLUDES = [
   'Small Cap', 'SmallCap', 'Mid Cap', 'Dividend', 'Buyback', 'Leveraged',
 ];
 
+/** Varianty indexu s jinou metodikou (ESG/vylučovací, „Leaders“, stejné váhy, aktivní „Enhanced“ fondy).
+ *  Sledují JINÝ index než čistý S&P 500 / MSCI World / Nasdaq-100 / celý svět – v indexových žebříčcích
+ *  by se tvářily jako „levnější/výkonnější S&P 500“ (revize 18. 10. 2026: v S&P 500 vyhrával „S&P 500
+ *  Leaders“, v celosvětových byl nahoře aktivní ESG fond). Mají vlastní žebříček nejlepsi-esg-etf.
+ *  Mezery u krátkých zkratek záměrně (ilike je podřetězec: „PAB“ ⊂ „capable“). */
+const INDEX_VARIANTY = [
+  'Equal Weight', 'ESG', ' SRI', 'Screened', 'Scored', 'Leaders', 'Paris', 'Climate', ' PAB', ' CTB',
+  'Socially', 'Sustainable', 'Enhanced', ' Active', 'Universal', 'Islamic', 'Shariah', 'Selection', 'Catholic',
+];
+
 export const categoryConfigs: Record<string, CategoryConfig> = {
   'nejlepsi-etf-2026': {
     slug: 'nejlepsi-etf-2026',
@@ -1158,7 +1189,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['S&P 500', 'S&P500', 'SP500'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      // Jiné indexy postavené na S&P 500 (Top 20, 3% Capped, nízká volatilita) a opční strategie nejsou „S&P 500 ETF“.
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, ...INDEX_VARIANTY, 'Top 20', 'Top 10', 'Capped', 'Covered Call', 'Low Vol'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1173,7 +1205,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['MSCI World'],
-      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'ex USA', 'ex-USA', 'ex EMU', 'ex Europe', 'ACWI', 'All-World', 'All World'],
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, ...INDEX_VARIANTY, 'ex USA', 'ex-USA', 'ex EMU', 'ex Europe', 'ACWI', 'All-World', 'All World'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1621,12 +1653,16 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   'nejlepsi-celosvetove-etf': {
     slug: 'nejlepsi-celosvetove-etf',
     title: 'Nejlepší celosvětové ETF',
-    description: 'Top globálně diverzifikované ETF fondy',
-    metaDescription: 'Nejlepší celosvětové ETF fondy - přehled globálně diverzifikovaných ETF pro dlouhodobé investování.',
+    description: 'Fondy na akcie celého světa – vyspělé i rozvíjející se trhy',
+    metaDescription: 'Nejlepší celosvětové ETF fondy - FTSE All-World, MSCI ACWI a další indexy celého světa včetně rozvíjejících se trhů. Poplatky, velikost a výnosy v Kč.',
+    // Celý svět = vyspělé I rozvíjející se trhy (revize 18. 10. 2026: dřív sem padalo vše se slovem
+    // „World“/„Global“ a největším fondem vycházel EUNL – MSCI World je jen vyspělý svět a má vlastní
+    // žebříček nejlepsi-msci-world-etf). Indexy: FTSE All-World, MSCI ACWI (i IMI), FTSE Global All Cap,
+    // Solactive GBS Global Markets (Amundi Prime All Country World). Bez ESG/aktivních variant.
     filters: {
       category: 'Akcie',
-      nameContains: ['World', 'Global', 'All-World', 'ACWI', 'All Country'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      nameContains: ['All-World', 'All World', 'ACWI', 'All Country', 'AC World', 'Global All-Cap', 'Global All Cap'],
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, ...INDEX_VARIANTY, 'Developed', 'ex USA', 'ex-USA', 'ex-U.S', 'ex U.S', 'Fundamental'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1712,8 +1748,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší NASDAQ ETF fondy - přehled ETF sledujících americký technologický index NASDAQ.',
     filters: {
       category: 'Akcie',
-      nameContains: ['Nasdaq', 'NASDAQ', 'Nasdaq-100', 'NDX'],
-      nameExcludes: ['Biotech'],
+      // Jen Nasdaq-100 (dřív „Nasdaq“ i „NDX“ – chytalo Nasdaq Cybersecurity, Smart Grid, Semiconductor
+      // a „Indxx“ Aerospace; revize 18. 10. 2026). Covered Call = opční strategie, ne index.
+      nameContains: ['Nasdaq-100', 'Nasdaq 100', 'Nasdaq100'],
+      nameExcludes: ['Biotech', 'Covered Call', ...INDEX_VARIANTY],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
