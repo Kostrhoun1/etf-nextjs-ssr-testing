@@ -427,3 +427,31 @@ kategorie „Peněžní trh“ (54 fondů). Test před/po na 17 profilech: scrat
 **Sloučit do main až ve stejný den jako deploy webu, který s novými daty počítá** (indexNormalization, podobné fondy
 podle index_name s „®“, záložka Peněžní trh). Po prvním běhu ověřit SQL na produkci (pravidlo 6); varování
 v check-fund-data (tickery, indexy, peněžní trh) musí zmizet.
+
+## 19. 10. 2026 v noci – 5 kol vylepšení klíčových stránek HOTOVO, připraveno k nasazení
+
+**Stav:** větev `vylepseni-stranek` (navazuje na faze4 fast-forwardem) = 5 kol úprav podle art directorů
+a testů s uživateli (Markéta začátečnice, Martin pokročilý). Hodnocení kola 4: 6–8,5/10; kolo 5 opravilo
+všechny nálezy (vývojáři odhadují 8,5/10, nezávislá revize kola 5 ještě NEproběhla).
+Náhled: https://etf-nextjs-3xqdqboxm-tomas-projects-43fd2658.vercel.app
+
+**Ověřeno před nasazením (19. 10. ~01:30):** build OK, 42 stránek 200, check-fund-data proti buildu jen
+2 známé poplachy (9 pozic – zmizí po nočním scrapu; výnos mimo trh – 4 fondy, známé), mobil 390 bez
+přetékání na 17 klíčových stránkách, plovoucí záhlaví u všech dlouhých tabulek (srovnávač, porovnání,
+dvojice, žebříčky, srovnání brokerů, kalkulačka – 56 px), konzole bez chyb.
+
+**Hlavní datové změny, které nasazení přinese (vědomě):**
+- 60/40 a Nobelovo počítají dluhopisy přes EUR státní dluhopisy (dřív AGG v USD): 60/40 8,9 % → 7,6 % ročně,
+  max. pokles −18 % → −20,5 %; Dividendové portfolio bez historie („—“, dřív světový index ≈ 10,9 %).
+- Riziko tříd téhož fondu, které nesedí (chyba zdroje), = „—“ (55 případů).
+- „Data k“ = den cen (předchozí obchodní den), ne den stažení.
+- Jeden počet fondů na webu (4 981), celosvětové = celý svět (ne MSCI World), žebříček S&P 500 bez variant.
+
+**Postup nasazení (max. 1 deploy denně → nejdřív 20. 10. ráno, nebo dnes místo faze4 – rozhodne majitel):**
+1. Po nočním scrapu: `node scripts/check-fund-data.mjs` (známé poplachy jen 2 výše).
+2. `git push origin vylepseni-stranek:main` (fast-forward přes faze4).
+3. TÝŽ DEN sloučit scraper `etf-astro` větev `oprava-indexy` (9b7d16f) do main – index z řádku „Index“,
+   kategorie „Peněžní trh“; další noc ověřit SQL (prázdné indexy, Money Market) a varování v check-fund-data.
+4. Po deployi ověřit na produkci: /srovnani (sticky, filtry), /etf/IE00B5BMR087, /srovnani/vwce-vs-spyi (SPDR),
+   /portfolio-strategie (čísla = backtest – kontrola data-kontrola-backtest), /kde-koupit?isin=IE00B5BMR087.
+5. Nezávislá revize kola 5 (art director ×2 + Markéta + Martin) – doporučeno i v Safari (WebKit k instalaci se souhlasem).
