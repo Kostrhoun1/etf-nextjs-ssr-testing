@@ -12,7 +12,7 @@ import { sestavIndexy, type IndexOptionGroup } from '@/utils/indexNormalization'
 import { distKind, type DistKind } from '@/utils/distribution';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { TRHY_SROVNAVACE, INDEXY_TRHU } from '@/lib/screenerTrhy';
-import { volatilitaNesedi, type ObdobiVol } from '@/lib/tridyFondu';
+import { rizikoNesedi, type RizikoPole } from '@/lib/tridyFondu';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
@@ -747,8 +747,8 @@ export interface ComparisonETF {
   inception_date: string | null;
   is_leveraged: boolean | null;
   category: string | null;
-  /** Období, kde volatilita zdroje nesedí s jinou třídou téhož fondu → web ukazuje „—“ (src/lib/tridyFondu.ts). */
-  _volNesedi?: ObdobiVol[];
+  /** Rizikové ukazatele, které nesedí s jinou třídou téhož fondu → web ukazuje „—“ (src/lib/tridyFondu.ts). */
+  _rizikoNesedi?: RizikoPole[];
 }
 
 /** Burzy fondu (pro odpověď „stejný fond, jiný ticker" – kde a v jaké měně se obchoduje). */
@@ -858,15 +858,15 @@ export async function getComparisonETFsByIsins(isins: string[]): Promise<Compari
       const zaklad = String(e.name ?? '').match(/^(.*)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b/i)?.[1]?.trim();
       if (!zaklad || !e.fund_provider) return [];
       const { data: d } = await supabaseAdmin.from('etf_funds')
-        .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y')
+        .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y, max_drawdown_1y, max_drawdown_3y')
         .eq('fund_provider', e.fund_provider).ilike('name', `${zaklad.replace(/[%_]/g, '')}%`)
         .gte('scraping_date', nabidkaOd()).limit(60);
-      return (d ?? []) as { isin: string; name: string | null; fund_provider: string | null; volatility_1y: number | null; volatility_3y: number | null; volatility_5y: number | null }[];
+      return (d ?? []) as ({ isin: string; name: string | null; fund_provider: string | null } & Partial<Record<RizikoPole, number | null>>)[];
     }));
     const tridy = new Map(sourozenci.flat().map((f) => [f.isin, f]));
     for (const e of vysledek) if (!tridy.has(e.isin)) tridy.set(e.isin, e as never);
-    const nesedi = volatilitaNesedi([...tridy.values()]);
-    return vysledek.map((e) => (nesedi.has(e.isin) ? { ...e, _volNesedi: nesedi.get(e.isin) } : e));
+    const nesedi = rizikoNesedi([...tridy.values()]);
+    return vysledek.map((e) => (nesedi.has(e.isin) ? { ...e, _rizikoNesedi: nesedi.get(e.isin) } : e));
   } catch (error) {
     console.error('Error in getComparisonETFsByIsins:', error);
     return [];
@@ -1120,7 +1120,7 @@ export const getScreenerRows = reactCache(async (): Promise<{
     })
     .filter((g) => g.options.length > 0);
   // Volatilita, která nesedí s jinou třídou téhož fondu → „—“ (pravidlo č. 1, src/lib/tridyFondu.ts).
-  const volNesedi = volatilitaNesedi(raw, ['1y']);
+  const volNesedi = rizikoNesedi(raw, ['volatility_1y']);
   const trhPodleIsin = new Map<string, string>();
   for (const t of TRHY_SROVNAVACE) for (const i of trhIsiny.get(t.id) ?? []) if (!trhPodleIsin.has(i)) trhPodleIsin.set(i, t.id);
 

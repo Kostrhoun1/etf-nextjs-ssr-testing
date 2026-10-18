@@ -15,7 +15,7 @@ import { platnyTicker } from '@/lib/ticker';
 import { anglickeTermy, skoreHledani } from '@/lib/hledaniCz';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import { procenta, terText, velikostText } from '@/lib/formatSrovnavac';
-import { VOL_NESEDI_TEXT } from '@/lib/tridyFondu';
+import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
@@ -55,7 +55,7 @@ function Dividenda({ e }: { e: ScreenerRow }) {
 
 /* Kolísavost: „—“ i tam, kde údaj zdroje nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts, pravidlo č. 1). */
 function Kolisavost({ e }: { e: ScreenerRow }) {
-  if (e._volX) return <span title={VOL_NESEDI_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({VOL_NESEDI_TEXT})</span></span>;
+  if (e._volX) return <span title={RIZIKO_NESEDI_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({RIZIKO_NESEDI_TEXT})</span></span>;
   return <>{pct1(num(e.volatility_1y))}</>;
 }
 
@@ -112,32 +112,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 /* Vysvětlivka v hlavičce tabulky. Tabulka je v kontejneru s overflow-x-auto, který by běžný
    absolutní tooltip ořízl → tooltip je `position: fixed` podle polohy ikony. Funguje na hover,
-   fokus i tap (dotyk). Revize kola 4: text přetékal z tmavého boxu (th má nowrap → `whitespace-normal`)
-   a u kraje mohl vyjet z obrazovky → šířka max. okno − 16 px, vodorovně držený v okně, a když se pod ikonu
-   nevejde, otevře se NAD ní (stejně jako viewport-aware InfoTip). */
+   fokus i tap (dotyk). Revize kola 4: th má nowrap → text přetékal z tmavého boxu, proto whitespace-normal.
+   (Sdílená viewport-aware komponenta TipTlacitko ji nahradí – řeší jiný vývojář.) */
 function HeadTip({ k, label }: { k: string; label: string }) {
-  const [pos, setPos] = useState<{ left: number; top: number; w: number; nahoru: boolean; anchorTop: number } | null>(null);
-  const [vyska, setVyska] = useState(0);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
-  const tipRef = useRef<HTMLSpanElement>(null);
   // Dotyk/klik spustí nejdřív focus (ukáže) a hned click – ten nesmí tooltip zase schovat. Click zavírá jen
   // tooltip, který už nějakou dobu svítí (druhé klepnutí).
   const ukazanoV = useRef(0);
-  const ukaz = () => {
-    const r = ref.current?.getBoundingClientRect();
-    if (!r) return;
-    if (!pos) ukazanoV.current = Date.now();
-    const vw = window.innerWidth;
-    const w = Math.min(256, vw - 16);
-    const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, vw - w - 8));
-    setPos({ left, top: r.bottom + 6, w, nahoru: false, anchorTop: r.top });
-  };
-  // Po vykreslení změřit výšku: když by tooltip přetekl spodní okraj okna, přesunout nad ikonu.
-  useEffect(() => {
-    if (!pos || !tipRef.current) return;
-    const h = tipRef.current.offsetHeight;
-    if (h !== vyska) setVyska(h);
-  }, [pos, vyska]);
+  const ukaz = () => { const r = ref.current?.getBoundingClientRect(); if (r) { if (!pos) ukazanoV.current = Date.now(); setPos({ x: r.left + r.width / 2, y: r.bottom + 6 }); } };
   useEffect(() => {
     if (!pos) return;
     const skryj = () => setPos(null);
@@ -145,7 +128,7 @@ function HeadTip({ k, label }: { k: string; label: string }) {
     window.addEventListener('resize', skryj);
     return () => { window.removeEventListener('scroll', skryj, true); window.removeEventListener('resize', skryj); };
   }, [pos]);
-  const nahoru = !!pos && vyska > 0 && pos.top + vyska > window.innerHeight - 8 && pos.anchorTop - 6 - vyska >= 8;
+  const w = 256;
   return (
     <>
       <button
@@ -158,9 +141,8 @@ function HeadTip({ k, label }: { k: string; label: string }) {
       </button>
       {pos && (
         <span
-          ref={tipRef}
           role="tooltip"
-          style={{ position: 'fixed', top: nahoru ? pos.anchorTop - 6 - vyska : pos.top, left: pos.left, width: pos.w, maxWidth: 'calc(100vw - 16px)' }}
+          style={{ position: 'fixed', top: pos.y, left: Math.max(8, Math.min(pos.x - w / 2, (typeof window !== 'undefined' ? window.innerWidth : 1200) - w - 8)), width: w, maxWidth: 'calc(100vw - 16px)' }}
           className="z-50 block whitespace-normal break-words rounded-lg bg-slate-900 px-3 py-2 text-left text-xs font-normal normal-case tracking-normal leading-relaxed text-white shadow-lg"
         >
           {VYSVETLIVKY[k]}
@@ -972,7 +954,7 @@ export default function ScreenerUI({
           <div className="absolute inset-x-0 bottom-0 max-h-[88vh] rounded-t-2xl md:inset-y-0 md:left-auto md:right-0 md:bottom-auto md:h-full md:max-h-none md:w-[26rem] md:rounded-none bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <p className="text-base font-semibold text-slate-900">Filtry<span className="md:hidden"> a řazení</span></p>
-              <button type="button" onClick={() => setPanel(false)} aria-label="Zavřít" className="flex items-center justify-center w-9 h-9 -mr-1.5 rounded-lg text-slate-500 hover:bg-slate-100"><X className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setPanel(false)} aria-label="Zavřít" className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9 -mr-2 rounded-lg text-slate-500 hover:bg-slate-100"><X className="w-5 h-5" /></button>
             </div>
             <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
               <div className="md:hidden grid grid-cols-1 gap-3">

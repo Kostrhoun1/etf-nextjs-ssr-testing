@@ -13,7 +13,7 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { barvaFondu } from '@/lib/barvyFondu';
 import { cislo, procenta, terText, velikostText } from '@/lib/formatSrovnavac';
-import { VOL_NESEDI_TEXT, type ObdobiVol } from '@/lib/tridyFondu';
+import { RIZIKO_NESEDI_TEXT, type RizikoPole } from '@/lib/tridyFondu';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
 const num = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
@@ -257,10 +257,11 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
     nej: { v: (e) => num(raw(e)[`return_${period}`]), smer: 1, fmt: pct },
     omit: etfs.every((e) => num(raw(e)[`return_${period}`]) == null),
   });
-  /* Volatilita, která nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts) → „—“ s vysvětlením. Pravidlo č. 1. */
+  /* Kolísavost/pokles, které nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts) → „—“ s vysvětlením.
+     Výnos / kolísavost stojí na téže kolísavosti → „—“ taky. Pravidlo č. 1. */
   const volNesedi = (e: ComparisonETF, key: string) => {
-    const o = key.match(/^volatility_(1y|3y|5y)$/)?.[1] as ObdobiVol | undefined;
-    return !!o && !!e._volNesedi?.includes(o);
+    const pole = (key.startsWith('return_per_risk_') ? `volatility_${key.slice(16)}` : key) as RizikoPole;
+    return !!e._rizikoNesedi?.includes(pole);
   };
   const riskVal = (e: ComparisonETF, key: string) => (volNesedi(e, key) ? null : num(raw(e)[key]));
   const riskRow = (label: string, key: string, mist: number, smer?: 1 | -1, suffix = true): Row => {
@@ -268,7 +269,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
     return {
       label,
       cell: (e) => {
-        if (volNesedi(e, key)) return <span title={VOL_NESEDI_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({VOL_NESEDI_TEXT})</span></span>;
+        if (volNesedi(e, key)) return <span title={RIZIKO_NESEDI_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({RIZIKO_NESEDI_TEXT})</span></span>;
         const v = riskVal(e, key);
         return v == null ? <span className="text-slate-400">—</span> : <span className="tabular-nums text-slate-700">{fmt(v)}</span>;
       },
@@ -486,7 +487,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
 
       <p className="mt-3 text-xs text-slate-500">
         <Check className="inline w-3.5 h-3.5 -mt-0.5 text-teal-700" aria-hidden="true" /> = nejlepší hodnota v řádku (vyšší výnos, nižší poplatek a kolísavost, menší pokles; při shodě po zaokrouhlení se neoznačuje).
-        {etfs.some((e) => e._volNesedi?.length) && <> Kolísavost „—“ = údaj zdroje nesedí s jinou třídou téhož fondu, proto ho neuvádíme.</>}
+        {etfs.some((e) => e._rizikoNesedi?.length) && <> Podtržená „—“ u rizika = údaj zdroje nesedí s jinou třídou téhož fondu (stejné portfolio), proto ho neuvádíme.</>}
         {vynechane.length > 0 && <> Vynechali jsme sekce {vynechane.join(', ')} – pro tyto fondy data nemáme (u komodit a krypta složení fondu nedává smysl).</>}
         {poziceChybi && <> Největší držené pozice {etfs.every(poziceNeuplne) ? '' : 'u některých fondů '}dočasně neuvádíme – ve zdroji dat chybí ta největší. Doplní se s další aktualizací.</>}
       </p>
