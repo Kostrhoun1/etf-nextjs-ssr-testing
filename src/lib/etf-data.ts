@@ -722,9 +722,24 @@ export async function getComparisonETFData(
         ? String(etf.isin) === ticker.toUpperCase()
         : COMPARISON_TICKER_FIELDS.some(f => (etf[f] as string)?.toUpperCase() === ticker.toUpperCase());
 
+    // Stejný ticker může mít víc fondů na různých burzách (SPYI = SPDR MSCI ACWI IMI na XETRA,
+    // ale i opční S&P 500 fond HANetf na LSE – /srovnani/vwce-vs-spyi ukazoval ten 1milionový,
+    // test s uživatelem 18. 10. 2026). Pořadí z DB je náhodné → vybrat: hlavní ticker fondu >
+    // ticker na XETRA > ostatní burzy; při shodě větší fond.
+    const skore = (etf: Record<string, unknown>, ticker: string) => {
+      const t = ticker.toUpperCase();
+      if (String(etf.primary_ticker ?? '').toUpperCase() === t) return 3;
+      for (let i = 1; i <= 10; i++) {
+        if (String(etf[`exchange_${i}_ticker`] ?? '').toUpperCase() === t && /xetra/i.test(String(etf[`exchange_${i}_name`] ?? ''))) return 2;
+      }
+      return 1;
+    };
     const radky = data as unknown as Record<string, unknown>[];
-    const etf1 = radky.find(e => matches(e, ticker1)) as ComparisonETF | undefined;
-    const etf2 = radky.find(e => matches(e, ticker2)) as ComparisonETF | undefined;
+    const nejlepsi = (ticker: string) => radky
+      .filter(e => matches(e, ticker))
+      .sort((a, b) => skore(b, ticker) - skore(a, ticker) || Number(b.fund_size_numeric ?? 0) - Number(a.fund_size_numeric ?? 0))[0];
+    const etf1 = nejlepsi(ticker1) as unknown as ComparisonETF | undefined;
+    const etf2 = nejlepsi(ticker2) as unknown as ComparisonETF | undefined;
 
     // Stejný ISIN (CSPX vs SXR8) se NEodmítá: je to častý dotaz „je to stejný fond?" a stránka
     // na něj odpoví (dřív 404).
