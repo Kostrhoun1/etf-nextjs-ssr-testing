@@ -41,6 +41,7 @@ export default async function KdeKoupitPreview() {
   const degiro = find('degiro');
   const fio = find('fio');
   const portu = find('portu');
+  const ibkr = find('ibkr');
 
   // Brokeři (bez robo-poradce Portu) seřazení podle skóre pro hlavní tabulku.
   const realBrokers = brokers.filter((b) => b.id !== 'portu').sort((a, b) => b.rating - a.rating);
@@ -240,7 +241,7 @@ export default async function KdeKoupitPreview() {
             <div className="mt-5 grid sm:grid-cols-3 gap-3">
               {[
                 { icon: Sparkles, label: 'Začínám a chci klid', name: portu.name, reason: `Robo-poradce sestaví a spravuje portfolio za vás (skóre ${portu.rating}). Jiná kategorie než broker.` },
-                { icon: Layers, label: 'Chci nejširší nabídku', name: degiro.name, reason: 'Tisíce UCITS ETF, ETF Selection od 1 EUR a směna CZK/EUR zdarma.' },
+                { icon: Layers, label: 'Chci nejširší nabídku', name: ibkr.name, reason: `${ibkr.etfCount}, ${ibkr.markets[0].replace('Global - ', '')}. Směna měn ${ibkr.fxFee}.` },
                 { icon: Percent, label: 'Chci nižší daň z dividend', name: fio.name, reason: 'Český broker – z českých dividend sráží jen 15 %, KID v češtině.' },
               ].map(({ icon: Icon, label, name, reason }) => (
                 <div key={label} className="rounded-lg border border-slate-200 p-4">
@@ -363,7 +364,7 @@ export default async function KdeKoupitPreview() {
 
         {/* SROVNÁVACÍ TABULKA */}
         <section id="srovnani" className="pb-10 scroll-mt-16">
-          <SectionHead title="Srovnání brokerů pro ETF" desc="Šest platforem na jednom místě. Pod 768px se tabulka mění na karty." href="/srovnani-brokeru" hrefLabel="detailní srovnání" />
+          <SectionHead title="Srovnání brokerů pro ETF" desc="Šest platforem na jednom místě – poplatky, směna měn a ochrana vedle sebe." href="/srovnani-brokeru" hrefLabel="detailní srovnání" />
 
           {/* Desktop tabulka */}
           <div className="hidden md:block rounded-lg border border-slate-200 bg-white overflow-hidden">

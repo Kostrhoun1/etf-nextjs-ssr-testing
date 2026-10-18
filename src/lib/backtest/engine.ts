@@ -534,7 +534,10 @@ function combinePortfolio(
   // Market-only NAV (bez vkladů) – time-weighted řada pro výnos a riziko (drawdown, vol, Sharpe…).
   // Vklady totiž maskují propady a zkreslují výnos; risk/return metriky musí být na této řadě.
   const marketNav: TimeSeriesPoint[] = []
-  let marketNavValue = initialAmount
+  // Počáteční vklad smí být 0 (jen pravidelné vklady). marketNav je čistě poměrová řada → začíná na 1,
+  // když počáteční částka chybí. Dřív API nulu tiše nahradilo 10 000 Kč (do „vloženo“ i do výsledku,
+  // test s uživatelem 18. 10. 2026: 0 + 2 000 Kč měsíčně ukázalo „vloženo 532 000 Kč“).
+  let marketNavValue = initialAmount > 0 ? initialAmount : 1
   let prevTotalValue = initialAmount
 
   let prevDate: Date | null = null
@@ -559,20 +562,23 @@ function combinePortfolio(
     if (etfValues.some((v) => v === null)) continue
 
     // Calculate new portfolio value based on holdings growth
+    let vahovyRust = 1 // růst cílového složení – pro marketNav, dokud portfolio nemá žádné peníze
     if (i > 0) {
       let newValue = 0
+      vahovyRust = 0
       for (let j = 0; j < holdings.length; j++) {
         const etf = etfValues[j]!
         const growth = etf.current / etf.previous
         holdings[j] = holdings[j] * growth
         newValue += holdings[j]
+        vahovyRust += etfSeries[j].weight * growth
       }
       portfolioValue = newValue
     }
 
     // Market-only růst za tento krok (hodnota PŘED přičtením vkladu) = time-weighted výnos.
-    if (i > 0 && prevTotalValue > 0) {
-      marketNavValue = marketNavValue * (portfolioValue / prevTotalValue)
+    if (i > 0) {
+      marketNavValue = marketNavValue * (prevTotalValue > 0 ? portfolioValue / prevTotalValue : vahovyRust)
     }
 
     // Add recurring contribution if applicable
@@ -706,7 +712,9 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
       priceSeries,
       sourceTer,
       desiredTer,
-      item.weight * initialAmount
+      // Řada fondu slouží jen jako poměry růstu (combinePortfolio drží vlastní holdings) → měřítko 1,
+      // když počáteční vklad je 0 (jinak 0/0 = NaN).
+      item.weight * (initialAmount > 0 ? initialAmount : 1)
     )
 
     etfSeries.push({

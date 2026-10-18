@@ -37,6 +37,10 @@ export default async function PorovnaniPreview(
   const list = (isins ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 4);
   const etfs = await getComparisonETFsByIsins(list);
 
+  // Každé číslo má datum (pravidlo č. 1): nejstarší datum stažení dat mezi porovnávanými fondy.
+  const nejstarsi = etfs.map((e) => (e as unknown as { scraping_date?: string | null }).scraping_date).filter(Boolean).sort()[0];
+  const datumDat = nejstarsi ? new Date(nejstarsi).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Europe/Prague' }) : null;
+
   if (etfs.length < 2) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -63,7 +67,10 @@ export default async function PorovnaniPreview(
 
         <section className="pb-6">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Porovnání {etfs.length} fondů</h1>
-          <p className="mt-1 text-sm text-slate-500">Parametry vedle sebe. Výnosy přepočtené do zvolené měny (výchozí koruny).</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Výnosy přepočtené do zvolené měny (výchozí koruny).
+            {datumDat && <> · <span className="whitespace-nowrap">Data k {datumDat}</span></>}
+          </p>
         </section>
 
         <PorovnaniTable etfs={etfs} />

@@ -359,6 +359,24 @@ const main = async () => {
     varovani.push({ co: `Kontrolu čísla stroje času se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── BACKTEST: vklady sedí (18. 10. 2026: počáteční vklad 0 Kč API tiše nahradilo 10 000 Kč) ──
+  // Rok 2024 s 1 000 Kč měsíčně a nulovým počátečním vkladem: vklad v každém novém měsíci kromě prvního = 11 000 Kč.
+  try {
+    const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        portfolio: [{ isin: 'sp500', name: 'sp500', indexCode: 'sp500', weight: 1, ter: 0 }],
+        startDate: '2024-01-01', endDate: '2024-12-31', initialAmount: 0,
+        currency: 'CZK', rebalancingStrategy: 'yearly', contributions: { amount: 1000, frequency: 'monthly' },
+      }),
+    }).then((r) => r.json());
+    const vlozeno = bt?.summary?.amountInvested;
+    if (vlozeno !== 11000) poplach.push({ co: 'Backtest počítá vklady špatně (0 Kč na začátku + 1 000 Kč měsíčně v roce 2024 má dát vloženo 11 000 Kč)', ukazka: [`API vrací vloženo ${vlozeno}`] });
+    else if (!(bt?.summary?.cagr > 0.15 && bt.summary.cagr < 0.45)) poplach.push({ co: 'Backtest s nulovým počátečním vkladem vrací nesmyslný roční výnos S&P 500 za 2024 v Kč', ukazka: [`cagr ${bt?.summary?.cagr}`] });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu vkladů backtestu se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── CHYBY Z PROHLÍŽEČŮ za 24 h (tabulka client_errors, plní /api/client-error) ──
   // Zatím jen VAROVÁNÍ: běžnou úroveň ještě neznáme. Poplach doplnit, až bude pár týdnů dat.
   const od = new Date(Date.now() - 864e5).toISOString();

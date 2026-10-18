@@ -57,7 +57,8 @@ export async function simulateAndSerialize(body: SimulateRequestBody) {
     })),
     startDate,
     endDate,
-    initialAmount: body.initialAmount || 10000,
+    // 0 je platná volba (jen pravidelné vklady); výchozí 10 000 jen když částka chybí úplně.
+    initialAmount: Number.isFinite(body.initialAmount) && body.initialAmount >= 0 ? body.initialAmount : 10000,
     rebalancingStrategy: body.rebalancingStrategy || 'yearly',
     contributions: body.contributions,
     currency,

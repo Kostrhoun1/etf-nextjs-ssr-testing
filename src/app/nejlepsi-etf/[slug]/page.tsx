@@ -83,7 +83,13 @@ export default async function CategoryDetailPreview(
   // Tři žebříčky z dat kategorie.
   const byTer = [...etfs].filter((e) => e.ter_numeric != null && e.ter_numeric > 0).sort((a, b) => (a.ter_numeric! - b.ter_numeric!)).slice(0, 5);
   const bySize = [...etfs].filter((e) => e.fund_size_numeric != null).sort((a, b) => (b.fund_size_numeric! - a.fund_size_numeric!)).slice(0, 5);
-  const byPerf = [...etfs].filter((e) => e.return_1y_czk != null).sort((a, b) => (b.return_1y_czk! - a.return_1y_czk!)).slice(0, 5);
+  // Nejvýkonnější: jen „čisté“ varianty indexu (ne ESG/Screened/Leaders/zajištěné třídy – liší se metodikou,
+  // ne kvalitou fondu; revize 18. 10. 2026: v S&P 500 vyhrával „S&P 500 Leaders“) a fondy ≥ 100 mil. €.
+  const jeEsgKategorie = /esg|udrzitel|klima|zajist|hedg|equal|stejne-vah/i.test(slug);
+  const VARIANTA = /\b(ESG|SRI|Screened|Scored|Leaders|Paris|Climate|PAB|CTB|Equal Weight|Hedged)\b/i;
+  const byPerf = [...etfs]
+    .filter((e) => e.return_1y_czk != null && (e.fund_size_numeric ?? 0) >= 100 && (jeEsgKategorie || !VARIANTA.test(e.name)))
+    .sort((a, b) => (b.return_1y_czk! - a.return_1y_czk!)).slice(0, 5);
 
   // Infografika „co v tom je" – složení vlajkového (největšího) fondu kategorie.
   const flagship = bySize[0];
@@ -100,7 +106,7 @@ export default async function CategoryDetailPreview(
   const pushReco = (tag: string, icon: typeof Trophy, etf: ETFBasicInfo | undefined, note: string) => {
     if (etf && !recos.some((r) => r.etf.isin === etf.isin)) recos.push({ tag, icon, etf, note });
   };
-  pushReco('Vlajková loď', Trophy, bySize[0], 'Největší a nejlikvidnější fond v kategorii – bezpečná výchozí volba.');
+  pushReco('Největší fond', Trophy, bySize[0], 'Největší a nejlikvidnější fond v kategorii.');
   pushReco('Nejnižší poplatek', Wallet, byTer[0], byTer[0] ? `Nejlevnější v kategorii, TER ${ter(byTer[0].ter_numeric)}.` : '');
   pushReco('Nejvyšší výnos (1R)', TrendingUp, byPerf[0], byPerf[0] ? `Za posledních 12 měsíců ${pct(byPerf[0].return_1y_czk)} v Kč.` : '');
 
@@ -187,7 +193,7 @@ export default async function CategoryDetailPreview(
         {/* NAŠE DOPORUČENÉ ETF – grafické, proklikávací */}
         {recos.length > 0 && (
           <section className="pb-8">
-            <SectionHead title="Naše doporučené ETF" desc="Konkrétní fondy z kategorie – klikněte pro detail s výnosem v Kč, složením a riziky." />
+            <SectionHead title="Vybrané podle dat" desc="Největší, nejlevnější a nejvýkonnější fond kategorie – klikněte pro detail s výnosem v Kč, složením a riziky." />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {recos.map(({ tag, icon: Icon, etf, note }, i) => (
                 <div

@@ -250,6 +250,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
      'yearly' – volba nešla nikde nastavit. Přitom to, jak často se portfolio vrací
      k cílovým vahám, výsledkem znatelně hýbe. */
   const [rebalancing, setRebalancing] = useState<RebalancingStrategy>('yearly');
+  // Pro jaké nastavení výsledek platí. Revize 18. 10. 2026: po kliku na preset zůstal starý výsledek
+  // (S&P 500) pod novým složením bez upozornění = věrohodné špatné číslo (pravidlo č. 1).
+  const konfig = JSON.stringify([selectedETFs.map((e) => [e.indexCode, e.isin, e.weight, e.fond?.ter ?? null]), startDate, endDate, initialAmount, contributionAmount, contributionFrequency, rebalancing, compareIds]);
+  const [vysledekPro, setVysledekPro] = useState<string | null>(null);
 
   const totalWeight = selectedETFs.reduce((sum, etf) => sum + etf.weight, 0);
   // Vážený roční poplatek portfolia (TER) – kolik ročně stojí držení celého portfolia.
@@ -349,6 +353,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     }
     setLoading(true);
     setError(null);
+    const konfigBehu = konfig;
     try {
       const contributions = contributionFrequency !== 'none' && contributionAmount > 0
         ? { amount: contributionAmount, frequency: contributionFrequency as 'monthly' | 'quarterly' | 'yearly' }
@@ -409,6 +414,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       const [mainData, ...compData] = results;
 
       setResult(mainData);
+      setVysledekPro(konfigBehu);
       setResultCurrency(cur);
       setComparison(
         compareIds.length
@@ -531,19 +537,34 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   // Denní řada má ~5000+ bodů → obří SVG path, na mobilu se dlouho vykresluje a chvíli
   // je graf prázdný. Podvzorkujeme na ~400 bodů (poslední bod zachováme) – vizuálně
   // identické na šířce grafu, ale path je ~30× menší a kreslí se okamžitě.
+  // „Vloženo“ v čase = schody podle vkladů (stejné pravidlo jako engine: vklad na prvním dni nového
+  // měsíce/čtvrtletí/roku, ne první den). Dřív vodorovná čára na KONEČNÉ sumě → graf tvrdil, že portfolio
+  // bylo léta „pod vloženými penězi“ (test s uživatelem 18. 10. 2026). Nesedí-li součet s výsledkem
+  // enginu, čáru nekreslíme (pravidlo č. 1).
   const chartData = useMemo(() => {
     if (!result) return [];
     const ev = result.evolution;
+    const vklad = contributionFrequency !== 'none' ? contributionAmount : 0;
+    const obdobi = (d: Date) => contributionFrequency === 'monthly' ? d.getUTCFullYear() * 12 + d.getUTCMonth()
+      : contributionFrequency === 'quarterly' ? d.getUTCFullYear() * 4 + Math.floor(d.getUTCMonth() / 3) : d.getUTCFullYear();
+    const vlozeno: number[] = [];
+    let suma = initialAmount;
+    for (let i = 0; i < ev.length; i++) {
+      if (i > 0 && vklad > 0 && obdobi(new Date(ev[i].date)) !== obdobi(new Date(ev[i - 1].date))) suma += vklad;
+      vlozeno.push(suma);
+    }
+    const sedi = Math.abs(suma - result.summary.amountInvested) < 1;
     const MAX = 400;
     const step = ev.length > MAX ? Math.ceil(ev.length / MAX) : 1;
-    const out: { date: string; value: number }[] = [];
-    for (let i = 0; i < ev.length; i += step) out.push({ date: ev[i].date, value: Math.round(ev[i].value) });
-    const last = ev[ev.length - 1];
-    if (out.length && out[out.length - 1].date !== last.date) out.push({ date: last.date, value: Math.round(last.value) });
+    const out: { date: string; value: number; vlozeno?: number }[] = [];
+    const bod = (i: number) => ({ date: ev[i].date, value: Math.round(ev[i].value), ...(sedi ? { vlozeno: vlozeno[i] } : {}) });
+    for (let i = 0; i < ev.length; i += step) out.push(bod(i));
+    if (out.length && out[out.length - 1].date !== ev[ev.length - 1].date) out.push(bod(ev.length - 1));
     return out;
+    // Parametry vkladů se čtou k výsledku; při změně nastavení je výsledek zašedlý (vysledekPro ≠ konfig).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
-
-  const investedLine = result ? result.summary.amountInvested : 0;
+  const maVlozeno = chartData.length > 0 && chartData[0].vlozeno != null;
 
   // Pokročilé ukazatele z ročních výnosů (engine je počítá time-weighted, bez vkladů).
   const advanced = useMemo(() => {
@@ -583,7 +604,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   key={preset.id}
                   type="button"
                   aria-pressed={on}
-                  onClick={() => applyPreset(preset.id)}
+                  onClick={() => { applyPreset(preset.id); setTimeout(() => runBacktestRef.current(), 90); }}
                   className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${on ? 'border-teal-600 bg-teal-700 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
                 >
                   {PRESET_SHORT[preset.id] ?? preset.name}
@@ -975,8 +996,14 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       )}
 
       {/* ===== VÝSLEDKY ===== */}
+      {result && !loading && vysledekPro !== konfig && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-900">Výsledek níže platí pro <b>předchozí nastavení</b>. Nastavení jste změnili.</p>
+          <button type="button" onClick={() => runBacktestRef.current()} className="min-h-11 rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800">Přepočítat</button>
+        </div>
+      )}
       {result && (
-        <div className={loading ? 'space-y-4 opacity-50 pointer-events-none transition-opacity' : 'space-y-4'}>
+        <div className={loading || vysledekPro !== konfig ? 'space-y-4 opacity-40 pointer-events-none transition-opacity' : 'space-y-4'} aria-hidden={vysledekPro !== konfig || undefined}>
           {/* Headline výsledek – kolik jsi vložil vs. kolik z toho je zisk (v Kč) */}
           {(() => {
             const invested = result.summary.amountInvested;
@@ -1089,15 +1116,12 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     width={64} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
                     tickFormatter={(v: number) => fmtCompact(v, resultCurrency)}
                   />
-                  {investedLine > 0 && (
-                    <ReferenceLine y={investedLine} stroke="#64748b" strokeDasharray="4 4"
-                      label={{ value: 'vloženo', position: 'insideTopLeft', fontSize: 10, fill: '#64748b' }} />
-                  )}
+
                   <Tooltip
                     cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }}
                     content={({ active, payload }) => {
                       if (!active || !payload || !payload.length) return null;
-                      const p = payload[0].payload as { date: string; value: number };
+                      const p = payload[0].payload as { date: string; value: number; vlozeno?: number };
                       return (
                         <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
                           <div className="font-semibold mb-0.5">
@@ -1107,16 +1131,20 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                             <span className="inline-block w-2 h-2 rounded-full bg-teal-400" />
                             Hodnota: <span className="font-medium tabular-nums">{fmtMoney(p.value, resultCurrency)}</span>
                           </div>
+                          {p.vlozeno != null && (
+                            <div className="mt-0.5 text-slate-300">Vloženo: <span className="tabular-nums">{fmtMoney(p.vlozeno, resultCurrency)}</span></div>
+                          )}
                         </div>
                       );
                     }}
                   />
                   <Area type="monotone" dataKey="value" stroke="#0d9488" strokeWidth={2} fill="url(#btFill)" />
+                  {maVlozeno && <Area type="stepAfter" dataKey="vlozeno" stroke="#64748b" strokeDasharray="4 4" strokeWidth={1.5} fill="none" isAnimationActive={false} />}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-              Přerušovaná čára ukazuje celkem vložené prostředky. Plocha nad ní je zhodnocení, propady pod předchozí vrchol jsou ony „max. poklesy“.
+              {maVlozeno ? 'Přerušovaná čára ukazuje, kolik jste k danému dni celkem vložili.' : ''} Plocha nad ní je zhodnocení, propady pod předchozí vrchol jsou ony „max. poklesy“.
             </p>
           </div>
 

@@ -192,7 +192,7 @@ export default async function PortfolioStrategieDesignPreview() {
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Pro koho je která strategie</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Rozhodněte se na první pohled – bez čtení všech pěti detailů.
+              Rozhodněte se na první pohled – bez čtení všech detailů.
             </p>
           </div>
           <PortfolioVerdictTable />

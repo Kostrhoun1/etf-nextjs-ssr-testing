@@ -158,12 +158,15 @@ export function SrovnaniParamKarty({
 /* Sestaví řádky tabulky parametrů z dvojice fondů.
    Výnosy jsou přepočtené do korun (return_*_czk) – korunový úhel je USP webu. */
 export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Currency = 'CZK'): RadekProps[] {
-  const lowerTerWin = (a: number | null, b: number | null): 0 | 1 | 2 => {
-    if (a == null || b == null || a === b) return 0;
+  // Vítěz jen při rozdílu, který je VIDĚT (po zaokrouhlení na zobrazená desetinná místa) – dřív SXR8 „vyhrál“
+  // nad VUSA při +68,2 % vs +68,2 % (test s uživatelem 18. 10. 2026).
+  const zaokr = (x: number, dp: number) => Math.round(x * 10 ** dp) / 10 ** dp;
+  const lowerTerWin = (a: number | null, b: number | null, dp = 2): 0 | 1 | 2 => {
+    if (a == null || b == null || zaokr(a, dp) === zaokr(b, dp)) return 0;
     return a < b ? 1 : 2;
   };
-  const higherWin = (a: number | null, b: number | null): 0 | 1 | 2 => {
-    if (a == null || b == null || a === b) return 0;
+  const higherWin = (a: number | null, b: number | null, dp = 1): 0 | 1 | 2 => {
+    if (a == null || b == null || zaokr(a, dp) === zaokr(b, dp)) return 0;
     return a > b ? 1 : 2;
   };
   const o1 = etf1 as unknown as Record<string, unknown>;
@@ -184,7 +187,7 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
       hint: 'Vyšší majetek = lepší likvidita a nižší riziko zrušení',
       v1: money(etf1.fund_size_numeric, etf1.fund_currency),
       v2: money(etf2.fund_size_numeric, etf2.fund_currency),
-      winner: higherWin(etf1.fund_size_numeric, etf2.fund_size_numeric),
+      winner: higherWin(etf1.fund_size_numeric, etf2.fund_size_numeric, -2),
     },
     {
       label: 'Počet pozic ve fondu',
@@ -230,7 +233,7 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
       hint: 'Roční volatilita ceny – nižší číslo znamená klidnější průběh',
       v1: etf1.volatility_1y != null ? `${etf1.volatility_1y.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—',
       v2: etf2.volatility_1y != null ? `${etf2.volatility_1y.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—',
-      winner: lowerTerWin(etf1.volatility_1y, etf2.volatility_1y),
+      winner: lowerTerWin(etf1.volatility_1y, etf2.volatility_1y, 1),
     },
     {
       label: 'Max. pokles (1 rok, v EUR)',

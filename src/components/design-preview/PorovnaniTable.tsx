@@ -6,6 +6,7 @@ import type { ComparisonETF } from '@/lib/etf-data';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
 import { platnyTicker } from '@/lib/ticker';
+import { ceskaZeme, ceskySektor, ceskeZamereni } from '@/lib/preklady';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
 const num = (v: unknown) => (v == null || Number.isNaN(Number(v)) ? null : Number(v));
@@ -57,7 +58,7 @@ function WeightList({ e, prefix, n }: { e: ComparisonETF; prefix: string; n: num
     <ul className="space-y-1">
       {items.map((it, i) => (
         <li key={i} className="flex items-center justify-between gap-2 text-xs">
-          <span className="truncate text-slate-700">{it.name}</span>
+          <span className="truncate text-slate-700">{prefix === 'country' ? ceskaZeme(it.name) : prefix === 'sector' ? ceskySektor(it.name) : it.name}</span>
           {it.w != null && <span className="shrink-0 tabular-nums text-slate-500">{pct1(it.w)}</span>}
         </li>
       ))}
@@ -102,7 +103,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
         { label: 'ISIN', cell: (e) => <span className="font-mono text-xs text-slate-700">{e.isin}</span> },
         { label: 'Poskytovatel', cell: (e) => str(e.fund_provider) ?? '—' },
         { label: 'Sledovaný index', cell: (e) => str(e.index_name) ?? '—' },
-        { label: 'Zaměření', cell: (e) => str(raw(e).investment_focus) ?? str(e.region) ?? '—' },
+        { label: 'Zaměření', cell: (e) => ceskeZamereni(str(raw(e).investment_focus) ?? str(e.region)) || '—' },
         { label: 'Typ výplaty', cell: (e) => distTypeLabel(e.distribution_policy, e.distribution_frequency) },
         { label: 'Replikace', cell: (e) => replLabel(e.replication) },
         { label: 'Domicil', cell: (e) => dom(e.fund_domicile) },
@@ -179,7 +180,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-500">Kompletní srovnání vedle sebe. Zelené pole = nejlepší hodnota v řádku.</p>
+        <p className="text-sm text-slate-500">Zelené pole = nejlepší hodnota v řádku (při shodě se nezvýrazňuje).</p>
         <CurrencyToggle />
       </div>
       {/* DESKTOP: tabulka vedle sebe */}
@@ -206,7 +207,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
                   <tr key={i} className="border-b border-slate-100 align-top">
                     <td className="py-2.5 px-2.5 sm:px-4 text-slate-500 font-medium sticky left-0 bg-white">{r.label}</td>
                     {etfs.map((e) => (
-                      <td key={e.isin} className={`py-2.5 px-2.5 sm:px-4 ${r.top ? '' : 'tabular-nums'} ${r.best?.(e) ? 'font-bold text-emerald-700' : 'text-slate-800'}`}>{r.cell(e)}</td>
+                      <td key={e.isin} className={`py-2.5 px-2.5 sm:px-4 ${r.top ? '' : 'tabular-nums'} ${r.best?.(e) && etfs.filter((x) => r.best!(x)).length === 1 ? 'font-bold text-emerald-700' : 'text-slate-800'}`}>{r.cell(e)}</td>
                     ))}
                   </tr>
                 ))}
@@ -235,7 +236,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
                   <p className="text-xs text-slate-500 mb-1.5">{r.label}</p>
                   <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${etfs.length}, minmax(0,1fr))` }}>
                     {etfs.map((e) => (
-                      <div key={e.isin} className={`min-w-0 text-sm ${r.top ? '' : 'tabular-nums'} ${r.best?.(e) ? 'font-bold text-emerald-700' : 'text-slate-800'}`}>{r.cell(e)}</div>
+                      <div key={e.isin} className={`min-w-0 text-sm ${r.top ? '' : 'tabular-nums'} ${r.best?.(e) && etfs.filter((x) => r.best!(x)).length === 1 ? 'font-bold text-emerald-700' : 'text-slate-800'}`}>{r.cell(e)}</div>
                     ))}
                   </div>
                 </div>

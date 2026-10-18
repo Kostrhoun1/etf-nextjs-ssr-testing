@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Scale, X, ArrowRight, Plus } from 'lucide-react';
 import { getCompare, subscribeCompare, removeCompare, clearCompare, type CompareItem } from '@/components/design-preview/compareStore';
 
@@ -9,6 +10,7 @@ import { getCompare, subscribeCompare, removeCompare, clearCompare, type Compare
 export default function CompareTray() {
   const [items, setItems] = useState<CompareItem[]>([]);
   const [ready, setReady] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const sync = () => setItems(getCompare());
@@ -17,7 +19,8 @@ export default function CompareTray() {
     return subscribeCompare(sync);
   }, []);
 
-  if (!ready || items.length === 0) return null;
+  // Na stránce porovnání lišta jen zakrývala tabulku a nabízela „Porovnat“ toho, co už člověk vidí.
+  if (!ready || items.length === 0 || pathname?.startsWith('/srovnani/porovnani')) return null;
 
   const href = `/srovnani/porovnani?isins=${items.map((i) => i.isin).join(',')}`;
 

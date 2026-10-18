@@ -26,6 +26,7 @@ import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaInde
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy } from '@/lib/trhy';
 import { platnyTicker } from '@/lib/ticker';
+import { ceskaZeme, ceskySektor } from '@/lib/preklady';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -432,23 +433,6 @@ export default async function ETFDetailPreview(
   })).filter((s) => s.name && s.name.trim() !== '' && s.weight != null && s.weight > 0);
   const sectorMax = Math.max(...sectors.map((s) => s.weight ?? 0), 1);
 
-  /* český překlad názvů zemí a sektorů (běžné případy) */
-  const trCountry: Record<string, string> = {
-    'United States': 'Spojené státy',
-    Ireland: 'Irsko',
-    Other: 'Ostatní',
-  };
-  const trSector: Record<string, string> = {
-    Technology: 'Technologie',
-    Telecommunication: 'Komunikační služby',
-    'Communication Services': 'Komunikační služby',
-    'Consumer Discretionary': 'Spotřební zboží (cyklické)',
-    Financials: 'Finance',
-    Healthcare: 'Zdravotnictví',
-    Industrials: 'Průmysl',
-    Other: 'Ostatní sektory',
-  };
-
   /* ---------- JSON-LD ---------- */
   const productSchema = {
     '@context': 'https://schema.org',
@@ -703,7 +687,7 @@ export default async function ETFDetailPreview(
                 </h3>
                 <div className="mt-3 divide-y divide-slate-100">
                   {sectors.map((s) => (
-                    <WeightRow key={s.name} label={trSector[s.name] ?? s.name} weight={s.weight!} max={sectorMax} />
+                    <WeightRow key={s.name} label={ceskySektor(s.name)} weight={s.weight!} max={sectorMax} />
                   ))}
                 </div>
               </div>
@@ -714,7 +698,7 @@ export default async function ETFDetailPreview(
                 </h3>
                 <div className="mt-3 divide-y divide-slate-100">
                   {countries.map((c) => (
-                    <WeightRow key={c.name} label={trCountry[c.name] ?? c.name} weight={c.weight!} max={countryMax} />
+                    <WeightRow key={c.name} label={ceskaZeme(c.name)} weight={c.weight!} max={countryMax} />
                   ))}
                 </div>
               </div>
@@ -762,12 +746,16 @@ export default async function ETFDetailPreview(
               <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">Kolik výnosu fond přinesl na jednotku kolísavosti za poslední rok.</p>
             </div>
           </div>
-          {(etf.fund_currency && etf.fund_currency !== 'CZK') || (countries[0] && (countries[0].weight ?? 0) > 55) ? (
+          {(etf.fund_currency && etf.fund_currency !== 'CZK') || (countries[0] && (countries[0].weight ?? 0) >= 80) ? (
             <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-4">
               <p className="flex items-start gap-2 text-sm text-amber-900/90 leading-relaxed">
                 <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-700" />
+                {/* Text v jednom <span> – přímé potomky flexu (text, odkaz, text) prohlížeč skládal do 3 úzkých sloupců. */}
+                <span>
                 {etf.fund_currency && etf.fund_currency !== 'CZK' && <>Fond kotuje v {etf.fund_currency}, nesete tak měnové riziko vůči koruně – posílení Kč váš výnos snižuje, oslabení ho zvyšuje.{isHedged ? ' Měnové zajištění (hedged) tlumí jen pohyby uvnitř fondu vůči jeho měně, riziko '+etf.fund_currency+'/CZK ale nese český investor dál.' : ''} <Link href="/menove-riziko-etf" className="font-medium underline underline-offset-2">Jak moc měna mění výnos v Kč?</Link> </>}
-                {countries[0] && (countries[0].weight ?? 0) > 55 && <>Zhruba {Math.round(countries[0].weight ?? 0)} % fondu míří do jediné země ({trCountry[countries[0].name] ?? countries[0].name}), což zvyšuje koncentraci.</>}
+                {/* Práh 80 %: u VWCE (≈ 60 % USA) varování o koncentraci působilo absurdně (revize 18. 10. 2026). */}
+                {countries[0] && (countries[0].weight ?? 0) >= 80 && <>Zhruba {Math.round(countries[0].weight ?? 0)} % fondu míří do jediné země ({ceskaZeme(countries[0].name)}), což zvyšuje koncentraci.</>}
+                </span>
               </p>
             </div>
           ) : null}
