@@ -27,10 +27,10 @@ export interface Trh {
 
 export const TRHY: Trh[] = [
   {
-    id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI, Solactive GBS', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
+    id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI, FTSE Global All Cap, Solactive GBS', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
     isins: ['IE00BK5BQT80', 'IE00B3RBWM25', 'IE00B6R52259', 'IE000716YHJ7', 'IE0000QLH0G6', 'IE00BYM11H29', 'IE00BJXFZ989',
       'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65', 'IE00B44Z5B48', 'IE0009HF1MK9', 'IE0003XJA0J9',
-      'LU2903252349'],
+      'LU2903252349', 'IE000VAHT5T0'],
   },
   {
     id: 'world', label: 'MSCI World', index: 'vyspělé trhy', href: '/nejlepsi-etf/nejlepsi-msci-world-etf',
