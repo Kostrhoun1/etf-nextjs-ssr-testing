@@ -4,6 +4,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ChevronDown, Sparkles, Coins, Layers, Globe, Landmark, Bot } from 'lucide-react';
+import InfoTip from '@/components/design-preview/InfoTip';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { brokers, brokeriPodleSkore, nakladNakupu, provizeEur, popisSmeny, type Kurzy } from '@/data/brokerData';
 import type { Broker } from '@/types/broker/index';
@@ -47,6 +48,19 @@ export function FaqSeznam({ items }: { items: readonly { q: string; a: string }[
         </details>
       ))}
     </div>
+  );
+}
+
+/* ---------- Popisek s vysvětlivkou, který se smí zalomit ----------
+   InfoTip drží text i ikonu v inline-flexu; s vynuceným zalomením se ikona odsunula na pravý kraj buňky
+   (kolo 4). Tady se láme jen text a POSLEDNÍ slovo drží ikonu – ⓘ je vždy hned za textem. */
+export function TipZaTextem({ text, tip }: { text: string; tip: string }) {
+  const i = text.lastIndexOf(' ');
+  return (
+    <span>
+      {i > 0 ? `${text.slice(0, i)} ` : ''}
+      <InfoTip label={tip}>{i > 0 ? text.slice(i + 1) : text}</InfoTip>
+    </span>
   );
 }
 
@@ -130,10 +144,17 @@ export const CASTKA_PRIKLAD = 2000;
 
 /* ---------- Autor – jeden box pro všechny stránky o brokerech ----------
    Fotka autora v repu není (public/ prohledáno 18. 10. 2026) → iniciály v kroužku jako na /o-nas, ne ikona. */
+/** Iniciály autora – JEDINÁ podoba autora na stránkách o brokerech (kolo 4: v hero byla ikona, dole „TK“). */
+export function AutorZnak({ tmavy = false, velky = false }: { tmavy?: boolean; velky?: boolean }) {
+  const vel = velky ? 'h-10 w-10 text-sm' : 'h-5 w-5 text-[9px]';
+  const barva = tmavy ? 'bg-white/10 text-slate-100 ring-1 ring-white/20' : 'bg-teal-50 text-teal-700';
+  return <span aria-hidden className={`flex ${vel} shrink-0 items-center justify-center rounded-full font-bold tracking-tight ${barva}`}>TK</span>;
+}
+
 export function AutorBox({ children }: { children?: ReactNode }) {
   return (
     <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
-      <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-50 text-sm font-bold tracking-tight text-teal-700">TK</span>
+      <AutorZnak velky />
       <p className="text-sm leading-relaxed text-slate-600">
         <span className="block font-semibold text-slate-900">Tomáš Kostrhoun</span>
         {children ?? 'Brokery srovnáváme podle veřejných ceníků, bez provizí a placeného pořadí.'}{' '}

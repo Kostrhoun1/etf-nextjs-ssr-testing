@@ -7,13 +7,13 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, CalendarDays, Check, X, ExternalLink, ChevronDown, ThumbsUp, ThumbsDown,
 } from 'lucide-react';
-import InfoTip from '@/components/design-preview/InfoTip';
+import StickyKdyzSeVejde from './StickyKdyzSeVejde';
 import {
-  brokers, nakladNakupu, popisPoplatku, popisSmeny, popisMinVkladu, ochranaHotovosti, ochranaPapiru,
+  brokers, nakladNakupu, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisVedeniUctu, popisDaneDividend, ochranaHotovosti, ochranaPapiru,
   cenikyOverenyIso, cenikyOverenyStr,
 } from '@/data/brokerData';
 import { getBrokerContent } from '@/components/design-preview/brokerContent';
-import { BrokerLogo, FaqSeznam, AutorBox, CASTKA_PRIKLAD } from '@/components/design-preview/brokerUI';
+import { BrokerLogo, FaqSeznam, AutorBox, TipZaTextem, CASTKA_PRIKLAD } from '@/components/design-preview/brokerUI';
 import { nactiKurzCnb, datumKurzu } from '@/lib/kurzCnb';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
@@ -55,8 +55,6 @@ export default async function BrokerReview(
   const c = getBrokerContent(b.id);
   const kurzy = await nactiKurzCnb();
 
-  const pros = c?.pros ?? b.pros;
-  const cons = c?.cons ?? b.cons;
 
   /* Příkladový nákup – spočítaný z ceníku a kurzu ČNB (ne natvrdo). „od“ = část nákladu neznáme. */
   const n = kurzy && !b.robo ? nakladNakupu(b, CASTKA_PRIKLAD, kurzy) : null;
@@ -75,7 +73,7 @@ export default async function BrokerReview(
         { k: 'Roční poplatek za správu', v: b.managementFee, tip: 'Platí se každý rok z celé hodnoty portfolia; zahrnuje nákupy, rebalancování i směnu měn.' },
         { k: 'Směna měn', v: b.fxFee },
         { k: 'Minimální vklad', v: popisMinVkladu(b) },
-        { k: 'Daň z českých dividend', v: b.czDividends },
+        { k: 'Daň z českých dividend', ...popisDaneDividend(b) },
       ]
     : [
         { k: 'Nákup ETF (Xetra)', v: popisPoplatku(b) ?? '—', pozn: b.nakup?.pozn, data: { 'data-poplatek': popisPoplatku(b) ?? '' } },
@@ -84,14 +82,14 @@ export default async function BrokerReview(
           k: `Nákup za ${CASTKA_PRIKLAD.toLocaleString('cs-CZ')} Kč celkem`, v: priklad, pozn: prikladPozn,
           tip: kurzy ? `Poplatek za nákup + směna korun na eura, nákup evropského ETF na Xetře. Kurz ČNB k ${datumKurzu(kurzy)}.` : 'Kurz ČNB se nepodařilo načíst – částku teď neukazujeme.',
         },
-        { k: 'Vedení účtu', v: b.managementFee },
+        { k: 'Vedení účtu', ...popisVedeniUctu(b) },
         { k: 'Minimální vklad', v: popisMinVkladu(b) },
-        { k: 'Daň z českých dividend', v: b.czDividends, tip: 'Srážka z dividend českých akcií. U akumulačních ETF se vás přímo netýká.' },
+        { k: 'Daň z českých dividend', ...popisDaneDividend(b), tip: 'Srážka z dividend českých akcií. U akumulačních ETF se vás přímo netýká.' },
       ];
   fakta.push(
     { k: 'Hotovost na účtu', v: hot.v, pozn: hot.pozn },
     { k: 'Cenné papíry při krachu', v: cp.v, pozn: cp.pozn, tip: 'ETF jsou vedená odděleně od majetku brokera. Garanční systém nastupuje, kdyby při krachu brokera chyběla.' },
-    { k: 'Regulace', v: b.regulation },
+    { k: 'Regulace', ...popisRegulace(b) },
     { k: 'Česká podpora', v: b.czSupport ? b.customerSupport : 'Ne, jen anglicky' },
   );
 
@@ -110,14 +108,14 @@ export default async function BrokerReview(
   };
 
   const kartaFakt = (
-    <aside data-sekce="fakta" data-broker={b.id} className="rounded-xl border border-slate-200 bg-white lg:sticky lg:top-20 lg:self-start">
+    <aside data-sekce="fakta" data-broker={b.id} className="rounded-xl border border-slate-200 bg-white">
       <h2 className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3 text-base font-semibold text-slate-900">
         <BrokerLogo id={b.id} size="sm" /> Kolik vás {b.name} stojí
       </h2>
       <dl className="divide-y divide-slate-100 text-sm">
         {fakta.map((f) => (
-          <div key={f.k} className="grid grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-3 px-4 py-2.5">
-            <dt className="text-slate-500 [&>span]:!whitespace-normal">{f.tip ? <InfoTip label={f.tip}>{f.k}</InfoTip> : f.k}</dt>
+          <div key={f.k} className="grid grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-3 px-4 py-2">
+            <dt className="text-slate-500">{f.tip ? <TipZaTextem text={f.k} tip={f.tip} /> : f.k}</dt>
             <dd className="min-w-0 tabular-nums" {...f.data}>
               <span className="block font-medium text-slate-900 leading-snug">{f.v}</span>
               {f.pozn && f.pozn !== f.v && <span className="mt-0.5 block text-xs leading-snug text-slate-500">{f.pozn}</span>}
@@ -125,7 +123,7 @@ export default async function BrokerReview(
           </div>
         ))}
       </dl>
-      <div className="space-y-2 border-t border-slate-100 px-4 py-3 text-sm">
+      <div className="space-y-1.5 border-t border-slate-100 px-4 py-3 text-sm">
         {!b.robo && (
           <Link href="/kde-koupit#naklady" className="flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
             Spočítat pro vaši částku <ArrowRight className="h-4 w-4" />
@@ -213,7 +211,7 @@ export default async function BrokerReview(
           )}
 
           {/* 2. FAKTA – na desktopu vpravo přes celou výšku, na mobilu hned pod „pro koho“ */}
-          <div className="lg:col-start-3 lg:row-start-1 lg:row-span-2">{kartaFakt}</div>
+          <div className="lg:col-start-3 lg:row-start-1 lg:row-span-2"><StickyKdyzSeVejde>{kartaFakt}</StickyKdyzSeVejde></div>
 
           {/* 3. ZBYTEK OBSAHU */}
           <div className="min-w-0 space-y-8 lg:col-span-2 lg:row-start-2">
@@ -235,20 +233,6 @@ export default async function BrokerReview(
               </section>
             )}
 
-            <section data-sekce="klady-zapory" className="grid sm:grid-cols-2 gap-4">
-              <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
-                <h2 className="text-sm font-semibold text-slate-900 mb-3">Výhody</h2>
-                <ul className="space-y-2">
-                  {pros.map((p, i) => <li key={i} className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" /> <span>{p}</span></li>)}
-                </ul>
-              </div>
-              <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
-                <h2 className="text-sm font-semibold text-slate-900 mb-3">Nevýhody</h2>
-                <ul className="space-y-2">
-                  {cons.map((p, i) => <li key={i} className="flex items-start gap-2 text-sm text-slate-700"><X className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" /> <span>{p}</span></li>)}
-                </ul>
-              </div>
-            </section>
 
             {/* Dlouhé texty sbalené – stejný vzhled jako FAQ */}
             {c && (c.intro.length > 0 || c.feesText.length > 0) && (

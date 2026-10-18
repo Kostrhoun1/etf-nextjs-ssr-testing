@@ -1,18 +1,20 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
-  TrendingUp, ArrowRight, ShieldCheck, User, CalendarDays, Percent, Layers, Landmark,
+  TrendingUp, ArrowRight, ShieldCheck, CalendarDays, Percent, Layers, Landmark,
   Headphones, ListChecks, Table2,
 } from 'lucide-react';
 import {
-  ProfilKarty, FaqSeznam, BrokerLogo, AutorBox, CASTKA_PRIKLAD,
+  ProfilKarty, FaqSeznam, BrokerLogo, AutorBox, AutorZnak,
 } from '@/components/design-preview/brokerUI';
 import NakladyKalkulacka from '@/components/design-preview/NakladyKalkulacka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { brokers, brokeriPodleSkore, nakladNakupu, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
+import { brokers, brokeriPodleSkore, nejlevnejsiPodleCastky, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
+import FondZDetailu from './FondZDetailu';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
 
 /* /kde-koupit = PRŮVODCE „kde koupit ETF“: živě spočítané náklady pro zadanou částku + rozhodnutí podle profilu.
@@ -29,20 +31,24 @@ export const metadata: Metadata = {
     'Kde koupit ETF? Kolik stojí nákup pro vaši měsíční částku u XTB, Trading 212, DEGIRO, IBKR a Fio – poplatek i směna měny podle kurzu ČNB – a který broker sedí na vaši situaci.',
 };
 
-const kcText = (v: number) =>
-  `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')}\u00a0Kč`;
+const kcText = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')}\u00a0Kč`;
 
 export default async function KdeKoupitPage() {
   const year = new Date().getFullYear();
   const kurzy = await nactiKurzCnb();
 
-  // Hero: nejlevnější nákup za 2 000 Kč – spočítané z ceníků, ne natvrdo.
-  const nejlevnejsi = kurzy
-    ? brokeriPodleSkore
-        .map((b) => ({ b, n: nakladNakupu(b, CASTKA_PRIKLAD, kurzy) }))
-        .filter((x) => x.n?.celkemKc != null && !x.n.plusBurza)
-        .sort((a, b) => a.n!.celkemKc! - b.n!.celkemKc!)[0]
-    : null;
+  // Hero: nejlevnější nákup PODLE ČÁSTKY („do 16 200 Kč Trading 212, nad DEGIRO“) – spočítané z ceníků, ne natvrdo.
+  // Kolo 4: dřív pevně „za 2 000 Kč“, takže při zadání 50 000 Kč hero tvrdil něco jiného než tabulka pod ním.
+  const useky = kurzy ? nejlevnejsiPodleCastky(kurzy) : [];
+  const nejlevnejsiRadky = useky.length > 0 && useky.length <= 3
+    ? useky.map((u, i) => ({
+        k: useky.length === 1 ? 'Nejlevnější nákup'
+          : i === 0 ? `Nejlevnější do ${kcText(u.doKc)}`
+          : i === useky.length - 1 ? `Nejlevnější nad ${kcText(useky[i - 1].doKc)}`
+          : `Nejlevnější ${kcText(u.odKc)}–${kcText(u.doKc)}`,
+        v: u.b ? `${u.b.name}${u.b.nakup?.ostatniEtfEur != null ? ' (ETF Selection)' : ''}` : '—',
+      }))
+    : [{ k: 'Nejlevnější nákup', v: kurzy ? 'podle částky – viz tabulka' : '—' }];
   const bezProvize = brokeriPodleSkore.filter((b) => b.nakup && b.nakup.pasma.every((p) => p.pevneEur === 0 && p.procento === 0 && p.minEur === 0));
   const cesky = brokers.filter((b) => b.czSupport);
 
@@ -62,7 +68,7 @@ export default async function KdeKoupitPage() {
     },
     {
       q: 'Jsou ETF u DEGIRO opravdu zdarma?',
-      a: 'Ne úplně. Fondy z výběru ETF Selection koupíte za 1 EUR manipulační poplatek, ostatní ETF za 3 EUR. Směna CZK/EUR je zdarma, takže u jednoho většího nákupu měsíčně jsou náklady nízké.',
+      a: 'Ne úplně. Fondy z výběru ETF Selection koupíte za 1 EUR manipulační poplatek, ostatní ETF za 3 EUR a u nich platíte i až 2,5 EUR ročně za připojení k burze. Směna CZK/EUR je zdarma, takže u jednoho většího nákupu měsíčně jsou náklady nízké.',
     },
     {
       q: 'Proč některý broker sráží 35 % z dividend?',
@@ -132,6 +138,9 @@ export default async function KdeKoupitPage() {
           <span className="text-slate-700">Kde koupit ETF</span>
         </nav>
 
+        {/* Přišel z detailu fondu (?isin=…) → „Kde koupit SXR8“. Klientské, ať stránka zůstane statická (ISR). */}
+        <Suspense fallback={null}><FondZDetailu /></Suspense>
+
         {/* HERO */}
         <section data-sekce="hero" className="pb-8">
           <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-8">
@@ -142,19 +151,19 @@ export default async function KdeKoupitPage() {
                   Zadejte, kolik investujete měsíčně, a uvidíte, kolik vás nákup ETF u každého brokera stojí – poplatek i směna korun na eura.
                 </p>
                 <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-                  <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" /><Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link></span>
+                  <span className="inline-flex items-center gap-1.5"><AutorZnak tmavy /><Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link></span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /><span>Ceníky ověřeny {cenikyOverenyStr}</span></span>
                   <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /><span>Bez provizí a reklamy</span></span>
                 </p>
               </div>
               {/* Tři fakta – jen desktop; na mobilu je hned pod hero živý přepočet (stejná čísla, bez duplicity). */}
-              <dl className="hidden md:block mt-6 md:mt-0 md:w-[22rem] shrink-0 divide-y divide-white/10 rounded-xl border border-white/10 bg-white/5 text-sm">
-                <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <dt className="text-slate-400">Nejlevnější nákup za {'2\u00a0000\u00a0Kč'}</dt>
-                  <dd className="text-right font-semibold tabular-nums whitespace-nowrap">
-                    {nejlevnejsi ? `${nejlevnejsi.b.name} · ${kcText(nejlevnejsi.n!.celkemKc!)}` : '—'}
-                  </dd>
-                </div>
+              <dl className="hidden md:block mt-6 md:mt-0 md:w-[24rem] shrink-0 divide-y divide-white/10 rounded-xl border border-white/10 bg-white/5 text-sm">
+                {nejlevnejsiRadky.map((r) => (
+                  <div key={r.k} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                    <dt className="whitespace-nowrap text-slate-400 tabular-nums">{r.k}</dt>
+                    <dd className="text-right font-semibold whitespace-nowrap">{r.v}</dd>
+                  </div>
+                ))}
                 <div className="flex items-center justify-between gap-3 px-4 py-2.5">
                   <dt className="text-slate-400">Bez provize za nákup</dt>
                   <dd className="text-right font-semibold">{bezProvize.map((b) => b.name).join(', ')}</dd>
