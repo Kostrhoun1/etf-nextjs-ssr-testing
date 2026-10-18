@@ -536,6 +536,17 @@ const main = async () => {
     varovani.push({ co: `Kontrolu modelových portfolií se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── DVOJICE PODLE TICKERU: stejný ticker má víc fondů (SPYI = SPDR ACWI IMI na XETRA i opční fond HANetf na LSE).
+  // 18. 10. 2026 /srovnani/vwce-vs-spyi ukazoval 1milionový opční fond. Stránka musí vybrat ten správný.
+  try {
+    for (const [cesta, isin] of [['/srovnani/vwce-vs-spyi', 'IE00B3YLTY66'], ['/srovnani/vwce-vs-cspx', 'IE00B5BMR087']]) {
+      const html = await fetch(`${WEB_URL}${cesta}`).then((r) => (r.ok ? r.text() : ''));
+      if (html && !html.includes(isin)) poplach.push({ co: `Stránka ${cesta} neukazuje správný fond ${isin} – ticker vede na jiný fond`, ukazka: [] });
+    }
+  } catch (e) {
+    varovani.push({ co: `Kontrolu dvojic podle tickeru se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── KURZY pro backtest/grafy (exchange_rates_historical, pg_cron fx-topup → denně 17:00 UTC) ──
   // Do 18. 10. 2026 se plnily jen v pondělí ráno → poslední týden se přepočítával až 10 dní starým kurzem.
   try {

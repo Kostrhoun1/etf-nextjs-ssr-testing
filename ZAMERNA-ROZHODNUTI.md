@@ -299,3 +299,8 @@ a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
 - **Start z presetu/odkazu se posouvá tiše („data od 7/2002“), varování jen u data zadaného uživatelem.**
 - **Kolísavost na detailu portfolia = ukazatel backtestu (z měsíčních výnosů)**, ne směrodatná odchylka ročních výnosů.
 - **Svět + malé firmy: vyspělé trhy mimo USA = `msci_eafe`** (dřív `world_ex_us` včetně EM → EM dvakrát). Dopad 11,99 → 12,01 %.
+- **DEGIRO: směna CZK↔EUR zdarma a poplatek za burzu (ověřeno 18. 10. 2026):** oficiální „Přehled poplatků“
+  (degiro.cz/data/pdf/cs/Prehled_poplatku.pdf, Rates from 01-01-2026), str. 8: AutoFX 0,25 %, pozn. 2 „Veškeré
+  převody mezi EUR a CZK jsou zdarma“. Str. 10: 2,50 € ročně za každou zahraniční burzu (max. 0,25 % hodnoty účtu),
+  pozn. 1 „není aplikován na … Pražské burze a ETF Selection“. Webová stránka degiro.cz/poplatky (datum 01-10-2025)
+  výjimku CZK/EUR neuvádí – je starší; platí PDF. Neopravovat na 0,25 %.
