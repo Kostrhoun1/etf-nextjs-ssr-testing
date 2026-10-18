@@ -17,16 +17,22 @@ const ZEME: Record<string, string> = {
   Other: 'Ostatní',
 };
 
+/* Sektory: data fondů (justETF) používají klasifikaci TRBC (Refinitiv), ne GICS – proto např. „Technology“
+   u S&P 500 obsahuje i Alphabet a Meta. JEDNA sada českých názvů pro celý web (kolo 3, 18. 10. 2026: žebříček
+   psal „Spotřeba (běžná)“, detail „Spotřební zboží (základní)“). Krátké tvary – vejdou se do sloupce s vahou. */
 const SEKTORY: Record<string, string> = {
-  Technology: 'Technologie', IT: 'Technologie', Finance: 'Finance', Financials: 'Finance', Industrials: 'Průmysl',
-  Healthcare: 'Zdravotnictví', 'Health Care': 'Zdravotnictví',
-  'Consumer Non-Cyclicals': 'Spotřební zboží (základní)', 'Consumer Staples': 'Spotřební zboží (základní)',
-  'Consumer Cyclicals': 'Spotřební zboží (cyklické)', 'Consumer Discretionary': 'Spotřební zboží (cyklické)',
+  Technology: 'Technologie', 'Information Technology': 'Technologie', IT: 'Technologie',
+  Finance: 'Finance', Financials: 'Finance', 'Financial Services': 'Finance',
+  Industrials: 'Průmysl', Healthcare: 'Zdravotnictví', 'Health Care': 'Zdravotnictví',
+  'Consumer Non-Cyclicals': 'Spotřeba (základní)', 'Consumer Staples': 'Spotřeba (základní)',
+  'Consumer Cyclicals': 'Spotřeba (cyklická)', 'Consumer Discretionary': 'Spotřeba (cyklická)',
   'Consumer Services': 'Spotřebitelské služby', 'Business Services': 'Služby pro firmy',
-  'Non-Energy Materials': 'Materiály', 'Basic Materials': 'Materiály', Utilities: 'Energetické a vodárenské sítě',
-  Energy: 'Energie', Telecommunication: 'Komunikační služby', 'Communication Services': 'Komunikační služby',
+  'Non-Energy Materials': 'Materiály', 'Basic Materials': 'Materiály', Materials: 'Materiály',
+  Utilities: 'Veřejné služby', Energy: 'Energetika',
+  Telecommunication: 'Komunikace', Telecommunications: 'Komunikace', 'Telecommunications Services': 'Komunikace',
+  'Communication Services': 'Komunikace', Communications: 'Komunikace',
   'Real Estate': 'Nemovitosti', Sovereign: 'Státní dluhopisy', 'Non-Corporate': 'Nadnárodní a agenturní',
-  Municipal: 'Obecní dluhopisy', 'Government Agencies': 'Vládní agentury', Other: 'Ostatní sektory',
+  Municipal: 'Obecní dluhopisy', 'Government Agencies': 'Vládní agentury', Other: 'Ostatní', Others: 'Ostatní',
 };
 
 export const ceskaZeme = (n: string | null | undefined) => (n ? ZEME[n.trim()] ?? n : n ?? '');
