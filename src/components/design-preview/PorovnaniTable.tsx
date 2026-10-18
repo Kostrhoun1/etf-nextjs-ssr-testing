@@ -12,20 +12,23 @@ import EmitentLogo from '@/components/home/EmitentLogo';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { barvaFondu } from '@/lib/barvyFondu';
+import { cislo, procenta, terText, velikostText } from '@/lib/formatSrovnavac';
+import { RIZIKO_NESEDI_TEXT, type RizikoPole } from '@/lib/tridyFondu';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
 const num = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
 const str = (v: unknown) => (v == null || v === '' ? null : String(v));
 
-const ter = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
-const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
-/* Jednotně 1 desetinné místo (revize 18. 10. 2026: „1 %“ vedle „1,45 %“). TER zůstává na 2 místa –
-   0,07 vs. 0,12 % je u poplatku podstatný rozdíl a takhle ho uvádějí i emitenti. */
-const pct1 = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
-/* POZOR: velikost fondu (fund_size_numeric) se z justETF stahuje VŽDY v EUR
-   (standardizováno kvůli srovnatelnosti), i u USD/GBP tříd. Proto vždy €.
+/* Formáty: src/lib/formatSrovnavac.ts (jednotně se srovnávačem – „−“, nbsp před %, „mld. €“).
+   Výnosy 1 desetinné místo, TER 2 (0,07 vs. 0,12 % je u poplatku podstatný rozdíl).
+   POZOR: velikost fondu (fund_size_numeric) se z justETF stahuje VŽDY v EUR, i u USD/GBP tříd → vždy €.
    Ověřeno proti justETF: CSPX = EUR 131 612 mil., SWDA = EUR 123 901 mil. */
-const money = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. €` : `${Math.round(v).toLocaleString('cs-CZ')} mil. €`);
+const ter = (v: number | null) => terText(v);
+const pct = (v: number | null) => procenta(v, 1, true);
+const pct1 = (v: number | null) => procenta(v, 1);
+const money = (v: number | null) => velikostText(v);
+const komodita = (e: ComparisonETF) => e.category === 'Komodity' || e.category === 'Krypto';
+const CETNOST: [RegExp, string][] = [[/month/i, 'měsíčně'], [/quarter/i, 'čtvrtletně'], [/semi/i, 'pololetně'], [/annual/i, 'ročně']];
 const distTypeLabel = (p: string | null, freq?: string | null) => {
   const s = p || '';
   if (/accumulat|thesaur|capitalis/i.test(s)) return 'Akumulační';
@@ -170,7 +173,10 @@ function WeightList({ e, prefix, n }: { e: ComparisonETF; prefix: string; n: num
 
 /* `omit` = řádek, pro který nemá ANI JEDEN porovnávaný fond hodnotu. Takový řádek se nevykresluje:
    sloupec plný pomlček nevypadá jako chybějící údaj, ale jako rozbitý nástroj. */
-type Row = { label: React.ReactNode; cell: (e: ComparisonETF) => React.ReactNode; best?: (e: ComparisonETF) => boolean; top?: boolean; omit?: boolean;
+/* `nej` = nejlepší hodnota v řádku: hodnota, směr (1 = víc je lépe, −1 = míň je lépe) a zobrazení – shoda
+   PO ZAOKROUHLENÍ (stejný text v buňce) = shoda, pak se neoznačuje nikdo. */
+type Nej = { v: (e: ComparisonETF) => number | null; smer: 1 | -1; fmt: (v: number) => string };
+type Row = { label: React.ReactNode; cell: (e: ComparisonETF) => React.ReactNode; nej?: Nej; top?: boolean; omit?: boolean;
   /** Mobil: vlastní vykreslení přes celou šířku (místo úzkých sloupců vedle sebe). */
   mobil?: React.ReactNode };
 
@@ -228,7 +234,7 @@ type Section = { title: string; rows: Row[] };
 function Bunka({ children, vitez }: { children: React.ReactNode; vitez: boolean }) {
   if (!vitez) return <>{children}</>;
   return (
-    <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+    <span className="inline-flex items-center gap-1 font-bold text-slate-900 [&_span]:font-bold">
       {children}
       <Check className="w-3.5 h-3.5 shrink-0 text-teal-700" aria-label="nejlepší v řádku" />
     </span>
@@ -239,32 +245,38 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
   const [cur] = useCurrency();
   const ret = (e: ComparisonETF, period: string) => pickReturn(raw(e), period, cur);
 
-  const extrem = (f: (e: ComparisonETF) => number | null, smer: 1 | -1) => {
-    const v = etfs.map(f).filter((x): x is number => x != null);
-    return v.length ? (smer === 1 ? Math.max(...v) : Math.min(...v)) : null;
-  };
-  const bestLowTer = extrem((e) => num(e.ter_numeric), -1);
-  const bestSize = extrem((e) => num(e.fund_size_numeric), 1);
-  const bestDiv = extrem((e) => num(e.current_dividend_yield_numeric), 1);
-
-  const perf = (period: string, label: string, best?: boolean): Row => {
-    const b = best ? extrem((e) => ret(e, period), 1) : null;
-    return {
-      label, cell: (e) => <Perf v={ret(e, period)} />,
-      best: b != null ? (e) => ret(e, period) === b : undefined,
-      omit: etfs.every((e) => ret(e, period) == null),
-    };
-  };
+  const perf = (period: string, label: string): Row => ({
+    label, cell: (e) => <Perf v={ret(e, period)} />,
+    nej: { v: (e) => ret(e, period), smer: 1, fmt: pct },
+    omit: etfs.every((e) => ret(e, period) == null),
+  });
   /* Krátká období (1M/3M/6M) máme JEN v eurech (ZAMERNA-ROZHODNUTI.md) → vždy EUR a tak i popsané,
      nezávisle na přepínači měny. Dřív se pod nadpisem „Výkonnost (Kč)“ ukazovala eurová čísla. */
   const perfEur = (period: string, label: string): Row => ({
     label, cell: (e) => <Perf v={num(raw(e)[`return_${period}`])} />,
+    nej: { v: (e) => num(raw(e)[`return_${period}`]), smer: 1, fmt: pct },
     omit: etfs.every((e) => num(raw(e)[`return_${period}`]) == null),
   });
-  const riskRow = (label: string, key: string, suffix = ' %'): Row => ({
-    label, cell: (e) => { const v = num(raw(e)[key]); return v == null ? <span className="text-slate-400">—</span> : <span className="tabular-nums text-slate-700">{v.toLocaleString('cs-CZ', suffix ? { minimumFractionDigits: 1, maximumFractionDigits: 1 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{suffix}</span>; },
-    omit: etfs.every((e) => num(raw(e)[key]) == null),
-  });
+  /* Kolísavost/pokles, které nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts) → „—“ s vysvětlením.
+     Výnos / kolísavost stojí na téže kolísavosti → „—“ taky. Pravidlo č. 1. */
+  const volNesedi = (e: ComparisonETF, key: string) => {
+    const pole = (key.startsWith('return_per_risk_') ? `volatility_${key.slice(16)}` : key) as RizikoPole;
+    return !!e._rizikoNesedi?.includes(pole);
+  };
+  const riskVal = (e: ComparisonETF, key: string) => (volNesedi(e, key) ? null : num(raw(e)[key]));
+  const riskRow = (label: string, key: string, mist: number, smer?: 1 | -1, suffix = true): Row => {
+    const fmt = (v: number) => (suffix ? procenta(v, mist) : cislo(v, mist));
+    return {
+      label,
+      cell: (e) => {
+        if (volNesedi(e, key)) return <span title={RIZIKO_NESEDI_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({RIZIKO_NESEDI_TEXT})</span></span>;
+        const v = riskVal(e, key);
+        return v == null ? <span className="text-slate-400">—</span> : <span className="tabular-nums text-slate-700">{fmt(v)}</span>;
+      },
+      nej: smer ? { v: (e) => riskVal(e, key), smer, fmt } : undefined,
+      omit: etfs.every((e) => num(raw(e)[key]) == null),
+    };
+  };
   const vahyRow = (label: string, prefix: string, n: number): Row => ({
     label, top: true, cell: (e) => <WeightList e={e} prefix={prefix} n={n} />,
     omit: etfs.every((e) => vahy(e, prefix, n).length === 0 || (prefix === 'holding' && poziceNeuplne(e))),
@@ -284,7 +296,13 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
         // Index: čistý údaj ze zdroje, jinak poznaný z názvu fondu (SPYI → MSCI ACWI IMI), jinak „—“.
         { label: 'Sledovaný index', cell: (e) => indexFonduLabel({ index_name: e.index_name, name: e.name, investment_focus: str(raw(e).investment_focus) }) ?? '—' },
         { label: 'Zaměření', cell: (e) => ceskeZamereni(str(raw(e).investment_focus) ?? str(e.region)) || '—' },
-        { label: 'Typ výplaty', cell: (e) => distTypeLabel(e.distribution_policy, e.distribution_frequency) },
+        { label: 'Výplata dividend', cell: (e) => {
+          const t = distTypeLabel(e.distribution_policy, e.distribution_frequency);
+          if (komodita(e) && t !== 'Distribuční') return <span className="text-slate-500">Nevyplácí</span>;
+          if (t === 'Akumulační') return 'Reinvestuje (ACC)';
+          if (t === 'Distribuční') { const c = CETNOST.find(([re]) => re.test(e.distribution_frequency ?? ''))?.[1]; return `Vyplácí (DIST)${c ? `, ${c}` : ''}`; }
+          return <span className="text-slate-400">—</span>;
+        } },
         { label: <InfoTip label="Fyzická = fond drží cenné papíry indexu (nebo fyzický kov). Syntetická = výnos indexu dodává protistrana swapem; „unfunded“ = fond drží vlastní koš cenných papírů a jeho výnos za výnos indexu směňuje.">Replikace</InfoTip>, cell: (e) => replLabel(e.replication) },
         { label: <InfoTip label="Zajištěná třída tlumí vliv kurzu (např. USD/EUR) za poplatek – její výnos se proto liší od nezajištěné třídy stejného indexu.">Měnové zajištění</InfoTip>, cell: (e) => { const h = detectHedging(e.name); return h.isHedged ? (h.hedgedCurrency ? `Zajištěno do ${h.hedgedCurrency}` : 'Zajištěno') : 'Nezajištěno'; } },
         { label: 'Domicil', cell: (e) => dom(e.fund_domicile) },
@@ -296,8 +314,8 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
     {
       title: 'Poplatky a velikost',
       rows: [
-        { label: 'Roční poplatek (TER)', cell: (e) => ter(num(e.ter_numeric)), best: (e) => bestLowTer != null && num(e.ter_numeric) === bestLowTer },
-        { label: 'Velikost fondu', cell: (e) => money(num(e.fund_size_numeric)), best: (e) => bestSize != null && num(e.fund_size_numeric) === bestSize },
+        { label: 'Roční poplatek (TER)', cell: (e) => ter(num(e.ter_numeric)), nej: { v: (e) => num(e.ter_numeric), smer: -1, fmt: ter } },
+        { label: 'Velikost fondu', cell: (e) => money(num(e.fund_size_numeric)), nej: { v: (e) => num(e.fund_size_numeric), smer: 1, fmt: money } },
         { label: 'Počet pozic ve fondu', cell: (e) => e.total_holdings != null ? e.total_holdings.toLocaleString('cs-CZ') : '—' },
         { label: 'Stáří fondu', cell: (e) => age(e.inception_date) },
       ],
@@ -306,9 +324,9 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
       title: `Výkonnost (${curLabel[cur]})`,
       rows: [
         perf('ytd', 'Od začátku roku'),
-        perf('1y', '1 rok', true),
-        perf('3y', '3 roky celkem', true),
-        perf('5y', '5 let celkem', true),
+        perf('1y', '1 rok'),
+        perf('3y', '3 roky celkem'),
+        perf('5y', '5 let celkem'),
       ],
     },
     { title: `Výkonnost po letech (${curLabel[cur]})`, rows: roky.map((y) => perf(y, `Rok ${y}`)) },
@@ -316,18 +334,20 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
     {
       title: 'Riziko a kolísavost (počítáno v EUR)',
       rows: [
-        riskRow('Volatilita 1 rok', 'volatility_1y'),
-        riskRow('Volatilita 3 roky', 'volatility_3y'),
-        riskRow('Volatilita 5 let', 'volatility_5y'),
-        riskRow('Nejhorší pokles 1 rok', 'max_drawdown_1y'),
-        riskRow('Nejhorší pokles 3 roky', 'max_drawdown_3y'),
-        riskRow('Nejhorší pokles od založení', 'max_drawdown_inception'),
+        // ✓ jen tam, kde „lepší“ dává smysl: nižší kolísavost, menší pokles, vyšší výnos na jednotku rizika,
+        // nižší tracking error. Pokles od založení ne (fondy mají různé stáří), beta ne (není lepší/horší).
+        riskRow('Kolísavost 1 rok', 'volatility_1y', 1, -1),
+        riskRow('Kolísavost 3 roky', 'volatility_3y', 1, -1),
+        riskRow('Kolísavost 5 let', 'volatility_5y', 1, -1),
+        riskRow('Nejhorší pokles 1 rok', 'max_drawdown_1y', 1, 1),
+        riskRow('Nejhorší pokles 3 roky', 'max_drawdown_3y', 1, 1),
+        riskRow('Nejhorší pokles od založení', 'max_drawdown_inception', 1),
         // Výnos ÷ kolísavost – oba údaje v EUR (justETF „return per risk“; 1 rok: výnos/volatilita, 3 a 5 let: roční výnos/volatilita).
-        // Dřív nebyl; výnos v Kč dělený kolísavostí v EUR by byl metodicky nekonzistentní (revize 18. 10. 2026).
-        riskRow('Výnos / kolísavost 1 rok', 'return_per_risk_1y', ''),
-        riskRow('Výnos / kolísavost 3 roky', 'return_per_risk_3y', ''),
-        riskRow('Beta (vs trh)', 'beta', ''),
-        riskRow('Tracking error', 'tracking_error'),
+        // Výnos v Kč dělený kolísavostí v EUR by byl metodicky nekonzistentní (revize 18. 10. 2026).
+        riskRow('Výnos / kolísavost 1 rok', 'return_per_risk_1y', 2, 1, false),
+        riskRow('Výnos / kolísavost 3 roky', 'return_per_risk_3y', 2, 1, false),
+        riskRow('Beta (vs trh)', 'beta', 2, undefined, false),
+        riskRow('Tracking error', 'tracking_error', 2, -1),
       ],
     },
     {
@@ -335,11 +355,13 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
       rows: [
         { label: 'Dividendový výnos', cell: (e) => {
           const d = num(e.current_dividend_yield_numeric);
-          // „—“ = údaj chybí. Akumulační fond dividendy nevyplácí → říct to slovy, ne pomlčkou.
-          if ((d == null || d === 0) && distTypeLabel(e.distribution_policy, e.distribution_frequency) === 'Akumulační') return <span className="text-slate-500">nevyplácí</span>;
+          // „—“ = údaj chybí. Akumulační fond dividendy reinvestuje, komodity a krypto nevyplácejí → slovy, ne pomlčkou.
+          if (d == null || d === 0) {
+            if (komodita(e)) return <span className="text-slate-500" title="Komoditní a kryptoměnové produkty dividendy nevyplácejí">nevyplácí</span>;
+            if (distTypeLabel(e.distribution_policy, e.distribution_frequency) === 'Akumulační') return <span className="text-slate-500" title="Akumulační fond dividendy reinvestuje uvnitř fondu">reinvestuje</span>;
+          }
           return pct1(d);
-        }, best: (e) => bestDiv != null && bestDiv > 0 && num(e.current_dividend_yield_numeric) === bestDiv },
-        { label: 'Politika výplaty', cell: (e) => { const t = distTypeLabel(e.distribution_policy, e.distribution_frequency); return t === 'Akumulační' ? 'Reinvestuje (ACC)' : t === 'Distribuční' ? 'Vyplácí (DIST)' : 'Neuvedeno'; } },
+        }, nej: { v: (e) => { const d = num(e.current_dividend_yield_numeric); return d != null && d > 0 ? d : null; }, smer: 1, fmt: pct1 } },
       ],
     },
     { title: 'Největší pozice (top 10)', rows: [vahyRow('Držené firmy', 'holding', 10)] },
@@ -359,26 +381,46 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
     .map((s) => s.title.replace(/ \(.*\)$/, '').toLowerCase());
 
   const colW = etfs.length + 1;
-  const vitez = (r: Row, e: ComparisonETF) => !!r.best?.(e) && etfs.filter((x) => r.best!(x)).length === 1;
+  /* Vítěz řádku: aspoň 2 fondy s hodnotou a nejlepší hodnotu PO ZAOKROUHLENÍ (jak je vidět v buňce) má právě jeden. */
+  const vitezove = new Map<Row, string | null>();
+  const vitez = (r: Row, e: ComparisonETF) => {
+    if (!r.nej) return false;
+    if (!vitezove.has(r)) {
+      const { v, smer, fmt } = r.nej;
+      const hodnoty = etfs.map((x) => ({ isin: x.isin, v: v(x) })).filter((x): x is { isin: string; v: number } => x.v != null);
+      let w: string | null = null;
+      if (hodnoty.length >= 2) {
+        const ext = smer === 1 ? Math.max(...hodnoty.map((x) => x.v)) : Math.min(...hodnoty.map((x) => x.v));
+        const top = hodnoty.filter((x) => fmt(x.v) === fmt(ext));
+        w = top.length === 1 ? top[0].isin : null;
+      }
+      vitezove.set(r, w);
+    }
+    return vitezove.get(r) === e.isin;
+  };
 
   return (
     <>
       {/* DESKTOP: tabulka vedle sebe */}
-      <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto">
-        <table className="w-full min-w-[44rem] text-sm table-fixed">
+      {/* Plovoucí hlavička s fondy (revize kola 4: u „Rok 2023“ nebo „Kolísavost“ nebylo vidět, který sloupec je
+          který fond). Sticky funguje jen bez overflow na předkovi → kontejner NEMÁ overflow-x-auto; tabulka se od md
+          (≥ 46 rem obsahu) vejde i se 4 fondy. Sticky jsou buňky th (spolehlivější v Safari než thead). */}
+      <div className="hidden md:block rounded-xl border border-slate-200 bg-white">
+        <table className="w-full text-sm table-fixed border-separate border-spacing-0">
           <thead>
-            <tr className="border-b border-slate-200">
-              <th className="w-[12.5rem] py-3 px-4 text-left align-bottom text-xs font-medium uppercase tracking-wide text-slate-400 bg-slate-50">Parametr</th>
-              {etfs.map((e) => (
-                <th key={e.isin} className="py-3 px-4 text-left align-top bg-slate-50">
-                  <div className="flex items-start gap-2">
-                    <EmitentLogo nazev={e.name} size={24} className="mt-0.5" monogram={e.fund_provider ?? e.name} />
+            <tr>
+              <th className="sticky top-14 z-20 w-[12.5rem] rounded-tl-xl py-2.5 px-4 text-left align-middle text-xs font-medium uppercase tracking-wide text-slate-400 bg-slate-50 shadow-[inset_0_-1px_0_theme(colors.slate.200)]">Parametr</th>
+              {etfs.map((e, i) => (
+                <th key={e.isin} className={`sticky top-14 z-20 py-2.5 px-4 text-left align-middle bg-slate-50 shadow-[inset_0_-1px_0_theme(colors.slate.200)] ${i === etfs.length - 1 ? 'rounded-tr-xl' : ''}`}
+                  style={{ borderTop: `3px solid ${barvaFondu(i)}` }}>
+                  <div className="flex items-center gap-2.5">
+                    <EmitentLogo nazev={e.name} size={28} monogram={e.fund_provider ?? e.name} />
                     <div className="min-w-0">
-                      <Link href={`/etf/${e.isin}`} title={e.name} className="line-clamp-2 font-semibold text-slate-900 hover:text-teal-700 leading-snug">{kratkyNazev(e.name)}</Link>
-                      <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-normal">
-                        <span aria-hidden="true" className="inline-block w-2.5 h-2.5 rounded-[3px]" style={{ background: barvaFondu(etfs.indexOf(e)) }} />
+                      <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900 leading-tight">
+                        <span aria-hidden="true" className="inline-block w-2.5 h-2.5 shrink-0 rounded-[3px]" style={{ background: barvaFondu(i) }} />
                         {platnyTicker(e.primary_ticker) ?? e.isin}
                       </span>
+                      <Link href={`/etf/${e.isin}`} title={e.name} className="mt-0.5 block truncate text-xs font-normal text-slate-500 hover:text-teal-700 leading-snug">{kratkyNazev(e.name)}</Link>
                     </div>
                   </div>
                 </th>
@@ -389,10 +431,10 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
             {visibleSections.map((sec) => (
               <React.Fragment key={sec.title}>
                 <tr>
-                  <td colSpan={colW} className="bg-slate-100/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{sec.title}</td>
+                  <td colSpan={colW} className="bg-slate-100/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 border-b border-slate-100">{sec.title}</td>
                 </tr>
                 {sec.rows.map((r, i) => (
-                  <tr key={i} className="border-b border-slate-100 align-top">
+                  <tr key={i} className="align-top [&>td]:border-b [&>td]:border-slate-100">
                     <td className="py-2.5 px-4 text-slate-500 font-medium">{r.label}</td>
                     {etfs.map((e) => (
                       <td key={e.isin} className={`py-2.5 px-4 text-slate-800 ${r.top ? '' : 'tabular-nums'}`}><Bunka vitez={vitez(r, e)}>{r.cell(e)}</Bunka></td>
@@ -444,7 +486,8 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
       </div>
 
       <p className="mt-3 text-xs text-slate-500">
-        <Check className="inline w-3.5 h-3.5 -mt-0.5 text-teal-700" aria-hidden="true" /> = nejlepší hodnota v řádku (při shodě se neoznačuje).
+        <Check className="inline w-3.5 h-3.5 -mt-0.5 text-teal-700" aria-hidden="true" /> = nejlepší hodnota v řádku (vyšší výnos, nižší poplatek a kolísavost, menší pokles; při shodě po zaokrouhlení se neoznačuje).
+        {etfs.some((e) => e._rizikoNesedi?.length) && <> Podtržená „—“ u rizika = údaj zdroje nesedí s jinou třídou téhož fondu (stejné portfolio), proto ho neuvádíme.</>}
         {vynechane.length > 0 && <> Vynechali jsme sekce {vynechane.join(', ')} – pro tyto fondy data nemáme (u komodit a krypta složení fondu nedává smysl).</>}
         {poziceChybi && <> Největší držené pozice {etfs.every(poziceNeuplne) ? '' : 'u některých fondů '}dočasně neuvádíme – ve zdroji dat chybí ta největší. Doplní se s další aktualizací.</>}
       </p>

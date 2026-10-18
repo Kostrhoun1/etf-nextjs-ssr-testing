@@ -78,6 +78,8 @@ const NAZVY: { kmeny: string[]; termy: string[] }[] = [
   { kmeny: ['ropa', 'ropn'], termy: ['Oil'] },
   { kmeny: ['krypto', 'bitcoin'], termy: ['Bitcoin', 'Crypto'] },
   { kmeny: ['sp500', 's&p500', 'sp 500', 'snp 500', 'snp500', 's and p'], termy: ['S&P 500'] },
+  // „nasdaq“ = Nasdaq-100 (index fondu se pak shoduje přesně; sektorové Nasdaq indexy jdou dolů).
+  { kmeny: ['nasdaq'], termy: ['Nasdaq-100', 'Nasdaq 100'] },
   // Překlepy v názvech emitentů (test s uživateli: „vangard“ nenašel nic).
   { kmeny: ['vangard', 'vanguar', 'vangaurd'], termy: ['Vanguard'] },
   { kmeny: ['ishare', 'i shares'], termy: ['iShares'] },
@@ -101,30 +103,63 @@ export function anglickeTermy(dotaz: string): string[] {
 
 /* Úzké varianty (sektory, ESG, opční „income“, páka) – při hledání patří za široké fondy:
    „sp 500“ nemá nahoře vrátit IT sektor ani zajištěné „Scored & Screened“. */
-const UZKA = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|premium income|covered call|leveraged|\bshort\b|daily|equal weight|\(ch\))/i;
+const UZKA = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|premium income|covered call|leveraged|\bshort\b|daily|equal weight|\(ch\)|\bex[- ]|miners|producers)/i;
+
+/** Text obsahuje výraz jako CELÁ slova („gold“ v „Physical Gold“ ano, v „Goldman Sachs“ ne). */
+const celaSlova = (text: string, vyraz: string) => {
+  if (!vyraz) return false;
+  const esc = vyraz.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9])${esc}($|[^a-z0-9])`).test(text);
+};
+/** Porovnávací tvar názvu indexu: malá písmena bez diakritiky a bez mezer/interpunkce („S&P 500“ = „sp500“). */
+const tvarIndexu = (s: string) => bezDiakritiky(s).replace(/&/g, '').replace(/[^a-z0-9]/g, '');
 
 /**
- * Relevance fondu pro hledaný výraz – JEDNA logika pro našeptávač (/api/etf/search) i srovnávač
- * (revize 18. 10. 2026: srovnávač na „sp500“ ukázal nahoře zajištěné UBS fondy místo SXR8/CSPX).
- *   4 = přesná shoda ISIN/tickeru, 3 = začátek tickeru (u obecného výrazu jen 0,9), 2 = název začíná výrazem, 1 = název ho
- *   obsahuje, 1,0x = shoda přes český výraz / variantu zápisu (`termy` z anglickeTermy, dřívější =
- *   přesnější); úzké varianty −0,5. 0 = neodpovídá.
+ * Relevance fondu pro hledaný výraz – JEDNA logika pro našeptávač (/api/etf/search) i srovnávač.
+ * Revize kola 4 (18. 10. 2026): „All-World“ dávalo VWCE (55 mld. €) na 43. místo ze 70 – nahoře byly UBS ACWI
+ * třídy, protože shoda přes český slovník (ACWI) měla víc bodů než přímá shoda názvu; „gold“ vracel Goldman Sachs.
+ *   4    = přesná shoda ISIN/tickeru
+ *   3    = začátek tickeru (u obecného výrazu jen 0,9 – jinak by „sp500“ vyhrály švýcarské tickery SP500S/E/H)
+ *   2    = název výrazem začíná, 1,6 = obsahuje ho jako celá slova, 1,4x = celá slova přes český výraz /
+ *          variantu zápisu (`termy`, dřívější = přesnější), 0,6 / 0,5 = jen uvnitř slova („gold“ v „Goldman“)
+ *   +1   = sledovaný index fondu JE hledaný výraz („msci world“ = MSCI World), +0,5 = index ho obsahuje
+ *   −0,5 = úzká varianta (sektor, ESG, opce, páka…), −0,3 = měnově zajištěná třída (nezajištěné napřed)
+ * Při shodě skóre rozhoduje volající (velikost fondu). 0 = neodpovídá. Strop 2,9 – 3 a 4 jsou jen tickery.
  * `term` = dotaz malými písmeny (oříznutý), `tickers` malými písmeny.
  */
-export function skoreHledani(term: string, termy: string[], f: { isin: string; name: string; tickers: string[] }): number {
+export function skoreHledani(
+  term: string, termy: string[],
+  f: { isin: string; name: string; tickers: string[]; index?: string | null; zajisteno?: boolean },
+): number {
   const isin = f.isin.toLowerCase();
   const name = f.name.toLowerCase();
   if (isin === term || f.tickers.includes(term)) return 4;
-  // Začátek tickeru: u obecného výrazu („sp500“ → S&P 500) jen slabá shoda – jinak by vyhrály švýcarské
-  // tickery zajištěných tříd SP500S/SP500E/SP500H místo CSPX/SXR8 (revize 18. 10. 2026).
   if (f.tickers.some((t) => t.startsWith(term))) return termy.length ? 0.9 : 3;
+  const termyL = termy.map((t) => t.toLowerCase());
+  let s = 0;
+  // „Začíná“ jen jako celé slovo – „gold“ nesmí vyhrát u „Goldman Sachs…“ (ten má jen 0,8 = začátek slova).
+  if (name.startsWith(term) && celaSlova(name, term)) s = 2;
+  else if (celaSlova(name, term)) s = 1.6;
+  else {
+    const i = termyL.findIndex((t) => celaSlova(name, t));
+    if (i >= 0) s = 1.4 + (termy.length - i) / 100;
+    else if (name.startsWith(term)) s = 0.8;
+    else if (name.includes(term)) s = 0.6;
+    else if (termyL.some((t) => name.includes(t))) s = 0.5;
+  }
+  if (s === 0) return 0;
+  if (f.index) {
+    const idx = f.index.toLowerCase();
+    const varianty = [term, ...termyL];
+    if (varianty.some((v) => tvarIndexu(v) === tvarIndexu(idx))) s += 1;
+    // „Obsahuje“ jen pro dotaz sám (nasdaq → Nasdaq-100), ne pro slovníkové výrazy – „dluhopisy“ → Bond
+    // by jinak zvýhodnil každý fond, jehož index má v názvu „Bond“.
+    else if (celaSlova(idx, term)) s += 0.5;
+  }
   const dividendovy = /divid/.test(term) || termy.some((t) => /dividend/i.test(t));
-  const uzka = UZKA.test(name) || (!dividendovy && /(high dividend|dividend yield|dividend)/i.test(name)) ? 0.5 : 0;
-  if (name.startsWith(term)) return 2 - uzka;
-  if (name.includes(term)) return 1 - uzka;
-  const i = termy.findIndex((t) => name.includes(t.toLowerCase()));
-  if (i >= 0) return 1 + (termy.length - i) / 100 - uzka;
-  return 0;
+  if (UZKA.test(name) || (!dividendovy && /dividend/i.test(name))) s -= 0.5;
+  if (f.zajisteno) s -= 0.3;
+  return Math.min(2.9, Math.max(0.05, s));
 }
 
 /** Dotaz začátečníka („jaké etf koupit“, „kam investovat“, „spořit 2000 měsíčně“) → průvodce výběrem. */

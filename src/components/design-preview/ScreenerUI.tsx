@@ -15,20 +15,21 @@ import { platnyTicker } from '@/lib/ticker';
 import { anglickeTermy, skoreHledani } from '@/lib/hledaniCz';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import { TipTlacitko } from '@/components/design-preview/InfoTip';
+import { procenta, terText, velikostText } from '@/lib/formatSrovnavac';
+import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
 
 const num = (v: number | null | undefined) => (v == null || Number.isNaN(v) ? null : Number(v));
-const ter = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
-const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
-const pct1 = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
-/* Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Viz PorovnaniTable. */
-const money = (v: number | null) => {
-  if (v == null) return '—';
-  if (v >= 1000) return `${(v / 1000).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. €`;
-  return `${Math.round(v).toLocaleString('cs-CZ')} mil. €`;
-};
+/* Jednotné formáty (src/lib/formatSrovnavac.ts): „−“, nezlomitelná mezera před %, „139,4 mld. €“.
+   Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Viz PorovnaniTable. */
+const ter = (v: number | null) => terText(v);
+const pct = (v: number | null) => procenta(v, 1, true);
+const pct1 = (v: number | null) => procenta(v, 1);
+const money = (v: number | null) => velikostText(v);
+/** Desetinná čárka i ve vstupech (TER, dividenda): „0,2“ i „0.2“ → 0.2. */
+const desetinne = (v: string) => (v.trim() === '' ? null : parseFloat(v.replace(/\s/g, '').replace(',', '.')));
 const barva = (v: number | null) => (v == null ? 'text-slate-400' : v >= 0 ? 'text-emerald-600' : 'text-red-600');
 const distChip = (k: 'acc' | 'dist' | 'unknown') =>
   k === 'acc'
@@ -44,12 +45,19 @@ const PAGE = 25;
 function Dividenda({ e }: { e: ScreenerRow }) {
   const d = num(e.current_dividend_yield_numeric);
   if ((e.category === 'Komodity' || e.category === 'Krypto') && (d == null || d === 0)) {
-    return <span title="Komoditní a kryptoměnové produkty dividendy nevyplácejí" className="sr-only">nevyplácí</span>;
+    // Viditelná pomlčka (dřív jen sr-only → buňka vypadala prázdně, jako chyba). Vysvětlení v title.
+    return <span title="Komoditní a kryptoměnové produkty dividendy nevyplácejí" className="cursor-help text-slate-400">—<span className="sr-only"> nevyplácí</span></span>;
   }
   if (e._dist === 'acc' && (d == null || d === 0)) {
     return <span title="Akumulační fond – dividendy nevyplácí, reinvestuje je uvnitř fondu" className="text-xs text-slate-400">reinv.</span>;
   }
   return <>{pct1(d)}</>;
+}
+
+/* Kolísavost: „—“ i tam, kde údaj zdroje nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts, pravidlo č. 1). */
+function Kolisavost({ e }: { e: ScreenerRow }) {
+  if (e._volX) return <span title={RIZIKO_NESEDI_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({RIZIKO_NESEDI_TEXT})</span></span>;
+  return <>{pct1(num(e.volatility_1y))}</>;
 }
 
 /* Investiční styly (faktory). Data nemají sloupec „faktor", takže se rozpoznávají
@@ -75,8 +83,8 @@ const VYSVETLIVKY: Record<string, string> = {
   r1: 'Výnos za posledních 12 měsíců, přepočtený do zvolené měny (v korunách včetně vlivu kurzu).',
   r3: 'Výnos za poslední 3 roky celkem (ne za rok), přepočtený do zvolené měny.',
   r5: 'Výnos za posledních 5 let celkem (ne za rok), přepočtený do zvolené měny. Řekne o fondu víc než jeden rok.',
-  vol: 'Kolísavost (volatilita) za poslední rok, počítaná v eurech. Vyšší číslo = divočejší průběh, ne nutně horší fond.',
-  div: 'Dividendový výnos = roční dividendy vůči ceně fondu. Akumulační (ACC) fondy dividendy nevyplácejí, reinvestují je uvnitř – proto „reinv.“. Pomlčka = údaj chybí.',
+  vol: 'Kolísavost (volatilita) za poslední rok, počítaná v eurech. Vyšší číslo = divočejší průběh, ne nutně horší fond. „—“ = údaj chybí nebo nesedí s jinou třídou téhož fondu.',
+  div: 'Dividendový výnos = roční dividendy vůči ceně fondu. Akumulační (ACC) fondy dividendy nevyplácejí, reinvestují je uvnitř – proto „reinv.“. Pomlčka = údaj chybí, u komodit a krypta = nevyplácí.',
   typ: 'Štítek u názvu: ACC (akumulační) dividendy reinvestuje uvnitř fondu, DIST (distribuční) je vyplácí na váš účet. „Zajištěno do EUR“ = třída fondu s měnovým zajištěním.',
 };
 
@@ -171,7 +179,7 @@ function IndexList({ options, vybrane, setVybrane, pocty, vcZajist, setVcZajist,
     const on = vybrane.includes(v);
     return (
       <button type="button" role="menuitemcheckbox" aria-checked={on} onClick={() => prepni(v)}
-        className={`w-full flex items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-50 ${on ? 'text-teal-800' : count === 0 ? 'text-slate-400' : 'text-slate-700'}`}>
+        className={`w-full flex items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-50 ${kompakt ? 'min-h-[44px] py-2.5' : ''} ${on ? 'text-teal-800' : count === 0 ? 'text-slate-400' : 'text-slate-700'}`}>
         <span className={`mt-0.5 flex items-center justify-center w-4 h-4 shrink-0 rounded border ${on ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-300 bg-white'}`}>{on && <Check className="w-3 h-3" />}</span>
         <span className="min-w-0 flex-1">
           <span className="block leading-snug">{label}</span>
@@ -186,14 +194,14 @@ function IndexList({ options, vybrane, setVybrane, pocty, vcZajist, setVcZajist,
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
         <input ref={inputRef} type="search" value={hledat} onChange={(e) => setHledat(e.target.value)} placeholder="Hledat index (např. ACWI, Russell)" aria-label="Hledat index"
-          className="w-full min-h-[38px] rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
+          className={`w-full ${kompakt ? 'h-11 text-[15px]' : 'min-h-[38px] text-sm'} rounded-lg border border-slate-200 bg-white pl-8 pr-2 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none`} />
       </div>
       <div className={kompakt ? 'mt-2' : 'mt-2 max-h-[min(60vh,440px)] overflow-y-auto overscroll-contain pr-1'}>
         {trhy.length > 0 && (
           <div className="mb-2">
             <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-0.5">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Celé trhy · jako žebříčky</p>
-              <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+              <label className={`inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer ${kompakt ? 'min-h-[44px]' : ''}`}>
                 <input type="checkbox" checked={vcZajist} onChange={(e) => setVcZajist(e.target.checked)} className="w-3.5 h-3.5 rounded accent-teal-600" />
                 vč. měnově zajištěných
               </label>
@@ -449,9 +457,9 @@ export default function ScreenerUI({
      revize 18. 10. 2026: „Vše 5 124“ vs. „Nalezeno 4 974“) → pak kategorie. Na měně (`cur`) nezávisí. */
   const bezKategorie = useMemo(() => {
     const termyL = termy.map((t) => t.toLowerCase());
-    const terMaxN = terMax === '' ? null : parseFloat(terMax.replace(',', '.'));
-    const sizeMinN = sizeMin === '' ? null : parseFloat(sizeMin.replace(/\s/g, '').replace(',', '.'));
-    const divMinN = divMin === '' ? null : parseFloat(divMin.replace(',', '.'));
+    const terMaxN = desetinne(terMax);
+    const sizeMinN = desetinne(sizeMin);
+    const divMinN = desetinne(divMin);
     const indexy = new Set(indexSel.filter((v) => !v.startsWith('trh:')));
     const trhy = new Set(indexSel.filter((v) => v.startsWith('trh:')).map((v) => v.slice(4)));
     const f = factor !== 'all' ? FACTORS.find((x) => x.value === factor) : undefined;
@@ -514,7 +522,7 @@ export default function ScreenerUI({
       }
     };
     // Relevance hledání je stejná jako v našeptávači (src/lib/hledaniCz.ts) – „sp500“ dá CSPX/SXR8 nahoru.
-    const list = filteredRows.map((r) => ({ r, s: term ? skoreHledani(term, termy, { isin: r.e.isin, name: r.e.name, tickers: r.e._tickers }) : 0 }));
+    const list = filteredRows.map((r) => ({ r, s: term ? skoreHledani(term, termy, { isin: r.e.isin, name: r.e.name, tickers: r.e._tickers, index: r.e._index || null, zajisteno: r.e._hedge !== 'unhedged' }) : 0 }));
     list.sort((A, B) => {
       if (term && A.s !== B.s) return B.s - A.s; // relevantnější nahoru, nezávisle na řazení sloupce
       const va = get(A.r.e), vb = get(B.r.e);
@@ -551,9 +559,9 @@ export default function ScreenerUI({
     ...(repl !== 'all' ? [{ k: 'repl', label: `Replikace: ${repl}`, off: () => setRepl('all') }] : []),
     ...(currency !== 'all' ? [{ k: 'mena', label: `Měna fondu ${currency}`, off: () => setCurrency('all') }] : []),
     ...(hedging !== 'all' ? [{ k: 'hedge', label: hedging === 'unhedged' ? 'Bez měnového zajištění' : hedging === 'hedged' ? 'Měnově zajištěné' : `Zajištěno do ${hedging.split('_')[0].toUpperCase()}`, off: () => setHedging('all') }] : []),
-    ...(terMax !== '' ? [{ k: 'ter', label: `TER do ${terMax.replace('.', ',')} %`, off: () => setTerMax('') }] : []),
+    ...(terMax !== '' ? [{ k: 'ter', label: `TER do ${terMax.replace('.', ',')}\u00A0%`, off: () => setTerMax('') }] : []),
     ...(sizeMin !== '' ? [{ k: 'minvel', label: `Velikost od ${Number(sizeMin) >= 1000 ? `${(Number(sizeMin) / 1000).toLocaleString('cs-CZ')} mld.` : `${sizeMin} mil.`} €`, off: () => setSizeMin('') }] : []),
-    ...(divMin !== '' ? [{ k: 'div', label: `Dividenda od ${divMin.replace('.', ',')} %`, off: () => setDivMin('') }] : []),
+    ...(divMin !== '' ? [{ k: 'div', label: `Dividenda od ${divMin.replace('.', ',')}\u00A0%`, off: () => setDivMin('') }] : []),
     ...(domicile !== 'all' ? [{ k: 'dom', label: `Domicil ${domicile}`, off: () => setDomicile('all') }] : []),
     ...(provider !== 'all' ? [{ k: 'prov', label: provider, off: () => setProvider('all') }] : []),
     ...(minAge !== 'all' ? [{ k: 'stari', label: `Starší než ${minAge} let`, off: () => setMinAge('all') }] : []),
@@ -635,14 +643,15 @@ export default function ScreenerUI({
   );
   const distSelect = (
     <select aria-label="Typ výplaty" value={dist} onChange={bump(setDist)} className={`${selCls} ${dist !== 'all' ? 'border-teal-500 text-teal-800' : ''}`}>
-      <option value="all">Akumulační i distribuční</option>
+      {/* Krátce – „Akumulační i distribuční“ se do lišty nevešlo (končilo „distribučn“). */}
+      <option value="all">Výplata: ACC i DIST</option>
       <option value="acc">Akumulační (ACC)</option>
       <option value="dist">Distribuční (DIST)</option>
     </select>
   );
-  const razeniSelect = (id: string) => (
+  const razeniSelect = (id: string, panelovy = false) => (
     <select id={id} aria-label="Řadit podle" value={`${sortKey}:${sortDir}`} onChange={(e) => nastavRazeni(e.target.value)}
-      className="vyber h-10 max-w-[13rem] rounded-lg border border-slate-200 bg-white pl-2 text-sm font-medium text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none">
+      className={panelovy ? selCls : 'vyber h-11 max-w-[13rem] rounded-lg border border-slate-200 bg-white pl-2 text-sm font-medium text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none'}>
       {!SORT_VOLBY.some((s) => s.v === `${sortKey}:${sortDir}`) && <option value={`${sortKey}:${sortDir}`}>{SORT_VOLBY.find((s) => s.v.startsWith(`${sortKey}:`))?.label ?? sortKey} ({sortDir === 'asc' ? 'vzestupně' : 'sestupně'})</option>}
       {SORT_VOLBY.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
     </select>
@@ -655,17 +664,20 @@ export default function ScreenerUI({
         {[{ v: 'all', label: 'Vše' }, ...options.categories.map((c) => ({ v: c, label: c }))].map(({ v, label }) => {
           const active = category === v;
           const count = v === 'all' ? pocetVse : (catCounts.get(v) ?? 0);
-          // Záložka bez fondů po filtru („Krypto 0“) se skryje – kromě té, ve které právě jste.
-          if (full && count === 0 && !active && v !== 'all') return null;
+          // Záložka bez fondů po filtru („Krypto 0“) ZŮSTÁVÁ (zašedlá, neaktivní) – dřív mizela a lišta při výběru
+          // indexu poskakovala (revize kola 4: po S&P 500 zbylo jen „Vše / Akcie“).
+          const prazdna = full && count === 0 && !active && v !== 'all';
           return (
             <button
               key={v}
               aria-pressed={active}
+              disabled={prazdna}
+              title={prazdna ? 'V této kategorii žádný fond neodpovídá ostatním filtrům' : undefined}
               onClick={() => { setCategory(v); setShown(PAGE); }}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${active ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-700'}`}
+              className={`shrink-0 h-9 rounded-full border px-3.5 text-sm font-medium transition-colors ${active ? 'bg-slate-900 border-slate-900 text-white' : prazdna ? 'bg-white text-slate-300 border-slate-100 cursor-default' : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300 hover:text-teal-700'}`}
             >
               {label}
-              {full && <span className={`ml-1.5 tabular-nums text-xs ${active ? 'text-slate-300' : 'text-slate-400'}`}>{count.toLocaleString('cs-CZ')}</span>}
+              {full && <span className={`ml-1.5 tabular-nums text-xs ${active ? 'text-slate-300' : prazdna ? 'text-slate-300' : 'text-slate-400'}`}>{count.toLocaleString('cs-CZ')}</span>}
             </button>
           );
         })}
@@ -708,7 +720,7 @@ export default function ScreenerUI({
               {s.label} <X className="w-3 h-3" />
             </button>
           ))}
-          <button onClick={reset} className="inline-flex items-center gap-1 px-1.5 py-1 text-xs font-medium text-slate-500 hover:text-red-600">Vymazat vše</button>
+          <button onClick={reset} className="inline-flex items-center gap-1 px-2 min-h-[32px] md:min-h-0 md:py-1 text-xs font-medium text-slate-500 hover:text-red-600">Vymazat vše</button>
         </div>
       )}
 
@@ -776,11 +788,11 @@ export default function ScreenerUI({
           <tbody>
             {filtered.slice(0, shown).map(({ e }) => {
               const o = e as unknown as Record<string, unknown>;
-              const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur), r5 = pickReturn(o, '5y', cur), vol = num(e.volatility_1y);
+              const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur), r5 = pickReturn(o, '5y', cur);
               const c = distChip(e._dist);
               const tk = platnyTicker(e.primary_ticker);
               return (
-                <tr key={e.isin} className="even:bg-slate-50/70 hover:bg-amber-50/50 transition-colors [&>td]:border-b [&>td]:border-slate-100 last:[&>td]:border-b-0">
+                <tr key={e.isin} className="even:bg-slate-50 hover:bg-amber-50/50 transition-colors [&>td]:border-b [&>td]:border-slate-100 last:[&>td]:border-b-0">
                   <td className="py-2.5 pl-3 pr-2">
                     <div className="flex items-center gap-2.5">
                       <EmitentLogo nazev={e.name} size={28} monogram={e.fund_provider ?? e.name} />
@@ -804,7 +816,7 @@ export default function ScreenerUI({
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${VYNOSY} ${barva(r1)}`}>{pct(r1)}</td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r3)}`}>{pct(r3)}</td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r5)}`}>{pct(r5)}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600 ${SKUPINA}`}>{pct1(vol)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600 ${SKUPINA}`}><Kolisavost e={e} /></td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600"><Dividenda e={e} /></td>
                   <td className="py-2.5 pl-1 pr-2.5 text-right">
                     <CompareButton isin={e.isin} label={tk ?? e.name.slice(0, 8)} variant="row" />
@@ -908,11 +920,11 @@ export default function ScreenerUI({
           <div className="absolute inset-x-0 bottom-0 max-h-[88vh] rounded-t-2xl md:inset-y-0 md:left-auto md:right-0 md:bottom-auto md:h-full md:max-h-none md:w-[26rem] md:rounded-none bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <p className="text-base font-semibold text-slate-900">Filtry<span className="md:hidden"> a řazení</span></p>
-              <button type="button" onClick={() => setPanel(false)} aria-label="Zavřít" className="flex items-center justify-center w-9 h-9 -mr-1.5 rounded-lg text-slate-500 hover:bg-slate-100"><X className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setPanel(false)} aria-label="Zavřít" className="flex items-center justify-center w-11 h-11 md:w-9 md:h-9 -mr-2 rounded-lg text-slate-500 hover:bg-slate-100"><X className="w-5 h-5" /></button>
             </div>
             <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
               <div className="md:hidden grid grid-cols-1 gap-3">
-                <Field label="Řadit podle">{razeniSelect('razeni-panel')}</Field>
+                <Field label="Řadit podle">{razeniSelect('razeni-panel', true)}</Field>
                 <div><span className="block mb-1 text-xs font-medium text-slate-500">Výnosy zobrazit v</span><CurrencyToggle showLabel={false} /></div>
               </div>
               <div className="md:hidden">
@@ -931,7 +943,7 @@ export default function ScreenerUI({
                   </select>
                 </Field>
                 <Field label="Max. TER (%)">
-                  <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="např. 0,20" value={terMax} onChange={bumpN(setTerMax)} className={selCls} />
+                  <input type="text" inputMode="decimal" pattern="[0-9]*[,.]?[0-9]*" placeholder="např. 0,20" value={terMax} onChange={bumpN(setTerMax)} className={selCls} />
                 </Field>
                 {/* Jedno pole místo dvou (dřív „Velikost fondu: Jakákoli“ + „Min. velikost“ = dvě věci na totéž). */}
                 <Field label="Velikost fondu">
@@ -957,7 +969,7 @@ export default function ScreenerUI({
                   </select>
                 </Field>
                 <Field label="Min. dividenda (%)">
-                  <input type="number" inputMode="decimal" step="0.1" min="0" placeholder="např. 2,0" value={divMin} onChange={bumpN(setDivMin)} className={selCls} />
+                  <input type="text" inputMode="decimal" pattern="[0-9]*[,.]?[0-9]*" placeholder="např. 2,0" value={divMin} onChange={bumpN(setDivMin)} className={selCls} />
                 </Field>
                 <Field label="Replikace">
                   <select aria-label="Replikace" value={repl} onChange={bump(setRepl)} className={selCls}>
@@ -993,14 +1005,14 @@ export default function ScreenerUI({
                   {options.providers.map((v) => <option key={v} value={v}>{v}</option>)}
                 </select>
               </Field>
-              <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3 py-2.5">
+              <label className="flex items-center gap-2.5 min-h-[44px] rounded-lg border border-slate-200 px-3 py-2.5">
                 <input type="checkbox" checked={leveraged} onChange={(e) => { setLeveraged(e.target.checked); setShown(PAGE); }} className="w-4 h-4 rounded accent-teal-600" />
                 <span className="text-sm text-slate-700">Zobrazit i pákové a inverzní produkty <span className="text-slate-400">(vysoké riziko)</span></span>
               </label>
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-4 py-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-              <button type="button" onClick={reset} disabled={!anyFilter} className="text-sm font-medium text-slate-500 hover:text-red-600 disabled:opacity-40">Vymazat vše</button>
-              <button type="button" onClick={() => setPanel(false)} className="rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">
+              <button type="button" onClick={reset} disabled={!anyFilter} className="inline-flex items-center min-h-[44px] md:min-h-[40px] -ml-2 px-2 rounded-lg text-sm font-medium text-slate-500 hover:text-red-600 disabled:opacity-40">Vymazat vše</button>
+              <button type="button" onClick={() => setPanel(false)} className="inline-flex items-center min-h-[44px] md:min-h-[40px] rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800">
                 Zobrazit {filtered.length.toLocaleString('cs-CZ')} {filtered.length === 1 ? 'fond' : filtered.length >= 2 && filtered.length <= 4 ? 'fondy' : 'fondů'}
               </button>
             </div>

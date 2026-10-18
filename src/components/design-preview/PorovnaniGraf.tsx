@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
+import { procenta } from '@/lib/formatSrovnavac';
 
 /* ─────────────────────────────────────────────────────────────────────────
    VÝNOS PO KALENDÁŘNÍCH LETECH – sloupcový graf pro porovnání fondů (revize 18. 10. 2026:
@@ -21,7 +22,8 @@ export { BARVY_FONDU };
 
 export interface FondGrafu { isin: string; label: string; data: Record<string, unknown> }
 
-const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
+// Jednotné formáty (src/lib/formatSrovnavac.ts): „−“ a nezlomitelná mezera před %.
+const pct = (v: number | null) => procenta(v, 1, true);
 
 /** „Hezký“ krok osy (5, 10, 20, 25, 50…) tak, aby čar bylo nejvýš ~5. */
 function krokOsy(rozsah: number): number {
@@ -102,7 +104,7 @@ export default function PorovnaniGraf({ fondy, rokDat }: { fondy: FondGrafu[]; r
           {ticks.map((t) => (
             <g key={t}>
               <line x1={m.l} x2={sirka - m.r} y1={y(t)} y2={y(t)} stroke={t === 0 ? '#94a3b8' : '#e2e8f0'} strokeWidth={1} />
-              <text x={m.l - 6} y={y(t)} dy="0.32em" textAnchor="end" fontSize={11} fill="#64748b" className="tabular-nums">{t > 0 ? '+' : ''}{t} %</text>
+              <text x={m.l - 6} y={y(t)} dy="0.32em" textAnchor="end" fontSize={11} fill="#64748b" className="tabular-nums">{procenta(t, 0, true)}</text>
             </g>
           ))}
           {radky.map((r, ri) => {

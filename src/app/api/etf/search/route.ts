@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { categoryConfigs } from '@/lib/etf-data';
 import { anglickeTermy, navrhniKategorie, skoreHledani } from '@/lib/hledaniCz';
+import { indexFonduLabel } from '@/utils/indexNormalization';
+import { detectHedging } from '@/utils/hedgingDetection';
 
 // slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší zlato ETF).
 const KATEGORIE: Record<string, string> = Object.fromEntries(Object.entries(categoryConfigs).map(([slug, c]) => [slug, c.title]));
@@ -39,10 +41,12 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select(`isin, name, fund_provider, fund_size_numeric, rating, ter_numeric, return_1y_czk, category, ${TICKER_FIELDS.join(', ')}`)
+      .select(`isin, name, fund_provider, fund_size_numeric, rating, ter_numeric, return_1y_czk, category, index_name, investment_focus, ${TICKER_FIELDS.join(', ')}`)
       .or(orFilter)
       .order('fund_size_numeric', { ascending: false, nullsFirst: false })
-      .limit(termy.length ? 60 : 30);
+      // Kandidáti podle velikosti, pořadí pak dělá relevance. Širší vzorek (dřív 30/60): u „gold“ se jinak do
+      // výběru vešly fondy Goldman Sachs (shoda poskytovatele) místo zlatých ETC.
+      .limit(termy.length ? 150 : 100);
 
     if (error) {
       console.error('Search error:', error);
@@ -55,6 +59,8 @@ export async function GET(request: NextRequest) {
       isin: String(row.isin),
       name: String(row.name),
       tickers: TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim().toLowerCase()).filter((t): t is string => !!t && t !== '-'),
+      index: indexFonduLabel({ index_name: row.index_name as string | null, name: String(row.name), investment_focus: row.investment_focus as string | null }),
+      zajisteno: detectHedging(String(row.name)).isHedged,
     });
 
     const rows = (data ?? []) as unknown as Record<string, unknown>[];
