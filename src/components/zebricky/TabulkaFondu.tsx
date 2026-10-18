@@ -44,12 +44,17 @@ const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? 
 const terF = (v: number | null) => (v == null ? '—' : `${cz(v, 2)} %`);
 const vel = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 1000)} mld €` : `${Math.round(v)} mil €`);
 const barva = (v: number | null) => (v == null ? 'text-slate-400' : v >= 0 ? 'text-emerald-700' : 'text-red-700');
-const kratkyIsin = (isin: string) => `${isin.slice(0, 2)}…${isin.slice(-4)}`;
+/** Skloňování „fond“ (1 fond, 2–4 fondy, 5+ fondů). */
+const fondu = (n: number) => (n === 1 ? 'fond' : n >= 2 && n <= 4 ? 'fondy' : 'fondů');
+/** Skloňování „třída“ (1 třída, 2–4 třídy, 5+ tříd). */
+const trid = (n: number) => (n === 1 ? 'měnově zajištěná třída' : n >= 2 && n <= 4 ? 'měnově zajištěné třídy' : 'měnově zajištěných tříd');
 const curText: Record<Currency, string> = { CZK: 'v Kč', EUR: 'v EUR', USD: 'v USD' };
 
 export default function TabulkaFondu({
-  radky, celkem, vychozi = 'size', datum, srovnavac,
+  radky, celkem, vychozi = 'size', datum, srovnavac, nadpisId,
 }: {
+  /** id nadpisu tabulky (aria-labelledby sekce) – nadpis je tady, protože počet závisí na filtrech. */
+  nadpisId?: string;
   radky: RadekFondu[];
   /** Kolik fondů do žebříčku patří celkem (může být víc, než kolik posíláme). */
   celkem: number;
@@ -62,10 +67,12 @@ export default function TabulkaFondu({
   const [klic, setKlic] = useState<Klic>(vychozi);
   const [vzestupne, setVzestupne] = useState(vychozi === 'ter');
   const [typ, setTyp] = useState<'vse' | 'acc' | 'dist'>('vse');
-  const [bezZajisteni, setBezZajisteni] = useState(false);
+  // Výchozí: zajištěné třídy skryté – míchaly by výnosy v Kč s jinou měnou (revize kola 2). Přepínač zůstává.
+  const [bezZajisteni, setBezZajisteni] = useState(true);
   const [pocet, setPocet] = useState(KROK);
 
-  const maZajistene = radky.some((r) => r.zajisteni);
+  const pocetZajistenych = radky.filter((r) => r.zajisteni).length;
+  const maZajistene = pocetZajistenych > 0;
   const maOba = radky.some((r) => r.typ === 'acc') && radky.some((r) => r.typ === 'dist');
 
   const hodnota = (r: RadekFondu, k: Klic) =>
@@ -93,6 +100,13 @@ export default function TabulkaFondu({
     mer('zalozka', { s: 'tabulka', c: k });
   };
 
+  // Nadpis = počet ZOBRAZENÝCH fondů („17 z 24 fondů“, ne „Všech 24“, když jsou zajištěné skryté).
+  const castecne = celkem > radky.length;
+  const nadpis = vyber.length === radky.length
+    ? (castecne ? `${radky.length} největších z ${celkem.toLocaleString('cs-CZ')} fondů` : `${celkem.toLocaleString('cs-CZ')} ${fondu(celkem)}`)
+    : `${vyber.length.toLocaleString('cs-CZ')} z ${radky.length.toLocaleString('cs-CZ')} ${castecne ? 'největších fondů' : 'fondů'}`;
+  const skrytoZajistenych = bezZajisteni ? radky.filter((r) => r.zajisteni && (typ === 'vse' || r.typ === typ)).length : 0;
+
   const zobrazene = vyber.slice(0, pocet);
   const zbyva = vyber.length - zobrazene.length;
   const aktivni = RAZENI.find((r) => r.id === klic)!;
@@ -111,6 +125,13 @@ export default function TabulkaFondu({
 
   return (
     <div>
+      <h2 id={nadpisId} className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">{nadpis}</h2>
+      {skrytoZajistenych > 0 ? (
+        <p className="mt-1 mb-3 text-sm text-slate-500">
+          Bez {skrytoZajistenych} {trid(skrytoZajistenych)} – jejich výnos závisí na jiné měně.{' '}
+          <button type="button" onClick={() => { setBezZajisteni(false); setPocet(KROK); }} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Zobrazit i je</button>
+        </p>
+      ) : <div className="mb-3" />}
       {/* Ovládání: řazení (záložky), typ, měna */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div role="group" aria-label="Řazení fondů" className="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1 lg:inline-grid lg:min-w-[30rem]">
@@ -148,7 +169,7 @@ export default function TabulkaFondu({
 
       <div className="mt-3 rounded-2xl border border-slate-200 bg-white">
         {/* Hlavička sloupců (desktop) */}
-        <div className="hidden md:grid md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6.5rem_6.5rem_6.5rem_2.5rem] gap-4 px-5 py-3 text-xs font-medium text-slate-500 border-b border-slate-100">
+        <div className="hidden md:grid md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6.5rem_6.5rem_6.5rem_6.5rem] gap-4 px-5 py-3 text-xs font-medium text-slate-500 border-b border-slate-100">
           <span>#</span>
           <span>Fond</span>
           <span className="text-right"><Hlavicka k="ter" tip="TER = roční poplatek fondu, strhává se z jeho hodnoty. Swapové fondy mohou mít navíc swap poplatek – detail u fondu.">TER</Hlavicka></span>
@@ -164,14 +185,15 @@ export default function TabulkaFondu({
             const hlavniText = klic === 'size' ? vel(hlavni) : klic === 'ter' ? terF(hlavni) : pct(hlavni);
             const vedlejsi = klic === 'size' || klic === 'r1' || klic === 'r3' ? `TER ${terF(r.ter)}` : vel(r.velikost);
             return (
-              <li key={r.isin} className="relative grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6.5rem_6.5rem_6.5rem_2.5rem] gap-x-4 items-center px-4 md:px-5 py-2.5 hover:bg-slate-50/70">
+              <li key={r.isin} className="relative grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6.5rem_6.5rem_6.5rem_6.5rem] gap-x-4 items-center px-4 md:px-5 py-2.5 hover:bg-slate-50/70">
                 <span className="hidden md:block text-xs tabular-nums text-slate-400">{i + 1}</span>
                 <Link href={`/etf/${r.isin}`} className="group min-w-0 flex items-center gap-2.5 min-h-11">
                   <EmitentLogo nazev={r.nazev} size={28} />
                   <span className="min-w-0 flex flex-col">
                     <span className="text-[15px] md:text-sm font-medium leading-snug text-slate-900 group-hover:text-teal-800 group-hover:underline underline-offset-2 line-clamp-2 md:line-clamp-1">{r.nazev}</span>
                     <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
-                      <span className="font-medium text-slate-600">{r.ticker ?? <span title={r.isin}>{kratkyIsin(r.isin)}</span>}</span>
+                      {/* Bez tickeru celý ISIN (useknutý „IE…ZB19“ působil jako rozbitý export) */}
+                      <span className={r.ticker ? 'font-medium text-slate-600' : 'text-slate-500'}>{r.ticker ?? r.isin}</span>
                       {r.typ && <span>· {r.typ === 'acc' ? 'akumulační' : 'distribuční'}</span>}
                       {r.zajisteni && <span className="rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">zajištěno{r.zajisteni !== 'ano' ? ` ${r.zajisteni}` : ''}</span>}
                     </span>
@@ -186,7 +208,7 @@ export default function TabulkaFondu({
                 <span className={`hidden md:block text-right text-sm tabular-nums ${klic === 'size' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{vel(r.velikost)}</span>
                 <span className={`hidden md:block text-right text-sm tabular-nums ${barva(r1(r))} ${klic === 'r1' ? 'font-semibold' : ''}`}>{pct(r1(r))}</span>
                 <span className={`hidden md:block text-right text-sm tabular-nums ${barva(r3(r))} ${klic === 'r3' ? 'font-semibold' : ''}`}>{pct(r3(r))}</span>
-                <span className="hidden md:flex justify-end"><CompareButton isin={r.isin} label={r.ticker ?? kratkyIsin(r.isin)} variant="chip" /></span>
+                <span className="hidden md:flex justify-end"><CompareButton isin={r.isin} label={r.ticker ?? r.isin} variant="row" /></span>
               </li>
             );
           })}

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ETFBasicInfo, FlagshipComposition, CompositionSlice } from '@/lib/etf-data';
 import type { IndexInfo } from '@/components/design-preview/indexDescriptions';
 import { ArrowRight, TrendingUp, TrendingDown, Globe2, PieChart, Layers, Info } from 'lucide-react';
+import { ceskaZeme, ceskySektor } from '@/lib/preklady';
 
 /* ---------- Formátovače ---------- */
 export const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
@@ -169,33 +170,9 @@ export function SectionHead({
 const SLICE_COLORS = ['#0f766e', '#14b8a6', '#2dd4bf', '#5eead4', '#99f6e4'];
 const REST_COLOR = '#cbd5e1';
 
-// Lokalizace nejčastějších zemí do češtiny (data jsou anglicky).
-const COUNTRY_CS: Record<string, string> = {
-  'United States': 'USA', 'USA': 'USA', 'US': 'USA',
-  'United Kingdom': 'Velká Británie', 'UK': 'Velká Británie', 'Great Britain': 'Velká Británie',
-  Japan: 'Japonsko', China: 'Čína', 'Hong Kong': 'Hongkong', Taiwan: 'Tchaj-wan',
-  'South Korea': 'Jižní Korea', India: 'Indie', Canada: 'Kanada', Germany: 'Německo',
-  France: 'Francie', Switzerland: 'Švýcarsko', Netherlands: 'Nizozemsko', Australia: 'Austrálie',
-  Brazil: 'Brazílie', Spain: 'Španělsko', Italy: 'Itálie', Sweden: 'Švédsko', Denmark: 'Dánsko',
-  Ireland: 'Irsko', Belgium: 'Belgie', Finland: 'Finsko', Norway: 'Norsko', Austria: 'Rakousko',
-  'South Africa': 'JAR', Mexico: 'Mexiko', Singapore: 'Singapur', Poland: 'Polsko', Israel: 'Izrael',
-  Other: 'Ostatní', Others: 'Ostatní',
-};
+// Názvy zemí a sektorů jen přes src/lib/preklady.ts (jeden slovník pro celý web – revize 18. 10. 2026:
+// „Spotřeba (běžná)“ tady vs. „Spotřební zboží (základní)“ na detailu fondu).
 
-// Lokalizace sektorů (GICS) do češtiny.
-const SECTOR_CS: Record<string, string> = {
-  Technology: 'Technologie', 'Information Technology': 'Technologie',
-  Financials: 'Finance', 'Financial Services': 'Finance', Industrials: 'Průmysl',
-  'Health Care': 'Zdravotnictví', Healthcare: 'Zdravotnictví',
-  'Consumer Discretionary': 'Spotřeba (cyklická)', 'Consumer Staples': 'Spotřeba (běžná)',
-  'Consumer Cyclicals': 'Spotřeba (cyklická)', 'Consumer Non-Cyclicals': 'Spotřeba (běžná)',
-  'Basic Materials': 'Materiály', 'Telecommunications Services': 'Telekomunikace',
-  'Communication Services': 'Komunikace', Communications: 'Komunikace',
-  Energy: 'Energetika', Materials: 'Materiály', Utilities: 'Utility',
-  'Real Estate': 'Nemovitosti', Telecommunications: 'Telekomunikace', Other: 'Ostatní',
-};
-
-const cs = (name: string, map: Record<string, string>) => map[name] ?? name;
 
 type Dimension = 'country' | 'sector' | 'holding';
 
@@ -225,10 +202,10 @@ export function slozeniPouzitelne(comp: FlagshipComposition | null, prefer: Dime
   return !!comp && pickDimension(comp, prefer) != null;
 }
 
-const DIM_META: Record<Dimension, { title: string; icon: typeof Globe2; localize: Record<string, string> }> = {
-  country: { title: 'Geografické rozložení', icon: Globe2, localize: COUNTRY_CS },
-  sector: { title: 'Rozložení podle sektorů', icon: PieChart, localize: SECTOR_CS },
-  holding: { title: 'Největší pozice ve fondu', icon: Layers, localize: {} },
+const DIM_META: Record<Dimension, { title: string; icon: typeof Globe2; localize: (n: string) => string }> = {
+  country: { title: 'Geografické rozložení', icon: Globe2, localize: ceskaZeme },
+  sector: { title: 'Rozložení podle sektorů', icon: PieChart, localize: ceskySektor },
+  holding: { title: 'Největší pozice ve fondu', icon: Layers, localize: (n) => n },
 };
 
 /**
@@ -253,7 +230,7 @@ export function CompositionInfographic({
   const Icon = meta.icon;
 
   // Segmenty (max 5) + dopočítaný zbytek do 100 %.
-  const top = slices.slice(0, 5).map((s) => ({ ...s, label: cs(s.name, meta.localize) }));
+  const top = slices.slice(0, 5).map((s) => ({ ...s, label: meta.localize(s.name) }));
   const sum = top.reduce((a, s) => a + s.weight, 0);
   const rest = Math.max(0, 100 - sum);
   // „Ostatní" segment: buď už je v datech (name==Other), nebo dopočet nad 3 %.
@@ -320,40 +297,32 @@ export function CompositionInfographic({
 
 /**
  * „Které indexy tato kategorie sleduje" – datově řízený přehled reálně sledovaných
- * indexů (dle fondů v kategorii) s odborným popisem. Unikátní obsah pro SEO/GEO.
- * Graceful: když žádný index nemá popis, celá sekce se nevykreslí.
+ * indexů (dle fondů v kategorii) s odborným popisem. Index fondu = indexFonduLabel (stejně jako srovnávač).
+ * Počet slovy („Sledují ho všechny fondy v žebříčku (58)“, „14 z 24 fondů“) – „58 z 58“ bylo nesrozumitelné.
  */
-export function CategoryIndexes({ indexes, total, sloupce = 2 }: { indexes: { info: IndexInfo; count: number }[]; total: number; sloupce?: 1 | 2 }) {
+export function CategoryIndexes({ indexes, total, sloupce = 2, zCeho = 'fondů v žebříčku' }: {
+  indexes: { info: IndexInfo; count: number }[]; total: number; sloupce?: 1 | 2;
+  /** Doplněk za „z N …“ – u velkých kategorií „největších fondů“. */
+  zCeho?: string;
+}) {
   if (!indexes.length) return null;
-  const shown = indexes.reduce((s, i) => s + i.count, 0);
-  const rest = Math.max(0, total - shown);
   return (
-    <>
-      <div className={`grid gap-3 ${sloupce === 2 ? 'sm:grid-cols-2' : ''}`}>
-        {indexes.map(({ info, count }) => (
-          <div key={info.label} className="rounded-xl border border-slate-200 bg-white p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="text-base font-semibold text-slate-900 leading-tight">{info.label}</h3>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
-                  <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">{info.provider}</span>
-                  {info.holdings && <span>{info.holdings}</span>}
-                </div>
-              </div>
-              <span className="shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700 tabular-nums" title={`${count} z ${total} fondů v kategorii sleduje tento index`}>
-                {count} z {total}
-              </span>
-            </div>
-            <p className="mt-2.5 text-sm text-slate-600 leading-relaxed">{info.what}</p>
+    <div className={`grid gap-3 ${sloupce === 2 ? 'sm:grid-cols-2' : ''}`}>
+      {indexes.map(({ info, count }) => (
+        <div key={info.label} className="min-w-0 rounded-xl border border-slate-200 bg-white p-5" data-index-pocet={count} data-index-celkem={total}>
+          <h3 className="text-base font-semibold text-slate-900 leading-tight">{info.label}</h3>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+            <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">{info.provider}</span>
+            {info.holdings && <span>{info.holdings}</span>}
           </div>
-        ))}
-      </div>
-      {rest > 0 && (
-        <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
-          <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          Zbývajících {rest} z {total} fondů sleduje jiný index nebo ho v datech nemá uvedený.
-        </p>
-      )}
-    </>
+          <p className="mt-2 text-sm font-medium text-teal-800">
+            {count === total
+              ? `Sledují ho všechny fondy v žebříčku (${total.toLocaleString('cs-CZ')})`
+              : `Sleduje ho ${count.toLocaleString('cs-CZ')} z ${total.toLocaleString('cs-CZ')} ${zCeho}`}
+          </p>
+          <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">{info.what}</p>
+        </div>
+      ))}
+    </div>
   );
 }

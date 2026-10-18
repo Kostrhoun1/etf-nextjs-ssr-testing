@@ -38,17 +38,17 @@ const CYKLUS = /(short duration|short maturity|short[- ]term|ultra[- ]?short)/i;
 
 // Zlatá sada: ISINy, které v žebříčku MUSÍ být (vlajkové fondy), a názvy, které tam být NESMÍ.
 const ZLATA_SADA = [
-  { slug: 'nejlepsi-sp500-etf', musi: ['IE00B5BMR087'], nesmi: /equal weight|sector|ex[- ]|\bESG\b|screened|scored|leaders|top 20|capped|covered call|low vol/i }, // CSPX/SXR8
-  { slug: 'nejlepsi-msci-world-etf', musi: ['IE00B4L5Y983'], nesmi: /all[- ]world|acwi|ex[- ]usa/i },    // IWDA/EUNL
+  { slug: 'nejlepsi-sp500-etf', musi: ['IE00B5BMR087'], indexy: 0.9, nesmi: /equal weight|sector|ex[- ]|\bESG\b|screened|scored|leaders|top 20|capped|covered call|low vol/i }, // CSPX/SXR8
+  { slug: 'nejlepsi-msci-world-etf', musi: ['IE00B4L5Y983'], indexy: 0.8, nesmi: /all[- ]world|acwi|ex[- ]usa/i },    // IWDA/EUNL
   // Celý svět = vyspělé I rozvíjející se trhy (18. 10. 2026: dřív vedl EUNL = MSCI World, jen vyspělé trhy).
-  { slug: 'nejlepsi-celosvetove-etf', musi: ['IE00BK5BQT80', 'IE00B3YLTY66', 'IE00B6R52259'],            // VWCE, SPYI, IUSQ
+  { slug: 'nejlepsi-celosvetove-etf', musi: ['IE00BK5BQT80', 'IE00B3YLTY66', 'IE00B6R52259'], indexy: 0.8,            // VWCE, SPYI, IUSQ
     nesmi: /\bMSCI World\b|developed|ex[- ]?u\.?s|\bESG\b|\bSRI\b|screened|paris|climate|enhanced|\bactive\b/i },
   { slug: 'nejlepsi-emerging-markets-etf', musi: ['IE00BKM4GZ66'], nesmi: /\bEMU\b/i },                 // EIMI/EMIM
   { slug: 'nejlepsi-japonske-etf', nesmi: /ex[- ]?japan/i },
   { slug: 'nejlepsi-cinske-etf', nesmi: /ex[- .]*china/i },
   { slug: 'nejlepsi-zlato-etf', musi: ['IE00B4ND3602'] },                                               // SGLN
   { slug: 'nejlepsi-ropa-etf' },
-  { slug: 'nejlepsi-nasdaq-etf', nesmi: /biotech|cyber|semiconductor|smart grid|covered call|aerospace/i },
+  { slug: 'nejlepsi-nasdaq-etf', indexy: 0.8, nesmi: /biotech|cyber|semiconductor|smart grid|covered call|aerospace/i },
 ];
 
 async function nactiFondy() {
@@ -342,6 +342,14 @@ const main = async () => {
     const pocetZebricek = Number(html.match(/data-pocet-fondu="(\d+)"/)?.[1] ?? NaN);
     const pocetHub = pocetRozcestnik.get(z.slug);
     if (pocetHub != null && Number.isFinite(pocetZebricek) && pocetHub !== pocetZebricek) nesouhlasi.push(`${z.slug}: rozcestník ${pocetHub}, žebříček ${pocetZebricek}`);
+    // Indexové žebříčky: sekce „Co v kategorii je“ musí u většiny fondů poznat sledovaný index (data-index-pocet).
+    // 18. 10. 2026 ukazovala „MSCI ACWI 6 z 24“ (ve skutečnosti 14) – index se bral jen z useknutého index_name.
+    if (z.indexy) {
+      const karty = [...html.matchAll(/data-index-pocet="(\d+)" data-index-celkem="(\d+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
+      const pozn = karty.reduce((a, [n]) => a + n, 0);
+      const celk = karty[0]?.[1] ?? 0;
+      if (!celk || pozn / celk < z.indexy) poplach.push({ co: `Žebříček ${z.slug}: sledovaný index poznán jen u ${pozn} z ${celk} fondů (min. ${Math.round(z.indexy * 100)} %) – index fondu se odvozuje špatně`, ukazka: [] });
+    }
     const isiny = new Set([...html.matchAll(/\/etf\/([A-Z]{2}[A-Z0-9]{10})/g)].map((m) => m[1]));
     const chybi = (z.musi || []).filter((i) => !isiny.has(i));
     const byName = new Map(fondy.map((f) => [f.isin, f]));
