@@ -306,7 +306,9 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const [vysledekPro, setVysledekPro] = useState<string | null>(initialResult ? konfig : null);
   // Popis toho, co výsledek počítal (složení, vklady) – ukazuje se nad velkým číslem.
   const popisNastaveni = () => {
-    const slozeni = selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')} %`).join(' + ');
+    const casti = selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')} %`).join(' + ');
+    const nazev = !activeStyle && activePreset && activePreset !== 'sp500-100' ? (PRESET_SHORT[activePreset] ?? null) : null;
+    const slozeni = nazev ? `${nazev}: ${casti}` : casti;
     const cur = CURRENCIES.find((c) => c.code === currency)?.label ?? '';
     const freq = { monthly: 'měsíčně', quarterly: 'čtvrtletně', yearly: 'ročně', none: '' }[contributionFrequency];
     const vklady = `${initialAmount.toLocaleString('cs-CZ')} ${cur}${contributionFrequency !== 'none' && contributionAmount > 0 ? ` + ${contributionAmount.toLocaleString('cs-CZ')} ${cur} ${freq}` : ''}`;
@@ -704,7 +706,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
         {/* ===== VÝSLEDEK (mobil: první; desktop: vpravo, lepkavý) ===== */}
         <div id="vysledek" data-sekce="backtest-vysledek" className="lg:order-2 lg:sticky lg:top-[4.5rem] space-y-3 scroll-mt-20">
           {zastaraly && !loading && !cekamNaUrl && (
@@ -803,7 +805,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                       <CartesianGrid stroke="#f1f5f9" vertical={false} />
                       <XAxis dataKey="t" type="number" domain={[t0, t1]} ticks={rokyOsy(t0, t1)} tickFormatter={fmtRok}
                         tick={OSA_TICK} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
-                      <YAxis width={48} ticks={osaY} domain={[0, osaY[osaY.length - 1]]} tickFormatter={fmtOsa}
+                      <YAxis width={56} ticks={osaY} domain={[0, osaY[osaY.length - 1]]} tickFormatter={fmtOsa}
                         tick={OSA_TICK} axisLine={false} tickLine={false} />
                       <Tooltip
                         cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }}
@@ -975,7 +977,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                       </span>
                     </>)}
                   </div>
-                  <div className="relative w-24 shrink-0">
+                  <div className="relative w-20 sm:w-24 shrink-0">
                     <input
                       type="number"
                       inputMode="numeric"
@@ -1030,7 +1032,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <div className="flex items-center gap-2">
                 <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700"><Search className="w-4 h-4" /></span>
                 <input id="bt-fond" type="search" value={hledani} onChange={(e) => setHledani(e.target.value)} autoComplete="off"
-                  placeholder="Konkrétní fond – ticker nebo název (VWCE)"
+                  placeholder="Konkrétní fond, např. VWCE"
                   className="flex-1 min-w-0 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
               </div>
               {hledani.trim().length >= 2 && (
@@ -1494,8 +1496,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     />
                     <MetricCard
                       icon={TrendingDown}
-                      label={<>VaR 95 % <InfoTip label="Value at Risk – zhruba nejhorší výsledek, který je běžné čekat. Horší nastane jen asi v 1 případě z 20."><span className="sr-only">vysvětlení</span></InfoTip></>}
-                      value={fmtPct(result.risk.valueAtRisk95 * 100)} hint="odhad špatného období" tone="neg"
+                      label={<>VaR 95 % <InfoTip label="Value at Risk – zhruba nejhorší rok, který je běžné čekat. Horší nastane jen asi v 1 roce z 20."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      value={fmtPct(result.risk.valueAtRisk95 * 100)} hint="odhad špatného roku" tone="neg"
                     />
                   </div>
 
@@ -1636,7 +1638,7 @@ function ComparisonBlock({
             <CartesianGrid stroke="#f1f5f9" vertical={false} />
             <XAxis dataKey="t" type="number" domain={[ct0, ct1]} ticks={rokyOsy(ct0, ct1)} tickFormatter={fmtRok}
               tick={OSA_TICK} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
-            <YAxis width={48} ticks={cOsa} domain={[0, cOsa[cOsa.length - 1]]} tick={OSA_TICK} axisLine={false} tickLine={false}
+            <YAxis width={56} ticks={cOsa} domain={[0, cOsa[cOsa.length - 1]]} tick={OSA_TICK} axisLine={false} tickLine={false}
               tickFormatter={fmtOsa} />
             <Tooltip
               cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }}

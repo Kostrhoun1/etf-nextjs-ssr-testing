@@ -322,7 +322,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
         {/* ===== VSTUPY ===== */}
         <div data-sekce="kalk-vstupy" className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3">Vaše investice</h2>
@@ -544,7 +544,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
                     tick={{ fontSize: 11, fill: '#64748b' }}
                     tickLine={false}
                     axisLine={false}
-                    width={48}
+                    width={56}
                   />
                   <Tooltip content={<ChartTooltip />} />
                   <Area type="monotone" dataKey="invested" stackId="1" stroke="#94a3b8" strokeWidth={1.5} fill="url(#ik-invested)" isAnimationActive={false} />
@@ -560,7 +560,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [] }: { histor
       </div>
 
       {hasData && (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* Co z toho plyne – vygenerované z TĚCH hodnot, které jsou zadané (dřív pevný text „za 30 let“) */}
           <div data-sekce="kalk-shrnuti" className="rounded-xl bg-teal-800 text-white p-5 md:p-6">
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">

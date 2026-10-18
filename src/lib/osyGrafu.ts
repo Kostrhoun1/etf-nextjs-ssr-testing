@@ -24,7 +24,7 @@ export function kulateKroky(max: number, min = 0, cil = 4): number[] {
 /** Číslo na osu bez jednotky: „2,5 mil.“, „500 tis.“, „0“. Jednotka patří do nadpisu grafu. */
 export const fmtOsa = (v: number) => {
   const a = Math.abs(v);
-  if (a >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil.`;
-  if (a >= 1_000) return `${(v / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} tis.`;
+  if (a >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}\u00a0mil.`;
+  if (a >= 1_000) return `${(v / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })}\u00a0tis.`;
   return v.toLocaleString('cs-CZ', { maximumFractionDigits: 0 });
 };
