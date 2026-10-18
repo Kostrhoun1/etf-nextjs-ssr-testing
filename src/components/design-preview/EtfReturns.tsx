@@ -1,5 +1,6 @@
 'use client';
 
+import { procenta, NBSP } from '@/lib/formatyCisel';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { useCurrency, curLabel, type Currency } from '@/components/design-preview/currencyStore';
 
@@ -10,11 +11,8 @@ type ByCur = Record<Currency, Vals>;
    měny, v odděleném řádku se štítkem „v EUR“ (audit 17. 10. 2026: SXR8 1M „+5,1 % USD“, v USD +2,1 %). */
 type ShortPeriods = { m1: number | null; m3: number | null; m6: number | null };
 
-const pct = (v: number | null) => {
-  if (v == null) return '—';
-  const s = v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  return `${v > 0 ? '+' : ''}${s} %`;
-};
+// Jednotný formát (kolo 5): „−15,9 %“ s minusem a nezlomitelnou mezerou – src/lib/formatyCisel.ts.
+const pct = (v: number | null) => procenta(v);
 
 /** Průměrný roční (p.a.) výnos z KUMULATIVNÍHO výnosu: (1+kum)^(1/roky)−1. */
 export const annualize = (cumPct: number | null, years: number): number | null => {
@@ -80,7 +78,7 @@ export default function EtfReturns({
             {([['před rokem', v.y1], ['před 3 lety', v.y3], ['před 5 lety', v.y5]] as const).map(([k, x]) => (
               <span key={k} className="min-w-0">
                 <span className="block text-[11px] text-slate-400">{k}</span>
-                <span className="font-semibold tabular-nums text-slate-900 whitespace-nowrap">{x == null ? '—' : `${Math.round(10000 * (1 + x / 100)).toLocaleString('cs-CZ')} Kč`}</span>
+                <span className="font-semibold tabular-nums text-slate-900 whitespace-nowrap">{x == null ? '—' : `${Math.round(10000 * (1 + x / 100)).toLocaleString('cs-CZ')}${NBSP}Kč`}</span>
               </span>
             ))}
           </div>

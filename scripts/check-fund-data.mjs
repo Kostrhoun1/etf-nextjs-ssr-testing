@@ -547,6 +547,27 @@ const main = async () => {
     varovani.push({ co: `Kontrolu dvojic podle tickeru se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── DETAIL KOMODITY A KRYPTA: žádné „reinvestuje“ (revize kola 4, 18. 10. 2026) ──
+  // Fyzické zlato ani bitcoin dividendy nemají, zdroj je přesto vede jako „Accumulating“ → detail psal „Dividendy:
+  // Reinvestuje“ a „Fond dividendy reinvestuje – na účet nic nechodí“. Teď „Nevyplácí (komodita)“ (src/lib/dividendyFondu.ts).
+  // Značka data-komodita na sekci „O fondu“ = produkce už má opravu; bez ní jde o stav před nasazením.
+  try {
+    for (const [isin, popis] of [['IE00B4ND3602', 'iShares Physical Gold'], ['GB00BLD4ZL17', 'CoinShares Physical Bitcoin']]) {
+      const html = await fetch(`${WEB_URL}/etf/${isin}`).then((r) => (r.ok ? r.text() : ''));
+      if (!html) { varovani.push({ co: `Detail ${popis} (${isin}) se nenačetl – kontrola dividend komodity vynechána`, ukazka: [] }); continue; }
+      const spatne = /reinvest/i.test(html);
+      if (!/data-komodita="/.test(html)) {
+        if (spatne) varovani.push({ co: `Detail ${popis} na produkci ještě tvrdí „reinvestuje“ (oprava před nasazením)`, ukazka: [isin] });
+      } else if (spatne) {
+        poplach.push({ co: `Detail ${popis} (${isin}) tvrdí, že komodita/krypto „reinvestuje dividendy“ – nemá žádné`, ukazka: [`${WEB_URL}/etf/${isin}`] });
+      } else if (!/Nevyplácí/.test(html)) {
+        poplach.push({ co: `Detail ${popis} (${isin}) neukazuje „Nevyplácí“ u dividend`, ukazka: [`${WEB_URL}/etf/${isin}`] });
+      }
+    }
+  } catch (e) {
+    varovani.push({ co: `Kontrolu dividend komodit na detailu se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── KURZY pro backtest/grafy (exchange_rates_historical, pg_cron fx-topup → denně 17:00 UTC) ──
   // Do 18. 10. 2026 se plnily jen v pondělí ráno → poslední týden se přepočítával až 10 dní starým kurzem.
   try {
