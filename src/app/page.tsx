@@ -250,7 +250,7 @@ export default async function DesignPreviewV2() {
       <main id="obsah" className="max-w-6xl mx-auto px-4 pb-12">
         {/* S1 HERO – co web dělá, hledání (rozumí češtině), dvě rovnocenné cesty (vím co hledám /
             nevím co koupit), řádek důvěry s datem. Vpravo další žebříčky (GA4: 25 % přechodů). */}
-        <section className="py-4 md:py-7">
+        <section data-sekce="hero" className="py-4 md:py-7">
           <div className="rounded-2xl bg-slate-900 text-white px-4 py-6 md:px-10 md:py-10 md:grid md:grid-cols-[minmax(0,1fr)_16rem] md:gap-12">
             <div className="min-w-0">
               <h1 className="text-[28px] md:text-[40px] font-bold tracking-tight leading-[1.1] text-balance">Srovnání ETF fondů s výnosy v korunách</h1>
@@ -297,7 +297,7 @@ export default async function DesignPreviewV2() {
 
         {/* S2 TŘI POHLEDY PODLE TRHU – jádro srovnávače (ruční seznam fondů: src/data/trhyDvojcata.ts). */}
         {trhy && trhy.length > 0 && datumText && (
-          <section className="pt-4 pb-12" aria-labelledby="h-trhy">
+          <section data-sekce="trhy" className="pt-4 pb-12" aria-labelledby="h-trhy">
             <Nadpis id="h-trhy" meta={`data k ${datumText}`} podnadpis="Šest hlavních trhů, jen fondy na široké indexy.">
               Nejlevnější, největší a nejvýkonnější ETF
             </Nadpis>
@@ -308,7 +308,7 @@ export default async function DesignPreviewV2() {
         {/* S3 KTERÝM ETF ZAČÍT – 3 nejnavštěvovanější detaily fondů (GA4 90 dní). Výnos jako průměr
             ročně za 5 let (12 měsíců svádělo ke čtení „ETF vydělá 20 % ročně“ – test s uživateli). */}
         {starters.length > 0 && (
-          <section className="pb-12" aria-labelledby="h-zacit">
+          <section data-sekce="zacit" className="pb-12" aria-labelledby="h-zacit">
             <Nadpis id="h-zacit" meta={datumText ? `data k ${datumText}` : undefined} podnadpis={`Nejčastěji otevírané fondy u nás – široce rozložené, levné a akumulační. Pro orientaci, ne jako doporučení.${starsiText ? ` U některého fondu jsou data starší (${starsiText}).` : ''}`}>
               Kterým ETF začít?
             </Nadpis>
@@ -365,7 +365,7 @@ export default async function DesignPreviewV2() {
 
         {/* S4 MODELOVÁ PORTFOLIA – s výkonností v Kč a datem; řazené podle rizika, krátké názvy,
             neutrální značení rizika (červený štítek působil jako chyba). */}
-        <section className="pb-12" aria-labelledby="h-portfolia">
+        <section data-sekce="portfolia" className="pb-12" aria-labelledby="h-portfolia">
           <Nadpis id="h-portfolia" meta={datumText ? `data k ${datumText}` : undefined} podnadpis="Hotová složení z konkrétních fondů a jak si vedla v korunách. Pro inspiraci, ne jako doporučení."
             odkaz={{ href: '/portfolio-strategie', text: 'Porovnat portfolia' }}>
             Modelová portfolia z ETF
@@ -404,7 +404,7 @@ export default async function DesignPreviewV2() {
         </section>
 
         {/* S5 KDE ETF KOUPIT – loga, ověřené poplatky (CENIKY_OVERENY); robo-poradce bez srovnání skóre. */}
-        <section id="brokeri" className="pb-12 scroll-mt-20" aria-labelledby="h-brokeri">
+        <section id="brokeri" data-sekce="brokeri" className="pb-12 scroll-mt-20" aria-labelledby="h-brokeri">
           <Nadpis id="h-brokeri" meta={`ceníky ověřeny ${new Date(CENIKY_OVERENY).toLocaleDateString('cs-CZ').replace(/ /g, ' ')}`} podnadpis="Seřazeno podle našeho skóre. Nebereme provize ani reklamu."
             odkaz={{ href: '/kde-koupit', text: 'Srovnání brokerů' }}>
             Kde ETF koupit
@@ -449,7 +449,7 @@ export default async function DesignPreviewV2() {
         </section>
 
         {/* S6 ČASTÉ OTÁZKY */}
-        <section className="pb-6" aria-labelledby="h-faq">
+        <section data-sekce="faq" className="pb-6" aria-labelledby="h-faq">
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
           <Nadpis id="h-faq" odkaz={{ href: '/pruvodce', text: 'Celý průvodce' }}>Časté otázky o ETF</Nadpis>
           <div className="grid md:grid-cols-2 gap-3">

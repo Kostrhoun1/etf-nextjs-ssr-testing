@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import type { RadekTrhu, FondTrhu } from '@/lib/trhy';
+import { mer } from '@/lib/mereni';
 
 /* Tři pohledy na fondy podle trhu (homepage, 18. 10. 2026): nejlevnější / největší / nejvýkonnější.
    Všechny panely jsou ve HTML (server), JS jen přepíná záložky (WAI-ARIA tabs, šipky).
@@ -51,6 +52,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
     if (j < 0) return;
     e.preventDefault();
     setPohled(POHLEDY[j].id);
+    mer('zalozka', { s: 'trhy', c: POHLEDY[j].id });
     tabs.current[j]?.focus();
   };
 
@@ -66,7 +68,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
             aria-selected={pohled === p.id}
             aria-controls={`panel-${p.id}`}
             tabIndex={pohled === p.id ? 0 : -1}
-            onClick={() => setPohled(p.id)}
+            onClick={() => { setPohled(p.id); mer('zalozka', { s: 'trhy', c: p.id }); }}
             onKeyDown={(e) => onKey(e, i)}
             className={`min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors ${pohled === p.id ? 'bg-white text-teal-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >

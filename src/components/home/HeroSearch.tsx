@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Search, Loader2, ArrowRight, ListOrdered } from 'lucide-react';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import { jeDotazZacatecnika } from '@/lib/hledaniCz';
+import { mer } from '@/lib/mereni';
 
 /* Živý našeptávač ETF v hero sekci na homepage – při psaní názvu, ISIN nebo
    tickeru rovnou nabízí fondy; klik/Enter otevře detail, „Zobrazit vše" pošle
@@ -36,6 +37,8 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
   const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const posledniHledani = useRef<{ q: string; n: number; k: number } | null>(null);
+  const odeslaneHledani = useRef('');
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -63,6 +66,8 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
         const data = res.ok ? await res.json() : { results: [] };
         setResults(data.results ?? []);
         setKategorie(data.kategorie ?? []);
+        // Měření: dotaz + počet fondů (nula = slepá ulička, kterou chceme vidět). Jen ustálený dotaz.
+        posledniHledani.current = { q: term.toLowerCase().slice(0, 60), n: (data.results ?? []).length, k: (data.kategorie ?? []).length };
         setOpen(true);
         setActive(-1);
       } catch {
@@ -74,6 +79,18 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [query]);
 
+  // Hledání zaznamenat po 1,5 s klidu (ne každé písmeno).
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const h = posledniHledani.current;
+      if (h && h.q.length >= 2 && h.q !== odeslaneHledani.current) {
+        odeslaneHledani.current = h.q;
+        mer('hledani', { s: 'hero', c: h.q, v: h.n, m: { kategorie: h.k } });
+      }
+    }, 1500);
+    return () => window.clearTimeout(t);
+  }, [results, kategorie]);
+
   const goToScreener = useCallback(() => {
     const term = query.trim();
     if (!term) return;
@@ -84,10 +101,11 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
   }, [query, router, results.length]);
 
   const goToEtf = useCallback((isin: string) => {
+    mer('hledani_vyber', { s: 'hero', c: isin, m: { dotaz: query.trim().toLowerCase().slice(0, 60) } });
     setOpen(false);
     setQuery('');
     router.push(`/etf/${isin}`);
-  }, [router]);
+  }, [router, query]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {

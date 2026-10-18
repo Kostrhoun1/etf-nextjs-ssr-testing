@@ -6,6 +6,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import ClientErrorReporter from '@/components/ClientErrorReporter';
+import Mereni from '@/components/Mereni';
 import AuthorSchema from '@/components/SEO/AuthorSchema';
 import CompareTray from '@/components/design-preview/CompareTray';
 import SiteFooter from '@/components/design-preview/SiteFooter';
@@ -115,6 +116,8 @@ export default function RootLayout({
         <a href="#obsah" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-teal-800 focus:shadow-lg focus:ring-2 focus:ring-teal-600">Přeskočit na obsah</a>
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />
         <ClientErrorReporter />
+        {/* Měření chování bez cookies (src/components/Mereni.tsx, api/ev → web_events). */}
+        <Mereni />
         <CurrencyProvider>
           {children}
         </CurrencyProvider>
