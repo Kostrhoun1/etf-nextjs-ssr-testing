@@ -973,7 +973,9 @@ export const getScreenerRows = reactCache(async (): Promise<{
       isin: e.isin,
       name: e.name,
       primary_ticker: e.primary_ticker,
-      ter_numeric: e.ter_numeric,
+      // TER 0 % je skutečnost jen u zlatých ETC a krypto ETP (poplatek je v ceně/stakingu). U akcií
+      // a dluhopisů je to chyba v datech (18. 10. 2026: T. Rowe Price 0,00 % → nahoře řazení podle TER).
+      ter_numeric: Number(e.ter_numeric) === 0 && (e.category === 'Akcie' || e.category === 'Dluhopisy') ? null : e.ter_numeric,
       fund_size_numeric: r1(e.fund_size_numeric),
       fund_currency: e.fund_currency,
       is_leveraged: e.is_leveraged,

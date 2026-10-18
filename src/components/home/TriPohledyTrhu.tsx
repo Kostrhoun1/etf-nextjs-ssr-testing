@@ -9,10 +9,12 @@ import type { RadekTrhu, FondTrhu } from '@/lib/trhy';
    Všechny panely jsou ve HTML (server), JS jen přepíná záložky (WAI-ARIA tabs, šipky). */
 
 type Pohled = 'ter' | 'size' | 'r1';
-const POHLEDY: { id: Pohled; label: string; sort: string }[] = [
-  { id: 'ter', label: 'Nejlevnější (TER)', sort: 'sort=ter&smer=asc' },
-  { id: 'size', label: 'Největší', sort: 'sort=size&smer=desc' },
-  { id: 'r1', label: 'Nejvýkonnější · 12 m v Kč', sort: 'sort=r1&smer=desc' },
+/* Odkaz pod tabulkou vede tam, kde data odpovídají pohledu (revize 18. 10.: srovnávač řazený podle
+   TER ukazoval nahoře chybné 0 %, podle výkonu sektory a země – proto u výkonu výslovně „i sektory“). */
+const POHLEDY: { id: Pohled; label: string; dalsi: { href: string; text: string } }[] = [
+  { id: 'ter', label: 'Nejlevnější (TER)', dalsi: { href: '/nejlepsi-etf/nejlevnejsi-etf', text: 'Celý žebříček nejlevnějších ETF' } },
+  { id: 'size', label: 'Největší', dalsi: { href: '/srovnani?sort=size&smer=desc', text: 'Všechny fondy podle velikosti ve srovnávači' } },
+  { id: 'r1', label: 'Nejvýkonnější · 12 měs. v Kč', dalsi: { href: '/srovnani?kat=Akcie&sort=r1&smer=desc', text: 'Nejvýkonnější ze všech fondů, i sektory a země' } },
 ];
 
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -41,8 +43,8 @@ function Trh({ r }: { r: RadekTrhu }) {
   );
 }
 
-export default function TriPohledyTrhu({ radky, pocetFondu, dvojice }: {
-  radky: RadekTrhu[]; pocetFondu: number; dvojice: [string, string][];
+export default function TriPohledyTrhu({ radky, dvojice }: {
+  radky: RadekTrhu[]; dvojice: [string, string][];
 }) {
   const [pohled, setPohled] = useState<Pohled>('ter');
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -61,7 +63,7 @@ export default function TriPohledyTrhu({ radky, pocetFondu, dvojice }: {
   };
 
   const radkyPohledu = pohled === 'r1' ? poVykonu : radky;
-  const aktivni = POHLEDY.find((p) => p.id === pohled)!;
+  const aktivni = POHLEDY.find((p) => p.id === pohled)!.dalsi;
 
   return (
     <div>
@@ -111,15 +113,22 @@ export default function TriPohledyTrhu({ radky, pocetFondu, dvojice }: {
                 </>}
                 {p.id === 'r1' && <>
                   <span className="order-3 md:order-none col-span-2 md:col-span-1 min-w-0 flex items-baseline gap-2">
+                    <span className="md:hidden shrink-0 text-xs text-slate-500">Nejlepší fond:</span>
                     <Fond f={r.nejvykonnejsi} />
                     {r.nejvykonnejsi && <span className={`shrink-0 text-xs font-semibold tabular-nums ${barva(r.nejvykonnejsi.r1)}`}>{pct(r.nejvykonnejsi.r1)}</span>}
                   </span>
-                  <span className={`order-2 md:order-none text-right text-base md:text-sm font-semibold tabular-nums ${barva(r.median)}`}>{pct(r.median)}</span>
+                  <span className="order-2 md:order-none text-right">
+                    <span className={`block text-base md:text-sm font-semibold tabular-nums ${barva(r.median)}`}>{pct(r.median)}</span>
+                    <span className="md:hidden block text-[11px] text-slate-500">medián trhu</span>
+                  </span>
                   <span className="hidden md:block text-right text-sm tabular-nums text-slate-600">{r.min != null && r.max != null ? `${pct(r.min)} až ${pct(r.max)}` : '—'}</span>
                 </>}
               </li>
             ))}
           </ul>
+          {p.id === 'ter' && (
+            <p className="mt-2 text-xs text-slate-500">TER = roční poplatek fondu. Syntetické (swapové) fondy mohou mít navíc swap poplatek – detail u fondu.</p>
+          )}
           {p.id === 'r1' && maxRozpeti != null && mezitrhy != null && (
             <p className="mt-3 text-sm text-slate-600 leading-relaxed">
               Fondy na stejný trh se za 12 měsíců lišily nejvýš o <strong className="tabular-nums">{cz(maxRozpeti)} p. b.</strong>, mezi trhy byl rozdíl <strong className="tabular-nums">{cz(mezitrhy)} p. b.</strong> Rozhoduje tedy hlavně výběr trhu, pak poplatek. Minulý výnos se nemusí opakovat.
@@ -130,8 +139,8 @@ export default function TriPohledyTrhu({ radky, pocetFondu, dvojice }: {
       {radkyPohledu.length === 0 && <p className="mt-3 text-sm text-slate-500">Data se nepodařilo načíst.</p>}
 
       <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Link href={`/srovnani?kat=Akcie&${aktivni.sort}`} className="inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
-          Seřadit všech {pocetFondu.toLocaleString('cs-CZ')} fondů ve srovnávači <ArrowRight className="w-4 h-4" />
+        <Link href={aktivni.href} className="inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
+          {aktivni.text} <ArrowRight className="w-4 h-4" />
         </Link>
         <p className="hidden sm:flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-slate-500">
           <span>Často srovnávané:</span>

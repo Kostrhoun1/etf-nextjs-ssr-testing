@@ -58,15 +58,15 @@ const short = (n: string) => n.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)
 /* Kurátorské „první volby" pro sekci Kterým ETF začít (úhel + důvod). */
 const STARTER_ISINS = ['IE00BK5BQT80', 'IE00B5BMR087', 'IE00B4L5Y983'];
 /* trh = řádek v TRHY (kolik fondů kopíruje stejný index), href = kam vede „porovnat“. */
-const STARTER_TRH: Record<string, { trh: string; href: string }> = {
-  IE00BK5BQT80: { trh: 'svet', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf' },
-  IE00B5BMR087: { trh: 'sp500', href: '/jaky-sp500-etf' },
-  IE00B4L5Y983: { trh: 'world', href: '/nejlepsi-etf/nejlepsi-msci-world-etf' },
+const STARTER_TRH: Record<string, { trh: string; href: string; na: string }> = {
+  IE00BK5BQT80: { trh: 'svet', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf', na: 'celý svět' },
+  IE00B5BMR087: { trh: 'sp500', href: '/jaky-sp500-etf', na: 'S&P 500' },
+  IE00B4L5Y983: { trh: 'world', href: '/nejlepsi-etf/nejlepsi-msci-world-etf', na: 'MSCI World' },
 };
 const STARTER_META: Record<string, { tag: string; icon: typeof Globe; why: string }> = {
   IE00BK5BQT80: { tag: 'Celý svět', icon: Globe, why: 'Tisíce firem z celého světa včetně rozvíjejících se trhů v jednom fondu.' },
-  IE00B5BMR087: { tag: 'Jen USA (S&P 500)', icon: LineChart, why: '500 největších amerických firem, nejnižší poplatek z trojice.' },
-  IE00B4L5Y983: { tag: 'Rozvinuté trhy', icon: Building2, why: 'Velké a střední firmy z 23 vyspělých zemí (MSCI World), bez rozvíjejících se trhů.' },
+  IE00B5BMR087: { tag: 'S&P 500', icon: LineChart, why: '500 největších amerických firem, nejnižší poplatek z trojice.' },
+  IE00B4L5Y983: { tag: 'MSCI World', icon: Building2, why: 'Velké a střední firmy z 23 vyspělých zemí (MSCI World), bez rozvíjejících se trhů.' },
 };
 
 /* Počet kategorií žebříčků (duplicity zrušeny 17. 10. 2026 – 301 v next.config.ts). */
@@ -74,12 +74,14 @@ const CATEGORY_COUNT = Object.keys(categoryConfigs).length;
 
 /* Žebříčky v hero – trhy, na které z homepage lidé nejčastěji klikali (GA4 90 dní). */
 const HERO_ZEBRICKY = [
-  { href: '/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'Celosvětové ETF' },
-  { href: '/nejlepsi-etf/nejlepsi-sp500-etf', label: 'S&P 500' },
-  { href: '/nejlepsi-etf/nejlepsi-evropske-etf', label: 'Evropské akcie' },
-  { href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf', label: 'Rozvíjející se trhy' },
-  { href: '/nejlepsi-etf/nejlepsi-dividendove-etf', label: 'Dividendové' },
+  // Trhy z tabulky „tři pohledy“ (svět, S&P 500, Evropa, EM…) se proklikávají tam; tady ostatní
+  // nejklikanější žebříčky (GA4: dividendové, zlato, technologické) + typy fondů. Mobil: první 4.
+  { href: '/nejlepsi-etf/nejlepsi-dividendove-etf', label: 'Dividendové ETF' },
   { href: '/nejlepsi-etf/nejlepsi-zlato-etf', label: 'Zlato' },
+  { href: '/nejlepsi-etf/nejlepsi-dluhopisove-etf', label: 'Dluhopisové ETF' },
+  { href: '/nejlepsi-etf/nejlepsi-technologicke-etf', label: 'Technologické ETF' },
+  { href: '/nejlepsi-etf/nejlepsi-small-cap-etf', label: 'Malé firmy (small cap)' },
+  { href: '/nejlepsi-etf/nejlepsi-realitni-etf', label: 'Nemovitosti (REIT)' },
   { href: '/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější ETF' },
 ];
 const DVOJICE: [string, string][] = [['/srovnani/vwce-vs-cspx', 'VWCE × CSPX'], ['/srovnani/iwda-vs-cspx', 'IWDA × CSPX'], ['/srovnani/vwce-vs-iwda', 'VWCE × IWDA'], ['/srovnani/swrd-vs-iwda', 'SWRD × IWDA'], ['/srovnani/cspx-vs-vuaa', 'CSPX × VUAA'], ['/srovnani/vwce-vs-vwrl', 'VWCE × VWRL']];
@@ -104,10 +106,13 @@ const BROKER_PICK: { id: string; forWhom: string; poplatek: Poplatek }[] = [
   { id: 'degiro', forWhom: 'Levné nákupy ze seznamu ETF Selection pro buy-and-hold.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 € ETF Selection, jinak 3 €' } },
   { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.', poplatek: { popisek: 'Nákup ETF', hodnota: 'Xetra 3,95 € do 1 400 €' } },
 ];
+/* Robo-poradce (Portu) je jiný typ služby (spravuje portfolio za roční poplatek) – v tabulce zvlášť
+   za brokery, ať nepůsobí jako „nejlevnější broker“ (revize 18. 10. 2026). */
+const ROBO = new Set(['portu']);
 const HOME_BROKERS = BROKER_PICK
-  .map((p) => ({ ...p, broker: brokers.find((b) => b.id === p.id) }))
+  .map((p) => ({ ...p, broker: brokers.find((b) => b.id === p.id), robo: ROBO.has(p.id) }))
   .filter((x) => x.broker)
-  .sort((a, b) => (b.broker!.rating ?? 0) - (a.broker!.rating ?? 0));
+  .sort((a, b) => Number(a.robo) - Number(b.robo) || (b.broker!.rating ?? 0) - (a.broker!.rating ?? 0));
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
   {
@@ -226,10 +231,10 @@ export default async function DesignPreviewV2() {
               </div>
               <div className="mt-4 md:mt-5 flex flex-wrap items-center gap-x-6 gap-y-1">
                 <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 min-h-11 text-sm font-semibold text-white hover:bg-teal-500 transition-colors">
-                  Otevřít srovnávač {pocet} fondů <ArrowRight className="w-4 h-4" />
+                  Otevřít srovnávač fondů <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link href="/vyber-etf" className="inline-flex items-center gap-1.5 min-h-11 text-sm font-medium text-slate-200 underline-offset-4 hover:text-white hover:underline transition-colors">
-                  Nevíte, který vybrat?
+                <Link href="/vyber-etf" className="inline-flex items-center gap-1.5 min-h-11 text-sm font-medium text-slate-100 underline decoration-slate-500 underline-offset-4 hover:text-white hover:decoration-white transition-colors">
+                  Nevíte, který vybrat? <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
               {datumText && (
@@ -237,15 +242,15 @@ export default async function DesignPreviewV2() {
                   <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{pocet} fondů</span><span aria-hidden="true">·</span>
                   <span>{CATEGORY_COUNT} žebříčků</span><span aria-hidden="true">·</span>
-                  <span>Data k <strong className="font-semibold text-slate-200">{datumText}</strong> (justETF, kurzy ČNB)</span>
+                  <span>Data z justETF stažena <strong className="font-semibold text-slate-200">{datumText}</strong>, kurzy ČNB</span>
                 </p>
               )}
             </div>
-            <nav aria-label="Žebříčky ETF podle trhu" className="mt-4 md:mt-0 -mx-4 md:mx-0">
-              <p className="hidden md:block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Žebříčky podle trhu</p>
+            <nav aria-label="Další žebříčky ETF" className="mt-4 md:mt-0 -mx-4 md:mx-0">
+              <p className="hidden md:block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Další žebříčky</p>
               <ul className="flex md:flex-col gap-2 md:gap-0 overflow-x-auto px-4 md:px-0 pb-1 md:pb-0 [scrollbar-width:none] md:divide-y md:divide-white/10">
-                {HERO_ZEBRICKY.map((z) => (
-                  <li key={z.href} className="shrink-0">
+                {HERO_ZEBRICKY.map((z, zi) => (
+                  <li key={z.href} className={`shrink-0 ${zi >= 4 ? 'hidden md:block' : ''}`}>
                     <Link href={z.href} className="flex items-center justify-between gap-3 whitespace-nowrap rounded-full md:rounded-none bg-white/10 md:bg-transparent px-3.5 md:px-1 min-h-10 md:min-h-11 text-sm text-slate-100 hover:bg-white/20 md:hover:bg-white/5 transition-colors">
                       {z.label} <ArrowRight className="hidden md:block w-4 h-4 text-slate-500" />
                     </Link>
@@ -270,7 +275,7 @@ export default async function DesignPreviewV2() {
                 Pro každý trh vybíráme jen z fondů, které kopírují široký index – bez sektorů, měnového zajištění a ESG variant. Data k {datumText}.
               </p>
             </div>
-            <TriPohledyTrhu radky={trhy} pocetFondu={totalCount} dvojice={DVOJICE} />
+            <TriPohledyTrhu radky={trhy} dvojice={DVOJICE} />
           </section>
         )}
 
@@ -307,7 +312,7 @@ export default async function DesignPreviewV2() {
                     </dl>
                     {st && dalsich > 0 && (
                       <Link href={st.href} className="mt-1 md:mt-2 inline-flex items-center gap-1 min-h-10 text-sm font-medium text-teal-700 hover:text-teal-800">
-                        Porovnat s {dalsich} fondy na stejný index <ArrowRight className="w-4 h-4" />
+                        Porovnat s {dalsich} dalšími fondy na {st.na} <ArrowRight className="w-4 h-4" />
                       </Link>
                     )}
                   </div>
@@ -340,9 +345,9 @@ export default async function DesignPreviewV2() {
                   <span className="hidden sm:flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`Složení: ${p.slozeni.map(([c, v]) => `${c} ${v} %`).join(', ')}`}>
                     {p.slozeni.map(([c, v]) => <span key={c} className={BARVA_TRIDY[c] ?? 'bg-slate-400'} style={{ width: `${v}%` }} />)}
                   </span>
-                  <span className="sm:hidden flex items-center justify-between gap-2 text-xs text-slate-500"><span>{p.risk}</span><span className="tabular-nums">{pct(p.return3y)} za 3 roky</span></span>
+                  <span className="sm:hidden flex items-center justify-between gap-2 text-xs text-slate-500"><span>{p.risk} · za 12 měs.</span><span className="tabular-nums">{pct(p.return3y)} za 3 roky</span></span>
                   <span className="hidden sm:flex items-baseline gap-3 text-xs text-slate-500">
-                    <span><span className={`text-base font-bold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(p.return1y)}</span> za 1 rok</span>
+                    <span><span className={`text-base font-bold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(p.return1y)}</span> za 12 měs.</span>
                     <span className="tabular-nums">{pct(p.return3y)} za 3 roky</span>
                   </span>
                 </Link>
@@ -378,16 +383,16 @@ export default async function DesignPreviewV2() {
         <section className="pb-8 md:pb-10" aria-labelledby="h-brokeri">
           <div className="mb-4">
             <h2 id="h-brokeri" className="text-xl font-bold tracking-tight">Kde ETF koupit</h2>
-            <p className="text-sm text-slate-600 mt-1">Brokeři a robo-poradci dostupní v ČR, seřazení podle našeho skóre. Nebereme provize ani reklamu. Ceníky ověřeny {new Date(CENIKY_OVERENY).toLocaleDateString('cs-CZ')}.</p>
+            <p className="text-sm text-slate-600 mt-1">Brokeři dostupní v ČR seřazení podle našeho skóre (poplatky, ochrana, nabídka, čeština, daně, flexibilita), robo-poradce zvlášť. Nebereme provize ani reklamu. Ceníky ověřeny {new Date(CENIKY_OVERENY).toLocaleDateString('cs-CZ')}.</p>
           </div>
           <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
             <li className="hidden sm:grid sm:grid-cols-[1.2fr_1.6fr_1.4fr_auto] gap-4 px-4 py-2.5 text-xs font-medium text-slate-500">
               <span>Broker</span><span>Pro koho</span><span>Poplatek</span><span className="text-right">Skóre</span>
             </li>
-            {HOME_BROKERS.map(({ id, forWhom, poplatek, broker }, bi) => (
+            {HOME_BROKERS.map(({ id, forWhom, poplatek, broker, robo }, bi) => (
               <li key={id} className={bi >= 4 ? 'hidden sm:block' : undefined}>
                 <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1.2fr_1.6fr_1.4fr_auto] gap-x-4 gap-y-0.5 px-4 py-2.5 sm:py-3 items-center hover:bg-teal-50/40 transition-colors">
-                  <span className="text-sm font-semibold text-slate-900">{broker!.name}</span>
+                  <span className="text-sm font-semibold text-slate-900">{broker!.name}{robo && <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}</span>
                   <span className="hidden sm:block text-sm text-slate-600">{forWhom}</span>
                   <span className="order-4 sm:order-none col-span-2 sm:col-span-1 text-xs sm:text-sm text-slate-600"><span className="text-slate-500">{poplatek.popisek}:</span> <span className="font-medium text-slate-900">{poplatek.hodnota}</span></span>
                   <span className="order-2 sm:order-none text-right text-sm font-semibold tabular-nums text-teal-800" title={`Naše skóre ${broker!.rating} ze 100`}>{broker!.rating}<span className="text-xs font-normal text-slate-500">/100</span></span>

@@ -50,7 +50,7 @@ const ZLATA_SADA = [
 ];
 
 async function nactiFondy() {
-  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date';
+  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category';
   let all = [];
   for (let off = 0; ; off += 1000) {
     const r = await fetch(`${URL_DB}?select=${cols}&order=isin&limit=1000&offset=${off}`,
@@ -89,6 +89,9 @@ const main = async () => {
   if (falesneCerstve.length > MAX_FALESNE_CERSTVE)
     poplach.push({ co: `${falesneCerstve.length} fondů má dnešní updated_at, ale data starší 7 dní – scraper nahrává stará data`, ukazka: ukazka(falesneCerstve, (x) => `${x.isin} ${String(x.name).slice(0, 30)} data z ${String(x.scraping_date).slice(0, 10)}`) });
   const ter = fondy.filter((x) => x.ter_numeric != null && (Number(x.ter_numeric) < 0 || Number(x.ter_numeric) > 5));
+  // TER 0 % u akcií/dluhopisů = chyba v datech (srovnávač ho ukáže jako „—“, ale zdroj je špatně).
+  const terNula = fondy.filter((x) => Number(x.ter_numeric) === 0 && ['Akcie', 'Dluhopisy'].includes(x.category));
+  if (terNula.length) varovani.push({ co: `${terNula.length} akciových/dluhopisových fondů má TER 0 % (chyba u zdroje, web ukazuje „—“)`, ukazka: ukazka(terNula) });
   if (ter.length) poplach.push({ co: `${ter.length} fondů s nemožným TER (< 0 nebo > 5 %)`, ukazka: ukazka(ter, (x) => `${x.isin} TER ${x.ter_numeric}`) });
 
   // ── VAROVÁNÍ ──

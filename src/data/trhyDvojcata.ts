@@ -15,7 +15,7 @@
 export interface Trh {
   id: string;
   label: string;
-  /** Index(y), které fondy kopírují – pro popisek. */
+  /** Doplňující popis (index/oblast) pod názvem trhu. Názvy trhů = jeden slovník pro celou homepage. */
   index: string;
   /** Kam vede klik na trh. */
   href: string;
@@ -29,14 +29,14 @@ export const TRHY: Trh[] = [
       'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65'],
   },
   {
-    id: 'world', label: 'Vyspělé trhy', index: 'MSCI World', href: '/nejlepsi-etf/nejlepsi-msci-world-etf',
+    id: 'world', label: 'MSCI World', index: 'vyspělé trhy', href: '/nejlepsi-etf/nejlepsi-msci-world-etf',
     isins: ['IE00B4L5Y983', 'IE00BJ0KDQ92', 'IE000BI8OT95', 'IE00B4X9L533', 'IE00BD4TXV59', 'IE00B60SX394', 'FR0010315770',
       'IE00B0M62Q58', 'LU1681043599', 'LU2572257124', 'DE000ETFL508', 'LU2263803533', 'LU0274208692', 'IE00BK1PV551',
       'IE000UQND7H4', 'IE000F9IDGB5', 'IE00B7KQ7B66', 'IE000CNSFAR2', 'LU0340285161', 'FR0014003IY1', 'IE000OHHIBC6',
       'LU2655993207', 'IE000A0GH076', 'LU1681043672'],
   },
   {
-    id: 'sp500', label: 'USA', index: 'S&P 500', href: '/nejlepsi-etf/nejlepsi-sp500-etf',
+    id: 'sp500', label: 'S&P 500', index: 'USA', href: '/nejlepsi-etf/nejlepsi-sp500-etf',
     isins: ['IE00B5BMR087', 'IE00B3XXRP09', 'IE00B3YCGJ38', 'IE00BFMXXD54', 'IE0031442068', 'LU1135865084', 'IE00BMTX1Y45',
       'IE00BYML9W36', 'IE00B5KQNG97', 'IE000HY30YW6', 'LU0496786657', 'LU2009147757', 'LU0490618542', 'FR0011550177',
       'FR0011550185', 'LU0496786574', 'LU1681049018', 'LU1681048804', 'LU2993390504', 'IE000Z9SJA06', 'IE000D3BWBR2',
@@ -44,20 +44,20 @@ export const TRHY: Trh[] = [
       'IE000FO05UG4', 'DE000ETFL631', 'LU2993390686'],
   },
   {
-    id: 'nasdaq', label: 'USA technologie', index: 'Nasdaq-100', href: '/nejlepsi-etf/nejlepsi-nasdaq-etf',
+    id: 'nasdaq', label: 'Nasdaq-100', index: 'USA, technologie', href: '/nejlepsi-etf/nejlepsi-nasdaq-etf',
     isins: ['IE00B53SZB19', 'IE0032077012', 'LU1829221024', 'DE000A0F5UF5', 'IE00BFZXGZ54', 'IE00BMFKG444', 'IE00BNRQM384',
       'IE000QDFFK00', 'LU1681038243', 'IE00074JV7J1', 'LU2197908721', 'IE000SB4G4I4', 'LU1681038326', 'IE000RUF4QN8',
       'IE0001ZFMLN7', 'DE000ETFL623', 'IE0003RQ9F90'],
   },
   {
-    id: 'evropa', label: 'Evropa', index: 'MSCI Europe, STOXX Europe 600', href: '/nejlepsi-etf/nejlepsi-evropske-etf',
+    id: 'evropa', label: 'Evropa', index: 'MSCI Europe, STOXX 600', href: '/nejlepsi-etf/nejlepsi-evropske-etf',
     isins: ['LU0908500753', 'IE00B4K48X80', 'IE00B1YZSC51', 'DE0002635307', 'LU0274209237', 'LU0328475792', 'LU1437015735',
       'LU0446734104', 'LU2581375156', 'IE000MAO75G5', 'FR0011550193', 'DE000ETFL284', 'DE000A2QP4B6', 'LU0950668524',
       'FR0010261198', 'IE00B60SWW18', 'LU1737652310', 'IE00BKWQ0Q14', 'LU1242369327', 'IE00B5BD5K76', 'FR0011550672',
       'LU3046617984', 'IE000ZQOIPB1', 'IE00B60SWY32', 'LU3254395307', 'LU3086268573'],
   },
   {
-    id: 'em', label: 'Rozvíjející se trhy', index: 'MSCI Emerging Markets', href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf',
+    id: 'em', label: 'Rozvíjející se trhy', index: 'MSCI EM', href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf',
     isins: ['IE00BTJRMP35', 'IE00B4L5YC18', 'IE00B0M63177', 'LU0950674175', 'LU2573966905', 'LU2573967036', 'LU1681045370',
       'LU1437017350', 'IE00B5SSQT16', 'LU0480132876', 'IE00B469F816', 'IE000KCS7J59', 'LU1681045453', 'LU1737652583',
       'FR0010429068', 'LU0292107645', 'IE000GWA2J58', 'IE00B3DWVS88', 'IE000S3N6R34', 'LU2675291913', 'IE00B3Z3FS74',

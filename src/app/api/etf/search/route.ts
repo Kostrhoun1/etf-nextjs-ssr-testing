@@ -59,9 +59,15 @@ export async function GET(request: NextRequest) {
       const name = String(row.name).toLowerCase();
       if (isin === term || tickers.includes(term)) return 4;
       if (tickers.some((t) => t.startsWith(term))) return 3;
-      if (name.startsWith(term)) return 2;
-      if (name.includes(term)) return 1;
-      if (termy.some((t) => name.includes(t.toLowerCase()))) return 1;
+      // Úzké varianty (sektory, ESG, opční „income“, páka) za široké fondy – „sp 500“ nemá vrátit IT sektor.
+      const dividendovy = /divid/.test(term) || termy.some((t) => /dividend/i.test(t));
+      const uzka = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|premium income|covered call|leveraged|\bshort\b|daily|equal weight)/i.test(name)
+        || (!dividendovy && /(high dividend|dividend yield|dividend)/i.test(name)) ? 0.5 : 0;
+      if (name.startsWith(term)) return 2 - uzka;
+      if (name.includes(term)) return 1 - uzka;
+      // České hledání: dřívější term = přesnější („svět“ → All-World před MSCI World).
+      const i = termy.findIndex((t) => name.includes(t.toLowerCase()));
+      if (i >= 0) return 1 + (termy.length - i) / 100 - uzka;
       return 0;
     };
 
@@ -73,7 +79,8 @@ export async function GET(request: NextRequest) {
       .map(({ row }) => ({
         isin: row.isin,
         name: row.name,
-        primary_ticker: row.primary_ticker,
+        // Ticker: hlavní, jinak z první burzy, kde je (988 fondů nemá hlavní ticker) – nikdy kus ISINu.
+        primary_ticker: TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim()).find((t) => t && t !== '-') ?? null,
         fund_provider: row.fund_provider,
         fund_size_numeric: row.fund_size_numeric,
         rating: row.rating,
