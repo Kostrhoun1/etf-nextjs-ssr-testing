@@ -416,7 +416,10 @@ Výnosy v Kč na detailu i backtest prošly nezávislou kontrolou (justETF + ČN
 - Brokeři: Portu mimo skóre brokerů, spočítaný řádek „nákup za 5 000 Kč stojí…“, mobilní hlavička, sjednotit /kde-koupit a /srovnani-brokeru.
 - /kalkulacky zmiňuje hypotéky a úvěry (redakční hranice) – rozhodne majitel.
 
-## ⏳ Scraper: tickery, indexy, peněžní trh (připraveno 18. 10. 2026 v noci, NEsloučeno)
+## ◐ Scraper: tickery, indexy, peněžní trh (18. 10. 2026 v noci)
+
+- ✅ **Tickery a burzy** sloučeny do main etf-astro (62c3607) – poběží v nočním scrapu 19. 10.; ověří ranní úloha.
+- ⏳ **Index a peněžní trh** (zbytek větve `oprava-tickery-indexy`, 9110c84 – po sloučení tickerů ji rebase na main).
 
 etf-astro větev `oprava-tickery-indexy` (9110c84): tabulka burz podle data-testid (~1 045 fondů bez tickeru / s „-“),
 index z řádku „Index“ místo odhadu z názvu (~3 080 prázdných + ~2 000 odhadnutých, nově i „®“), Money Market →
