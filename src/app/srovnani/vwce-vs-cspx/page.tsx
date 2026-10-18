@@ -14,6 +14,7 @@ import { ter, dist } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
 import SrovnaniParams from '@/components/design-preview/SrovnaniParams';
+import { platnyTicker } from '@/lib/ticker';
 
 export const revalidate = 86400;
 
@@ -46,8 +47,8 @@ export default async function SrovnaniPreview() {
   }
 
   const { etf1, etf2 } = data;
-  const t1 = etf1.primary_ticker ?? TICKER1;
-  const t2 = etf2.primary_ticker ?? TICKER2;
+  const t1 = platnyTicker(etf1.primary_ticker) ?? TICKER1;
+  const t2 = platnyTicker(etf2.primary_ticker) ?? TICKER2;
 
   /* Klíčová logika verdiktu: liší se sledovaný index?
      U VWCE vs CSPX jsou indexy RŮZNÉ (FTSE All-World vs S&P 500) → větev

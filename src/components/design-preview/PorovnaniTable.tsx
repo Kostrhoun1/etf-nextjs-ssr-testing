@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { ComparisonETF } from '@/lib/etf-data';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
+import { platnyTicker } from '@/lib/ticker';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
 const num = (v: unknown) => (v == null || Number.isNaN(Number(v)) ? null : Number(v));
@@ -95,7 +96,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
     {
       title: 'Základní informace',
       rows: [
-        { label: 'Ticker', cell: (e) => <span className="font-semibold text-slate-800">{e.primary_ticker ?? '—'}</span> },
+        { label: 'Ticker', cell: (e) => <span className="font-semibold text-slate-800">{platnyTicker(e.primary_ticker) ?? '—'}</span> },
         /* ISIN je jediný identifikátor, podle kterého se zadává pokyn u brokera –
            musí být vidět vždy, i když má fond ticker. */
         { label: 'ISIN', cell: (e) => <span className="font-mono text-xs text-slate-700">{e.isin}</span> },
@@ -190,7 +191,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
               {etfs.map((e) => (
                 <th key={e.isin} className="py-3 px-2.5 sm:px-4 text-left align-top bg-slate-50">
                   <Link href={`/etf/${e.isin}`} className="font-semibold text-teal-700 hover:text-teal-800 leading-tight block">{e.name.length > 32 ? e.name.slice(0, 32) + '…' : e.name}</Link>
-                  <span className="text-xs text-slate-400 font-normal">{e.primary_ticker ? `${e.primary_ticker} · ${e.isin}` : e.isin}</span>
+                  <span className="text-xs text-slate-400 font-normal">{platnyTicker(e.primary_ticker) ? `${platnyTicker(e.primary_ticker)} · ${e.isin}` : e.isin}</span>
                 </th>
               ))}
             </tr>
@@ -220,7 +221,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
         <div className="grid gap-2 sticky top-14 z-10 bg-slate-50 py-2" style={{ gridTemplateColumns: `repeat(${etfs.length}, minmax(0,1fr))` }}>
           {etfs.map((e) => (
             <Link key={e.isin} href={`/etf/${e.isin}`} className="rounded-lg bg-white border border-slate-200 p-2 text-center">
-              <span className="block text-sm font-semibold text-teal-700 leading-tight">{e.primary_ticker ?? e.isin.slice(0, 6)}</span>
+              <span className="block text-sm font-semibold text-teal-700 leading-tight">{platnyTicker(e.primary_ticker) ?? e.isin.slice(0, 6)}</span>
               <span className="block text-[11px] text-slate-400 truncate">{e.name.length > 22 ? e.name.slice(0, 22) + '…' : e.name}</span>
             </Link>
           ))}

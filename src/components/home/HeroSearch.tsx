@@ -7,6 +7,7 @@ import { Search, Loader2, ArrowRight, ListOrdered } from 'lucide-react';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import { jeDotazZacatecnika } from '@/lib/hledaniCz';
 import { mer } from '@/lib/mereni';
+import { platnyTicker } from '@/lib/ticker';
 
 /* Živý našeptávač ETF v hero sekci na homepage – při psaní názvu, ISIN nebo
    tickeru rovnou nabízí fondy; klik/Enter otevře detail, „Zobrazit vše" pošle
@@ -191,7 +192,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
                   >
                     <span className="flex items-center justify-center w-5 h-5 shrink-0"><EmitentLogo nazev={r.name} size={20} /></span>
                     <span className="min-w-0 flex-1">
-                      <span className="flex min-w-0 text-sm text-slate-900"><span className="truncate font-medium">{r.name}</span>{r.primary_ticker && <span className="shrink-0 text-slate-500">&nbsp;· {r.primary_ticker}</span>}</span>
+                      <span className="flex min-w-0 text-sm text-slate-900"><span className="truncate font-medium">{r.name}</span>{platnyTicker(r.primary_ticker) && <span className="shrink-0 text-slate-500">&nbsp;· {platnyTicker(r.primary_ticker)}</span>}</span>
                       <span className="block text-xs text-slate-500 truncate">
                         {r.fund_provider ? `${r.fund_provider} · ` : ''}{r.isin}
                       </span>

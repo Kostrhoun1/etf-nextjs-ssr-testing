@@ -12,6 +12,7 @@ import { getPairContent } from '@/components/design-preview/pairContent';
 import { ter, money, pct } from '@/components/design-preview/CategoryUI';
 import { POPULAR_PAIRS } from '@/lib/pairs';
 import { distKind } from '@/utils/distribution';
+import { platnyTicker } from '@/lib/ticker';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -140,7 +141,7 @@ export default async function PairComparePage(
   const sizeW = pickHigher(etf1, etf2, 'fund_size_numeric');
   const r3W = pickHigher(etf1, etf2, 'return_3y_czk');
   const divW = pickHigher(etf1, etf2, 'total_holdings');
-  const tkOf = (e: ComparisonETF | null) => (e ? (e.primary_ticker ?? '—') : null);
+  const tkOf = (e: ComparisonETF | null) => (e ? (platnyTicker(e.primary_ticker) ?? '—') : null);
 
   const sameIndex = !!etf1.index_name && etf1.index_name === etf2.index_name;
   // Sourozenecké třídy (VWCE vs VWRL, VUAA vs VUSA): stejný index, jiná výplata dividend.

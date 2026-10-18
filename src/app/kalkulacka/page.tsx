@@ -14,6 +14,7 @@ import { getTopETFsForCategory, getTotalETFCount, categoryConfigs , getDataDate 
 import { brokers } from '@/data/brokerData';
 import FeeCalculatorWidget from '@/components/design-preview/FeeCalculatorWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { platnyTicker } from '@/lib/ticker';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -171,7 +172,7 @@ export default async function FeeCalculatorPreview() {
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Nejlevnější ETF (TER)</p>
                   <p className="text-lg font-bold tabular-nums">{ter(lowestTer?.ter_numeric ?? null)}</p>
-                  <p className="text-xs text-slate-400">{lowestTer?.primary_ticker ?? '—'}</p>
+                  <p className="text-xs text-slate-400">{platnyTicker(lowestTer?.primary_ticker) ?? '—'}</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Typický bankovní fond</p>
@@ -370,7 +371,7 @@ export default async function FeeCalculatorPreview() {
                         <td className="py-2.5 px-4 text-slate-400 tabular-nums">{i + 1}</td>
                         <td className="py-2.5 px-4">
                           <Link href={`/etf/${e.isin}`} className="block group">
-                            <span className="font-medium text-slate-900 group-hover:text-teal-700">{e.primary_ticker ?? shortName(e.name)}</span>
+                            <span className="font-medium text-slate-900 group-hover:text-teal-700">{platnyTicker(e.primary_ticker) ?? shortName(e.name)}</span>
                             <span className="block text-xs text-slate-400 truncate max-w-xs">{shortName(e.name)}</span>
                           </Link>
                         </td>
@@ -388,7 +389,7 @@ export default async function FeeCalculatorPreview() {
                   <Link key={e.isin} href={`/etf/${e.isin}`} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
                     <span className="text-xs text-slate-400 tabular-nums w-4 shrink-0">{i + 1}</span>
                     <span className="flex-1 min-w-0">
-                      <span className="block font-medium text-slate-900 truncate">{e.primary_ticker ?? shortName(e.name)}</span>
+                      <span className="block font-medium text-slate-900 truncate">{platnyTicker(e.primary_ticker) ?? shortName(e.name)}</span>
                       <span className="block text-xs text-slate-400 truncate">{shortName(e.name)}</span>
                     </span>
                     <span className={`shrink-0 font-semibold tabular-nums ${terColor(e.ter_numeric)}`}>{ter(e.ter_numeric)}</span>

@@ -13,6 +13,7 @@ import {
 import { ter, pct, shortName, SectionHead } from '@/components/design-preview/CategoryUI';
 import { GuideSection, GuideCallout, GuideTermCard, GuideTOC, GuideFAQ } from '@/components/design-preview/GuideUI';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { platnyTicker } from '@/lib/ticker';
 
 export const revalidate = 86400;
 
@@ -277,7 +278,7 @@ export default async function GuidePreview() {
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Nejnižší TER</p>
                   <p className="text-lg font-bold tabular-nums">{ter(lowestTerEtf?.ter_numeric ?? null)}</p>
-                  <p className="text-xs text-slate-400">{lowestTerEtf?.primary_ticker ?? 'ročně'}</p>
+                  <p className="text-xs text-slate-400">{platnyTicker(lowestTerEtf?.primary_ticker) ?? 'ročně'}</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Medián 1R (CZK)</p>
@@ -610,7 +611,7 @@ export default async function GuidePreview() {
                       <Icon className="w-4 h-4" /> {role}
                     </span>
                     <p className="mt-2 font-semibold text-slate-900">{shortName(etf.name)}</p>
-                    <p className="text-xs text-slate-400">{etf.primary_ticker ?? etf.isin}</p>
+                    <p className="text-xs text-slate-400">{platnyTicker(etf.primary_ticker) ?? etf.isin}</p>
                     <p className="mt-2 text-xs text-slate-500 leading-relaxed flex-1">{desc}</p>
                     <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-sm">
                       <div>

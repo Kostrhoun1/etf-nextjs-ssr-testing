@@ -3,6 +3,7 @@ import type { ComparisonETF } from '@/lib/etf-data';
 import { Check, Minus } from 'lucide-react';
 import { ter, money, pct, dist, repl, domicile } from '@/components/design-preview/CategoryUI';
 import { pickReturn, curLabel, type Currency } from '@/components/design-preview/currency';
+import { platnyTicker } from '@/lib/ticker';
 
 /* ------------------------------------------------------------------ *
  * Pomocné komponenty SPECIFICKÉ pro stránku "Srovnání dvou ETF".
@@ -35,7 +36,7 @@ export function SrovnaniSoubojKarta({
   return (
     <div className={`flex-1 rounded-xl bg-white/5 border ${ring} px-5 py-4`}>
       <p className={`text-xs font-medium uppercase tracking-wide ${chip}`}>{podtitul}</p>
-      <p className="mt-1 text-xl font-bold text-white">{etf.primary_ticker ?? '—'}</p>
+      <p className="mt-1 text-xl font-bold text-white">{platnyTicker(etf.primary_ticker) ?? '—'}</p>
       <p className="text-xs text-slate-400 leading-snug">{etf.name}</p>
       <dl className="mt-3 space-y-1.5 text-sm">
         <div className="flex items-center justify-between">

@@ -2,11 +2,13 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Star, Loader2, Download } from 'lucide-react';
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Loader2, Download } from 'lucide-react';
 import type { ScreenerRow, ScreenerOptions } from '@/lib/etf-data';
 import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
+import { platnyTicker } from '@/lib/ticker';
+import EmitentLogo from '@/components/home/EmitentLogo';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
@@ -64,23 +66,12 @@ function SortH({ k, children, right, tip, sortKey, sortDir, toggleSort }: {
   sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
 }) {
   return (
-    <th aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`py-2.5 px-3 font-medium ${right ? 'text-right' : 'text-left'}`}>
+    <th aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`py-2.5 px-3 font-medium whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>
       <button onClick={() => toggleSort(k)} title={tip} aria-label={`${tip ? tip + '. ' : ''}Seřadit podle sloupce, aktuálně ${sortKey === k ? (sortDir === 'asc' ? 'vzestupně' : 'sestupně') : 'neseřazeno'}`} className={`inline-flex items-center gap-1 hover:text-teal-700 ${tip ? 'cursor-help decoration-dotted underline-offset-4 hover:underline' : ''} ${sortKey === k ? 'text-teal-700' : ''}`}>
         {children}
         {sortKey === k ? (sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-40" />}
       </button>
     </th>
-  );
-}
-
-/* Kompaktní hvězdičkové hodnocení do seznamu. */
-function Stars({ n }: { n: number }) {
-  return (
-    <span className="inline-flex items-center" title={`Hodnocení ${n}/5`} aria-label={`Hodnocení ${n} z 5`}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} className={`w-3 h-3 ${i <= n ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`} />
-      ))}
-    </span>
   );
 }
 
@@ -427,7 +418,7 @@ export default function ScreenerUI({
     const radky = filtered.map(({ e, region: reg, indexLabel, ratingVal }) => {
       const o = e as unknown as Record<string, unknown>;
       return [
-        e.name, e.isin, e.primary_ticker ?? '', e.fund_provider ?? '', e.category ?? '', reg ?? '', indexLabel ?? '',
+        e.name, e.isin, platnyTicker(e.primary_ticker) ?? '', e.fund_provider ?? '', e.category ?? '', reg ?? '', indexLabel ?? '',
         e._dom ?? '', e._year != null ? String(e._year) : '',
         dec(num(e.ter_numeric)), dec(num(e.fund_size_numeric), 0), e.fund_currency ?? '',
         distTxt[e._dist], e._repl ?? '',
@@ -653,28 +644,34 @@ export default function ScreenerUI({
             </tr>
           </thead>
           <tbody>
-            {filtered.slice(0, shown).map(({ e, region: reg, ratingVal }) => (
+            {filtered.slice(0, shown).map(({ e }) => (
               <tr key={e.isin} className="border-b border-slate-100 hover:bg-slate-50/60 transition-colors">
-                <td className="py-3 px-3">
-                  <Link href={`/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800">
-                    {e.name.length > 44 ? e.name.slice(0, 44) + '…' : e.name}
-                  </Link>
-                  <span className="flex items-center gap-1.5 text-xs text-slate-400">
-                    {e.primary_ticker ?? e.isin}{reg ? ` · ${reg}` : ''}
-                    {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
-                    {ratingVal != null && <Stars n={ratingVal} />}
-                  </span>
+                {/* Revize art directora 18. 10. 2026: logo emitenta místo hvězdiček (5 hvězd měl skoro každý velký
+                    fond), celý název na max. 2 řádky, bez regionu (v datech nespolehlivý – Korea jako „Evropa“). */}
+                <td className="py-2.5 px-3">
+                  <div className="flex items-center gap-2.5">
+                    <EmitentLogo nazev={e.name} size={28} />
+                    <div className="min-w-0">
+                      <Link href={`/etf/${e.isin}`} title={e.name} className="line-clamp-2 font-medium leading-snug text-teal-700 hover:text-teal-800">
+                        {e.name}
+                      </Link>
+                      <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                        {platnyTicker(e.primary_ticker) ?? e.isin}
+                        {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
+                      </span>
+                    </div>
+                  </div>
                 </td>
-                <td className="py-3 px-3 text-right tabular-nums font-medium text-slate-800">{ter(num(e.ter_numeric))}</td>
-                <td className="py-3 px-3 text-right tabular-nums text-slate-600">{money(num(e.fund_size_numeric), e.fund_currency)}</td>
+                <td className="py-3 px-3 text-right tabular-nums whitespace-nowrap font-medium text-slate-800">{ter(num(e.ter_numeric))}</td>
+                <td className="py-3 px-3 text-right tabular-nums whitespace-nowrap text-slate-600">{money(num(e.fund_size_numeric), e.fund_currency)}</td>
                 {(() => { const o = e as unknown as Record<string, unknown>; const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur), r5 = pickReturn(o, '5y', cur), vol = num(e.volatility_1y); return (<>
-                <td className={`py-3 px-3 text-right tabular-nums ${(ytd ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ytd)}</td>
-                <td className={`py-3 px-3 text-right tabular-nums font-medium ${(r1 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r1)}</td>
-                <td className={`py-3 px-3 text-right tabular-nums ${(r3 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r3)}</td>
-                <td className={`py-3 px-3 text-right tabular-nums ${(r5 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r5)}</td>
-                <td className="py-3 px-3 text-right tabular-nums text-slate-600">{vol == null ? '—' : `${vol.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %`}</td>
+                <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap ${(ytd ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ytd)}</td>
+                <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap font-medium ${(r1 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r1)}</td>
+                <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap ${(r3 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r3)}</td>
+                <td className={`py-3 px-3 text-right tabular-nums whitespace-nowrap ${(r5 ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(r5)}</td>
+                <td className="py-3 px-3 text-right tabular-nums whitespace-nowrap text-slate-600">{vol == null ? '—' : `${vol.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %`}</td>
                 </>); })()}
-                <td className="py-3 px-3 text-right tabular-nums text-slate-600">{e.current_dividend_yield_numeric != null ? `${Number(e.current_dividend_yield_numeric).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}</td>
+                <td className="py-3 px-3 text-right tabular-nums whitespace-nowrap text-slate-600">{e.current_dividend_yield_numeric != null ? `${Number(e.current_dividend_yield_numeric).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}</td>
                 <td className="py-3 px-3 text-center">
                   {(() => { const c = distChip(e._dist); return (
                   <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${c.cls}`}>
@@ -682,7 +679,7 @@ export default function ScreenerUI({
                   </span>); })()}
                 </td>
                 <td className="py-3 px-3">
-                  <div className="flex justify-center"><CompareButton isin={e.isin} label={e.primary_ticker ?? e.name.slice(0, 8)} variant="chip" /></div>
+                  <div className="flex justify-center"><CompareButton isin={e.isin} label={platnyTicker(e.primary_ticker) ?? e.name.slice(0, 8)} variant="chip" /></div>
                 </td>
               </tr>
             ))}
@@ -699,21 +696,23 @@ export default function ScreenerUI({
 
       {/* KARTY – mobil (stejná data jako tabulka, jen jiné vykreslení) */}
       <div className="mt-3 md:hidden space-y-2">
-        {filtered.slice(0, shown).map(({ e, region: reg, ratingVal }) => {
+        {filtered.slice(0, shown).map(({ e }) => {
           const o = e as unknown as Record<string, unknown>;
           const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur);
           return (
             <div key={e.isin} className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <Link href={`/etf/${e.isin}`} className="font-medium text-teal-700 hover:text-teal-800 leading-tight">
-                    {e.name.length > 44 ? e.name.slice(0, 44) + '…' : e.name}
-                  </Link>
-                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
-                    {e.primary_ticker ?? e.isin}{reg ? ` · ${reg}` : ''}
-                    {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
-                    {ratingVal != null && <Stars n={ratingVal} />}
-                  </span>
+                <div className="min-w-0 flex items-start gap-2.5">
+                  <EmitentLogo nazev={e.name} size={28} className="mt-0.5" />
+                  <div className="min-w-0">
+                    <Link href={`/etf/${e.isin}`} className="line-clamp-2 font-medium text-teal-700 hover:text-teal-800 leading-tight">
+                      {e.name}
+                    </Link>
+                    <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                      {platnyTicker(e.primary_ticker) ?? e.isin}
+                      {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
+                    </span>
+                  </div>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-[11px] text-slate-400">1R ({curLabel[cur]})</p>
@@ -739,7 +738,7 @@ export default function ScreenerUI({
                 <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${c.cls}`}>
                   {c.label}
                 </span>); })()}
-                <CompareButton isin={e.isin} label={e.primary_ticker ?? e.name.slice(0, 8)} variant="chip" />
+                <CompareButton isin={e.isin} label={platnyTicker(e.primary_ticker) ?? e.name.slice(0, 8)} variant="chip" />
               </div>
             </div>
           );

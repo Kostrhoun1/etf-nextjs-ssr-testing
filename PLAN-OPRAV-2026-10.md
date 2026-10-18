@@ -376,6 +376,7 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
 - ⏳ Nasazení s ranním deployem 19. 10. (úloha `nasazeni-2026-10-19` ověří homepage i zápis událostí).
 - ⏳ Revize dalších klíčových stránek (art director ×2 + test začátečník/pokročilý): /srovnani, porovnání,
   detail fondu, žebříčky, /backtest, /investicni-kalkulacka, /kde-koupit, /portfolio-strategie.
-- ❓ **GA4 a cookies:** GA4 ukládá cookies (_ga), s Google signals i reklamní; to je v rozporu s pravidlem
-  „bez nástrojů vyžadujících souhlas“. Rozhodne majitel (doporučení: Google signals vypnout, po 2–3 měsících
-  vlastního měření zvážit GA4 úplně vypnout).
+- ✅ **GA4 a cookies (rozhodnutí majitele 18. 10. 2026 večer):** Google signals VYPNUTÉ – v administraci GA4
+  (Admin API, stav GOOGLE_SIGNALS_DISABLED) i v kódu (`allow_google_signals: false`,
+  `allow_ad_personalization_signals: false` v src/components/GoogleAnalytics.tsx). GA4 dál ukládá vlastní
+  analytickou cookie `_ga`; zda GA4 časem úplně vypnout, rozhodne majitel po 2–3 měsících vlastního měření.

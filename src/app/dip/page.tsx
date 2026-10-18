@@ -13,6 +13,7 @@ import {
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getDataDate, getETFsByIsins, getETFCountLabel } from '@/lib/etf-data';
+import { platnyTicker } from '@/lib/ticker';
 
 export const revalidate = 86400;
 
@@ -431,7 +432,7 @@ export default async function DipPage() {
                     <tr key={f.isin} className="border-b border-slate-100 last:border-0">
                       <td className="py-3 px-4">
                         <Link href={`/etf/${f.isin}`} className="font-medium text-slate-900 hover:text-teal-700">
-                          {f.primary_ticker ?? f.name}
+                          {platnyTicker(f.primary_ticker) ?? f.name}
                         </Link>
                         <span className="block text-xs text-slate-400 leading-relaxed">{f.name}</span>
                       </td>

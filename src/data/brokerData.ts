@@ -129,7 +129,7 @@ export const brokers: Broker[] = [
     fxFee: '0,15% (v aplikaci)',
     fractional: true,
     czSupport: false,
-    czDividends: 'Standard (dle typu fondu)',
+    czDividends: '—', // neověřeno, zda T212 české akcie vůbec nabízí (18. 10. 2026) → raději „—“
     minDeposit: '1 EUR',
     platforms: ['Web', 'Android', 'iOS'],
     markets: ['EU', 'US', 'UK'],
@@ -219,14 +219,22 @@ export const brokers: Broker[] = [
   }
 ];
 
+/* Srovnávací tabulka (/srovnani-brokeru) se GENERUJE z objektů brokerů výše – jeden zdroj pravdy.
+   Dřív to byla ručně vedená kopie, která se rozešla (IBKR „$0.005/akcii“ = ceník US akcií, XTB „licence ČNB“,
+   revize 18. 10. 2026). Ručně jen řádky, které v objektech nejsou (AutoInvest, frakce s upřesněním). */
+const radek = (feature: string, hodnota: (b: Broker) => string): ComparisonRow => {
+  const r = Object.fromEntries(brokers.map((b) => [b.id, hodnota(b)]));
+  return { feature, degiro: r.degiro, xtb: r.xtb, fio: r.fio, trading212: r.trading212, ibkr: r.ibkr, portu: r.portu };
+};
+
 export const comparisonData: ComparisonRow[] = [
-  { feature: 'Regulace (hlavní)', degiro: 'BaFin (DE), DNB/AFM (NL)', xtb: 'Licence ČNB (CZ), varšavská burza', fio: 'ČNB (CZ)', trading212: 'FCA (UK), CySEC (EU pro CZ klienty)', ibkr: 'CBI (IE), SEC (US)', portu: 'ČNB (CZ)' },
-  { feature: 'Ochrana prostředků', degiro: '100 000 EUR (banka, DE)', xtb: '20 100 EUR (polský garanční systém)', fio: '100 000 EUR (banka, CZ)', trading212: '20 000 EUR (ICF, Kypr)', ibkr: '20 000 EUR (ICF, IE); SIPC jen US entita', portu: '20 000 EUR (garanční fond) + oddělená aktiva' },
-  { feature: 'Poplatek nákup ETF', degiro: '1 EUR (ETF Selection), 3 EUR (ostatní ETF)', xtb: '0 % do 100 000 EUR/měs., pak 0,2 %', fio: '0,29-0,35 % (CZ), 3,95 EUR do 1 400 EUR (XETRA)', trading212: '0% (bez limitu)', ibkr: '$0.005/akcii (min. $1)', portu: '0,24-1% ročně (dle částky)' },
-  { feature: 'Konverze měn', degiro: 'CZK/EUR zdarma, ostatní 0,25%', xtb: '0,5%', fio: 'Zdarma (dle kurzu banky)', trading212: '0,15%', ibkr: '0,002 % (min. 2 USD)', portu: 'Zahrnut v poplatku' },
+  radek('Regulace (hlavní)', (b) => b.regulation),
+  radek('Ochrana prostředků', (b) => b.protection),
+  radek('Poplatek nákup ETF', (b) => b.etfFee),
+  radek('Konverze měn', (b) => b.fxFee),
   { feature: 'Frakční ETF', degiro: 'Ne', xtb: 'Ano', fio: 'Ne', trading212: 'Ano (od 1 EUR)', ibkr: 'Ano', portu: 'Ano (automaticky)' },
-  { feature: 'Česká podpora', degiro: 'Ne (pouze AJ)', xtb: 'Ano (Po–Pá 8–18)', fio: 'Ano (Po–Pá 9–17)', trading212: 'Ne (pouze AJ)', ibkr: 'Ne', portu: 'Ano (9-17)' },
-  { feature: 'Zdanění CZ dividend', degiro: '35% (vratka možná)', xtb: '35%', fio: '15%', trading212: 'Nevztahuje se', ibkr: '35% (vratka možná)', portu: '15%' },
+  radek('Česká podpora', (b) => (b.czSupport ? `Ano (${b.customerSupport})` : 'Ne (pouze AJ)')),
+  radek('Zdanění CZ dividend', (b) => b.czDividends),
   { feature: 'AutoInvest/DCA', degiro: 'Ne', xtb: 'Investiční plány', fio: 'Ne', trading212: 'Pies & AutoInvest', ibkr: 'Omezené', portu: 'Plně automatické' },
-  { feature: 'Min. vklad', degiro: '0 EUR', xtb: '0 EUR', fio: '0 Kč', trading212: '1 EUR', ibkr: '0 USD', portu: '500 Kč' }
+  radek('Min. vklad', (b) => b.minDeposit),
 ];

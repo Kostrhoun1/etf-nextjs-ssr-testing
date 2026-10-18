@@ -17,6 +17,7 @@ import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import ReturnValue, { ReturnCurLabel } from '@/components/design-preview/ReturnValue';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { platnyTicker } from '@/lib/ticker';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -92,7 +93,7 @@ export default async function CategoryDetailPreview(
   // Reálně sledované indexy v kategorii (s odborným popisem) – datově řízené.
   const topIndexes = topIndexesForCategory(etfs);
 
-  const row = (e: ETFBasicInfo, value: React.ReactNode) => ({ isin: e.isin, label: shortName(e.name), sub: e.primary_ticker ?? undefined, value });
+  const row = (e: ETFBasicInfo, value: React.ReactNode) => ({ isin: e.isin, label: shortName(e.name), sub: platnyTicker(e.primary_ticker) ?? undefined, value });
 
   // Doporučené fondy – vlajková loď + varianty (bez duplicit).
   const recos: { tag: string; icon: typeof Trophy; etf: ETFBasicInfo; note: string }[] = [];
@@ -194,13 +195,13 @@ export default async function CategoryDetailPreview(
                   className={`group relative flex flex-col min-w-0 rounded-xl border bg-white p-5 transition-all hover:shadow-sm ${i === 0 ? 'border-teal-300 ring-1 ring-teal-100' : 'border-slate-200 hover:border-teal-300'}`}
                 >
                   <div className="absolute right-3 top-3 z-10">
-                    <CompareButton isin={etf.isin} label={etf.primary_ticker ?? shortName(etf.name)} variant="chip" />
+                    <CompareButton isin={etf.isin} label={platnyTicker(etf.primary_ticker) ?? shortName(etf.name)} variant="chip" />
                   </div>
                   <Link href={`/etf/${etf.isin}`} className="flex flex-col min-w-0">
                     <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700">
                       <Icon className="w-3.5 h-3.5" /> {tag}
                     </span>
-                    <span className="mt-3 text-lg font-bold text-slate-900">{etf.primary_ticker ?? shortName(etf.name)}</span>
+                    <span className="mt-3 text-lg font-bold text-slate-900">{platnyTicker(etf.primary_ticker) ?? shortName(etf.name)}</span>
                     <span className="text-xs text-slate-500 leading-snug line-clamp-2">{shortName(etf.name)}</span>
                     <p className="mt-2 text-xs text-slate-600 leading-snug">{note}</p>
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-3 text-xs">

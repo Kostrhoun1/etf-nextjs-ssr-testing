@@ -25,6 +25,7 @@ import { isHeadFund } from '@/lib/etf-head';
 import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy } from '@/lib/trhy';
+import { platnyTicker } from '@/lib/ticker';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -817,7 +818,7 @@ export default async function ETFDetailPreview(
                     <Link href={`/etf/${f.isin}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
                       <span className="flex-1 min-w-0">
                         <span className="block truncate text-sm font-medium text-slate-900">{f.name}</span>
-                        <span className="block text-xs text-slate-500">{f.primary_ticker ?? f.isin} · TER {ter(f.ter_numeric)}</span>
+                        <span className="block text-xs text-slate-500">{platnyTicker(f.primary_ticker) ?? f.isin} · TER {ter(f.ter_numeric)}</span>
                       </span>
                       <ArrowUpRight className="w-4 h-4 shrink-0 text-slate-400" />
                     </Link>
