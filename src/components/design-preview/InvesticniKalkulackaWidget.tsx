@@ -345,7 +345,16 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
     io.observe(el);
     return () => io.disconnect();
   }, [hasData]);
-  const listaDole = hasData && !vysledekVidet;
+  // Nad patičkou se lišta schová (stejně jako v backtestu).
+  const [paticka, setPaticka] = useState(false);
+  useEffect(() => {
+    const el = document.querySelector('footer');
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([z]) => setPaticka(z.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const listaDole = hasData && !vysledekVidet && !paticka;
   useEffect(() => {
     // Lišta nesmí zakrýt konec patičky – dočasné odsazení těla jen na mobilu (md:hidden lišta).
     if (!listaDole || window.matchMedia('(min-width: 768px)').matches) return;
