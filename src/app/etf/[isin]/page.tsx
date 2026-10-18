@@ -20,7 +20,8 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { distKind } from '@/utils/distribution';
 import EtfReturns from '@/components/design-preview/EtfReturns';
 import { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
-import { getDataDate, getPodobneFondy, SPECIFICKY_FOND } from '@/lib/etf-data';
+import { getDataDate, getPodobneFondy, SPECIFICKY_FOND, rizikoNesediFondu } from '@/lib/etf-data';
+import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
 import { canonicalIndexLabel } from '@/utils/indexNormalization';
 import { isHeadFund } from '@/lib/etf-head';
 import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
@@ -345,13 +346,16 @@ export default async function ETFDetailPreview(
   const replText = replLabel(etf.replication);
   const domText = domLabel(etf.fund_domicile);
   const divYield = num(r.current_dividend_yield_numeric as number);
-  const vol1 = num(etf.volatility_1y);
-  const vol3 = num(etf.volatility_3y);
-  const vol5 = num(etf.volatility_5y);
-  const dd1 = num(etf.max_drawdown_1y);
-  const dd3 = num(etf.max_drawdown_3y);
+  // Kolísavost/pokles, které nesedí s jinou třídou téhož fondu (chyba zdroje – SPSA vs SPYI), → „—“.
+  const nesediRiziko = await rizikoNesediFondu(etf as unknown as Parameters<typeof rizikoNesediFondu>[0]);
+  const skryj = (pole: string, v: number | null) => (nesediRiziko.includes(pole as never) ? null : v);
+  const vol1 = skryj('volatility_1y', num(etf.volatility_1y));
+  const vol3 = skryj('volatility_3y', num(etf.volatility_3y));
+  const vol5 = skryj('volatility_5y', num(etf.volatility_5y));
+  const dd1 = skryj('max_drawdown_1y', num(etf.max_drawdown_1y));
+  const dd3 = skryj('max_drawdown_3y', num(etf.max_drawdown_3y));
   const dd5 = num(etf.max_drawdown_5y);
-  const sharpe = num(r.return_per_risk_1y as number);
+  const sharpe = vol1 == null ? null : num(r.return_per_risk_1y as number);
 
   // roční (kalendářní) výnosy – měnově citlivé (return_<rok>_czk/_usd v DB jsou)
   const currentYear = today.getFullYear();
@@ -492,7 +496,7 @@ export default async function ETFDetailPreview(
   const popisFondu = etf.description_cs && etf.description_cs.trim() !== '' && !jeAnglicky(etf.description_cs) ? cleanDesc(etf.description_cs) : null;
 
   // Riziko: kolísavost, max. pokles a výnos/riziko jsou ze zdroje JEN v EUR (v Kč je nemáme) → jedna tabulka „v EUR“.
-  const rr = { y1: sharpe, y3: num(r.return_per_risk_3y as number), y5: num(r.return_per_risk_5y as number) };
+  const rr = { y1: sharpe, y3: vol3 == null ? null : num(r.return_per_risk_3y as number), y5: vol5 == null ? null : num(r.return_per_risk_5y as number) };
   const ddMax = num(r.max_drawdown_inception as number);
   const f1 = (v: number | null) => procenta(v, 1, false);
   const f2 = (v: number | null) => (v == null ? '—' : cislo(v, 2));
@@ -808,6 +812,7 @@ export default async function ETFDetailPreview(
               </table>
             </div>
             <div className="lg:col-span-2 space-y-2 text-sm text-slate-600 leading-relaxed">
+              {nesediRiziko.length > 0 && <p className="text-xs text-amber-800">„—“ u části rizika: {RIZIKO_NESEDI_TEXT}</p>}
               <p><strong className="text-slate-900">{volDesc(vol1)}</strong>{ddMax != null && <> Největší propad od vzniku fondu byl <strong className="text-red-600 tabular-nums">{pct(ddMax)}</strong> (v EUR).</>}</p>
               {etf.fund_currency && etf.fund_currency !== 'CZK' && (
                 <p className="text-xs text-slate-500">

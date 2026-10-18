@@ -840,6 +840,30 @@ export async function getComparisonETFData(
   }
 }
 
+type TridaRiziko = { isin: string; name: string | null; fund_provider: string | null } & Partial<Record<RizikoPole, number | null>>;
+
+/** Ostatní třídy téhož fondu (stejný poskytovatel a název před „UCITS ETF“) s rizikovými ukazateli. */
+async function tridyTehozFondu(e: { name?: string | null; fund_provider?: string | null }): Promise<TridaRiziko[]> {
+  const zaklad = String(e.name ?? '').match(/^(.*)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b/i)?.[1]?.trim();
+  if (!zaklad || !e.fund_provider) return [];
+  const { data: d } = await supabaseAdmin.from('etf_funds')
+    .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y, max_drawdown_1y, max_drawdown_3y')
+    .eq('fund_provider', e.fund_provider).ilike('name', `${zaklad.replace(/[%_]/g, '')}%`)
+    .gte('scraping_date', nabidkaOd()).limit(60);
+  return (d ?? []) as TridaRiziko[];
+}
+
+/** Rizikové ukazatele fondu, které nesedí s jinou třídou téhož fondu (detail fondu → „—“, pravidlo č. 1). */
+export async function rizikoNesediFondu(e: TridaRiziko): Promise<RizikoPole[]> {
+  try {
+    const tridy = new Map((await tridyTehozFondu(e)).map((f) => [f.isin, f]));
+    tridy.set(e.isin, e);
+    return rizikoNesedi([...tridy.values()]).get(e.isin) ?? [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Načte ETF pro detailní porovnání dle ISINů (nový design – stránka „porovnání").
  * Zachovává pořadí vstupu.
@@ -857,15 +881,7 @@ export async function getComparisonETFsByIsins(isins: string[]): Promise<Compari
     const byIsin = new Map((data as ComparisonETF[]).map((e) => [e.isin, e]));
     const vysledek = isins.map((i) => byIsin.get(i)).filter((e): e is ComparisonETF => !!e);
     // Ostatní třídy téhož fondu (stejný poskytovatel a název před „UCITS ETF“) – kontrola volatility.
-    const sourozenci = await Promise.all(vysledek.map(async (e) => {
-      const zaklad = String(e.name ?? '').match(/^(.*)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b/i)?.[1]?.trim();
-      if (!zaklad || !e.fund_provider) return [];
-      const { data: d } = await supabaseAdmin.from('etf_funds')
-        .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y, max_drawdown_1y, max_drawdown_3y')
-        .eq('fund_provider', e.fund_provider).ilike('name', `${zaklad.replace(/[%_]/g, '')}%`)
-        .gte('scraping_date', nabidkaOd()).limit(60);
-      return (d ?? []) as ({ isin: string; name: string | null; fund_provider: string | null } & Partial<Record<RizikoPole, number | null>>)[];
-    }));
+    const sourozenci = await Promise.all(vysledek.map((e) => tridyTehozFondu(e)));
     const tridy = new Map(sourozenci.flat().map((f) => [f.isin, f]));
     for (const e of vysledek) if (!tridy.has(e.isin)) tridy.set(e.isin, e as never);
     const nesedi = rizikoNesedi([...tridy.values()]);

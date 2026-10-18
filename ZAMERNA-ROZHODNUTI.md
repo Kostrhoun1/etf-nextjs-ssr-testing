@@ -335,3 +335,7 @@ a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
   převody mezi EUR a CZK jsou zdarma“. Str. 10: 2,50 € ročně za každou zahraniční burzu (max. 0,25 % hodnoty účtu),
   pozn. 1 „není aplikován na … Pražské burze a ETF Selection“. Webová stránka degiro.cz/poplatky (datum 01-10-2025)
   výjimku CZK/EUR neuvádí – je starší; platí PDF. Neopravovat na 0,25 %.
+- **„—“ u kolísavosti/poklesu tříd téhož fondu, které spolu nesedí (19. 10. 2026):** záměr (pravidlo č. 1). Zdroj má
+  u některých tříd chybné riziko (SPSA 21,1 % vs SPYI 10,4 %; VGWE 10,8 % vs VHYL 8,1 %) – nezávisle z denních cen
+  Yahoo: SPYI.DE i SPSA.DE ~10–12 %, VHYL/VGWE 8–9,5 %. Která třída je špatně, ze zdroje nepoznáme → „—“ (src/lib/tridyFondu.ts,
+  srovnávač, porovnání i detail fondu). Kontrola: check-fund-data (VAROVÁNÍ „volatilita tříd téhož fondu se liší“).
