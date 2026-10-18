@@ -72,12 +72,12 @@ function neuplneRoky(evo: EvoPoint[]) {
 }
 
 function navrat(d: Drawdown) {
-  if (!d.recovered || !d.endDate) return d.recovered ? `zpět za ${d.lengthMonths} měs. od vrcholu` : 'zatím pod vrcholem';
+  if (!d.recovered || !d.endDate) return d.recovered ? `návrat za ${d.lengthMonths} měs. od vrcholu` : 'zatím bez návratu';
   const mes = Math.round((Date.parse(d.endDate) - Date.parse(d.troughDate)) / (30.44 * 864e5));
-  if (mes < 1) return 'zpět do měsíce';
-  if (mes < 18) return `zpět za ${mes} měs.`;
+  if (mes < 1) return 'návrat do měsíce';
+  if (mes < 18) return `návrat za ${mes} měs.`;
   const r = Math.round(mes / 12);
-  return `zpět za ${r} ${r < 5 ? 'roky' : 'let'}`;
+  return `návrat za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
 }
 
 /** Ukazatele z výsledku – CELÉ roky pro nejlepší/nejhorší/kladné. */

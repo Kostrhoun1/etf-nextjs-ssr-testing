@@ -66,11 +66,11 @@ export function PortfolioBar({ model, showLegend = true }: { model: PortfolioMod
         ))}
       </div>
       {showLegend && (
-        <ul className="mt-3 grid gap-y-1.5 sm:flex sm:flex-wrap sm:gap-x-3.5">
+        <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:flex sm:flex-wrap sm:gap-x-3.5">
           {model.allocations.map((a, i) => (
             <li key={i} className="flex items-center gap-1.5 text-xs text-slate-600">
               <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: barvaSlozky(a) }} />
-              <span className="font-medium text-slate-700">{a.label}</span>
+              <span className="font-medium text-slate-700 leading-tight">{a.label}</span>
               <span className="ml-auto tabular-nums text-slate-500 sm:ml-0">{fmtPct(a.percentage)}</span>
             </li>
           ))}

@@ -913,7 +913,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   <div className="px-2 sm:px-3">
                     <p className="text-xs text-slate-500 flex items-center gap-0.5">
                       Max. pokles
-                      <InfoTip label="Největší propad od vrcholu po dno kdykoli v období – z denních dat časově vážené hodnoty portfolia (vklady ho nemaskují). „Zpět“ = za jak dlouho od dna se hodnota vrátila na předchozí vrchol."><span className="sr-only">vysvětlení</span></InfoTip>
+                      <InfoTip label="Největší propad od vrcholu po dno kdykoli v období – z denních dat časově vážené hodnoty portfolia (vklady ho nemaskují). „Návrat“ = za jak dlouho od dna se hodnota vrátila na předchozí vrchol."><span className="sr-only">vysvětlení</span></InfoTip>
                     </p>
                     <p className="mt-0.5 text-lg md:text-xl font-bold tabular-nums text-red-600">{fmtPct(result.risk.maxDrawdown.depth * 100)}</p>
                     <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">dno {fmtMes(result.risk.maxDrawdown.troughDate)} · <span className={result.risk.maxDrawdown.recovered ? 'text-emerald-700' : 'text-amber-700'}>{navratPoPropadu(result.risk.maxDrawdown)}</span></p>
@@ -1015,7 +1015,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             </div>
             {!editComposition && (
               <div className={`rounded-lg border px-3 py-2.5 text-sm ${totalWeight === 100 ? 'border-slate-200 bg-slate-50 text-slate-700' : 'border-amber-300 bg-amber-50 text-amber-800'}`}>
-                {selectedETFs.length ? selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight} %`).join('  ·  ') : 'Zatím prázdné – vyberte hotové portfolio nebo přidejte třídy aktiv.'}
+                {selectedETFs.length ? selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')}\u00a0%`).join('  ·  ') : 'Zatím prázdné – vyberte hotové portfolio nebo přidejte třídy aktiv.'}
                 {totalWeight !== 100 && (
                   <button type="button" onClick={() => setEditComposition(true)} className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-amber-800 underline underline-offset-2">
                     Součet vah je {totalWeight} % – upravit na 100 % →
@@ -1693,12 +1693,12 @@ function mesicu(n: number, z: number) {
 
 /** „zpět za 4 roky“ – od dna propadu zpět na předchozí vrchol. */
 function navratPoPropadu(d: { troughDate: string; endDate: string | null; recovered: boolean }) {
-  if (!d.recovered || !d.endDate) return 'zatím pod vrcholem';
+  if (!d.recovered || !d.endDate) return 'zatím bez návratu';
   const mes = Math.round((Date.parse(d.endDate) - Date.parse(d.troughDate)) / (30.44 * 864e5));
-  if (mes < 1) return 'zpět do měsíce';
-  if (mes < 18) return `zpět za ${mes} měs.`;
+  if (mes < 1) return 'návrat do měsíce';
+  if (mes < 18) return `návrat za ${mes} měs.`;
   const r = Math.round(mes / 12);
-  return `zpět za ${r} ${r < 5 ? 'roky' : 'let'}`;
+  return `návrat za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
 }
 
 // Nejlepší/nejhorší CELÝ rok z ročních výnosů (v %) – neúplné krajní roky se nepočítají.

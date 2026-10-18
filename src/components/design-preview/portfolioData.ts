@@ -130,7 +130,7 @@ export const portfolioModels: PortfolioModel[] = [
     slug: 'portfolio-60-40',
     name: 'Portfolio 60/40',
     kratkyNazev: '60/40',
-    tagline: 'Klasická vyvážená kombinace 60 % akcií a 40 % dluhopisů.',
+    tagline: 'Klasická vyvážená kombinace 60\u00a0% akcií a 40\u00a0% dluhopisů.',
     risk: 'Umírněné',
     stocksPct: 60,
     horizon: 'od 7 let',
