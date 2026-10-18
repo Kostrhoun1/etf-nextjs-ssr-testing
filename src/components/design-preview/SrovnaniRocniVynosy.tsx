@@ -4,12 +4,13 @@ import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { useCurrency, curLabel } from '@/components/design-preview/currencyStore';
 import type { RokVynosu } from '@/lib/srovnaniRocni';
+import { BARVY_FONDU } from '@/lib/barvyFondu';
 
 /* Roční výnosy dvou fondů vedle sebe (stránky srovnání, 18. 10. 2026). Vodorovné dvojice sloupců
    od nulové osy – na mobilu čitelné i se 6 roky. Data = skutečné výnosy fondů (ne index).
-   Barvy: teal-600 / indigo-500 (ověřeno validátorem palety: CVD i kontrast OK); identitu nese i legenda. */
+   Barvy: sdílená paleta fondů (src/lib/barvyFondu.ts) – stejná jako porovnání; identitu nese i legenda. */
 
-const BARVY = ['#0d9488', '#6366f1'];
+const BARVY = BARVY_FONDU;
 const pct = (v: number | null) => {
   if (v == null) return '—';
   const r = Math.round(v * 10) / 10 || 0;

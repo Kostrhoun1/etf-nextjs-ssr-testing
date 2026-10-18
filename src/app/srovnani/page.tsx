@@ -5,8 +5,9 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
-import { getScreenerRows, buildInitialScreenerRows, getDataDate, getTotalETFCount } from '@/lib/etf-data';
+import { getScreenerRows, buildInitialScreenerRows, getDataDate, getETFCountLabel } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
+import PocetFondu from '@/components/design-preview/PocetFondu';
 import { COMPARE_MAX } from '@/components/design-preview/compareLimit';
 
 const currentYear = new Date().getFullYear();
@@ -36,8 +37,8 @@ export const revalidate = 86400;
    pro SEO to nic neznamená (canonical míří na čisté /srovnani) a filtrování
    stejně celé běží na klientu nad daty z /api/etf/screener. */
 export async function generateMetadata(): Promise<Metadata> {
-  const n = await getTotalETFCount();
-  const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
+  // Titulek: zaokrouhlené číslo („4 900+“) ze stejné definice jako počet na stránce (getTotalETFCount).
+  const count = await getETFCountLabel();
   return {
     title: `Srovnávač ETF: filtrujte a porovnejte ${count} fondů`,
     description:
@@ -48,7 +49,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SrovnaniScreenerPreview() {
   const { rows, options, total } = await getScreenerRows();
-  // Stejné číslo jako záložka „Vše“ ve výchozím stavu (pákové produkty jsou skryté).
+  // Stejné číslo jako záložka „Vše“ ve výchozím stavu (pákové produkty jsou skryté) a jako getTotalETFCount
+  // (homepage, brokeři) – jedna definice „v nabídce“, viz jeVNabidce v etf-data.ts.
   const pocet = rows.filter((r) => !r.is_leveraged).length;
   const initialRows = buildInitialScreenerRows(rows, '', 50);
   const today = new Date();
@@ -109,7 +111,7 @@ export default async function SrovnaniScreenerPreview() {
             <AktualnostDat datum={dataDate} />
           </div>
           <p className="mt-0.5 text-sm text-slate-600">
-            {pocet.toLocaleString('cs-CZ')} fondů<span className="hidden sm:inline"> dostupných z Česka</span> · výnosy přepočtené do korun
+            <PocetFondu vychozi={pocet} /> fondů<span className="hidden sm:inline"> dostupných z Česka</span> · výnosy přepočtené do korun
           </p>
         </section>
 

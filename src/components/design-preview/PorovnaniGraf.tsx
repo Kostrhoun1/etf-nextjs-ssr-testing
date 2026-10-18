@@ -15,7 +15,9 @@ import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/c
    dostupné i v popisku a v tabulce pod grafem.
    ───────────────────────────────────────────────────────────────────────── */
 
-export const BARVY_FONDU = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100'];
+/* Paleta je sdílená se všemi srovnáními – src/lib/barvyFondu.ts. Re-export kvůli starším importům. */
+import { BARVY_FONDU } from '@/lib/barvyFondu';
+export { BARVY_FONDU };
 
 export interface FondGrafu { isin: string; label: string; data: Record<string, unknown> }
 

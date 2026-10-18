@@ -19,8 +19,9 @@ const inter = Inter({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  // „více než N“ = zaokrouhleno DOLŮ na stovky (přesné číslo za „více než“ by nebylo pravda). Definice počtu: getTotalETFCount.
   const n = await getTotalETFCount();
-  const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
+  const count = n > 0 ? (Math.floor(n / 100) * 100).toLocaleString('cs-CZ') : '4 800';
   return {
   title: {
     default: "ETF průvodce.cz - Nejlepší ETF fondy pro české investory",

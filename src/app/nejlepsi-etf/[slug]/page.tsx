@@ -73,18 +73,10 @@ const SROVNAVAC: Record<string, { q: string; text: string }> = {
 const VARIANTA = /\b(ESG|SRI|Screened|Scored|Leaders|Paris|Climate|PAB|CTB|Equal Weight|Hedged|Islamic|Active|Enhanced)\b/i;
 
 /** Měna zajištění třídy fondu („EUR“…), „ano“ = zajištěná bez poznané měny, null = nezajištěná.
- *  UBS značí zajištěné třídy „hEUR“/„hCHF“, Swisscanto „EAH CHF“ – obecná detekce je nezná. */
+ *  JEDNA funkce pro celý web (src/utils/hedgingDetection.ts) – stejná jako srovnávač a porovnání. */
 function zajisteni(nazev: string): string | null {
-  const ubs = nazev.match(/\bh(EUR|USD|CHF|GBP|JPY|SGD)\b/);
-  if (ubs) return ubs[1];
-  const swisscanto = nazev.match(/\bEAH ([A-Z]{3})\b/); // Swisscanto: „EA“ = nezajištěná, „EAH“ = zajištěná třída
-  if (swisscanto) return swisscanto[1];
   const h = detectHedging(nazev);
-  if (!h.isHedged) return null;
-  return h.hedgedCurrency
-    ?? nazev.match(/[Hh]edged (?:to )?\(?([A-Z]{3})\b/)?.[1]   // „hedged to JPY“, „hedged (CHF)“
-    ?? nazev.match(/\b([A-Z]{3}) Daily Hedged/)?.[1]                          // WisdomTree „GBP Daily Hedged“
-    ?? 'ano';
+  return h.isHedged ? h.hedgedCurrency ?? 'ano' : null;
 }
 
 /** Krátký název fondu: bez „UCITS ETF…“ a koncové závorky. (shortName z CategoryUI maže všechno od první

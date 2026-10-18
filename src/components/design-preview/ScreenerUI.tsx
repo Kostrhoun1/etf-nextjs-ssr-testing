@@ -1,9 +1,12 @@
 'use client';
 
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Loader2, Download, Info, ChevronDown, Check } from 'lucide-react';
 import type { ScreenerRow, ScreenerOptions } from '@/lib/etf-data';
+import { INDEXY_TRHU } from '@/lib/screenerTrhy';
+import { nastavPocetFondu } from '@/components/design-preview/PocetFondu';
+import { bezDiakritiky } from '@/lib/hledaniCz';
 import CompareButton from '@/components/design-preview/CompareButton';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
@@ -35,6 +38,19 @@ const distChip = (k: 'acc' | 'dist' | 'unknown') =>
 
 const PAGE = 25;
 
+/* Sloupec „Div.“: „—“ znamená „údaj chybí“. Akumulační fond dividendy nevyplácí (reinvestuje) – u něj
+   by pomlčka mátla, proto „reinv.“ s vysvětlivkou (revize 18. 10. 2026). */
+function Dividenda({ e }: { e: ScreenerRow }) {
+  const d = num(e.current_dividend_yield_numeric);
+  if ((e.category === 'Komodity' || e.category === 'Krypto') && (d == null || d === 0)) {
+    return <span title="Komoditní a kryptoměnové produkty dividendy nevyplácejí" className="sr-only">nevyplácí</span>;
+  }
+  if (e._dist === 'acc' && (d == null || d === 0)) {
+    return <span title="Akumulační fond – dividendy nevyplácí, reinvestuje je uvnitř fondu" className="text-xs text-slate-400">reinv.</span>;
+  }
+  return <>{pct1(d)}</>;
+}
+
 /* Investiční styly (faktory). Data nemají sloupec „faktor", takže se rozpoznávají
    z názvu fondu (`blob` = název + ISIN + poskytovatel + tickery, lowercase).
    `exclude` řeší falešné shody – např. „Battery Value-Chain" NENÍ value fond. */
@@ -59,7 +75,7 @@ const VYSVETLIVKY: Record<string, string> = {
   r3: 'Výnos za poslední 3 roky celkem (ne za rok), přepočtený do zvolené měny.',
   r5: 'Výnos za posledních 5 let celkem (ne za rok), přepočtený do zvolené měny. Řekne o fondu víc než jeden rok.',
   vol: 'Kolísavost (volatilita) za poslední rok, počítaná v eurech. Vyšší číslo = divočejší průběh, ne nutně horší fond.',
-  div: 'Dividendový výnos = roční dividendy vůči ceně fondu. U akumulačních (ACC) fondů se dividendy reinvestují uvnitř.',
+  div: 'Dividendový výnos = roční dividendy vůči ceně fondu. Akumulační (ACC) fondy dividendy nevyplácejí, reinvestují je uvnitř – proto „reinv.“. Pomlčka = údaj chybí.',
   typ: 'Štítek u názvu: ACC (akumulační) dividendy reinvestuje uvnitř fondu, DIST (distribuční) je vyplácí na váš účet. „Zajištěno do EUR“ = třída fondu s měnovým zajištěním.',
 };
 
@@ -154,13 +170,22 @@ function HedgeChip({ h }: { h: string }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   VÝBĚR INDEXŮ (víc najednou). Revize 18. 10. 2026 (pokročilý uživatel): nabídka měla 537
-   položek se smetím a nešlo vybrat „celý svět“ přes víc indexů. Teď: nahoře „Celé trhy“
-   z ručně ověřeného seznamu (stejný jako na homepage), pod tím vyčištěné indexy s počty,
-   s hledáním a zaškrtáváním více položek. Hodnota trhu = „trh:<id>“.
+   VÝBĚR INDEXŮ (víc najednou). Revize 18. 10. 2026 (kolo 3): „S&P 500“ byl v nabídce 2× s jiným
+   počtem (Celé trhy 33 × Populární indexy 73) a žebříček měl 58. Teď JEDNA položka na trh, obsah =
+   PŘESNĚ výběr žebříčku (TRHY_SROVNAVACE v etf-data.ts) a přepínač „vč. měnově zajištěných tříd“
+   (= filtr Měnové zajištění). Počty u položek = kolik fondů po kliknutí uvidíte (stejná páka
+   a zajištění jako výsledek). Hodnota trhu = „trh:<id>“.
    ───────────────────────────────────────────────────────────────────────── */
-function IndexList({ options, vybrane, setVybrane, kompakt = false }: { options: ScreenerOptions; vybrane: string[]; setVybrane: (v: string[]) => void; kompakt?: boolean }) {
+interface PoctyNabidky { trh: (id: string) => number; index: (label: string, i: number, g: IndexOptionGroupLite) => number | undefined }
+type IndexOptionGroupLite = ScreenerOptions['indexGroups'][number];
+
+function IndexList({ options, vybrane, setVybrane, pocty, vcZajist, setVcZajist, kompakt = false, autoFocus = false }: {
+  options: ScreenerOptions; vybrane: string[]; setVybrane: (v: string[]) => void; pocty: PoctyNabidky;
+  vcZajist: boolean; setVcZajist: (v: boolean) => void; kompakt?: boolean; autoFocus?: boolean;
+}) {
   const [hledat, setHledat] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (autoFocus) inputRef.current?.focus(); }, [autoFocus]);
   const h = hledat.trim().toLowerCase();
   const prepni = (v: string) => setVybrane(vybrane.includes(v) ? vybrane.filter((x) => x !== v) : [...vybrane, v]);
   const trhy = options.trhy.filter((t) => !h || `${t.label} ${t.popis}`.toLowerCase().includes(h));
@@ -174,7 +199,7 @@ function IndexList({ options, vybrane, setVybrane, kompakt = false }: { options:
     const on = vybrane.includes(v);
     return (
       <button type="button" role="menuitemcheckbox" aria-checked={on} onClick={() => prepni(v)}
-        className={`w-full flex items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-50 ${on ? 'text-teal-800' : 'text-slate-700'}`}>
+        className={`w-full flex items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-50 ${on ? 'text-teal-800' : count === 0 ? 'text-slate-400' : 'text-slate-700'}`}>
         <span className={`mt-0.5 flex items-center justify-center w-4 h-4 shrink-0 rounded border ${on ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-300 bg-white'}`}>{on && <Check className="w-3 h-3" />}</span>
         <span className="min-w-0 flex-1">
           <span className="block leading-snug">{label}</span>
@@ -188,20 +213,27 @@ function IndexList({ options, vybrane, setVybrane, kompakt = false }: { options:
     <div>
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
-        <input type="search" value={hledat} onChange={(e) => setHledat(e.target.value)} placeholder="Hledat index (např. ACWI, S&P 500)" aria-label="Hledat index"
+        <input ref={inputRef} type="search" value={hledat} onChange={(e) => setHledat(e.target.value)} placeholder="Hledat index (např. ACWI, Russell)" aria-label="Hledat index"
           className="w-full min-h-[38px] rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
       </div>
-      <div className={kompakt ? 'mt-2' : 'mt-2 max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain pr-1'}>
+      <div className={kompakt ? 'mt-2' : 'mt-2 max-h-[min(60vh,440px)] overflow-y-auto overscroll-contain pr-1'}>
         {trhy.length > 0 && (
           <div className="mb-2">
-            <p className="px-2 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Celé trhy · ověřený výběr</p>
-            {trhy.map((t) => <Polozka key={t.id} v={`trh:${t.id}`} label={t.label} note={`${t.popis} · bez zajištěných tříd`} count={t.count} />)}
+            <div className="flex items-center justify-between gap-2 px-2 pt-1 pb-0.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Celé trhy · jako žebříčky</p>
+              <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                <input type="checkbox" checked={vcZajist} onChange={(e) => setVcZajist(e.target.checked)} className="w-3.5 h-3.5 rounded accent-teal-600" />
+                vč. měnově zajištěných
+              </label>
+            </div>
+            <p className="px-2 pb-1 text-[11px] leading-snug text-slate-400">Stejný výběr jako žebříčky: fondy od 100 mil. €, bez ESG, sektorových a jiných variant indexu.</p>
+            {trhy.map((t) => <Polozka key={t.id} v={`trh:${t.id}`} label={t.label} note={t.popis} count={pocty.trh(t.id)} />)}
           </div>
         )}
         {skupiny.map((g) => (
           <div key={g.heading} className="mb-2">
             <p className="px-2 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.heading}</p>
-            {g.idx.map((i) => <Polozka key={g.options[i]} v={g.options[i]} label={g.options[i]} count={g.counts?.[i]} />)}
+            {g.idx.map((i) => <Polozka key={g.options[i]} v={g.options[i]} label={g.options[i]} count={pocty.index(g.options[i], i, g)} />)}
           </div>
         ))}
         {trhy.length === 0 && skupiny.length === 0 && <p className="px-2 py-3 text-sm text-slate-500">Žádný index neodpovídá.</p>}
@@ -216,7 +248,8 @@ function popisIndexu(v: string, options: ScreenerOptions): string {
   return v;
 }
 
-function IndexPicker({ options, vybrane, setVybrane }: { options: ScreenerOptions; vybrane: string[]; setVybrane: (v: string[]) => void }) {
+function IndexPicker(props: { options: ScreenerOptions; vybrane: string[]; setVybrane: (v: string[]) => void; pocty: PoctyNabidky; vcZajist: boolean; setVcZajist: (v: boolean) => void }) {
+  const { options, vybrane, setVybrane } = props;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -235,8 +268,8 @@ function IndexPicker({ options, vybrane, setVybrane }: { options: ScreenerOption
         <ChevronDown className="w-4 h-4 shrink-0 text-slate-400" />
       </button>
       {open && (
-        <div role="menu" className="absolute left-0 top-full z-30 mt-1 w-[22rem] rounded-xl border border-slate-200 bg-white p-2.5 shadow-xl shadow-slate-900/10">
-          <IndexList options={options} vybrane={vybrane} setVybrane={setVybrane} />
+        <div role="menu" className="absolute left-0 top-full z-30 mt-1 w-[23rem] rounded-xl border border-slate-200 bg-white p-2.5 shadow-xl shadow-slate-900/10">
+          <IndexList {...props} autoFocus />
           <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
             <button type="button" onClick={() => setVybrane([])} disabled={!vybrane.length} className="text-xs font-medium text-slate-500 hover:text-red-600 disabled:opacity-40">Zrušit výběr</button>
             <button type="button" onClick={() => setOpen(false)} className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-800">Hotovo</button>
@@ -246,6 +279,19 @@ function IndexPicker({ options, vybrane, setVybrane }: { options: ScreenerOption
     </div>
   );
 }
+
+/* Hledání „sp500“ vrací 179 fondů s „S&P 500“ v názvu (i sektory, Equal Weight, ESG…). Když dotaz
+   odpovídá celému trhu, nabídneme výběr trhu = žebříčku (revize 18. 10. 2026). Bez diakritiky. */
+const TRH_Z_DOTAZU: [RegExp, string][] = [
+  [/^(s ?& ?p|sp|snp)[ -]?500$/, 'sp500'],
+  [/^msci[ -]?world$/, 'world'],
+  [/^(nasdaq|nasdaq[ -]?100|ndx)$/, 'nasdaq'],
+  [/^(svet|cely svet|all[ -]?world|ftse all[ -]?world|acwi|msci acwi)$/, 'svet'],
+];
+
+/* Krátký název fondu: bez „UCITS ETF…“ a koncové závorky – stejně jako žebříčky (nejlepsi-etf/[slug]).
+   Typ výplaty a měnové zajištění, které se tím z názvu ztratí, nesou štítky vedle. */
+const kratkyNazev = (n: string) => n.replace(/\s+UCITS\b.*$/i, '').replace(/\s+\([^()]*\)\s*$/, '').trim() || n;
 
 /* Odvozené hodnoty (region/hedging/index/trh/fulltext) přicházejí PŘEDPOČÍTANÉ
    ze serveru (ScreenerRow._*), takže klient přes ~5 000 fondů nepouští žádné regexy. */
@@ -274,7 +320,6 @@ export default function ScreenerUI({
   const [repl, setRepl] = useState('all');
   const [currency, setCurrency] = useState('all');
   const [hedging, setHedging] = useState('all');
-  const [sizeCat, setSizeCat] = useState('all');
   const [factor, setFactor] = useState('all');
   const [leveraged, setLeveraged] = useState(false);
   const [terMax, setTerMax] = useState<string>('');
@@ -336,14 +381,16 @@ export default function ScreenerUI({
     const g = (k: string) => p.get(k);
     // ?q= (hledání z hlavičky) a ?index= (proklik ze srovnání indexů) – víc indexů oddělených „|“.
     if (g('q')) { setQ(g('q')!); urlQuery.current = true; }
-    if (g('index')) { setIndexSel(g('index')!.split('|').filter(Boolean)); urlQuery.current = true; }
+    // Staré odkazy ?index=S%26P%20500 (žebříčky, články) → celý trh (stejný výběr jako žebříček).
+    if (g('index')) { setIndexSel([...new Set(g('index')!.split('|').filter(Boolean).map((v) => (INDEXY_TRHU[v] ? `trh:${INDEXY_TRHU[v]}` : v)))]); urlQuery.current = true; }
     if (g('kat')) setCategory(g('kat')!);
     if (g('vyplata')) setDist(g('vyplata')!);
     if (g('region')) setRegion(g('region')!);
     if (g('replikace')) setRepl(g('replikace')!);
     if (g('mena')) setCurrency(g('mena')!);
     if (g('zajisteni')) setHedging(g('zajisteni')!);
-    if (g('velikost')) setSizeCat(g('velikost')!);
+    // Dřív samostatný filtr „Velikost fondu“ (kategorie) vedle „Min. velikost“ – sloučeno do minimální velikosti.
+    if (g('velikost') && !g('minvel')) { const m = ({ medium: '100', large: '1000', xlarge: '10000' } as Record<string, string>)[g('velikost')!]; if (m) setSizeMin(m); }
     if (g('styl')) setFactor(g('styl')!);
     if (g('paka') === '1') setLeveraged(true);
     if (g('ter')) setTerMax(g('ter')!);
@@ -373,7 +420,6 @@ export default function ScreenerUI({
     put('replikace', repl, 'all');
     put('mena', currency, 'all');
     put('zajisteni', hedging, 'all');
-    put('velikost', sizeCat, 'all');
     put('styl', factor, 'all');
     if (leveraged) p.set('paka', '1');
     put('ter', terMax, '');
@@ -386,7 +432,38 @@ export default function ScreenerUI({
     put('smer', sortDir, 'desc');
     const qs = p.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [q, category, dist, region, indexSel, repl, currency, hedging, sizeCat, factor, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge, sortKey, sortDir]);
+  }, [q, category, dist, region, indexSel, repl, currency, hedging, factor, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge, sortKey, sortDir]);
+
+  /* Měnové zajištění – jedna podmínka pro výsledek i pro počty v nabídce indexů. */
+  const hedgeOk = useCallback((e: ScreenerRow) => {
+    if (hedging === 'all') return true;
+    if (hedging === 'unhedged') return e._hedge === 'unhedged';
+    if (hedging === 'hedged') return e._hedge !== 'unhedged';
+    return e._hedge === hedging;
+  }, [hedging]);
+
+  /* Počty v nabídce indexů = kolik fondů po kliknutí uvidíte (páka a zajištění jako výsledek). Do načtení
+     celé databáze počty ze serveru (stejná data, výchozí stav). */
+  const poctyMapy = useMemo(() => {
+    if (!full) return null;
+    const trh = new Map<string, number>(), idx = new Map<string, number>();
+    for (const e of rows) {
+      if (!leveraged && e.is_leveraged) continue;
+      if (!hedgeOk(e)) continue;
+      if (e._trh) trh.set(e._trh, (trh.get(e._trh) ?? 0) + 1);
+      if (e._index) idx.set(e._index, (idx.get(e._index) ?? 0) + 1);
+    }
+    return { trh, idx };
+  }, [rows, full, leveraged, hedgeOk]);
+  const pocty: PoctyNabidky = {
+    trh: (id) => poctyMapy ? poctyMapy.trh.get(id) ?? 0 : (() => { const t = options.trhy.find((x) => x.id === id); return t ? (hedging === 'unhedged' ? t.countNezaj : t.count) : 0; })(),
+    index: (label, i, g) => poctyMapy ? poctyMapy.idx.get(label) ?? 0 : g.counts?.[i],
+  };
+  const vcZajist = hedging !== 'unhedged';
+  const setVcZajist = (v: boolean) => { setHedging(v ? 'all' : 'unhedged'); setShown(PAGE); };
+
+  // Celkový počet fondů v záhlaví stránky = výchozí výsledek z dat, která má klient (viz PocetFondu).
+  useEffect(() => { if (full) nastavPocetFondu(rows.filter((r) => !r.is_leveraged).length); }, [full, rows]);
 
   // Fulltext se skládá jednou na načtená data (dřív hotový `_blob` ze serveru = +426 kB v payloadu).
   const enriched = useMemo<Enriched[]>(() =>
@@ -417,25 +494,14 @@ export default function ScreenerUI({
       if (indexSel.length && !(indexy.has(e._index) || (e._trh != null && trhy.has(e._trh)))) return false;
       if (repl !== 'all' && e._repl !== repl) return false;
       if (currency !== 'all' && e.fund_currency !== currency) return false;
-      if (hedging !== 'all') {
-        if (hedging === 'unhedged' && e._hedge !== 'unhedged') return false;
-        if (hedging === 'hedged' && e._hedge === 'unhedged') return false;
-        if (hedging !== 'unhedged' && hedging !== 'hedged' && e._hedge !== hedging) return false;
-      }
+      if (!hedgeOk(e)) return false;
       if (f) {
         if (!f.match.some((m) => blob.includes(m))) return false;
         if (f.exclude?.some((m) => blob.includes(m))) return false;
       }
       const size = num(e.fund_size_numeric);
-      if (sizeCat !== 'all') {
-        // Fond bez velikosti filtr velikosti NEPROJDE (dřív prošel – „velké fondy“ ukazovaly i neznámé).
-        if (size == null) return false;
-        if (sizeCat === 'small' && !(size < 100)) return false;
-        if (sizeCat === 'medium' && !(size >= 100 && size < 1000)) return false;
-        if (sizeCat === 'large' && !(size >= 1000 && size < 10000)) return false;
-        if (sizeCat === 'xlarge' && !(size >= 10000)) return false;
-      }
       if (terMaxN != null && (num(e.ter_numeric) == null || num(e.ter_numeric)! > terMaxN)) return false;
+      // Fond bez velikosti filtr velikosti NEPROJDE (tvrdit „aspoň X“ bez údaje by bylo horší).
       if (sizeMinN != null && (size == null || size < sizeMinN)) return false;
       if (divMinN != null) { const d = num(e.current_dividend_yield_numeric); if (d == null || d < divMinN) return false; }
       if (domicile !== 'all' && e._dom !== domicile) return false;
@@ -447,7 +513,7 @@ export default function ScreenerUI({
       }
       return true;
     });
-  }, [enriched, term, termy, dist, region, indexSel, repl, currency, hedging, sizeCat, factor, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge]);
+  }, [enriched, term, termy, dist, region, indexSel, repl, currency, hedgeOk, factor, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge]);
 
   const catCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -498,7 +564,7 @@ export default function ScreenerUI({
 
   const reset = () => {
     setQ(''); setCategory('all'); setDist('all'); setRegion('all'); setIndexSel([]);
-    setRepl('all'); setCurrency('all'); setHedging('all'); setSizeCat('all'); setFactor('all');
+    setRepl('all'); setCurrency('all'); setHedging('all'); setFactor('all');
     setLeveraged(false); setTerMax(''); setSizeMin(''); setDivMin('');
     setDomicile('all'); setProvider('all'); setMinAge('all'); setShown(PAGE);
   };
@@ -513,9 +579,8 @@ export default function ScreenerUI({
     ...(repl !== 'all' ? [{ k: 'repl', label: `Replikace: ${repl}`, off: () => setRepl('all') }] : []),
     ...(currency !== 'all' ? [{ k: 'mena', label: `Měna fondu ${currency}`, off: () => setCurrency('all') }] : []),
     ...(hedging !== 'all' ? [{ k: 'hedge', label: hedging === 'unhedged' ? 'Bez měnového zajištění' : hedging === 'hedged' ? 'Měnově zajištěné' : `Zajištěno do ${hedging.split('_')[0].toUpperCase()}`, off: () => setHedging('all') }] : []),
-    ...(sizeCat !== 'all' ? [{ k: 'vel', label: { small: 'Malé fondy', medium: 'Střední fondy', large: 'Velké fondy', xlarge: 'Velmi velké fondy' }[sizeCat] ?? sizeCat, off: () => setSizeCat('all') }] : []),
     ...(terMax !== '' ? [{ k: 'ter', label: `TER do ${terMax.replace('.', ',')} %`, off: () => setTerMax('') }] : []),
-    ...(sizeMin !== '' ? [{ k: 'minvel', label: `Velikost od ${sizeMin} mil. €`, off: () => setSizeMin('') }] : []),
+    ...(sizeMin !== '' ? [{ k: 'minvel', label: `Velikost od ${Number(sizeMin) >= 1000 ? `${(Number(sizeMin) / 1000).toLocaleString('cs-CZ')} mld.` : `${sizeMin} mil.`} €`, off: () => setSizeMin('') }] : []),
     ...(divMin !== '' ? [{ k: 'div', label: `Dividenda od ${divMin.replace('.', ',')} %`, off: () => setDivMin('') }] : []),
     ...(domicile !== 'all' ? [{ k: 'dom', label: `Domicil ${domicile}`, off: () => setDomicile('all') }] : []),
     ...(provider !== 'all' ? [{ k: 'prov', label: provider, off: () => setProvider('all') }] : []),
@@ -568,6 +633,13 @@ export default function ScreenerUI({
     URL.revokeObjectURL(url);
   };
 
+  // Dotaz „sp500“, „msci world“, „celý svět“… = celý trh → nabídnout výběr trhu (stejný jako žebříček).
+  const trhDotazu = useMemo(() => {
+    const t = bezDiakritiky(q).replace(/\s+/g, ' ');
+    const hit = t ? TRH_Z_DOTAZU.find(([re]) => re.test(t)) : undefined;
+    return hit ? options.trhy.find((x) => x.id === hit[1]) ?? null : null;
+  }, [q, options.trhy]);
+
   // Dotaz z URL a ještě nemáme celou databázi → nejde o „nic nenalezeno“, ale o načítání.
   const cekaNaData = !full && urlQuery.current;
   const pocetVse = useMemo(() => [...catCounts.values()].reduce((s, n) => s + n, 0) + bezKategorie.filter(({ e }) => !e.category).length, [catCounts, bezKategorie]);
@@ -611,6 +683,8 @@ export default function ScreenerUI({
         {[{ v: 'all', label: 'Vše' }, ...options.categories.map((c) => ({ v: c, label: c }))].map(({ v, label }) => {
           const active = category === v;
           const count = v === 'all' ? pocetVse : (catCounts.get(v) ?? 0);
+          // Záložka bez fondů po filtru („Krypto 0“) se skryje – kromě té, ve které právě jste.
+          if (full && count === 0 && !active && v !== 'all') return null;
           return (
             <button
               key={v}
@@ -645,7 +719,7 @@ export default function ScreenerUI({
             {stitky.length > 0 && <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-teal-700 text-white text-[11px] font-semibold">{stitky.length}</span>}
           </button>
         </div>
-        <div className="hidden md:block w-[15rem] shrink-0"><IndexPicker options={options} vybrane={indexSel} setVybrane={setIdx} /></div>
+        <div className="hidden md:block w-[15rem] shrink-0"><IndexPicker options={options} vybrane={indexSel} setVybrane={setIdx} pocty={pocty} vcZajist={vcZajist} setVcZajist={setVcZajist} /></div>
         <div className="hidden md:block w-[11.5rem] shrink-0">{regionSelect}</div>
         <div className="hidden md:block w-[12.5rem] shrink-0">{distSelect}</div>
         <button type="button" onClick={() => setPanel(true)} className={`hidden md:inline-flex items-center gap-1.5 shrink-0 rounded-lg border px-3 min-h-[40px] text-sm font-medium hover:border-teal-400 hover:text-teal-700 ${vPanelu ? 'border-teal-500 text-teal-800 bg-teal-50/50' : 'border-slate-300 bg-white text-slate-700'}`}>
@@ -655,7 +729,7 @@ export default function ScreenerUI({
       </div>
 
       {/* AKTIVNÍ FILTRY – odebíratelné štítky */}
-      {(stitky.length > 0 || (anyFilter && q)) && (
+      {stitky.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {stitky.map((s) => (
             <button key={s.k} type="button" onClick={() => { s.off(); setShown(PAGE); }} className="inline-flex items-center gap-1 rounded-full bg-teal-50 pl-2.5 pr-1.5 py-1 text-xs font-medium text-teal-800 ring-1 ring-teal-200 hover:bg-teal-100" aria-label={`Zrušit filtr ${s.label}`}>
@@ -663,6 +737,16 @@ export default function ScreenerUI({
             </button>
           ))}
           <button onClick={reset} className="inline-flex items-center gap-1 px-1.5 py-1 text-xs font-medium text-slate-500 hover:text-red-600">Vymazat vše</button>
+        </div>
+      )}
+
+      {trhDotazu && !indexSel.includes(`trh:${trhDotazu.id}`) && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2 text-sm text-slate-700">
+          <span>Hledáte fondy na {trhDotazu.id === 'svet' ? 'celý svět' : `celý trh ${trhDotazu.label}`}? Hledání podle názvu vrací i sektorové, ESG a další varianty.</span>
+          <button type="button" onClick={() => { setQ(''); setIdx([`trh:${trhDotazu.id}`]); }}
+            className="font-medium text-teal-800 underline decoration-teal-300 underline-offset-2 hover:decoration-teal-700">
+            Zobrazit {pocty.trh(trhDotazu.id).toLocaleString('cs-CZ')} fondů {trhDotazu.id === 'svet' ? 'na celý svět' : `na ${trhDotazu.label}`} (jako žebříček)
+          </button>
         </div>
       )}
 
@@ -725,13 +809,14 @@ export default function ScreenerUI({
                 <tr key={e.isin} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70 transition-colors">
                   <td className="py-2.5 pl-3 pr-2">
                     <div className="flex items-center gap-2.5">
-                      <EmitentLogo nazev={e.name} size={28} />
+                      <EmitentLogo nazev={e.name} size={28} monogram={e.fund_provider ?? e.name} />
                       <div className="min-w-0">
                         <Link href={`/etf/${e.isin}`} title={e.name} className="line-clamp-2 font-medium leading-snug text-slate-900 hover:text-teal-700">
-                          {e.name}
+                          {kratkyNazev(e.name)}
                         </Link>
                         <span className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
-                          <span className={tk ? 'font-medium text-slate-600' : 'font-mono text-[11px]'}>{tk ?? e.isin}</span>
+                          {/* Bez tickeru celý ISIN normálním písmem (dřív useknutý monospace „IE…ZB19“ = jako rozbitý export). */}
+                          <span className={tk ? 'font-medium text-slate-600' : 'text-slate-500'}>{tk ?? e.isin}</span>
                           <span title={c.title} className={`inline-block text-[10px] font-medium px-1.5 py-px rounded-full ${c.cls}`}>{c.label}</span>
                           {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
                           <HedgeChip h={e._hedge} />
@@ -746,7 +831,7 @@ export default function ScreenerUI({
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${barva(r3)}`}>{pct(r3)}</td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${barva(r5)}`}>{pct(r5)}</td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600">{pct1(vol)}</td>
-                  <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600">{pct1(num(e.current_dividend_yield_numeric))}</td>
+                  <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600"><Dividenda e={e} /></td>
                   <td className="py-2.5 pl-1 pr-2.5 text-right">
                     <CompareButton isin={e.isin} label={tk ?? e.name.slice(0, 8)} variant="row" />
                   </td>
@@ -787,13 +872,13 @@ export default function ScreenerUI({
             return (
               <div key={e.isin} className="rounded-xl border border-slate-200 bg-white p-3">
                 <div className="flex items-start gap-2.5">
-                  <EmitentLogo nazev={e.name} size={28} className="mt-0.5" />
+                  <EmitentLogo nazev={e.name} size={28} className="mt-0.5" monogram={e.fund_provider ?? e.name} />
                   <div className="min-w-0 flex-1">
                     <Link href={`/etf/${e.isin}`} className="line-clamp-2 text-[15px] font-semibold leading-snug text-slate-900 active:text-teal-700">
-                      {e.name}
+                      {kratkyNazev(e.name)}
                     </Link>
                     <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                      <span className={tk ? 'font-medium text-slate-600' : 'font-mono text-[11px]'}>{tk ?? e.isin}</span>
+                      <span className={tk ? 'font-medium text-slate-600' : 'text-slate-500'}>{tk ?? e.isin}</span>
                       <span className={`inline-block text-[10px] font-medium px-1.5 py-px rounded-full ${c.cls}`}>{c.label}</span>
                       {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
                       <HedgeChip h={e._hedge} />
@@ -816,14 +901,14 @@ export default function ScreenerUI({
                   </div>
                   <div className="text-right">
                     <dt className="text-slate-500">Velikost</dt>
-                    <dd className="tabular-nums text-sm font-medium text-slate-800 whitespace-nowrap">{money(num(e.fund_size_numeric)).replace(' mil. €', ' mil.').replace(' mld. €', ' mld.')}</dd>
+                    <dd className="tabular-nums text-sm font-medium text-slate-800 whitespace-nowrap">{money(num(e.fund_size_numeric))}</dd>
                   </div>
                 </dl>
               </div>
             );
           })}
         </div>
-        {filtered.length > 0 && <p className="mt-2 text-[11px] text-slate-400">Výnosy v {curLabel[cur]}, velikost v eurech.</p>}
+        {filtered.length > 0 && <p className="mt-2 text-[11px] text-slate-400">Výnosy v {curLabel[cur]}.</p>}
         {filtered.length === 0 && (
           <div className="rounded-lg border border-slate-200 bg-white py-10 text-center text-sm text-slate-500">
             {cekaNaData || !full
@@ -858,7 +943,7 @@ export default function ScreenerUI({
               </div>
               <div className="md:hidden">
                 <span className="block mb-1 text-xs font-medium text-slate-500">Sledovaný index nebo trh (lze víc)</span>
-                <IndexList kompakt options={options} vybrane={indexSel} setVybrane={setIdx} />
+                <IndexList kompakt options={options} vybrane={indexSel} setVybrane={setIdx} pocty={pocty} vcZajist={vcZajist} setVcZajist={setVcZajist} />
               </div>
               <div className="md:hidden grid grid-cols-1 gap-3">
                 <Field label="Region / země">{regionSelect}</Field>
@@ -874,17 +959,17 @@ export default function ScreenerUI({
                 <Field label="Max. TER (%)">
                   <input type="number" inputMode="decimal" step="0.01" min="0" placeholder="např. 0,20" value={terMax} onChange={bumpN(setTerMax)} className={selCls} />
                 </Field>
+                {/* Jedno pole místo dvou (dřív „Velikost fondu: Jakákoli“ + „Min. velikost“ = dvě věci na totéž). */}
                 <Field label="Velikost fondu">
-                  <select aria-label="Velikost fondu" value={sizeCat} onChange={bump(setSizeCat)} className={selCls}>
-                    <option value="all">Jakákoli</option>
-                    <option value="small">Malé (&lt; 100 mil. €)</option>
-                    <option value="medium">Střední (100 mil.–1 mld. €)</option>
-                    <option value="large">Velké (1–10 mld. €)</option>
-                    <option value="xlarge">Velmi velké (&gt; 10 mld. €)</option>
+                  <select aria-label="Minimální velikost fondu" value={sizeMin} onChange={bump(setSizeMin)} className={selCls}>
+                    <option value="">Jakákoli</option>
+                    {!['', '50', '100', '500', '1000', '10000'].includes(sizeMin) && <option value={sizeMin}>od {sizeMin} mil. €</option>}
+                    <option value="50">od 50 mil. €</option>
+                    <option value="100">od 100 mil. €</option>
+                    <option value="500">od 500 mil. €</option>
+                    <option value="1000">od 1 mld. €</option>
+                    <option value="10000">od 10 mld. €</option>
                   </select>
-                </Field>
-                <Field label="Min. velikost (mil. €)">
-                  <input type="number" inputMode="numeric" step="10" min="0" placeholder="např. 500" value={sizeMin} onChange={bumpN(setSizeMin)} className={selCls} />
                 </Field>
                 <Field label="Měnové zajištění">
                   <select aria-label="Měnové zajištění" value={hedging} onChange={bump(setHedging)} className={selCls}>
