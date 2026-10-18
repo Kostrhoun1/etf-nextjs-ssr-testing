@@ -18,7 +18,11 @@ export const fmtPct = (v: number) =>
 export type ReturnsMap = Record<string, number | null | undefined>;
 
 /** Historie z backtestu (předpočet na serveru): CAGR a max. pokles v Kč, desetinně. */
-export interface HistoriePortfolia { cagr: number; maxPokles: number; od: string; do: string }
+export interface HistoriePortfolia {
+  cagr: number; maxPokles: number; od: string; do: string;
+  /** Část složení je v backtestu nahrazená podobným indexem (proxyNote z PORTFOLIO_BACKTEST). */
+  proxy?: string;
+}
 export type HistorieMap = Record<string, HistoriePortfolia | null | undefined>;
 
 // Vážený korunový výnos portfolia za 1 rok – jen když mají data VŠECHNY složky (jinak „—“ místo
@@ -82,7 +86,7 @@ function HistorieMetriky({ h }: { h: HistoriePortfolia | null | undefined }) {
     <div className="grid grid-cols-2 gap-3 text-sm">
       <div>
         <span className="block text-xs text-slate-500">
-          <InfoTip label={h ? `Průměrné roční zhodnocení (CAGR) v backtestu ${obdobi}, přepočteno do korun, po poplatcích fondů, rebalancování jednou ročně. Historie nezaručuje budoucí výnosy.` : 'Backtest se teď nepodařilo spočítat.'}>Ročně od {h ? h.od.slice(0, 4) : '—'}</InfoTip>
+          <InfoTip label={h ? `Průměrné roční zhodnocení (CAGR) v backtestu ${obdobi}, přepočteno do korun, po poplatcích fondů, rebalancování jednou ročně. Historie nezaručuje budoucí výnosy.${h.proxy ? ` Pozor: ${h.proxy}` : ''}` : 'Backtest se teď nepodařilo spočítat.'}>Ročně od {h ? h.od.slice(0, 4) : '—'}</InfoTip>
         </span>
         <span className={`tabular-nums text-lg font-bold ${h ? (h.cagr >= 0 ? 'text-slate-900' : 'text-red-700') : 'text-slate-400'}`}>{h ? pctZnam(h.cagr * 100) : '—'}</span>
       </div>
@@ -92,6 +96,7 @@ function HistorieMetriky({ h }: { h: HistoriePortfolia | null | undefined }) {
         </span>
         <span className={`tabular-nums text-lg font-bold ${h ? 'text-slate-900' : 'text-slate-400'}`}>{h ? pctZnam(h.maxPokles * 100, 0) : '—'}</span>
       </div>
+      {h?.proxy && <p className="col-span-2 -mt-1 text-[11px] leading-snug text-amber-700">Část složení počítáme přes podobný index – orientační.</p>}
     </div>
   );
 }

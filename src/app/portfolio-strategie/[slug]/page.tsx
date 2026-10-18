@@ -240,14 +240,17 @@ export default async function PortfolioDetailPreview(
 
         {/* STATISTIKY */}
         <section data-sekce="statistiky" className="pb-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className={`grid grid-cols-2 gap-3 ${stats.length === 5 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
             {stats.map((s, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400"><s.icon className="w-3.5 h-3.5" /> {s.label}</div>
+              <div key={i} className={`rounded-xl border border-slate-200 bg-white p-4 ${i === stats.length - 1 && stats.length % 2 ? "col-span-2 lg:col-span-1" : ""}`}>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500"><s.icon className="w-3.5 h-3.5 shrink-0" /> {s.label}</div>
                 <div className="mt-1 text-lg font-bold tabular-nums text-slate-900">{s.value}</div>
               </div>
             ))}
           </div>
+          {btConfig?.proxyNote && (
+            <p className="mt-2 text-xs text-amber-700">Část složení počítáme v backtestu přes podobný index – čísla jsou orientační (podrobnosti pod grafem).</p>
+          )}
         </section>
 
         {/* SLOŽENÍ */}
@@ -395,7 +398,7 @@ export default async function PortfolioDetailPreview(
         <section className="pb-8">
           <div className="rounded-xl border border-teal-200 bg-teal-50 p-5">
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-700"><Target className="w-4 h-4" /> Pro koho se hodí</p>
-            <p className="mt-2 text-sm text-teal-900/90 leading-relaxed">„{model.forWhom}"</p>
+            <p className="mt-2 text-sm text-teal-900/90 leading-relaxed">„{model.forWhom}“</p>
           </div>
         </section>
 

@@ -61,6 +61,9 @@ export function FaqSeznam({ items }: { items: readonly { q: string; a: string }[
 export interface Profil { id: string; icon: typeof Sparkles; profil: string; brokerId: string; proc: string }
 
 /** Profily → jeden broker na profil. Částky v důvodech se počítají z ceníků (brokerData), ne natvrdo. */
+/** Sazba směny CZK→EUR z ceníku (strukturovaně), jinak textový popis. */
+const smena = (b: Broker) => b.nakup?.smena ? proc(b.nakup.smena.procento) : b.fxFee;
+
 export function doporuceniProfily(kurzy: Kurzy | null): Profil[] {
   const t212 = najdiBrokera('trading212');
   const xtb = najdiBrokera('xtb');
@@ -79,11 +82,11 @@ export function doporuceniProfily(kurzy: Kurzy | null): Profil[] {
     ? Math.ceil((provizeEur(degiro.nakup, 1000) * kurzy.eurCzk) / (xtb.nakup.smena.procento / 100) / 100) * 100
     : null;
   return [
-    { id: 'zacinam', icon: Sparkles, profil: 'Začínám a chci vše česky', brokerId: 'xtb', proc: `Nákup ETF bez provize, koupíte i část podílu, česká podpora v pracovní dny. Směna měny ${xtb.fxFee}.` },
-    { id: 'male-castky', icon: Coins, profil: 'Posílám malé částky', brokerId: nejlevnejsi.id, proc: `U nákupu za 2 000 Kč nejnižší celkový náklad – bez provize, směna ${nejlevnejsi.fxFee}.${nejlevnejsi.czSupport ? '' : ' Podpora jen anglicky.'}` },
+    { id: 'zacinam', icon: Sparkles, profil: 'Začínám a chci vše česky', brokerId: 'xtb', proc: `Nákup ETF bez provize, koupíte i část podílu, česká podpora v pracovní dny. Směna měny ${smena(xtb)}.` },
+    { id: 'male-castky', icon: Coins, profil: 'Posílám malé částky', brokerId: nejlevnejsi.id, proc: `U nákupu za 2 000 Kč nejnižší celkový náklad – bez provize, směna ${smena(nejlevnejsi)}.${nejlevnejsi.czSupport ? '' : ' Podpora jen anglicky.'}` },
     { id: 'vetsi-castky', icon: Layers, profil: 'Nakupuji větší částky najednou', brokerId: 'degiro', proc: `Vybraná ETF za 1 EUR a směna CZK/EUR zdarma${zlom ? ` – od ${zlom.toLocaleString('cs-CZ')} Kč na nákup levnější než XTB` : ''}. Bez části podílu.` },
     { id: 'svet', icon: Globe, profil: 'Chci trhy celého světa', brokerId: 'ibkr', proc: `${najdiBrokera('ibkr').etfCount}, levná směna u větších částek. Minimum za pokyn prodraží malé nákupy.` },
-    { id: 'banka', icon: Landmark, profil: 'Chci banku s pobočkou a české akcie', brokerId: 'fio', proc: 'Česká banka, vše česky, z českých dividend 15 %. Nákup zahraničních ETF je ale dražší.' },
+    { id: 'banka', icon: Landmark, profil: 'Chci banku s pobočkou a české akcie', brokerId: 'fio', proc: 'Česká banka, vše česky, z českých dividend 15\u00a0%. Nákup zahraničních ETF je ale dražší.' },
   ];
 }
 

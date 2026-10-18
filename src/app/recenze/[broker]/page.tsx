@@ -183,16 +183,15 @@ export default async function BrokerReview(
             <section data-sekce="naklady">
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Kolik vás {b.name} stojí</h2>
               <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                <table className="w-full text-sm">
-                  <tbody className="divide-y divide-slate-100">
-                    {naklady.map((r) => (
-                      <tr key={r.k}>
-                        <th scope="row" className="w-2/5 px-4 py-3 text-left align-top font-medium text-slate-600">{r.tip ? <InfoTip label={r.tip}>{r.k}</InfoTip> : r.k}</th>
-                        <td className="px-4 py-3 text-slate-900 tabular-nums">{r.v}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {/* Řádky jako dl: na mobilu popisek nad hodnotou (tabulka se dvěma sloupci hodnotu mačkala do úzkého sloupce). */}
+                <dl className="divide-y divide-slate-100 text-sm">
+                  {naklady.map((r) => (
+                    <div key={r.k} className="grid gap-0.5 px-4 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:gap-4">
+                      <dt className="font-medium text-slate-500 sm:text-slate-600">{r.tip ? <InfoTip label={r.tip}>{r.k}</InfoTip> : r.k}</dt>
+                      <dd className="text-slate-900 tabular-nums">{r.v}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
               {c && c.feesText.length > 0 && (
                 <details className="group mt-3 rounded-xl border border-slate-200 bg-white">

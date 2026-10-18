@@ -15,7 +15,7 @@ import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getReturnsByIsins, getTotalETFCount } from '@/lib/etf-data';
 import {
-  TrendingUp, ArrowRight, LayoutGrid, PieChart, Scale, ShieldCheck,
+  TrendingUp, LayoutGrid, PieChart, Scale, ShieldCheck,
   History, Activity, Search, Landmark, BookOpen, Trophy,
 } from 'lucide-react';
 
@@ -70,7 +70,7 @@ export default async function PortfolioStrategieDesignPreview() {
     const r = cfg ? await predpocitejPortfolio(cfg.items, cfg.start) : null;
     const evo = r?.evolution ?? [];
     return [m.slug, r && evo.length > 1 ? {
-      cagr: r.summary.cagr, maxPokles: r.risk.maxDrawdown.depth, od: evo[0].date.slice(0, 10), do: evo[evo.length - 1].date.slice(0, 10),
+      cagr: r.summary.cagr, maxPokles: r.risk.maxDrawdown.depth, od: evo[0].date.slice(0, 10), do: evo[evo.length - 1].date.slice(0, 10), proxy: cfg?.proxyNote,
     } : null] as const;
   })));
   const hodnoty = Object.values(historie).filter((h): h is NonNullable<typeof h> => !!h);
