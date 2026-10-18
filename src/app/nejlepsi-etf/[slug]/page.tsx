@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 import {
   getTopETFsForCategory, getCategoryCount, getFlagshipComposition, categoryConfigs,
-  type ETFBasicInfo, getDataDate,
+  type ETFBasicInfo, getDataDate, inceptionYear,
 } from '@/lib/etf-data';
-import { ter, money, shortName, SectionHead, CompositionInfographic, CategoryIndexes, slozeniPouzitelne } from '@/components/design-preview/CategoryUI';
+import { ter, money, shortName, nbsp, SectionHead, CompositionInfographic, CategoryIndexes, slozeniPouzitelne } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent, categoryLead } from '@/components/design-preview/categoryContent';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -170,7 +170,7 @@ const median = (xs: number[]): number | null => {
 const num = (v: unknown): number | null => (v == null || Number.isNaN(Number(v)) ? null : Number(v));
 const fmtDatum = (d: Date) => d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
 const pctKc = (v: number | null) =>
-  v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '\u2212' : ''}${Math.abs(v).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}\u00a0%`;
 /** Skloňování „fond“ (1 fond, 2–4 fondy, 5+ fondů). */
 const fondu = (n: number) => (n === 1 ? 'fond' : n >= 2 && n <= 4 ? 'fondy' : 'fondů');
 
@@ -212,8 +212,6 @@ export default async function CategoryDetailPreview(
 
   // Výběr podle dat: největší, nejlevnější, nejvýkonnější za 3 roky (při nedostatku 3R dat za 1 rok).
   const bySize = [...etfs].filter((e) => e.fund_size_numeric != null).sort((a, b) => (b.fund_size_numeric! - a.fund_size_numeric!));
-  const byTer = [...etfs].filter((e) => e.ter_numeric != null && e.ter_numeric > 0)
-    .sort((a, b) => (a.ter_numeric! - b.ter_numeric!) || ((b.fund_size_numeric ?? 0) - (a.fund_size_numeric ?? 0)));
   // Nejvýkonnější: jen „čisté“ třídy (ne ESG/Screened/Leaders, ne měnově zajištěné – liší se metodikou nebo
   // měnou, ne kvalitou fondu) a fondy ≥ 100 mil. €. Momentum za 12 měsíců je u indexových kategorií spíš
   // šum (revize 18. 10. 2026) → primárně 3 roky v Kč, když je má aspoň 3 fondy.
@@ -222,7 +220,20 @@ export default async function CategoryDetailPreview(
   // být aspoň velikost nejmenšího načteného – jinak by „nejvýkonnější mezi fondy nad 100 mil. €“ neplatilo.
   const nejmensiNacteny = celkem > etfs.length ? Math.min(...etfs.map((e) => e.fund_size_numeric ?? Infinity)) : 0;
   const prahVykonu = Math.max(100, Math.ceil(nejmensiNacteny));
+  const castecneNacteno = celkem > etfs.length;
+  const prahText = `${prahVykonu.toLocaleString('cs-CZ')}\u00a0mil.\u00a0€`;
   const kandidati = etfs.filter((e) => (e.fund_size_numeric ?? 0) >= prahVykonu && (jeEsgKategorie || (!VARIANTA.test(e.name) && !zajisteni(e.name))));
+  // Nejnižší poplatek = PRAVIDLO HOMEPAGE (src/lib/trhy.ts, kolo 5): nejnižší TER > 0, při shodě akumulační třída,
+  // pak větší fond; jen fondy nad prahem a bez měnového zajištění (homepage zajištěné třídy nemá). Dřív tu vyhrával
+  // SPY5 (Dist) a na homepage SPYL (Acc) – stejný TER, jiný fond.
+  const jeZajistKategorie = /zajist|hedg/i.test(slug);
+  const byTer = etfs
+    .filter((e) => e.ter_numeric != null && e.ter_numeric > 0 && (e.fund_size_numeric ?? 0) >= prahVykonu && (jeZajistKategorie || !zajisteni(e.name)))
+    .sort((a, b) => (a.ter_numeric! - b.ter_numeric!)
+      || (Number(distKind(b.distribution_policy) === 'acc') - Number(distKind(a.distribution_policy) === 'acc'))
+      || ((b.fund_size_numeric ?? 0) - (a.fund_size_numeric ?? 0)));
+  const stejnyTer = byTer[0] ? byTer.filter((e) => e !== byTer[0] && e.ter_numeric === byTer[0].ter_numeric).length : 0;
+  const dalsiFondy = (n: number) => (n === 1 ? 'další fond' : n <= 4 ? 'další fondy' : 'dalších fondů');
   const s3 = kandidati.filter((e) => e.return_3y_czk != null);
   const vykonObdobi: '3y' | '1y' = s3.length >= 3 ? '3y' : '1y';
   const byPerf = (vykonObdobi === '3y' ? s3 : kandidati.filter((e) => e.return_1y_czk != null))
@@ -233,7 +244,10 @@ export default async function CategoryDetailPreview(
     if (etf && !recos.some((r) => r.etf.isin === etf.isin)) recos.push({ tag, icon, etf, hodnota, popis, pravidlo });
   };
   pushReco('Největší fond', Trophy, bySize[0], bySize[0] ? money(bySize[0].fund_size_numeric) : '', 'spravovaný majetek');
-  pushReco('Nejnižší poplatek', Wallet, byTer[0], byTer[0] ? ter(byTer[0].ter_numeric) : '', 'roční poplatek');
+  pushReco('Nejnižší poplatek', Wallet, byTer[0], byTer[0] ? ter(byTer[0].ter_numeric) : '', 'roční poplatek',
+    byTer[0] && stejnyTer > 0
+      ? `a ${stejnyTer} ${dalsiFondy(stejnyTer)} za ${ter(byTer[0].ter_numeric)} – při shodě ukazujeme akumulační, pak větší fond${castecneNacteno ? ` (mezi fondy nad ${prahText})` : ''}`
+      : castecneNacteno ? `Mezi fondy nad ${prahText} bez měnového zajištění.` : undefined);
   const indexova = INDEXOVE[slug];
   // Nejvýkonnější jen u kategorií s různými podklady (dluhopisy, sektory…) – s rozdílem proti mediánu a pravidlem výběru.
   if (!indexova && byPerf[0]) {
@@ -244,7 +258,7 @@ export default async function CategoryDetailPreview(
     const rozdil = med != null ? v - med : null;
     pushReco('Nejvýkonnější', TrendingUp, byPerf[0], pctKc(v),
       rozdil != null ? `${obdobi} v Kč · medián ${pctKc(med)}` : `${obdobi} v Kč`,
-      `Nejvyšší výnos ${obdobi} v Kč mezi ${byPerf.length} fondy nad ${prahVykonu} mil. €${jeEsgKategorie ? '' : ' (bez měnově zajištěných tříd a ESG variant)'}.`);
+      `Nejvyšší výnos ${obdobi} v Kč mezi ${byPerf.length} fondy nad ${prahText}${jeEsgKategorie ? '' : ' (bez měnově zajištěných tříd a ESG variant)'}.`);
   }
 
   // Tabulka – data pro klienta (bez fallbacku mezi měnami).
@@ -255,6 +269,8 @@ export default async function CategoryDetailPreview(
       isin: e.isin,
       nazev: nazvy[i],
       ticker: platnyTicker(e.primary_ticker),
+      emitent: e.fund_provider ?? null,
+      rok: inceptionYear(e.inception_date),
       ter: num(e.ter_numeric),
       velikost: num(e.fund_size_numeric),
       r1: { CZK: num(e.return_1y_czk), EUR: num(e.return_1y), USD: num(e.return_1y_usd) },
@@ -341,10 +357,14 @@ export default async function CategoryDetailPreview(
         {/* ÚVOD – krátký: název, jedna věta, počet fondů a datum. Žádná půlobrazovková infografika. */}
         <section data-sekce="uvod" className="pt-2 pb-6">
           <h1 className="text-[28px] md:text-4xl font-bold tracking-tight leading-tight text-slate-900">{cfg.title}</h1>
-          <p className="mt-2 max-w-2xl text-[15px] md:text-base text-slate-600 leading-relaxed">{lead}</p>
+          <p className="mt-2 max-w-2xl text-[15px] md:text-base text-slate-600 leading-relaxed">{nbsp(lead)}</p>
+          {/* Co znamená „nejlepší“ (Markéta, kolo 4: nadpis „Nejlepší…“ a pak jen „největší a nejlevnější“) */}
+          <p className="mt-1.5 max-w-2xl text-sm text-slate-500 leading-relaxed">
+            „Nejlepší“ = podle faktů: největší, nejlevnější, s nejdelší historií. Pořadí není placené ani doporučení.
+          </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-600">
             <span data-pocet-fondu={pocetDb ?? undefined} className="inline-flex items-center gap-1">
-              <span><strong className="font-semibold text-slate-900 tabular-nums">{celkem.toLocaleString('cs-CZ')}</strong> {fondu(celkem)} nad {prah} mil. €</span>
+              <span><strong className="font-semibold text-slate-900 tabular-nums">{celkem.toLocaleString('cs-CZ')}</strong> {fondu(celkem)} nad {prah}{'\u00a0'}mil.{'\u00a0'}€</span>
               <InfoTip label={`V žebříčku jsou fondy se spravovaným majetkem aspoň ${prah} mil. €. Vynecháváme pákové a inverzní produkty a fondy, jejichž data nebyla 14 dní aktualizována.`}>{null}</InfoTip>
             </span>
             <AktualnostDat datum={dataDate} nejstarsi={nejstarsi} />
@@ -365,15 +385,15 @@ export default async function CategoryDetailPreview(
                     </div>
                     {/* Mobil: jeden řádek (logo, štítek + název, číslo vpravo) – ať je tabulka fondů blízko. */}
                     <Link href={`/etf/${etf.isin}`} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 md:flex md:flex-col md:items-stretch min-w-0">
-                      <span className="md:hidden"><EmitentLogo nazev={etf.name} size={32} /></span>
+                      <span className="md:hidden"><EmitentLogo nazev={etf.name} size={32} monogram={etf.fund_provider} /></span>
                       <span className="min-w-0">
                         <span className="inline-flex items-center gap-1.5 text-[11px] md:text-xs font-semibold uppercase tracking-wide text-teal-700">
                           <Icon className="w-3.5 h-3.5" /> {tag}
                         </span>
-                        <span className="mt-0.5 md:mt-2.5 flex items-center gap-2.5 min-w-0 md:pr-8">
-                          <span className="hidden md:inline-flex"><EmitentLogo nazev={etf.name} size={32} /></span>
-                          <span className="min-w-0 md:pr-16">
-                            <span className="block text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 truncate md:whitespace-normal md:line-clamp-2">{nazevFondu(etf.name)}</span>
+                        <span className="mt-0.5 md:mt-2.5 flex items-center gap-2.5 min-w-0">
+                          <span className="hidden md:inline-flex"><EmitentLogo nazev={etf.name} size={32} monogram={etf.fund_provider} /></span>
+                          <span className="min-w-0">
+                            <span className="block text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 line-clamp-2">{nazevFondu(etf.name)}</span>
                             <span className="block text-xs text-slate-500">{tk ?? etf.isin}<span className="md:hidden"> · {popis}</span></span>
                           </span>
                         </span>
@@ -395,7 +415,7 @@ export default async function CategoryDetailPreview(
         {/* VŠECHNY FONDY KATEGORIE – řaditelná tabulka */}
         {radky.length > 0 && (
           <section data-sekce="tabulka" className="pb-10" aria-labelledby="tabulka-h">
-            <TabulkaFondu nadpisId="tabulka-h" radky={radky} celkem={celkem} vychozi={cfg.sortBy === 'ter_numeric' ? 'ter' : 'size'} datum={datumText} srovnavac={srovnavac} />
+            <TabulkaFondu nadpisId="tabulka-h" radky={radky} celkem={celkem} vychozi={cfg.sortBy === 'ter_numeric' ? 'ter' : 'size'} datum={datumText} srovnavac={srovnavac} prah={prah} />
           </section>
         )}
 

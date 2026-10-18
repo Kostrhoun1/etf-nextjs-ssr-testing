@@ -4,8 +4,11 @@ import type { IndexInfo } from '@/components/design-preview/indexDescriptions';
 import { ArrowRight, TrendingUp, TrendingDown, Globe2, PieChart, Layers, Info } from 'lucide-react';
 import { ceskaZeme, ceskySektor } from '@/lib/preklady';
 
-/* ---------- Formátovače ---------- */
-export const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
+/* ---------- Formátovače ----------
+   Jednotné formáty webu (kolo 5): „139,4 mld. €“ / „529 mil. €“, záporná čísla skutečným minus (U+2212),
+   mezi číslem a % / jednotkou nezlomitelná mezera (žádné „80 / %“ na konci řádku). */
+const NB = '\u00a0';
+export const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')}${NB}%`);
 
 /** POZOR: fund_size_numeric se z justETF stahuje VŽDY v EUR (standardizace kvůli
  *  srovnatelnosti), i u USD/GBP tříd → symbol je vždy €. Ověřeno proti justETF. */
@@ -14,14 +17,17 @@ export const curSym = (_c?: string | null) => '€';
 export const money = (v: number | null, cur: string | null = 'EUR') => {
   if (v == null) return '—';
   const s = curSym(cur);
-  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} mld ${s}`;
-  return `${Math.round(v)} mil ${s}`;
+  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')}${NB}mld.${NB}${s}`;
+  return `${Math.round(v)}${NB}mil.${NB}${s}`;
 };
 
 export const pct = (v: number | null) => {
   if (v == null) return '—';
-  return `${v >= 0 ? '+' : ''}${v.toFixed(1).replace('.', ',')} %`;
+  return `${v > 0 ? '+' : v < 0 ? '\u2212' : ''}${Math.abs(v).toFixed(1).replace('.', ',')}${NB}%`;
 };
+
+/** Text s čísly: „80 %“ → „80&nbsp;%“, „100 mil. €“ → nezlomitelně (pro popisy z obsahu). */
+export const nbsp = (t: string) => t.replace(/(\d) (%|mil\.|mld\.|€|Kč)/g, `$1${NB}$2`).replace(/(mil\.|mld\.) €/g, `$1${NB}€`);
 
 export const shortName = (n: string) =>
   n.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)/, '').trim();
@@ -245,7 +251,8 @@ export function CompositionInfographic({
   if (showRest) segs.push({ label: 'Ostatní', weight: rest, color: REST_COLOR });
 
   const totalForScale = segs.reduce((a, s) => a + s.weight, 0) || 100;
-  const fmtW = (w: number) => `${w.toFixed(w < 10 ? 1 : 0).replace('.', ',')} %`;
+  // Jednotně 1 desetinné místo („45,2 %“ vedle „9,1 %“ – dřív se míchalo „45 %“ a „9,1 %“).
+  const fmtW = (w: number) => `${w.toFixed(1).replace('.', ',')}${NB}%`;
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
@@ -256,7 +263,7 @@ export function CompositionInfographic({
           </span>
           <div className="min-w-0">
             <h3 className="text-sm md:text-base font-semibold text-slate-900 leading-tight">{meta.title}</h3>
-            <p className="text-xs text-slate-500 mt-0.5 truncate">
+            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
               Podle {fundLabel ?? shortName(comp.name)}
               {comp.totalHoldings ? ` · ${comp.totalHoldings.toLocaleString('cs-CZ')} pozic ve fondu` : ''}
             </p>
@@ -281,7 +288,7 @@ export function CompositionInfographic({
         {segs.map((s, i) => (
           <li key={i} className="flex items-center gap-2 text-sm min-w-0">
             <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: s.color }} />
-            <span className="text-slate-700 truncate flex-1 min-w-0">{s.label}</span>
+            <span className="text-slate-700 line-clamp-2 flex-1 min-w-0">{s.label}</span>
             <span className="tabular-nums font-semibold text-slate-900 shrink-0">{fmtW(s.weight)}</span>
           </li>
         ))}
@@ -320,7 +327,7 @@ export function CategoryIndexes({ indexes, total, sloupce = 2, zCeho = 'fondů v
               ? `Sledují ho všechny fondy v žebříčku (${total.toLocaleString('cs-CZ')})`
               : `Sleduje ho ${count.toLocaleString('cs-CZ')} z ${total.toLocaleString('cs-CZ')} ${zCeho}`}
           </p>
-          <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">{info.what}</p>
+          <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">{nbsp(info.what)}</p>
         </div>
       ))}
     </div>
