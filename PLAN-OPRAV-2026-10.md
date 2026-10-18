@@ -320,3 +320,25 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
   starty, max. udržitelný výběr podle roku, pružná varianta, koruny). Každé číslo ověřeno nezávislým skriptem.
 - ⏳ Úklid eur_corp_bond (schválen majitelem 17. 10.) + všech 37 indexů: běží s nasazením faze4
   (`gh workflow run sync-indexes.yml -f full=true -f uklid=true`), dry-run prošel.
+
+## Stav 18. 10. 2026 (nasazení faze4 + úklid indexů)
+
+- ✅ **faze4 nasazena na produkci** (main = 3409753, fast-forward z 6c8315c) po úspěšném nočním scrapu
+  (etf-astro run 39099339189); tsc + build lokálně prošly.
+- ✅ **Úklid indexů** (sync-indexes run 39114549627, `full=true uklid=true`, success): smazáno **3 591 řádků**
+  ze všech 37 indexů (41–144 na index; sp500 144, eur_govt_bond_15_30y 67). Integrita OK, plné počty
+  (sp500 8 487, eur_govt_bond_15_30y 4 806 – EUR dluhopisy jsou nově denní). Tabulka 204 561 → 219 355 řádků.
+- ✅ **Ověření úklidu:** `eur_govt_bond_15_30y` k 2023-12-29 = 171,076431 = denní adjclose IBGL.AS z Yahoo
+  (shoda na 6 míst); řádek 2023-12-31 s hodnotou z konce ledna zmizel. Víkendové řádky 2 871 → 0,
+  řádky na 1. den v měsíci 9 373 → 6 661. Spike test (výkyv > 5 % tam a zpět): 2 010 → 216 bodů, z toho 211
+  v krizích (2000–02, 2008–09, 2011, 2020) a 5 mimo – vše skutečné tržní dny (27. 10. 1997, 12. 11. 2007 EEM,
+  18. 3. 2008, 8. 7. 2008 XLF, 9. 4. 2025 XLE). eur_corp_bond bez skoků.
+- ✅ **Produkce:** 12 klíčových stránek 200, `/api/backtest/fondy?q=VWCE` ok:true, stroj času vs. backtest
+  8/8 ✅ (rozdíl 0,12–0,33 %), backtest VWCE od 2010 (100 000 Kč) → 599 726 Kč, CAGR 11,27 % (kontrola smyslu
+  sedí), homepage číslo a žebříčky v kontrole bez hlášení, client_errors za 24 h: 0.
+- 🚨 **Nová kontrola hlásí 1 fond v nabídce: IE000WARATZ3** (HSBC Europe Screened Equity, EUR 2m) – roční výnosy
+  v Kč/USD 2024–2025 špatně (2025 USD: DB +14,4 % vs. přepočet +34,4 %). Příčina: `scraping_date` 15. 10. =
+  starý kód scraperu před opravou 1c75cf9 a od té doby se fond nestáhl znovu (log scrapu ISINy nevypisuje).
+  Oprava = znovu stáhnout fond (cílený scrape) + zjistit, proč ho noční běh vynechává. Kontrola ho chytá.
+- ⏳ Zvážit zrušení filtru `bezVadnychTicku` v engine (po úklidu zbytečný) a vrácení eur_corp_bond do
+  „konkrétního fondu“ v backtestu (data jsou po úklidu čistá).
