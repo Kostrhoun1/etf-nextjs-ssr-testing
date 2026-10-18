@@ -16,7 +16,8 @@ import { degiroOverall } from '@/components/design-preview/BrokerScore';
 import BrokerScoreGrid from '@/components/design-preview/BrokerScoreGrid';
 import BrokerFeeTable from '@/components/design-preview/BrokerFeeTable';
 import { getDataDate } from '@/lib/etf-data';
-import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
+// Ceníky brokerů: datum ověření z brokerData (CENIKY_OVERENY), ne obecná redakční kontrola (18. 10. 2026).
+import { cenikyOverenyIso as editorialCheckDateIso, cenikyOverenyStr as editorialCheckDateStr } from '@/data/brokerData';
 
 export const revalidate = 86400;
 
@@ -657,7 +658,7 @@ export default async function BrokerReviewPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: ceník DEGIRO, ČNB, zákon o daních z příjmů. Poplatky a podmínky jsme naposledy ručně ověřili <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: ceník DEGIRO, ČNB, zákon o daních z příjmů. Poplatky jsme naposledy ověřili u ceníku <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
               <p className="flex items-start gap-1.5"><ListChecks className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Hodnocení {degiroOverall}/100 je vážený průměr šesti kritérií podle naší jednotné metodiky.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční ani daňové doporučení. Investice nesou riziko ztráty.</p>
             </div>

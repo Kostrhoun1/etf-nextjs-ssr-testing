@@ -152,9 +152,15 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
     href: '/pruvodce',
   },
   {
+    q: 'Můžu o peníze přijít?',
+    a: <>Ano, hodnota akciových ETF kolísá. V krizích (2008, 2020) klesly i široké fondy na celý svět o desítky procent a návrat nad původní hodnotu trval měsíce až roky. ETF nezkrachuje jako jedna firma, ale krátkodobě v minusu být může – proto se investuje na roky a peníze na nečekané výdaje se drží zvlášť. Kolik času trvalo dostat se z minusu, ukazujeme na datech v článku <Link href="/jak-dlouho-v-minusu" className="text-teal-700 underline underline-offset-2">Jak dlouho v minusu</Link>.</>,
+    plain: 'Ano, hodnota akciových ETF kolísá. V krizích (2008, 2020) klesly i široké fondy na celý svět o desítky procent a návrat nad původní hodnotu trval měsíce až roky. ETF nezkrachuje jako jedna firma, ale krátkodobě v minusu být může – proto se investuje na roky a peníze na nečekané výdaje se drží zvlášť.',
+    href: '/jak-dlouho-v-minusu',
+  },
+  {
     q: 'Kolik peněz stačí na začátek?',
-    a: <>Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek akcie, takže limituje spíš poplatek za nákup než cena fondu. Důležitější než výše první investice je začít a investovat pravidelně.</>,
-    plain: 'Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek akcie, takže limituje spíš poplatek za nákup než cena fondu. Důležitější než výše první investice je začít a investovat pravidelně.',
+    a: <>Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek podílu, takže limituje spíš poplatek za nákup než cena fondu. Při menších pravidelných částkách (např. 2 000 Kč měsíčně) dává smysl broker bez poplatku za nákup ETF – srovnání najdete níže.</>,
+    plain: 'Začít jde i s pár tisíci korunami. Někteří brokeři umožňují koupit i zlomek podílu, takže limituje spíš poplatek za nákup než cena fondu. Při menších pravidelných částkách (např. 2 000 Kč měsíčně) dává smysl broker bez poplatku za nákup ETF.',
     href: '/kde-koupit',
   },
   {
@@ -171,7 +177,7 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
   },
 ];
 
-const FAQ_ODKAZ: Record<string, string> = { '/pruvodce': 'Číst víc v průvodci', '/kde-koupit': 'Srovnání brokerů', '/srovnani': 'Otevřít srovnávač' };
+const FAQ_ODKAZ: Record<string, string> = { '/pruvodce': 'Číst víc v průvodci', '/kde-koupit': 'Srovnání brokerů', '/srovnani': 'Otevřít srovnávač', '/jak-dlouho-v-minusu': 'Data o propadech' };
 
 export default async function DesignPreviewV2() {
   // Homepage = SROVNÁVAČ ETF (majitel 18. 10. 2026). Koncept 9/10 (nezávislý expert): hero s hledáním
@@ -321,7 +327,7 @@ export default async function DesignPreviewV2() {
                     <p className="hidden md:block mt-2 flex-1 text-sm text-slate-600 leading-relaxed">{meta?.why}</p>
                     <dl className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-xs text-slate-500">
                       <div><dt>Poplatek</dt><dd className="mt-0.5 text-base font-semibold text-slate-900 tabular-nums">{ter(etf.ter_numeric)}</dd></div>
-                      <div><dt>Ø ročně 5 let</dt><dd className={`mt-0.5 text-base font-semibold tabular-nums ${r5 == null ? 'text-slate-500' : r5 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(r5)}</dd></div>
+                      <div><dt>Ø ročně 5 let v Kč</dt><dd className={`mt-0.5 text-base font-semibold tabular-nums ${r5 == null ? 'text-slate-500' : r5 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(r5)}</dd></div>
                       <div><dt>Velikost</dt><dd className="mt-0.5 text-base font-semibold text-slate-900 tabular-nums">{money(etf.fund_size_numeric, etf.fund_currency)}</dd></div>
                     </dl>
                     {dv && (
@@ -426,7 +432,10 @@ export default async function DesignPreviewV2() {
               </li>
             ))}
           </ul>
-          <Link href="/kde-koupit#metodika" className="mt-2 inline-flex items-center gap-1 min-h-11 text-sm font-medium text-teal-700 hover:text-teal-800">Jak skóre počítáme <ArrowRight className="w-4 h-4" /></Link>
+          <div className="mt-2 flex flex-wrap gap-x-6">
+            <Link href="/kde-koupit" className="sm:hidden inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">Další 2 (Fio, Portu) a srovnání <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/kde-koupit#metodika" className="inline-flex items-center gap-1 min-h-11 text-sm font-medium text-teal-700 hover:text-teal-800">Jak skóre počítáme <ArrowRight className="w-4 h-4" /></Link>
+          </div>
         </section>
 
         {/* S6 ČASTÉ OTÁZKY */}

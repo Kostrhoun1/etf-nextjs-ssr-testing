@@ -104,7 +104,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
                   <span className={`order-2 md:order-none text-right text-base font-semibold tabular-nums ${barva}`}>
                     {hlavni}
                     {p.id === 'ter' && r.stejnyTer > 0 && (
-                      <Link href={r.trh.href} className="block text-xs font-normal text-slate-500 hover:text-teal-800 hover:underline">a {r.stejnyTer} {r.stejnyTer === 1 ? 'další' : 'další'} za stejný TER</Link>
+                      <span className="block text-xs font-normal text-slate-500">a {r.stejnyTer} {r.stejnyTer === 1 ? 'další fond' : r.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'} za {terF(f?.ter ?? null)}</span>
                     )}
                   </span>
                   <span className="hidden md:block text-right text-sm tabular-nums text-slate-600">{vedlejsi}</span>

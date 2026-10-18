@@ -6,6 +6,9 @@ import { Broker, ComparisonRow } from '../types/broker/index';
  *  Portu Sazebník (od 1. 9. 2026). Denní kontrola (scripts/check-fund-data.mjs) varuje po 90 dnech –
  *  XTB vydává sazebník zhruba každý měsíc. Po novém ověření datum aktualizuj. */
 export const CENIKY_OVERENY = '2026-10-18';
+/** „18. října 2026“ – pro texty „ceník ověřen …“ na stránkách brokerů (jediný zdroj data, ne editorial-check). */
+export const cenikyOverenyStr = new Date(`${CENIKY_OVERENY}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+export const cenikyOverenyIso = CENIKY_OVERENY;
 
 export const brokers: Broker[] = [
   {

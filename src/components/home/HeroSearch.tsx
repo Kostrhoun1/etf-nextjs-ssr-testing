@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Loader2, ArrowRight, ListOrdered } from 'lucide-react';
 import EmitentLogo from '@/components/home/EmitentLogo';
+import { jeDotazZacatecnika } from '@/lib/hledaniCz';
 
 /* Živý našeptávač ETF v hero sekci na homepage – při psaní názvu, ISIN nebo
    tickeru rovnou nabízí fondy; klik/Enter otevře detail, „Zobrazit vše" pošle
@@ -77,8 +78,10 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
     const term = query.trim();
     if (!term) return;
     setOpen(false);
+    // „jaké etf koupit“ apod. (i Enter dřív, než přijde nabídka) → průvodce, ne prázdný srovnávač.
+    if (results.length === 0 && jeDotazZacatecnika(term)) { router.push('/vyber-etf'); return; }
     router.push(`/srovnani?q=${encodeURIComponent(term)}`);
-  }, [query, router]);
+  }, [query, router, results.length]);
 
   const goToEtf = useCallback((isin: string) => {
     setOpen(false);
@@ -140,7 +143,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
       )}
 
       <p className="sr-only" role="status" aria-live="polite">
-        {open && !loading && query.trim().length >= 2 ? `${results.length} fondů${kategorie.length ? ` a ${kategorie.length} žebříčků` : ''}` : ''}
+        {open && !loading && query.trim().length >= 2 ? `${results.length} ${results.length === 1 ? 'fond' : results.length >= 2 && results.length <= 4 ? 'fondy' : 'fondů'}${kategorie.length ? `, ${kategorie.length} ${kategorie.length === 1 ? 'tip' : 'tipy'}` : ''}` : ''}
       </p>
       {open && (results.length > 0 || (query.trim().length >= 2 && !loading)) && (
         <div className="absolute left-0 top-12 md:top-14 mt-1.5 w-full min-w-[20rem] rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden z-50">

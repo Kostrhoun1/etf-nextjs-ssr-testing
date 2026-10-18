@@ -17,7 +17,8 @@ import {
 } from '@/components/design-preview/KdeKoupitUI';
 import { brokers } from '@/data/brokerData';
 import { getDataDate } from '@/lib/etf-data';
-import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
+// Ceníky brokerů: datum ověření z brokerData (CENIKY_OVERENY), ne obecná redakční kontrola (18. 10. 2026).
+import { cenikyOverenyIso as editorialCheckDateIso, cenikyOverenyStr as editorialCheckDateStr } from '@/data/brokerData';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -355,7 +356,7 @@ export default async function KdeKoupitPreview() {
                 klasické brokery (XTB, DEGIRO, Fio). Pokud chcete mít starost z krku, dává Portu smysl.
               </p>
             </div>
-            <p className="text-xs text-slate-400 mt-3">Zdroj dat: veřejné ceníky brokerů, ČNB. Poplatky a ochranu prostředků jsme naposledy ručně ověřili <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
+            <p className="text-xs text-slate-400 mt-3">Zdroj dat: veřejné ceníky brokerů, ČNB. Poplatky za nákup ETF a konverzi měn jsme naposledy ověřili u ceníků brokerů <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
           </div>
         </section>
 
@@ -526,7 +527,7 @@ export default async function KdeKoupitPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: veřejné ceníky brokerů, ČNB. Poplatky, ochranu prostředků a zdanění dividend jsme naposledy ručně ověřili <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: veřejné ceníky brokerů, ČNB. Poplatky za nákup ETF a konverzi měn jsme naposledy ověřili u ceníků brokerů <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Nekomerční vzdělávací web – bez provizí a reklam. Investice do ETF nesou riziko ztráty.</p>
             </div>
           </div>

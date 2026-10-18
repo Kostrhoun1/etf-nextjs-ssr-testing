@@ -14,7 +14,8 @@ import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruCl
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { brokers } from '@/data/brokerData';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
-import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
+// Ceníky brokerů: datum ověření z brokerData (CENIKY_OVERENY), ne obecná redakční kontrola (18. 10. 2026).
+import { cenikyOverenyIso as editorialCheckDateIso, cenikyOverenyStr as editorialCheckDateStr } from '@/data/brokerData';
 
 export const revalidate = 86400;
 
@@ -309,8 +310,8 @@ export default async function SrovnaniBrokeruPage() {
             </span>
           </div>
           <p className="mt-3 text-xs text-slate-400">
-            Zdroj dat: veřejné ceníky brokerů, ČNB. Poplatky, ochranu prostředků a zdanění
-            dividend jsme naposledy ručně ověřili{' '}
+            Zdroj dat: veřejné ceníky brokerů, ČNB. Poplatky za nákup ETF a konverzi měn
+            jsme naposledy ověřili u ceníků{' '}
             <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>. Ceníky
             kontrolujeme jednou měsíčně, brokeři je ale mohou změnit kdykoli – před
             založením účtu si podmínky ověřte i na webu brokera.
