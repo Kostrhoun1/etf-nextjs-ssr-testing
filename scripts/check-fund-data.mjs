@@ -34,7 +34,7 @@ const MIN_CERSTVE_3D = 0.70;
 const MAX_FALESNE_CERSTVE = 20;   // po opravě 51199ba má být 0; pár kusů = fondy, které justETF dočasně nevrátil     // pod 70 % aktualizovaných za 3 dny = scraper přestal běžet
                                  // (tohle se projeví hned druhý den, stáří 30 dní až po měsíci)
 
-const CYKLUS = /(short duration|short maturity|short[- ]term|ultrashort|ultra short)/i;
+const CYKLUS = /(short duration|short maturity|short[- ]term|ultra[- ]?short)/i;
 
 // Zlatá sada: ISINy, které v žebříčku MUSÍ být (vlajkové fondy), a názvy, které tam být NESMÍ.
 const ZLATA_SADA = [
@@ -122,7 +122,7 @@ const main = async () => {
   }
   const zaseklé = fondy.filter((x) => dni(x) > 90 && isinList.has(x.isin));
   if (zaseklé.length) varovani.push({ co: `${zaseklé.length} fondů je v nabídce, ale scraper je přes 90 dní neaktualizoval`, ukazka: ukazka(zaseklé, (x) => `${x.isin} ${String(x.name).slice(0, 34)} (data z ${String(x.scraping_date || x.updated_at).slice(0, 10)})`) });
-  const paka = fondy.filter((x) => x.is_leveraged && CYKLUS.test(x.name || ''));
+  const paka = fondy.filter((x) => x.is_leveraged && CYKLUS.test(x.name || '') && !/(\d(\.\d+)?x\b|leverag|inverse|daily short)/i.test(x.name || '')); // VIX „Short-Term Futures 2.25x“ je páka opravdu
   if (paka.length) varovani.push({ co: `${paka.length} fondů s krátkou durací označených jako pákové (skryté ve srovnávači)`, ukazka: ukazka(paka) });
   const extrem = fondy.filter((x) => !x.is_leveraged && x.return_1y != null && Math.abs(Number(x.return_1y)) > 150);
   if (extrem.length) varovani.push({ co: `${extrem.length} NEpákových fondů s ročním výnosem přes ±150 % – ověřit, jestli je číslo skutečné`, ukazka: ukazka(extrem, (x) => `${x.isin} ${String(x.name).slice(0, 34)} ${x.return_1y} %`) });
@@ -357,6 +357,18 @@ const main = async () => {
     }
   } catch (e) {
     varovani.push({ co: `Kontrolu čísla stroje času se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
+  // ── KURZY pro backtest/grafy (exchange_rates_historical, pg_cron fx-topup → denně 17:00 UTC) ──
+  // Do 18. 10. 2026 se plnily jen v pondělí ráno → poslední týden se přepočítával až 10 dní starým kurzem.
+  try {
+    const fx = await fetch(`${URL_DB.replace('etf_funds', 'exchange_rates_historical')}?select=date&order=date.desc&limit=1`,
+      { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+    const posledni = fx?.[0]?.date;
+    const stari = posledni ? (Date.now() - new Date(posledni)) / 864e5 : Infinity;
+    if (stari > 4.5) poplach.push({ co: `Kurzy měn (exchange_rates_historical) jsou staré – poslední ${posledni ?? 'žádný'}; backtest a grafy v Kč počítají se zastaralým kurzem`, ukazka: [] });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu stáří kurzů se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
   // ── BACKTEST: vklady sedí (18. 10. 2026: počáteční vklad 0 Kč API tiše nahradilo 10 000 Kč) ──
