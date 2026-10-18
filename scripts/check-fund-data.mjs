@@ -50,7 +50,7 @@ const ZLATA_SADA = [
 ];
 
 async function nactiFondy() {
-  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category';
+  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name';
   let all = [];
   for (let off = 0; ; off += 1000) {
     const r = await fetch(`${URL_DB}?select=${cols}&order=isin&limit=1000&offset=${off}`,
@@ -93,6 +93,13 @@ const main = async () => {
   const terNula = fondy.filter((x) => Number(x.ter_numeric) === 0 && ['Akcie', 'Dluhopisy'].includes(x.category));
   if (terNula.length) varovani.push({ co: `${terNula.length} akciových/dluhopisových fondů má TER 0 % (chyba u zdroje, web ukazuje „—“)`, ukazka: ukazka(terNula) });
   if (ter.length) poplach.push({ co: `${ter.length} fondů s nemožným TER (< 0 nebo > 5 %)`, ukazka: ukazka(ter, (x) => `${x.isin} TER ${x.ter_numeric}`) });
+  // Největší pozice: tabulka Top 10 na justETF nemá záhlaví a scraper do 18. 10. 2026 zahazoval 1. řádek
+  // (NVIDIA chyběla u S&P 500 i světa; všech 2 138 akciových fondů mělo přesně 9 pozic). Symptom: čerstvě
+  // stažené akciové fondy mají 9. pozici, ale ne 10. – u plných fondů má top 10 vždy 10 řádků.
+  const sPozicemi = fondy.filter((x) => x.category === 'Akcie' && dni(x) <= 1 && String(x.holding_9_name || '').trim());
+  const devet = sPozicemi.filter((x) => !String(x.holding_10_name || '').trim());
+  if (sPozicemi.length >= 100 && devet.length / sPozicemi.length > 0.5)
+    poplach.push({ co: `${devet.length} z ${sPozicemi.length} čerstvých akciových fondů má jen 9 největších pozic – scraper zase zahazuje 1. řádek (největší pozici)`, ukazka: ukazka(devet, (x) => `${x.isin} 1. pozice: ${x.holding_1_name}`) });
 
   // ── VAROVÁNÍ ──
   const bezNazvu = fondy.filter((x) => !x.name || !String(x.name).trim());
