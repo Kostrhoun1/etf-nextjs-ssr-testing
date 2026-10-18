@@ -19,7 +19,7 @@
  * SPUŠTĚNÍ:  SUPABASE_KEY=… node scripts/check-fund-data.mjs
  */
 
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readdirSync, readFileSync, statSync } from 'node:fs';
 
 const KEY = process.env.SUPABASE_KEY;
 const WEB_URL = process.env.WEB_URL || 'https://etfpruvodce.cz'; // pro test proti lokálnímu buildu
@@ -124,13 +124,14 @@ const main = async () => {
     const roky = [rokNyni - 2, rokNyni - 1].filter((y) => y >= 2022 && y <= 2025); // sloupce return_2021–2025
     // VŠECHNY fondy, ne vzorek: 17. 10. 2026 nahrál zrušený běh se starým kódem 550 fondů se špatnými
     // ročními výnosy (VUAA, VWCE…) – vzorek 3 fondů by to chytil jen náhodou. Výpočet je levný.
-    // Jen fondy stažené za poslední 3 dny: fondy mimo nabídku (scraper je už nestahuje) mají stará čísla
-    // a hlásí je samostatné varování „už není v nabídce“ – tady by dělaly falešný poplach (17. 10.: 61 ks).
-    const cerstveOd = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10);
+    // VŠECHNY fondy včetně těch mimo nabídku: web je dál ukazuje. 17.–18. 10. 2026 tu bylo okno „jen
+    // stažené za 3 dny“ a fondy, které justETF vyřadil (scraper je už nestahuje), jím propadly se špatnými
+    // čísly ze starého kódu (63 fondů, 350 hodnot). Ty se 18. 10. vymazaly (raději „—“), takže každá
+    // vyplněná hodnota musí sedět.
     const sel = ['isin', 'name', ...roky.flatMap((y) => [`return_${y}`, `return_${y}_czk`, `return_${y}_usd`])].join(',');
     const data = [];
     for (let od = 0; ; od += 1000) {
-      const r = await fetch(`${URL_DB}?select=${sel}&return_${roky[roky.length - 1]}=not.is.null&scraping_date=gte.${cerstveOd}&order=isin`, {
+      const r = await fetch(`${URL_DB}?select=${sel}&return_${roky[roky.length - 1]}=not.is.null&order=isin`, {
         headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${od}-${od + 999}` },
       }).then((x) => x.json());
       if (!Array.isArray(r)) throw new Error('roční výnosy: neplatná odpověď DB');
@@ -156,6 +157,22 @@ const main = async () => {
     if (spatne.length) poplach.push({ co: `Roční výnosy v Kč/USD nesedí s nezávislým přepočtem z kurzů ČNB/ECB – ${spatneFondy.size} fondů z ${data.length}`, ukazka: spatne.slice(0, 6) });
   } catch (e) {
     varovani.push({ co: `Kontrolu ročních výnosů v Kč/USD se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
+  // ── KÓD: tichý fallback EUR → Kč/USD ──
+  // 18. 10. 2026: detail fondu ukazoval při chybějícím přepočtu výnos v EUR jako výnos v Kč
+  // (`return_<rok>_czk ?? return_<rok>`), stejně tak homepage/infografiky u 1R. Pravidlo č. 1: raději „—“.
+  try {
+    const souboryKodu = (d) => readdirSync(d).flatMap((n) => {
+      const p = `${d}/${n}`;
+      return statSync(p).isDirectory() ? souboryKodu(p) : /\.(tsx?|mjs)$/.test(n) ? [p] : [];
+    });
+    const FALLBACK = /return_[\w${}`]*_(czk|usd)\b[^;\n]*\?\?[^;\n]*return_(?![\w${}`]*_(czk|usd)\b)[\w${}`]+/;
+    const nalezy = souboryKodu('src').flatMap((p) => readFileSync(p, 'utf8').split('\n')
+      .map((l, i) => (FALLBACK.test(l) ? `${p}:${i + 1}` : null)).filter(Boolean));
+    if (nalezy.length) poplach.push({ co: `Kód ukazuje výnos v EUR místo Kč/USD, když přepočet chybí (${nalezy.length} míst)`, ukazka: nalezy.slice(0, 6) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu kódu na fallback EUR→Kč se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
   // ── ZLATÁ SADA ŽEBŘÍČKŮ (živý web) ──

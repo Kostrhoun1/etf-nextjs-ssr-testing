@@ -63,7 +63,7 @@ async function getHeatmapTiles(): Promise<InfografikyHeatTile[]> {
         const etfs = await getTopETFsForCategory({ ...cfg, limit: 1 });
         const top = etfs[0];
         if (!top) return null;
-        const value = top.return_1y_czk ?? top.return_1y ?? null;
+        const value = top.return_1y_czk ?? null; // nikdy EUR místo Kč
         return { label: c.label, value, href: `/nejlepsi-etf/${c.slug}` } as InfografikyHeatTile;
       } catch {
         return null;

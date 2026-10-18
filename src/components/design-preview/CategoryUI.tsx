@@ -115,8 +115,8 @@ export function TickerStrip({ etfs }: { etfs: ETFBasicInfo[] }) {
       <div className="max-w-6xl mx-auto px-4 py-2 flex items-center gap-5 overflow-x-auto text-sm">
         <span className="text-xs font-medium text-slate-400 shrink-0 uppercase tracking-wide">Výnos 1R (CZK)</span>
         {etfs.map((etf) => {
-          const v = etf.return_1y_czk ?? etf.return_1y ?? 0;
-          const pos = v >= 0;
+          const v = etf.return_1y_czk ?? null; // nikdy EUR místo Kč; bez hodnoty „—“
+          const pos = (v ?? 0) >= 0;
           return (
             <Link key={etf.isin} href={`/etf/${etf.isin}`} className="flex items-center gap-1.5 shrink-0 hover:opacity-80">
               <span className="font-medium text-slate-700">{etf.primary_ticker || shortName(etf.name).slice(0, 10)}</span>

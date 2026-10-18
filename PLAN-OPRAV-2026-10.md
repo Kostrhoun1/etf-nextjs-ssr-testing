@@ -342,3 +342,21 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
   Oprava = znovu stáhnout fond (cílený scrape) + zjistit, proč ho noční běh vynechává. Kontrola ho chytá.
 - ⏳ Zvážit zrušení filtru `bezVadnychTicku` v engine (po úklidu zbytečný) a vrácení eur_corp_bond do
   „konkrétního fondu“ v backtestu (data jsou po úklidu čistá).
+
+## 18. 10. 2026 odpoledne – fondy mimo nabídku se špatnými ročními výnosy
+
+- 🔍 **Příčina hlášení IE000WARATZ3:** justETF fond 16. 10. vyřadil ze sitemapy → `refresh_isin_list.py` ho
+  odebral z ISIN.csv → scraper ho už nestahuje. Poslední stažení (15. 10.) proběhlo ještě starým kódem.
+  Stejně dopadlo **78 fondů mimo nabídku** (scraping_date 4. 12. 2025 – 15. 10. 2026): 63 z nich mělo špatné
+  roční výnosy v Kč/USD (350 hodnot), denní kontrola je neviděla kvůli oknu „jen stažené za 3 dny“.
+- ✅ **Data:** roční výnosy 2021–2025 v Kč/USD u těchto 78 fondů přepočteny z EUR výnosu kurzy ČNB/ECB
+  k 31. 12. (stejná metoda jako opravený scraper; kurzy ověřeny: ČNB 31. 12. 2024 = 25,185). IE000WARATZ3
+  2025: Kč +14,38 %, USD +34,37 % (EUR +18,81 %; euro vůči USD +13 % → smysl sedí). Záloha starých hodnot
+  ve scratchpadu session; `updated_at` zachován (trigger vypnut jen v transakci).
+- ✅ **Kód:** odstraněn tichý fallback EUR → Kč/USD – detail fondu (kalendářní roky; postihoval i 10 aktuálních
+  fondů bez přepočtu, např. IE000YUAPTQ0), homepage startovní karty, infografiky, pruh tickerů, tržní přehled.
+- ✅ **Kontrola:** `check-fund-data.mjs` – roční výnosy kontroluje u VŠECH fondů (bez okna 3 dny) + nový
+  poplach na fallback EUR→Kč/USD ve zdrojovém kódu.
+- ⏳ Na produkci až s dalším deployem (kód). Do té doby: stránka /etf/IE000WARATZ3 je v ISR cache s EUR číslem
+  u Kč/USD (vygenerovala se v mezidobí, kdy byla pole prázdná); ostatní nově generované stránky mají správná čísla.
+- ⏳ Zjistit, proč 10 aktuálních fondů nemá přepočet ročních výnosů do Kč/USD (scraper, etf-astro).

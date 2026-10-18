@@ -597,7 +597,7 @@ export async function getMarketSnapshot(): Promise<MarketSnapshotItem[]> {
       try {
         const etfs = await getTopETFsForCategory({ ...cfg, limit: 1 });
         const top = etfs[0];
-        const v = top?.return_1y_czk ?? top?.return_1y ?? null;
+        const v = top?.return_1y_czk ?? null; // nikdy EUR místo Kč
         return { label: m.label, slug: m.slug, return_1y_czk: v != null ? Number(v) : null };
       } catch {
         return null;

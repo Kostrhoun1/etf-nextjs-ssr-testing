@@ -29,13 +29,13 @@ function heatClasses(v: number | null): string {
 /* ---------- Mini-náhled: výkonnostní pruh top 3 (pro kartu) ---------- */
 export function InfografikyMiniPerf({ etfs }: { etfs: ETFBasicInfo[] }) {
   const rows = etfs.slice(0, 3);
-  const max = Math.max(1, ...rows.map((e) => Math.abs(e.return_1y_czk ?? e.return_1y ?? 0)));
+  const max = Math.max(1, ...rows.map((e) => Math.abs(e.return_1y_czk ?? 0)));
   return (
     <ul className="space-y-2">
       {rows.map((etf) => {
-        const v = etf.return_1y_czk ?? etf.return_1y ?? 0;
-        const pos = v >= 0;
-        const w = Math.min((Math.abs(v) / max) * 100, 100);
+        const v = etf.return_1y_czk ?? null; // nikdy EUR místo Kč; bez hodnoty „—“
+        const pos = (v ?? 0) >= 0;
+        const w = Math.min((Math.abs(v ?? 0) / max) * 100, 100);
         return (
           <li key={etf.isin} className="flex items-center gap-2">
             <span className="flex-1 min-w-0 text-xs font-medium text-slate-700 truncate">
@@ -172,7 +172,7 @@ export function InfografikyRankPanel({
   etfs: ETFBasicInfo[];
 }) {
   const rows = etfs.slice(0, 5);
-  const max = Math.max(1, ...rows.map((e) => Math.abs(e.return_1y_czk ?? e.return_1y ?? 0)));
+  const max = Math.max(1, ...rows.map((e) => Math.abs(e.return_1y_czk ?? 0)));
   return (
     <div className="min-w-0 rounded-lg border border-slate-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
@@ -189,9 +189,9 @@ export function InfografikyRankPanel({
       </div>
       <ul className="divide-y divide-slate-50">
         {rows.map((etf, i) => {
-          const v = etf.return_1y_czk ?? etf.return_1y ?? 0;
-          const pos = v >= 0;
-          const w = Math.min((Math.abs(v) / max) * 100, 100);
+          const v = etf.return_1y_czk ?? null; // nikdy EUR místo Kč; bez hodnoty „—“
+          const pos = (v ?? 0) >= 0;
+          const w = Math.min((Math.abs(v ?? 0) / max) * 100, 100);
           return (
             <li key={etf.isin}>
               <Link

@@ -309,7 +309,7 @@ export default async function DesignPreviewV2() {
               {starters.map((etf) => {
                 const meta = STARTER_META[etf.isin];
                 const Icon = meta?.icon ?? Globe;
-                const r = isinReturns[etf.isin]?.return_1y_czk ?? etf.return_1y_czk ?? etf.return_1y;
+                const r = isinReturns[etf.isin]?.return_1y_czk ?? etf.return_1y_czk ?? null; // nikdy EUR místo Kč
                 return (
                   <Link key={etf.isin} href={`/etf/${etf.isin}`} className="group flex flex-col rounded-xl border border-slate-200 bg-white p-5 hover:border-teal-300 hover:shadow-sm transition-all">
                     <div className="flex items-center justify-between">

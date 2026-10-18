@@ -362,8 +362,9 @@ export default async function ETFDetailPreview(
       year: y,
       vals: {
         EUR: num(r[`return_${y}`] as number),
-        CZK: num(r[`return_${y}_czk`] as number) ?? num(r[`return_${y}`] as number),
-        USD: num(r[`return_${y}_usd`] as number) ?? num(r[`return_${y}`] as number),
+        // Bez přepočtu NEukazovat EUR jako Kč/USD (18. 10. 2026: tichý fallback u 10 fondů + fondů mimo nabídku).
+        CZK: num(r[`return_${y}_czk`] as number),
+        USD: num(r[`return_${y}_usd`] as number),
       },
     }))
     .filter((c) => c.vals.EUR != null || c.vals.CZK != null || c.vals.USD != null);
