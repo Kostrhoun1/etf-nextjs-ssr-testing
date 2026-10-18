@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select(`isin, name, fund_provider, fund_size_numeric, rating, ${TICKER_FIELDS.join(', ')}`)
+      .select(`isin, name, fund_provider, fund_size_numeric, rating, ter_numeric, return_1y_czk, category, ${TICKER_FIELDS.join(', ')}`)
       .or(orFilter)
       .order('fund_size_numeric', { ascending: false, nullsFirst: false })
       .limit(termy.length ? 60 : 30);
@@ -83,6 +83,9 @@ export async function GET(request: NextRequest) {
         primary_ticker: TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim()).find((t) => t && t !== '-') ?? null,
         fund_provider: row.fund_provider,
         fund_size_numeric: row.fund_size_numeric,
+        // TER 0 u akcií/dluhopisů je chyba zdroje → null (stejně jako srovnávač).
+        ter: row.ter_numeric == null || (Number(row.ter_numeric) === 0 && ['Akcie', 'Dluhopisy'].includes(String(row.category))) ? null : Number(row.ter_numeric),
+        r1_czk: row.return_1y_czk == null ? null : Number(row.return_1y_czk),
         rating: row.rating,
       }));
 

@@ -568,7 +568,7 @@ export default async function ETFDetailPreview(
           )}
           <EtfReturns byCur={returnsByCur} fundCurrency={etf.fund_currency} short={shortPeriods} vol={volForReturns} />
           {/* USP v jedné větě – jen u čerstvých dat (pravidlo č. 1: raději nic než staré číslo) */}
-          {!isStale && !isLev && czk.y5 != null && (
+          {!isStale && !isLev && !trhOdlehly && czk.y5 != null && (
             <p className="mt-3 rounded-lg border border-teal-200 bg-teal-50/60 px-4 py-3 text-sm text-slate-700 leading-relaxed">
               Kdybyste před 5 lety vložili do tohoto fondu <strong>100 000 Kč</strong>, dnes byste měli zhruba{' '}
               <strong className="tabular-nums">{(Math.round(100000 * (1 + czk.y5 / 100) / 100) * 100).toLocaleString('cs-CZ')} Kč</strong>{' '}

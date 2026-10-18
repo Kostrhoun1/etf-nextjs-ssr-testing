@@ -14,6 +14,8 @@ interface Result {
   name: string;
   primary_ticker?: string | null;
   fund_provider?: string | null;
+  ter?: number | null;
+  r1_czk?: number | null;
 }
 
 export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
@@ -110,7 +112,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
           type="search"
           role="combobox"
           aria-expanded={open}
-          aria-controls="hero-hledani-vysledky"
+          aria-controls={open && results.length > 0 ? 'hero-hledani-vysledky' : undefined}
           aria-activedescendant={open && active >= 0 && results[active] ? `hero-vysledek-${results[active].isin}` : undefined}
           aria-autocomplete="list"
           aria-label="Hledat ETF podle názvu, ISIN nebo tickeru"
@@ -172,6 +174,12 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
                         {r.fund_provider ? `${r.fund_provider} · ` : ''}{r.isin}
                       </span>
                     </span>
+                    {(r.ter != null || r.r1_czk != null) && (
+                      <span className="hidden sm:flex shrink-0 flex-col items-end text-xs tabular-nums">
+                        <span className="text-slate-600">TER {r.ter != null ? `${r.ter.toFixed(2).replace('.', ',')} %` : '—'}</span>
+                        {r.r1_czk != null && <span className={r.r1_czk >= 0 ? 'text-emerald-700' : 'text-red-700'}>{r.r1_czk > 0 ? '+' : r.r1_czk < 0 ? '−' : ''}{Math.abs(r.r1_czk).toFixed(1).replace('.', ',')} % <span className="text-slate-500">12 měs. Kč</span></span>}
+                      </span>
+                    )}
                   </button>
                 </li>
               ))}

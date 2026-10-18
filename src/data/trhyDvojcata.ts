@@ -9,7 +9,10 @@
  * Do seznamu patří jen fondy na ŠIROKÝ index trhu: bez měnového zajištění, ESG/Paris/Climate,
  * sektorů, faktorů, Min TE / optimalizovaných variant a francouzských PEA verzí. Acc i Dist třídy
  * stejného indexu ano (celkový výnos je stejný). Ověřeno dotazem nad DB 18. 10. 2026.
- * Denní kontrola (scripts/check-fund-data.mjs) hlídá čerstvost, odlehlé hodnoty a chybějící data.
+ * Denní kontrola (scripts/check-fund-data.mjs) hlídá čerstvost, odlehlé hodnoty, chybějící data
+ * a ÚPLNOST: velký fond (≥ 500 mil. €) na index trhu, který není v seznamu ani ve VYJIMKY = poplach.
+ * (18. 10. 2026 tu chyběly fondy SPDR „USD Unhedged“ – filtr na „hedged“ je vyřadil; SPY5 s TER
+ * 0,03 % a 19 mld € měl vyhrát S&P 500.)
  */
 
 export interface Trh {
@@ -26,14 +29,14 @@ export const TRHY: Trh[] = [
   {
     id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
     isins: ['IE00BK5BQT80', 'IE00B3RBWM25', 'IE00B6R52259', 'IE000716YHJ7', 'IE0000QLH0G6', 'IE00BYM11H29', 'IE00BJXFZ989',
-      'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65'],
+      'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65', 'IE00B44Z5B48'],
   },
   {
     id: 'world', label: 'MSCI World', index: 'vyspělé trhy', href: '/nejlepsi-etf/nejlepsi-msci-world-etf',
     isins: ['IE00B4L5Y983', 'IE00BJ0KDQ92', 'IE000BI8OT95', 'IE00B4X9L533', 'IE00BD4TXV59', 'IE00B60SX394', 'FR0010315770',
       'IE00B0M62Q58', 'LU1681043599', 'LU2572257124', 'DE000ETFL508', 'LU2263803533', 'LU0274208692', 'IE00BK1PV551',
       'IE000UQND7H4', 'IE000F9IDGB5', 'IE00B7KQ7B66', 'IE000CNSFAR2', 'LU0340285161', 'FR0014003IY1', 'IE000OHHIBC6',
-      'LU2655993207', 'IE000A0GH076', 'LU1681043672'],
+      'LU2655993207', 'IE000A0GH076', 'LU1681043672', 'IE00BFY0GT14', 'IE000P60WPS6'],
   },
   {
     id: 'sp500', label: 'S&P 500', index: 'USA', href: '/nejlepsi-etf/nejlepsi-sp500-etf',
@@ -41,7 +44,7 @@ export const TRHY: Trh[] = [
       'IE00BYML9W36', 'IE00B5KQNG97', 'IE000HY30YW6', 'LU0496786657', 'LU2009147757', 'LU0490618542', 'FR0011550177',
       'FR0011550185', 'LU0496786574', 'LU1681049018', 'LU1681048804', 'LU2993390504', 'IE000Z9SJA06', 'IE000D3BWBR2',
       'IE00BD4TXW66', 'IE00B7K93397', 'LU2997383372', 'IE000JZ473P7', 'LU2993390769', 'IE00B4JY5R22', 'FR0011550680',
-      'IE000FO05UG4', 'DE000ETFL631', 'LU2993390686'],
+      'IE000FO05UG4', 'DE000ETFL631', 'LU2993390686', 'IE00B6YX5C33', 'IE000XZSV718'],
   },
   {
     id: 'nasdaq', label: 'Nasdaq-100', index: 'USA, technologie', href: '/nejlepsi-etf/nejlepsi-nasdaq-etf',
@@ -64,6 +67,13 @@ export const TRHY: Trh[] = [
       'LU1126036976', 'LU2277591868'],
   },
 ];
+
+/** Fondy, které kontrola úplnosti najde, ale do trhu ZÁMĚRNĚ nepatří (s důvodem). */
+export const VYJIMKY: Record<string, string> = {
+  XS2427355958: 'WisdomTree S&P 500 – ETP s ISIN XS, ne UCITS fond',
+  IE00B3YLTY66: 'SPDR MSCI ACWI IMI (Investable Market) – jiný index (i malé firmy)',
+  IE000DD75KQ5: 'SPDR MSCI ACWI IMI (Investable Market) Dist – jiný index',
+};
 
 /** Fond s výnosem dál než tolik p. b. od mediánu svého trhu = podezřelý (18. 10. 2026: tři třídy
  *  UBS MSCI EM +30,7 % vs. trh +23,6 % – vadná poslední cena u justETF, ověřeno na burzovních cenách).

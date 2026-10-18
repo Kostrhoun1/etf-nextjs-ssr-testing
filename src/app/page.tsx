@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import HeroSearch from '@/components/home/HeroSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -170,7 +169,8 @@ export default async function DesignPreviewV2() {
   const pocet = totalCount.toLocaleString('cs-CZ');
   // Pravidlo č. 1: datum dat BEZ fallbacku na dnešek – když ho nejde načíst, čísla s datem se neukážou.
   const dataDate = posledniScrape && !Number.isNaN(new Date(posledniScrape).getTime()) ? new Date(posledniScrape) : null;
-  const datumText = dataDate ? dataDate.toLocaleDateString('cs-CZ', { timeZone: 'Europe/Prague' }) : null;
+  // Pevné mezery: datum se nesmí rozlomit na „18. / 10. 2026“.
+  const datumText = dataDate ? dataDate.toLocaleDateString('cs-CZ', { timeZone: 'Europe/Prague' }).replace(/ /g, '\u00a0') : null;
   const cerstvy = (e: ETFBasicInfo) => !!e.scraping_date && Date.now() - new Date(e.scraping_date).getTime() < CERSTVOST_DNI * 864e5;
   const nejstarsi = nejstarsiDatum(starters);
   const starsiText = nejstarsi && dataDate && dataDate.getTime() - nejstarsi.getTime() > 2 * 864e5
@@ -212,7 +212,7 @@ export default async function DesignPreviewV2() {
           </Link>
           <MobileMenu />
           <SiteNav />
-          <HeaderSearch />
+          {/* Hledání v hlavičce na homepage ne – hlavní akcí je hledání v hero (dvě pole = zmatek). */}
         </div>
       </header>
 
@@ -347,8 +347,8 @@ export default async function DesignPreviewV2() {
                   </span>
                   <span className="sm:hidden flex items-center justify-between gap-2 text-xs text-slate-500"><span>{p.risk} · za 12 měs.</span><span className="tabular-nums">{pct(p.return3y)} za 3 roky</span></span>
                   <span className="hidden sm:flex items-baseline gap-3 text-xs text-slate-500">
-                    <span><span className={`text-base font-bold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(p.return1y)}</span> za 12 měs.</span>
-                    <span className="tabular-nums">{pct(p.return3y)} za 3 roky</span>
+                    <span><span className={`text-base font-bold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(p.return1y)}</span> <span className="whitespace-nowrap">za 12 měs.</span></span>
+                    <span className="tabular-nums whitespace-nowrap">{pct(p.return3y)} za 3 roky</span>
                   </span>
                 </Link>
               </li>

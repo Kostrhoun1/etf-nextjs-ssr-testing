@@ -242,6 +242,20 @@ const main = async () => {
     }
     if (odlehle.length) poplach.push({ co: `${odlehle.length} fondů má výnos 12 m mimo svůj trh (> 1,5 p. b. od mediánu) – vadná data u zdroje? Ověřit na burzovních cenách`, ukazka: odlehle.slice(0, 8) });
     if (chybi.length) varovani.push({ co: `${chybi.length} fondů ze seznamu trhů chybí nebo nemá čerstvá data`, ukazka: chybi.slice(0, 6) });
+    // ÚPLNOST: velký fond na index trhu, který v seznamu chybí (a není ve VYJIMKY) = poplach.
+    const vyjimky = new Set([...(zdroj.match(/VYJIMKY[\s\S]*?\};/)?.[0] ?? '').matchAll(/([A-Z]{2}[A-Z0-9]{10}):/g)].map((m) => m[1]));
+    const vSeznamu = new Set(vse);
+    const TRH_RE = [['svet', /(FTSE All-World|MSCI ACWI|MSCI All Country World)/i], ['world', /MSCI World/i], ['sp500', /S&P 500/i],
+      ['nasdaq', /Nasdaq[- ]?100/i], ['evropa', /(STOXX Europe 600|MSCI Europe)/i], ['em', /MSCI (Emerging Markets|EM)\b/i]];
+    const UZKE = /(esg|sri|screened|climate|paris|\bpab\b|\bctb\b|islamic|shariah|ex[ -]|small|mid ?cap|\bmc\b|value|momentum|quality|dividend|min(imum)? vol|low vol|leaders|select|focus|transition|sustainab|equal|factor|enhanced|universal|socially|buffer|covered|income|daily|sector|growth|information tech|energy|health|financ|consumer|industr|utilit|real estate|communic|material|optimi|catholic|fossil|\bimi\b|investable market|top \d|filtered|capped|banks|insurance|oil|basic resources|food|automobile|chemical|travel|personal|telecom|media|construction|retail|technology|asia|latin|china|india|korea|taiwan|buyback|qvm|min te|action|pea|\b2x\b|\b3x\b|short|vix|future)/i;
+    const ZAJ = /(hedged|hdg|\bh(EUR|USD|GBP|CHF|JPY)\b|pfhdg)/i;
+    const kandidati = await fetch(`${URL_DB}?select=isin,name,fund_size_numeric,scraping_date&category=eq.Akcie&fund_size_numeric=gte.500&is_leveraged=not.is.true`, {
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
+    }).then((x) => x.json());
+    if (!Array.isArray(kandidati)) throw new Error('úplnost: neplatná odpověď DB');
+    const chybiVTrhu = kandidati.filter((x) => x.scraping_date && dni(x) <= 14 && !vSeznamu.has(x.isin) && !vyjimky.has(x.isin)
+      && TRH_RE.some(([, re]) => re.test(x.name || '')) && !UZKE.test(x.name || '') && (!ZAJ.test(x.name || '') || /unhedged/i.test(x.name || '')));
+    if (chybiVTrhu.length) poplach.push({ co: `${chybiVTrhu.length} velkých fondů na index trhu chybí v seznamu trhů na homepage (src/data/trhyDvojcata.ts) – vítěz může být špatně`, ukazka: ukazka(chybiVTrhu, (x) => `${x.isin} ${String(x.name).slice(0, 50)} (${Math.round(x.fund_size_numeric)} mil €)`) });
     const okT = (t) => t && String(t).trim() && String(t).trim() !== '-';
     const bezTickeru = r.filter((x) => !okT(x.primary_ticker) && !okT(x.exchange_1_ticker));
     if (bezTickeru.length) varovani.push({ co: `${bezTickeru.length} fondů v trzích na homepage nemá ticker (web ukáže jen název) – doplnit ve scraperu`, ukazka: ukazka(bezTickeru) });

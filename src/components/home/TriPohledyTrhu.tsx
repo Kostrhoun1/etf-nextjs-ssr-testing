@@ -28,7 +28,7 @@ function Fond({ f }: { f: FondTrhu | null }) {
   if (!f) return <span className="text-slate-500">—</span>;
   return (
     <Link href={`/etf/${f.isin}`} className="group/f min-w-0 min-h-6 flex md:flex-col items-baseline md:items-start gap-x-1.5 py-0.5 hover:text-teal-800">
-      <span className="truncate text-sm font-medium text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2">{f.nazev}</span>
+      <span className="md:truncate text-sm font-medium text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2">{f.nazev}</span>
       {f.ticker && <span className="shrink-0 text-xs text-slate-500">{f.ticker}</span>}
     </Link>
   );
@@ -132,15 +132,15 @@ export default function TriPohledyTrhu({ radky, dvojice }: {
           )}
           {p.id === 'r1' && maxRozpeti != null && mezitrhy != null && (
             <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-              Fondy na stejný trh se za 12 měsíců lišily nejvýš o <strong className="tabular-nums">{cz(maxRozpeti)} p. b.</strong>, mezi trhy byl rozdíl <strong className="tabular-nums">{cz(mezitrhy)} p. b.</strong> Rozhoduje tedy hlavně výběr trhu, pak poplatek. Minulý výnos se nemusí opakovat.
+              Mezi trhy byl za 12 měsíců rozdíl <strong className="tabular-nums">{cz(mezitrhy)} p. b.</strong>, mezi fondy na stejný trh nejvýš <strong className="tabular-nums">{cz(maxRozpeti)} p. b.</strong> Víc tedy rozhoduje výběr trhu než konkrétní fond. Rozdíly kolem 0,5 p. b. jsou v mezích přesnosti dat (fondy se oceňují v různé dny). Minulý výnos se nemusí opakovat.
             </p>
           )}
           {p.id === 'r1' && vyrazene.length > 0 && (
             // Pravidlo č. 1: vyřazení přiznat, ne tiše schovat (revize 18. 10. 2026).
             <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-              Vyřazeno pro podezřelá data ({vyrazene.length}): {vyrazene.map((v, i) => (
-                <span key={v.isin}>{i > 0 && ', '}<Link href={`/etf/${v.isin}`} className="underline underline-offset-2 hover:text-teal-800">{v.nazev}</Link> {pct(v.r1)}</span>
-              ))}. Výnos se od ostatních fondů na stejný trh liší o víc než 1,5 p. b. – nejčastěji kvůli opožděné ceně u zdroje dat. Ověřujeme.
+              Vyřazeno pro neověřený výnos ({vyrazene.length}): {vyrazene.map((v, i) => (
+                <span key={v.isin}>{i > 0 && ', '}<Link href={`/etf/${v.isin}`} className="underline underline-offset-2 hover:text-teal-800">{v.nazev}</Link></span>
+              ))}. Výnos se od ostatních fondů na stejný trh liší o víc než 1,5 p. b. – nejčastěji kvůli opožděné ceně u zdroje dat.
             </p>
           )}
         </div>
