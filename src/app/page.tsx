@@ -85,12 +85,22 @@ const CATEGORIES = [
    krátká věta „pro koho" jen na homepage, plné srovnání je v sekci Kde koupit. */
 const BROKER_PICK: { id: string; forWhom: string }[] = [
   { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.' },
-  { id: 'xtb', forWhom: 'Akcie i ETF bez poplatku, česká podpora 24/7.' },
-  { id: 'trading212', forWhom: 'Nulové poplatky a frakční ETF pro malé částky.' },
+  { id: 'xtb', forWhom: 'ETF bez provize do 100 000 € měsíčně, česká podpora v pracovní dny.' },
+  { id: 'trading212', forWhom: 'Bez provize, frakční ETF už od 1 €.' },
   { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.' },
   { id: 'degiro', forWhom: 'Levné nákupy ze seznamu ETF Selection pro buy-and-hold.' },
-  { id: 'fio', forWhom: 'Český broker, dividendy z ČR akcií jen 15 %.' },
+  { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.' },
 ];
+// Poplatek na kartě: ručně zkrácený a OVĚŘENÝ u ceníku (18. 10. 2026). Dřív ořez etfFee před první
+// čárkou → Portu „0,24-1 % ročně“ se ukazoval jako „0“.
+const POPLATEK_KARTA: Record<string, [string, string]> = {
+  portu: ['Vše v ceně', '0,24–1 % ročně'],
+  xtb: ['Nákup ETF', '0 € do 100 000 €/měs.'],
+  trading212: ['Nákup ETF', '0 € (směna měny 0,15 %)'],
+  ibkr: ['Xetra', '0,05 %, min. 1,25 € + burza'],
+  degiro: ['Nákup ETF', '1 € ETF Selection, jinak 3 €'],
+  fio: ['Nákup ETF', 'Xetra 3,95 € do 1 400 €'],
+};
 const HOME_BROKERS = BROKER_PICK
   .map((p) => ({ ...p, broker: brokers.find((b) => b.id === p.id) }))
   .filter((x) => x.broker)
@@ -500,7 +510,7 @@ export default async function DesignPreviewV2() {
                 </div>
                 <p className="mt-2 flex-1 text-sm text-slate-600 leading-relaxed">{forWhom}</p>
                 <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <span>ETF poplatek <span className="font-medium text-slate-700">{broker!.etfFee.split(',')[0].split('(')[0].trim()}</span></span>
+                  <span>{POPLATEK_KARTA[id]?.[0] ?? 'Poplatek'} <span className="font-medium text-slate-700">{POPLATEK_KARTA[id]?.[1] ?? '—'}</span></span>
                   <span className="inline-flex items-center gap-1 text-teal-700 group-hover:text-teal-800 font-medium">recenze <ArrowRight className="w-3.5 h-3.5" /></span>
                 </div>
               </Link>
