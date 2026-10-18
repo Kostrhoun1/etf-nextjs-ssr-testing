@@ -1,7 +1,8 @@
 import { RefreshCw } from 'lucide-react';
 
 /**
- * Štítek „Data k … · aktualizujeme každý den" – u žebříčků a přehledů fondů.
+ * Štítek „Data k …“ – u žebříčků a přehledů fondů. Jen datum (18. 10. 2026, majitel: dovětek
+ * „aktualizujeme každý den“ na mobilu rozbíjel řádkování a datum samo stačí).
  *
  * PROČ: čísla v žebříčcích (výnos za rok, velikost, TER) bez data nic neříkají a denní
  * aktualizace je naše silná stránka – má být vidět (požadavek majitele 17. 10. 2026).
@@ -28,10 +29,10 @@ export default function AktualnostDat({
     ? 'border-white/15 bg-white/5 text-slate-200'
     : 'border-teal-200 bg-teal-50/60 text-teal-900';
   return (
-    <p className={`inline-flex items-start gap-1.5 rounded-xl border px-3 py-1 text-xs leading-5 ${barvy} ${className}`}>
+    <p className={`inline-flex items-start gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs leading-5 ${barvy} ${className}`}>
       <RefreshCw className="w-3.5 h-3.5 mt-[3px] shrink-0" aria-hidden="true" />
       <span>
-        Data k <strong className="font-semibold">{fmt(datum)}</strong> · aktualizujeme každý den
+        <span className="whitespace-nowrap">Data k <strong className="font-semibold">{fmt(datum)}</strong></span>
         {starsi && <> · u některých fondů starší (nejstarší {fmt(starsi)})</>}
       </span>
     </p>

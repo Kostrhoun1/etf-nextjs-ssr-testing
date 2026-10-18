@@ -276,7 +276,7 @@ export default async function DesignPreviewV2() {
                     <span className="block text-sm text-slate-300">5 000 Kč měsíčně do akcií celého světa od roku 2010 by dnes bylo zhruba</span>
                     <span className="mt-0.5 block text-2xl font-bold tabular-nums text-white">
                       {(heroCislo.hodnota / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč
-                      <span className="ml-2 text-sm font-normal text-slate-300">vloženo {Math.round(heroCislo.vlozeno).toLocaleString('cs-CZ')} Kč</span>
+                      <span className="mt-1 block whitespace-nowrap text-sm sm:mt-0 sm:ml-2 sm:inline-block font-normal text-slate-300">vloženo {Math.round(heroCislo.vlozeno).toLocaleString('cs-CZ')} Kč</span>
                     </span>
                     <span className="mt-0.5 block text-xs text-slate-400">data k {new Date(strojSvet!.posledniDen).toLocaleDateString('cs-CZ', { timeZone: 'UTC' })}</span>
                     <span className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-teal-300 group-hover:text-teal-200">Spočítat s vlastní částkou <ArrowRight className="w-4 h-4" /></span>
@@ -332,13 +332,14 @@ export default async function DesignPreviewV2() {
 
         {/* 3. DATOVÉ PANELY */}
         <section className="pb-8">
-          <div className="mb-4 flex items-end justify-between gap-3">
+          {/* Mobil: odkaz pod textem (vedle něj mačkal nadpis do dvou řádků), od sm vpravo. */}
+          <div className="mb-4 sm:flex sm:items-end sm:justify-between sm:gap-3">
             <div>
               <h2 className="text-lg font-bold tracking-tight">Rychlý přehled fondů</h2>
               <p className="text-sm text-slate-500 mt-0.5">Největší, nejvýkonnější a nejlevnější ETF na jeden pohled.</p>
               <AktualnostDat datum={dataDate} className="mt-2" />
             </div>
-            <Link href="/srovnani" className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+            <Link href="/srovnani" className="mt-2 sm:mt-0 shrink-0 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
               Filtrovat všechny fondy <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
