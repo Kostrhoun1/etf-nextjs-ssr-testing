@@ -172,7 +172,7 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
         </p>
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span>Kurz ČNB k {datum(kurzy.datum)}: 1&nbsp;EUR = {kurzy.eurCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}&nbsp;Kč, 1&nbsp;USD = {kurzy.usdCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}&nbsp;Kč</span>
-          <InfoTip label="Jeden nákup evropského ETF na burze Xetra (v EUR) z korunového účtu: poplatek za nákup + směna CZK→EUR podle ceníku brokera. DEGIRO = fondy z výběru ETF Selection (ostatní 3 EUR). Nepočítáme roční poplatek DEGIRO za připojení k burze (až 2,5 EUR ročně), víkendovou přirážku Trading 212 ani poplatek XTB nad 100 000 EUR měsíčně.">Jak počítáme</InfoTip>
+          <InfoTip label="Jeden nákup evropského ETF na burze Xetra (v EUR) z korunového účtu: poplatek za nákup + směna CZK→EUR podle ceníku brokera. DEGIRO = fondy z výběru ETF Selection (ostatní 3 EUR). Nepočítáme roční poplatek DEGIRO za připojení k burze (až 2,5 EUR ročně) ani víkendovou přirážku Trading 212 (směna 0,5 %).">Jak počítáme</InfoTip>
         </p>
       </div>
     </div>

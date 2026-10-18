@@ -179,13 +179,11 @@ export default async function BrokerReview(
               <BrokerLogo id={b.id} size="lg" />
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">{b.name}: recenze</h1>
-                <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
+                <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                   <span>{b.robo ? 'Robo-poradce' : 'Broker'}</span>
-                  <span aria-hidden>·</span>
                   {b.rating != null
                     ? <span className="text-slate-200">Skóre <span className="font-semibold text-white tabular-nums">{b.rating}</span>/100 (<Link href="/kde-koupit#metodika" className="underline underline-offset-2 hover:text-white">metodika</Link>)</span>
                     : <span>bez skóre brokerů – jiná kategorie</span>}
-                  <span aria-hidden>·</span>
                   <span className="inline-flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> ceník ověřen {cenikyOverenyStr}</span>
                 </p>
               </div>
