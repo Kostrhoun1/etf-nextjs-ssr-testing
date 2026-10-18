@@ -5,21 +5,26 @@ import Link from 'next/link';
 import { ArrowRight, ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import InfoTip from '@/components/design-preview/InfoTip';
-import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import CompareButton from '@/components/design-preview/CompareButton';
-import { useCurrency, type Currency } from '@/components/design-preview/currencyStore';
+import { CURRENCIES, useCurrency, type Currency } from '@/components/design-preview/currencyStore';
 import { mer } from '@/lib/mereni';
 
 /* Kompletní tabulka fondů žebříčku /nejlepsi-etf/[slug] (revize 18. 10. 2026: stránka slibovala
    „30 fondů“, ale ukazovala jen 3× top 5). Data připraví server (page.tsx), tady jen řazení,
    filtr typu a stránkování – žádný dotaz z prohlížeče.
    Pravidlo č. 1: výnos v Kč/USD bez hodnoty = „—“, NIKDY EUR místo něj (proto ne pickReturn,
-   který na bázi EUR padá zpět). */
+   který na bázi EUR padá zpět).
+   Kolo 5: plovoucí záhlaví (sticky top-14 – předek nesmí mít overflow), mobil i ve výchozím
+   pohledu ukazuje výnos za 1 rok, ovládání v jedné řadě má jednu výšku a jeden aktivní styl. */
 
 export interface RadekFondu {
   isin: string;
   nazev: string;
   ticker: string | null;
+  /** Emitent (fund_provider) – monogram, když nemáme logo (Ossiam…). */
+  emitent: string | null;
+  /** Rok vzniku fondu (z inception_date), null = neznámý. */
+  rok: number | null;
   ter: number | null;
   velikost: number | null;
   /** Výnosy podle měny – bez fallbacku mezi měnami. */
@@ -39,19 +44,47 @@ const RAZENI: { id: Klic; label: string; mobil: string; kratce: string }[] = [
 ];
 const KROK = 20;
 
+const NB = ' ';
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
-const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${cz(Math.abs(v))} %`);
-const terF = (v: number | null) => (v == null ? '—' : `${cz(v, 2)} %`);
-const vel = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 1000)} mld €` : `${Math.round(v)} mil €`);
+const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${cz(Math.abs(v))}${NB}%`);
+const terF = (v: number | null) => (v == null ? '—' : `${cz(v, 2)}${NB}%`);
+const vel = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 1000)}${NB}mld.${NB}€` : `${Math.round(v)}${NB}mil.${NB}€`);
 const barva = (v: number | null) => (v == null ? 'text-slate-400' : v >= 0 ? 'text-emerald-700' : 'text-red-700');
+const n0 = (n: number) => n.toLocaleString('cs-CZ');
 /** Skloňování „fond“ (1 fond, 2–4 fondy, 5+ fondů). */
 const fondu = (n: number) => (n === 1 ? 'fond' : n >= 2 && n <= 4 ? 'fondy' : 'fondů');
-/** Skloňování „třída“ (1 třída, 2–4 třídy, 5+ tříd). */
-const trid = (n: number) => (n === 1 ? 'měnově zajištěná třída' : n >= 2 && n <= 4 ? 'měnově zajištěné třídy' : 'měnově zajištěných tříd');
+/** „akumulační“ / „akumulačních“ podle počtu (1–4 vs. 5+). */
+const typSlovo = (typ: 'vse' | 'acc' | 'dist', n: number) =>
+  typ === 'vse' ? '' : `${typ === 'acc' ? 'akumulační' : 'distribuční'}${n >= 5 || n === 0 ? 'ch' : ''} `;
 const curText: Record<Currency, string> = { CZK: 'v Kč', EUR: 'v EUR', USD: 'v USD' };
 
+const TIP_ZAJISTENI = 'Měnově zajištěná třída je verze stejného fondu, která za poplatek tlumí výkyvy kurzu (např. dolaru vůči euru). Její výnos se proto liší od nezajištěné třídy – ve výchozím pohledu ji neukazujeme, aby se v jednom sloupci nemíchaly různé měny.';
+
+/** Přepínač – jedna výška (mobil 44 px, desktop 40 px) a jeden aktivní styl pro všechny přepínače v řadě. */
+function Prepinac<T extends string>({ label, moznosti, hodnota, onChange, mrizka }: {
+  label: string;
+  moznosti: readonly (readonly [T, string, string?])[];
+  hodnota: T;
+  onChange: (v: T) => void;
+  /** Roztáhnout na celou šířku (mobil: řazení ve 4 stejných sloupcích). */
+  mrizka?: boolean;
+}) {
+  return (
+    <div role="group" aria-label={label}
+      className={`${mrizka ? 'grid w-full sm:inline-flex sm:w-auto' : 'inline-flex'} h-11 sm:h-10 gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5`}
+      style={mrizka ? { gridTemplateColumns: `repeat(${moznosti.length}, minmax(0, 1fr))` } : undefined}>
+      {moznosti.map(([id, l, m]) => (
+        <button key={id} type="button" aria-pressed={hodnota === id} onClick={() => onChange(id)}
+          className={`h-full rounded-md px-2 sm:px-3 text-[13px] sm:text-sm font-medium leading-tight tabular-nums transition-colors ${hodnota === id ? 'bg-teal-700 text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+          {m ? <><span className="sm:hidden">{m}</span><span className="hidden sm:inline">{l}</span></> : l}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function TabulkaFondu({
-  radky, celkem, vychozi = 'size', datum, srovnavac, nadpisId,
+  radky, celkem, vychozi = 'size', datum, srovnavac, nadpisId, prah,
 }: {
   /** id nadpisu tabulky (aria-labelledby sekce) – nadpis je tady, protože počet závisí na filtrech. */
   nadpisId?: string;
@@ -62,8 +95,10 @@ export default function TabulkaFondu({
   /** „18. 10. 2026“ – k jakému dni platí výnosy (do popisků sloupců). */
   datum: string;
   srovnavac: { href: string; text: string };
+  /** Práh velikosti žebříčku v mil. € (do vysvětlivky u velkých kategorií). */
+  prah?: number;
 }) {
-  const [cur] = useCurrency();
+  const [cur, setCur] = useCurrency();
   const [klic, setKlic] = useState<Klic>(vychozi);
   const [vzestupne, setVzestupne] = useState(vychozi === 'ter');
   const [typ, setTyp] = useState<'vse' | 'acc' | 'dist'>('vse');
@@ -71,24 +106,25 @@ export default function TabulkaFondu({
   const [bezZajisteni, setBezZajisteni] = useState(true);
   const [pocet, setPocet] = useState(KROK);
 
-  const pocetZajistenych = radky.filter((r) => r.zajisteni).length;
-  const maZajistene = pocetZajistenych > 0;
   const maOba = radky.some((r) => r.typ === 'acc') && radky.some((r) => r.typ === 'dist');
 
-  const hodnota = (r: RadekFondu, k: Klic) =>
-    k === 'size' ? r.velikost : k === 'ter' ? (r.ter != null && r.ter > 0 ? r.ter : null) : k === 'r1' ? r1(r) : r3(r);
   const r1 = (r: RadekFondu) => r.r1[cur];
   const r3 = (r: RadekFondu) => r.r3[cur];
+  const hodnota = (r: RadekFondu, k: Klic) =>
+    k === 'size' ? r.velikost : k === 'ter' ? (r.ter != null && r.ter > 0 ? r.ter : null) : k === 'r1' ? r1(r) : r3(r);
 
   const vyber = useMemo(() => {
     const f = radky.filter((r) => (typ === 'vse' || r.typ === typ) && (!bezZajisteni || !r.zajisteni));
     // Bez hodnoty vždy na konec (nezávisle na směru) – „—“ nesmí vyhrát řazení.
+    // Při shodě TER akumulační třída, pak větší fond – stejné pravidlo jako karta „Nejnižší poplatek“ a homepage (src/lib/trhy.ts).
     return [...f].sort((a, b) => {
       const x = hodnota(a, klic), y = hodnota(b, klic);
       if (x == null && y == null) return (b.velikost ?? 0) - (a.velikost ?? 0);
       if (x == null) return 1;
       if (y == null) return -1;
-      return (vzestupne ? x - y : y - x) || (b.velikost ?? 0) - (a.velikost ?? 0);
+      return (vzestupne ? x - y : y - x)
+        || (klic === 'ter' ? Number(b.typ === 'acc') - Number(a.typ === 'acc') : 0)
+        || (b.velikost ?? 0) - (a.velikost ?? 0);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [radky, typ, bezZajisteni, klic, vzestupne, cur]);
@@ -100,16 +136,19 @@ export default function TabulkaFondu({
     mer('zalozka', { s: 'tabulka', c: k });
   };
 
-  // Nadpis = počet ZOBRAZENÝCH fondů („17 z 24 fondů“, ne „Všech 24“, když jsou zajištěné skryté).
+  // Nadpis = počet ZOBRAZENÝCH fondů a jednou větou proč ne všech (srozumitelněji než „35 z 58 fondů“ – Markéta, kolo 4).
   const castecne = celkem > radky.length;
-  const nadpis = vyber.length === radky.length
-    ? (castecne ? `${radky.length} největších z ${celkem.toLocaleString('cs-CZ')} fondů` : `${celkem.toLocaleString('cs-CZ')} ${fondu(celkem)}`)
-    : `${vyber.length.toLocaleString('cs-CZ')} z ${radky.length.toLocaleString('cs-CZ')} ${castecne ? 'největších fondů' : 'fondů'}`;
-  const skrytoZajistenych = bezZajisteni ? radky.filter((r) => r.zajisteni && (typ === 'vse' || r.typ === typ)).length : 0;
+  const zajisteneVTypu = radky.filter((r) => r.zajisteni && (typ === 'vse' || r.typ === typ)).length;
+  const skrytoZajistenych = bezZajisteni ? zajisteneVTypu : 0;
+  const nadpis = `${n0(vyber.length)} ${typSlovo(typ, vyber.length)}${fondu(vyber.length)}${skrytoZajistenych > 0 ? ' bez měnového zajištění' : ''}`;
 
   const zobrazene = vyber.slice(0, pocet);
   const zbyva = vyber.length - zobrazene.length;
-  const aktivni = RAZENI.find((r) => r.id === klic)!;
+
+  // Mobil: dvě čísla nad sebou – hlavní podle řazení a výnos za 1 rok (USP: výnos v Kč i ve výchozím pohledu).
+  const mobilVedlejsi: Klic = klic === 'r1' ? 'size' : 'r1';
+  const popisSloupce = (k: Klic) => (k === 'size' ? 'Velikost' : k === 'ter' ? 'TER' : k === 'r1' ? `1 rok ${curText[cur]}` : `3 roky ${curText[cur]}`);
+  const textHodnoty = (k: Klic, v: number | null) => (k === 'size' ? vel(v) : k === 'ter' ? terF(v) : pct(v));
 
   // Řadicí hlavička: tlačítko a vysvětlivka vedle sebe (InfoTip je tlačítko – nesmí být uvnitř jiného).
   const Hlavicka = ({ k, tip, children }: { k: Klic; tip?: string; children: React.ReactNode }) => (
@@ -123,91 +162,97 @@ export default function TabulkaFondu({
     </span>
   );
 
+  const zmenZajisteni = (skryt: boolean) => { setBezZajisteni(skryt); setPocet(KROK); };
+
   return (
     <div>
       <h2 id={nadpisId} className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">{nadpis}</h2>
-      {skrytoZajistenych > 0 ? (
-        <p className="mt-1 mb-3 text-sm text-slate-500">
-          Bez {skrytoZajistenych} {trid(skrytoZajistenych)} – jejich výnos závisí na jiné měně.{' '}
-          <button type="button" onClick={() => { setBezZajisteni(false); setPocet(KROK); }} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Zobrazit i je</button>
-        </p>
-      ) : <div className="mb-3" />}
-      {/* Ovládání: řazení (záložky), typ, měna */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div role="group" aria-label="Řazení fondů" className="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1 lg:inline-grid lg:min-w-[30rem]">
-          {RAZENI.map((r) => (
-            <button key={r.id} type="button" aria-pressed={klic === r.id} onClick={() => radit(r.id)}
-              className={`min-h-10 rounded-lg px-1.5 text-[13px] sm:text-sm font-semibold leading-tight transition-colors ${klic === r.id ? 'bg-white text-teal-800 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
-              <span className="sm:hidden">{r.mobil}</span><span className="hidden sm:inline">{r.label}</span>
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <p className="mt-1 mb-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
+        {castecne && (
+          <span>{n0(radky.length)} největších z {n0(celkem)} fondů{prah ? ` nad ${prah}${NB}mil.${NB}€` : ''}<span aria-hidden> ·</span></span>
+        )}
+        {zajisteneVTypu > 0 && (bezZajisteni ? (
+          <button type="button" onClick={() => zmenZajisteni(false)} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">
+            Zobrazit i {n0(zajisteneVTypu)} {zajisteneVTypu === 1 ? 'zajištěný' : zajisteneVTypu <= 4 ? 'zajištěné' : 'zajištěných'}
+          </button>
+        ) : (
+          <>
+            <span>včetně {n0(zajisteneVTypu)} měnově {zajisteneVTypu === 1 ? 'zajištěného' : 'zajištěných'} ·</span>
+            <button type="button" onClick={() => zmenZajisteni(true)} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Skrýt zajištěné</button>
+          </>
+        ))}
+        {zajisteneVTypu > 0 && <InfoTip label={TIP_ZAJISTENI}>{null}</InfoTip>}
+      </p>
+
+      {/* Ovládání: řazení, typ, měna – jedna výška, jeden aktivní styl */}
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <Prepinac label="Řazení fondů" mrizka hodnota={klic} onChange={(k) => radit(k)}
+          moznosti={RAZENI.map((r) => [r.id, r.label, r.mobil] as const)} />
+        <div className="flex flex-wrap items-center gap-2">
           {maOba && (
-            <div role="group" aria-label="Typ fondu" className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs">
-              {([['vse', 'Vše', 'Vše'], ['acc', 'Akumulační', 'Akum.'], ['dist', 'Distribuční', 'Dist.']] as const).map(([id, l, m]) => (
-                <button key={id} type="button" aria-pressed={typ === id} onClick={() => { setTyp(id); setPocet(KROK); }}
-                  className={`rounded-md px-2.5 py-2 sm:py-1 font-medium ${typ === id ? 'bg-slate-800 text-white' : 'text-slate-600 hover:text-slate-900'}`}>
-                  <span className="sm:hidden">{m}</span><span className="hidden sm:inline">{l}</span>
-                </button>
-              ))}
-            </div>
+            <Prepinac label="Typ fondu" hodnota={typ} onChange={(t) => { setTyp(t); setPocet(KROK); }}
+              moznosti={[['vse', 'Vše'], ['acc', 'Akumulační', 'Akum.'], ['dist', 'Distribuční', 'Dist.']] as const} />
           )}
-          <span className="sm:hidden"><CurrencyToggle size="sm" showLabel={false} /></span>
-          <span className="hidden sm:inline-flex"><CurrencyToggle size="sm" /></span>
-          {maZajistene && (
-            <span className="inline-flex items-center gap-1 text-xs text-slate-600">
-              <label className="inline-flex items-center gap-1.5 cursor-pointer select-none min-h-9">
-                <input type="checkbox" checked={bezZajisteni} onChange={(e) => { setBezZajisteni(e.target.checked); setPocet(KROK); }} className="h-4 w-4 accent-teal-700" />
-                Skrýt měnově zajištěné
-              </label>
-              <InfoTip label="Měnově zajištěná třída fondu tlumí kurz (např. USD/EUR), za poplatek. Výnos se proto liší od nezajištěné třídy stejného indexu.">{null}</InfoTip>
-            </span>
-          )}
+          <span className="inline-flex items-center gap-2">
+            <span className="hidden sm:inline text-xs font-medium text-slate-500">Výnosy v</span>
+            <Prepinac label="Měna výnosů" hodnota={cur} onChange={setCur} moznosti={CURRENCIES.map((c) => [c, c] as const)} />
+          </span>
         </div>
       </div>
 
       <div className="mt-3 rounded-2xl border border-slate-200 bg-white">
-        {/* Hlavička sloupců (desktop) */}
-        <div className="hidden md:grid md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6.5rem_6.5rem_6.5rem_6.5rem] gap-4 px-5 py-3 text-xs font-medium text-slate-500 border-b border-slate-100">
-          <span>#</span>
-          <span>Fond</span>
-          <span className="text-right"><Hlavicka k="ter" tip="TER = roční poplatek fondu, strhává se z jeho hodnoty. Swapové fondy mohou mít navíc swap poplatek – detail u fondu.">TER</Hlavicka></span>
-          <span className="text-right"><Hlavicka k="size">Velikost</Hlavicka></span>
-          <span className="text-right"><Hlavicka k="r1" tip={`Celkový výnos za posledních 12 měsíců ${curText[cur]}, k ${datum}. Minulý výnos nezaručuje budoucí.`}>1 rok</Hlavicka></span>
-          <span className="text-right"><Hlavicka k="r3" tip={`Celkový (ne roční) výnos za poslední 3 roky ${curText[cur]}, k ${datum}. Mladší fondy ho nemají („—“).`}>3 roky</Hlavicka></span>
-          <span className="sr-only">Porovnat</span>
+        {/* Plovoucí záhlaví sloupců: sticky pod hlavičkou webu (h-14). Předci tabulky nesmí mít overflow. */}
+        <div className="sticky top-14 z-20 rounded-t-2xl border-b border-slate-200 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+          {/* Desktop */}
+          <div className="hidden md:grid md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_7rem_6.5rem_6.5rem_6.5rem] gap-4 px-5 py-3 text-xs font-medium text-slate-500">
+            <span>#</span>
+            <span>Fond</span>
+            <span className="text-right"><Hlavicka k="ter" tip="TER = roční poplatek fondu, strhává se z jeho hodnoty. Swapové fondy mohou mít navíc swap poplatek – detail u fondu.">TER</Hlavicka></span>
+            <span className="text-right"><Hlavicka k="size">Velikost</Hlavicka></span>
+            <span className="text-right"><Hlavicka k="r1" tip={`Celkový výnos za posledních 12 měsíců ${curText[cur]}, k ${datum}. Minulý výnos nezaručuje budoucí.`}>1 rok</Hlavicka></span>
+            <span className="text-right"><Hlavicka k="r3" tip={`Celkový (ne roční) výnos za poslední 3 roky ${curText[cur]}, k ${datum}. Mladší fondy ho nemají („—“).`}>3 roky</Hlavicka></span>
+            <span className="sr-only">Porovnat</span>
+          </div>
+          {/* Mobil: co znamenají dvě čísla vpravo */}
+          <div className="md:hidden flex items-end justify-between gap-3 px-4 py-2 text-[11px] font-medium leading-tight text-slate-500">
+            <span>Fond</span>
+            <span className="text-right">
+              <span className="block text-slate-700">{popisSloupce(klic)}</span>
+              <span className="block">{popisSloupce(mobilVedlejsi)}</span>
+            </span>
+          </div>
         </div>
 
         <ol className="divide-y divide-slate-100">
           {zobrazene.map((r, i) => {
             const hlavni = hodnota(r, klic);
-            const hlavniText = klic === 'size' ? vel(hlavni) : klic === 'ter' ? terF(hlavni) : pct(hlavni);
-            const vedlejsi = klic === 'size' || klic === 'r1' || klic === 'r3' ? `TER ${terF(r.ter)}` : vel(r.velikost);
+            const vedl = hodnota(r, mobilVedlejsi);
             return (
-              <li key={r.isin} className="relative grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_6.5rem_6.5rem_6.5rem_6.5rem] gap-x-4 items-center px-4 md:px-5 py-2.5 hover:bg-slate-50/70">
+              <li key={r.isin} className="relative grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_7rem_6.5rem_6.5rem_6.5rem] gap-x-4 items-center px-4 md:px-5 py-2.5 hover:bg-slate-50/70">
                 <span className="hidden md:block text-xs tabular-nums text-slate-400">{i + 1}</span>
                 <Link href={`/etf/${r.isin}`} className="group min-w-0 flex items-center gap-2.5 min-h-11">
-                  <EmitentLogo nazev={r.nazev} size={28} />
+                  <EmitentLogo nazev={r.nazev} size={28} monogram={r.emitent} />
                   <span className="min-w-0 flex flex-col">
-                    <span className="text-[15px] md:text-sm font-medium leading-snug text-slate-900 group-hover:text-teal-800 group-hover:underline underline-offset-2 line-clamp-2 md:line-clamp-1">{r.nazev}</span>
+                    {/* Zkracuje se jen když se název opravdu nevejde (2 řádky), žádný pevný ořez. */}
+                    <span className="text-[15px] md:text-sm font-medium leading-snug text-slate-900 group-hover:text-teal-800 group-hover:underline underline-offset-2 line-clamp-2">{r.nazev}</span>
                     <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
                       {/* Bez tickeru celý ISIN (useknutý „IE…ZB19“ působil jako rozbitý export) */}
                       <span className={r.ticker ? 'font-medium text-slate-600' : 'text-slate-500'}>{r.ticker ?? r.isin}</span>
                       {r.typ && <span>· {r.typ === 'acc' ? 'akumulační' : 'distribuční'}</span>}
+                      {r.rok && <span>· od {r.rok}</span>}
                       {r.zajisteni && <span className="rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">zajištěno{r.zajisteni !== 'ano' ? ` ${r.zajisteni}` : ''}</span>}
                     </span>
                   </span>
                 </Link>
-                {/* Mobil: hlavní číslo podle řazení + vedlejší údaj */}
+                {/* Mobil: hlavní číslo podle řazení + výnos za 1 rok (při řazení podle 1 roku velikost) */}
                 <span className="md:hidden text-right">
-                  <span className={`block text-base font-semibold tabular-nums ${klic === 'r1' || klic === 'r3' ? barva(hlavni) : 'text-slate-900'}`}>{hlavniText}</span>
-                  <span className="block text-[11px] text-slate-500 whitespace-nowrap">{klic === 'r1' || klic === 'r3' ? aktivni.kratce : vedlejsi}</span>
+                  <span className={`block text-[15px] font-semibold tabular-nums whitespace-nowrap ${klic === 'r1' || klic === 'r3' ? barva(hlavni) : 'text-slate-900'}`}>{textHodnoty(klic, hlavni)}</span>
+                  <span className={`block text-xs tabular-nums whitespace-nowrap ${mobilVedlejsi === 'r1' ? barva(vedl) : 'text-slate-500'}`}>{textHodnoty(mobilVedlejsi, vedl)}</span>
                 </span>
-                <span className={`hidden md:block text-right text-sm tabular-nums ${klic === 'ter' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{terF(r.ter)}</span>
-                <span className={`hidden md:block text-right text-sm tabular-nums ${klic === 'size' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{vel(r.velikost)}</span>
-                <span className={`hidden md:block text-right text-sm tabular-nums ${barva(r1(r))} ${klic === 'r1' ? 'font-semibold' : ''}`}>{pct(r1(r))}</span>
-                <span className={`hidden md:block text-right text-sm tabular-nums ${barva(r3(r))} ${klic === 'r3' ? 'font-semibold' : ''}`}>{pct(r3(r))}</span>
+                <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${klic === 'ter' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{terF(r.ter)}</span>
+                <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${klic === 'size' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{vel(r.velikost)}</span>
+                <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${barva(r1(r))} ${klic === 'r1' ? 'font-semibold' : ''}`}>{pct(r1(r))}</span>
+                <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${barva(r3(r))} ${klic === 'r3' ? 'font-semibold' : ''}`}>{pct(r3(r))}</span>
                 <span className="hidden md:flex justify-end"><CompareButton isin={r.isin} label={r.ticker ?? r.isin} variant="row" /></span>
               </li>
             );
@@ -228,9 +273,6 @@ export default function TabulkaFondu({
           {srovnavac.text} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      {celkem > radky.length && (
-        <p className="text-xs text-slate-500">Zobrazujeme {radky.length} největších z {celkem.toLocaleString('cs-CZ')} fondů – ostatní najdete ve srovnávači.</p>
-      )}
     </div>
   );
 }

@@ -45,6 +45,8 @@ export interface ETFBasicInfo {
   fund_domicile: string | null;
   fund_currency: string | null;
   index_name: string | null;
+  /** Datum vzniku jako anglický text („8 April 2011“) – rok přes inceptionYear(). */
+  inception_date?: string | null;
 }
 
 export interface CategoryConfig {
@@ -98,6 +100,7 @@ const ETF_SELECT_FIELDS = `
   fund_domicile,
   fund_currency,
   index_name,
+  inception_date,
   scraping_date
 `;
 
@@ -1033,7 +1036,7 @@ function domLabelSrv(d: string | null): string | null {
 
 /** Rok vzniku z textového `inception_date` („8 April 2011"). Vrací null, když se
  *  datum nepodaří přečíst – radši prázdno než smyšlený rok. */
-function inceptionYear(v: string | null): number | null {
+export function inceptionYear(v: string | null | undefined): number | null {
   if (!v) return null;
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return null;
@@ -1267,7 +1270,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   'nejlepsi-akciove-etf': {
     slug: 'nejlepsi-akciove-etf',
     title: 'Nejlepší akciové ETF',
-    description: 'Top akciové ETF fondy podle výkonnosti',
+    // Řadí se podle velikosti, ne výkonnosti (kolo 5: úvod sliboval „podle výkonnosti“).
+    description: 'Akciové ETF fondy z celého světa – velikost, poplatky a výnosy v korunách',
     metaDescription: 'Nejlepší akciové ETF fondy - srovnání nejvýkonnějších akciových ETF s nízkými poplatky.',
     filters: {
       category: 'Akcie',

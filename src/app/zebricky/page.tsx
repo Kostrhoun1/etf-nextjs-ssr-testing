@@ -120,8 +120,9 @@ const GROUP_DEFS: { id: string; title: string; chip: string; icon: typeof Layers
 
 /* Formátování (− je skutečné minus). */
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
-const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${cz(Math.abs(v))} %`);
-const terF = (v: number | null | undefined) => (v == null ? '—' : `${cz(v, 2)} %`);
+const NB = '\u00a0';
+const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '\u2212' : ''}${cz(Math.abs(v))}${NB}%`);
+const terF = (v: number | null | undefined) => (v == null ? '—' : `${cz(v, 2)}${NB}%`);
 const fondu = (n: number) => (n === 1 ? 'fond' : n >= 2 && n <= 4 ? 'fondy' : 'fondů');
 const fmtDatum = (d: Date) => d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
 
@@ -201,7 +202,7 @@ export default async function ZebrickyPage() {
   const hlavicka = (
     <div className="hidden sm:grid sm:grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_6.5rem_1rem] gap-x-3 px-4 py-2 text-[11px] font-medium text-slate-500 border-b border-slate-100 bg-slate-50/60">
       <span>Žebříček</span>
-      <span className="text-right whitespace-nowrap"><InfoTip label="Kolik fondů žebříček ukazuje. Bez pákových produktů a fondů, jejichž data nebyla 14 dní aktualizována; většina žebříčků bere jen fondy nad 50 nebo 100 mil. € (práh je uvedený na stránce žebříčku).">Fondů</InfoTip></span>
+      <span className="text-right whitespace-nowrap"><InfoTip label="Kolik fondů do žebříčku patří: jen fondy nad práh velikosti (10, 50 nebo 100 mil. € – uvedený na stránce žebříčku), bez pákových produktů a fondů, jejichž data nebyla 14 dní aktualizována.">Fondů</InfoTip></span>
       <span className="text-right whitespace-nowrap"><InfoTip label="Nejnižší roční poplatek (TER) mezi fondy žebříčku.">TER od</InfoTip></span>
       <span className="text-right whitespace-nowrap"><InfoTip label={`Výnos největšího fondu žebříčku za posledních 12 měsíců v Kč, k ${datum}. Pod číslem jeho ticker.`}>Největší, 12 m</InfoTip></span>
       <span />
@@ -240,9 +241,14 @@ export default async function ZebrickyPage() {
             {totalCategories} žebříčků podle indexu, regionu i tématu – u každého počet fondů, nejnižší poplatek a výnos největšího fondu v korunách.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-600">
-            {totalCount > 0 && <span><strong className="font-semibold text-slate-900 tabular-nums">{totalCount.toLocaleString('cs-CZ')}</strong> fondů v databázi</span>}
+            {totalCount > 0 && <span><strong className="font-semibold text-slate-900 tabular-nums">{totalCount.toLocaleString('cs-CZ')}</strong> fondů ve srovnávači</span>}
             <AktualnostDat datum={dataDate} />
           </div>
+          {/* Proč „Akciové 1 780“, když srovnávač má 2 900+ akciových fondů (kolo 5): práh velikosti žebříčku.
+              Změřeno 18. 10. 2026: data 98,7 % fondů jsou z téhož dne – rozdíl NENÍ čerstvost, ale fondy pod 50 mil. €. */}
+          <p className="mt-2 max-w-2xl text-xs text-slate-500 leading-relaxed">
+            Žebříčky berou jen fondy nad {'10–100'}{NB}mil.{NB}€ (práh podle žebříčku) s daty mladšími 14{NB}dní – proto mají méně fondů než srovnávač.
+          </p>
         </section>
 
         {/* Rychlá navigace na skupiny (mobil: vodorovně posuvná) */}
