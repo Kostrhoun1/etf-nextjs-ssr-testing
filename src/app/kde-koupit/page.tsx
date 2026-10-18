@@ -227,7 +227,7 @@ export default async function KdeKoupitPreview() {
                   XTB <KkScoreBadge score={xtb.rating} size="sm" />
                 </h3>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Nákup akcií a ETF bez komise, frakční nákup, česká podpora 24/7 a licence ČNB.
+                  Nákup akcií a ETF bez komise do 100 000 EUR měsíčně, frakční nákup a česká podpora v pracovní dny.
                   Pro většinu českých investorů nejlepší poměr nákladů, nabídky a pohodlí. Jediné mínus –
                   z českých dividend sráží 35 %, což pasivního investora do akumulačních ETF prakticky netrápí.
                 </p>
