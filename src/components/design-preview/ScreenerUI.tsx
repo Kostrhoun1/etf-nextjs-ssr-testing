@@ -91,7 +91,7 @@ const SORT_VOLBY: { v: string; label: string }[] = [
   { v: 'name:asc', label: 'Název (A–Z)' },
 ];
 
-const selCls = 'min-h-[40px] w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none';
+const selCls = 'vyber h-11 md:h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none';
 
 /* Prezentační obal pole filtru (label + input/select). Definováno na úrovni
    modulu, aby si input při každém překreslení zachoval stabilní identitu a
@@ -143,14 +143,19 @@ function HeadTip({ k, label }: { k: string; label: string }) {
   );
 }
 
+/* Skupiny sloupců (majitel 18. 10. 2026: „špatně se v tom čte“): svislá linka mezi skupinami Fond | parametry |
+   výnosy | riziko a dividenda, výnosy jemně podbarvené (stejný tón jako jejich společný nadpis). */
+const SKUPINA = 'border-l border-slate-200';
+const VYNOSY = 'bg-teal-50/40';
+
 /* Řaditelná hlavička sloupce (+ vysvětlivka vedle). Stav řazení dostává propy, aby mohla zůstat
    mimo tělo komponenty (stabilní identita = žádný zbytečný remount hlavičky). */
-function SortH({ k, children, right, wide, rowSpan, tip, sortKey, sortDir, toggleSort }: {
-  k: SortKey; children: React.ReactNode; right?: boolean; wide?: boolean; rowSpan?: number; tip?: string;
+function SortH({ k, children, right, wide, rowSpan, tip, cls = '', sortKey, sortDir, toggleSort }: {
+  k: SortKey; children: React.ReactNode; right?: boolean; wide?: boolean; rowSpan?: number; tip?: string; cls?: string;
   sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
 }) {
   return (
-    <th rowSpan={rowSpan} aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`py-2 align-bottom font-medium whitespace-nowrap ${wide ? 'pl-3 pr-2 min-w-[17rem] w-[30%]' : 'px-2'} ${right ? 'text-right' : 'text-left'}`}>
+    <th rowSpan={rowSpan} aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`py-2 align-bottom font-medium whitespace-nowrap ${wide ? 'pl-3 pr-2 min-w-[17rem] w-[30%]' : 'px-2'} ${right ? 'text-right' : 'text-left'} ${cls}`}>
       <span className={`inline-flex items-center gap-0.5 ${right ? 'justify-end' : ''}`}>
         <button onClick={() => toggleSort(k)} aria-label={`Seřadit podle: ${typeof children === 'string' ? children : k}`} className={`inline-flex items-center gap-1 hover:text-teal-700 ${sortKey === k ? 'text-teal-700' : ''}`}>
           {children}
@@ -670,7 +675,7 @@ export default function ScreenerUI({
   );
   const razeniSelect = (id: string) => (
     <select id={id} aria-label="Řadit podle" value={`${sortKey}:${sortDir}`} onChange={(e) => nastavRazeni(e.target.value)}
-      className="min-h-[38px] max-w-[13rem] rounded-lg border border-slate-200 bg-white pl-2 pr-7 text-sm font-medium text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none">
+      className="vyber h-10 max-w-[13rem] rounded-lg border border-slate-200 bg-white pl-2 text-sm font-medium text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none">
       {!SORT_VOLBY.some((s) => s.v === `${sortKey}:${sortDir}`) && <option value={`${sortKey}:${sortDir}`}>{SORT_VOLBY.find((s) => s.v.startsWith(`${sortKey}:`))?.label ?? sortKey} ({sortDir === 'asc' ? 'vzestupně' : 'sestupně'})</option>}
       {SORT_VOLBY.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
     </select>
@@ -710,7 +715,7 @@ export default function ScreenerUI({
               value={q}
               onChange={(e) => { setQ(e.target.value); setShown(PAGE); }}
               placeholder="Hledat: VWCE, IE00B4L5Y983, sp500, zlato…"
-              className="w-full min-h-[44px] md:min-h-[40px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-[15px] md:text-sm text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+              className="w-full h-11 md:h-10 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-[15px] md:text-sm text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
             />
           </div>
           {/* Mobil: jedno tlačítko na celý panel (filtry + řazení) */}
@@ -722,7 +727,7 @@ export default function ScreenerUI({
         <div className="hidden md:block w-[15rem] shrink-0"><IndexPicker options={options} vybrane={indexSel} setVybrane={setIdx} pocty={pocty} vcZajist={vcZajist} setVcZajist={setVcZajist} /></div>
         <div className="hidden md:block w-[11.5rem] shrink-0">{regionSelect}</div>
         <div className="hidden md:block w-[12.5rem] shrink-0">{distSelect}</div>
-        <button type="button" onClick={() => setPanel(true)} className={`hidden md:inline-flex items-center gap-1.5 shrink-0 rounded-lg border px-3 min-h-[40px] text-sm font-medium hover:border-teal-400 hover:text-teal-700 ${vPanelu ? 'border-teal-500 text-teal-800 bg-teal-50/50' : 'border-slate-300 bg-white text-slate-700'}`}>
+        <button type="button" onClick={() => setPanel(true)} className={`hidden md:inline-flex items-center gap-1.5 shrink-0 rounded-lg border px-3 h-10 text-sm font-medium hover:border-teal-400 hover:text-teal-700 ${vPanelu ? 'border-teal-500 text-teal-800 bg-teal-50/50' : 'border-slate-300 bg-white text-slate-700'}`}>
           <SlidersHorizontal className="w-4 h-4" /> Filtry
           {vPanelu > 0 && <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-teal-700 text-white text-[11px] font-semibold">{vPanelu}</span>}
         </button>
@@ -777,26 +782,28 @@ export default function ScreenerUI({
       </div>
 
       {/* TABULKA – desktop */}
-      <div className="mt-2 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto">
-        <table className="w-full min-w-[60rem] text-sm">
-          <thead>
+      {/* Plovoucí hlavička (majitel 18. 10. 2026): sticky funguje jen bez overflow na předkovi → od lg (tabulka se vejde)
+          kontejner bez overflow-x-auto; md–lg (úzké okno) se dál posouvá do strany a hlavička neplave. */}
+      <div className="mt-2 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto lg:overflow-visible">
+        <table className="w-full min-w-[60rem] text-sm border-separate border-spacing-0">
+          <thead className="lg:sticky lg:top-14 z-20 shadow-[0_1px_0_0_theme(colors.slate.200)]">
             {/* Dvouřádková hlavička: měna výnosů jednou nad skupinou sloupců (explicitně, ale bez opakování). */}
             <tr className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide">
-              <SortH k="name" wide rowSpan={2} tip="typ" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Fond</SortH>
-              <SortH k="ter" right rowSpan={2} tip="ter" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>TER</SortH>
+              <SortH k="name" wide rowSpan={2} tip="typ" cls="rounded-tl-xl" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Fond</SortH>
+              <SortH k="ter" right rowSpan={2} tip="ter" cls={SKUPINA} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>TER</SortH>
               <SortH k="size" right rowSpan={2} tip="size" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Velikost</SortH>
-              <th colSpan={4} className="pt-2 px-2 text-center font-semibold normal-case tracking-normal text-xs text-slate-600">
+              <th colSpan={4} className="pt-2 px-2 text-center font-semibold normal-case tracking-normal text-xs text-teal-800 bg-teal-50 border-l border-slate-200">
                 <span className="block border-b border-slate-200 pb-1">Výnos v {cur === 'CZK' ? 'korunách' : cur === 'EUR' ? 'eurech' : 'dolarech'}</span>
               </th>
-              <SortH k="vol" right rowSpan={2} tip="vol" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Kolísavost</SortH>
+              <SortH k="vol" right rowSpan={2} tip="vol" cls={SKUPINA} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Kolísavost</SortH>
               <SortH k="div" right rowSpan={2} tip="div" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Div.</SortH>
-              <th rowSpan={2} className="py-2.5 px-2 font-medium text-center"><span className="sr-only">Porovnat</span></th>
+              <th rowSpan={2} className="py-2.5 px-2 font-medium text-center rounded-tr-xl"><span className="sr-only">Porovnat</span></th>
             </tr>
-            <tr className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide border-b border-slate-200">
-              <SortH k="ytd" right tip="ytd" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Letos</SortH>
-              <SortH k="r1" right tip="r1" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>1 rok</SortH>
-              <SortH k="r3" right tip="r3" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>3 roky</SortH>
-              <SortH k="r5" right tip="r5" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>5 let</SortH>
+            <tr className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide">
+              <SortH k="ytd" right tip="ytd" cls={`${SKUPINA} bg-teal-50 border-b border-slate-200`} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Letos</SortH>
+              <SortH k="r1" right tip="r1" cls="bg-teal-50 border-b border-slate-200" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>1 rok</SortH>
+              <SortH k="r3" right tip="r3" cls="bg-teal-50 border-b border-slate-200" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>3 roky</SortH>
+              <SortH k="r5" right tip="r5" cls="bg-teal-50 border-b border-slate-200" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>5 let</SortH>
             </tr>
           </thead>
           <tbody>
@@ -806,7 +813,7 @@ export default function ScreenerUI({
               const c = distChip(e._dist);
               const tk = platnyTicker(e.primary_ticker);
               return (
-                <tr key={e.isin} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70 transition-colors">
+                <tr key={e.isin} className="even:bg-slate-50/70 hover:bg-amber-50/50 transition-colors [&>td]:border-b [&>td]:border-slate-100 last:[&>td]:border-b-0">
                   <td className="py-2.5 pl-3 pr-2">
                     <div className="flex items-center gap-2.5">
                       <EmitentLogo nazev={e.name} size={28} monogram={e.fund_provider ?? e.name} />
@@ -824,13 +831,13 @@ export default function ScreenerUI({
                       </div>
                     </div>
                   </td>
-                  <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-medium text-slate-800">{ter(num(e.ter_numeric))}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-medium text-slate-800 ${SKUPINA}`}>{ter(num(e.ter_numeric))}</td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600">{money(num(e.fund_size_numeric))}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${barva(ytd)}`}>{pct(ytd)}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${barva(r1)}`}>{pct(r1)}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${barva(r3)}`}>{pct(r3)}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${barva(r5)}`}>{pct(r5)}</td>
-                  <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600">{pct1(vol)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${SKUPINA} ${barva(ytd)}`}>{pct(ytd)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${VYNOSY} ${barva(r1)}`}>{pct(r1)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r3)}`}>{pct(r3)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r5)}`}>{pct(r5)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600 ${SKUPINA}`}>{pct1(vol)}</td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600"><Dividenda e={e} /></td>
                   <td className="py-2.5 pl-1 pr-2.5 text-right">
                     <CompareButton isin={e.isin} label={tk ?? e.name.slice(0, 8)} variant="row" />
