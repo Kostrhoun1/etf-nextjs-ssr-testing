@@ -38,7 +38,7 @@ const WINDOWS: { from: string; to: string; label: string; year: number }[] = [
 export async function getEquityCurve(): Promise<EquityCurve | null> {
   try {
     const input: BacktestInput = {
-      portfolio: [{ isin: 'IE00BK5BQT80', name: 'FTSE All-World', weight: 1, ter: 0.0022, indexCode: 'ftse_all_world' }],
+      portfolio: [{ isin: 'IE00BK5BQT80', name: 'FTSE All-World', weight: 1, ter: 0.0014, indexCode: 'ftse_all_world' }],
       startDate: new Date('2000-01-01'), // engine ořízne na nejstarší data
       endDate: new Date(),
       initialAmount: 100000,

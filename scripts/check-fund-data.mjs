@@ -101,6 +101,16 @@ const main = async () => {
   if (sPozicemi.length >= 100 && devet.length / sPozicemi.length > 0.5)
     poplach.push({ co: `${devet.length} z ${sPozicemi.length} čerstvých akciových fondů má jen 9 největších pozic – scraper zase zahazuje 1. řádek (největší pozici)`, ukazka: ukazka(devet, (x) => `${x.isin} 1. pozice: ${x.holding_1_name}`) });
 
+  // Backtest ukazuje TER „proxy“ fondu z ručně vedeného manifestu (src/lib/backtest/indexes.ts). 18. 10. 2026
+  // tam bylo VWCE 0,22 % (skutečnost 0,14 %) a další 3 zastaralé hodnoty → porovnat s daty fondů.
+  try {
+    const manifest = readFileSync(new URL('../src/lib/backtest/indexes.ts', import.meta.url), 'utf8');
+    const proxy = [...manifest.matchAll(/isin: '([A-Z0-9]{12})', name: '([^']*)', ter: ([0-9.]+)/g)];
+    const podleIsin = new Map(fondy.map((x) => [x.isin, x]));
+    const zastarale = proxy.filter(([, isin, , t]) => { const f = podleIsin.get(isin); return f?.ter_numeric != null && Number(f.ter_numeric) > 0 && Math.abs(Number(f.ter_numeric) - Number(t) * 100) > 0.005; });
+    if (zastarale.length) varovani.push({ co: `${zastarale.length} fondů v backtestu má jiný TER než v datech fondu (src/lib/backtest/indexes.ts → proxyEtf.ter)`, ukazka: zastarale.map(([, isin, jm, t]) => `${isin} ${jm}: manifest ${(Number(t) * 100).toFixed(2)} %, data ${podleIsin.get(isin).ter_numeric} %`) });
+  } catch (e) { varovani.push({ co: `Kontrola TER backtestu selhala: ${e.message}`, ukazka: [] }); }
+
   // ── VAROVÁNÍ ──
   const bezNazvu = fondy.filter((x) => !x.name || !String(x.name).trim());
   if (bezNazvu.length) varovani.push({ co: `${bezNazvu.length} fondů BEZ NÁZVU – jsou vidět ve srovnávači i jako stránka „ETF fond"`, ukazka: ukazka(bezNazvu) });

@@ -265,6 +265,9 @@ function SectionHead({ title, desc }: { title: string; desc?: string }) {
   );
 }
 
+const PORADI_BURZ = [/xetra/i, /london/i, /amsterdam/i, /milan|italiana/i, /paris/i, /six|swiss/i, /gettex/i, /stuttgart/i];
+const poradiBurzy = (n: string) => { const i = PORADI_BURZ.findIndex((re) => re.test(n)); return i < 0 ? 99 : i; };
+
 export default async function ETFDetailPreview(
   { params }: { params: Promise<{ isin: string }> },
 ) {
@@ -402,7 +405,10 @@ export default async function ETFDetailPreview(
     name: (etf as unknown as Record<string, string>)[`exchange_${i + 1}_name`],
     ticker: (etf as unknown as Record<string, string>)[`exchange_${i + 1}_ticker`],
     currency: (etf as unknown as Record<string, string>)[`exchange_${i + 1}_currency`],
-  })).filter((e) => e.name && e.name.trim() !== '' && e.ticker && e.ticker.trim() !== '').slice(0, 6);
+  })).filter((e) => e.name && e.name.trim() !== '' && platnyTicker(e.ticker) && !/mexic/i.test(e.name))
+    // Všechny listingy (dřív jen prvních 6 → chyběla XETRA i CSPX na LSE, revize 18. 10. 2026), seřazené podle
+    // toho, kde Češi nakupují: XETRA (DEGIRO, XTB, T212), pak další evropské burzy. Mexiko pro Čechy irelevantní.
+    .sort((x, y) => poradiBurzy(x.name) - poradiBurzy(y.name));
 
   /* držené pozice (top, bez prázdných) */
   const holdings = Array.from({ length: 10 }, (_, i) => ({

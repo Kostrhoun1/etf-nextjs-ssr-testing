@@ -84,7 +84,7 @@ export const INDEXES: IndexDef[] = [
     proxyEtf: { isin: 'IE00BKM4GZ66', name: 'iShares Core MSCI EM', ter: 0.0018 } },
   { code: 'ftse_all_world', ticker: 'VT', currency: 'USD', name: 'Celý svět', group: 'region', since: '2008-06-26',
     dataIsNetOfFees: true, sourceTer: 0.0006, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00BK5BQT80', name: 'Vanguard FTSE All-World', ter: 0.0022 } },
+    proxyEtf: { isin: 'IE00BK5BQT80', name: 'Vanguard FTSE All-World', ter: 0.0014 } },
   // POZOR: VGTSX je podílový FOND, ne ETF — proto historie až od 1996 (ETF tehdy neexistovalo).
   // Dohledáno 15.7.2026 podle shody data startu (1996-04-29) a hodnoty (0,00 %). Nikde to nebylo zapsáno.
   { code: 'world_ex_us', ticker: 'VGTSX', currency: 'USD', name: 'Svět mimo USA (vyspělé i EM)', group: 'region', since: '1996-04-29',
@@ -181,14 +181,14 @@ export const INDEXES: IndexDef[] = [
     proxyEtf: { isin: 'IE00B4WXJJ64', name: 'iShares Core EUR Govt Bond', ter: 0.0007 } },
   { code: 'eur_corp_bond', ticker: 'IEAC.L', currency: 'EUR', name: 'EUR firemní dluhopisy', group: 'bond', since: '2009-03-06',
     dataIsNetOfFees: true, sourceIsin: 'IE00B3F81R35', sourceTer: 0.0009, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B3F81R35', name: 'iShares Core EUR Corp Bond', ter: 0.002 } },
+    proxyEtf: { isin: 'IE00B3F81R35', name: 'iShares Core EUR Corp Bond', ter: 0.0009 } },
 
   // Původ dohledán 24.7.2026: čistý total-return (adjclose) z Amsterdam listingů iShares € Govt Bond
   // koší. Plná denní historie od 2008 (17. 10. 2026; dřív měsíční kvůli range=max, viz sync-indexes.mjs zásada 8). Nahrazuje starou řadu
   // neznámého původu (3-7y byla navíc nejspíš špatná durace). Ověřená ann. vol (×√12): 1,5 / 3,0 / 11,2 %.
   { code: 'eur_govt_bond_1_3y', ticker: 'IBGS.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 1–3 roky', group: 'bond', since: '2008-01-31',
     dataIsNetOfFees: true, sourceIsin: 'IE00B14X4Q57', sourceTer: 0.0010, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B14X4Q57', name: 'iShares EUR Govt Bond 1-3yr', ter: 0.002 } },
+    proxyEtf: { isin: 'IE00B14X4Q57', name: 'iShares EUR Govt Bond 1-3yr', ter: 0.001 } },
   { code: 'eur_govt_bond_3_7y', ticker: 'IBGX.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 3–5 let', group: 'bond', since: '2008-01-31',
     dataIsNetOfFees: true, sourceIsin: 'IE00B1FZS681', inBacktest: true, inDashboard: true, managed: true, sourceTer: 0.0015,
     // 17. 10. 2026: data jsou fond iShares € Govt Bond 3-5yr (IBGX.AS, ověřeno: DB 31. 12. 2024 = 155,64 =
@@ -196,7 +196,7 @@ export const INDEXES: IndexDef[] = [
     proxyEtf: { isin: 'IE00B1FZS681', name: 'iShares EUR Govt Bond 3-5yr', ter: 0.0015 } },
   { code: 'eur_govt_bond_15_30y', ticker: 'IBGL.AS', currency: 'EUR', name: 'EUR vládní dluhopisy 15–30 let', group: 'bond', since: '2008-01-31',
     dataIsNetOfFees: true, sourceIsin: 'IE00B1FZS913', sourceTer: 0.0015, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B1FZS913', name: 'iShares EUR Govt Bond 15-30yr', ter: 0.002 } },
+    proxyEtf: { isin: 'IE00B1FZS913', name: 'iShares EUR Govt Bond 15-30yr', ter: 0.0015 } },
 
   // ─────────────── KOMODITY ───────────────
   { code: 'gold', ticker: 'GLD', currency: 'USD', name: 'Zlato', group: 'commodity', since: '2004-11-18',
