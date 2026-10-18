@@ -5,7 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { getComparisonETFData, type ComparisonETF , getDataDate } from '@/lib/etf-data';
 import {
-  TrendingUp, ArrowRight, ArrowUpRight, Trophy, Scale, Coins,
+  TrendingUp, ArrowRight, ArrowUpRight, Trophy, Coins,
   AlertTriangle, Check, Info, Database, User, Landmark, HelpCircle, Globe2, ChevronDown,
 } from 'lucide-react';
 import { ter, dist } from '@/components/design-preview/CategoryUI';

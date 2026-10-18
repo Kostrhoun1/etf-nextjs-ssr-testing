@@ -544,9 +544,9 @@ export default async function ETFDetailPreview(
                 </div>
                 <div className="mt-1.5 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-white/10 ring-1 ring-white/10">
                   {vynosyHero.map((t) => (
-                    <div key={t.label} className="bg-slate-900/80 px-3 py-2.5 md:px-4 md:py-3">
+                    <div key={t.label} className="bg-slate-900/80 px-2.5 py-2.5 sm:px-3 md:px-4 md:py-3">
                       <p className="text-[11px] md:text-xs text-slate-400">{t.label}</p>
-                      <p className={`text-lg md:text-2xl font-bold tabular-nums ${t.v == null ? 'text-slate-500' : t.v >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>{pct(t.v)}</p>
+                      <p className={`${t.v != null && Math.abs(t.v) >= 100 ? 'text-base' : 'text-lg'} sm:text-lg md:text-2xl font-bold tabular-nums whitespace-nowrap ${t.v == null ? 'text-slate-500' : t.v >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>{pct(t.v)}</p>
                     </div>
                   ))}
                 </div>
@@ -593,7 +593,7 @@ export default async function ETFDetailPreview(
           <div className="grid gap-4 lg:grid-cols-5">
             <div className="lg:col-span-3 min-w-0">
               {vyvoj ? (
-                <VyvojGraf body={vyvoj.body} popis={popisVyvoje} zdroj={zdrojVyvoje} konec={vyvoj.konec} mesicni={vyvoj.mesicni} />
+                <VyvojGraf body={vyvoj.body} popis={popisVyvoje} zdroj={zdrojVyvoje} konec={vyvoj.konec} mesicni={vyvoj.mesicni} datumDat={dataDate.toISOString().slice(0, 10)} />
               ) : calCols2.length > 0 ? (
                 <EtfCalendarReturns cols={calCols2} nadpis="Výnos po jednotlivých letech" />
               ) : (

@@ -40,6 +40,7 @@ export default function VyvojGraf({
   zdroj,
   konec,
   mesicni,
+  datumDat,
 }: {
   body: BodVyvoje[];
   /** Co graf ukazuje, např. „index S&P 500 (fond SPY)“. */
@@ -48,6 +49,8 @@ export default function VyvojGraf({
   zdroj: string;
   konec: string;
   mesicni: boolean;
+  /** Datum dat fondu (scraping_date) – když graf končí o víc než 3 dny dřív, řekneme proč. */
+  datumDat?: string;
 }) {
   const roku = (new Date(body[body.length - 1][0]).getTime() - new Date(body[0][0]).getTime()) / (365.25 * DEN);
   const nabidka = OBDOBI.filter((o) => o.roky === 0 || o.roky <= roku + 0.02);
@@ -191,6 +194,11 @@ export default function VyvojGraf({
       <p className="mt-2 text-xs text-slate-500 leading-relaxed">
         Vývoj podle: {popis} · v Kč · data k {datum(konec)}
       </p>
+      {datumDat && new Date(datumDat).getTime() - new Date(konec).getTime() > 3 * DEN && (
+        <p className="mt-1 text-xs text-amber-700 leading-relaxed">
+          Graf končí {datum(konec)} – novější kurz koruny zatím nemáme. Proto se může lišit od výnosů fondu k {datum(datumDat)}.
+        </p>
+      )}
     </div>
   );
 }
