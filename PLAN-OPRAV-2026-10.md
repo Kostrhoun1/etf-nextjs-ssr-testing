@@ -286,6 +286,7 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
 | Vracející se uživatelé | změřit před Vlnou 6 | růst po stroji času |
 | Chyby v datech (denní kontrola) | 12 + 78 + 236 + 13 + 316 + 106 | 0 nevysvětlených |
 | Chyby z prohlížečů (`client_errors`) | sbírá se od 17. 10. | bez opakujících se |
+| Chování na webu (`web_events`, bez cookies) | sbírá se od nasazení 19. 10. | `node scripts/chovani-report.mjs 7 /` týdně: dosah sekcí, kliky, hledání bez výsledku |
 
 ## Revize faze4 nezávislým agentem (17. 10. 2026) – opraveno před nasazením
 
@@ -360,3 +361,21 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
 - ⏳ Na produkci až s dalším deployem (kód). Do té doby: stránka /etf/IE000WARATZ3 je v ISR cache s EUR číslem
   u Kč/USD (vygenerovala se v mezidobí, kdy byla pole prázdná); ostatní nově generované stránky mají správná čísla.
 - ⏳ Zjistit, proč 10 aktuálních fondů nemá přepočet ročních výnosů do Kč/USD (scraper, etf-astro).
+
+## 18. 10. 2026 večer – nová homepage + měření chování (nasazení 19. 10. ráno)
+
+- ✅ **Homepage = srovnávač** (větev `homepage-srovnavac`, 5 kol revize: art director 7,4 → 8,4; testy
+  s uživateli 6–7): české hledání, „Nejlevnější / Největší / Nejvýkonnější ETF“ podle trhu (odlehlé výnosy
+  vyřazeny, vítěz ≥ 100 mil €), Pro začátek, modelová portfolia s výkonem, brokeři s logy a směnou měny, FAQ.
+  Všechna čísla ověřena u emitentů / Xetra + ČNB. Homepage nejmenuje zdroj dat (rozhodnutí majitele).
+- ✅ **Měření chování bez cookies:** `src/components/Mereni.tsx` → `POST /api/ev` → tabulka `web_events`
+  (zobrazení, zdroj – jen doména, zařízení, dosah sekcí `data-sekce`, kliky, hledání vč. počtu výsledků,
+  záložky, FAQ, scroll 25/50/75/100, aktivní čas). Žádné cookies ani identifikátory v prohlížeči (náhodné pv
+  jen v paměti stránky), IP/UA se neukládá, boti vyřazeni, ukládá jen host etfpruvodce.cz, retence 400 dní
+  (pg_cron `web-events-retence`). Report: `node scripts/chovani-report.mjs [dny] [cesta]`.
+- ⏳ Nasazení s ranním deployem 19. 10. (úloha `nasazeni-2026-10-19` ověří homepage i zápis událostí).
+- ⏳ Revize dalších klíčových stránek (art director ×2 + test začátečník/pokročilý): /srovnani, porovnání,
+  detail fondu, žebříčky, /backtest, /investicni-kalkulacka, /kde-koupit, /portfolio-strategie.
+- ❓ **GA4 a cookies:** GA4 ukládá cookies (_ga), s Google signals i reklamní; to je v rozporu s pravidlem
+  „bez nástrojů vyžadujících souhlas“. Rozhodne majitel (doporučení: Google signals vypnout, po 2–3 měsících
+  vlastního měření zvážit GA4 úplně vypnout).
