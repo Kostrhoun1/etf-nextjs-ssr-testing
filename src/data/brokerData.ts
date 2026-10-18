@@ -22,11 +22,13 @@ export const brokers: Broker[] = [
     protection: '100 000 EUR (DE), 20 000 EUR (investice)',
     ochrana: { hotovost: '100 000 EUR (pojištění vkladů, flatexDEGIRO Bank)', cennePapiry: '20 000 EUR (německý kompenzační systém)' },
     // ETF Selection: 0 EUR provize + 1 EUR manipulační poplatek; ostatní ETF 3 EUR celkem. Směna CZK/EUR zdarma.
-    // Připojení k burze: nejvýš 0,25 % hodnoty účtu, max. 2,5 EUR ročně za burzu (degiro.cz/poplatky, 18. 10. 2026) –
-    // výše závisí na hodnotě účtu, proto ho do výpočtu nákladů nezahrnujeme (jen v poznámce).
-    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 1 }], smena: { procento: 0, minUsd: 0 }, pozn: 'ETF Selection; ostatní ETF 3 EUR', smenaPozn: 'CZK/EUR zdarma' },
+    // Připojení k burze: 2,50 EUR ročně za každou zahraniční burzu, nejvýš 0,25 % hodnoty účtu; NEúčtuje se u ETF
+    // Selection a pražské burzy (Přehled poplatků degiro.cz/data/pdf/cs/Prehled_poplatku.pdf, str. 10, ověřeno
+    // 18. 10. 2026 – ZAMERNA-ROZHODNUTI.md). Roční náklad na /kde-koupit proto rozlišuje ETF Selection (bez poplatku
+    // za burzu) a ostatní ETF („+ až 2,5 EUR“ – přesná výše závisí na hodnotě účtu).
+    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 1 }], smena: { procento: 0, minUsd: 0 }, ostatniEtfEur: 3, burzaRocneMaxEur: 2.5, pozn: 'ETF Selection; ostatní ETF 3 EUR', smenaPozn: 'CZK/EUR zdarma' },
     etfFee: '1 EUR (ETF Selection), 3 EUR (ostatní ETF)',
-    managementFee: '0 EUR (připojení k burze až 2,5 EUR ročně za burzu)',
+    managementFee: '0 EUR (u ETF mimo ETF Selection připojení k burze až 2,5 EUR ročně)',
     fxFee: 'CZK/EUR zdarma, ostatní 0,25 %',
     fractional: false,
     czSupport: false, // ověřeno 18. 10. 2026 (degiro.cz/helpdesk/contact): podpora jen anglicky
@@ -148,7 +150,7 @@ export const brokers: Broker[] = [
     description: 'Zcela bezpoplatkový broker s moderní mobilní aplikací, frakčním investováním a AutoInvest funkcí.',
     rating: 87,
     web: 'https://www.trading212.com',
-    regulation: 'FCA (UK), CySEC (EU pro CZ klienty)',
+    regulation: 'CySEC (CY) pro CZ klienty, FCA (UK)',
     protection: '20 000 EUR (ICF, Kypr)',
     ochrana: { hotovost: 'Do 20 000 EUR – společný limit s cennými papíry', cennePapiry: '20 000 EUR (kyperský fond ICF)' },
     // 0 % provize; směna CZK→EUR 0,15 % (o víkendu 0,5 %).
@@ -186,13 +188,13 @@ export const brokers: Broker[] = [
     description: 'Americký broker kótovaný na Nasdaq; české klienty obsluhuje irská entita. Profesionální řešení pro zkušené investory.',
     rating: 85,
     web: 'https://www.interactivebrokers.ie',
-    regulation: 'CBI (IE pro CZ klienty), SEC (US)',
+    regulation: 'CBI (IE) pro CZ klienty, SEC (US)',
     protection: '90 % ztráty, max. 20 000 EUR (ICCL, IE); SIPC jen US entita', // interactivebrokers.ie/en/general/security-investor-protection.php, ověřeno 18. 10. 2026
     ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC jen US entita' },
     // Tiered: 0,05 % z objemu, min. 1,25 EUR + poplatky burzy; směna 0,002 %, min. 2 USD.
-    nakup: { pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0 }], plusBurza: true, smena: { procento: 0.002, minUsd: 2 }, pozn: '+ poplatky burzy (plán Tiered)', smenaPozn: 'stačí jednou za větší částku' },
+    nakup: { pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0 }], plusBurza: true, smena: { procento: 0.002, minUsd: 2 }, smenaNajednou: true, pozn: '+ poplatky burzy (plán Tiered)', smenaPozn: 'stačí jednou za větší částku' },
     etfFee: 'Xetra: 0,05 % (min. 1,25 EUR) + poplatky burzy (plán Tiered), v plánu Fixed min. 3 EUR',
-    managementFee: '0 EUR (zrušen od 2021)',
+    managementFee: '0 EUR',
     fxFee: '0,002 % (min. 2 USD za směnu)',
     fractional: true,
     czSupport: false,
@@ -345,3 +347,86 @@ export function ochranaHotovosti(b: Broker) {
   return spolecnyLimit(b) ? { v: r.v, pozn: 'společný limit pro hotovost i cenné papíry' } : r;
 }
 export const ochranaPapiru = (b: Broker) => rozdelOchranu(b.ochrana?.cennePapiry);
+
+/* ---------- Roční náklad (12 nákupů) – JEDNOTNĚ s texty u brokerů ----------
+   Revize kola 4: IBKR text říká „směnu stačí udělat jednou“, ale roční součet počítal směnu 12× → u vícměnového
+   účtu (smenaNajednou) se počítá JEDNA směna celé roční částky. DEGIRO: ETF Selection bez poplatku za burzu,
+   ostatní ETF 3 EUR za nákup + až 2,5 EUR ročně za burzu (ověřeno v Přehledu poplatků, viz ZAMERNA-ROZHODNUTI.md). */
+export interface NakladRocne {
+  /** Součet za rok; null = některou složku neznáme (Fio směna). */
+  celkemKc: number | null;
+  /** 12 × poplatek za nákup (spodní hranice, když celkem neznáme). */
+  provizeKc: number;
+  /** Směna se počítá jednou za rok (vícměnový účet). */
+  smenaJednou: boolean;
+  /** ETF mimo zvýhodněný výběr (DEGIRO): součet za rok bez poplatku za burzu + jeho strop. */
+  ostatni?: { celkemKc: number; burzaMaxKc: number };
+}
+export function nakladRocne(b: Broker, castkaKc: number, k: Kurzy): NakladRocne | null {
+  const c = b.nakup;
+  const n = nakladNakupu(b, castkaKc, k);
+  if (!c || !n) return null;
+  const provizeKc = 12 * n.provizeKc;
+  const smenaJednou = !!c.smenaNajednou && c.smena != null;
+  const smenaKc = c.smena == null ? null
+    : smenaJednou ? Math.max((c.smena.procento / 100) * castkaKc * 12, c.smena.minUsd * k.usdCzk)
+    : 12 * (n.smenaKc ?? 0);
+  const ostatni = c.ostatniEtfEur != null && smenaKc != null
+    ? { celkemKc: 12 * c.ostatniEtfEur * k.eurCzk + smenaKc, burzaMaxKc: (c.burzaRocneMaxEur ?? 0) * k.eurCzk }
+    : undefined;
+  return { celkemKc: smenaKc == null ? null : provizeKc + smenaKc, provizeKc, smenaJednou, ostatni };
+}
+
+/** Nejlevnější nákup podle částky (úseky „do X Kč broker A, nad X Kč broker B“) – pro hero /kde-koupit.
+ *  Kandidáti = brokeři se známým součtem; vítěz platí jen tehdy, když je levnější i než spodní hranice brokerů
+ *  s neznámou složkou (Fio směna, IBKR poplatky burzy). Jinak úsek bez vítěze (b = null). Krok 100 Kč. */
+export function nejlevnejsiPodleCastky(k: Kurzy, odKc = 100, doKc = 1_000_000, krok = 100): { b: Broker | null; odKc: number; doKc: number }[] {
+  const useky: { b: Broker | null; odKc: number; doKc: number }[] = [];
+  for (let a = odKc; a <= doKc; a += krok) {
+    let vitez: Broker | null = null;
+    let min = Infinity;
+    let spodniOstatnich = Infinity;
+    for (const b of brokeriPodleSkore) {
+      const n = nakladNakupu(b, a, k);
+      if (!n) continue;
+      if (n.celkemKc != null && !n.plusBurza) {
+        if (n.celkemKc < min) { min = n.celkemKc; vitez = b; }
+      } else {
+        spodniOstatnich = Math.min(spodniOstatnich, n.celkemKc ?? n.provizeKc);
+      }
+    }
+    if (min > spodniOstatnich) vitez = null;
+    const posl = useky[useky.length - 1];
+    if (posl && posl.b?.id === vitez?.id) posl.doKc = a;
+    else useky.push({ b: vitez, odKc: a, doKc: a });
+  }
+  return useky;
+}
+
+/** Regulace jednotně na všech stránkách (dřív „CBI (IE)“ v tabulce a „CBI (IE pro CZ klienty)“ v recenzi):
+ *  hlavní dohled pro české klienty + zbytek jako poznámka. */
+export function popisRegulace(b: Broker): { v: string; pozn?: string } {
+  const casti = b.regulation.split(', ');
+  const i = Math.max(0, casti.findIndex((c) => c.includes('pro CZ klienty')));
+  const proCz = casti[i].includes('pro CZ klienty');
+  const v = casti[i].replace(' pro CZ klienty', '');
+  const ostatni = casti.filter((_, j) => j !== i).join(', ');
+  const pozn = [proCz ? 'pro české klienty' : '', ostatni].filter(Boolean).join('; ');
+  return { v: nezlomit(v), pozn: pozn || undefined };
+}
+
+/** Vedení účtu jednotně: „zdarma“ (dřív „0 Kč“ u Fio a „0 EUR“ u ostatních) + podmínka jako poznámka. */
+export function popisVedeniUctu(b: Broker): { v: string; pozn?: string } {
+  const t = b.managementFee;
+  if (!/^0\s/.test(t)) return { v: nezlomit(t) };
+  const pozn = t.match(/\((.*)\)/)?.[1];
+  return { v: 'zdarma', pozn: pozn ? nezlomit(pozn) : undefined };
+}
+
+/** Daň z českých dividend jednotně: „35 %“ + poznámka „možnost vratky 20 %“; „—“ = neověřeno. */
+export function popisDaneDividend(b: Broker): { v: string; pozn?: string } {
+  const t = b.czDividends;
+  if (t === '—') return { v: '—', pozn: 'neověřeno' };
+  const [v, zbytek] = t.split(' (');
+  return { v: nezlomit(v), pozn: zbytek ? nezlomit(zbytek.replace(')', '')) : undefined };
+}

@@ -19,8 +19,6 @@ export interface BrokerContent {
   zalozeniZdroj: string;
   intro: string[];
   feesText: string[];
-  pros: string[];
-  cons: string[];
   faqs: BrokerFaq[];
 }
 
@@ -60,20 +58,6 @@ export const brokerContent: Record<string, BrokerContent> = {
     "feesText": [
       "Pro českého investora do ETF jsou reálné náklady u DEGIRO nízké, pokud se drží ETF Selection. Zde platíte 0 EUR provize plus 1 EUR manipulační poplatek za jeden nákup (kolem 24 Kč). U ostatních ETF mimo tento seznam zaplatíte 3 EUR za pokyn (včetně manipulačního poplatku). K tomu se přičítá roční poplatek za připojení na jednotlivé zahraniční burzy (nejvýš 0,25 % hodnoty účtu, max. 2,5 EUR ročně za každou burzu, kde v daném roce obchodujete; pražská burza je výjimkou).",
       "Klíčovou výhodou pro Čecha je bezplatná konverze CZK/EUR – vklady i výběry i samotný převod korun na eura DEGIRO nezpoplatňuje. U ostatních měnových konverzí (např. na USD při nákupu US-listed instrumentů) je poplatek 0,25 %, což je nízké. Pozor ale na daně z dividend: u českých akcií a dividendových titulů drží DEGIRO srážkovou daň 35 % místo standardních 15 %. Část (rozdíl oproti 15 %) lze za určitých podmínek řešit vratkou přes daňové přiznání, ale je to administrativa navíc. Nejjednodušší obranou je volit akumulační ETF, kde se dividendy reinvestují uvnitř fondu a tento problém prakticky odpadá."
-    ],
-    "pros": [
-      "ETF Selection: 200+ vybraných UCITS ETF za 0 EUR provize + pouze 1 EUR manipulační poplatek za nákup",
-      "Bezplatná směna CZK/EUR a vklady i výběry v korunách",
-      "Bankovní zázemí flatexDEGIRO Bank AG s evropskou regulací (BaFin, DNB/AFM) a segregací klientských prostředků",
-      "Široká nabídka přes 3000 ETF a přístup na 31 světových burz",
-      "Nulový minimální vklad a web i platforma v češtině (podpora jen anglicky)"
-    ],
-    "cons": [
-      "České dividendy zdaněny 35 % (místo 15 %) – rozdíl lze řešit jen komplikovanou vratkou přes daňové přiznání",
-      "Nepodporuje frakční investování – drahé ETF nelze koupit po zlomcích, což znevýhodňuje malé pravidelné částky",
-      "Žádný demo účet pro vyzkoušení platformy nanečisto",
-      "ETF mimo výběr ETF Selection stojí 3 EUR za pokyn a přibývá roční poplatek za připojení k burze (až 2,5 EUR za burzu)",
-      "Základní platforma WebTrader bez pokročilých analytických nástrojů, CFD a s omezeným short prodejem"
     ],
     "faqs": [
       {
@@ -138,21 +122,6 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Samotný nákup ETF je u XTB bez provize do souhrnného objemu 100 000 EUR měsíčně, nad tento limit se účtuje 0,2 %. Většina retailových investorů se tak fakticky pohybuje v režimu 0 Kč za obchod. Reálné náklady českého investora ale tvoří hlavně měna: XTB vede účet nejčastěji v EUR nebo CZK a při obchodování ETF denominovaného v jiné měně provádí konverzi se spreadem 0,5 % nad tržním kurzem. Kdo posílá koruny a kupuje ETF v eurech nebo dolarech, zaplatí tuto konverzi na každém nákupu i při případném prodeji. Vklad bankovním (SEPA) převodem je zdarma, platba kartou ale stojí 0,77 % (CZK) nebo 0,70 % (EUR) — proto se vždy vyplatí posílat peníze převodem, ne kartou. Minimální vklad není žádný a poplatek za neaktivitu se neúčtuje po dobu 12 měsíců.",
       "U zdanění dividend je situace dvojí. U ETF a akcií z USA lze díky vyplněnému formuláři W-8BEN dosáhnout snížené srážky 15 % místo 30 %. Naopak u dividend z českých akcií drží XTB jako zahraniční broker srážku 35 % (nesnížených 15 %), což je citelná nevýhoda pro dividendové investory do českých titulů. Pro typického investora do širokých akumulačních ETF (např. celosvětové indexy) je ale zdanění dividend uvnitř fondu řešeno na úrovni fondu a tento problém se ho prakticky netýká."
     ],
-    "pros": [
-      "Nákup akcií a ETF bez provize do objemu 100 000 EUR měsíčně (nad limit 0,2 %)",
-      "Česká organizační složka pod dohledem ČNB (licence polského KNF) a plná česká lokalizace",
-      "Česká zákaznická podpora telefonicky, chatem i e-mailem (Po–Pá 8–18)",
-      "Frakční ETF a investiční plány pro automatické pravidelné investování (DCA)",
-      "Žádný minimální vklad a bez poplatku za neaktivitu po dobu 12 měsíců",
-      "Reálné vlastnictví akcií a ETF (ne CFD) včetně nároku na dividendy"
-    ],
-    "cons": [
-      "Konverze měn se spreadem 0,5 % zatíží každý nákup i prodej ETF v cizí měně",
-      "Dividendy z českých akcií daněny sráženou sazbou 35 % místo 15 %",
-      "Hotovost na účtu chrání jen garanční systém (společný limit 20 100 EUR s cennými papíry), ne pojištění vkladů jako u bank",
-      "Nenabízí obchodování opcí ani futures kontraktů",
-      "Nad objem 100 000 EUR měsíčně se u nákupu ETF účtuje 0,2 %"
-    ],
     "faqs": [
       {
         "q": "Je nákup ETF u XTB opravdu zdarma?",
@@ -216,20 +185,6 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Ceník účinný od 1. 7. 2026 přešel u evropských trhů z procenta na pevné částky. Evropské ETF (typicky irské UCITS fondy, které Češi kupují nejčastěji) na burze XETRA stojí 3,95 EUR za pokyn do objemu 1 400 EUR, 4,95 EUR do 3 000 EUR a nad tuto hranici 0,15 % s minimem 6,95 EUR. Při nákupu za 5 000 Kč tak zaplatíte necelá 2 % vstupního nákladu, při nákupu za 35 000 Kč už jen kolem 0,3 %. Za české ETF na BCPP je to 0,29–0,35 % s minimem 40 Kč. Pro srovnání, u XTB nebo Trading 212 kupujete ETF bez poplatku za nákup. Fio proto dává smysl hlavně při větších, méně častých nákupech, ne při pravidelném měsíčním spoření drobných částek.",
       "Měnovou konverzi CZK/EUR nebo CZK/USD provádí Fio bez samostatného poplatku, náklad je ale v kurzu banky (rozdíl nákup/prodej) – u menších částek může být vyšší než 0,5 % přirážka některých konkurentů. Vedení účtu je bez měsíčního poplatku. Klíčová daňová výhoda: dividendy z českých akcií a fondů Fio zdaňuje standardní 15 % sazbou. U zahraničních (zejména amerických) ETF pozor na to, že bez platného potvrzení o daňovém domicilu může u dividend hrozit srážka 30–35 %; irské akumulační ETF dividendy nevyplácejí, takže se vás to netýká. KID dokumentaci a daňové podklady dostanete v češtině, což daňové přiznání citelně zjednodušuje."
     ],
-    "pros": [
-      "Ryze český broker pod dohledem ČNB se zázemím banky založené v roce 1993 (hotovost pojištěna do 100 000 EUR, cenné papíry do 20 000 EUR přes Garanční fond OCP)",
-      "Kompletní čeština včetně platformy, podpory a KID dokumentace",
-      "Standardní 15 % zdanění dividend z českých akcií a fondů bez komplikací",
-      "Směna měny bez samostatného poplatku (náklad je v kurzu banky)",
-      "Bez měsíčního poplatku za vedení účtu a bez minimálního vkladu (0 Kč)",
-      "Přímé propojení s běžným účtem u Fio banky a přístup na pražskou burzu (BCPP)"
-    ],
-    "cons": [
-      "Vysoký poplatek za nákup evropských ETF: pevných 3,95 EUR za pokyn na XETRA, u nákupu za 5 000 Kč tedy necelá 2 % vstupní náklad",
-      "Nepodporuje frakční (částečné) ETF, nelze investovat přesnou částku",
-      "Starší obchodní platforma a slabší analytické nástroje než u moderní konkurence",
-      "Nabídka přes 200 ETF je proti tisícům u DEGIRO či Trading 212 omezená a uživatelé hlásí občasné technické problémy platformy"
-    ],
     "faqs": [
       {
         "q": "Kolik reálně zaplatím za nákup evropského ETF u Fia?",
@@ -291,19 +246,6 @@ export const brokerContent: Record<string, BrokerContent> = {
     "feesText": [
       "Reálné náklady českého ETF investora u Trading 212 jsou velmi nízké. Za nákup i prodej akcií a ETF neplatíte žádnou provizi (0 %, bez limitu objemu), vklady i výběry jsou zdarma. Hlavním nákladem je měnová konverze: účet vedete typicky v EUR, takže při vkladu korun z české banky proběhne konverze CZK/EUR s přirážkou 0,15 % (o víkendu 0,5 %). Této konverzi se lze částečně vyhnout posíláním eur, případně vedením účtu přímo v EUR a nákupem ETF v původní měně.",
       "Z daňového hlediska je zásadní volba správného ETF. U akumulačních (accumulating) ETF s domicilem v Irsku se dividenda reinvestuje uvnitř fondu a řeší se pouze zdanění při prodeji (v ČR lze využít časový nebo hodnotový test na osvobození). U distribučních ETF Trading 212 dividendy nezdaňuje sám a nesráží žádný vlastní poplatek za výplatu, ale u amerických akcií bez vyplněného formuláře W-8BEN hrozí srážka 30 % místo 15 %. Proto českým investorům obvykle dává největší smysl irský akumulační ETF (např. na index S&P 500 nebo celý svět), kde odpadá řešení 15 vs. 35 % srážkové daně z dividend a náklady se blíží nule."
-    ],
-    "pros": [
-      "0 % poplatek za nákup i prodej akcií a ETF bez omezení objemu",
-      "Část podílu ETF už od 1 EUR",
-      "AutoInvest a Pies: automatické DCA spoření s rebalancováním zdarma",
-      "Bezplatné vklady i výběry, nízká měnová konverze 0,15 %",
-      "Ochrana hotovosti i investic kyperským fondem ICF (společný limit 20 000 EUR)"
-    ],
-    "cons": [
-      "Žádná česká ani telefonická podpora – komunikace pouze anglicky",
-      "Konverze CZK/EUR s přirážkou 0,15 % (o víkendu 0,5 %) při vkladu korun",
-      "Chybí pokročilé příkazy, analytika a české akcie na BCPP",
-      "Akcie jsou automaticky zapojeny do lending programu (nutno ručně vypnout)"
     ],
     "faqs": [
       {
@@ -368,20 +310,6 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Reálné náklady českého investora: evropské (UCITS) ETF stojí v cenovém plánu Tiered 0,05 % hodnoty s minimem 1,25 EUR plus poplatky burzy, v plánu Fixed minimálně 3 EUR. Americké ETF retailoví investoři z EU nekoupí (chybí jim dokument KID). U větších objemů je to velmi levné, ale u malých pravidelných nákupů (např. 100 EUR měsíčně) je minimum 1,25 EUR znát (1,25 %). Konverze měn stojí 0,002 %, ale nejméně 2 USD – u vkladu 5 000 Kč tedy kolem 0,9 %. Minimální vklad je 0 USD (zrušen v roce 2021) a IBKR neúčtuje poplatky za neaktivitu.",
       "Měnová konverze stojí 0,002 % objemu s minimem 2 USD za jednu směnu. Koruny nemusíte směňovat při každém nákupu: na účtu můžete držet hotovost ve více měnách, směnit jednou větší částku a z ní nakupovat postupně – minimum 2 USD pak zaplatíte jen jednou. U malých jednorázových směn minimum převáží (DEGIRO má směnu CZK/EUR zdarma). Dividendy z českých akcií IBKR drží na sběrném (omnibus) účtu, proto se z nich sráží 35 %; vratku lze žádat jen individuálně u finančního úřadu. U irských UCITS ETF se srážka z amerických dividend řeší uvnitř fondu a formulář W-8BEN se vás netýká – ten je pro přímo držené americké akcie. Přístup k některým tržním datům je zpoplatněn (1–45 USD měsíčně podle typu)."
     ],
-    "pros": [
-      "Levná směna měn u větších částek: 0,002 % (min. 2 USD) – výhodné pro nákup v USD i EUR z korunového účtu",
-      "Nejširší nabídka na trhu: 175+ trhů po celém světě",
-      "Pro české klienty regulace irské centrální banky (CBI), mateřská firma kótovaná na Nasdaq",
-      "Žádný minimální vklad (0 USD) ani poplatky za neaktivitu, podpora frakčních ETF"
-    ],
-    "cons": [
-      "Žádná česká lokalizace ani česká podpora – komunikace probíhá pouze anglicky",
-      "Platforma TWS je pro začátečníky složitá až zastrašující a i registrace je náročnější",
-      "Ochrana prostředků evropské entity jen 90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC do 500 000 USD kryje pouze americkou entitu, ne českého klienta",
-      "Minimum 1,25 EUR za pokyn a 2 USD za konverzi měn činí malé pravidelné nákupy relativně dražšími než u brokerů s nulovým poplatkem",
-      "Placený přístup k některým tržním datům (1–45 USD měsíčně) a jen omezené možnosti automatického investování/DCA",
-      "Z dividend českých akcií se sráží 35 % (sběrný účet neumožňuje identifikovat konečného vlastníka), vratka jen individuální žádostí bez záruky"
-    ],
     "faqs": [
       {
         "q": "Řeší se u IBKR srážka z amerických dividend (W-8BEN)?",
@@ -443,20 +371,6 @@ export const brokerContent: Record<string, BrokerContent> = {
     "feesText": [
       "Klíčové je pochopit, že Portu má zcela jinou nákladovou logiku než broker. Neplatíte poplatek za jednotlivý nákup ETF, ale roční správcovský poplatek z celého objemu portfolia – maximálně 1 % ročně, s klesající sazbou podle výše investice: 1 % do 500 000 Kč, 0,8 % do 1 milionu, 0,6 % do 5 milionů a 0,4 % nad 5 milionů. K tomu lze získat slevu za fixaci (závazek nevybírat) až 40 %, takže úplné minimum je 0,24 % ročně; běžné portfolio do půl milionu vyjde na 0,6–1 % podle délky fixace. Tento poplatek je all-inclusive: pokrývá automatický rebalancing i měnové konverze mezi CZK a měnou fondů, takže žádný samostatný FX poplatek (na rozdíl od XTB s 0,5 % nebo IBKR s 0,002 %) neřešíte. Vstupní ani výstupní poplatky Portu neúčtuje.",
       "S rostoucím a hlavně dlouhodobě drženým majetkem se roční procento nasčítá do výrazně vyšších nákladů než u přímého nákupu jednoho akumulačního ETF u brokera. Na straně daní má Portu praktickou výhodu: dividendy z podkladových fondů podléhají srážkové dani jen 15 % (Portu je řeší přes český daňový režim), zatímco u DEGIRO nebo XTB může u některých ETF hrozit 35 % srážka. Pro dlouhodobého českého investora navíc platí, že zisk z prodeje po splnění tříletého časového testu (nebo do ročního limitu 100 000 Kč) je od daně z příjmů osvobozen."
-    ],
-    "pros": [
-      "Vše v češtině včetně aplikace, smluv i podpory (pracovní dny 9–17)",
-      "All-inclusive poplatek – v ročním procentu je zahrnut rebalancing i měnová konverze CZK/EUR, žádné skryté FX poplatky",
-      "Nízký vstup: minimální vklad 500 Kč, další vklady od 100 Kč, bez vstupních a výstupních poplatků",
-      "Plná automatizace – portfolio se samo sestaví, doplňuje a rebalancuje, i při pravidelných vkladech",
-      "Česká regulace ČNB, oddělení klientských aktiv a garanční fond do 20 000 EUR; za projektem stojí WOOD & Company",
-      "Výhodné 15 % zdanění dividend a speciální produkty (dětské účty, DIP s daňovými výhodami, Portu <26 se slevou)"
-    ],
-    "cons": [
-      "Roční procentní poplatek (0,6–1 % u portfolií do půl milionu) je při dlouhodobém držení výrazně dražší než jednorázový nákup ETF u brokera, kde po nákupu neplatíte nic",
-      "Nevyberete si konkrétní ETF – dostanete hotové portfolio dle rizikového profilu, bez možnosti koupit vlastní fond",
-      "Není to broker: chybí aktivní obchodování, pokročilé analytické nástroje a plná kontrola nad složením portfolia",
-      "Poplatek se platí z celého objemu každý rok, takže s rostoucím majetkem náklady rychle rostou v absolutních číslech"
     ],
     "faqs": [
       {

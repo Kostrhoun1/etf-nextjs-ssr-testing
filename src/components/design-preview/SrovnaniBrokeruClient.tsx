@@ -1,23 +1,26 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
-import { Check, X, ArrowRight, MoveHorizontal } from 'lucide-react';
+import { Check, X, ArrowRight } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { TipZaTextem } from '@/components/design-preview/brokerUI';
 import {
-  brokeriPodleSkore, popisPoplatku, popisSmeny, popisMinVkladu, ochranaHotovosti, ochranaPapiru, nezlomit,
+  brokeriPodleSkore, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisDaneDividend, ochranaHotovosti, ochranaPapiru, nezlomit,
 } from '@/data/brokerData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import type { Broker } from '@/types/broker/index';
 
 /* Srovnávací tabulka se GENERUJE z objektů brokerů (src/data/brokerData.ts) – jeden zdroj pravdy.
-   Revize kola 2: jedna tabulka i na mobilu (pevný první sloupec + vodorovný posun, dřív 5 karet pod sebou),
-   vysvětlivka ⓘ jen u názvu řádku (dřív ~40 ikon za hodnotami), jednotky jednotně (poplatek v EUR, směna v %,
-   „bez minima“). Hodnota + krátká poznámka šedě pod ní. Poplatek a směna mají atributy data-poplatek/data-smena,
-   které denní kontrola porovnává s /kde-koupit. Robo-poradce Portu v tabulce brokerů není (karta pod tabulkou).
-   (Název souboru zůstal, komponenta už ale nepotřebuje klientský stav.) */
+   Kolo 5: desktop = celá tabulka BEZ overflow předka a se sticky záhlavím (logo + jméno zůstává při scrollu
+   vidět, top-14 = pod hlavičkou webu). Mobil = výběr 2 brokerů vedle sebe (dřív vodorovně posouvaná tabulka,
+   ve které bylo vidět ~1,7 brokera). Poplatek a směna mají v desktopové tabulce atributy data-poplatek/data-smena,
+   které denní kontrola porovnává s /kde-koupit – mobilní výběr je záměrně nemá (jinak by se počítaly dvakrát).
+   Robo-poradce Portu v tabulce brokerů není (karta pod tabulkou). */
 
 type Hodnota = { v: string; pozn?: string; ano?: boolean; data?: Record<string, string> };
 interface Radek { nazev: string; tip?: string; hodnota: (b: Broker) => Hodnota }
 
-const pct = (t: string) => t.replace(/(\d)\s?%/g, '$1 %');
 
 const RADKY: Radek[] = [
   {
@@ -43,13 +46,7 @@ const RADKY: Radek[] = [
   {
     nazev: 'Regulace',
     tip: 'Dohled nad entitou, se kterou uzavírá smlouvu český klient.',
-    hodnota: (b) => {
-      // Pro české klienty rozhoduje entita „pro CZ klienty“ (T212 = CySEC, ne FCA; IBKR = CBI).
-      const casti = b.regulation.split(', ');
-      const hlavni = casti.find((c) => c.includes('pro CZ')) ?? casti[0];
-      const ostatni = casti.filter((c) => c !== hlavni).join(', ');
-      return { v: hlavni.replace(' pro CZ klienty', '').replace(' (EU pro CZ klienty)', ''), pozn: ostatni || undefined };
-    },
+    hodnota: (b) => popisRegulace(b),
   },
   {
     nazev: 'Část podílu',
@@ -63,10 +60,7 @@ const RADKY: Radek[] = [
   {
     nazev: 'Daň z CZ dividend',
     tip: 'Srážka z dividend českých akcií. U akumulačních ETF se vás přímo netýká.',
-    hodnota: (b) => ({
-      v: pct(b.czDividends.split(' (')[0]),
-      pozn: b.czDividends.includes('(') ? pct(b.czDividends.split(' (')[1].replace(')', '')) : b.czDividends === '—' ? 'neověřeno' : undefined,
-    }),
+    hodnota: (b) => popisDaneDividend(b),
   },
   {
     nazev: 'Min. vklad',
@@ -75,13 +69,15 @@ const RADKY: Radek[] = [
   },
 ];
 
-function Bunka({ h }: { h: Hodnota }) {
+const TIP_SKORE = 'Redakční skóre 0–100 podle stejných šesti os pro všechny brokery – metodika na stránce Kde koupit ETF.';
+
+function Bunka({ h, sData = true }: { h: Hodnota; sData?: boolean }) {
   const ikona = h.ano === true
     ? <Check className="h-4 w-4 shrink-0 text-emerald-600" strokeWidth={2.5} />
     : h.ano === false ? <X className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2.5} /> : null;
   return (
     <>
-      <span className={`flex items-center gap-1 font-medium leading-snug ${h.ano === false ? 'text-slate-500' : 'text-slate-900'}`} {...h.data}>{ikona}{nezlomit(h.v)}</span>
+      <span className={`flex items-center gap-1 font-medium leading-snug ${h.ano === false ? 'text-slate-500' : 'text-slate-900'}`} {...(sData ? h.data : {})}>{ikona}{nezlomit(h.v)}</span>
       {h.pozn && <span className="mt-0.5 block text-xs leading-snug text-slate-500">{nezlomit(h.pozn)}</span>}
     </>
   );
@@ -107,68 +103,131 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-/* Pevný první sloupec: bílé pozadí (překrývá posunuté buňky) a jemný stín na pravé hraně. */
-const PRVNI = 'sticky left-0 z-10 bg-white shadow-[1px_0_0_0_rgb(226_232_240)] md:shadow-none';
+/* Sticky záhlaví: buňky th (ne thead – Safari sticky na thead ignoruje), neprůhledné pozadí a spodní linka. */
+const ZAHLAVI = 'sticky top-14 z-20 bg-slate-50 shadow-[0_1px_0_0_rgb(226_232_240)]';
+
+/** Desktop (md+): celá tabulka, záhlaví se při scrollu drží pod hlavičkou webu. */
+function Tabulka({ profil }: { profil: Record<string, string> }) {
+  const brokeri = brokeriPodleSkore;
+  return (
+    <table className="hidden w-full table-fixed text-sm md:table">
+      <colgroup>
+        <col className="w-[9.5rem] lg:w-[13rem]" />
+        {brokeri.map((b) => <col key={b.id} />)}
+      </colgroup>
+      <thead className="text-slate-600">
+        <tr>
+          <th scope="col" className={`${ZAHLAVI} rounded-tl-xl px-4 py-3 text-left align-bottom text-xs font-medium`}>Parametr</th>
+          {brokeri.map((b, i) => (
+            <th key={b.id} scope="col" className={`${ZAHLAVI} ${i === brokeri.length - 1 ? 'rounded-tr-xl' : ''} px-3 py-3 text-left align-bottom font-medium`}>
+              <Link href={reviewHref[b.id]} className="flex items-center gap-2 font-semibold text-slate-900 hover:text-teal-700">
+                <Logo id={b.id} />
+                <span className="leading-tight">{b.name}</span>
+              </Link>
+              {profil[b.id] && <span className="mt-1 block text-xs font-normal leading-snug text-slate-500">{profil[b.id]}</span>}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="tabular-nums">
+        <tr>
+          <th scope="row" className="px-4 py-3 text-left font-medium text-slate-900">
+            <InfoTip label={TIP_SKORE}>Skóre</InfoTip>
+          </th>
+          {brokeri.map((b) => <td key={b.id} className="px-3 py-3"><ScoreBar score={b.rating ?? 0} /></td>)}
+        </tr>
+        {RADKY.map((r) => (
+          <tr key={r.nazev} className="border-t border-slate-100">
+            <th scope="row" className="px-4 py-3 text-left align-top font-medium leading-snug text-slate-700">
+              {r.tip ? <TipZaTextem text={r.nazev} tip={r.tip} /> : r.nazev}
+            </th>
+            {brokeri.map((b) => (
+              <td key={b.id} data-broker={b.id} className="px-3 py-3 align-top"><Bunka h={r.hodnota(b)} /></td>
+            ))}
+          </tr>
+        ))}
+        <tr className="border-t border-slate-100 bg-slate-50">
+          <th scope="row" className="rounded-bl-xl px-4 py-3"><span className="sr-only">Recenze</span></th>
+          {brokeri.map((b, i) => (
+            <td key={b.id} className={`px-3 py-3 ${i === brokeri.length - 1 ? 'rounded-br-xl' : ''}`}>
+              <Link href={reviewHref[b.id]} className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-medium text-teal-700 hover:text-teal-800">
+                Recenze <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </td>
+          ))}
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+/** Mobil (< md): dva brokeři vedle sebe, výběr nahoře; výchozí XTB vs Trading 212. */
+function DvaBrokeri({ profil }: { profil: Record<string, string> }) {
+  const brokeri = brokeriPodleSkore;
+  const [a, setA] = useState('xtb');
+  const [b, setB] = useState('trading212');
+  const najdi = (id: string) => brokeri.find((x) => x.id === id) ?? brokeri[0];
+  const vybrat = (strana: 'a' | 'b', id: string) => {
+    // Stejný broker na obou stranách nedává smysl → strany prohodit.
+    if (strana === 'a') { if (id === b) setB(a); setA(id); } else { if (id === a) setA(b); setB(id); }
+  };
+  const dva = [najdi(a), najdi(b)];
+  return (
+    <div className="md:hidden">
+      <div className="grid grid-cols-2 gap-2 border-b border-slate-100 p-3">
+        {(['a', 'b'] as const).map((strana, i) => (
+          <label key={strana} className="block min-w-0">
+            <span className="mb-1 block text-xs font-medium text-slate-500">{i === 0 ? 'Broker A' : 'Broker B'}</span>
+            <select
+              value={strana === 'a' ? a : b}
+              onChange={(e) => vybrat(strana, e.target.value)}
+              className="vyber h-11 w-full rounded-lg border border-slate-300 bg-white pl-3 text-sm font-medium text-slate-900 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+            >
+              {brokeri.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+            </select>
+          </label>
+        ))}
+      </div>
+      {/* Záhlaví dvojice drží při scrollu (top-14 = pod hlavičkou webu) */}
+      <div className="sticky top-14 z-20 grid grid-cols-2 gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2.5">
+        {dva.map((x) => (
+          <Link key={x.id} href={reviewHref[x.id]} className="min-w-0">
+            <span className="flex items-center gap-2 text-sm font-semibold leading-tight text-slate-900"><Logo id={x.id} /><span className="min-w-0">{x.name}</span></span>
+            {profil[x.id] && <span className="mt-1 block text-[11px] leading-snug text-slate-500">{profil[x.id]}</span>}
+          </Link>
+        ))}
+      </div>
+      <dl className="divide-y divide-slate-100 text-[13px] tabular-nums">
+        <div className="px-3 py-2.5">
+          <dt className="text-xs font-medium text-slate-500"><InfoTip label={TIP_SKORE}>Skóre</InfoTip></dt>
+          <dd className="mt-1 grid grid-cols-2 gap-2">{dva.map((x) => <span key={x.id}><ScoreBar score={x.rating ?? 0} /></span>)}</dd>
+        </div>
+        {RADKY.map((r) => (
+          <div key={r.nazev} className="px-3 py-2.5">
+            <dt className="text-xs font-medium text-slate-500">{r.tip ? <TipZaTextem text={r.nazev} tip={r.tip} /> : r.nazev}</dt>
+            <dd className="mt-1 grid grid-cols-2 gap-2">
+              {dva.map((x) => <span key={x.id} className="min-w-0"><Bunka h={r.hodnota(x)} sData={false} /></span>)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="grid grid-cols-2 gap-2 rounded-b-xl border-t border-slate-100 bg-slate-50 px-3 py-1.5">
+        {dva.map((x) => (
+          <Link key={x.id} href={reviewHref[x.id]} className="inline-flex min-h-[44px] items-center gap-1 text-sm font-medium text-teal-700">
+            Recenze <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /** profil = krátký štítek „pro koho“ ze sdíleného doporučení (předává server, ať se neliší od /kde-koupit). */
 export default function SrovnaniBrokeruClient({ profil }: { profil: Record<string, string> }) {
-  const brokeri = brokeriPodleSkore;
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
-      <p className="flex items-center gap-1.5 border-b border-slate-100 px-3 py-2 text-xs text-slate-500 md:hidden">
-        <MoveHorizontal className="h-3.5 w-3.5" /> Tabulku posunete do strany, první sloupec zůstává.
-      </p>
-      <div className="overflow-x-auto rounded-xl">
-        <table className="w-full min-w-[47rem] table-fixed text-[13px] md:min-w-0 md:text-sm">
-          <colgroup>
-            <col className="w-[7rem] md:w-[13rem]" />
-            {brokeri.map((b) => <col key={b.id} />)}
-          </colgroup>
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th scope="col" className={`${PRVNI} !bg-slate-50 px-3 py-3 text-left align-bottom text-xs font-medium md:px-4`}>Parametr</th>
-              {brokeri.map((b) => (
-                <th key={b.id} scope="col" className="px-2.5 py-3 text-left align-bottom font-medium md:px-3">
-                  <Link href={reviewHref[b.id]} className="flex items-center gap-2 font-semibold text-slate-900 hover:text-teal-700">
-                    <Logo id={b.id} />
-                    <span className="leading-tight">{b.name}</span>
-                  </Link>
-                  {profil[b.id] && <span className="mt-1 block text-xs font-normal leading-snug text-slate-500">{profil[b.id]}</span>}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="tabular-nums">
-            <tr className="border-t border-slate-100">
-              <th scope="row" className={`${PRVNI} px-3 py-3 text-left font-medium text-slate-900 md:px-4`}>
-                <InfoTip label="Redakční skóre 0–100 podle stejných šesti os pro všechny brokery – metodika na stránce Kde koupit ETF.">Skóre</InfoTip>
-              </th>
-              {brokeri.map((b) => <td key={b.id} className="px-3 py-3"><ScoreBar score={b.rating ?? 0} /></td>)}
-            </tr>
-            {RADKY.map((r) => (
-              <tr key={r.nazev} className="border-t border-slate-100">
-                <th scope="row" className={`${PRVNI} px-3 py-3 text-left align-top text-[13px] font-medium leading-snug text-slate-700 md:px-4 md:text-sm`}>
-                  {/* Na mobilu se dlouhý název smí zalomit (InfoTip drží text na jednom řádku). */}
-                  {r.tip ? <span className="whitespace-normal [&>span]:!whitespace-normal"><InfoTip label={r.tip}>{r.nazev}</InfoTip></span> : r.nazev}
-                </th>
-                {brokeri.map((b) => (
-                  <td key={b.id} data-broker={b.id} className="px-2.5 py-3 align-top md:px-3"><Bunka h={r.hodnota(b)} /></td>
-                ))}
-              </tr>
-            ))}
-            <tr className="border-t border-slate-100 bg-slate-50">
-              <th scope="row" className={`${PRVNI} !bg-slate-50 px-3 py-3 md:px-4`}><span className="sr-only">Recenze</span></th>
-              {brokeri.map((b) => (
-                <td key={b.id} className="px-3 py-3">
-                  <Link href={reviewHref[b.id]} className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-medium text-teal-700 hover:text-teal-800">
-                    Recenze <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <Tabulka profil={profil} />
+      <DvaBrokeri profil={profil} />
     </div>
   );
 }

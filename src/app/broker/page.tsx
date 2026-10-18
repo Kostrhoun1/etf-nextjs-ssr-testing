@@ -589,7 +589,7 @@ export default async function BrokerReviewPreview() {
 
         {/* FAQ */}
         <section className="pb-10">
-          <SectionHead title="Časté dotazy" />
+          <SectionHead title="Časté otázky" />
           <div className="space-y-2">
             {faqs.map((f) => (
               <details key={f.q} className="group rounded-lg border border-slate-200 bg-white">

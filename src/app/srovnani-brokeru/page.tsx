@@ -120,7 +120,7 @@ export default async function SrovnaniBrokeruPage() {
         </nav>
 
         <section data-sekce="hero" className="pb-6">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Srovnání brokerů pro ETF 2026</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-slate-900">Srovnání brokerů pro ETF 2026</h1>
           <p className="mt-2 max-w-2xl text-base text-slate-600 leading-relaxed">
             {brokeriPodleSkore.length} brokerů vedle sebe: poplatky, směna měny, ochrana hotovosti i cenných papírů, daně a podpora.
             Kolik stojí konkrétní nákup, máme spočítané na stránce <Link href="/kde-koupit#naklady" className="text-teal-700 underline underline-offset-2 hover:text-teal-800">Kde koupit ETF</Link>.

@@ -273,8 +273,11 @@ období 1M/3M/6M jsou na porovnání v samostatné sekci „v EUR“.
 oficiální stránka poplatků Xetry (interactivebrokers.ie/.co.uk, IBIS-StkFees) vrací robotům 403, číslo tedy nemáme
 ověřené z primárního zdroje → nezapočítáváme a ukazujeme spodní hranici. **Trading 212 – daň z CZ dividend „—“:**
 neověřeno, zda T212 české akcie nabízí. **DEGIRO – roční poplatek za připojení k burze** (nejvýš 0,25 % hodnoty účtu,
-max. 2,5 EUR) se do „za rok“ na /kde-koupit nepočítá, jen v poznámce (výše závisí na hodnotě účtu). Nevymýšlet
-odhady, dokud nejsou ověřené u oficiálního ceníku. Shodu poplatku a směny mezi /kde-koupit, /srovnani-brokeru
+max. 2,5 EUR): „za rok“ na /kde-koupit (kolo 5) ukazuje ETF Selection BEZ něj (výjimka ověřená v PDF, viz níže)
+a ostatní ETF jako „12 × 3 EUR + až 2,5 EUR za burzu“ – horní mez, ne odhad (přesná výše závisí na hodnotě účtu).
+**IBKR – „za rok“ se směnou JEDNOU** (celá roční částka najednou, min. 2 USD), protože text u IBKR říká, že směnu
+stačí udělat jednou; „za nákup“ dál počítá směnu při každém nákupu. Nevymýšlet odhady, dokud nejsou ověřené
+u oficiálního ceníku. Shodu poplatku a směny mezi /kde-koupit, /srovnani-brokeru
 a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
 - **Stejný výnos v Kč na 4 desetinná místa u různých tříd/fondů (SXR8 = IUSA = VUSA 1R 21,7501 %; VWCE = VWRL),
   18. 10. 2026:** není chyba. Zdroj (justETF) dává výnos v EUR na 2 desetinná místa a ty jsou u fondů na stejný

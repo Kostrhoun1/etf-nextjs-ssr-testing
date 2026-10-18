@@ -1,23 +1,26 @@
 'use client';
 
 /* „Kolik stojí nákup ETF“ – živý přepočet pro částku, kterou návštěvník zadá (revize kola 2: dřív jen dvě
-   pevné částky). Výpočet = nakladNakupu z brokerData (ceník) + kurz ČNB s datem, předaný ze serveru.
-   Pravidlo č. 1: co neznáme (směna Fio v kurzu banky, poplatky burzy IBKR), je „—“ a součet je „od“. */
+   pevné částky). Výpočet = nakladNakupu / nakladRocne z brokerData (ceník) + kurz ČNB s datem, předaný ze serveru.
+   Pravidlo č. 1: co neznáme (směna Fio v kurzu banky, poplatky burzy IBKR), je „—“ a součet je „od“.
+   Kolo 5: roční náklad konzistentní s texty (IBKR směna jednou za rok, DEGIRO ETF Selection vs ostatní ETF),
+   rychlé volby částky hned u pole, štítek „nejlevnější“ podle zadané částky. */
 import { useState } from 'react';
 import Link from 'next/link';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import {
-  brokeriPodleSkore, nakladNakupu, popisPoplatku, popisSmeny, type Kurzy,
+  brokeriPodleSkore, nakladNakupu, nakladRocne, popisPoplatku, popisSmeny, type Kurzy,
 } from '@/data/brokerData';
 
+const NB = ' ';
 const kc = (v: number) =>
-  `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')} Kč`;
-const proc = (v: number) => `${v.toLocaleString('cs-CZ', { maximumFractionDigits: v < 1 ? 2 : 1 })} %`;
+  `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')}${NB}Kč`;
+const proc = (v: number) => `${v.toLocaleString('cs-CZ', { maximumFractionDigits: v < 1 ? 2 : 1 })}${NB}%`;
 const datum = (iso: string) =>
   new Date(`${iso}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
-const PRESETY = [1000, 2000, 5000, 10000];
+const PRESETY = [1000, 2000, 5000, 10000, 50000];
 const MIN = 100;
 const MAX = 1_000_000;
 
@@ -32,7 +35,8 @@ function Logo({ id }: { id: string }) {
 
 const TIP_BURZA = 'K poplatku IBKR (plán Tiered) se připočítávají poplatky burzy a vypořádání. Jejich výši jsme na oficiálním ceníku nemohli ověřit, proto je nezapočítáváme – skutečný náklad je o ně vyšší.';
 const TIP_FIO = 'Fio směnu korun na eura zvlášť neúčtuje, náklad je v kurzu banky (rozdíl nákupního a prodejního kurzu). Jeho výši ceník neuvádí, proto „—“ a součet „od“.';
-const TIP_IBKR_SMENA = 'Na účtu IBKR můžete držet hotovost ve více měnách. Stačí směnit jednou větší částku a z ní nakupovat postupně – minimum 2 USD pak platíte jen jednou. Tabulka počítá směnu při každém nákupu.';
+const TIP_IBKR_SMENA = 'Na účtu IBKR můžete držet hotovost ve více měnách. Stačí směnit jednou větší částku a z ní nakupovat postupně – minimum 2 USD pak platíte jen jednou. Za jeden nákup počítáme směnu pokaždé, v ročním součtu jen jednou (celá roční částka najednou).';
+const TIP_DEGIRO = 'ETF Selection = výběr fondů DEGIRO za 1 EUR a bez ročního poplatku za připojení k burze. Ostatní ETF stojí 3 EUR za nákup a k tomu až 2,5 EUR ročně za každou zahraniční burzu (nejvýš 0,25 % hodnoty účtu). Zda je váš fond ve výběru, ověřte v aplikaci DEGIRO.';
 
 export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy | null; zvyraznit?: string }) {
   // Jen číslice; zobrazení s mezerami po tisících („2 000“).
@@ -54,21 +58,25 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
     .filter((b) => b.nakup)
     .map((b) => {
       const n = platna ? nakladNakupu(b, castka, kurzy) : null;
+      const r = platna ? nakladRocne(b, castka, kurzy) : null;
       // „od“ = část nákladu neznáme (Fio směna, IBKR burza) → číslo je spodní hranice.
       const castecne = !!n && (n.celkemKc == null || n.plusBurza);
       const spodni = n ? (n.celkemKc ?? n.provizeKc) : Infinity;
-      return { b, n, castecne, spodni };
+      return { b, n, r, castecne, spodni };
     })
     .sort((a, b) => a.spodni - b.spodni);
+  // „Nejlevnější“ jen když je první řádek přesně známý a levnější než spodní hranice všech „od“.
+  const nejlevnejsiId = rady[0] && !rady[0].castecne && rady[0].n ? rady[0].b.id : null;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
-      {/* Vstup */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-end sm:justify-between">
-        <label className="block">
-          <span className="block text-sm font-medium text-slate-800">Kolik investujete měsíčně</span>
-          <span className="mt-1.5 flex h-11 w-full items-center rounded-lg border border-slate-300 bg-white focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20 sm:w-48">
+      {/* Vstup + rychlé volby v jedné řadě hned u pole (kolo 4: volby byly na desktopu na opačném kraji). */}
+      <div className="border-b border-slate-100 p-4">
+        <label htmlFor="naklady-castka" className="block text-sm font-medium text-slate-800">Kolik investujete měsíčně</label>
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <span className="flex h-11 w-full items-center rounded-lg border border-slate-300 bg-white focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20 sm:w-44 md:h-10">
             <input
+              id="naklady-castka"
               type="text"
               inputMode="numeric"
               value={vstup ? Number(vstup).toLocaleString('cs-CZ') : ''}
@@ -78,24 +86,24 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
             />
             <span className="pr-3 text-sm text-slate-500">Kč</span>
           </span>
-        </label>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Rychlá volba částky">
-          {PRESETY.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setVstup(String(p))}
-              aria-pressed={castka === p}
-              className={`h-9 rounded-full px-3 text-sm tabular-nums transition-colors ${castka === p ? 'bg-teal-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-            >
-              {p.toLocaleString('cs-CZ')}
-            </button>
-          ))}
+          <div className="grid w-full grid-cols-5 gap-1.5 sm:flex sm:w-auto" role="group" aria-label="Rychlá volba částky">
+            {PRESETY.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setVstup(String(p))}
+                aria-pressed={castka === p}
+                className={`h-11 rounded-lg px-1 text-sm sm:px-3 tabular-nums transition-colors md:h-10 ${castka === p ? 'bg-teal-700 font-medium text-white' : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}
+              >
+                {p.toLocaleString('cs-CZ')}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       {!platna && (
         <p id="naklady-rozsah" className="border-b border-slate-100 bg-slate-50 px-4 py-2.5 text-sm text-slate-600">
-          Zadejte částku od {MIN.toLocaleString('cs-CZ')} do {MAX.toLocaleString('cs-CZ')}&nbsp;Kč.
+          Zadejte částku od {MIN.toLocaleString('cs-CZ')} do {MAX.toLocaleString('cs-CZ')}{NB}Kč.
         </p>
       )}
 
@@ -110,25 +118,30 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 tabular-nums">
-          {rady.map(({ b, n, castecne }) => {
+          {rady.map(({ b, n, r, castecne }) => {
             const ibkr = !!b.nakup?.plusBurza;
             const smenaNezn = n ? n.smenaKc == null : false;
             const poplatekTxt = n ? `${ibkr ? 'od ' : ''}${kc(n.provizeKc)}` : '—';
             const smenaTxt = !n ? '—' : n.smenaKc == null ? '—' : kc(n.smenaKc);
             const celkem = n ? (n.celkemKc ?? n.provizeKc) : null;
+            const rocne = r ? (r.celkemKc ?? r.provizeKc) : null;
             const od = castecne ? 'od ' : '';
+            const ostatni = r?.ostatni;
+            const nej = b.id === nejlevnejsiId;
             return (
-              <tr key={b.id} data-broker={b.id} data-poplatek={popisPoplatku(b) ?? ''} data-smena={popisSmeny(b) ?? ''} className={b.id === zvyraznit ? 'bg-teal-50/60' : undefined}>
+              <tr key={b.id} data-broker={b.id} data-poplatek={popisPoplatku(b) ?? ''} data-smena={popisSmeny(b) ?? ''} data-za-nakup={celkem == null ? '' : Math.round(celkem)} data-za-rok={rocne == null ? '' : Math.round(rocne)} className={b.id === zvyraznit ? 'bg-teal-50/60' : undefined}>
                 <td className="px-3 py-3 align-top sm:px-4">
                   <Link href={reviewHref[b.id]} className="flex items-center gap-2 font-medium text-slate-900 hover:text-teal-700">
                     <Logo id={b.id} />
                     <span className="leading-tight">{b.name.replace('-', '‑')}</span>
                   </Link>
+                  {nej && <span className="ml-9 mt-1 inline-block rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-800 ring-1 ring-teal-200">nejlevnější pro {kc(castka)}</span>}
                   {/* Mobil: rozpis pod jménem (sloupce poplatek/směna jsou jen od md) */}
                   {n && (
                     <span className="mt-1 block pl-9 text-xs leading-snug text-slate-500 md:hidden">
-                      poplatek {poplatekTxt} · směna {smenaTxt}
+                      poplatek {poplatekTxt}{ostatni ? ' (ETF Selection)' : ''} · směna {smenaTxt}
                       {ibkr && <span className="block"><InfoTip label={TIP_IBKR_SMENA}>směnu stačí udělat jednou</InfoTip></span>}
+                      {ostatni && <span className="block">ostatní ETF 3{NB}EUR, ročně {kc(ostatni.celkemKc)} + <InfoTip label={TIP_DEGIRO}>burza</InfoTip></span>}
                     </span>
                   )}
                 </td>
@@ -136,7 +149,8 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                   <span className="block font-medium text-slate-800">
                     {ibkr ? <InfoTip label={TIP_BURZA}>{poplatekTxt}</InfoTip> : poplatekTxt}
                   </span>
-                  <span className="block text-xs text-slate-400">ceník {popisPoplatku(b)}</span>
+                  <span className="block text-xs text-slate-400">ceník {popisPoplatku(b)}{ostatni ? ' (ETF Selection)' : ''}</span>
+                  {ostatni && <span className="mt-0.5 block text-xs text-slate-500"><InfoTip label={TIP_DEGIRO}>ostatní ETF 3{NB}EUR</InfoTip></span>}
                 </td>
                 <td className="hidden px-3 py-3 align-top md:table-cell">
                   <span className="block font-medium text-slate-800">
@@ -154,11 +168,18 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                   <span className="block text-xs text-slate-500">
                     {celkem == null ? '' : `${od}${proc((celkem / castka) * 100)}`}<span className="hidden md:inline"> z částky</span>
                   </span>
-                  <span className="block text-xs text-slate-500 md:hidden">{celkem == null ? '' : `ročně ${od}${kc(celkem * 12)}`}</span>
+                  <span className="block text-xs text-slate-500 md:hidden">{rocne == null ? '' : `ročně ${od}${kc(rocne)}`}</span>
                 </td>
                 <td className="hidden px-3 py-3 align-top md:table-cell">
-                  <span className="block font-medium text-slate-800">{celkem == null ? '—' : `${od}${kc(celkem * 12)}`}</span>
-                  {castecne && <span className="block text-xs text-slate-400">{ibkr ? 'bez poplatků burzy' : 'bez nákladu směny'}</span>}
+                  <span className="block font-medium text-slate-800">{rocne == null ? '—' : `${od}${kc(rocne)}`}</span>
+                  {ostatni && <span className="block text-xs text-slate-400">ETF Selection</span>}
+                  {r?.smenaJednou && <span className="block text-xs text-slate-400">směna jednou za rok, bez poplatků burzy</span>}
+                  {castecne && !r?.smenaJednou && <span className="block text-xs text-slate-400">bez nákladu směny</span>}
+                  {ostatni && (
+                    <span className="mt-1 block text-xs leading-snug text-slate-500">
+                      ostatní ETF {kc(ostatni.celkemKc)}<br />+ až {kc(ostatni.burzaMaxKc)} ročně za burzu
+                    </span>
+                  )}
                 </td>
               </tr>
             );
@@ -171,8 +192,8 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
           Řazeno podle známých nákladů. „od“ = část nákladu neznáme (u Fio směnu v kurzu banky, u IBKR poplatky burzy), skutečná částka je vyšší.
         </p>
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span>Kurz ČNB k {datum(kurzy.datum)}: 1&nbsp;EUR = {kurzy.eurCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}&nbsp;Kč, 1&nbsp;USD = {kurzy.usdCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}&nbsp;Kč</span>
-          <InfoTip label="Jeden nákup evropského ETF na burze Xetra (v EUR) z korunového účtu: poplatek za nákup + směna CZK→EUR podle ceníku brokera. DEGIRO = fondy z výběru ETF Selection (ostatní 3 EUR). Nepočítáme roční poplatek DEGIRO za připojení k burze (až 2,5 EUR ročně) ani víkendovou přirážku Trading 212 (směna 0,5 %).">Jak počítáme</InfoTip>
+          <span>Kurz ČNB k {datum(kurzy.datum)}: 1{NB}EUR = {kurzy.eurCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}{NB}Kč, 1{NB}USD = {kurzy.usdCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}{NB}Kč</span>
+          <InfoTip label="Jeden nákup evropského ETF na burze Xetra (v EUR) z korunového účtu: poplatek za nákup + směna CZK→EUR podle ceníku brokera. Za rok = 12 nákupů; u IBKR se směna počítá jednou za celou roční částku. DEGIRO: ETF Selection za 1 EUR bez poplatku za burzu, ostatní ETF 3 EUR + až 2,5 EUR ročně za burzu (podle hodnoty účtu). Nepočítáme víkendovou přirážku Trading 212 (směna 0,5 %).">Jak počítáme</InfoTip>
         </p>
       </div>
     </div>

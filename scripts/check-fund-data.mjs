@@ -281,6 +281,28 @@ const main = async () => {
     varovani.push({ co: `Kontrolu shody ceníků brokerů se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── /kde-koupit: roční náklad konzistentní s nákupem ──
+  // Kolo 5 (18. 10. 2026): IBKR „směnu stačí udělat jednou“, ale „za rok“ počítal směnu 12× (884 Kč místo ~408 Kč).
+  // Řádky nesou data-za-nakup / data-za-rok (Kč, výchozí částka). Za rok nesmí být víc než 12 × za nákup a u IBKR
+  // (vícměnový účet, směna jednou) musí být méně – jinak se roční součet zase počítá jinak, než říká text.
+  try {
+    const html = await fetch(`${WEB_URL}/kde-koupit`).then((r) => (r.ok ? r.text() : ''));
+    const chyby = [];
+    let pocet = 0;
+    for (const m of html.matchAll(/<tr[^>]*data-broker="([^"]+)"[^>]*>/g)) {
+      const nakup = Number(m[0].match(/data-za-nakup="(\d+)"/)?.[1]);
+      const rok = Number(m[0].match(/data-za-rok="(\d+)"/)?.[1]);
+      if (!nakup || !rok) continue;
+      pocet++;
+      if (rok > 12 * (nakup + 0.5)) chyby.push(`${m[1]}: za rok ${rok} Kč > 12 × ${nakup} Kč`);
+      if (m[1] === 'ibkr' && rok >= 12 * nakup) chyby.push(`ibkr: za rok ${rok} Kč = 12 × nákup se směnou (směna se má počítat jednou)`);
+    }
+    if (!pocet) varovani.push({ co: '/kde-koupit: v HTML chybí data-za-nakup/data-za-rok – kontrolu ročního nákladu nešlo provést', ukazka: [] });
+    if (chyby.length) varovani.push({ co: `/kde-koupit: roční náklad nesedí s nákupem (${chyby.length})`, ukazka: chyby });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu ročního nákladu na /kde-koupit se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── HLEDÁNÍ: české výrazy a tickery (hlavní akce homepage) ──
   // 18. 10. 2026: „svět“, „zlato“, „dluhopisy“, „dividendové“ vracely 0 výsledků (názvy fondů jsou
   // anglicky). Teď src/lib/hledaniCz.ts – dotaz musí vrátit fondy a (u českých slov) i žebříček.

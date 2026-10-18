@@ -44,6 +44,12 @@ export interface CenikNakupu {
   smenaPozn?: string;
   /** Směna CZK→EUR. null = bez samostatného poplatku, náklad je v kurzu (výši neznáme → „—“). */
   smena: { procento: number; minUsd: number } | null;
+  /** Vícměnový účet: směnu stačí udělat jednou za větší částku (IBKR) → roční náklad = 1 směna, ne 12. */
+  smenaNajednou?: boolean;
+  /** Poplatek za ETF MIMO zvýhodněný výběr (DEGIRO: ETF Selection 1 EUR, ostatní 3 EUR). */
+  ostatniEtfEur?: number;
+  /** Roční poplatek za připojení k burze – jen u ETF mimo zvýhodněný výběr (DEGIRO: až 2,5 EUR za burzu). */
+  burzaRocneMaxEur?: number;
 }
 
 export interface BrokerFeature {
