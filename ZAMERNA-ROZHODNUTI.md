@@ -261,10 +261,11 @@ období 1M/3M/6M jsou na porovnání v samostatné sekci „v EUR“.
 - **Ropné ETC +137 % za rok (WisdomTree Brent JE00B78CGV99, 18. 10. 2026):** skutečnost. Burzovní cena BRNT.MI
   (EUR) 16. 10. 2025 → 16. 10. 2026: 39,96 → 94,03 = +135,3 % (Yahoo). Spotová Brent jen +79,9 % v USD – rozdíl
   dělá výnos z rolování futures v backwardaci (ETC sleduje total-return futures index). Neopravovat.
-- **Portfolio 60/40 má největší propad v Kč −18,2 % v letech 2015–16, ne v roce 2008 (18. 10. 2026):** skutečnost.
-  Nezávislý přepočet (Yahoo adj. close VT + AGG, denní kurzy USD/CZK z ročních lístků ČNB, roční rebalancing od 7/2008):
-  −18,2 %, vrchol 15. 4. 2015 → dno 11. 2. 2016. V letech 2008–09 propad akcií v Kč tlumilo oslabení koruny
-  (USD/CZK ~14,5 → ~22). Neopravovat.
+- **Portfolio 60/40 (stroj času a rychlá volba kalkulačky = 60 % VT + 40 % AGG v USD) má největší propad v Kč −18,2 %
+  v letech 2015–16, ne v roce 2008 (18. 10. 2026):** skutečnost. Nezávislý přepočet (Yahoo adj. close VT + AGG, denní kurzy
+  USD/CZK z ročních lístků ČNB, roční rebalancing od 7/2008): −18,2 %, vrchol 15. 4. 2015 → dno 11. 2. 2016. V letech
+  2008–09 propad akcií v Kč tlumilo oslabení koruny (USD/CZK ~14,5 → ~22). Neopravovat. (Modelové portfolio 60/40 a preset
+  „60/40“ v backtestu mají od kola 5 dluhopisy eurozóny – viz níže, max. pokles −20,5 % v letech 2021–23.)
 
 ## Brokeři: „—“ a „od“ v nákladech jsou záměr (revize 18. 10. 2026)
 
@@ -305,3 +306,35 @@ a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
   převody mezi EUR a CZK jsou zdarma“. Str. 10: 2,50 € ročně za každou zahraniční burzu (max. 0,25 % hodnoty účtu),
   pozn. 1 „není aplikován na … Pražské burze a ETF Selection“. Webová stránka degiro.cz/poplatky (datum 01-10-2025)
   výjimku CZK/EUR neuvádí – je starší; platí PDF. Neopravovat na 0,25 %.
+
+## Modelová portfolia: čím se počítá historie (kolo 5, 19. 10. 2026)
+
+Historie (CAGR, max. pokles v Kč) se počítá z řad manifestu `src/lib/backtest/indexes.ts`; kde fond ve složení řadu nemá,
+je náhrada **viditelně u čísla** („≈ Historie počítá …“, `nahrada` v `PORTFOLIO_BACKTEST`, portfolioData.ts) – ne jen v tooltipu.
+Kde by náhrada byla jiné portfolio, historie **chybí („—“)**. Hlídá `check-fund-data.mjs` (data-kontrola-backtest:
+viditelná věta u náhrad, žádný `us_aggregate_bond`, Dividendové bez backtestu).
+
+| Portfolio | Náhrada v historii | Proč |
+|---|---|---|
+| Permanentní, All Weather | žádná (US státní dluhopisy, zlato, komodity = fondy ve složení jsou také USD) | – |
+| 60/40 | dluhopisy = `eur_govt_bond` (Xtrackers Eurozone Govt, XGLE.DE, EUR) | fond ve složení (iShares Core Global Aggregate EUR Hedged) je od 2017 a zajištěný do eur; dřív AGG v USD → v Kč úplně jiné chování (USD/CZK 2008 +35 %) |
+| Nobelovo | dluhopisy = `eur_govt_bond`, nemovitosti = `ftse_europe` (evropské akcie) | dlouhá řada nemovitostních fondů v datech není |
+| Akciové | nemovitosti = `ftse_europe` | totéž |
+| Svět + malé firmy | malé hodnotové firmy = `us_small_cap` (Russell 2000), vyspělé mimo USA = `msci_eafe` | globální small-cap value řada v datech není |
+| Dividendové | **bez historie („—“)** | dřív 95 % celý svět = historie celosvětových akcií, ne dividendového portfolia; S&P Global Dividend Aristocrats v manifestu není (`us_dividend` = VYM, jiný index) |
+
+**Start všech = 26. 6. 2008** (první den dat VT, `ftse_all_world`). Stejný start má preset v backtestu („data od 6/2008“),
+dřív karty „od 7/2008“ vs. backtest „od 6/2008“ (60/40 8,9 × 8,7 %). Nezávislé ověření 19. 10. 2026 (Yahoo adj. close × denní
+kurzy ČNB, roční rebalancing, 26. 6. 2008 → 16. 10. 2026, skript mimo kód webu) proti webu: Permanentní 7,95 × 8,00 %
+(max. pokles −20,3 × −20,1 %), All Weather 7,48 × 7,56 % (−21,5 × −21,3), Nobelovo 8,25 × 8,25 % (−22,7 × −22,2),
+60/40 7,65 × 7,65 % (−20,7 × −20,5), Akciové 10,19 × 10,19 % (−33,3 × −33,3), Svět + malé firmy 11,79 × 11,78 % (−33,3 × −33,3),
+100 % VT 10,82 × 10,81 % (−32,1 × −32,1). Rozdíly = kurzy ČNB vs. ECB a den rebalancingu.
+Karty se řadí podle max. poklesu (od nejmělčího), portfolio bez historie na konci.
+
+**Kalkulačka: rychlá volba „60/40“ a „doopravdy“ zůstávají 60 % VT + 40 % AGG** (řada stroje času, `strojCasuVypocet.ts`) –
+odkaz do backtestu proto nese explicitní `slozeni=`, ne preset „60/40“ (ten má od kola 5 dluhopisy eurozóny). Neslučovat bez
+úpravy stroje času.
+
+**Backtest – „Největší propady“ se dvěma stejnými čísly NEJSOU duplicita.** 70 % celý svět + 30 % EUR dluhopisy od 2008:
+−19,93 % (9/2008 → 11/2008) a −19,93 % (11/2021 → 4/2023), resp. bez vkladů −19,93/−19,82 a −18,73/−18,70 (2015–16 × 2020) –
+různé epizody (ověřeno z API na plnou přesnost 19. 10. 2026). Tabulka při shodě na 1 desetinné místo ukazuje setiny a pod ní větu.

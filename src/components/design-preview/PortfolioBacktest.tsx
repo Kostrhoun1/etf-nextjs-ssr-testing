@@ -12,8 +12,8 @@ import { kulateKroky, fmtOsa } from '@/lib/osyGrafu';
 /* Historická výkonnost modelového portfolia na REÁLNÝCH denních datech (stejné jádro jako /backtest).
  *
  * Revize 18. 10. 2026 (kolo 3):
- *  – každé číslo JEDNOU: srovnávací tabulka portfolio × 100 % akcie je jediné místo s ukazateli (dřív stejné
- *    10,5 % čtyřikrát: dlaždice nahoře, tabulka, dlaždice dole, souhrnný text),
+ *  – každé číslo JEDNOU: srovnávací tabulka portfolio × 100 % akcie je jediné místo s ukazateli (dřív stejné
+ *    10,5 % čtyřikrát: dlaždice nahoře, tabulka, dlaždice dole, souhrnný text),
  *  – graf ve stejném vizuálním jazyce jako backtest (recharts, kulaté osy osyGrafu.ts, roky na ose X),
  *  – kolísavost = ukazatel backtestu (z měsíčních výnosů), ne směrodatná odchylka ročních výnosů včetně neúplných let,
  *  – neúplné krajní roky (2008 od července, letošek) jsou označené a nesoutěží o nejlepší/nejhorší rok ani kladné roky,
@@ -35,7 +35,7 @@ const INITIAL: Record<Currency, number> = { CZK: 100000, EUR: 4000, USD: 4500 };
 
 const pctD = (v: number | null | undefined, digits = 1) =>
   v == null || !Number.isFinite(v) ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits })} %`;
-const pct0 = (v: number) => `${(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+const pct0 = (v: number) => `${(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace('-', '−')} %`;
 
 const money = (v: number, cur: Currency) => {
   const sym = cur === 'CZK' ? ' Kč' : cur === 'EUR' ? ' €' : ' $';
@@ -201,7 +201,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
           <h3 className="text-sm font-semibold text-slate-900">Kolik by bylo ze {money(INITIAL[cur], cur)} <span className="font-normal text-slate-500">(hodnota {jednotka(cur)})</span></h3>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 h-0.5 bg-teal-600" />{portfolioName}: <span className="font-semibold text-slate-900">{ap}{money(s.netAssetValue, cur)}</span></span>
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 border-t border-dashed border-slate-500" />100 % akcie: <span className="font-medium text-slate-800">{money(b.netAssetValue, cur)}</span></span>
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 border-t border-dashed border-slate-500" />100 % akcie: <span className="font-medium text-slate-800">{money(b.netAssetValue, cur)}</span></span>
           </div>
         </div>
         <div className="mt-3 h-60 md:h-64 w-full">
@@ -226,7 +226,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
                     <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
                       <div className="font-semibold mb-0.5">{new Date(p.date).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</div>
                       <div>{portfolioName}: <span className="tabular-nums font-medium">{money(p.pf, cur)}</span></div>
-                      {p.b != null && <div className="text-slate-300">100 % akcie: <span className="tabular-nums">{money(p.b, cur)}</span></div>}
+                      {p.b != null && <div className="text-slate-300">100 % akcie: <span className="tabular-nums">{money(p.b, cur)}</span></div>}
                     </div>
                   );
                 }}
@@ -238,7 +238,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
         </div>
       </div>
 
-      {/* Jediné místo s ukazateli: portfolio × 100 % akcie */}
+      {/* Jediné místo s ukazateli: portfolio × 100 % akcie */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
         <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1">
           {portfolioName} proti 100&nbsp;% akciím

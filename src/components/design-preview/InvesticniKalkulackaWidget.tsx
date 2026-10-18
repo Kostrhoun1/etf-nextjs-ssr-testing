@@ -44,8 +44,8 @@ interface YearRow {
 }
 
 // ===== VÝPOČET (původně 1:1 z utils/investmentCalculations.ts, ten už neexistuje) =====
-// 17. 10. 2026 OPRAVENO (pravidlo č. 1): měsíční sazba byla „roční / 12", takže zadaných 7 % p.a.
-// ve skutečnosti úročilo 7,23 % ročně a výsledek za 20 let byl o ~3 % vyšší (3,02 vs. 2,94 mil. Kč
+// 17. 10. 2026 OPRAVENO (pravidlo č. 1): měsíční sazba byla „roční / 12", takže zadaných 7 % p.a.
+// ve skutečnosti úročilo 7,23 % ročně a výsledek za 20 let byl o ~3 % vyšší (3,02 vs. 2,94 mil. Kč
 // u 100 000 + 5 000/měs.). Teď (1 + r)^(1/12) − 1 – zadaný roční výnos je skutečně roční.
 function calculateInvestment(params: {
   initialInvestment: number;
@@ -108,7 +108,7 @@ function calculateInvestment(params: {
 const ciselnyText = (v: number, kc: boolean) => (kc ? (v === 0 ? '' : v.toLocaleString('cs-CZ')) : v.toLocaleString('cs-CZ', { maximumFractionDigits: 2 }));
 
 /* Pole s číslem: desetinná ČÁRKA (dřív type=number ukazoval „7.5“), mezery v tisících u Kč a VIDITELNÁ hláška,
-   když zadání leží mimo rozsah (revize kola 4: výnos 50 % se tiše ořezal na 30 %, −3 % na 0, doba 0 na 1). */
+   když zadání leží mimo rozsah (revize kola 4: výnos 50 % se tiše ořezal na 30 %, −3 % na 0, doba 0 na 1). */
 function NumberField({
   id,
   label,
@@ -132,14 +132,14 @@ function NumberField({
   const [text, setText] = useState<string | null>(null);
   const [mimo, setMimo] = useState<string | null>(null);
   const stepNum = parseFloat(step ?? '1') || 1;
-  const jednotka = suffix === 'let' ? 'let' : suffix ?? '';
+  const jednotka = (n: number) => (suffix === 'let' ? (n === 1 ? 'rok' : n >= 2 && n <= 4 ? 'roky' : 'let') : suffix ?? '');
   const nastav = (raw: number) => {
     let v = raw;
     if (min != null && v < min) v = min;
     if (max != null && v > max) v = max;
     v = Number(v.toFixed(6));
     setMimo(v !== raw
-      ? `Povolený rozsah je ${(min ?? 0).toLocaleString('cs-CZ')}–${(max ?? 0).toLocaleString('cs-CZ')}\u00a0${jednotka} – počítáme s ${v.toLocaleString('cs-CZ')}\u00a0${jednotka}.`
+      ? `Povolený rozsah je ${(min ?? 0).toLocaleString('cs-CZ')}–${(max ?? 0).toLocaleString('cs-CZ')}\u00a0${jednotka(max ?? 0)} – počítáme s ${v.toLocaleString('cs-CZ')}\u00a0${jednotka(v)}.`
       : null);
     onChange(v);
   };
@@ -249,7 +249,7 @@ const rokyOsy = (n: number) => {
 const fmtMil = (v: number) => v >= 1e6
   ? `${(v / 1e6).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
   : fmtCZK(Math.round(v / 1000) * 1000);
-const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace('-', '−')}\u00a0%`;
 const mesRok = (iso: string) => { const d = new Date(iso); return `${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
 
 export default function InvesticniKalkulackaWidget({ historicke = [], skutecnostVychozi = null }: {
@@ -296,10 +296,10 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
   }, [results, initialInvestment]);
   const osaY = useMemo(() => kulateKroky(chartData.reduce((m, d) => Math.max(m, d.total), 0), 0, 4), [chartData]);
 
-  // Neutrální poznámka mimo obvyklé rozpětí (revize 18. 10. 2026: varování „zkontrolujte zadání“ při 0–2 % působilo jako chyba).
+  // Neutrální poznámka mimo obvyklé rozpětí (revize 18. 10. 2026: varování „zkontrolujte zadání“ při 0–2 % působilo jako chyba).
   const poznamkaVynos = averageReturn < 3
-    ? 'Výnos pod 3 % ročně odpovídá spíš spořicímu účtu nebo dluhopisům než akciím.'
-    : averageReturn > 15 ? 'Výnos nad 15 % ročně je výrazně nad dlouhodobou historií velkých akciových trhů v Kč (viz rychlé volby).' : null;
+    ? 'Výnos pod 3 % ročně odpovídá spíš spořicímu účtu nebo dluhopisům než akciím.'
+    : averageReturn > 15 ? 'Výnos nad 15 % ročně je výrazně nad dlouhodobou historií velkých akciových trhů v Kč (viz rychlé volby).' : null;
   const hasData = Boolean(finalResult) && investmentPeriod > 0;
 
   // Vybraná rychlá volba (shoda s historickým výnosem) → podle ní i odkaz do backtestu.
@@ -440,7 +440,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 <div className="mt-2.5 rounded-lg bg-teal-50/70 border border-teal-100 p-2.5">
                   <p className="text-xs text-teal-900 flex items-center gap-1 flex-wrap">
                     Průměrný roční výnos trhu v Kč, {fmtMesic(historicke[0].odMesic)} – {fmtDen(historicke[0].doDen)}
-                    <InfoTip label="Průměrné roční zhodnocení trhu (CAGR) v korunách z historických cen fondů – jako by se 1. 1. 2004 vložilo jednou a nechalo ležet. S&P 500 = fond SPY; celý svět = fond Vanguard Total World (VT), do 6/2008, kdy ještě nebyl, 60 % S&P 500 + 40 % svět mimo USA; 60/40 = 60 % akcie celého světa + 40 % americké dluhopisy v dolarech (AGG). Po poplatcích těchto fondů, před daní. Backtest od jiného dne vyjde jinak (např. S&P 500 od 1/2005). Minulost, ne předpověď.">
+                    <InfoTip label="Průměrné roční zhodnocení trhu (CAGR) v korunách z historických cen fondů – jako by se 1. 1. 2004 vložilo jednou a nechalo ležet. S&P 500 = fond SPY; celý svět = fond Vanguard Total World (VT), do 6/2008, kdy ještě nebyl, 60 % S&P 500 + 40 % svět mimo USA; 60/40 = 60 % akcie celého světa + 40 % americké dluhopisy v dolarech (AGG). Po poplatcích těchto fondů, před daní. Backtest od jiného dne vyjde jinak (např. S&P 500 od 1/2005). Minulost, ne předpověď.">
                       <span className="sr-only">odkud jsou čísla</span>
                     </InfoTip>
                   </p>
@@ -452,7 +452,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                         <button key={h.id} type="button" aria-pressed={on} data-track={`kalk-vynos:${h.id}`} onClick={() => setAverageReturn(pct)}
                           className={`min-h-[48px] rounded-lg border px-1.5 py-1 text-center transition-colors ${on ? 'border-teal-700 bg-teal-700 text-white' : 'border-teal-200 bg-white text-slate-700 hover:border-teal-400'}`}>
                           <span className="block text-[11px] leading-tight">{h.id === 'vyvazene' ? '60/40' : h.nazev}</span>
-                          <span className="block text-sm font-semibold tabular-nums">{pct.toLocaleString('cs-CZ')} %</span>
+                          <span className="block text-sm font-semibold tabular-nums">{pct.toLocaleString('cs-CZ')} %</span>
                         </button>
                       );
                     })}
@@ -465,12 +465,12 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
           {/* Kontrola parametrů */}
           {poznamkaVynos && <p className="mt-2 text-xs text-slate-500 leading-relaxed">{poznamkaVynos}</p>}
 
-          {/* Daň – do „dalšího nastavení“ (časový test = výchozí 0 %) */}
+          {/* Daň – do „dalšího nastavení“ (časový test = výchozí 0 %) */}
           <details className="group mt-4 rounded-lg border border-slate-200">
             <summary className="flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer list-none min-h-[44px] rounded-lg hover:bg-slate-50">
               <span className="text-sm font-medium text-slate-700">Daň z výnosů</span>
               <span className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="group-open:hidden tabular-nums">{taxRate} %</span>
+                <span className="group-open:hidden tabular-nums">{taxRate} %</span>
                 <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
               </span>
             </summary>
@@ -478,7 +478,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               <NumberField
                 id="tax"
                 label={
-                  <InfoTip label="Při držení ETF déle než 3 roky je zisk v ČR osvobozen (časový test = 0 %). Při kratším držení se zisk daní 15 %, resp. 23 %.">Daň ze zisku</InfoTip>
+                  <InfoTip label="Při držení ETF déle než 3 roky je zisk v ČR osvobozen (časový test = 0 %). Při kratším držení se zisk daní 15 %, resp. 23 %.">Daň ze zisku</InfoTip>
                 }
                 value={taxRate}
                 step="1"
@@ -570,7 +570,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               </ResponsiveContainer>
             </div>
             <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-              Model se stálým výnosem {averageReturn.toLocaleString('cs-CZ')} % každý rok. Skutečný trh kolísá – hodnota může i klesat, někdy i roky.
+              Model se stálým výnosem {averageReturn.toLocaleString('cs-CZ')} % každý rok. Skutečný trh kolísá – hodnota může i klesat, někdy i roky.
             </p>
           </div>
         )}
@@ -589,12 +589,12 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 : initialInvestment > 0
                   ? <>Když jednorázově vložíte {fmtCZK(initialInvestment)}, </>
                   : <>Když budete vkládat {fmtCZK(recurringInvestment)} {frekvenceText}, </>}
-              vložíte za {investmentPeriod} {let_(investmentPeriod)} celkem {fmtCZK(finalResult.totalInvested)}. Při výnosu {averageReturn.toLocaleString('cs-CZ')} % ročně z toho bude{' '}
+              vložíte za {investmentPeriod} {let_(investmentPeriod)} celkem {fmtCZK(finalResult.totalInvested)}. Při výnosu {averageReturn.toLocaleString('cs-CZ')} % ročně z toho bude{' '}
               <strong className="font-semibold text-white">{fmtCZK(finalResult.netValue)}</strong>
-              {podilVynosu > 0 && <> – {Math.round(podilVynosu * 100)} % konečné částky tvoří výnos, ne vaše vklady</>}.
+              {podilVynosu > 0 && <> – {Math.round(podilVynosu * 100)} % konečné částky tvoří výnos, ne vaše vklady</>}.
             </p>
             <p className="mt-2 text-xs text-teal-100/90 leading-relaxed">
-              V dnešních cenách to při inflaci 2 % ročně (cíl ČNB) odpovídá zhruba {fmtCZK(Math.round(vDnesnichCenach / 1000) * 1000)}.
+              V dnešních cenách to při inflaci 2 % ročně (cíl ČNB) odpovídá zhruba {fmtCZK(Math.round(vDnesnichCenach / 1000) * 1000)}.
             </p>
           </div>
 
@@ -604,7 +604,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
             <p className="mt-1 text-sm text-slate-600 leading-relaxed">
               Stejné vklady {scenar.doCeho} od {fmtMesic(scenar.start)} na skutečných historických datech v Kč
               {scenar.priblizeni && (
-                <> <InfoTip label="Celosvětový fond Vanguard Total World (VT) má data až od 7/2008. Pro dřívější začátek proto počítáme přiblížení: 60 % S&P 500 + 40 % akcie mimo USA (stejně jako preset „USA + zbytek světa“ v backtestu).">
+                <> <InfoTip label="Celosvětový fond Vanguard Total World (VT) má data až od 7/2008. Pro dřívější začátek proto počítáme přiblížení: 60 % S&P 500 + 40 % akcie mimo USA (stejně jako preset „USA + zbytek světa“ v backtestu).">
                   <span className="sr-only">proč</span></InfoTip></>
               )}
               {scenar.zkraceno && ' – data v Kč máme až od tohoto měsíce, období je proto kratší než zadaných ' + investmentPeriod + ' ' + let_(investmentPeriod)}:
@@ -700,7 +700,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
       )}
 
       {/* Mobil: výsledek v liště dole, jen když velké číslo není na obrazovce. */}
-      {/* CO JE SLOŽENÉ ÚROČENÍ – příklad se ZADANÝM výnosem (dřív napevno 7 %) */}
+      {/* CO JE SLOŽENÉ ÚROČENÍ – příklad se ZADANÝM výnosem (dřív napevno 7 %) */}
       {(() => {
         const r = averageReturn / 100;
         const r1 = Math.round(100000 * (1 + r)), r2 = Math.round(100000 * (1 + r) * (1 + r));
@@ -709,7 +709,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
           <section data-sekce="kalk-slozene-uroceni">
             <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900">Co je složené úročení</h2>
             <p className="mt-1 mb-4 text-sm text-slate-600 leading-relaxed">
-              100 000 Kč při {pct} % ročně je po roce {fmtCZK(r1)}; druhý rok se {pct} % počítá už z {fmtCZK(r1)} = {fmtCZK(r2)}.
+              100 000 Kč při {pct} % ročně je po roce {fmtCZK(r1)}; druhý rok se {pct} % počítá už z {fmtCZK(r1)} = {fmtCZK(r2)}.
             </p>
             <div className="grid sm:grid-cols-3 gap-3">
               {([

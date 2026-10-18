@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Výchozí scénář (100 % S&P 500, od 1/2005, 100 000 Kč + 5 000 Kč měsíčně) spočítaný při ISR renderu
+ * Výchozí scénář (100 % S&P 500, od 1/2005, 100 000 Kč + 5 000 Kč měsíčně) spočítaný při ISR renderu
  * STEJNÝM jádrem a STEJNÝM tělem požadavku jako widget (VYCHOZI_SCENAR) → číslo a graf jsou vidět hned
  * po načtení, bez kliknutí a bez volání API (revize 18. 10. 2026: 19 s na zobrazení, výsledek nikdo neviděl).
  * Do HTML jde jen to, co widget kreslí: denní řada → první bod měsíce + poslední bod, bez měsíčních
@@ -107,7 +107,7 @@ export default async function BacktestPreview() {
     },
     {
       q: 'Co znamená „Celý svět“ a „USA + zbytek světa“?',
-      a: 'Celý svět = akcie z vyspělých i rozvíjejících se trhů v jednom fondu (Vanguard Total World, VT); data má od června 2008. Pro delší historii nabízíme USA + zbytek světa: 60 % S&P 500 a 40 % akcií mimo USA od roku 2000. Je to přiblížení – podíl USA ve světovém indexu byl po většinu té doby nižší než 60 %.',
+      a: 'Celý svět = akcie z vyspělých i rozvíjejících se trhů v jednom fondu (Vanguard Total World, VT); data má od června 2008. Pro delší historii nabízíme USA + zbytek světa: 60 % S&P 500 a 40 % akcií mimo USA od roku 2000. Je to přiblížení – podíl USA ve světovém indexu byl po většinu té doby nižší než 60 %.',
     },
     {
       q: 'Proč se „Známé krize“ liší od tabulky největších propadů?',
@@ -115,7 +115,7 @@ export default async function BacktestPreview() {
     },
     {
       q: 'Co je maximální pokles a proč na něm záleží?',
-      a: 'Maximální pokles (drawdown) je největší propad hodnoty portfolia od předchozího vrcholu po dno. Ukazuje nejhorší situaci, kterou byste v daném období zažili. Pokles o 50 % znamená, že portfolio dočasně ztratilo polovinu hodnoty – a právě toto číslo prozradí, kolik nervů by držení vyžadovalo.',
+      a: 'Maximální pokles (drawdown) je největší propad hodnoty portfolia od předchozího vrcholu po dno. Ukazuje nejhorší situaci, kterou byste v daném období zažili. Pokles o 50 % znamená, že portfolio dočasně ztratilo polovinu hodnoty – a právě toto číslo prozradí, kolik nervů by držení vyžadovalo.',
     },
     {
       q: 'Jsou výsledky backtestu spolehlivé pro budoucnost?',

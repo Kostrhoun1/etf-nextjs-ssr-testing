@@ -83,9 +83,9 @@ function recommend(a: Answers): { key: string; klid: boolean; caution?: string }
 }
 
 function payoutNote(payout?: string): string {
-  if (payout === 'dist') return 'Hledejte distribuční (Dist) variantu – dividendy vám chodí na účet (v ČR je daníte 15 %).';
+  if (payout === 'dist') return 'Hledejte distribuční (Dist) variantu – dividendy vám chodí na účet (v ČR je daníte 15 %).';
   if (payout === 'acc') return 'Hledejte akumulační (Acc) variantu – dividendy se reinvestují uvnitř fondu a v ČR je řešit nemusíte.';
-  return 'Akumulační (Acc) varianta dividendy reinvestuje uvnitř fondu (v ČR je nedaníte), distribuční (Dist) je vyplácí na účet (daň 15 %).';
+  return 'Akumulační (Acc) varianta dividendy reinvestuje uvnitř fondu (v ČR je nedaníte), distribuční (Dist) je vyplácí na účet (daň 15 %).';
 }
 
 function FondRadek({ f }: { f?: UkazkaFondu }) {
@@ -103,7 +103,7 @@ function FondRadek({ f }: { f?: UkazkaFondu }) {
 
 export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = null }: {
   fondy?: Record<string, UkazkaFondu>; portfoliaKlid?: PortfolioKlid[];
-  /** 100 % akcie celého světa (VT) ve stejném backtestu – pro srovnání propadu. */
+  /** 100 % akcie celého světa (VT) ve stejném backtestu – pro srovnání propadu. */
   akcie?: { cagr: number; maxPokles: number } | null;
 }) {
   const [step, setStep] = useState(0);
@@ -153,7 +153,7 @@ export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = nu
         <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-300"><Sparkles className="w-4 h-4" /> Podle vašich odpovědí</span>
         {klid ? (<>
           <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">Portfolia s dluhopisy</h2>
-          <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Když nechcete velké propady, odpovídají vám spíš <strong className="text-white">portfolia, kde akcie tvoří menšinu</strong> a zbytek dluhopisy a zlato. Propadům se nevyhnou, ale bývají mělčí.</p>
+          <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Když nechcete velké propady, odpovídají vám spíš <strong className="text-white">portfolia, kde akcie tvoří menšinu</strong> a zbytek hlavně dluhopisy a zlato. Propadům se nevyhnou, ale bývají mělčí.</p>
         </>) : (<>
           <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">{cat.label}</h2>
           <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Vašim odpovědím odpovídají <strong className="text-white">{cat.vVete}</strong> – {cat.why}.</p>
@@ -184,7 +184,7 @@ export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = nu
         {klid ? (
           <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
             <p className="text-sm font-semibold text-slate-900">Druhá možnost: {cat.vVete}</p>
-            <p className="text-sm text-slate-600 leading-relaxed">Čistě akciové fondy rostly víc, ale propady byly hlubší – {cat.why}.</p>
+            <p className="text-sm text-slate-600 leading-relaxed">Čistě akciové fondy rostly víc, ale propady byly hlubší.</p>
             <FondRadek f={fondy[rec.key]} />
             <Link href={`/nejlepsi-etf/${cat.slug}`} className="inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">Fondy v kategorii {cat.label} <ArrowRight className="w-4 h-4" /></Link>
           </section>

@@ -108,8 +108,6 @@ function HistorieMetriky({ h, bezHistorie }: { h: HistoriePortfolia | null | und
           <span className={`tabular-nums text-lg font-bold ${h ? 'text-slate-900' : 'text-slate-400'}`}>{h ? `${ap}${pctZnam(h.maxPokles * 100)}` : '—'}</span>
         </div>
       </div>
-      {h?.nahrada && <p className="mt-1.5 text-[11px] leading-snug text-slate-500">≈ {h.nahrada}</p>}
-      {!h && bezHistorie && <p className="mt-1.5 text-[11px] leading-snug text-slate-500">{bezHistorie}</p>}
     </div>
   );
 }
@@ -128,6 +126,9 @@ export function PortfolioCard({ model, returns, historie }: { model: PortfolioMo
       <p className="mb-3 text-sm leading-snug text-slate-600">{model.forWhom}</p>
       <PortfolioBar model={model} />
       <p className="mt-3 text-xs text-slate-500">{narocnost(model)}</p>
+      {/* Čím je historie počítaná – nad KPI, aby čísla ve všech kartách řady stála na stejné výšce. */}
+      {historie?.nahrada && <p className="mt-2 text-xs leading-snug text-amber-800">≈ {historie.nahrada}</p>}
+      {!historie && BEZ_HISTORIE[model.slug] && <p className="mt-2 text-xs leading-snug text-slate-600">{BEZ_HISTORIE[model.slug]}</p>}
       {/* KPI dole zarovnané napříč kartami v řadě (mt-auto) – dřív skákaly podle délky legendy. */}
       <div className="mt-auto pt-4">
         <div className="border-t border-slate-100 pt-3">

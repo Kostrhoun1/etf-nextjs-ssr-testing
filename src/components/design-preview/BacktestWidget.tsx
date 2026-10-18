@@ -121,16 +121,16 @@ const AVAILABLE_INDEXES = BACKTEST_INDEX_CODES.map((code) => {
 
 /* === Hotová portfolia ===
  * „Celý svět“ znamená ve všech nástrojích totéž: fond Vanguard Total World (VT, index FTSE Global All Cap),
- * data od 6/2008 (stejně jako složka „Celý svět“ a stroj času). Starší aproximace 60 % S&P 500 + 40 % svět
+ * data od 6/2008 (stejně jako složka „Celý svět“ a stroj času). Starší aproximace 60 % S&P 500 + 40 % svět
  * mimo USA se jmenuje poctivě „USA + zbytek světa“ (revize 18. 10. 2026: dřív se jí říkalo „Celý svět“).
  * Id 'global-since-2000' zůstává kvůli sdíleným odkazům. */
 const PRESET_PORTFOLIOS = [
   { id: 'sp500-100', name: '100% S&P 500', description: '500 největších firem USA v jednom indexu – nejsledovanější akciová sázka na americkou ekonomiku. Nejvyšší dlouhodobý výnos, ale i hluboké propady.', etfs: [{ indexCode: 'sp500', weight: 100 }] },
   { id: 'cely-svet', name: 'Celý svět', description: 'Akcie celého světa v jednom fondu – vyspělé i rozvíjející se trhy, velké i malé firmy (Vanguard Total World, VT). Data od června 2008; delší historii ukáže „USA + zbytek světa“.', etfs: [{ indexCode: 'ftse_all_world', weight: 100 }] },
-  { id: 'global-since-2000', name: 'USA + zbytek světa', description: '60 % USA (S&P 500) + 40 % akcie mimo USA (vyspělé i rozvíjející se trhy). Přibližuje akcie celého světa i před rokem 2008, kdy celosvětový fond ještě nebyl – data od roku 2000, projde krizí dot-com i 2008. USA mají ve světovém indexu většinou méně než 60 %.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
+  { id: 'global-since-2000', name: 'USA + zbytek světa', description: '60 % USA (S&P 500) + 40 % akcie mimo USA (vyspělé i rozvíjející se trhy). Přibližuje akcie celého světa i před rokem 2008, kdy celosvětový fond ještě nebyl – data od roku 2000, projde krizí dot-com i 2008. USA mají ve světovém indexu většinou méně než 60 %.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
   // 60/40 = stejné složení jako modelové portfolio 60/40 (portfolioData.ts): dluhopisy přes státní dluhopisy eurozóny v EUR
   // (kolo 5, 18. 10. 2026; dřív americký AGG v USD – v Kč se chová úplně jinak než evropský fond zajištěný do eur).
-  { id: '60-40', name: '60/40 portfolio', description: 'Klasika investování: 60 % akcie celého světa, 40 % státní dluhopisy eurozóny (v eurech). Dluhopisy tlumí propady – klidnější jízda za cenu o něco nižšího výnosu.', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'eur_govt_bond', weight: 40 }] },
+  { id: '60-40', name: '60/40 portfolio', description: 'Klasika investování: 60 % akcie celého světa, 40 % státní dluhopisy eurozóny (v eurech). Dluhopisy tlumí propady – klidnější jízda za cenu o něco nižšího výnosu.', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'eur_govt_bond', weight: 40 }] },
   {
     id: 'all-weather', name: 'All Weather (Ray Dalio)', description: 'Portfolio slavného investora Raye Dalia: akcie + dlouhé i krátké dluhopisy + zlato a komodity. Cíl není nejvyšší výnos, ale obstát v každé fázi ekonomiky (růst, recese, inflace).',
     etfs: [
@@ -139,18 +139,18 @@ const PRESET_PORTFOLIOS = [
     ],
   },
   {
-    id: 'permanent', name: 'Permanentní portfolio', description: 'Portfolio Harryho Browna: po 25 % akcie, dlouhé státní dluhopisy, krátké dluhopisy (hotovost) a zlato. Jednoduché a odolné „za každého počasí".',
+    id: 'permanent', name: 'Permanentní portfolio', description: 'Portfolio Harryho Browna: po 25 % akcie, dlouhé státní dluhopisy, krátké dluhopisy (hotovost) a zlato. Jednoduché a odolné „za každého počasí".',
     etfs: [
       { indexCode: 'ftse_all_world', weight: 25 }, { indexCode: 'us_treasury_20y', weight: 25 },
       { indexCode: 'us_treasury_1_3y', weight: 25 }, { indexCode: 'gold', weight: 25 },
     ],
   },
   {
-    id: 'developed-world', name: 'Rozvinutý svět', description: 'Akcie rozvinutého světa BEZ rozvíjejících se trhů – 60 % USA + 40 % ostatní vyspělé trhy (Evropa, Japonsko, Kanada, Austrálie…). Pro toho, kdo nechce Čínu, Indii a další EM.',
+    id: 'developed-world', name: 'Rozvinutý svět', description: 'Akcie rozvinutého světa BEZ rozvíjejících se trhů – 60 % USA + 40 % ostatní vyspělé trhy (Evropa, Japonsko, Kanada, Austrálie…). Pro toho, kdo nechce Čínu, Indii a další EM.',
     etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'msci_eafe', weight: 40 }],
   },
   {
-    id: 'buffett-90-10', name: 'Buffettovo 90/10', description: 'Co Warren Buffett odkázal manželce: 90 % S&P 500 + 10 % krátké státní dluhopisy. Sázka na jednoduchost, nízké náklady a dlouhý horizont.',
+    id: 'buffett-90-10', name: 'Buffettovo 90/10', description: 'Co Warren Buffett odkázal manželce: 90 % S&P 500 + 10 % krátké státní dluhopisy. Sázka na jednoduchost, nízké náklady a dlouhý horizont.',
     etfs: [{ indexCode: 'sp500', weight: 90 }, { indexCode: 'us_treasury_1_3y', weight: 10 }],
   },
 ];
@@ -167,7 +167,7 @@ const PRESET_SHORT: Record<string, string> = {
   'buffett-90-10': 'Buffett 90/10',
 };
 
-// Investiční styly (faktory) – rychlý vstup „faktor vs S&P 500". Kliknutí nahraje faktor (100 %),
+// Investiční styly (faktory) – rychlý vstup „faktor vs S&P 500". Kliknutí nahraje faktor (100 %),
 // přidá S&P 500 do porovnání a spustí. `since` = odkdy má faktor REÁLNÉ ETF (momentum/quality až 2014).
 const FACTOR_STYLES: { code: string; label: string; slug: string; since: string }[] = [
   { code: 'us_momentum', label: 'Momentum', slug: 'momentum', since: '2014-01-01' },
@@ -234,11 +234,12 @@ const CURRENCIES: { code: Currency; label: string }[] = [
 // Barvy sérií pro porovnání: [0] = vlastní portfolio (teal), [1..] = porovnávaná.
 const SERIES_COLORS = ['#0d9488', '#6366f1', '#f59e0b'];
 
+// Záporná čísla znaménkem minus „−“ (U+2212), procento s nezlomitelnou mezerou (jednotné formáty kola 5).
 const fmtMoney = (v: number, currency: Currency) =>
-  new Intl.NumberFormat('cs-CZ', { style: 'currency', currency, maximumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat('cs-CZ', { style: 'currency', currency, maximumFractionDigits: 0 }).format(v).replace('-', '−');
 
 const fmtPct = (v: number, digits = 1) =>
-  `${v.toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits })} %`;
+  `${v.toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits }).replace('-', '−')}\u00a0%`;
 
 
 /** „16. 10. 2026“ – datum posledního bodu dat (každé číslo má datum). */
@@ -321,7 +322,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const [vysledekPro, setVysledekPro] = useState<string | null>(initialResult ? konfig : null);
   // Popis toho, co výsledek počítal (složení, vklady) – ukazuje se nad velkým číslem.
   const popisNastaveni = () => {
-    const casti = selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')} %`).join(' + ');
+    const casti = selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')} %`).join(' + ');
     const nazev = !activeStyle && activePreset && activePreset !== 'sp500-100' ? (PRESET_SHORT[activePreset] ?? null) : null;
     const slozeni = nazev && !casti.startsWith(nazev) ? `${nazev}: ${casti}` : casti;
     const cur = CURRENCIES.find((c) => c.code === currency)?.label ?? '';
@@ -355,7 +356,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     setActiveStyle(null);
   };
 
-  // Rychlý vstup „faktor vs S&P 500": nahraje faktor (100 %), přidá index do porovnání,
+  // Rychlý vstup „faktor vs S&P 500": nahraje faktor (100 %), přidá index do porovnání,
   // nastaví okno od reálného ETF a vypne pravidelné vklady (čistá jednorázová komparace).
   const applyFactor = (code: string) => {
     const style = FACTOR_STYLES.find((s) => s.code === code);
@@ -392,7 +393,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     setSelectedETFs((prev) => prev.map((e) => (idRadku(e) === id ? { ...e, weight: Math.max(0, Math.min(100, weight)) } : e)));
   };
 
-  // Přidání konkrétního fondu (hledání podle tickeru/názvu). Váha = zbytek do 100 %.
+  // Přidání konkrétního fondu (hledání podle tickeru/názvu). Váha = zbytek do 100 %.
   const addFond = (f: Extract<NalezenyFond, { ok: true }>) => {
     if (selectedETFs.some((e) => e.fond?.isin === f.isin)) return;
     setActivePreset(null);
@@ -709,12 +710,17 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const dd = result?.risk.allDrawdowns ?? [];
     return [...dd].sort((a, b) => a.depth - b.depth).slice(0, 5);
   }, [result]);
-  /* Dvě RŮZNÉ epizody se mohou na 1 desetinné místo shodovat (70/30 od 2008: −19,93 % v 2021–23 a −19,82 % v 2008).
+  /* Dvě RŮZNÉ epizody se mohou na 1 desetinné místo shodovat (70/30 od 2008: −19,93 % v 2021–23 a −19,82 % v 2008).
      Revize kola 4 to četla jako duplicitu → u shody ukážeme setiny. Ověřeno 18. 10. 2026, viz ZAMERNA-ROZHODNUTI.md. */
   const ddDesetin = useMemo(() => {
     const r1 = topDrawdowns.map((d) => (d.depth * 100).toFixed(1));
     return new Set(r1).size < r1.length ? 2 : 1;
   }, [topDrawdowns]);
+  // I na setiny se mohou shodovat (−19,93 % v 2008 i 2021–23 s pravidelnými vklady) → věta pod tabulkou.
+  const ddShoda = useMemo(() => {
+    const r = topDrawdowns.map((d) => (d.depth * 100).toFixed(ddDesetin));
+    return new Set(r).size < r.length;
+  }, [topDrawdowns, ddDesetin]);
 
   // Kontext výsledku: kdy data začínají / končí a zda se start posunul proti zadání.
   const prvni = result?.evolution[0]?.date;
@@ -736,7 +742,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   })();
   const zastaraly = !!result && vysledekPro !== konfig;
   /* AUTOMATICKÝ PŘEPOČET (revize kola 4): změna vkladu, období, porovnání… → po 0,8 s se spočítá sám, starý výsledek
-     je mezitím zašedlý. Neplatné nastavení (součet vah ≠ 100 %, nulové vklady) nepočítá a říká proč. */
+     je mezitím zašedlý. Neplatné nastavení (součet vah ≠ 100 %, nulové vklady) nepočítá a říká proč. */
   const lzePocitat = totalWeight === 100 && selectedETFs.length > 0 && !bezVkladu;
   // Chyba platí pro nastavení, se kterým vznikla – po změně se zkusí znovu (jinak by auto-přepočet stál).
   const prvniKonfig = useRef(konfig);
@@ -762,7 +768,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   }, [ddData]);
   /* Kolik měsíců bylo portfolio hluboko pod vrcholem – ze STEJNÉ řady jako graf (za měsíc nejhlubší bod
      denních dat, takže dno grafu = max. pokles). Dřív se podíl zaokrouhloval na celá procenta a „max. pokles
-     −20,4 %“ stál vedle „víc než 20 % pod vrcholem v 0 % měsíců“ (revize 18. 10. 2026) → počty měsíců. */
+     −20,4 %“ stál vedle „víc než 20 % pod vrcholem v 0 % měsíců“ (revize 18. 10. 2026) → počty měsíců. */
   const podVrcholem = useMemo(() => {
     const dd = result?.drawdownSeries ?? [];
     if (dd.length < 12) return null;
@@ -1181,7 +1187,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <p className="mt-3 text-xs text-slate-500 leading-relaxed">
                 Konkrétní fondy počítáme z dlouhé historie indexu (z dat uvedeného fondu), přepočtené na poplatek vybraného fondu.
                 „Podobný index“ = fond sleduje jiný, ale velmi podobný index. Evropské fondy na americké akcie navíc platí daň
-                z dividend (u S&amp;P 500 zhruba 0,2 % ročně), kterou historie amerických fondů neobsahuje.
+                z dividend (u S&amp;P 500 zhruba 0,2 % ročně), kterou historie amerických fondů neobsahuje.
               </p>
             )}
 
@@ -1321,7 +1327,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <div>
                 <label htmlFor="bt-rebal" className="block text-sm text-slate-600 mb-1 flex items-center gap-1">
                   Vyvažování portfolia
-                  <InfoTip label="Jak často se portfolio vrací k zadaným vahám. Časté vyvažování drží riziko na uzdě, ale v reálu znamená víc obchodů (poplatky) a u zdaněného účtu i dřívější realizaci zisků – backtest ani jedno nezapočítává. Pásmo 5 % vyvažuje jen tehdy, když se některá složka od cíle odchýlí o víc než 5 procentních bodů.">
+                  <InfoTip label="Jak často se portfolio vrací k zadaným vahám. Časté vyvažování drží riziko na uzdě, ale v reálu znamená víc obchodů (poplatky) a u zdaněného účtu i dřívější realizaci zisků – backtest ani jedno nezapočítává. Pásmo 5 % vyvažuje jen tehdy, když se některá složka od cíle odchýlí o víc než 5 procentních bodů.">
                     <span className="sr-only">vysvětlení</span>
                   </InfoTip>
                 </label>
@@ -1334,9 +1340,9 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   <option value="half-yearly">Pololetně</option>
                   <option value="every-2-years">Jednou za 2 roky</option>
                   <option value="every-3-years">Jednou za 3 roky</option>
-                  <option value="tolerance-5">Při odchylce nad 5 %</option>
-                  <option value="tolerance-10">Při odchylce nad 10 %</option>
-                  <option value="tolerance-20">Při odchylce nad 20 %</option>
+                  <option value="tolerance-5">Při odchylce nad 5 %</option>
+                  <option value="tolerance-10">Při odchylce nad 10 %</option>
+                  <option value="tolerance-20">Při odchylce nad 20 %</option>
                 </select>
               </div>
 
@@ -1418,7 +1424,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <p className="text-sm text-slate-500 mt-0.5">Jak hluboké byly propady a jak dlouho trval návrat.</p>
             </div>
 
-            {/* Max. pokles (výsledek nahoře) a krize jsou DVĚ různá měření – propojit je, ať −52,8 % vedle −49,7 %
+            {/* Max. pokles (výsledek nahoře) a krize jsou DVĚ různá měření – propojit je, ať −52,8 % vedle −49,7 %
                 nevypadá jako rozpor (revize 18. 10. 2026). */}
             {result.risk.maxDrawdown.depth < 0 && (
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl border border-red-100 bg-red-50/50 px-4 py-3">
@@ -1453,7 +1459,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     const md = result.risk.maxDrawdown;
                     const sMax = !!w && md.depth < s.drop - 0.0005 && md.troughDate.slice(0, 10) >= w.start && md.troughDate.slice(0, 10) <= w.end;
                     /* Okno krize obsahuje dno max. poklesu → návrat jedním číslem: zpět na vrchol před celým propadem
-                       (revize kola 4: týž propad −52,8 % měl jednou „návrat ~4 roky“, jednou „~3 roky“). */
+                       (revize kola 4: týž propad −52,8 % měl jednou „návrat ~4 roky“, jednou „~3 roky“). */
                     const recText = sMax ? navratPoPropadu(md) : recLabel;
                     const recOk = sMax ? md.recovered : rec != null;
                     return (
@@ -1485,7 +1491,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 </p>
                 {podVrcholem && (
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Víc než 10 % pod vrcholem bylo portfolio v {mesicu(podVrcholem.deset, podVrcholem.celkem)}, víc než 20 % v {mesicu(podVrcholem.dvacet, podVrcholem.celkem)} (počítá se nejhlubší bod měsíce).
+                    Víc než 10 % pod vrcholem bylo portfolio v {mesicu(podVrcholem.deset, podVrcholem.celkem)}, víc než 20 % v {mesicu(podVrcholem.dvacet, podVrcholem.celkem)} (počítá se nejhlubší bod měsíce).
                   </p>
                 )}
                 <div className="mt-3 h-48 md:h-56 w-full">
@@ -1597,7 +1603,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                         <td className="text-right py-2.5 px-2 tabular-nums text-slate-700 whitespace-nowrap">{r.average >= 0 ? '+' : ''}{fmtPct(r.average * 100)}</td>
                         <td className="hidden sm:table-cell text-right py-2.5 px-2 tabular-nums font-semibold text-emerald-700 whitespace-nowrap">+{fmtPct(r.high * 100)}</td>
                         <td className={`text-right py-2.5 pl-2 tabular-nums font-semibold whitespace-nowrap ${r.positiveShare >= 0.999 ? 'text-emerald-700' : 'text-slate-700'}`}>
-                          {Math.round(r.positiveShare * 100)} %
+                          {Math.round(r.positiveShare * 100)} %
                         </td>
                       </tr>
                     ))}
@@ -1629,7 +1635,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <MetricCard
                       icon={Activity}
-                      label={<>Sharpe <InfoTip label="Kolik výnosu jste dostali za každou jednotku kolísání (nad bezrizikovou sazbou 2 %). Vyšší číslo = líp zaplaceno za podstoupené nervy."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      label={<>Sharpe <InfoTip label="Kolik výnosu jste dostali za každou jednotku kolísání (nad bezrizikovou sazbou 2 %). Vyšší číslo = líp zaplaceno za podstoupené nervy."><span className="sr-only">vysvětlení</span></InfoTip></>}
                       value={fmt2(s.sharpeRatio)} hint="výnos vs. kolísání" tone="neutral"
                     />
                     <MetricCard
@@ -1644,7 +1650,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     />
                     <MetricCard
                       icon={TrendingDown}
-                      label={<>VaR 95 % <InfoTip label="Value at Risk – zhruba nejhorší rok, který je běžné čekat. Horší nastane jen asi v 1 roce z 20."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      label={<>VaR 95 % <InfoTip label="Value at Risk – zhruba nejhorší rok, který je běžné čekat. Horší nastane jen asi v 1 roce z 20."><span className="sr-only">vysvětlení</span></InfoTip></>}
                       value={fmtPct(result.risk.valueAtRisk95 * 100)} hint="odhad špatného roku" tone="neg"
                     />
                   </div>
@@ -1681,6 +1687,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                           </tbody>
                         </table>
                       </div>
+                      {ddShoda && <p className="mt-2 text-xs text-slate-500">Stejně hluboký propad ve dvou řádcích = dvě různé epizody (jiný vrchol i dno), ne opakovaný řádek.</p>}
                     </div>
                   )}
                 </div>
@@ -1720,15 +1727,17 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           ) : result ? (
             <button type="button" onClick={() => vysledekRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="flex w-full items-center justify-between gap-3 text-left">
               <span className="min-w-0">
-                <span className="block truncate text-xs text-slate-500">{popisVysledku?.slozeni}</span>
-                <span className="block text-base font-bold tabular-nums text-slate-900">
-                  {fmtMoney(result.summary.netAssetValue, resultCurrency)}
-                  {/* XIRR = zhodnocení VAŠICH vkladů; bez pravidelných vkladů je totéž co roční zhodnocení (revize kola 4). */}
-                  {(() => {
-                    const r = irr ?? (popisVysledku && !(popisVysledku.vklad > 0) ? result.summary.cagr : null);
-                    return r == null ? null : <span className={`ml-2 text-xs font-medium ${r >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>zhodnocení vkladů {fmtPct(r * 100)} ročně</span>;
-                  })()}
-                </span>
+                <span className="block text-base font-bold tabular-nums text-slate-900">{fmtMoney(result.summary.netAssetValue, resultCurrency)}</span>
+                {/* XIRR = zhodnocení VAŠICH vkladů; bez pravidelných vkladů je totéž co roční zhodnocení (revize kola 4). */}
+                {(() => {
+                  const r = irr ?? (popisVysledku && !(popisVysledku.vklad > 0) ? result.summary.cagr : null);
+                  return (
+                    <span className="block truncate text-xs text-slate-500">
+                      {r != null && <span className={`font-medium ${r >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>zhodnocení vkladů {fmtPct(r * 100)} ročně · </span>}
+                      {popisVysledku?.slozeni}
+                    </span>
+                  );
+                })()}
               </span>
               <span className="shrink-0 text-sm font-medium text-teal-700">Výsledek ↑</span>
             </button>
@@ -1767,11 +1776,11 @@ function VahaPole({ value, onChange, label }: { value: number; onChange: (v: num
   );
 }
 
-/** „45 z 214 měsíců (21 %)“ – malé podíly nezaokrouhlovat na 0 %. */
+/** „45 z 214 měsíců (21 %)“ – malé podíly nezaokrouhlovat na 0 %. */
 function mesicu(n: number, z: number) {
   if (n === 0) return 'žádném měsíci';
   const pct = (n / z) * 100;
-  const p = pct < 1 ? 'méně než 1 %' : `${Math.round(pct)} %`;
+  const p = pct < 1 ? 'méně než 1 %' : `${Math.round(pct)} %`;
   return `${n} ${n === 1 ? 'měsíci' : 'měsících'} z ${z} (${p})`;
 }
 
@@ -1902,7 +1911,7 @@ function ComparisonBlock({
 
       {/* Srovnávací tabulka */}
       <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-        <table className="w-full text-sm border-collapse">
+        <table className="w-full max-w-3xl text-sm border-collapse">
           <thead>
             <tr className="border-b border-slate-200">
               <th className="text-left font-medium text-slate-500 py-2 pr-3 whitespace-nowrap">Ukazatel</th>

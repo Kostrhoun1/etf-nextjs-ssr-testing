@@ -58,7 +58,7 @@ export default async function VyberEtfPage() {
     '@context': 'https://schema.org', '@type': 'FAQPage',
     mainEntity: [
       { '@type': 'Question', name: 'Jak si vybrat správný ETF?', acceptedAnswer: { '@type': 'Answer', text: 'Vyjděte z investičního horizontu (jak dlouho nebudete peníze potřebovat), z toho, jak velký propad unesete, a z cíle (růst, nebo pravidelný příjem). Průvodce podle odpovědí ukáže, které typy ETF a modelová portfolia odpovídají – se skutečnými výnosy v korunách.' } },
-      { '@type': 'Question', name: 'Je lepší celosvětový ETF, nebo S&P 500?', acceptedAnswer: { '@type': 'Answer', text: 'Celosvětový ETF (např. FTSE All-World) dává nejširší rozložení bez nutnosti hádat region. S&P 500 je koncentrovaná sázka na 500 největších amerických firem s nižšími poplatky, ale 100 % v USA. Celosvětový fond rozkládá riziko do více zemí.' } },
+      { '@type': 'Question', name: 'Je lepší celosvětový ETF, nebo S&P 500?', acceptedAnswer: { '@type': 'Answer', text: 'Celosvětový ETF (např. FTSE All-World) dává nejširší rozložení bez nutnosti hádat region. S&P 500 je koncentrovaná sázka na 500 největších amerických firem s nižšími poplatky, ale 100 % v USA. Celosvětový fond rozkládá riziko do více zemí.' } },
     ],
   };
 

@@ -175,7 +175,7 @@ export const portfolioModels: PortfolioModel[] = [
     slug: 'globalni-jadro-small-cap-value',
     name: 'Svět + malé firmy',
     kratkyNazev: 'Svět + malé firmy',
-    tagline: 'Pro pokročilé: daňově optimalizované světové jádro (85 %) a k němu jediný faktor, který přežije náklady — malé hodnotové firmy (15 %).',
+    tagline: 'Pro pokročilé: daňově optimalizované světové jádro (85 %) a k němu jediný faktor, který přežije náklady — malé hodnotové firmy (15 %).',
     risk: 'Agresivní',
     stocksPct: 100,
     horizon: 'od 12 let',
@@ -206,7 +206,7 @@ export const RIZIKO_TECKY: Record<PortfolioRisk, number> = { 'Konzervativní': 1
 
 /* Odkaz do backtestu se STEJNÝMI vstupy jako předpočet na stránce: složení, start, 100 000 Kč, bez dalších
    vkladů, roční rebalancování a KONEC DAT = poslední den předpočtu (`do`). Revize 18. 10. 2026: stránka ukazovala
-   617 tis./10,5 % a backtest z jejího odkazu 612 992 Kč/10,4 % – stránka je v ISR cache, backtest počítal do jiného
+   617 tis./10,5 % a backtest z jejího odkazu 612 992 Kč/10,4 % – stránka je v ISR cache, backtest počítal do jiného
    dne. Složení jde vždy explicitně (?slozeni=kod:vaha), backtest si k němu sám najde hotový preset se stejnými
    vahami (název). Denní kontrola (scripts/check-fund-data.mjs) z tohohle odkazu počítá API a porovná s číslem. */
 export function backtestOdkaz(slug: string, doDen?: string): string | null {
@@ -247,8 +247,8 @@ export interface BacktestConfig {
 }
 
 /* Start = první den dat fondu VT (index ftse_all_world, manifest: since 2008-06-26). Stejný start má preset v backtestu
-   („data od 6/2008“) i odkaz z modelového portfolia (revize kola 4, 18. 10. 2026: karta „od 7/2008“ 8,9 % × backtest
-   „od 6/2008“ 8,7 %). 1. 7. 2008 by engine stejně vynechal (vadné ticky 1. dne v měsíci, bezVadnychTicku). */
+   („data od 6/2008“) i odkaz z modelového portfolia (revize kola 4, 18. 10. 2026: karta „od 7/2008“ 8,9 % × backtest
+   „od 6/2008“ 8,7 %). 1. 7. 2008 by engine stejně vynechal (vadné ticky 1. dne v měsíci, bezVadnychTicku). */
 const START_VT = '2008-06-26';
 
 const USD_DLUHOPISY = 'Dluhopisy jsou v tomto portfoliu americké a v dolarech – jejich hodnota v korunách kolísá s kurzem USD/CZK, takže „bezpečná“ část v korunách tak klidná není.';
@@ -282,7 +282,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
     items: [
       { indexCode: 'ftse_all_world', weight: 0.55, ter: 0.0022 },
       // 18. 10. 2026 (kolo 5): dřív us_aggregate_bond (AGG v USD) – v Kč se chová úplně jinak než fond ve složení,
-      // který je zajištěný do eur (USD/CZK 2008: +35 %). Nejbližší EUR řada v manifestu = státní dluhopisy eurozóny.
+      // který je zajištěný do eur (USD/CZK 2008: +35 %). Nejbližší EUR řada v manifestu = státní dluhopisy eurozóny.
       { indexCode: 'eur_govt_bond', weight: 0.25, ter: 0.0007 },
       { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
     ],
@@ -319,8 +319,8 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
     proxyNote: 'Dluhopisy počítáme přes státní dluhopisy eurozóny v eurech (fond Xtrackers Eurozone Government Bond, data od 2008). Fond ve složení (iShares Core Global Aggregate EUR Hedged) je globální, i s firemními dluhopisy, zajištěný do eur a existuje až od 2017. Výsledek je orientační.',
     nahrada: 'Historie počítá dluhopisy přes státní dluhopisy eurozóny v eurech – fond ve složení je globální a zajištěný do eur, výsledek se může lišit.',
   },
-  /* 'dividendove-portfolio' ZÁMĚRNĚ BEZ HISTORIE (kolo 5, 18. 10. 2026): dřív 95 % celý svět jako „proxy“ dividendového
-     indexu → karta tvrdila „Dividendové ≈ +10,9 % ročně, −32 %“, což je historie celosvětových akcií, ne dividendového
+  /* 'dividendove-portfolio' ZÁMĚRNĚ BEZ HISTORIE (kolo 5, 18. 10. 2026): dřív 95 % celý svět jako „proxy“ dividendového
+     indexu → karta tvrdila „Dividendové ≈ +10,9 % ročně, −32 %“, což je historie celosvětových akcií, ne dividendového
      portfolia. Řada S&P Global Dividend Aristocrats v manifestu není (us_dividend = americký VYM, jiný index) → „—“. */
 };
 

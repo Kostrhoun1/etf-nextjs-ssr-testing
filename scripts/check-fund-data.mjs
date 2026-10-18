@@ -513,6 +513,11 @@ const main = async () => {
     let overeno = 0;
     for (const [cesta, html] of stranky) {
       const kontroly = [...html.matchAll(/data-kontrola-backtest="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+      // Portfolio záměrně bez historie (Dividendové – data-bez-backtestu): nesmí ukazovat cizí historii (kolo 5, 18. 10. 2026).
+      if (html.includes('data-bez-backtestu')) {
+        if (kontroly.length) nesedi.push(`${cesta}: portfolio bez historie ukazuje backtest (náhradní index = jiné portfolio)`);
+        continue;
+      }
       if (cesta !== '/portfolio-strategie' && !kontroly.length) { chybi.push(cesta); continue; }
       for (const k of kontroly) {
         const [odkaz, cagrStr] = k.split('|');
@@ -525,6 +530,13 @@ const main = async () => {
         }).then((r) => r.json()).catch(() => null);
         const api = bt?.summary?.cagr, web = Number(cagrStr);
         overeno++;
+        // Náhradní index (evropské akcie za nemovitosti, dluhopisy eurozóny za globální agregát, Russell 2000 za small
+        // value) musí být u čísla VIDITELNĚ napsaný („Historie počítá …“), ne jen v tooltipu. Americký AGG v USD za fond
+        // zajištěný do eur se nesmí vrátit (kolo 5: v Kč se chová úplně jinak).
+        const slozeni = q.get('slozeni') || '';
+        if (cesta !== '/portfolio-strategie' && /ftse_europe|eur_govt_bond|us_small_cap/.test(slozeni) && !html.includes('Historie počítá'))
+          nesedi.push(`${cesta}: složení přes náhradní index (${slozeni}) bez viditelné věty „Historie počítá…“`);
+        if (/us_aggregate_bond/.test(slozeni)) nesedi.push(`${cesta}: modelové portfolio počítá dluhopisy přes AGG v USD (fond ve složení je zajištěný do eur)`);
         if (!(Number.isFinite(api) && Number.isFinite(web))) nesedi.push(`${cesta}: nešlo spočítat (${q.get('slozeni')})`);
         else if (Math.abs(api - web) > 0.001) nesedi.push(`${cesta} ${q.get('slozeni')}: stránka ${(web * 100).toFixed(2)} % vs. backtest ${(api * 100).toFixed(2)} % (do ${q.get('do')})`);
       }
