@@ -284,3 +284,18 @@ a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
 - **iShares MSCI USA Screened (IE00BFNM3G45) a USA CTB Enhanced ESG (IE00BHZPJ890) mají skoro stejnou velikost
   (16 794 / 16 777 mil. €) a stejně 466 pozic:** tak to uvádí i zdroj (justETF, ověřeno 18. 10. 2026); výnosy se liší
   (20,93 / 19,36 %). Data odpovídají zdroji.
+
+## Backtest, kalkulačka a modelová portfolia – kolo 3 revize (18. 10. 2026)
+
+- **„Celý svět“ = fond VT od 6/2008 ve všech nástrojích.** Preset `global-since-2000` (60 % S&P 500 + 40 % svět mimo USA)
+  se jmenuje „USA + zbytek světa“, nový preset `cely-svet` = 100 % `ftse_all_world`. Kalkulačka („A jak by to dopadlo
+  doopravdy?“, `src/lib/kalkulackaSkutecnost.ts`) při startu před 7/2008 počítá a pojmenuje „USA + zbytek světa“.
+  Rychlá volba „Celý svět“ v kalkulačce je napojená řada stroje času (viz výše) – vysvětleno v tooltipu. Neslučovat.
+- **„Vaše vklady se zhodnocovaly X % ročně“ (XIRR) ≠ roční zhodnocení (CAGR).** Obojí je správně: CAGR je časově vážený
+  výnos portfolia, XIRR výnos peněžních toků (srovnatelný s kalkulačkou). S&P 500 od 1/2005 + 5 000 Kč měsíčně: CAGR 10,6 %,
+  XIRR 12,9 % – ověřeno nezávisle (Yahoo SPY × ČNB: 12,90 %). `src/lib/backtest/zhodnoceniVkladu.ts`.
+- **Odkaz z modelového portfolia do backtestu nese `do=` (konec dat předpočtu) a explicitní `slozeni=`.** Ne chyba – jinak
+  ISR stránka a živý backtest počítají do jiného dne. Kontrola `check-fund-data.mjs` (data-kontrola-backtest).
+- **Start z presetu/odkazu se posouvá tiše („data od 7/2002“), varování jen u data zadaného uživatelem.**
+- **Kolísavost na detailu portfolia = ukazatel backtestu (z měsíčních výnosů)**, ne směrodatná odchylka ročních výnosů.
+- **Svět + malé firmy: vyspělé trhy mimo USA = `msci_eafe`** (dřív `world_ex_us` včetně EM → EM dvakrát). Dopad 11,99 → 12,01 %.

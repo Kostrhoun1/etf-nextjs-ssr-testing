@@ -90,7 +90,9 @@ export const INDEXES: IndexDef[] = [
   { code: 'world_ex_us', ticker: 'VGTSX', currency: 'USD', name: 'Svět mimo USA (vyspělé i EM)', group: 'region', since: '1996-04-29',
     dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj je podílový fond Vanguard (VGTSX) — proto sahá až do 1996.',
-    proxyEtf: { isin: 'US9219097683', name: 'Vanguard Total International Stock', ter: 0.0008 } },
+    // Fond k nákupu musí být UCITS (18. 10. 2026: dřív americký VXUS US9219097683 – pro Čecha nekoupitelný).
+    // Nejbližší evropský fond: FTSE All-World ex US (vyspělé i rozvíjející se trhy mimo USA, bez malých firem).
+    proxyEtf: { isin: 'IE000YKHGYN2', name: 'Xtrackers FTSE All-World ex US (nejbližší)', ter: 0.0015 } },
 
   // ─────────────── SEKTORY (americké, S&P 500) ───────────────
   // Nahráno 15.7.2026, metodika: 1 sektor = 1 kanonický SPDR Select Sector ETF. ŽÁDNÉ průměrování koše

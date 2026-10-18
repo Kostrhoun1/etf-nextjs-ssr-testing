@@ -5,17 +5,15 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import InfoTip from '@/components/design-preview/InfoTip';
 import StructuredData from '@/components/SEO/StructuredData';
-import {
-  PortfolioGrid,
-  PortfolioVerdictTable,
-  type HistorieMap,
-} from '@/components/design-preview/portfolioComponents';
-import { portfolioModels, PORTFOLIO_BACKTEST } from '@/components/design-preview/portfolioData';
+import { type HistorieMap } from '@/components/design-preview/portfolioComponents';
+import { portfolioModels, PORTFOLIO_BACKTEST, backtestOdkaz } from '@/components/design-preview/portfolioData';
+import PortfolioVyber from './PortfolioVyber';
+import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getReturnsByIsins, getTotalETFCount } from '@/lib/etf-data';
 import {
-  TrendingUp, LayoutGrid, PieChart, Scale, ShieldCheck,
+  TrendingUp, ShieldCheck,
   History, Activity, Search, Landmark, BookOpen, Trophy,
 } from 'lucide-react';
 
@@ -71,6 +69,7 @@ export default async function PortfolioStrategieDesignPreview() {
     const evo = r?.evolution ?? [];
     return [m.slug, r && evo.length > 1 ? {
       cagr: r.summary.cagr, maxPokles: r.risk.maxDrawdown.depth, od: evo[0].date.slice(0, 10), do: evo[evo.length - 1].date.slice(0, 10), proxy: cfg?.proxyNote,
+      odkaz: backtestOdkaz(m.slug, evo[evo.length - 1].date.slice(0, 10)),
     } : null] as const;
   })));
   const hodnoty = Object.values(historie).filter((h): h is NonNullable<typeof h> => !!h);
@@ -120,12 +119,6 @@ export default async function PortfolioStrategieDesignPreview() {
     { href: '/zebricky', label: 'Nejlepší ETF', desc: 'Žebříčky fondů pro jednotlivé složky', icon: Trophy },
   ];
 
-  const EDU = [
-    { icon: LayoutGrid, title: 'Modelové portfolio', text: 'Hotový poměr tříd aktiv – stačí ho zkopírovat, nemusíte nic vymýšlet.' },
-    { icon: PieChart, title: 'Diverzifikace', text: 'Peníze rozložené mezi více druhů aktiv, ne všechno v jednom.' },
-    { icon: Scale, title: 'Rebalancing', text: 'Jednou za čas vrátíte poměry aktiv zpět na cílové hodnoty.' },
-  ];
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <StructuredData data={breadcrumbSchema} id="portfolio-breadcrumb" />
@@ -146,77 +139,29 @@ export default async function PortfolioStrategieDesignPreview() {
       </header>
 
       <main id="obsah" className="max-w-6xl mx-auto px-4">
-        {/* 1. Intro panel */}
-        <section className="py-7">
+        {/* 1. Úvod – krátce, karty hned pod ním (revize 18. 10. 2026: karty byly až na třetí obrazovce) */}
+        <section className="pt-5 pb-4">
           <nav aria-label="Drobečková navigace" className="mb-3 text-xs text-slate-500">
             <Link href="/" className="hover:text-slate-700">Domů</Link>
             <span className="mx-1.5">/</span>
             <span className="text-slate-700">Modelová portfolia</span>
           </nav>
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
-              Modelová portfolia z ETF pro české investory
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm md:text-base leading-relaxed text-slate-300">
-              {portfolioModels.length} hotových strategií s konkrétními ETF a jejich historií v korunách od roku 2008.
-            </p>
-            <p className="mt-4 max-w-2xl rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-sm leading-relaxed text-slate-200">
-              <span className="font-semibold text-white">Investujete malé částky?</span> Začít můžete i jediným světovým akciovým ETF a další složky přidat, až portfolio poroste.
-            </p>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-slate-900">Modelová portfolia z ETF</h1>
+          <p className="mt-1.5 max-w-3xl text-sm md:text-base leading-relaxed text-slate-600">
+            {portfolioModels.length} hotových poměrů{' '}
+            <InfoTip label="Druh investice – akcie, dluhopisy, nemovitosti, komodity nebo zlato.">tříd aktiv</InfoTip>{' '}
+            s konkrétními ETF a historií v korunách. Stačí zvolit jeden a jednou ročně vrátit poměry na cíl (
+            <InfoTip label="Návrat poměru aktiv na cílové hodnoty – prodáte to, co narostlo, a dokoupíte to, co zaostalo.">rebalancing</InfoTip>).
+          </p>
         </section>
 
-        {/* 2. Edukace ikonová */}
-        <section data-sekce="pojmy" className="pb-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-            <h2 className="text-lg font-bold tracking-tight text-slate-900">Co je modelové portfolio</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Tři pojmy, které stačí znát, než si vyberete jednu z {portfolioModels.length} hotových strategií.
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              {EDU.map((e) => (
-                <div key={e.title} className="flex gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
-                    <e.icon className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <span className="block text-sm font-semibold text-slate-900">{e.title}</span>
-                    <span className="block text-xs leading-snug text-slate-500 mt-0.5">{e.text}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 border-t border-slate-100 pt-4 text-xs leading-relaxed text-slate-500">
-              Vysvětlivky pojmů:{' '}
-              <InfoTip label="Roční poplatek za správu fondu, strhává se průběžně z hodnoty fondu.">TER</InfoTip>,{' '}
-              <InfoTip label="Návrat poměru aktiv na cílové hodnoty – prodáte to, co narostlo, a dokoupíte to, co zaostalo.">rebalancing</InfoTip>,{' '}
-              <InfoTip label="Fond investující do nemovitostí; příjem plyne hlavně z nájmů.">nemovitostní fond</InfoTip>,{' '}
-              <InfoTip label="Druh investice – akcie, dluhopisy, nemovitosti, komodity nebo zlato.">třída aktiv</InfoTip>.
-            </p>
-          </div>
-        </section>
-
-        {/* 3. JÁDRO: karty seřazené od nejklidnějšího */}
-        <section data-sekce="portfolia" className="py-8">
-          <div className="mb-4">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Vyberte si portfolio podle své povahy</h2>
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Seřazeno od nejklidnějšího. Zhodnocení a max. pokles jsou z backtestu v korunách
-              {historieOd && historieDo ? ` (${mr(historieOd)}–${new Date(`${historieDo}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })})` : ''}, po poplatcích fondů.
-            </p>
-          </div>
-          <PortfolioGrid returns={returns} historie={historie} />
-        </section>
-
-        {/* 4. Verdikt pro koho */}
-        <section data-sekce="pro-koho" className="py-4">
-          <div className="mb-4">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Pro koho je která strategie</h2>
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Rozhodněte se na první pohled – bez čtení všech detailů.
-            </p>
-          </div>
-          <PortfolioVerdictTable />
+        {/* 2. JÁDRO: výběr podle povahy + karty */}
+        <section data-sekce="portfolia" className="pb-8">
+          <p className="mb-3 text-xs text-slate-500">
+            Seřazeno od nejklidnějšího. Zhodnocení a max. pokles z backtestu v korunách
+            {historieOd && historieDo ? ` (${mr(historieOd)} – ${new Date(`${historieDo}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })})` : ''}, po poplatcích fondů; ≈ = část složení počítáme přes podobný index.
+          </p>
+          <PortfolioVyber returns={returns} historie={historie} />
         </section>
 
         {/* 5. Prolinkování na nástroje */}
@@ -253,12 +198,9 @@ export default async function PortfolioStrategieDesignPreview() {
           </div>
         </section>
 
-        {/* 7. Disclaimer dole */}
-        <section className="py-8 pb-12">
-          <p className="rounded-xl border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-500">
-            Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Modelová portfolia jsou ilustrativní,
-            ne návod na konkrétní nákup. Minulá výkonnost nezaručuje budoucí výnosy.
-          </p>
+        {/* 7. Upozornění – jednotně malým šedým textem */}
+        <section className="pt-2 pb-12">
+          <InvestmentDisclaimer variant="inline" />
         </section>
       </main>
 

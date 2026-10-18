@@ -4,10 +4,11 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
-  TrendingUp, ArrowRight, User, Database, Calculator,
-  Wallet, Scale, Landmark, HelpCircle, BookOpen,
+  TrendingUp, User, Database, Calculator,
+  Wallet, Scale, Landmark, BookOpen,
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
+import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import BacktestWidget, { type BacktestResult } from '@/components/design-preview/BacktestWidget';
 import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
@@ -98,7 +99,15 @@ export default async function BacktestPreview() {
     },
     {
       q: 'Co znamená roční zhodnocení (CAGR)?',
-      a: 'Roční zhodnocení (CAGR) je průměrné roční tempo růstu portfolia se zohledněním složeného úročení. Na rozdíl od prostého průměru ukazuje, jakým tempem hodnota skutečně rostla rok za rokem. Počítá se bez vlivu vkladů, takže je srovnatelné mezi portfolii.',
+      a: 'Roční zhodnocení (CAGR) je průměrné roční tempo růstu portfolia se zohledněním složeného úročení. Na rozdíl od prostého průměru ukazuje, jakým tempem hodnota skutečně rostla rok za rokem. Je časově vážené – nezáleží na tom, kdy a kolik jste vkládali, takže je srovnatelné mezi portfolii. U portfolia z více složek ho pravidelné vklady mohou nepatrně ovlivnit, protože se rozdělují podle cílových vah.',
+    },
+    {
+      q: 'Proč se „zhodnocení vašich vkladů“ liší od ročního zhodnocení?',
+      a: 'Roční zhodnocení (CAGR) popisuje portfolio samotné. Zhodnocení vašich vkladů (vnitřní výnosové procento, XIRR) počítá s tím, kdy jste který vklad poslali: pozdější vklady byly investované kratší dobu a zažily jiné roky než počáteční vklad. Je to stálý roční výnos, který by ze stejných vkladů udělal stejnou částku – proto ho můžete přímo porovnat s investiční kalkulačkou.',
+    },
+    {
+      q: 'Co znamená „Celý svět“ a „USA + zbytek světa“?',
+      a: 'Celý svět = akcie z vyspělých i rozvíjejících se trhů v jednom fondu (Vanguard Total World, VT); data má od června 2008. Pro delší historii nabízíme USA + zbytek světa: 60 % S&P 500 a 40 % akcií mimo USA od roku 2000. Je to přiblížení – podíl USA ve světovém indexu byl po většinu té doby nižší než 60 %.',
     },
     {
       q: 'Proč se „Známé krize“ liší od tabulky největších propadů?',
@@ -181,19 +190,7 @@ export default async function BacktestPreview() {
         {/* FAQ (sem se přesunulo i „Jak výsledky správně číst“) */}
         <section data-sekce="faq" className="pb-10">
           <SectionHead title="Časté dotazy" />
-          <div className="space-y-2">
-            {faqs.map((f) => (
-              <details key={f.q} className="group rounded-lg border border-slate-200 bg-white">
-                <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none min-h-[44px]">
-                  <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
-                    <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
-                  </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
-                </summary>
-                <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
-              </details>
-            ))}
-          </div>
+          <FaqSeznam items={faqs} />
         </section>
 
         {/* POKRAČUJTE DÁL */}
