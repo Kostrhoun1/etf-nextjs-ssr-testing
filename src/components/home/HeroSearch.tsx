@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2, ArrowRight } from 'lucide-react';
 
@@ -97,7 +96,7 @@ export default function HeroSearch() {
   return (
     // Hlavní akce homepage (redesign 18. 10. 2026: jsme srovnávač – hledání fondu je první věc,
     // kterou návštěvník udělá; dřív úzký sloupec vpravo). Viditelné zaměření = WCAG 2.4.7.
-    <div ref={boxRef} className="relative w-full max-w-2xl md:text-left">
+    <div ref={boxRef} className="relative w-full max-w-2xl">
       <div className="flex items-center gap-2.5 rounded-xl bg-white px-4 h-12 md:h-14 ring-2 ring-transparent focus-within:ring-teal-400 transition-shadow">
         <Search className="w-5 h-5 text-slate-400 shrink-0" />
         <input
@@ -155,13 +154,6 @@ export default function HeroSearch() {
         </div>
       )}
 
-      <div className="mt-3 hidden sm:flex flex-wrap items-center md:justify-center gap-2 text-xs">
-        <span className="text-slate-400">Žebříčky:</span>
-        <Link href="/nejlepsi-etf/nejlepsi-celosvetove-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">Celosvětové</Link>
-        <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">S&P 500</Link>
-        <Link href="/nejlepsi-etf/nejlepsi-dividendove-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">Dividendové</Link>
-        <Link href="/nejlepsi-etf/nejlevnejsi-etf" className="rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20">Nejlevnější</Link>
-      </div>
     </div>
   );
 }
