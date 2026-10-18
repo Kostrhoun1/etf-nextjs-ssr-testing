@@ -18,6 +18,7 @@ import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { TrendingUp, ArrowRight, Globe, LineChart, Building2, ChevronDown, Check } from 'lucide-react';
 import { BARVY_SLOZEK } from '@/components/design-preview/portfolioData';
+import { datumCen } from '@/lib/datumCen';
 
 export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
@@ -201,9 +202,10 @@ export default async function DesignPreviewV2() {
   ]);
   const pocet = totalCount.toLocaleString('cs-CZ');
   // Pravidlo č. 1: datum dat BEZ fallbacku na dnešek – když ho nejde načíst, čísla s datem se neukážou.
-  const dataDate = posledniScrape && !Number.isNaN(new Date(posledniScrape).getTime()) ? new Date(posledniScrape) : null;
+  // Datum CEN (předchozí obchodní den před stažením), ne den stažení – src/lib/datumCen.ts.
+  const dataDate = posledniScrape && !Number.isNaN(new Date(posledniScrape).getTime()) ? datumCen(new Date(posledniScrape)) : null;
   // Pevné mezery: datum se nesmí rozlomit na „18. / 10. 2026“.
-  const datumText = dataDate ? dataDate.toLocaleDateString('cs-CZ', { timeZone: 'Europe/Prague' }).replace(/ /g, '\u00a0') : null;
+  const datumText = dataDate ? dataDate.toLocaleDateString('cs-CZ', { timeZone: 'UTC' }).replace(/ /g, '\u00a0') : null;
   const cerstvy = (e: ETFBasicInfo) => !!e.scraping_date && Date.now() - new Date(e.scraping_date).getTime() < CERSTVOST_DNI * 864e5;
   const nejstarsi = nejstarsiDatum(starters);
   const starsiText = nejstarsi && dataDate && dataDate.getTime() - nejstarsi.getTime() > 2 * 864e5

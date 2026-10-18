@@ -3,6 +3,7 @@
  * These functions are used for SSG/ISR to pre-render pages with data
  */
 import { cache as reactCache } from 'react';
+import { datumCen } from '@/lib/datumCen';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
@@ -452,7 +453,8 @@ export async function getFeaturedETFs(): Promise<{
 const _dataDate = reactCache(async (): Promise<Date | null> => {
   const iso = await getLastModifiedDate();
   const d = iso ? new Date(iso) : null;
-  return d && !Number.isNaN(d.getTime()) ? d : null;
+  // Datum CEN (předchozí obchodní den před stažením), ne den stažení – viz src/lib/datumCen.ts.
+  return d && !Number.isNaN(d.getTime()) ? datumCen(d) : null;
 });
 
 /** Vrátí datum posledních dat; když se nepodaří načíst, použije `fallback` (zpravidla dnešek). */

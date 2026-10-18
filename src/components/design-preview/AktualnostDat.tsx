@@ -1,4 +1,5 @@
 import { RefreshCw } from 'lucide-react';
+import { datumCen } from '@/lib/datumCen';
 
 /**
  * Štítek „Data k …“ – u žebříčků a přehledů fondů. Jen datum (18. 10. 2026, majitel: dovětek
@@ -46,5 +47,5 @@ export function nejstarsiDatum(etfs: { scraping_date?: string | null }[]): Date 
     const t = e.scraping_date ? new Date(e.scraping_date).getTime() : NaN;
     if (!Number.isNaN(t) && (min == null || t < min)) min = t;
   }
-  return min == null ? null : new Date(min);
+  return min == null ? null : datumCen(new Date(min)); // datum cen, ne den stažení
 }

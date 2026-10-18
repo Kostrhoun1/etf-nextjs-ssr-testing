@@ -24,6 +24,7 @@ import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaInde
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy } from '@/lib/trhy';
 import { platnyTicker } from '@/lib/ticker';
+import { datumCen } from '@/lib/datumCen';
 import { ceskaZeme, ceskySektor } from '@/lib/preklady';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
@@ -289,7 +290,7 @@ export default async function ETFDetailPreview(
   const fundUpdated = (() => {
     const iso = (etf as unknown as Record<string, unknown>).scraping_date ?? (etf as unknown as Record<string, unknown>).updated_at;
     const d = iso ? new Date(String(iso)) : null;
-    return d && !Number.isNaN(d.getTime()) ? d : null;
+    return d && !Number.isNaN(d.getTime()) ? datumCen(d) : null; // datum cen (předchozí obchodní den), ne den stažení
   })();
   const dataDate = fundUpdated ?? (await getDataDate(today));
   const dateStr = dataDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
