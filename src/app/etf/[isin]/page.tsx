@@ -29,6 +29,8 @@ import { nactiTrhy } from '@/lib/trhy';
 import { platnyTicker } from '@/lib/ticker';
 import { datumCen } from '@/lib/datumCen';
 import { ceskaZeme, ceskySektor, ceskeZamereni } from '@/lib/preklady';
+import { terFmt, procenta, velikostFondu, cislo, NBSP } from '@/lib/formatyCisel';
+import { nevyplaciKomodita } from '@/lib/dividendyFondu';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -102,30 +104,11 @@ export async function generateMetadata(
 const num = (v: number | null | undefined) =>
   v == null || Number.isNaN(v) ? null : Number(v);
 
-const ter = (v: number | null | undefined) => {
-  const n = num(v);
-  return n == null ? '—' : `${n.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
-};
-
-const pct = (v: number | null | undefined) => {
-  const n = num(v);
-  if (n == null) return '—';
-  const s = n.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  return `${n > 0 ? '+' : ''}${s} %`;
-};
-
+// Jednotné formáty (kolo 5): minus „−“, nezlomitelná mezera před %, „mld. €“ – src/lib/formatyCisel.ts.
+const ter = (v: number | null | undefined) => terFmt(num(v));
+const pct = (v: number | null | undefined) => procenta(num(v));
 /** Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Ověřeno proti justETF. */
-const curSym = (_c?: string | null) => '€';
-const money = (v: number | null | undefined, cur: string | null = 'EUR') => {
-  const n = num(v);
-  if (n == null) return '—';
-  const sym = curSym(cur);
-  if (n >= 1000) {
-    const mld = n / 1000;
-    return `${mld.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mld. ${sym}`;
-  }
-  return `${Math.round(n).toLocaleString('cs-CZ')} mil. ${sym}`;
-};
+const money = (v: number | null | undefined, _cur: string | null = 'EUR') => velikostFondu(num(v));
 
 /** oprava systematických překlepů z generovaných DB popisů (IShares, dividenday, p.a..) */
 const cleanDesc = (raw: string | null | undefined): string =>
@@ -210,6 +193,26 @@ const replikaceVeta = (rep: string | null | undefined) => {
  *  takový neukazovat jako český. Hrubý test: žádná diakritika a 3+ časté anglické výrazy. */
 const jeAnglicky = (t: string) =>
   !/[ěščřžýáíéůúňťď]/i.test(t) && (t.match(/\b(the|and|of|fund|which|invests|index|shares)\b/gi) || []).length >= 3;
+/** Co fond sleduje, když zdroj index nemá (364 komoditních a kryptoměnových produktů k 18. 10. 2026, např.
+ *  iShares Physical Gold). JEN z doslovné věty popisu zdroje (description_en), nic se nedomýšlí – „LBMA“ popis
+ *  neuvádí, proto ho neuvádíme ani my. Neznámá formulace → null („—“). */
+const KOVY: Record<string, string> = { gold: 'zlata', silver: 'stříbra', platinum: 'platiny', palladium: 'palladia', rhodium: 'rhodia' };
+const KOVY_1P: Record<string, string> = { gold: 'zlato', silver: 'stříbro' };
+function podkladZPopisu(popis: string | null | undefined): string | null {
+  const t = (popis ?? '').trim();
+  let m = t.match(/^The product tracks the spot price of (gold|silver|platinum|palladium) in US Dollar\./i)
+    ?? t.match(/^The (platinum|palladium) spot price is the price of \1 in US Dollar/i)
+    ?? t.match(/^The (rhodium) spot price tracks the price of rhodium in USD/i);
+  if (m) return `Spotová cena ${KOVY[m[1].toLowerCase()]} v USD`;
+  m = t.match(/^The product tracks the value of the cryptocurrency ([A-Z][\w ()-]{1,40}?)\./);
+  if (m) return `Cena kryptoměny ${m[1]}`;
+  m = t.match(/^The product tracks the price of futures contracts on (gold|silver)\./i);
+  if (m) return `Futures na ${KOVY_1P[m[1].toLowerCase()]}`;
+  return null;
+}
+
+const TIP_DIVIDENDY = 'Akumulační fond dividendy reinvestuje uvnitř (na účet nic nechodí); distribuční je vyplácí na účet.';
+const TIP_KOMODITA = 'Komodita ani kryptoměna dividendy nevyplácí – hodnota fondu se mění jen s cenou podkladu.';
 const volDesc = (v: number | null) =>
   v == null ? 'Data o kolísavosti nejsou k dispozici.'
     : v < 10 ? 'Nízká kolísavost.'
@@ -227,7 +230,7 @@ function WeightRow({ label, weight, max }: { label: string; weight: number; max:
         <span className="block h-full rounded-full bg-teal-600" style={{ width: `${w}%` }} />
       </span>
       <span className="w-14 shrink-0 text-right text-sm tabular-nums font-medium text-slate-700">
-        {weight.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
+        {procenta(weight, 1, false)}
       </span>
     </div>
   );
@@ -315,13 +318,17 @@ export default async function ETFDetailPreview(
 
   // odvozené parametry z dat
   const dKind = distKind(etf.distribution_policy, etf.distribution_frequency);
-  const isAcc = dKind === 'acc';
+  // Komodita/krypto dividendy nemá – zdroj ji přesto vede jako „Accumulating“ (revize kola 4: zlato „Reinvestuje“).
+  const komodita = nevyplaciKomodita(r.category as string | null, etf.name, dKind);
+  const isAcc = dKind === 'acc' && !komodita;
   const isDist = dKind === 'dist';
   // Pákové/inverzní produkty (audit 17. 10. 2026: detail 3× pákového ETF ho doporučoval
   // dlouhodobým pasivním investorům a nikde nevaroval).
   const isLev = etf.is_leveraged === true;
   // Kam dál + kontextové odkazy (deep dive 17. 10. 2026: z detailu na články vedlo 0 z 1 243 prokliků).
   const canonIdx = canonicalIndexLabel(etf.index_name);
+  // Sledovaný podklad: index ze zdroje, jinak doslovně z popisu fondu (zlato: „Spotová cena zlata v USD“).
+  const podklad = etf.index_name?.trim() ? null : podkladZPopisu((r.description_en as string | null) ?? etf.description_cs);
   const btFond = prirazeniFondu(etf as unknown as FondProPrirazeni);
   const btTer = etf.ter_numeric == null ? null : Number(etf.ter_numeric) / 100;
   // Odkaz jen když umíme fond poctivě spočítat: přiřazený index se známým poplatkem zdroje a známé TER fondu.
@@ -441,6 +448,12 @@ export default async function ETFDetailPreview(
   const hlavniTicker = hlavniListing?.ticker ?? platnyTicker(etf.primary_ticker) ?? null;
   const ostatniTickery = allTickers.filter((t) => t.toUpperCase() !== (hlavniTicker ?? '').toUpperCase() && platnyTicker(t));
   const dalsiBurzy = exchanges.filter((e) => e !== hlavniListing);
+  // Úvod i „Další burzy“ počítají ze STEJNÉHO seznamu (revize kola 4: „+ 3 další burzy“ vs „Další burzy (7)“).
+  // V úvodu jsou to tickery (gettex/Stuttgart mají stejný ticker jako XETRA), v rozbalovacím seznamu burzy.
+  const dalsiTickery = Array.from(new Set(dalsiBurzy.map((e) => e.ticker.trim().toUpperCase())))
+    .filter((t) => t !== (hlavniTicker ?? '').toUpperCase());
+  const tickeryText = (n: number) => (n === 1 ? 'další ticker' : n < 5 ? 'další tickery' : 'dalších tickerů');
+  const burzyText = (n: number) => (n === 1 ? '1 další burze' : `${n} dalších burzách`);
 
   const tkHlavni = hlavniTicker; // v odkazech stejné jméno jako v úvodu (XETRA)
   // Graf vývoje podle indexu/proxy fondu ZRUŠEN (rozhodnutí majitele 18. 10. 2026) – na detailu jen data fondu.
@@ -466,7 +479,7 @@ export default async function ETFDetailPreview(
   const faktaHero: [React.ReactNode, string][] = [
     [<InfoTip key="ter" label="Total Expense Ratio – roční poplatek za správu fondu, strhává se průběžně z hodnoty investice.">Poplatek (TER)</InfoTip>, ter(etf.ter_numeric)],
     ['Velikost fondu', money(etf.fund_size_numeric, etf.fund_currency)],
-    [<InfoTip key="dist" label="Akumulační fond dividendy reinvestuje uvnitř (na účet nic nechodí); distribuční je vyplácí na účet.">Dividendy</InfoTip>, isAcc ? 'Reinvestuje' : isDist ? (divYield != null ? `Vyplácí ${pct(divYield).replace('+', '')}` : 'Vyplácí') : 'Neuvedeno'],
+    [<InfoTip key="dist" label={komodita ? TIP_KOMODITA : TIP_DIVIDENDY}>Dividendy</InfoTip>, komodita ? 'Nevyplácí' : isAcc ? 'Reinvestuje' : isDist ? (divYield != null ? `Vyplácí ${procenta(divYield, 2, false)}` : 'Vyplácí') : 'Neuvedeno'],
     [<InfoTip key="rep" label="Fyzická replikace = fond reálně nakupuje cenné papíry z indexu; syntetická používá swap s protistranou.">Replikace</InfoTip>, replText.split(' ')[0]],
     [<InfoTip key="dom" label="Země, kde fond právně sídlí. Irsko má výhodnou daňovou smlouvu s USA, W-8BEN neřešíte.">Domicil</InfoTip>, domText],
     ['Na trhu od', rokVzniku],
@@ -481,8 +494,8 @@ export default async function ETFDetailPreview(
   // Riziko: kolísavost, max. pokles a výnos/riziko jsou ze zdroje JEN v EUR (v Kč je nemáme) → jedna tabulka „v EUR“.
   const rr = { y1: sharpe, y3: num(r.return_per_risk_3y as number), y5: num(r.return_per_risk_5y as number) };
   const ddMax = num(r.max_drawdown_inception as number);
-  const f1 = (v: number | null) => (v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
-  const f2 = (v: number | null) => (v == null ? '—' : v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  const f1 = (v: number | null) => procenta(v, 1, false);
+  const f2 = (v: number | null) => (v == null ? '—' : cislo(v, 2));
   const prikladRR = eur.y1 != null && vol1 != null && sharpe != null ? ` Za poslední rok: ${f1(eur.y1)} ÷ ${f1(vol1)} = ${f2(sharpe)}.` : '';
 
   const faqs: { q: string; a: string }[] = [
@@ -491,7 +504,7 @@ export default async function ETFDetailPreview(
       a: isLev
         ? `Pro dlouhodobé držení obecně ne. Jde o pákový (nebo inverzní) produkt, který násobí DENNÍ pohyb ${etf.index_name ? `indexu ${etf.index_name}` : 'podkladového trhu'} a každý den se přenastavuje. Za delší období se proto jeho výnos může výrazně lišit od násobku výnosu indexu – při kolísavém trhu i směrem dolů – a o investici lze přijít i úplně. Je určený ke krátkodobému obchodování zkušenými investory.`
         : [
-            `Je to ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}fond${etf.index_name ? ` sledující index ${etf.index_name}` : ''}${replikaceVeta(etf.replication) ? ` ${replikaceVeta(etf.replication)}` : ''}.`,
+            `Je to ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}${komodita === 'kryptoměna' ? 'kryptoměnový produkt' : komodita ? 'komoditní produkt' : 'fond'}${etf.index_name ? ` sledující index ${etf.index_name}` : podklad ? ` (podklad: ${podklad.charAt(0).toLowerCase()}${podklad.slice(1)})` : ''}${replikaceVeta(etf.replication) ? ` ${replikaceVeta(etf.replication)}` : ''}.`,
             `Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_currency)}, roční poplatek ${ter(etf.ter_numeric)}${sidloVeta(etf.fund_domicile) ? ` a ${sidloVeta(etf.fund_domicile)}` : ''}.`,
             'Vhodnost pro vás závisí na vašem cíli, horizontu a na tom, jak snesete kolísání (viz Riziko a kolísavost).',
           ].join(' '),
@@ -502,10 +515,12 @@ export default async function ETFDetailPreview(
     }] : []),
     {
       q: 'Vyplácí tento fond dividendy?',
-      a: isAcc
+      a: komodita
+        ? `Ne. ${komodita === 'kryptoměna' ? 'Kryptoměna' : 'Komodita'} dividendy nevyplácí – hodnota fondu se mění jen s cenou podkladu. Na účet vám nic nechodí a v daňovém přiznání dividendy neřešíte.`
+        : isAcc
         ? 'Ne. Je to akumulační fond – dividendy se automaticky reinvestují uvnitř fondu. Na účet vám nic nechodí, takže v ČR neřešíte dividendy v daňovém přiznání.'
         : isDist
-        ? `Ano. Je to distribuční fond – dividendy vyplácí na váš účet${divYield != null ? ` (aktuální dividendový výnos zhruba ${pct(divYield).replace('+', '')})` : ''}. V ČR se daní 15 % a uvádějí se v daňovém přiznání.`
+        ? `Ano. Je to distribuční fond – dividendy vyplácí na váš účet${divYield != null ? ` (aktuální dividendový výnos zhruba ${procenta(divYield, 2, false)})` : ''}. V ČR se daní 15 % a uvádějí se v daňovém přiznání.`
         : 'U tohoto fondu nemáme distribuční politiku spolehlivě ověřenou. Zkontrolujte si ji v dokumentu KID od emitenta – akumulační fondy dividendy reinvestují, distribuční je vyplácejí na účet.',
     },
     {
@@ -526,12 +541,15 @@ export default async function ETFDetailPreview(
   const faktaTabulka: [React.ReactNode, React.ReactNode][] = [
     [<InfoTip key="ter" label="Total Expense Ratio – roční poplatek za správu fondu, strhává se průběžně z hodnoty investice.">Roční poplatek (TER)</InfoTip>, ter(etf.ter_numeric)],
     ['Velikost fondu', money(etf.fund_size_numeric, etf.fund_currency)],
-    [<InfoTip key="dist" label="Akumulační fond dividendy reinvestuje uvnitř (na účet nic nechodí); distribuční je vyplácí na účet.">Dividendy</InfoTip>, `${distText}${isAcc ? ' (reinvestuje)' : isDist ? ' (vyplácí)' : ''}`],
-    ...(isDist ? [[<InfoTip key="dy" label="Dividendový výnos – kolik fond za rok vyplatil na dividendách vůči své ceně.">Dividendový výnos</InfoTip>, divYield != null ? pct(divYield).replace('+', '') : '—'] as [React.ReactNode, React.ReactNode]] : []),
+    [<InfoTip key="dist" label={komodita ? TIP_KOMODITA : TIP_DIVIDENDY}>Dividendy</InfoTip>, komodita ? `Nevyplácí (${komodita})` : `${distText}${isAcc ? ' (reinvestuje)' : isDist ? ' (vyplácí)' : ''}`],
+    ...(isDist ? [[<InfoTip key="dy" label="Dividendový výnos – kolik fond za rok vyplatil na dividendách vůči své ceně.">Dividendový výnos</InfoTip>, divYield != null ? procenta(divYield, 2, false) : '—'] as [React.ReactNode, React.ReactNode]] : []),
     [<InfoTip key="rep" label="Fyzická replikace = fond reálně nakupuje cenné papíry z indexu; syntetická používá swap s protistranou.">Replikace</InfoTip>, replText],
     [<InfoTip key="dom" label="Země, kde fond právně sídlí. Irsko má výhodnou daňovou smlouvu s USA, W-8BEN neřešíte.">Domicil</InfoTip>, domText],
-    ['Sledovaný index', etf.index_name || '—'],
-    [<InfoTip key="hold" label="Počet cenných papírů, které fond reálně drží.">Počet držených pozic</InfoTip>, etf.total_holdings != null ? etf.total_holdings.toLocaleString('cs-CZ') : '—'],
+    podklad
+      ? [<InfoTip key="podklad" label="Zdroj dat u tohoto produktu index neuvádí; podklad přebíráme z popisu fondu.">Sleduje</InfoTip>, podklad]
+      : ['Sledovaný index', etf.index_name || '—'],
+    // Komodita/krypto bez pozic: řádek „—“ by mátl (drží kov/kryptoměnu, ne cenné papíry).
+    ...(komodita && etf.total_holdings == null ? [] : [[<InfoTip key="hold" label="Počet cenných papírů, které fond reálně drží.">Počet držených pozic</InfoTip>, etf.total_holdings != null ? etf.total_holdings.toLocaleString('cs-CZ') : '—'] as [React.ReactNode, React.ReactNode]]),
     [<InfoTip key="mena" label="Měna, ve které fond vede účetnictví. Měnové riziko vůči koruně určuje hlavně to, do čeho fond investuje.">Měna fondu</InfoTip>, etf.fund_currency || '—'],
     ['Datum vzniku', dateLabel(etf.inception_date)],
     ['Emitent', etf.fund_provider || '—'],
@@ -578,7 +596,7 @@ export default async function ETFDetailPreview(
                   <EmitentLogo nazev={etf.name} size={40} className="!rounded-lg" />
                   <div className="min-w-0 text-xs text-slate-400 leading-snug">
                     <span className="block text-slate-300 font-medium">{etf.fund_provider}</span>
-                    {etf.index_name && <span className="block truncate">Index {etf.index_name}</span>}
+                    {etf.index_name ? <span className="block truncate">Index {etf.index_name}</span> : podklad && <span className="block truncate">{podklad}</span>}
                   </div>
                 </div>
                 <h1 className="mt-3 text-[22px] md:text-3xl font-bold tracking-tight leading-tight">{etf.name}</h1>
@@ -587,9 +605,9 @@ export default async function ETFDetailPreview(
                     <span>
                       {hlavniListing ? <>Ticker na {burzaKratce(hlavniListing.name)}: </> : 'Ticker: '}
                       <strong className="font-semibold text-white">{hlavniTicker}</strong>
-                      {ostatniTickery.length > 0 && (
+                      {dalsiTickery.length > 0 && (
                         <span className="ml-1.5 text-xs text-slate-400">
-                          <InfoTip label={`Stejný fond se obchoduje i na dalších burzách – ${ostatniTickery.join(', ')}. Poplatek, složení i výnos jsou stejné, liší se jen burza a měna obchodování. Seznam je dole v části Další burzy.`}>+ {ostatniTickery.length} {ostatniTickery.length === 1 ? 'další burza' : ostatniTickery.length < 5 ? 'další burzy' : 'dalších burz'}</InfoTip>
+                          <InfoTip label={`Stejný fond se obchoduje i na ${burzyText(dalsiBurzy.length)} pod tickery ${dalsiTickery.join(', ')}. Poplatek, složení i výnos jsou stejné, liší se jen burza a měna obchodování. Seznam je dole v části Další burzy.`}>+{NBSP}{dalsiTickery.length} {tickeryText(dalsiTickery.length)}</InfoTip>
                         </span>
                       )}
                     </span>
@@ -634,7 +652,7 @@ export default async function ETFDetailPreview(
                     </div>
                   ))}
                 </dl>
-                <div className="mt-4 grid grid-cols-2 gap-2 md:mt-auto md:pt-4 [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap [&_button]:px-2 [&_a]:px-2">
+                <div className="mt-4 grid grid-cols-2 gap-2 md:mt-auto md:pt-4 [&_a]:h-11 [&_button]:h-11 md:[&_a]:h-10 md:[&_button]:h-10 [&_a]:py-0 [&_button]:py-0 [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap [&_button]:px-2 [&_a]:px-2">
                   <Link href="/kde-koupit" className="flex items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-teal-700">
                     Kde koupit <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -654,7 +672,7 @@ export default async function ETFDetailPreview(
           {trhOdlehly && (
             <p role="note" className="mb-3 flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 leading-relaxed">
               <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
-              <span>Výnosy za období neukazujeme: výnos za 12 měsíců se u tohoto fondu lišil o víc než 1,5 p. b. od ostatních fondů na {trhOdlehly.trh.label} (medián {trhOdlehly.median != null ? `${trhOdlehly.median.toFixed(1).replace('.', ',')} %` : '—'} v Kč) – nejčastěji kvůli opožděné ceně u zdroje dat.{' '}
+              <span>Výnosy za období neukazujeme: výnos za 12 měsíců se u tohoto fondu lišil o víc než 1,5 p. b. od ostatních fondů na {trhOdlehly.trh.label} (medián {procenta(trhOdlehly.median, 1, false)} v Kč) – nejčastěji kvůli opožděné ceně u zdroje dat.{' '}
               <Link href={trhOdlehly.trh.href} className="font-medium text-teal-700 underline underline-offset-2">Fondy na stejný trh</Link></span>
             </p>
           )}
@@ -688,7 +706,12 @@ export default async function ETFDetailPreview(
         {/* SLOŽENÍ FONDU */}
         {(holdings.length > 0 || sectors.length > 0 || countries.length > 0) && (
           <section data-sekce="slozeni" className="pb-10">
-            <SectionHead title="Složení fondu" />
+            {/* Složení nemá v DB vlastní datum (justETF ho uvádí „k 31. 8.“, výnosy jsou k včerejšku) – revize kola 4.
+                Až scraper začne ukládat datum složení, nahradit konkrétním „Složení k …“. */}
+            <div className="mb-4">
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Složení fondu</h2>
+              <p className="mt-1 text-xs text-slate-500">Podle posledního zveřejnění emitenta – obvykle 1–2 měsíce zpětně, ne k datu výnosů.</p>
+            </div>
             <div className="grid lg:grid-cols-2 gap-4">
               {holdings.length > 0 && !pozicNeuplne && (
                 <div className="rounded-xl border border-slate-200 bg-white p-5">
@@ -704,7 +727,7 @@ export default async function ETFDetailPreview(
                   {top10Sum > 0 && (
                     <p className="mt-3 text-xs text-slate-500">
                       {holdings.length === 1 ? 'Největší pozice tvoří' : `${holdings.length} největších pozic tvoří`} přibližně{' '}
-                      <span className="font-medium text-slate-700">{top10Sum.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span> fondu
+                      <span className="font-medium text-slate-700">{procenta(top10Sum, 1, false)}</span> fondu
                       {pocetDalsich > 0 ? <>, zbytek je rozložen mezi dalších {pocetDalsich.toLocaleString('cs-CZ')} titulů.</> : '.'}
                     </p>
                   )}
@@ -801,7 +824,7 @@ export default async function ETFDetailPreview(
         </section>
 
         {/* O FONDU – popis + všechna základní fakta (dřív samostatný box s jedinou větou) */}
-        <section data-sekce="fakta" className="pb-10">
+        <section data-sekce="fakta" data-komodita={komodita ?? undefined} className="pb-10">
           <SectionHead title="O fondu" />
           {popisFondu && <p className="mb-4 max-w-3xl text-sm text-slate-600 leading-relaxed">{popisFondu}</p>}
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -840,7 +863,7 @@ export default async function ETFDetailPreview(
               {dalsiBurzy.length > 0 && (
                 <details className="group border-t border-slate-100">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    Další burzy ({dalsiBurzy.length}) – stejný fond, jiný ticker nebo měna
+                    <span>Další burzy ({dalsiBurzy.length}) <span className="font-normal text-slate-500">– {dalsiTickery.length > 0 ? `${dalsiTickery.length === 1 ? 'ticker' : 'tickery'} ${dalsiTickery.join(', ')}` : `stejný ticker ${hlavniTicker ?? ''}`}, stejný fond</span></span>
                     <ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" />
                   </summary>
                   <ul className="divide-y divide-slate-100 border-t border-slate-100">

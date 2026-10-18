@@ -1,7 +1,33 @@
 import Link from 'next/link';
 import type { ComparisonETF } from '@/lib/etf-data';
 import { Check, Minus } from 'lucide-react';
-import { ter, money, pct, dist, repl, domicile } from '@/components/design-preview/CategoryUI';
+import { dist, repl, domicile } from '@/components/design-preview/CategoryUI';
+import { terFmt, procenta, velikostFondu, celeCislo } from '@/lib/formatyCisel';
+import { distKind } from '@/utils/distribution';
+import { druhKomodity } from '@/lib/dividendyFondu';
+
+// Jednotné formáty (kolo 5): „0,07 %“, „+12,5 %“ / „−15,9 %“, „139,4 mld. €“ – src/lib/formatyCisel.ts.
+const ter = (v: number | null) => terFmt(v);
+const pct = (v: number | null) => procenta(v);
+const money = (v: number | null, _cur?: string | null) => velikostFondu(v);
+
+/** Typ výplaty; komodita/krypto v akumulační třídě = „Nevyplácí (komodita)“ jako na detailu fondu. */
+function vyplata(e: ComparisonETF): string {
+  const k = druhKomodity(e.category, e.name);
+  if (k && distKind(e.distribution_policy, e.distribution_frequency) === 'acc') return `Nevyplácí (${k})`;
+  return dist(e.distribution_policy);
+}
+
+/* Dividendový výnos stejně jako porovnání (PorovnaniTable): „—“ = údaj chybí; akumulační fond a komodita
+   dividendy nevyplácejí → slovy (revize kola 4: dvojice „—“, porovnání „nevyplácí“ u téhož fondu). */
+function dividendovyVynos(e: ComparisonETF): React.ReactNode {
+  const d = e.current_dividend_yield_numeric;
+  if (d != null && d > 0) return procenta(d, 2, false);
+  const kind = distKind(e.distribution_policy, e.distribution_frequency);
+  if (druhKomodity(e.category, e.name) && kind !== 'dist') return <span className="text-slate-500">nevyplácí</span>;
+  if (kind === 'acc') return <span className="text-slate-500">nevyplácí</span>;
+  return '—';
+}
 import { pickReturn, curLabel, type Currency } from '@/components/design-preview/currency';
 import { platnyTicker } from '@/lib/ticker';
 import EmitentLogo from '@/components/home/EmitentLogo';
@@ -64,7 +90,7 @@ export function SrovnaniSoubojKarta({
         </div>
         <div className="flex items-baseline justify-between gap-2">
           <dt className="text-slate-400">Firem</dt>
-          <dd className="tabular-nums font-semibold text-white">{etf.total_holdings ? etf.total_holdings.toLocaleString('cs-CZ') : '—'}</dd>
+          <dd className="tabular-nums font-semibold text-white">{etf.total_holdings ? celeCislo(etf.total_holdings) : '—'}</dd>
         </div>
         <div className="hidden md:flex items-baseline justify-between gap-2">
           <dt className="text-slate-400">Velikost</dt>
@@ -102,13 +128,14 @@ export function SrovnaniParamTabulka({
   rows: RadekProps[];
 }) {
   return (
-    <div className="hidden md:block rounded-lg border border-slate-200 bg-white overflow-hidden">
+    // Bez overflow-hidden na obalu – jinak nefunguje plovoucí záhlaví (sticky top-14 pod hlavičkou webu, 16 řádků).
+    <div className="hidden md:block rounded-lg border border-slate-200 bg-white">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-slate-50 text-slate-600 text-left">
-            <th className="py-3 px-4 font-medium w-2/5">Parametr</th>
+          <tr className="text-slate-600 text-left [&>th]:sticky [&>th]:top-14 [&>th]:z-10 [&>th]:bg-slate-50 [&>th]:shadow-[inset_0_-1px_0_#e2e8f0]">
+            <th className="py-3 px-4 font-medium w-2/5 rounded-tl-lg">Parametr</th>
             <th className="py-3 px-4 font-medium text-right">{ticker1}</th>
-            <th className="py-3 px-4 font-medium text-right">{ticker2}</th>
+            <th className="py-3 px-4 font-medium text-right rounded-tr-lg">{ticker2}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -146,13 +173,13 @@ export function SrovnaniParamKarty({
   rows: RadekProps[];
 }) {
   return (
-    <div className="md:hidden overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="md:hidden rounded-lg border border-slate-200 bg-white">
       <table className="w-full table-fixed text-[13px]">
         <thead>
-          <tr className="bg-slate-50 text-xs text-slate-500">
-            <th className="w-[38%] py-2 pl-3 pr-1 text-left font-medium">Parametr</th>
+          <tr className="text-xs text-slate-500 [&>th]:sticky [&>th]:top-14 [&>th]:z-10 [&>th]:bg-slate-50 [&>th]:shadow-[inset_0_-1px_0_#e2e8f0]">
+            <th className="w-[38%] py-2 pl-3 pr-1 text-left font-medium rounded-tl-lg">Parametr</th>
             <th className="py-2 px-1 text-right font-semibold text-slate-700">{ticker1}</th>
-            <th className="py-2 pl-1 pr-3 text-right font-semibold text-slate-700">{ticker2}</th>
+            <th className="py-2 pl-1 pr-3 text-right font-semibold text-slate-700 rounded-tr-lg">{ticker2}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -206,8 +233,8 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
     {
       label: 'Počet pozic ve fondu',
       hint: 'Více firem = širší rozložení rizika (diverzifikace)',
-      v1: etf1.total_holdings ? etf1.total_holdings.toLocaleString('cs-CZ') : '—',
-      v2: etf2.total_holdings ? etf2.total_holdings.toLocaleString('cs-CZ') : '—',
+      v1: etf1.total_holdings ? celeCislo(etf1.total_holdings) : '—',
+      v2: etf2.total_holdings ? celeCislo(etf2.total_holdings) : '—',
       winner: 0, // víc/míň firem není „lepší/horší", je to jiná strategie
     },
     {
@@ -237,16 +264,16 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
     },
     {
       label: 'Dividendový výnos',
-      hint: 'Roční dividenda vůči ceně (u akumulačních fondů se reinvestuje uvnitř)',
-      v1: etf1.current_dividend_yield_numeric != null ? `${etf1.current_dividend_yield_numeric.toLocaleString('cs-CZ', { maximumFractionDigits: 2 })} %` : '—',
-      v2: etf2.current_dividend_yield_numeric != null ? `${etf2.current_dividend_yield_numeric.toLocaleString('cs-CZ', { maximumFractionDigits: 2 })} %` : '—',
+      hint: 'Kolik fond za rok vyplatil na dividendách vůči své ceně. Akumulační fondy dividendy nevyplácejí – reinvestují je uvnitř fondu.',
+      v1: dividendovyVynos(etf1),
+      v2: dividendovyVynos(etf2),
       winner: 0,
     },
     {
       label: 'Kolísavost (1 rok, v EUR)',
       hint: 'Roční volatilita ceny – nižší číslo znamená klidnější průběh',
-      v1: etf1.volatility_1y != null ? `${etf1.volatility_1y.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—',
-      v2: etf2.volatility_1y != null ? `${etf2.volatility_1y.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—',
+      v1: procenta(etf1.volatility_1y, 1, false),
+      v2: procenta(etf2.volatility_1y, 1, false),
       winner: lowerTerWin(etf1.volatility_1y, etf2.volatility_1y, 1),
     },
     {
@@ -258,8 +285,8 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
     },
     {
       label: 'Výplata dividend',
-      v1: dist(etf1.distribution_policy),
-      v2: dist(etf2.distribution_policy),
+      v1: vyplata(etf1),
+      v2: vyplata(etf2),
       winner: 0,
     },
     {
@@ -291,8 +318,8 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
     },
     {
       label: 'ISIN',
-      v1: etf1.isin,
-      v2: etf2.isin,
+      v1: <span className="font-mono text-[11px] md:text-sm">{etf1.isin}</span>,
+      v2: <span className="font-mono text-[11px] md:text-sm">{etf2.isin}</span>,
       winner: 0,
     },
   ];

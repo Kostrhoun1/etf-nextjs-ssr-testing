@@ -1,15 +1,13 @@
 'use client';
 
+import { procenta } from '@/lib/formatyCisel';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { useCurrency, curLabel, type Currency } from '@/components/design-preview/currencyStore';
 
 type Vals = { y1: number | null; y3: number | null; y5: number | null };
 
-const pct = (v: number | null) => {
-  if (v == null) return '—';
-  const s = v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  return `${v > 0 ? '+' : ''}${s} %`;
-};
+// Jednotný formát (kolo 5): „−15,9 %“ s minusem a nezlomitelnou mezerou – src/lib/formatyCisel.ts.
+const pct = (v: number | null) => procenta(v);
 
 /* Výnos 1R/3R/5R v úvodu detailu – JEDINÉ místo kumulativních výnosů na stránce (kolo 3). Měnu řídí
    jediný přepínač v sekci Výkonnost (sdílený stav); výchozí je Kč, server vykreslí Kč. */

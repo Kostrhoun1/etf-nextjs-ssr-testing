@@ -236,6 +236,26 @@ ZŮSTÁVÁ** – majitel 18. 10. 2026: „když jsi u modelových portfolií dal
   Yahoo 4GLD.DE od 30. 12.: −0,78 %. SGLN v USD −3,15 %, přepočteno do EUR (EUR/USD 1,1747 → 1,1242) +1,2 %.
   Rozdíl je jen den, od kterého se letošní výnos počítá. Výnos za 1R je u obou stejný (+1,49 / +1,37 %).
 
+## Detail fondu: sektory, složení, komodity (revize kola 4, 18. 10. 2026)
+
+- **Sektory jsou podle TRBC (Refinitiv), ne GICS – a „Spotřeba (základní)“ 8,9 % u S&P 500 je správně.** justETF
+  (profil SXR8, „as of 31/08/2026“) uvádí přesně Technology 45,23 %, Finance 13,62 %, Healthcare 9,09 %,
+  **Consumer Non-Cyclicals 8,88 %**, Other 23,18 % – shodné s DB i webem. TRBC „Consumer Non-Cyclicals“ = potraviny,
+  nápoje, drogerie, maloobchod s potravinami (≈ GICS Consumer Staples) → „Spotřeba (základní)“; „Consumer Cyclicals“
+  (auta, oděvy, cyklický maloobchod ≈ GICS Discretionary) → „Spotřeba (cyklická)“. Překlad v `src/lib/preklady.ts` NENÍ
+  prohozený. Čísla se od GICS (emitent indexu) liší, protože TRBC řadí firmy jinak (Alphabet, Meta = technologie).
+- **Složení fondu nemá na webu konkrétní datum** – DB (`etf_funds`) žádný sloupec s datem složení nemá (justETF ho
+  uvádí, scraper ho neukládá). Proto popisek „Podle posledního zveřejnění emitenta – obvykle 1–2 měsíce zpětně“. Až
+  scraper (etf-astro) datum začne ukládat, nahradit „Složení k …“.
+- **Komodity a krypto: „Nevyplácí (komodita)“, i když zdroj píše „Accumulating“** (`src/lib/dividendyFondu.ts`). Jen
+  akumulační třídy; distribuční komoditní fondy (Enhanced Commodity – úroky z pokladničních poukázek, Gold+ Yield –
+  opce) ukazují, co uvádí zdroj. Fondy těžařů (miners) nejsou komodita. Hlídá `check-fund-data.mjs`.
+- **„Sleduje: Spotová cena zlata v USD“ místo indexu** u produktů, kde zdroj index nemá (364 komodit/krypta) – doslovně
+  z první věty `description_en` („tracks the spot price of gold in US Dollar“). „LBMA“ v popisu není, proto ho nepíšeme.
+  Neznámá formulace = „—“.
+- **Cena/NAV fondu se na detailu neukazuje:** `current_price` je vyplněná jen u části fondů a naposledy z 14. 6. 2025
+  (`last_price_update`) – zastaralá, raději nic.
+
 ## Google signals vypnuté (rozhodnutí majitele 18. 10. 2026)
 
 GA4 má Google signals i reklamní personalizaci vypnuté v administraci i v kódu (GoogleAnalytics.tsx).

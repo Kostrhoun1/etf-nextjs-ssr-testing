@@ -11,11 +11,9 @@ import type { RokVynosu } from '@/lib/srovnaniRocni';
    Přepínač měny je na stránce jen tady – tabulka parametrů ho sdílí přes currencyStore (kolo 3). */
 import { barvaFondu } from '@/lib/barvyFondu';
 const BARVY = [barvaFondu(0), barvaFondu(1)];
-const pct = (v: number | null) => {
-  if (v == null) return '—';
-  const r = Math.round(v * 10) / 10 || 0;
-  return `${r > 0 ? '+' : ''}${r.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
-};
+import { procenta } from '@/lib/formatyCisel';
+// Jednotný formát (kolo 5): „−15,9 %“ s minusem a nezlomitelnou mezerou.
+const pct = (v: number | null) => procenta(v);
 
 export default function SrovnaniRocniVynosy({ fondy }: { fondy: [{ label: string; roky: RokVynosu[] }, { label: string; roky: RokVynosu[] }] }) {
   const [cur] = useCurrency();

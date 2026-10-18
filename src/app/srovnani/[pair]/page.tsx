@@ -8,7 +8,12 @@ import { TrendingUp, ArrowLeft, ArrowRight, Coins, Layers, Landmark, Info, Walle
 import { getComparisonETFData, type ComparisonETF , getDataDate } from '@/lib/etf-data';
 import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
 import { getPairContent } from '@/components/design-preview/pairContent';
-import { ter, money, pct } from '@/components/design-preview/CategoryUI';
+import { terFmt, procenta, velikostFondu } from '@/lib/formatyCisel';
+
+// Jednotné formáty (kolo 5): „0,07 %“, „−15,9 %“, „139,4 mld. €“ – src/lib/formatyCisel.ts.
+const ter = (v: number | null) => terFmt(v);
+const pct = (v: number | null) => procenta(v);
+const money = (v: number | null, _cur?: string | null) => velikostFondu(v);
 import { POPULAR_PAIRS } from '@/lib/pairs';
 import { distKind } from '@/utils/distribution';
 import { platnyTicker } from '@/lib/ticker';
@@ -314,16 +319,16 @@ export default async function PairComparePage(
                 <div key={tk} className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900"><span className="h-2.5 w-2.5 rounded-full" style={{ background: barvaFondu(i) }} aria-hidden="true" /> {tk}</span>
-                    <span className="text-sm text-slate-500"><strong className="text-xl font-bold text-slate-900 tabular-nums">{e.total_holdings?.toLocaleString('cs-CZ') ?? '—'}</strong> pozic</span>
+                    {e.total_holdings != null && <span className="text-sm text-slate-500"><strong className="text-xl font-bold text-slate-900 tabular-nums">{e.total_holdings.toLocaleString('cs-CZ')}</strong> pozic</span>}
                   </div>
                   {zeme.length > 0 ? (
                     <>
-                      <div className="mt-3 flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={zeme.map((z) => `${ceskaZeme(z.nazev)} ${z.vaha.toLocaleString('cs-CZ')} %`).join(', ')}>
+                      <div className="mt-3 flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={zeme.map((z) => `${ceskaZeme(z.nazev)} ${procenta(z.vaha, 1, false)}`).join(', ')}>
                         {zeme.map((z, j) => <span key={z.nazev} className={ODSTINY[j]} style={{ width: `${z.vaha}%` }} />)}
                       </div>
                       <ul className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
                         {zeme.map((z, j) => (
-                          <li key={z.nazev} className="inline-flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${ODSTINY[j]}`} /> {ceskaZeme(z.nazev)} <span className="tabular-nums text-slate-500">{z.vaha.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span></li>
+                          <li key={z.nazev} className="inline-flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${ODSTINY[j]}`} /> {ceskaZeme(z.nazev)} <span className="tabular-nums text-slate-500">{procenta(z.vaha, 1, false)}</span></li>
                         ))}
                       </ul>
                     </>
@@ -339,6 +344,10 @@ export default async function PairComparePage(
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Všechny parametry</h2>
           <p className="mt-1 mb-4 text-sm text-slate-500">Zelená = nižší poplatek, vyšší výnos nebo menší kolísání v řádku. Výnosy v měně zvolené u grafu.</p>
           <ParametryDvojice etf1={etf1} etf2={etf2} ticker1={cz1} ticker2={cz2} />
+          {/* Podrobné porovnání se STEJNÝM pořadím fondů → stejné barvy (barvaFondu podle pozice; revize kola 4). */}
+          <Link href={`/srovnani/porovnani?isins=${etf1.isin},${etf2.isin}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+            Podrobné porovnání – sektory, největší pozice, riziko <ArrowRight className="w-4 h-4" />
+          </Link>
           <p className="mt-2 text-xs text-slate-400">Daně: u obou fondů platí stejná česká pravidla (osvobození po 3 letech držení nebo do 100 000 Kč prodejů za rok). Výnosy v Kč už obsahují pohyb kurzu koruny.</p>
         </section>
 
