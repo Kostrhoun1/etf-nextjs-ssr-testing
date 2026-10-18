@@ -144,7 +144,7 @@ function Radek({ slug, s }: { slug: string; s: SouhrnZebricku | null }) {
           {/* Mobil: počet a poplatek pod názvem; desktop: upřesnění */}
           <span className="block text-xs text-slate-500 truncate">
             <span className="sm:hidden">{s ? `${s.pocet.toLocaleString('cs-CZ')} ${fondu(s.pocet)} · TER od ${terF(s.nejlevnejsi?.ter)}` : '—'}</span>
-            <span className="hidden sm:inline">{sub ?? ' '}</span>
+            {sub && <span className="hidden sm:inline">{sub}</span>}
           </span>
         </span>
         <span className="hidden sm:block text-right text-sm tabular-nums text-slate-700">{s ? s.pocet.toLocaleString('cs-CZ') : '—'}</span>
