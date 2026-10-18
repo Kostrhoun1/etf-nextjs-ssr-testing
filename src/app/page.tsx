@@ -10,6 +10,7 @@ import {
 } from '@/lib/etf-data';
 import { nactiTrhy } from '@/lib/trhy';
 import TriPohledyTrhu from '@/components/home/TriPohledyTrhu';
+import EmitentLogo, { emitentFondu } from '@/components/home/EmitentLogo';
 import { brokers, CENIKY_OVERENY } from '@/data/brokerData';
 import { nejstarsiDatum } from '@/components/design-preview/AktualnostDat';
 import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
@@ -59,9 +60,10 @@ const STARTER_ISINS = ['IE00BK5BQT80', 'IE00B5BMR087', 'IE00B4L5Y983'];
 /* trh = řádek v TRHY (kolik fondů kopíruje stejný index), href = kam vede „porovnat“. */
 /* U každého startovního fondu nejčastější srovnání dvojice (art director: dvojice do karet, ne řádek čipů). */
 const STARTER_DVOJICE: Record<string, { href: string; label: string }> = {
-  IE00BK5BQT80: { href: '/srovnani/vwce-vs-iwda', label: 'VWCE vs IWDA' },
-  IE00B5BMR087: { href: '/srovnani/vwce-vs-cspx', label: 'CSPX vs VWCE' },
-  IE00B4L5Y983: { href: '/srovnani/iwda-vs-cspx', label: 'IWDA vs CSPX' },
+  // Popisky tickery z karty (SXR8 = CSPX, EUNL = IWDA – stejné fondy, jiná burza); URL zůstávají.
+  IE00BK5BQT80: { href: '/srovnani/vwce-vs-iwda', label: 'VWCE vs EUNL' },
+  IE00B5BMR087: { href: '/srovnani/vwce-vs-cspx', label: 'SXR8 vs VWCE' },
+  IE00B4L5Y983: { href: '/srovnani/iwda-vs-cspx', label: 'EUNL vs SXR8' },
 };
 const STARTER_META: Record<string, { tag: string; icon: typeof Globe; why: string }> = {
   IE00BK5BQT80: { tag: 'Celý svět', icon: Globe, why: 'Tisíce firem z celého světa včetně rozvíjejících se trhů v jednom fondu.' },
@@ -265,9 +267,9 @@ export default async function DesignPreviewV2() {
               <p className="hidden md:block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Další žebříčky</p>
               {/* Mobil: vodorovný posuv s náznakem pokračování (mask fade vpravo). */}
               <ul className="flex md:flex-col gap-2 md:gap-0 overflow-x-auto px-4 md:px-0 pb-1 md:pb-0 [scrollbar-width:none] md:divide-y md:divide-white/10 [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
-                {HERO_ZEBRICKY.map((z) => (
+                {HERO_ZEBRICKY.slice(0, 5).map((z) => (
                   <li key={z.href} className="shrink-0">
-                    <Link href={z.href} className="flex items-center justify-between gap-3 whitespace-nowrap rounded-full md:rounded-none bg-white/10 md:bg-transparent px-3.5 md:px-1 min-h-10 md:min-h-11 text-sm text-slate-100 hover:bg-white/20 md:hover:bg-white/5 transition-colors">
+                    <Link href={z.href} className="flex items-center justify-between gap-3 whitespace-nowrap rounded-full md:rounded-none bg-white/10 md:bg-transparent px-3.5 md:px-1 min-h-10 md:min-h-11 text-sm text-slate-300 hover:text-white hover:bg-white/20 md:hover:bg-white/5 transition-colors">
                       {z.label} <ArrowRight className="hidden md:block w-4 h-4 text-slate-500" />
                     </Link>
                   </li>
@@ -308,7 +310,9 @@ export default async function DesignPreviewV2() {
                 return (
                   <div key={etf.isin} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
                     <Link href={`/etf/${etf.isin}`} className="group flex items-start gap-3">
-                      <span className="hidden md:flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-teal-50 text-teal-700 group-hover:bg-teal-100 transition-colors"><Icon className="w-5 h-5" /></span>
+                      <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-xl border border-slate-200 bg-white">
+                        {emitentFondu(etf.name) ? <EmitentLogo nazev={etf.name} size={24} /> : <Icon className="w-5 h-5 text-teal-700" />}
+                      </span>
                       <span className="min-w-0">
                         <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">{meta?.tag}</span>
                         <span className="block text-base font-semibold text-slate-900 leading-snug group-hover:text-teal-800">{short(etf.name)} <span className="font-normal text-slate-500">· {etf.primary_ticker}</span></span>
@@ -330,16 +334,15 @@ export default async function DesignPreviewV2() {
               })}
             </div>
             {/* Co dál – tři kroky (test s uživateli: chyběl krok od výběru k nákupu). */}
-            <ol className="mt-4 grid gap-2 sm:grid-cols-3">
+            <ol className="mt-4 flex flex-col sm:flex-row sm:flex-wrap gap-x-8 gap-y-1 text-sm text-slate-600">
               {[
                 { href: '/srovnani', t: 'Vyberte fond', d: 've srovnávači nebo výše' },
                 { href: '#brokeri', t: 'Otevřete účet u brokera', d: 'srovnání poplatků níže' },
                 { href: '/jak-zacit', t: 'Nastavte pravidelný nákup', d: 'jak začít krok za krokem' },
               ].map((k, i) => (
                 <li key={k.t}>
-                  <Link href={k.href} className="flex h-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:border-teal-300 transition-colors">
-                    <span className="flex items-center justify-center w-7 h-7 shrink-0 rounded-full bg-teal-700 text-sm font-semibold text-white tabular-nums">{i + 1}</span>
-                    <span className="min-w-0"><span className="block text-sm font-semibold text-slate-900">{k.t}</span><span className="block text-xs text-slate-500">{k.d}</span></span>
+                  <Link href={k.href} className="inline-flex items-center gap-2 min-h-10 hover:text-teal-800">
+                    <span className="font-semibold text-teal-700 tabular-nums">{i + 1}.</span> {k.t}
                   </Link>
                 </li>
               ))}
@@ -370,13 +373,21 @@ export default async function DesignPreviewV2() {
                   </span>
                   <dl className="grid grid-cols-2 gap-2 text-xs text-slate-500">
                     <div><dt>12 měs.</dt><dd className={`text-base font-semibold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(p.return1y)}</dd></div>
-                    <div><dt>3 roky</dt><dd className="text-base font-semibold tabular-nums text-slate-700">{p.return3y == null ? <span className="text-xs font-normal text-slate-500">kratší historie</span> : pct(p.return3y)}</dd></div>
+                    <div><dt>3 roky</dt><dd className={`text-base font-semibold tabular-nums ${p.return3y == null ? '' : p.return3y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{p.return3y == null ? <span className="text-xs font-normal text-slate-500">kratší historie</span> : pct(p.return3y)}</dd></div>
                   </dl>
                 </Link>
               </li>
             ))}
+            <li className="hidden lg:block">
+              <Link href="/portfolio-strategie" className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-dashed border-slate-300 p-4 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
+                <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                  {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
+                </span>
+                <span className="inline-flex items-center gap-1 text-sm font-semibold text-teal-700">Porovnat všech {portfolia.length} <ArrowRight className="w-4 h-4" /></span>
+              </Link>
+            </li>
           </ul>
-          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+          <p className="mt-2 flex lg:hidden flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
             {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
           </p>
         </section>
@@ -395,14 +406,15 @@ export default async function DesignPreviewV2() {
               <li key={id} className={bi >= 4 ? 'hidden sm:block' : undefined}>
                 <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[15rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-x-6 gap-y-1 px-4 sm:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
                   <span className="flex items-center gap-2 min-w-0">
-                    {/* Logo v jednotném rámečku 64×32 + jméno textem (loga mají různé poměry stran a Fio je bez názvu). */}
-                    <span className="flex items-center justify-center w-16 h-8 shrink-0">
-                      {LOGO_BROKERA[id]
-                        // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={LOGO_BROKERA[id]} alt="" loading="lazy" className="max-w-full max-h-full object-contain" />
-                        : <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-sm font-bold text-slate-600" aria-hidden="true">{broker!.name.charAt(0)}</span>}
-                    </span>
-                    <span className="text-[15px] font-semibold text-slate-900 truncate">{broker!.name}</span>
+                    {/* Wordmark brokera v jednotném rámečku (obsahuje jméno → bez duplicitního textu); Fio má
+                        logo bez čitelného názvu a Portu jen provizorní → jméno textem. */}
+                    {LOGO_BROKERA[id] && (
+                      <span className={`flex items-center h-7 shrink-0 ${id === 'fio' ? 'w-7' : 'w-24'}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={LOGO_BROKERA[id]} alt={id === 'fio' ? '' : broker!.name} loading="lazy" className="max-w-full max-h-full object-contain object-left" />
+                      </span>
+                    )}
+                    {(!LOGO_BROKERA[id] || id === 'fio') && <span className="text-[15px] font-semibold text-slate-900 truncate">{broker!.name}</span>}
                     {robo && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}
                   </span>
                   <span className="hidden sm:block text-sm text-slate-600">{forWhom}</span>

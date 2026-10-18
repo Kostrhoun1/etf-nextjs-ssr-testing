@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
+import EmitentLogo from '@/components/home/EmitentLogo';
 import type { RadekTrhu, FondTrhu } from '@/lib/trhy';
 
 /* Tři pohledy na fondy podle trhu (homepage, 18. 10. 2026): nejlevnější / největší / nejvýkonnější.
@@ -28,9 +29,13 @@ const mld = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 100
 function Fond({ f }: { f: FondTrhu | null }) {
   if (!f) return <span className="text-slate-500">—</span>;
   return (
-    <Link href={`/etf/${f.isin}`} className="group/f min-w-0 min-h-6 flex flex-col py-0.5">
-      <span className="text-[15px] font-medium leading-snug text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2 md:truncate">{f.nazev}</span>
-      {f.ticker && <span className="text-xs text-slate-500">{f.ticker}</span>}
+    <Link href={`/etf/${f.isin}`} className="group/f min-w-0 min-h-11 flex items-center gap-2.5 py-0.5">
+      <EmitentLogo nazev={f.nazev} size={22} />
+      <span className="min-w-0 flex flex-col">
+        <span className="text-[15px] font-medium leading-snug text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2 md:truncate">{f.nazev}</span>
+        {/* Bez tickeru (fondy na Nasdaq-100 ho v datech nemají) ISIN – skutečný identifikátor, stejný rytmus řádku. */}
+        <span className="text-xs text-slate-500">{f.ticker ?? f.isin}</span>
+      </span>
     </Link>
   );
 }
@@ -91,14 +96,15 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
               return (
                 <li key={r.trh.id} className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[13rem_minmax(0,1fr)_10rem_8rem] gap-x-6 gap-y-1 px-4 md:px-5 py-3 items-center">
                   <Link href={r.trh.href} className="min-w-0 min-h-6 inline-flex flex-col py-0.5 hover:text-teal-800">
-                    <span className="text-[15px] font-semibold text-slate-900 hover:underline underline-offset-2">{r.trh.label}</span>
+                    {/* Mobil: trh jako malý nadpis nad fondem (dva stejně velké názvy splývaly). */}
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 md:text-[15px] md:normal-case md:tracking-normal md:text-slate-900 hover:underline underline-offset-2">{r.trh.label}</span>
                     <span className="hidden md:block text-xs text-slate-500">{r.trh.index}</span>
                   </Link>
                   <span className="order-3 md:order-none col-span-2 md:col-span-1 min-w-0"><Fond f={f} /></span>
                   <span className={`order-2 md:order-none text-right text-base font-semibold tabular-nums ${barva}`}>
                     {hlavni}
                     {p.id === 'ter' && r.stejnyTer > 0 && (
-                      <Link href={r.trh.href} className="block text-xs font-normal text-teal-700 hover:underline">+{r.stejnyTer} za stejný poplatek</Link>
+                      <Link href={r.trh.href} className="block text-xs font-normal text-slate-500 hover:text-teal-800 hover:underline">a {r.stejnyTer} {r.stejnyTer === 1 ? 'další' : 'další'} za stejný TER</Link>
                     )}
                   </span>
                   <span className="hidden md:block text-right text-sm tabular-nums text-slate-600">{vedlejsi}</span>

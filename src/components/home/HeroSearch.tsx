@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Loader2, ArrowRight, ListOrdered } from 'lucide-react';
+import EmitentLogo from '@/components/home/EmitentLogo';
 
 /* Živý našeptávač ETF v hero sekci na homepage – při psaní názvu, ISIN nebo
    tickeru rovnou nabízí fondy; klik/Enter otevře detail, „Zobrazit vše" pošle
@@ -148,7 +149,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
               {kategorie.map((k) => (
                 <li key={k.href}>
                   <Link href={k.href} onClick={() => setOpen(false)} className="flex items-center gap-3 px-3.5 py-2.5 text-sm hover:bg-slate-50 transition-colors">
-                    <span className="inline-flex items-center justify-center min-w-14 shrink-0 rounded-md bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-700"><ListOrdered className="w-3.5 h-3.5" /></span>
+                    <ListOrdered className="w-4 h-4 shrink-0 text-teal-700" aria-hidden="true" />
                     <span className="min-w-0 flex-1 font-medium text-slate-900">{k.typ === 'pruvodce' ? k.label : `Žebříček: ${k.label}`}</span>
                     <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
                   </Link>
@@ -167,11 +168,9 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
                     onClick={() => goToEtf(r.isin)}
                     className={`w-full px-3.5 py-2.5 text-left flex items-center gap-3 transition-colors ${active === i ? 'bg-teal-50' : 'hover:bg-slate-50'}`}
                   >
-                    <span className={`inline-flex items-center justify-center min-w-14 shrink-0 rounded-md px-2 py-1 text-xs font-semibold tabular-nums ${r.primary_ticker ? 'bg-slate-100 text-slate-700' : 'text-transparent'}`} aria-hidden={!r.primary_ticker}>
-                      {r.primary_ticker ?? '·'}
-                    </span>
+                    <span className="flex items-center justify-center w-5 h-5 shrink-0"><EmitentLogo nazev={r.name} size={20} /></span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium text-slate-900 truncate">{r.name}</span>
+                      <span className="block text-sm text-slate-900 truncate"><span className="font-medium">{r.name}</span>{r.primary_ticker && <span className="text-slate-500"> · {r.primary_ticker}</span>}</span>
                       <span className="block text-xs text-slate-500 truncate">
                         {r.fund_provider ? `${r.fund_provider} · ` : ''}{r.isin}
                       </span>
