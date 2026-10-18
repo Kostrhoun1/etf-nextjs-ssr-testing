@@ -624,7 +624,10 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                   const v = skutecnostAktualni ?? skutecnost;
                   return (
                     <ul className="mt-2 space-y-1 text-sm text-slate-600">
-                      <li>Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(v.vlozeno)}</span>{!scenar.zkraceno && <> · kalkulačka se stálými {averageReturn.toLocaleString('cs-CZ')} %: <span className="font-semibold tabular-nums text-slate-800">{fmtMil(finalResult.netValue)}</span></>}</li>
+                      <li>Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(v.vlozeno)}</span></li>
+                      {!scenar.zkraceno && taxRate === 0 && (
+                        <li>Kalkulačka se stálými {averageReturn.toLocaleString('cs-CZ')}&nbsp;%: <span className="font-semibold tabular-nums text-slate-800">{fmtMil(finalResult.netValue)}</span></li>
+                      )}
                       {v.irr != null && (
                         <li>
                           <InfoTip label="Vnitřní výnosové procento vašich vkladů (XIRR): stálý roční výnos, který by ze stejných vkladů ve stejných dnech udělal stejnou částku. Je přímo srovnatelný s výnosem zadaným do kalkulačky. Od průměrného ročního zhodnocení samotného trhu (CAGR) se liší, protože pozdější vklady byly investované kratší dobu.">Vklady se zhodnocovaly</InfoTip>{' '}

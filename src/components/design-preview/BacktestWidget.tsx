@@ -30,7 +30,6 @@ import { STRESS_WINDOWS } from '@/lib/backtest/calculations';
 import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
 import { kulateKroky, fmtOsa } from '@/lib/osyGrafu';
 import { vkladyVCase, zhodnoceniVkladu } from '@/lib/backtest/zhodnoceniVkladu';
-import { FaqSeznam } from '@/components/design-preview/brokerUI';
 
 type Currency = 'EUR' | 'CZK' | 'USD';
 type ContributionFrequency = 'none' | 'monthly' | 'quarterly' | 'yearly';
@@ -322,7 +321,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const popisNastaveni = () => {
     const casti = selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')} %`).join(' + ');
     const nazev = !activeStyle && activePreset && activePreset !== 'sp500-100' ? (PRESET_SHORT[activePreset] ?? null) : null;
-    const slozeni = nazev ? `${nazev}: ${casti}` : casti;
+    const slozeni = nazev && !casti.startsWith(nazev) ? `${nazev}: ${casti}` : casti;
     const cur = CURRENCIES.find((c) => c.code === currency)?.label ?? '';
     const freq = { monthly: 'měsíčně', quarterly: 'čtvrtletně', yearly: 'ročně', none: '' }[contributionFrequency];
     const vklady = `${initialAmount.toLocaleString('cs-CZ')} ${cur}${contributionFrequency !== 'none' && contributionAmount > 0 ? ` + ${contributionAmount.toLocaleString('cs-CZ')} ${cur} ${freq}` : ''}`;
@@ -551,7 +550,13 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
         if (!Number.isFinite(weight) || weight <= 0) return null;
         return { isin: idx.isin, name: idx.etfName, ter: idx.ter, indexCode: idx.indexCode, indexName: idx.name, weight };
       }).filter(Boolean) as SelectedETF[];
-      if (parsed.length) { setSelectedETFs(parsed); setActivePreset(null); setEditComposition(true); }
+      if (parsed.length) {
+        // Složení shodné s hotovým portfoliem (odkaz z modelových portfolií) → ukázat jeho název.
+        const klic = (x: { indexCode: string; weight: number }[]) => x.map((e) => `${e.indexCode}:${e.weight}`).sort().join(',');
+        const shoda = PRESET_PORTFOLIOS.find((pp) => klic(pp.etfs) === klic(parsed));
+        if (shoda) applyPreset(shoda.id);
+        else { setSelectedETFs(parsed); setActivePreset(null); setEditComposition(true); }
+      }
     }
     // KONKRÉTNÍ FONDY: ?fondy=IE00BK5BQT80:70,IE00B14X4Q57:30 (odkaz z detailu fondu, sdílení).
     // Dohledání je asynchronní → spuštění (run=1) až po načtení fondů.

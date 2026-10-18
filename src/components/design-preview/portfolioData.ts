@@ -192,25 +192,21 @@ export const portfolioModels: PortfolioModel[] = [
 /** Riziko jako 1–3 tečky (stejně jako homepage), bez červeného „poplašného“ štítku. */
 export const RIZIKO_TECKY: Record<PortfolioRisk, number> = { 'Konzervativní': 1, 'Umírněné': 2, 'Agresivní': 3 };
 
-/* Odkaz do backtestu: hotový preset, když existuje (id z PRESET_PORTFOLIOS v BacktestWidget.tsx), jinak
-   vlastní složení ?slozeni=kod:vaha. Vždy stejné období a počáteční vklad jako předpočet na stránce
-   (start 2008-07-01, 100 000 Kč, bez dalších vkladů, roční rebalancování) – čísla v backtestu pak sedí. */
-const BACKTEST_PRESET: Record<string, string> = {
-  'permanentni-portfolio': 'permanent',
-  'ray-dalio-all-weather': 'all-weather',
-  'portfolio-60-40': '60-40',
-};
-export function backtestOdkaz(slug: string): string | null {
+/* Odkaz do backtestu se STEJNÝMI vstupy jako předpočet na stránce: složení, start, 100 000 Kč, bez dalších
+   vkladů, roční rebalancování a KONEC DAT = poslední den předpočtu (`do`). Revize 18. 10. 2026: stránka ukazovala
+   617 tis./10,5 % a backtest z jejího odkazu 612 992 Kč/10,4 % – stránka je v ISR cache, backtest počítal do jiného
+   dne. Složení jde vždy explicitně (?slozeni=kod:vaha), backtest si k němu sám najde hotový preset se stejnými
+   vahami (název). Denní kontrola (scripts/check-fund-data.mjs) z tohohle odkazu počítá API a porovná s číslem. */
+export function backtestOdkaz(slug: string, doDen?: string): string | null {
   const cfg = PORTFOLIO_BACKTEST[slug];
   if (!cfg) return null;
   const p = new URLSearchParams();
-  const preset = BACKTEST_PRESET[slug];
-  if (preset) p.set('portfolio', preset);
-  else p.set('slozeni', cfg.items.map((i) => `${i.indexCode}:${Math.round(i.weight * 1000) / 10}`).join(','));
+  p.set('slozeni', cfg.items.map((i) => `${i.indexCode}:${Math.round(i.weight * 1000) / 10}`).join(','));
   p.set('start', cfg.start);
   p.set('amount', '100000');
   p.set('contrib', 'none');
   p.set('vyvazovani', 'yearly');
+  if (doDen && /^\d{4}-\d{2}-\d{2}$/.test(doDen)) p.set('do', doDen);
   p.set('run', '1');
   return `/backtest?${p.toString().replace(/%3A/g, ':').replace(/%2C/g, ',')}`;
 }
@@ -229,19 +225,26 @@ export interface BacktestItem {
 export interface BacktestConfig {
   start: string;  // ISO datum začátku (kde mají data všechny složky)
   items: BacktestItem[];
+  /** Část složení je v backtestu nahrazená podobným indexem → čísla s „≈“ a tímto vysvětlením v tooltipu. */
   proxyNote?: string;
+  /** Měnové riziko složek, které nejsou v korunách ani zajištěné (jedna věta do tooltipu). */
+  menoveRiziko?: string;
 }
+
+const USD_DLUHOPISY = 'Dluhopisy jsou v tomto portfoliu americké a v dolarech – jejich hodnota v korunách kolísá s kurzem USD/CZK, takže „bezpečná“ část v korunách tak klidná není.';
 
 export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
   'globalni-jadro-small-cap-value': {
     start: '2008-07-01',
     items: [
       { indexCode: 'sp500', weight: 0.54, ter: 0.0005 },
-      { indexCode: 'world_ex_us', weight: 0.22, ter: 0.0015 },
+      // 18. 10. 2026: dřív world_ex_us (VGTSX = vyspělé I rozvíjející se trhy) + zvlášť EM → EM se počítaly dvakrát.
+      // Fond ve složení je MSCI World ex USA (jen vyspělé) → nejbližší řada jsou vyspělé trhy mimo USA (EFA, bez Kanady).
+      { indexCode: 'msci_eafe', weight: 0.22, ter: 0.0015 },
       { indexCode: 'msci_em', weight: 0.09, ter: 0.0018 },
       { indexCode: 'us_small_cap', weight: 0.15, ter: 0.0039 }, // proxy globálního small-cap value
     ],
-    proxyNote: 'Small-cap value satelit (Avantis Global Small Cap Value) v backtestu aproximujeme indexem US small cap — zachytí size prémii, ne však value tilt ani globální rozsah, takže jeho historický přínos je spíš PODhodnocený. Slouží k ilustraci rizika a průběhu, ne k přesnému výnosu SCV strategie.',
+    proxyNote: 'Malé hodnotové firmy (Avantis Global Small Cap Value) počítáme přes americké malé firmy (Russell 2000) – bez hodnotového zaměření a jen USA. Vyspělé trhy mimo USA přes index EAFE (bez Kanady). Výsledek je orientační.',
   },
   'permanentni-portfolio': {
     start: '2008-07-01',
@@ -251,6 +254,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'us_treasury_1_3y', weight: 0.25, ter: 0.0007 },
       { indexCode: 'gold', weight: 0.25, ter: 0.0012 },
     ],
+    menoveRiziko: '„Hotovost“ i dlouhé dluhopisy jsou v tomto portfoliu americké státní dluhopisy v dolarech – v korunách kolísají s kurzem USD/CZK, takže hotovost tu není korunová jistota.',
   },
   'nobel-portfolio': {
     start: '2008-07-01',
@@ -259,7 +263,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'us_aggregate_bond', weight: 0.25, ter: 0.0025 },
       { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
     ],
-    proxyNote: 'Nemovitostní složku kvůli délce historie aproximujeme evropským akciovým indexem.',
+    proxyNote: 'Nemovitosti počítáme přes evropské akcie (dlouhá řada nemovitostních fondů v datech není) a dluhopisy přes americké dluhopisy v dolarech (AGG), ačkoli fond ve složení je globální a zajištěný do eur. Výsledek je orientační.',
   },
   'akciove-portfolio': {
     start: '2008-07-01',
@@ -267,7 +271,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'ftse_all_world', weight: 0.80, ter: 0.0022 },
       { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
     ],
-    proxyNote: 'Nemovitostní složku kvůli délce historie aproximujeme evropským akciovým indexem.',
+    proxyNote: 'Nemovitosti počítáme přes evropské akcie – dlouhá řada nemovitostních fondů v datech není (americký sektor nemovitostí až od 2015). Backtest tak srovnává akcie s akciemi a o chování nemovitostí nic neříká. Výsledek je orientační.',
   },
   'ray-dalio-all-weather': {
     start: '2008-07-01',
@@ -278,6 +282,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'commodities', weight: 0.075, ter: 0.0019 },
       { indexCode: 'gold', weight: 0.075, ter: 0.0012 },
     ],
+    menoveRiziko: USD_DLUHOPISY,
   },
   'portfolio-60-40': {
     start: '2008-07-01',
@@ -285,6 +290,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'ftse_all_world', weight: 0.60, ter: 0.0022 },
       { indexCode: 'us_aggregate_bond', weight: 0.40, ter: 0.0025 },
     ],
+    proxyNote: 'Dluhopisy počítáme přes americké dluhopisy v dolarech (AGG); fond ve složení je globální a zajištěný do eur – v korunách se chová jinak (kurz USD/CZK u něj odpadá, kurz EUR/CZK ne). Výsledek je orientační.',
   },
   'dividendove-portfolio': {
     start: '2008-07-01',
@@ -292,7 +298,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'ftse_all_world', weight: 0.95, ter: 0.0045 }, // proxy dividendového indexu
       { indexCode: 'ftse_europe', weight: 0.05, ter: 0.0040 },    // proxy nemovitostí
     ],
-    proxyNote: 'Dividendovou složku aproximujeme širokým globálním akciovým indexem – slouží k ilustraci rizika a průběhu, ne k přesnému výnosu dividendové strategie.',
+    proxyNote: 'Dividendové akcie počítáme přes celý světový akciový trh a nemovitosti přes evropské akcie – výsledek ukazuje spíš průběh akcií obecně než dividendové strategie. Orientační.',
   },
 };
 

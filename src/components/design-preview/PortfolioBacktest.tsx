@@ -1,20 +1,28 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Info, TrendingUp, AlertTriangle } from 'lucide-react';
+import { AreaChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useCurrency, curLabel, type Currency } from '@/components/design-preview/currencyStore';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
+import InfoTip from '@/components/design-preview/InfoTip';
 import type { BacktestConfig, BacktestItem } from '@/components/design-preview/portfolioData';
 import { BACKTEST_BENCHMARK } from '@/components/design-preview/portfolioData';
+import { kulateKroky, fmtOsa } from '@/lib/osyGrafu';
 
-/* Historická výkonnost modelového portfolia postavená na REÁLNÝCH denních datech
-   (engine src/lib/backtest, /api/backtest/simulate). Ukazuje dlouhodobý vývoj,
-   klíčové metriky (CAGR, kolísavost, max. pokles, nejlepší/nejhorší rok) a chování
-   v krizích (2008, 2020, 2022) proti čistě akciovému portfoliu – jako u dobrého poradce. */
+/* Historická výkonnost modelového portfolia na REÁLNÝCH denních datech (stejné jádro jako /backtest).
+ *
+ * Revize 18. 10. 2026 (kolo 3):
+ *  – každé číslo JEDNOU: srovnávací tabulka portfolio × 100 % akcie je jediné místo s ukazateli (dřív stejné
+ *    10,5 % čtyřikrát: dlaždice nahoře, tabulka, dlaždice dole, souhrnný text),
+ *  – graf ve stejném vizuálním jazyce jako backtest (recharts, kulaté osy osyGrafu.ts, roky na ose X),
+ *  – kolísavost = ukazatel backtestu (z měsíčních výnosů), ne směrodatná odchylka ročních výnosů včetně neúplných let,
+ *  – neúplné krajní roky (2008 od července, letošek) jsou označené a nesoutěží o nejlepší/nejhorší rok ani kladné roky,
+ *  – „✓ klidnější“ jen při kolísavosti nižší o ≥ 1 p. b. A propadu mělčím o ≥ 1 p. b. (Akciové portfolio dřív
+ *    tvrdilo klidnější jízdu, ač nemovitosti počítá přes evropské akcie = akcie proti akciím). */
 
 interface EvoPoint { date: string; value: number }
 interface AnnualRet { year: number; return: number }
-interface Drawdown { depth: number; lengthMonths: number; recovered: boolean; troughDate: string }
+interface Drawdown { depth: number; lengthMonths: number; recovered: boolean; troughDate: string; startDate?: string; endDate?: string | null }
 interface Result {
   summary: { cagr: number; standardDeviation: number; netAssetValue: number; amountInvested: number };
   returns: { annualReturns: AnnualRet[]; positiveYears: number; totalYears: number };
@@ -26,23 +34,23 @@ interface Result {
 const INITIAL: Record<Currency, number> = { CZK: 100000, EUR: 4000, USD: 4500 };
 
 const pctD = (v: number | null | undefined, digits = 1) =>
-  v == null ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits })}\u00a0%`;
+  v == null || !Number.isFinite(v) ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits })} %`;
+const pct0 = (v: number) => `${(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
 
 const money = (v: number, cur: Currency) => {
-  const sym = cur === 'CZK' ? '\u00a0Kč' : cur === 'EUR' ? '\u00a0€' : '\u00a0$';
-  if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 })}\u00a0mil.${sym}`;
-  if (Math.abs(v) >= 1_000) return `${Math.round(v / 1000).toLocaleString('cs-CZ')}\u00a0tis.${sym}`;
+  const sym = cur === 'CZK' ? ' Kč' : cur === 'EUR' ? ' €' : ' $';
+  if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 })} mil.${sym}`;
+  if (Math.abs(v) >= 1_000) return `${Math.round(v / 1000).toLocaleString('cs-CZ')} tis.${sym}`;
   return `${Math.round(v).toLocaleString('cs-CZ')}${sym}`;
 };
+const mesRok = (iso: string) => { const d = new Date(iso); return `${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
+const den = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const jednotka = (c: Currency) => (c === 'CZK' ? 'v Kč' : c === 'EUR' ? 'v eurech' : 'v dolarech');
 
-async function fetchBacktest(items: BacktestItem[], start: string, cur: Currency): Promise<Result | null> {
+async function fetchBacktest(items: BacktestItem[], start: string, end: string, cur: Currency): Promise<Result | null> {
   const body = {
     portfolio: items.map((i) => ({ isin: i.indexCode, name: i.indexCode, weight: i.weight, ter: i.ter, indexCode: i.indexCode })),
-    startDate: start,
-    endDate: new Date().toISOString().split('T')[0],
-    initialAmount: INITIAL[cur],
-    rebalancingStrategy: 'yearly',
-    currency: cur,
+    startDate: start, endDate: end, initialAmount: INITIAL[cur], rebalancingStrategy: 'yearly', currency: cur,
   };
   try {
     const res = await fetch('/api/backtest/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -53,124 +61,49 @@ async function fetchBacktest(items: BacktestItem[], start: string, cur: Currency
   }
 }
 
-/* Krize = propad od vrcholu ke dnu v okně krize – STEJNÁ čísla jako krizové testy v /backtest
-   (calculateStressPeriods). Dřív tu byly kalendářní roční výnosy: „Finanční krize 2008 −13,2 %“
-   (jen 2. pololetí) a „Covid 2020 +8,3 %“ (celý rok i s oživením) vs. −49,7 % / −26,5 % v backtestu
-   (revize 18. 10. 2026). Krize 2008 se u řad od 07/2008 neukáže – chybí předkrizový vrchol. */
+/** Roky, které výpočet nepokrývá celé (první začíná v červenci 2008, poslední končí letos). */
+function neuplneRoky(evo: EvoPoint[]) {
+  const out = new Set<number>();
+  if (evo.length < 2) return out;
+  const p = new Date(evo[0].date), k = new Date(evo[evo.length - 1].date);
+  if (p.getUTCMonth() > 0 || p.getUTCDate() > 7) out.add(p.getUTCFullYear());
+  if (!(k.getUTCMonth() === 11 && k.getUTCDate() >= 28)) out.add(k.getUTCFullYear());
+  return out;
+}
+
+function navrat(d: Drawdown) {
+  if (!d.recovered || !d.endDate) return d.recovered ? `zpět za ${d.lengthMonths} měs. od vrcholu` : 'zatím pod vrcholem';
+  const mes = Math.round((Date.parse(d.endDate) - Date.parse(d.troughDate)) / (30.44 * 864e5));
+  if (mes < 1) return 'zpět do měsíce';
+  if (mes < 18) return `zpět za ${mes} měs.`;
+  const r = Math.round(mes / 12);
+  return `zpět za ${r} ${r < 5 ? 'roky' : 'let'}`;
+}
+
+/** Ukazatele z výsledku – CELÉ roky pro nejlepší/nejhorší/kladné. */
+function ukazatele(r: Result) {
+  const neuplne = neuplneRoky(r.evolution);
+  const cele = r.returns.annualReturns.filter((a) => !neuplne.has(a.year));
+  const best = cele.length ? cele.reduce((a, b) => (b.return > a.return ? b : a)) : null;
+  const worst = cele.length ? cele.reduce((a, b) => (b.return < a.return ? b : a)) : null;
+  return { neuplne, cele, best, worst, kladne: cele.filter((a) => a.return > 0).length };
+}
+
 const POZNAMKA_KRIZE: Record<string, string> = {
-  gfc: 'propad po krachu Lehman Brothers',
   covid: 'jarní propad 2020',
   bear2022: 'pokles akcií i dluhopisů (inflace, sazby)',
   dotcom: 'splasknutí technologické bubliny',
 };
 
-/* Graf vývoje hodnoty. Kreslí se ve dvou velikostech: na mobilu vlastní (užší a vyšší) viewBox, aby popisky
-   nebyly 5px drobné (revize 18. 10. 2026). Vodorovné linky s částkou, ať jde graf číst bez tooltipu. */
-function LineChartSvg({ portfolio, bench, cur, W, H, font }: { portfolio: EvoPoint[]; bench: EvoPoint[]; cur: Currency; W: number; H: number; font: number }) {
-  const padL = 4, padR = 8, padT = 10, padB = font + 12;
-  const sample = (arr: EvoPoint[], n = 160) => {
-    if (arr.length <= n) return arr;
-    const step = (arr.length - 1) / (n - 1);
-    return Array.from({ length: n }, (_, i) => arr[Math.round(i * step)]);
-  };
-  const p = sample(portfolio), b = sample(bench);
-  const all = [...p, ...b];
-  if (!all.length) return null;
-  const min = Math.min(...all.map((d) => d.value));
-  const max = Math.max(...all.map((d) => d.value));
-  const t0 = new Date(p[0].date).getTime();
-  const t1 = new Date(p[p.length - 1].date).getTime();
-  const x = (iso: string) => padL + ((new Date(iso).getTime() - t0) / (t1 - t0)) * (W - padL - padR);
-  const y = (v: number) => padT + (1 - (v - min) / (max - min || 1)) * (H - padT - padB);
-  const path = (arr: EvoPoint[]) => arr.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(d.date).toFixed(1)},${y(d.value).toFixed(1)}`).join(' ');
-  const allYears = Array.from(new Set(p.map((d) => new Date(d.date).getFullYear())));
-  const every = Math.ceil(allYears.length / (W < 500 ? 4 : 7));
-  const years = allYears.filter((_, i) => i % every === 0).filter((yr) => x(`${yr}-01-01`) > padL + 12);
-  const ticks = [0.25, 0.5, 0.75, 1].map((f) => min + (max - min) * f);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Vývoj hodnoty portfolia">
-      {ticks.map((v) => (
-        <g key={v}>
-          <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="#e2e8f0" strokeWidth="1" />
-          <text x={padL + 2} y={y(v) - 3} fontSize={font - 1} fill="#94a3b8">{money(v, cur)}</text>
-        </g>
-      ))}
-      {years.map((yr) => (
-        <text key={yr} x={x(`${yr}-01-01`)} y={H - 4} fontSize={font} fill="#94a3b8" textAnchor="middle">{yr}</text>
-      ))}
-      <path d={path(b)} fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" />
-      <path d={path(p)} fill="none" stroke="#0f766e" strokeWidth="2.25" />
-      <circle cx={x(p[p.length - 1].date)} cy={y(p[p.length - 1].value)} r="3.5" fill="#0f766e" />
-    </svg>
-  );
-}
-
-function LineChart(props: { portfolio: EvoPoint[]; bench: EvoPoint[]; cur: Currency }) {
-  return (
-    <>
-      <div className="md:hidden"><LineChartSvg {...props} W={360} H={240} font={11} /></div>
-      <div className="hidden md:block"><LineChartSvg {...props} W={720} H={260} font={11} /></div>
-    </>
-  );
-}
-
-const dec1 = (v: number) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-
-/* Klouzavé (rolling) výnosy – nejlepší/nejhorší roční zhodnocení přes VŠECHNA
-   N‑letá okna v období. Ukazuje konzistenci: „ať jste nastoupili kdykoli,
-   při N‑letém držení jste ročně vydělali X–Y %." Nejpřesvědčivější, když je min > 0. */
-function rollingAnnualized(evo: EvoPoint[], windowYears: number): { min: number; max: number } | null {
-  const monthly: EvoPoint[] = [];
-  let lastKey = '';
-  for (const p of evo) {
-    const key = p.date.slice(0, 7);
-    if (key !== lastKey) { monthly.push(p); lastKey = key; }
-  }
-  const ms = windowYears * 12;
-  if (monthly.length <= ms) return null;
-  let min = Infinity, max = -Infinity;
-  for (let i = 0; i + ms < monthly.length; i++) {
-    const a = monthly[i].value, b = monthly[i + ms].value;
-    if (a <= 0) continue;
-    const ann = Math.pow(b / a, 1 / windowYears) - 1;
-    if (ann < min) min = ann;
-    if (ann > max) max = ann;
-  }
-  return Number.isFinite(min) ? { min, max } : null;
-}
-
-/* Divergující sloupcový graf ročních výnosů: kladné nahoru, záporné dolů od nulové
-   osy. Poloviny jsou flex-1 uvnitř kontejneru s pevnou výškou, takže % výšky sloupců
-   spolehlivě fungují (dřív se počítaly vůči rodiči bez výšky → sloupce mizely). */
-function AnnualBars({ data }: { data: AnnualRet[] }) {
-  if (!data.length) return null;
-  const maxAbs = Math.max(...data.map((d) => Math.abs(d.return)), 0.01);
-  return (
-    <div className="flex items-stretch gap-1 h-56" role="img" aria-label="Roční výnosy">
-      {data.map((d) => {
-        const h = (Math.abs(d.return) / maxAbs) * 82; // necháme ~18 % na popisek
-        const pos = d.return >= 0;
-        return (
-          <div key={d.year} className="flex-1 flex flex-col min-w-0" title={`${d.year}: ${pctD(d.return)}`}>
-            {/* horní polovina – kladné roky */}
-            <div className="flex-1 flex flex-col justify-end items-center gap-0.5">
-              {pos && <span className="text-[9px] tabular-nums text-emerald-600 leading-none">{dec1(d.return * 100)}</span>}
-              {pos && <div className="w-full rounded-t-sm bg-emerald-500" style={{ height: `${h}%` }} />}
-            </div>
-            {/* nulová osa */}
-            <div className="h-px bg-slate-300" />
-            {/* dolní polovina – záporné roky */}
-            <div className="flex-1 flex flex-col justify-start items-center gap-0.5">
-              {!pos && <div className="w-full rounded-b-sm bg-red-400" style={{ height: `${h}%` }} />}
-              {!pos && <span className="text-[9px] tabular-nums text-red-500 leading-none">{dec1(d.return * 100)}</span>}
-            </div>
-            <span className="text-[9px] text-slate-400 mt-1 text-center leading-none">{`'${String(d.year).slice(2)}`}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+const rokyOsy = (t0: number, t1: number) => {
+  const y0 = new Date(t0).getUTCFullYear(), y1 = new Date(t1).getUTCFullYear();
+  const span = y1 - y0;
+  const krok = span <= 5 ? 1 : span <= 11 ? 2 : 5;
+  const out: number[] = [];
+  for (let y = Math.ceil(y0 / krok) * krok; y <= y1; y += krok) { const t = Date.UTC(y, 0, 1); if (t >= t0 && t <= t1) out.push(t); }
+  return out;
+};
+const OSA_TICK = { fontSize: 12, fill: '#64748b' } as const;
 
 export default function PortfolioBacktest({ config, portfolioName, initialCzk }: {
   config: BacktestConfig; portfolioName: string;
@@ -181,23 +114,32 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
   const [pf, setPf] = useState<Result | null>(initialCzk?.pf ?? null);
   const [bench, setBench] = useState<Result | null>(initialCzk?.bench ?? null);
   const [state, setState] = useState<'loading' | 'ok' | 'error'>(initialCzk ? 'ok' : 'loading');
+  // Jiná měna = STEJNÉ období jako předpočet (konec dat předpočtu), ať se čísla nemíchají s jiným dnem.
+  const konecDat = initialCzk?.pf.evolution[initialCzk.pf.evolution.length - 1]?.date.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     let alive = true;
     if (cur === 'CZK' && initialCzk) { setPf(initialCzk.pf); setBench(initialCzk.bench); setState('ok'); return; }
     setState('loading');
     Promise.all([
-      fetchBacktest(config.items, config.start, cur),
-      fetchBacktest([BACKTEST_BENCHMARK], config.start, cur),
+      fetchBacktest(config.items, config.start, konecDat, cur),
+      fetchBacktest([BACKTEST_BENCHMARK], config.start, konecDat, cur),
     ]).then(([p, b]) => {
       if (!alive) return;
       if (p && b) { setPf(p); setBench(b); setState('ok'); }
       else setState('error');
     });
     return () => { alive = false; };
-  }, [config, cur, initialCzk]);
+  }, [config, cur, initialCzk, konecDat]);
 
-  const startYear = useMemo(() => new Date(config.start).getFullYear(), [config.start]);
+  const chart = useMemo(() => {
+    if (!pf || !bench) return null;
+    const bMap = new Map(bench.evolution.map((p) => [p.date.slice(0, 7), p.value]));
+    const data = pf.evolution.map((p) => ({ t: Date.parse(p.date), date: p.date, pf: Math.round(p.value), b: bMap.has(p.date.slice(0, 7)) ? Math.round(bMap.get(p.date.slice(0, 7))!) : undefined }));
+    const max = data.reduce((m, d) => Math.max(m, d.pf, d.b ?? 0), 0);
+    const osa = kulateKroky(max, 0, 4);
+    return { data, osa, t0: data[0]?.t ?? 0, t1: data[data.length - 1]?.t ?? 0 };
+  }, [pf, bench]);
 
   if (state === 'error') {
     return (
@@ -206,7 +148,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
       </div>
     );
   }
-  if (state === 'loading' || !pf || !bench) {
+  if (state === 'loading' || !pf || !bench || !chart) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6">
         <div className="h-5 w-40 bg-slate-100 rounded animate-pulse mb-4" />
@@ -215,200 +157,190 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
     );
   }
 
-  const s = pf.summary;
-  const dd = pf.risk.maxDrawdown;
-  const best = [...pf.returns.annualReturns].sort((a, b) => b.return - a.return)[0];
-  const worst = [...pf.returns.annualReturns].sort((a, b) => a.return - b.return)[0];
-  const years = pf.returns.totalYears || pf.returns.annualReturns.length;
+  const s = pf.summary, b = bench.summary;
+  const dd = pf.risk.maxDrawdown, bdd = bench.risk.maxDrawdown;
+  const u = ukazatele(pf), ub = ukazatele(bench);
+  const prvni = pf.evolution[0].date, posledni = pf.evolution[pf.evolution.length - 1].date;
+  const priblizne = !!config.proxyNote;
+  const ap = priblizne ? '≈ ' : '';
 
-  // Roční kolísavost počítáme přímo z ročních výnosů (srozumitelné a v souladu se
-  // sloupci níže) – engine vrací stdev na jiné bázi, která laika mate.
-  const rets = pf.returns.annualReturns.map((r) => r.return);
-  const meanRet = rets.reduce((a, b) => a + b, 0) / (rets.length || 1);
-  const annualVol = Math.sqrt(rets.reduce((a, b) => a + (b - meanRet) ** 2, 0) / (rets.length || 1));
+  // Práh pro tvrzení „klidnější“: kolísavost o ≥ 1 p. b. nižší A propad o ≥ 1 p. b. mělčí (depth je záporný).
+  const nizsiVol = s.standardDeviation <= b.standardDeviation - 0.01;
+  const melci = dd.depth >= bdd.depth + 0.01;
+  const klidnejsi = nizsiVol && melci;
 
-  // Metriky čistě akciového benchmarku – pro zvýraznění kompromisu „menší výkyvy
-  // a mělčí propady za cenu o něco nižšího růstu" (jinak portfolio jen „prohrává").
-  const benchRets = bench.returns.annualReturns.map((r) => r.return);
-  const benchMean = benchRets.reduce((a, b) => a + b, 0) / (benchRets.length || 1);
-  const benchVol = Math.sqrt(benchRets.reduce((a, b) => a + (b - benchMean) ** 2, 0) / (benchRets.length || 1));
-  const benchCagr = bench.summary.cagr;
-  const benchDD = bench.risk.maxDrawdown.depth;
-  const calmer = annualVol < benchVol;
-  const shallower = (dd.depth ?? 0) > (benchDD ?? 0); // depth je záporný → větší = mělčí
+  // Krize 2008 v tabulce krizí chybí (řada začíná 7/2008, po vrcholu trhu 10/2007). Je největší propad v 2008–09?
+  const ddVKrizi2008 = dd.troughDate.slice(0, 7) <= '2009-03' && dd.troughDate.slice(0, 7) >= '2008-07';
 
-  const tiles = [
-    { label: 'Zhodnocení p.a.', value: pctD(s.cagr), tone: s.cagr >= 0 ? 'pos' : 'neg', sub: 'průměrně ročně (CAGR)' },
-    { label: 'Kolísavost', value: `±\u00a0${dec1(annualVol * 100)}\u00a0%`, tone: 'neutral', sub: 'roční – míra výkyvů' },
-    { label: 'Nejhlubší propad', value: pctD(dd.depth), tone: 'neg', sub: dd.recovered ? `zotaveno za ${dd.lengthMonths} měs.` : 'zatím nezotaveno' },
-    { label: 'Nejlepší rok', value: pctD(best?.return), tone: 'pos', sub: best ? String(best.year) : '' },
-    { label: 'Nejhorší rok', value: pctD(worst?.return), tone: 'neg', sub: worst ? String(worst.year) : '' },
-    { label: 'Kladných let', value: `${pf.returns.positiveYears}/${years}`, tone: 'neutral', sub: 'let v plusu' },
+  const radky: { label: string; hint?: string; pfV: string; bV: string; badge?: string | null; sub?: string; bSub?: string }[] = [
+    { label: 'Roční zhodnocení', hint: 'průměrně ročně (CAGR)', pfV: `${ap}${pctD(s.cagr)}`, bV: pctD(b.cagr) },
+    { label: 'Kolísavost', hint: 'ročně, z měsíčních výnosů', pfV: `${ap}${pct0(s.standardDeviation)}`, bV: pct0(b.standardDeviation), badge: klidnejsi ? 'klidnější' : null },
+    { label: 'Největší propad', hint: 'od vrcholu kdykoli', pfV: `${ap}${pctD(dd.depth)}`, bV: pctD(bdd.depth), badge: melci ? 'mělčí' : null, sub: `dno ${mesRok(dd.troughDate)} · ${navrat(dd)}`, bSub: `dno ${mesRok(bdd.troughDate)}` },
+    { label: 'Nejlepší celý rok', pfV: u.best ? `${ap}${pctD(u.best.return)}` : '—', bV: ub.best ? pctD(ub.best.return) : '—', sub: u.best ? String(u.best.year) : undefined, bSub: ub.best ? String(ub.best.year) : undefined },
+    { label: 'Nejhorší celý rok', pfV: u.worst ? `${ap}${pctD(u.worst.return)}` : '—', bV: ub.worst ? pctD(ub.worst.return) : '—', sub: u.worst ? String(u.worst.year) : undefined, bSub: ub.worst ? String(ub.worst.year) : undefined },
+    { label: 'Roky v plusu', hint: 'jen celé roky', pfV: `${u.kladne} z ${u.cele.length}`, bV: `${ub.kladne} z ${ub.cele.length}` },
   ];
-
-  // Skutečná délka období (dřív počet kalendářních let včetně neúplných: „za 19 let“ místo 18,3).
-  const delkaLet = pf.evolution.length > 1 ? (new Date(pf.evolution[pf.evolution.length - 1].date).getTime() - new Date(pf.evolution[0].date).getTime()) / (365.25 * 864e5) : 0;
-  const obdobiLet = `${delkaLet.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} ${Number.isInteger(Math.round(delkaLet * 10) / 10) ? (delkaLet < 5 ? 'roky' : 'let') : 'roku'}`;
-
-  // Klouzavé 5leté výnosy (konzistence) + poradenský souhrn.
-  const roll5 = rollingAnnualized(pf.evolution, 5);
-  const takeaway = (() => {
-    const parts: string[] = [];
-    parts.push(`Za ${obdobiLet} rostlo portfolio tempem ${pctD(s.cagr)} ročně – ze ${money(INITIAL[cur], cur)} by dnes bylo ${money(s.netAssetValue, cur)}.`);
-    if (roll5) {
-      parts.push(
-        `Ať jste nastoupili kdykoli, při libovolném pětiletém držení jste ročně vydělali ${pctD(roll5.min)} až ${pctD(roll5.max)}` +
-        (roll5.min > 0 ? ' – tedy ani v nejhorším pětiletém okně jste neprodělali.' : '.')
-      );
-    }
-    if (dd.depth != null && benchDD != null) {
-      const shallower = dd.depth > benchDD + 0.03; // méně hluboký propad (depth je záporný)
-      parts.push(
-        `Nejhlubší propad byl ${pctD(dd.depth)}${dd.recovered ? ` a trvalo ${dd.lengthMonths} měsíců, než se vrátil na původní hodnotu` : ''} – ` +
-        (shallower ? `mělčí než u čistě akciového portfolia (${pctD(benchDD)}), to je odměna za diverzifikaci.` : `srovnatelný s čistě akciovým portfoliem (${pctD(benchDD)}).`)
-      );
-    }
-    return parts.join(' ');
-  })();
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-500 max-w-2xl">
-          {/* Tvrzení „klidnější jízda“ jen když ho data potvrzují (revize 18. 10. 2026: u Akciového portfolia
-              byla kolísavost stejná a propad hlubší než u čistých akcií). */}
-          Reálný průběh na denních datech od {startYear}, srovnání se 100% globálními akciemi.
-          {calmer && shallower ? <> Portfolio mělo <strong className="text-slate-700">klidnější průběh</strong> – menší výkyvy a mělčí propady{s.cagr < benchCagr ? ', za cenu nižšího růstu' : ''}.</> : null}
+        <p className="text-sm text-slate-600 max-w-2xl">
+          Denní data {mesRok(prvni)} – {den(posledni)}, {jednotka(cur)}, srovnání se 100&nbsp;% akciemi celého světa (fond VT).
+          {cur === 'CZK' && (
+            <> <InfoTip label="Výpočet začíná v červenci 2008, kdy byla koruna vůči dolaru nejsilnější v historii (USD/CZK kolem 14,5; dnes kolem 21–22). Pozdější oslabení koruny výsledky v Kč zvedá – a v krizi 2008–09 tlumilo propad akcií. Jiný start by vyšel jinak; vlastní období si zvolte v backtestu.">
+              <span className="text-slate-500">vliv kurzu</span>
+            </InfoTip></>
+          )}
         </p>
         <CurrencyToggle size="sm" />
       </div>
 
-      {/* Growth chart */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-          <h3 className="text-sm font-semibold text-slate-900">Kolik by vydělalo {money(INITIAL[cur], cur)}</h3>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="w-3 h-0.5 bg-teal-700 rounded" />{portfolioName}: <span className="font-semibold text-slate-900">{money(s.netAssetValue, cur)}</span></span>
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="w-3 h-0.5 bg-slate-400 rounded" style={{ borderTop: '1px dashed' }} />Čisté akcie: <span className="font-medium text-slate-700">{money(bench.summary.netAssetValue, cur)}</span></span>
+      {/* Graf vývoje – stejný jazyk jako /backtest */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h3 className="text-sm font-semibold text-slate-900">Kolik by bylo ze {money(INITIAL[cur], cur)} <span className="font-normal text-slate-500">(hodnota {jednotka(cur)})</span></h3>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 h-0.5 bg-teal-600" />{portfolioName}: <span className="font-semibold text-slate-900">{ap}{money(s.netAssetValue, cur)}</span></span>
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 border-t border-dashed border-slate-500" />100 % akcie: <span className="font-medium text-slate-800">{money(b.netAssetValue, cur)}</span></span>
           </div>
         </div>
-        <LineChart portfolio={pf.evolution} bench={bench.evolution} cur={cur} />
+        <div className="mt-3 h-60 md:h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chart.data} margin={{ top: 6, right: 6, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="pfFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0d9488" stopOpacity={0.22} />
+                  <stop offset="100%" stopColor="#0d9488" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="t" type="number" domain={[chart.t0, chart.t1]} ticks={rokyOsy(chart.t0, chart.t1)} tickFormatter={(t) => String(new Date(t).getUTCFullYear())}
+                tick={OSA_TICK} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+              <YAxis width={58} ticks={chart.osa} domain={[0, chart.osa[chart.osa.length - 1]]} tickFormatter={fmtOsa} tick={OSA_TICK} axisLine={false} tickLine={false} />
+              <Tooltip
+                cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const p = payload[0].payload as { date: string; pf: number; b?: number };
+                  return (
+                    <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
+                      <div className="font-semibold mb-0.5">{new Date(p.date).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</div>
+                      <div>{portfolioName}: <span className="tabular-nums font-medium">{money(p.pf, cur)}</span></div>
+                      {p.b != null && <div className="text-slate-300">100 % akcie: <span className="tabular-nums">{money(p.b, cur)}</span></div>}
+                    </div>
+                  );
+                }}
+              />
+              <Area type="monotone" dataKey="pf" stroke="#0d9488" strokeWidth={2} fill="url(#pfFill)" isAnimationActive={false} />
+              <Line type="monotone" dataKey="b" stroke="#64748b" strokeDasharray="4 4" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
-      {/* Klidnější jízda – riziko vs výnos proti čistým akciím (aby portfolio jen „neprohrávalo") */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-1">Proč ho držet: klidnější jízda než čisté akcie</h3>
-        <p className="text-xs text-slate-500 mb-4">Akcie dlouhodobě rostou víc, ale s většími výkyvy. Smysl portfolia je <strong className="text-slate-700">menší kolísání a mělčí propady</strong> – abyste v krizi vydrželi a nevyprodali ve ztrátě.</p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-slate-500 border-b border-slate-100">
-                <th className="text-left font-medium py-2 pr-3">Za období od {startYear}</th>
-                <th className="text-right font-medium py-2 px-3">{portfolioName}</th>
-                <th className="text-right font-medium py-2 pl-3">Čisté akcie</th>
+      {/* Jediné místo s ukazateli: portfolio × 100 % akcie */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1">
+          {portfolioName} proti 100&nbsp;% akciím
+          {priblizne && <InfoTip label={`≈ = orientační čísla. ${config.proxyNote}`}><span className="sr-only">proč přibližně</span></InfoTip>}
+        </h3>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">
+          {klidnejsi
+            ? <>Menší výkyvy i mělčí propad než čisté akcie{s.cagr < b.cagr ? ', za cenu nižšího růstu' : ''}.</>
+            : melci || nizsiVol
+              ? <>Mírnější je jen {melci ? 'propad' : 'kolísavost'}, druhý ukazatel ne – za klidnější průběh to nepovažujeme.</>
+              : <>Kolísavost i propady jsou podobné jako u čistých akcií (rozdíl pod 1 procentní bod).</>}
+        </p>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-xs text-slate-500 border-b border-slate-100">
+              <th className="text-left font-medium py-2 pr-2"><span className="hidden sm:inline">Za období {mesRok(prvni)} – {mesRok(posledni)}</span><span className="sm:hidden">Od {mesRok(prvni)}</span></th>
+              <th className="text-right font-medium py-2 px-2">Toto portfolio</th>
+              <th className="text-right font-medium py-2 pl-2">100&nbsp;% akcie</th>
+            </tr>
+          </thead>
+          <tbody>
+            {radky.map((r) => (
+              <tr key={r.label} className="border-b border-slate-50 last:border-0 align-top">
+                <td className="py-2.5 pr-2">
+                  <span className="font-medium text-slate-800">{r.label}</span>
+                  {r.hint && <span className="hidden sm:block text-[11px] text-slate-500">{r.hint}</span>}
+                </td>
+                <td className="py-2.5 px-2 text-right">
+                  <span className="tabular-nums font-semibold text-slate-900 whitespace-nowrap">{r.pfV}</span>
+                  {r.badge && <span className="ml-1.5 inline-flex rounded-full bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 whitespace-nowrap">✓ {r.badge}</span>}
+                  {r.sub && <span className="block text-[11px] text-slate-500">{r.sub}</span>}
+                </td>
+                <td className="py-2.5 pl-2 text-right">
+                  <span className="tabular-nums text-slate-600 whitespace-nowrap">{r.bV}</span>
+                  {r.bSub && <span className="block text-[11px] text-slate-500">{r.bSub}</span>}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {[
-                { label: 'Výnos p.a.', pfV: pctD(s.cagr), bV: pctD(benchCagr), badge: s.cagr >= benchCagr - 0.002 ? null : 'nižší růst', good: false, hint: 'kolik ročně vydělalo' },
-                { label: 'Kolísavost (výkyvy)', pfV: `±\u00a0${dec1(annualVol * 100)}\u00a0%`, bV: `±\u00a0${dec1(benchVol * 100)}\u00a0%`, badge: calmer ? 'klidnější' : null, good: calmer, hint: 'čím míň, tím klidnější jízda' },
-                { label: 'Nejhlubší propad', pfV: pctD(dd.depth), bV: pctD(benchDD), badge: shallower ? 'mělčí' : null, good: shallower, hint: 'kolik nejvíc spadlo od vrcholu' },
-              ].map((r) => (
-                <tr key={r.label} className="border-b border-slate-50 last:border-0">
-                  <td className="py-2.5 pr-3">
-                    <span className="font-medium text-slate-800">{r.label}</span>
-                    <span className="block text-[11px] text-slate-400">{r.hint}</span>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Roční výnosy – dlaždice jako v backtestu; neúplné roky čárkovaně */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+        <h3 className="text-sm font-semibold text-slate-900">Výnos rok po roce ({curLabel[cur]})</h3>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">
+          {u.neuplne.size ? <>Čárkovaně = jen část roku ({[...u.neuplne].sort().map((y) => y === new Date(prvni).getUTCFullYear() ? `${y} od ${mesRok(prvni)}` : `${y} do ${den(posledni)}`).join(', ')}).</> : 'Celé kalendářní roky.'}
+        </p>
+        <div className="grid grid-cols-4 md:grid-cols-7 gap-1.5 sm:gap-2">
+          {pf.returns.annualReturns.map((r) => {
+            const pos = r.return >= 0;
+            const cast = u.neuplne.has(r.year);
+            return (
+              <div key={r.year} title={cast ? 'Jen část roku' : undefined}
+                className={`rounded-lg border px-1 py-2 text-center ${cast ? 'border-dashed border-slate-300 bg-white' : pos ? 'border-emerald-100 bg-emerald-50/50' : 'border-red-100 bg-red-50/50'}`}>
+                <p className="text-xs text-slate-500 tabular-nums">{r.year}{cast ? '*' : ''}</p>
+                <p className={`text-[13px] sm:text-sm font-semibold tabular-nums whitespace-nowrap ${pos ? 'text-emerald-700' : 'text-red-600'}`}>{pctD(r.return)}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Krize */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+        <h3 className="text-sm font-semibold text-slate-900">Jak si vedlo v krizích</h3>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">
+          Propad od vrcholu ke dnu uvnitř okna krize – stejný výpočet jako v backtestu.{' '}
+          <InfoTip label={`Finanční krize 2008 v tabulce chybí: data začínají ${mesRok(prvni)}, až po vrcholu trhu (10/2007), takže propad krize celý nezachytí. ${ddVKrizi2008 ? `Největší propad tohoto portfolia (${pctD(dd.depth)}, dno ${mesRok(dd.troughDate)}) proběhl právě v jejím závěru – je v tabulce výše.` : `Největší propad tohoto portfolia (${pctD(dd.depth)}) přišel až v ${mesRok(dd.troughDate)} – je v tabulce výše.`}`}>
+            <span className="text-slate-600">Proč chybí rok 2008?</span>
+          </InfoTip>
+        </p>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-xs text-slate-500 border-b border-slate-100">
+              <th className="text-left font-medium py-2 pr-2">Krize</th>
+              <th className="text-right font-medium py-2 px-2">Toto portfolio</th>
+              <th className="text-right font-medium py-2 pl-2">100&nbsp;% akcie</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(pf.stressPeriods ?? []).map((k) => {
+              const bch = bench.stressPeriods?.find((x) => x.key === k.key)?.drop ?? null;
+              return (
+                <tr key={k.key} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 pr-2">
+                    <span className="font-medium text-slate-800">{k.name}</span>
+                    <span className="block text-[11px] text-slate-500">{POZNAMKA_KRIZE[k.key] ?? ''}{k.recoveryMonths != null ? (k.recoveryMonths < 1 ? ' · návrat do měsíce' : ` · návrat za ${k.recoveryMonths} měs.`) : ' · zatím bez návratu'}</span>
                   </td>
-                  <td className="py-2.5 px-3 text-right">
-                    <span className="tabular-nums font-semibold text-slate-900">{r.pfV}</span>
-                    {r.badge && (
-                      <span className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${r.good ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                        {r.good ? '✓ ' : ''}{r.badge}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2.5 pl-3 text-right tabular-nums text-slate-500">{r.bV}</td>
+                  <td className="py-2.5 px-2 text-right tabular-nums font-semibold text-red-600 whitespace-nowrap">{ap}{pctD(k.drop)}</td>
+                  <td className="py-2.5 pl-2 text-right tabular-nums text-red-600 whitespace-nowrap">{pctD(bch)}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      {/* Metric tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {tiles.map((t) => (
-          <div key={t.label} className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs text-slate-500">{t.label}</p>
-            <p className={`mt-1 text-xl font-bold tabular-nums ${t.tone === 'pos' ? 'text-emerald-600' : t.tone === 'neg' ? 'text-red-600' : 'text-slate-900'}`}>{t.value}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">{t.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Poradenský souhrn – „co si z toho vzít" */}
-      <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-5">
-        <div className="flex items-center gap-2 mb-1.5">
-          <TrendingUp className="w-4 h-4 text-teal-700" />
-          <h3 className="text-sm font-semibold text-teal-900">Co si z toho vzít</h3>
-        </div>
-        <p className="text-sm text-teal-900/85 leading-relaxed">{takeaway}</p>
-      </div>
-
-      {/* Annual returns */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
-          <h3 className="text-sm font-semibold text-slate-900">Výnos rok po roce ({curLabel[cur]})</h3>
-          {roll5 && (
-            <span className="text-xs text-slate-500">
-              Klouzavý 5letý výnos: <span className="font-medium text-slate-700 tabular-nums">{pctD(roll5.min)} až {pctD(roll5.max)}</span> ročně
-            </span>
-          )}
-        </div>
-        <AnnualBars data={pf.returns.annualReturns} />
-      </div>
-
-      {/* Crisis behaviour */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex items-center gap-2 mb-1">
-          <AlertTriangle className="w-4 h-4 text-amber-500" />
-          <h3 className="text-sm font-semibold text-slate-900">Jak si vedlo v krizích</h3>
-        </div>
-        <p className="text-xs text-slate-500 mb-4">Propad od vrcholu ke dnu během krize – stejný výpočet jako v backtestu. Srovnání s čistě akciovým portfoliem.</p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-slate-500 border-b border-slate-100">
-                <th className="text-left font-medium py-2 pr-3">Období</th>
-                <th className="text-right font-medium py-2 px-3">{portfolioName}</th>
-                <th className="text-right font-medium py-2 pl-3">Čisté akcie</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(pf.stressPeriods ?? []).map((k) => {
-                const bch = bench.stressPeriods?.find((x) => x.key === k.key)?.drop ?? null;
-                return (
-                  <tr key={k.key} className="border-b border-slate-50 last:border-0">
-                    <td className="py-2.5 pr-3">
-                      <span className="font-medium text-slate-800">{k.name}</span>
-                      <span className="block text-[11px] text-slate-400">{POZNAMKA_KRIZE[k.key] ?? ''}{k.recoveryMonths != null ? (k.recoveryMonths < 1 ? ' · návrat do měsíce' : ` · návrat za ${k.recoveryMonths} měs.`) : ''}</span>
-                    </td>
-                    <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-red-600">{pctD(k.drop)}</td>
-                    <td className="py-2.5 pl-3 text-right tabular-nums text-red-600">{pctD(bch)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
-        <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-        <span>
-          Backtest na reálných denních cenách fondů (přepočet do {curLabel[cur]} referenčními kurzy ECB), rebalancováno ročně; poplatky fondů jsou už v cenách.
-          Historická výkonnost nezaručuje budoucí výnosy.{config.proxyNote ? ` ${config.proxyNote}` : ''}
-        </span>
+      <p className="text-xs text-slate-500 leading-relaxed">
+        Backtest na denních cenách fondů (přepočet do {curLabel[cur]} referenčními kurzy ECB), vyvažování jednou ročně, poplatky fondů jsou v cenách, daně a poplatky brokera ne.
+        {config.menoveRiziko && <> <InfoTip label={config.menoveRiziko}><span className="text-slate-600">Měnové riziko</span></InfoTip></>}
+        {priblizne && <> <InfoTip label={config.proxyNote!}><span className="text-slate-600">≈ orientační</span></InfoTip></>}
       </p>
     </div>
   );

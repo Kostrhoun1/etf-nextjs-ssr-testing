@@ -11,7 +11,7 @@ import { simulateAndSerialize, type Currency } from './simulate'
 export interface PortfolioVysledek {
   summary: { cagr: number; standardDeviation: number; netAssetValue: number; amountInvested: number }
   returns: { annualReturns: { year: number; return: number }[]; positiveYears: number; totalYears: number }
-  risk: { maxDrawdown: { depth: number; lengthMonths: number; recovered: boolean; troughDate: string } }
+  risk: { maxDrawdown: { depth: number; lengthMonths: number; recovered: boolean; troughDate: string; startDate: string; endDate: string | null } }
   evolution: { date: string; value: number }[]
   stressPeriods?: { key: string; name: string; drop: number; recoveryMonths: number | null; troughDate: string }[]
 }

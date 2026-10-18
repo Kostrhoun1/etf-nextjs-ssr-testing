@@ -6,7 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { notFound } from 'next/navigation';
 import {
-  TrendingUp, ArrowRight, ArrowLeft, ShieldCheck, Target, CalendarDays,
+  TrendingUp, ArrowRight, ArrowLeft, Target, CalendarDays,
   Layers, Wallet, BookOpen, Settings2, ThumbsUp, TrendingDown, History,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -18,7 +18,7 @@ import {
 import PortfolioBacktest from '@/components/design-preview/PortfolioBacktest';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
-import { getMetricsByIsins , getDataDate } from '@/lib/etf-data';
+import { getMetricsByIsins } from '@/lib/etf-data';
 
 /* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
 const SP500_ISIN = 'IE00B5BMR087';
@@ -66,12 +66,14 @@ export default async function PortfolioDetailPreview(
   const ddZBacktestu = btDD != null && benchDD != null;
   // Bez backtestu žádný odhad „do −X %“ (pravidlo č. 1) → „—“.
   const pfMaxDD = ddZBacktestu ? btDD! * 100 : null;
-  const btLink = backtestOdkaz(slug);
+  // Datum dat = poslední bod backtestu (dřív datum renderu „Data k 18. října“). Odkaz do backtestu počítá do téhož dne.
+  const btDo = btPf?.evolution[btPf.evolution.length - 1]?.date.slice(0, 10);
+  const btLink = backtestOdkaz(slug, btDo);
   const btOd = btConfig ? new Date(btConfig.start).getFullYear() : null;
 
-  const today = new Date();
-  const dateStr = (await getDataDate(today))
-    .toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = btDo
+    ? new Date(`${btDo}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    : null;
 
   // Reálné metriky z DB pro složky portfolia + benchmark S&P 500.
   const isins = model.allocations.map((a) => a.isin);
@@ -154,17 +156,8 @@ export default async function PortfolioDetailPreview(
     return parts.join(' ');
   })();
 
+  // Výnos a max. pokles jsou JEN v tabulce historie (dřív stejné číslo 4× na stránce) – tady parametry strategie.
   const stats: { icon: typeof Target; label: ReactNode; value: string }[] = [
-    {
-      icon: TrendingUp,
-      label: (
-        <InfoTip label={`Průměrné roční zhodnocení (CAGR) v backtestu od ${btOd ?? '—'} do dneška, v Kč, po poplatcích fondů, rebalancování jednou ročně. Historie, ne odhad budoucnosti.`}>
-          {`Ročně od ${btOd ?? '—'} (Kč)`}
-        </InfoTip>
-      ),
-      value: btPf ? pct(btPf.summary.cagr * 100) : '—',
-    },
-    { icon: ShieldCheck, label: <InfoTip label="Největší propad hodnoty od vrcholu ke dnu v témže backtestu (v Kč).">{`Max. pokles od ${btOd ?? '—'}`}</InfoTip>, value: fmtDD(pfMaxDD) },
     ...(terInfo ? [{
       icon: Wallet,
       label: (
@@ -210,7 +203,7 @@ export default async function PortfolioDetailPreview(
             <h1 className="mt-3 text-2xl md:text-3xl font-bold tracking-tight leading-tight">{model.name}</h1>
             <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">{model.tagline}</p>
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Data k {dateStr}</span>
+              {dateStr && <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Data k {dateStr}</span>}
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
             </div>
             {btLink && (
@@ -240,17 +233,14 @@ export default async function PortfolioDetailPreview(
 
         {/* STATISTIKY */}
         <section data-sekce="statistiky" className="pb-8">
-          <div className={`grid grid-cols-2 gap-3 ${stats.length === 5 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
+          <div className={`grid gap-2 sm:gap-3 ${stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {stats.map((s, i) => (
-              <div key={i} className={`rounded-xl border border-slate-200 bg-white p-4 ${i === stats.length - 1 && stats.length % 2 ? "col-span-2 lg:col-span-1" : ""}`}>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500"><s.icon className="w-3.5 h-3.5 shrink-0" /> {s.label}</div>
-                <div className="mt-1 text-lg font-bold tabular-nums text-slate-900">{s.value}</div>
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 min-w-0">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 leading-tight"><s.icon className="hidden sm:block w-3.5 h-3.5 shrink-0" /> {s.label}</div>
+                <div className="mt-1 text-base sm:text-lg font-bold tabular-nums text-slate-900">{s.value}</div>
               </div>
             ))}
           </div>
-          {btConfig?.proxyNote && (
-            <p className="mt-2 text-xs text-amber-700">Část složení počítáme v backtestu přes podobný index – čísla jsou orientační (podrobnosti pod grafem).</p>
-          )}
         </section>
 
         {/* SLOŽENÍ */}
@@ -334,9 +324,9 @@ export default async function PortfolioDetailPreview(
 
         {/* HISTORICKÁ VÝKONNOST – reálný backtest (dlouhodobě + chování v krizích) */}
         {btConfig ? (
-          <section data-sekce="historie" className="pb-8">
+          <section data-sekce="historie" className="pb-8" data-kontrola-backtest={btLink && btPf ? `${btLink}|${btPf.summary.cagr}` : undefined}>
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Historická výkonnost a chování v krizích</h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech od roku 2008 – dlouhodobý růst, kolísavost, nejhlubší propady a co se dělo v krizích. Vše přepočtené do zvolené měny.</p>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech od července 2008 – růst, kolísavost, propady a krize.</p>
             <PortfolioBacktest config={btConfig} portfolioName={model.name} initialCzk={btInitial} />
           </section>
         ) : cmp ? (
@@ -415,7 +405,7 @@ export default async function PortfolioDetailPreview(
           </div>
         </section>
 
-        <InvestmentDisclaimer variant="box" />
+        <InvestmentDisclaimer variant="inline" />
       </main>
     </div>
   );
