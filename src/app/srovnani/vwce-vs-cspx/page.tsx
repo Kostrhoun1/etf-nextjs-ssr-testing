@@ -5,16 +5,18 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { getComparisonETFData, type ComparisonETF , getDataDate } from '@/lib/etf-data';
 import {
-  TrendingUp, ArrowRight, ArrowUpRight, Trophy, Scale, Layers, Coins,
-  ShieldCheck, AlertTriangle, Check, Info, Database, User, CalendarDays,
-  BadgeCheck, Wallet, Landmark, Calculator, BookOpen, HelpCircle, Globe2,
-  Building2, Percent, ArrowLeftRight,
+  TrendingUp, ArrowRight, ArrowUpRight, Trophy, Coins,
+  AlertTriangle, Check, Info, Database, User, Landmark, HelpCircle, Globe2, ChevronDown,
 } from 'lucide-react';
 import { ter, dist } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
 import SrovnaniParams from '@/components/design-preview/SrovnaniParams';
 import { platnyTicker } from '@/lib/ticker';
+import { nactiDoplnkyFondu } from '@/lib/srovnaniRocni';
+import SrovnaniRocniVynosy from '@/components/design-preview/SrovnaniRocniVynosy';
+import { ceskaZeme } from '@/lib/preklady';
+import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 
 export const revalidate = 86400;
 
@@ -24,12 +26,18 @@ const TICKER2 = 'CSPX';
 // Dřív /srovnani-etf/… = adresa s přesměrováním 308 → canonical mířil na redirect.
 const CANONICAL = 'https://etfpruvodce.cz/srovnani/vwce-vs-cspx';
 
-export const metadata: Metadata = {
-  title: 'VWCE vs CSPX: srovnání 2026 a které ETF koupit',
-  description:
-    'VWCE (TER 0,19 %, 3 700+ firem celého světa) vs CSPX (TER 0,07 %, 500 firem USA). Srovnání pro Čechy: daně, měnové riziko, verdikt který koupit.',
-  alternates: { canonical: CANONICAL },
-};
+// Popis z dat (dřív natvrdo „VWCE TER 0,19 %“, přitom fond má 0,14 % – revize 18. 10. 2026).
+export async function generateMetadata(): Promise<Metadata> {
+  const data = await getComparisonETFData(TICKER1, TICKER2);
+  const popis = data
+    ? `VWCE (TER ${ter(data.etf1.ter_numeric)}, ${data.etf1.total_holdings?.toLocaleString('cs-CZ') ?? 'tisíce'} firem celého světa) vs CSPX (TER ${ter(data.etf2.ter_numeric)}, ${data.etf2.total_holdings?.toLocaleString('cs-CZ') ?? '500'} firem USA). Srovnání pro Čechy: výnos v Kč po letech, daně, měnové riziko a který koupit.`
+    : 'VWCE (celý svět) vs CSPX (500 firem USA). Srovnání pro Čechy: výnos v Kč, daně, měnové riziko a který koupit.';
+  return {
+    title: `VWCE vs CSPX: srovnání ${new Date().getFullYear()} a které ETF koupit`,
+    description: popis,
+    alternates: { canonical: CANONICAL },
+  };
+}
 
 export default async function SrovnaniPreview() {
   const data = await getComparisonETFData(TICKER1, TICKER2);
@@ -47,8 +55,25 @@ export default async function SrovnaniPreview() {
   }
 
   const { etf1, etf2 } = data;
-  const t1 = platnyTicker(etf1.primary_ticker) ?? TICKER1;
-  const t2 = platnyTicker(etf2.primary_ticker) ?? TICKER2;
+  // V textu ticker z URL (tak ho člověk hledal); v nadpisu a kartách i primární ticker, když se liší –
+  // revize 18. 10. 2026: URL „vwce-vs-cspx“, nadpis „VWCE vs SXR8“ → nesedělo.
+  const t1 = TICKER1;
+  const t2 = TICKER2;
+  const nz = (tk: string, e: ComparisonETF) => { const p = platnyTicker(e.primary_ticker); return p && p.toUpperCase() !== tk ? `${tk} (${p})` : tk; };
+  const nz1 = nz(t1, etf1), nz2 = nz(t2, etf2);
+  const doplnky = await nactiDoplnkyFondu([etf1.isin, etf2.isin]);
+  const dp1 = doplnky[etf1.isin], dp2 = doplnky[etf2.isin];
+  // Datum = starší ze dvou dat fondů (scraping_date), ne globální datum.
+  const datumFondu = [dp1?.scrapingDate, dp2?.scrapingDate].filter(Boolean).map((d) => new Date(String(d))).sort((a, b) => a.getTime() - b.getTime())[0];
+  const datumK = datumFondu ? datumFondu.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) : dateStr;
+  const terNizsi2 = etf1.ter_numeric != null && etf2.ter_numeric != null && ter(etf2.ter_numeric) !== ter(etf1.ter_numeric) && etf2.ter_numeric < etf1.ter_numeric;
+  // „Historicky vyšší výnos“ jen když to data za 5 let v Kč opravdu ukazují (rozdíl aspoň 1 p. b.).
+  const r5a = etf1.return_5y_czk, r5b = etf2.return_5y_czk;
+  const vyssiVynos2 = r5a != null && r5b != null && r5b - r5a >= 1;
+  const pctKc = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`);
+  const zemeVwce = dp1?.zeme ?? [];
+  const zemeCspx = dp2?.zeme ?? [];
+  const ODSTINY = ['bg-teal-700', 'bg-teal-500', 'bg-teal-400', 'bg-teal-300', 'bg-teal-200'];
 
   /* Klíčová logika verdiktu: liší se sledovaný index?
      U VWCE vs CSPX jsou indexy RŮZNÉ (FTSE All-World vs S&P 500) → větev
@@ -67,7 +92,7 @@ export default async function SrovnaniPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Srovnání ETF', item: 'https://etfpruvodce.cz/srovnani-etf' },
-      { '@type': 'ListItem', position: 3, name: `${t1} vs ${t2}`, item: CANONICAL },
+      { '@type': 'ListItem', position: 3, name: `${nz1} vs ${nz2}`, item: CANONICAL },
     ],
   };
   const financialProduct = (e: ComparisonETF) => ({
@@ -147,15 +172,15 @@ export default async function SrovnaniPreview() {
           <span>/</span>
           <Link href="/srovnani" className="hover:text-slate-600">Srovnání ETF</Link>
           <span>/</span>
-          <span className="text-slate-600">{t1} vs {t2}</span>
+          <span className="text-slate-600">{nz1} vs {nz2}</span>
         </nav>
 
         {/* HERO – slate-900 panel, verdikt-first */}
-        <section className="pb-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
+        <section data-sekce="hero" className="pb-7">
+          <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-8">
             <div className="max-w-2xl">
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
-                {t1} vs {t2}: které ETF koupit?
+                {nz1} vs {nz2}: které ETF koupit?
               </h1>
               <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
                 Souboj dvou nejoblíbenějších fondů u českých investorů. {t1} sází na{' '}
@@ -167,19 +192,17 @@ export default async function SrovnaniPreview() {
                 <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                   <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                 </span>
-                <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
-                <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroj: justETF / vlastní databáze</span>
-                <span className="inline-flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5" /> Data k {dateStr}</span>
+                <span>Data fondů k {datumK}</span>
               </div>
             </div>
 
             {/* Souboj-karty obou fondů */}
             <div className="mt-6 flex flex-col sm:flex-row items-stretch gap-3">
-              <SrovnaniSoubojKarta etf={etf1} podtitul="Celý svět" accent="teal" />
+              <SrovnaniSoubojKarta etf={etf1} ticker={nz1} podtitul="Celý svět" accent="teal" />
               <div className="hidden sm:flex items-center justify-center shrink-0">
                 <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 text-slate-300 text-xs font-bold">vs</span>
               </div>
-              <SrovnaniSoubojKarta etf={etf2} podtitul="USA – 500 firem" accent="sky" />
+              <SrovnaniSoubojKarta etf={etf2} ticker={nz2} podtitul="USA – 500 firem" accent="sky" />
             </div>
 
             <div className="mt-5 flex gap-2.5">
@@ -189,8 +212,16 @@ export default async function SrovnaniPreview() {
           </div>
         </section>
 
+        {/* VÝNOS PO LETECH – skutečné výnosy obou fondů (ne index), v Kč */}
+        {dp1 && dp2 && (
+          <section data-sekce="graf" className="pb-10">
+            <h2 className="mb-3 text-xl md:text-2xl font-bold tracking-tight text-slate-900">Výnos po jednotlivých letech</h2>
+            <SrovnaniRocniVynosy fondy={[{ label: t1, roky: dp1.roky }, { label: t2, roky: dp2.roky }]} />
+          </section>
+        )}
+
         {/* VERDIKT */}
-        <section id="verdikt" className="pb-10 scroll-mt-16">
+        <section id="verdikt" data-sekce="verdikt" className="pb-10 scroll-mt-16">
           <div className="flex items-end justify-between mb-4">
             <div>
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Verdikt: rozhoduje expozice, ne poplatek</h2>
@@ -228,12 +259,12 @@ export default async function SrovnaniPreview() {
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-50 text-slate-700 shrink-0"><Landmark className="w-5 h-5" /></span>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-700">Pro sázku na USA</p>
-                  <h3 className="text-lg font-bold text-slate-900 mt-0.5">{t2} — 500 firem USA, nejnižší poplatek</h3>
+                  <h3 className="text-lg font-bold text-slate-900 mt-0.5">{t2} — 500 firem USA{terNizsi2 ? ', nižší poplatek' : ''}</h3>
                 </div>
               </div>
               <p className="text-sm text-slate-600 mt-3 leading-relaxed">
-                Koncentrovaná expozice na {holdings2?.toLocaleString('cs-CZ') ?? '500'} největších amerických firem (Apple, Microsoft, Nvidia…).
-                Nižší TER {ter(etf2.ter_numeric)} a historicky vyšší výnos – ale 100 % v jedné zemi a měně.
+                Koncentrovaná expozice na {holdings2?.toLocaleString('cs-CZ') ?? '500'} největších amerických firem (Apple, Microsoft, Nvidia…).{' '}
+                {terNizsi2 ? <>Nižší TER {ter(etf2.ter_numeric)}{vyssiVynos2 ? <> a za posledních 5 let vyšší výnos v Kč ({pctKc(r5b)} vs {pctKc(r5a)})</> : null} – ale</> : vyssiVynos2 ? <>Za posledních 5 let vyšší výnos v Kč ({pctKc(r5b)} vs {pctKc(r5a)}) – ale</> : 'Ale'} prakticky celý v jedné zemi a měně.
                 Vhodné, když cíleně věříte americkému trhu a unesete vyšší koncentraci.
               </p>
               <Link href={`/etf/${etf2.isin}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
@@ -246,126 +277,51 @@ export default async function SrovnaniPreview() {
             <Trophy className="w-4 h-4 text-teal-700 mt-0.5 shrink-0" />
             <p className="text-sm text-teal-900/90 leading-relaxed">
               <strong>Shrnutí:</strong> Nejde o to, který fond je „lepší“ – {t1} a {t2} řeší jinou potřebu.
-              Chcete jeden globální fond a klid? {t1}. Věříte konkrétně americkým firmám a chcete nejnižší poplatek? {t2}.
+              Chcete jeden globální fond a klid? {t1}. Věříte konkrétně americkým firmám{terNizsi2 ? ' a chcete nižší poplatek' : ''}? {t2}.
               Daně ani výplata dividend vás v rozhodování nemusí trápit – jsou u obou stejné.
             </p>
           </div>
         </section>
 
-        {/* CO SE VLASTNĚ POROVNÁVÁ – edukace 7b */}
-        <section className="pb-10">
-          <div className="mb-4">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Co se vlastně porovnává</h2>
-            <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-              Než se rozhodnete, pár pojmů, na kterých srovnání stojí.
-            </p>
-          </div>
-
-          {/* Diverzifikace vs koncentrace – VIZUÁLNÍ schéma (počty firem) */}
-          <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-teal-700" />
-              <InfoTip label="Rozložení peněz mezi víc firem, zemí a měn, aby propad jednoho trhu neohrozil celé portfolio.">
-                Diverzifikace
-              </InfoTip>
-              <span className="text-slate-400">vs.</span>
-              <InfoTip label="Soustředění investice do jednoho trhu nebo regionu; vyšší potenciál výnosu i vyšší riziko.">
-                koncentrace
-              </InfoTip>
-            </h3>
-
-            <div className="mt-4 grid md:grid-cols-2 gap-4">
-              {/* VWCE – celý svět, segmenty regionů */}
-              <div className="rounded-lg bg-slate-50 p-4">
+        {/* DO ČEHO FONDY INVESTUJÍ – země a počet firem z dat (dřív natvrdo 62/17/11/10 % a „100 % USA“) */}
+        <section data-sekce="slozeni" className="pb-10">
+          <h2 className="mb-4 text-xl md:text-2xl font-bold tracking-tight text-slate-900">
+            <InfoTip label="Diverzifikace = rozložení peněz mezi víc firem a zemí, aby propad jednoho trhu neohrozil celé portfolio.">Do čeho fondy investují</InfoTip>
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {([[t1, etf1, zemeVwce, Globe2, 'text-teal-700'], [t2, etf2, zemeCspx, Landmark, 'text-slate-700']] as const).map(([tk, e, zeme, Icon, barva]) => (
+              <div key={tk} className="rounded-xl border border-slate-200 bg-white p-5">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700">
-                    <Globe2 className="w-4 h-4" /> {t1}
-                  </span>
-                  <span className="text-2xl font-bold text-slate-900 tabular-nums">{holdings1?.toLocaleString('cs-CZ') ?? '3 741'}</span>
+                  <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${barva}`}><Icon className="w-4 h-4" /> {tk}</span>
+                  <span className="text-sm text-slate-500"><strong className="text-2xl font-bold text-slate-900 tabular-nums">{e.total_holdings?.toLocaleString('cs-CZ') ?? '—'}</strong> firem</span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">firem napříč regiony</p>
-                {/* Pruh rozdělený na orientační segmenty regionů */}
-                <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full" role="img" aria-label="Rozložení napříč USA, Evropou, Japonskem a rozvíjejícími se trhy">
-                  <span className="bg-teal-700" style={{ width: '62%' }} title="USA" />
-                  <span className="bg-teal-500" style={{ width: '17%' }} title="Evropa" />
-                  <span className="bg-teal-400" style={{ width: '11%' }} title="Japonsko" />
-                  <span className="bg-teal-300" style={{ width: '10%' }} title="Rozvíjející se trhy" />
-                </div>
-                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                  <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-700" /> USA</span>
-                  <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> Evropa</span>
-                  <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-400" /> Japonsko</span>
-                  <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-300" /> Rozvíjející se</span>
-                </div>
-                <p className="text-xs text-slate-600 mt-3 leading-relaxed">Když zaostane USA, mohou táhnout Evropa nebo Asie.</p>
-              </div>
-
-              {/* CSPX – jen USA, jeden plný pruh */}
-              <div className="rounded-lg bg-slate-50 p-4">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                    <Landmark className="w-4 h-4" /> {t2}
-                  </span>
-                  <span className="text-2xl font-bold text-slate-900 tabular-nums">{holdings2?.toLocaleString('cs-CZ') ?? '503'}</span>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">firem, jeden trh</p>
-                {/* Jeden plný pruh = 100 % USA */}
-                <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full" role="img" aria-label="100 % USA">
-                  <span className="bg-slate-600 w-full" title="USA" />
-                </div>
-                <div className="mt-2 text-[11px] text-slate-500">
-                  <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-600" /> 100 % USA</span>
-                </div>
-                <p className="text-xs text-slate-600 mt-3 leading-relaxed">Vše stojí a padá s jednou ekonomikou a s dolarem.</p>
-              </div>
-            </div>
-
-            {/* Společný poměrový pruh – kolikrát víc firem drží VWCE */}
-            {holdings1 != null && holdings2 != null && holdings1 > 0 && holdings2 > 0 && (
-              <div className="mt-4 rounded-lg bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-600">Poměr počtu pozic ve fondu</p>
-                <div className="mt-2 relative h-7 w-full overflow-hidden rounded-md bg-teal-100">
-                  <div className="absolute inset-y-0 left-0 bg-teal-700 flex items-center justify-end px-2" style={{ width: '100%' }}>
-                    <span className="text-[11px] font-semibold text-white tabular-nums">{t1} · {holdings1.toLocaleString('cs-CZ')}</span>
-                  </div>
-                  <div className="absolute inset-y-0 left-0 bg-slate-700 flex items-center px-2 rounded-r-md" style={{ width: `${Math.max((holdings2 / holdings1) * 100, 8)}%` }}>
-                    <span className="text-[11px] font-semibold text-white tabular-nums">{t2} · {holdings2.toLocaleString('cs-CZ')}</span>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-2">
-                  {t1} drží zhruba <strong className="text-slate-700 tabular-nums">{(holdings1 / holdings2).toFixed(1).replace('.', ',')}×</strong> více pozic než {t2}.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Pojmy v mřížce – vizuální legenda, popis schovaný do InfoTipu */}
-          <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {([
-              [Percent, 'TER', 'Roční poplatek za správu fondu; strhává se průběžně z majetku, ne zvlášť z účtu.', 'Roční poplatek fondu'],
-              [Layers, 'Akumulační vs. distribuční', 'Akumulační reinvestuje dividendy uvnitř fondu, distribuční je vyplácí na účet.', 'Co fond dělá s dividendami'],
-              [ArrowLeftRight, 'Replikace', 'Způsob, jak fond kopíruje index: fyzicky drží akcie, nebo je nahrazuje swapem přes protistranu.', 'Jak fond kopíruje index'],
-              [Building2, 'Domicil', 'Sídlo fondu; irský domicil znamená, že český investor nevyplňuje americký formulář W-8BEN.', 'Sídlo fondu'],
-            ] as [typeof Percent, string, string, string][]).map(([Icon, t, tip, oneLiner]) => (
-              <div key={t} className="rounded-lg border border-slate-200 bg-white p-4">
-                <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 mb-2.5"><Icon className="w-4 h-4" /></span>
-                <p className="font-medium text-slate-900 text-sm">
-                  <InfoTip label={tip}>{t}</InfoTip>
-                </p>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{oneLiner}</p>
+                {zeme.length > 0 ? (
+                  <>
+                    <div className="mt-3 flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={zeme.map((z) => `${ceskaZeme(z.nazev)} ${z.vaha.toLocaleString('cs-CZ')} %`).join(', ')}>
+                      {zeme.map((z, i) => <span key={z.nazev} className={ODSTINY[i]} style={{ width: `${z.vaha}%` }} />)}
+                    </div>
+                    <ul className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+                      {zeme.map((z, i) => (
+                        <li key={z.nazev} className="inline-flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${ODSTINY[i]}`} /> {ceskaZeme(z.nazev)} <span className="tabular-nums text-slate-500">{z.vaha.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span></li>
+                      ))}
+                    </ul>
+                  </>
+                ) : <p className="mt-3 text-sm text-slate-400">Rozložení podle zemí nemáme.</p>}
               </div>
             ))}
           </div>
+          {holdings1 != null && holdings2 != null && holdings1 > 0 && holdings2 > 0 && (
+            <p className="mt-3 text-sm text-slate-600">
+              {t1} drží zhruba <strong className="text-slate-900 tabular-nums">{(holdings1 / holdings2).toFixed(1).replace('.', ',')}×</strong> více firem než {t2}.
+            </p>
+          )}
         </section>
 
         {/* TABULKA PARAMETRŮ */}
-        <section id="parametry" className="pb-10 scroll-mt-16">
+        <section id="parametry" data-sekce="parametry" className="pb-10 scroll-mt-16">
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Srovnání parametrů</h2>
-            <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-              Klíčové hodnoty obou fondů vedle sebe. Výnosy si přepněte do měny podle sebe –
-              <strong> ve výchozím stavu do korun</strong> (jak je pocítí český investor). Zelené pole = výhodnější hodnota v daném řádku.
-            </p>
+            <p className="text-sm text-slate-500 mt-1">Zelené pole = výhodnější hodnota v řádku.</p>
           </div>
           <SrovnaniParams etf1={etf1} etf2={etf2} ticker1={t1} ticker2={t2} />
           <p className="text-xs text-slate-400 mt-3 flex items-start gap-1.5">
@@ -402,8 +358,8 @@ export default async function SrovnaniPreview() {
               <ul className="mt-3 space-y-2 text-sm text-slate-600">
                 {[
                   'Cíleně věříte americkému trhu a největším US firmám',
-                  `Chcete nejnižší poplatek (TER ${ter(etf2.ter_numeric)})`,
-                  'Unesete 100% expozici na USA a koncentraci do top firem',
+                  terNizsi2 ? `Chcete nižší poplatek (TER ${ter(etf2.ter_numeric)} vs ${ter(etf1.ter_numeric)})` : `Poplatek je u obou podobný (TER ${ter(etf2.ter_numeric)})`,
+                  'Unesete sázku prakticky na jednu zemi a koncentraci do největších firem',
                   'Diverzifikaci napříč regiony řešíte jiným fondem zvlášť',
                 ].map((x) => (
                   <li key={x} className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />{x}</li>
@@ -481,29 +437,29 @@ export default async function SrovnaniPreview() {
           <div className="flex items-end justify-between mb-4">
             <div>
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Jak {t1} nebo {t2} koupit</h2>
-              <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">Čtyři kroky od registrace k první akcii.</p>
+              <p className="text-sm text-slate-500 mt-1">Čtyři kroky od registrace k prvnímu nákupu.</p>
             </div>
             <Link href="/kde-koupit" className="text-sm text-teal-700 hover:text-teal-800 inline-flex items-center gap-1 shrink-0">
               srovnání brokerů <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="grid sm:grid-cols-4 gap-3">
-            {[
-              ['1', 'Vyberte brokera', 'DEGIRO, XTB nebo Interactive Brokers – srovnání poplatků níže.'],
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {([
+              ['1', 'Vyberte brokera', 'Např. DEGIRO, XTB nebo Interactive Brokers – recenze a poplatky najdete pod odkazy níže.'],
               ['2', 'Ověření a vklad', 'Registrace, ověření totožnosti a převod peněz (1–3 dny).'],
-              ['3', 'Najděte fond podle ISIN', `${t1}: ${etf1.isin} · ${t2}: ${etf2.isin}`],
+              ['3', 'Najděte fond podle ISIN', <span key="isin" className="block font-mono text-[11px] leading-relaxed"><span className="block whitespace-nowrap">{t1}: {etf1.isin}</span><span className="block whitespace-nowrap">{t2}: {etf2.isin}</span></span>],
               ['4', 'Nákup', 'Zadejte limitní pokyn, zkontrolujte rozpětí ceny a potvrďte.'],
-            ].map(([n, t, d]) => (
+            ] as [string, string, React.ReactNode][]).map(([n, t, d]) => (
               <div key={n} className="rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-7 h-7 rounded-full bg-teal-50 text-teal-700 text-sm font-semibold">{n}</span>
                 <p className="font-medium text-slate-900 text-sm mt-2.5">{t}</p>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed break-words">{d}</p>
+                <div className="text-xs text-slate-500 mt-1 leading-relaxed">{d}</div>
               </div>
             ))}
           </div>
           <div className="mt-3 flex flex-wrap gap-2.5">
-            {['DEGIRO', 'XTB', 'Interactive Brokers'].map((b) => (
-              <Link key={b} href="/kde-koupit" className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">{b}</Link>
+            {([['DEGIRO', reviewHref.degiro], ['XTB', reviewHref.xtb], ['Interactive Brokers', reviewHref.ibkr], ['Srovnání brokerů', '/kde-koupit']] as [string, string][]).map(([b, href]) => (
+              <Link key={b} href={href} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">{b} <ArrowRight className="w-3.5 h-3.5 text-slate-400" /></Link>
             ))}
           </div>
         </section>
@@ -520,7 +476,7 @@ export default async function SrovnaniPreview() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
@@ -528,24 +484,8 @@ export default async function SrovnaniPreview() {
           </div>
         </section>
 
-        {/* TRUST PRUH */}
-        <section className="pb-10">
-          <div className="grid sm:grid-cols-3 gap-4">
-            {([
-              [ShieldCheck, 'Nezávislé srovnání', 'Žádné placené pořadí ani reklamní žebříček.'],
-              [BadgeCheck, 'Aktuální data', `Parametry obou fondů k ${dateStr}.`],
-              [Database, 'Doložené zdroje', 'justETF, S&P Dow Jones Indices, FTSE Russell, ČNB.'],
-            ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
-              <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
-                <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
-                <span><span className="block font-semibold text-sm text-slate-900">{t}</span><span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{d}</span></span>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* PROLINKOVÁNÍ */}
-        <section className="pb-10">
+        <section data-sekce="dalsi" className="pb-8">
           <div className="mb-4">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Pokračujte dál</h2>
           </div>
@@ -570,44 +510,19 @@ export default async function SrovnaniPreview() {
             ))}
           </div>
 
-          {/* Kategorie, detaily, nástroje */}
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-2">Kategorie a nástroje</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {([
-              ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Nejlepší S&P 500 ETF', Landmark],
-              ['/nejlepsi-etf/nejlepsi-celosvetove-etf', 'Celosvětové ETF', Globe2],
-              [`/etf/${etf1.isin}`, `Detail ${t1}`, BookOpen],
-              [`/etf/${etf2.isin}`, `Detail ${t2}`, BookOpen],
-              ['/kde-koupit', 'Kde koupit ETF', Wallet],
-              ['/kalkulacka', 'Kalkulačka poplatků', Calculator],
-            ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
-              <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
-                <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>
-                <span className="font-medium text-slate-800 text-sm leading-tight">{label}</span>
-              </Link>
-            ))}
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <Link href={`/etf/${etf1.isin}`} className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">Detail fondu {t1} <ArrowRight className="w-4 h-4" /></Link>
+            <Link href={`/etf/${etf2.isin}`} className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">Detail fondu {t2} <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/nejlepsi-etf/nejlepsi-celosvetove-etf" className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">Celosvětové ETF <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">S&amp;P 500 ETF <ArrowRight className="w-4 h-4" /></Link>
           </div>
         </section>
 
-        {/* E-E-A-T patička: autor + zdroje + disclaimer */}
-        <section className="pb-12">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <div className="flex items-start gap-3">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-500 shrink-0"><User className="w-5 h-5" /></span>
-              <div>
-                <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
-                <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Srovnání píšeme nezávisle, na základě veřejných dat – bez placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: justETF, S&amp;P Dow Jones Indices, FTSE Russell, ČNB. Aktualizováno {dateStr}.</p>
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy. Investice do ETF nesou riziko ztráty.</p>
-            </div>
-          </div>
-        </section>
+        {/* Zdroj dat – jednou a střídmě */}
+        <p className="pb-12 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
+          <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>Data fondů: justETF · kurzy ČNB · data k {datumK}. Píše <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">Tomáš Kostrhoun</Link>, bez placeného pořadí.</span>
+        </p>
       </main>
 
     </div>

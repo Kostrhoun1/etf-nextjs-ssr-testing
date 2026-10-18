@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
+import InfoTip from '@/components/design-preview/InfoTip';
 import { useCurrency, curLabel, type Currency } from '@/components/design-preview/currencyStore';
 
 type YearVals = Record<Currency, number | null>;
@@ -15,44 +17,61 @@ const pct = (v: number | null) => {
 
 /* Roční (kalendářní) výnosy fondu + letošní rok (YTD), reaktivní na přepínač měny.
    Data jsou přepočtená do zvolené měny (return_<rok>_czk/_usd), letošní sloupec
-   používá return_ytd_* a je viditelně odlišený štítkem „letos / YTD". */
-export default function EtfCalendarReturns({ cols }: { cols: CalCol[] }) {
+   používá return_ytd_* a je viditelně odlišený. Sloupce stojí na nulové ose – záporné
+   roky jdou dolů (dřív rostly nahoru jen v jiné barvě, 18. 10. 2026).
+   `nadpis` = sloupce jako hlavní graf stránky (u fondů bez spolehlivé časové řady). */
+export default function EtfCalendarReturns({ cols, nadpis }: { cols: CalCol[]; nadpis?: string }) {
   const [cur] = useCurrency();
+  const [aktivni, setAktivni] = useState<number | null>(null);
   const data = cols.map((c) => ({ ...c, v: c.vals[cur] })).filter((c) => c.v != null);
   if (data.length === 0) return null;
-  const max = Math.max(...data.map((c) => Math.abs(c.v ?? 0)), 1);
+  const maxKl = Math.max(0, ...data.map((c) => c.v!));
+  const maxZap = Math.max(0, ...data.map((c) => -c.v!));
+  const rozsah = maxKl + maxZap || 1;
+  const VYSKA = nadpis ? 168 : 132;
+  const hKl = (maxKl / rozsah) * VYSKA;
+  const hZap = (maxZap / rozsah) * VYSKA;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+    <div className={`rounded-xl border border-slate-200 bg-white ${nadpis ? 'p-4 md:p-6' : 'p-4 md:p-5'}`}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">
-          Roční výkonnost {cur === 'CZK' ? 'přepočtená do korun (kurz ČNB)' : cur === 'USD' ? 'v dolarech' : 'v eurech (báze fondu)'}. Poslední sloupec je letošní rok zatím (YTD).
-        </p>
-        <CurrencyToggle />
+        {nadpis ? (
+          <p className="text-sm text-slate-500">
+            <InfoTip label={`Výnos fondu za každý kalendářní rok ${cur === 'CZK' ? 'přepočtený do korun – zahrnuje pohyb kurzu' : cur === 'USD' ? 'v dolarech' : 'v eurech'}. Poslední sloupec je letošek od 1. ledna.`}>{nadpis}</InfoTip>
+          </p>
+        ) : <span />}
+        <CurrencyToggle size="sm" />
       </div>
 
-      <div className="grid gap-2 sm:gap-4" style={{ gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))` }}>
-        {data.map((c) => {
-          const pos = (c.v ?? 0) >= 0;
-          const h = Math.round((Math.abs(c.v ?? 0) / max) * 64) + 4;
+      <div className="grid gap-1.5 sm:gap-4" style={{ gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))` }}>
+        {data.map((c, i) => {
+          const pos = c.v! >= 0;
+          const h = Math.max(2, (Math.abs(c.v!) / rozsah) * VYSKA);
+          const barva = pos ? (c.ytd ? 'bg-emerald-400' : 'bg-emerald-600') : (c.ytd ? 'bg-red-400' : 'bg-red-600');
           return (
-            <div key={c.year} className="flex flex-col items-center">
-              <span className={`text-xs sm:text-sm font-bold tabular-nums ${pos ? 'text-emerald-600' : 'text-red-600'}`}>{pct(c.v)}</span>
-              <div className="mt-2 flex items-end" style={{ height: 68 }}>
-                <div
-                  className={`w-7 sm:w-9 rounded-t ${c.ytd ? (pos ? 'bg-emerald-400' : 'bg-red-400') : pos ? 'bg-emerald-500' : 'bg-red-500'} ${c.ytd ? 'ring-2 ring-teal-500/40' : ''}`}
-                  style={{ height: `${h}px` }}
-                />
+            <button key={c.year} type="button" onMouseEnter={() => setAktivni(i)} onMouseLeave={() => setAktivni(null)} onFocus={() => setAktivni(i)} onBlur={() => setAktivni(null)}
+              aria-label={`${c.ytd ? `Letos (${c.year})` : c.year}: ${pct(c.v)} v ${curLabel[cur]}`}
+              className={`flex flex-col items-center rounded-md py-1 transition-colors ${aktivni === i ? 'bg-slate-50' : ''}`}>
+              {/* kladná část */}
+              <div className="flex w-full flex-col items-center justify-end" style={{ height: hKl + 20 }}>
+                {pos && <span className="mb-1 text-[11px] sm:text-sm font-semibold tabular-nums text-slate-800 whitespace-nowrap">{pct(c.v)}</span>}
+                {pos && <div className={`w-full max-w-[44px] rounded-t ${barva}`} style={{ height: h }} />}
               </div>
-              <span className="mt-1 text-xs text-slate-400 tabular-nums">{c.year}</span>
-              {c.ytd && <span className="mt-0.5 rounded-full bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700 leading-none">letos (YTD)</span>}
-            </div>
+              {/* nulová osa */}
+              <div className="h-px w-full bg-slate-300" />
+              {/* záporná část */}
+              <div className="flex w-full flex-col items-center justify-start" style={{ height: hZap + (maxZap > 0 ? 20 : 0) }}>
+                {!pos && <div className={`w-full max-w-[44px] rounded-b ${barva}`} style={{ height: h }} />}
+                {!pos && <span className="mt-1 text-[11px] sm:text-sm font-semibold tabular-nums text-slate-800 whitespace-nowrap">{pct(c.v)}</span>}
+              </div>
+              <span className="mt-1.5 text-xs text-slate-500 tabular-nums">{c.ytd ? 'letos' : c.year}</span>
+            </button>
           );
         })}
       </div>
 
-      <p className="mt-4 text-xs text-slate-400">
-        Zobrazeno v {curLabel[cur]}. Letošní rok ({data[data.length - 1].ytd ? data[data.length - 1].year : new Date().getFullYear()}) není celý – jde o výnos od ledna do dneška.
+      <p className="mt-3 text-xs text-slate-400">
+        V {curLabel[cur]} · {data[data.length - 1].ytd ? `letos od 1. 1. ${data[data.length - 1].year}` : 'kalendářní roky'}
       </p>
     </div>
   );

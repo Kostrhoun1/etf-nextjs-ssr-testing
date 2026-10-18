@@ -4,6 +4,7 @@ import { Check, Minus } from 'lucide-react';
 import { ter, money, pct, dist, repl, domicile } from '@/components/design-preview/CategoryUI';
 import { pickReturn, curLabel, type Currency } from '@/components/design-preview/currency';
 import { platnyTicker } from '@/lib/ticker';
+import EmitentLogo from '@/components/home/EmitentLogo';
 
 /* ------------------------------------------------------------------ *
  * Pomocné komponenty SPECIFICKÉ pro stránku "Srovnání dvou ETF".
@@ -26,18 +27,26 @@ export function SrovnaniSoubojKarta({
   etf,
   podtitul,
   accent,
+  ticker,
 }: {
   etf: ComparisonETF;
   podtitul: string;
   accent: 'teal' | 'sky';
+  /** Ticker, jak ho člověk hledal (z URL), např. „CSPX (SXR8)“ – jinak primární ticker fondu. */
+  ticker?: string;
 }) {
   const ring = accent === 'teal' ? 'border-teal-500/40' : 'border-slate-500/40';
   const chip = accent === 'teal' ? 'text-teal-300' : 'text-slate-300';
   return (
     <div className={`flex-1 rounded-xl bg-white/5 border ${ring} px-5 py-4`}>
       <p className={`text-xs font-medium uppercase tracking-wide ${chip}`}>{podtitul}</p>
-      <p className="mt-1 text-xl font-bold text-white">{platnyTicker(etf.primary_ticker) ?? '—'}</p>
-      <p className="text-xs text-slate-400 leading-snug">{etf.name}</p>
+      <div className="mt-1.5 flex items-center gap-2.5">
+        <EmitentLogo nazev={etf.name} size={32} />
+        <div className="min-w-0">
+          <p className="text-xl font-bold text-white leading-tight">{ticker ?? platnyTicker(etf.primary_ticker) ?? '—'}</p>
+          <p className="text-xs text-slate-400 leading-snug">{etf.name}</p>
+        </div>
+      </div>
       <dl className="mt-3 space-y-1.5 text-sm">
         <div className="flex items-center justify-between">
           <dt className="text-slate-400">Poplatek (TER)</dt>
