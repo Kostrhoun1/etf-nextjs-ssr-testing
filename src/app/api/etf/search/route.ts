@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       if (tickers.some((t) => t.startsWith(term))) return 3;
       // Úzké varianty (sektory, ESG, opční „income“, páka) za široké fondy – „sp 500“ nemá vrátit IT sektor.
       const dividendovy = /divid/.test(term) || termy.some((t) => /dividend/i.test(t));
-      const uzka = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|premium income|covered call|leveraged|\bshort\b|daily|equal weight)/i.test(name)
+      const uzka = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|premium income|covered call|leveraged|\bshort\b|daily|equal weight|\(ch\))/i.test(name)
         || (!dividendovy && /(high dividend|dividend yield|dividend)/i.test(name)) ? 0.5 : 0;
       if (name.startsWith(term)) return 2 - uzka;
       if (name.includes(term)) return 1 - uzka;

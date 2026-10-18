@@ -110,6 +110,8 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
           type="search"
           role="combobox"
           aria-expanded={open}
+          aria-controls="hero-hledani-vysledky"
+          aria-activedescendant={open && active >= 0 && results[active] ? `hero-vysledek-${results[active].isin}` : undefined}
           aria-autocomplete="list"
           aria-label="Hledat ETF podle názvu, ISIN nebo tickeru"
           placeholder={placeholder}
@@ -132,6 +134,9 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
         </p>
       )}
 
+      <p className="sr-only" role="status" aria-live="polite">
+        {open && !loading && query.trim().length >= 2 ? `${results.length} fondů${kategorie.length ? ` a ${kategorie.length} žebříčků` : ''}` : ''}
+      </p>
       {open && (results.length > 0 || (query.trim().length >= 2 && !loading)) && (
         <div className="absolute left-0 top-12 md:top-14 mt-1.5 w-full min-w-[20rem] rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden z-50">
           {kategorie.length > 0 && (
@@ -148,17 +153,18 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
             </ul>
           )}
           {results.length > 0 ? (
-            <ul className="max-h-[50vh] overflow-y-auto py-1">
+            <ul id="hero-hledani-vysledky" role="listbox" aria-label="Nalezené fondy" className="max-h-[50vh] overflow-y-auto py-1">
               {results.map((r, i) => (
-                <li key={r.isin}>
+                <li key={r.isin} id={`hero-vysledek-${r.isin}`} role="option" aria-selected={active === i}>
                   <button
+                    tabIndex={-1}
                     type="button"
                     onMouseEnter={() => setActive(i)}
                     onClick={() => goToEtf(r.isin)}
                     className={`w-full px-3.5 py-2.5 text-left flex items-center gap-3 transition-colors ${active === i ? 'bg-teal-50' : 'hover:bg-slate-50'}`}
                   >
-                    <span className="inline-flex items-center justify-center min-w-14 shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 tabular-nums">
-                      {r.primary_ticker ?? '—'}
+                    <span className={`inline-flex items-center justify-center min-w-14 shrink-0 rounded-md px-2 py-1 text-xs font-semibold tabular-nums ${r.primary_ticker ? 'bg-slate-100 text-slate-700' : 'text-transparent'}`} aria-hidden={!r.primary_ticker}>
+                      {r.primary_ticker ?? '·'}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-medium text-slate-900 truncate">{r.name}</span>

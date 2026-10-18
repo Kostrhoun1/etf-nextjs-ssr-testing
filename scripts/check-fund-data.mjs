@@ -225,7 +225,7 @@ const main = async () => {
       .map((m) => ({ id: m[1], isins: [...m[2].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
     if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
     const vse = trhy.flatMap((t) => t.isins);
-    const r = await fetch(`${URL_DB}?select=isin,name,return_1y_czk,scraping_date&isin=in.(${vse.join(',')})`, {
+    const r = await fetch(`${URL_DB}?select=isin,name,return_1y_czk,scraping_date,primary_ticker,exchange_1_ticker&isin=in.(${vse.join(',')})`, {
       headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
     }).then((x) => x.json());
     if (!Array.isArray(r)) throw new Error('neplatná odpověď DB');
@@ -242,6 +242,9 @@ const main = async () => {
     }
     if (odlehle.length) poplach.push({ co: `${odlehle.length} fondů má výnos 12 m mimo svůj trh (> 1,5 p. b. od mediánu) – vadná data u zdroje? Ověřit na burzovních cenách`, ukazka: odlehle.slice(0, 8) });
     if (chybi.length) varovani.push({ co: `${chybi.length} fondů ze seznamu trhů chybí nebo nemá čerstvá data`, ukazka: chybi.slice(0, 6) });
+    const okT = (t) => t && String(t).trim() && String(t).trim() !== '-';
+    const bezTickeru = r.filter((x) => !okT(x.primary_ticker) && !okT(x.exchange_1_ticker));
+    if (bezTickeru.length) varovani.push({ co: `${bezTickeru.length} fondů v trzích na homepage nemá ticker (web ukáže jen název) – doplnit ve scraperu`, ukazka: ukazka(bezTickeru) });
   } catch (e) {
     varovani.push({ co: `Kontrolu trhů na homepage se nepodařilo provést: ${e.message}`, ukazka: [] });
   }

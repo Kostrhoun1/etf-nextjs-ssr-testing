@@ -27,18 +27,18 @@ const barva = (v: number | null) => (v == null ? 'text-slate-500' : v >= 0 ? 'te
 function Fond({ f }: { f: FondTrhu | null }) {
   if (!f) return <span className="text-slate-500">—</span>;
   return (
-    <Link href={`/etf/${f.isin}`} className="group/f min-w-0 flex md:flex-col items-baseline md:items-start gap-x-1.5 hover:text-teal-800">
+    <Link href={`/etf/${f.isin}`} className="group/f min-w-0 min-h-6 flex md:flex-col items-baseline md:items-start gap-x-1.5 py-0.5 hover:text-teal-800">
       <span className="truncate text-sm font-medium text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2">{f.nazev}</span>
-      <span className="shrink-0 text-xs text-slate-500">{f.ticker ?? f.isin}</span>
+      {f.ticker && <span className="shrink-0 text-xs text-slate-500">{f.ticker}</span>}
     </Link>
   );
 }
 
 function Trh({ r }: { r: RadekTrhu }) {
   return (
-    <Link href={r.trh.href} className="min-w-0 inline-flex flex-col hover:text-teal-800">
+    <Link href={r.trh.href} className="min-w-0 min-h-6 inline-flex flex-col py-0.5 hover:text-teal-800">
       <span className="text-sm font-semibold text-slate-900 hover:underline underline-offset-2">{r.trh.label}</span>
-      <span className="hidden md:block text-xs text-slate-500">{r.trh.index} · {r.pocet} fondů</span>
+      <span className="hidden md:block text-xs text-slate-500">{r.trh.index}</span>
     </Link>
   );
 }
@@ -49,6 +49,7 @@ export default function TriPohledyTrhu({ radky, dvojice }: {
   const [pohled, setPohled] = useState<Pohled>('ter');
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const poVykonu = [...radky].sort((a, b) => (b.median ?? -1e9) - (a.median ?? -1e9));
+  const vyrazene = radky.flatMap((r) => r.odlehle);
   const sVykonem = radky.filter((r) => r.median != null && r.min != null && r.max != null);
   const maxRozpeti = sVykonem.length ? Math.max(...sVykonem.map((r) => r.max! - r.min!)) : null;
   const mezitrhy = sVykonem.length >= 2 ? Math.max(...sVykonem.map((r) => r.median!)) - Math.min(...sVykonem.map((r) => r.median!)) : null;
@@ -132,6 +133,14 @@ export default function TriPohledyTrhu({ radky, dvojice }: {
           {p.id === 'r1' && maxRozpeti != null && mezitrhy != null && (
             <p className="mt-3 text-sm text-slate-600 leading-relaxed">
               Fondy na stejný trh se za 12 měsíců lišily nejvýš o <strong className="tabular-nums">{cz(maxRozpeti)} p. b.</strong>, mezi trhy byl rozdíl <strong className="tabular-nums">{cz(mezitrhy)} p. b.</strong> Rozhoduje tedy hlavně výběr trhu, pak poplatek. Minulý výnos se nemusí opakovat.
+            </p>
+          )}
+          {p.id === 'r1' && vyrazene.length > 0 && (
+            // Pravidlo č. 1: vyřazení přiznat, ne tiše schovat (revize 18. 10. 2026).
+            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+              Vyřazeno pro podezřelá data ({vyrazene.length}): {vyrazene.map((v, i) => (
+                <span key={v.isin}>{i > 0 && ', '}<Link href={`/etf/${v.isin}`} className="underline underline-offset-2 hover:text-teal-800">{v.nazev}</Link> {pct(v.r1)}</span>
+              ))}. Výnos se od ostatních fondů na stejný trh liší o víc než 1,5 p. b. – nejčastěji kvůli opožděné ceně u zdroje dat. Ověřujeme.
             </p>
           )}
         </div>

@@ -24,6 +24,7 @@ import { canonicalIndexLabel } from '@/utils/indexNormalization';
 import { isHeadFund } from '@/lib/etf-head';
 import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
+import { nactiTrhy } from '@/lib/trhy';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -340,6 +341,9 @@ export default async function ETFDetailPreview(
   const btOd = btCode ? INDEX_BY_CODE[btCode].since.slice(0, 4) : '';
   const [zebricekHref, zebricekLabel] = zebricekFondu(canonIdx, (etf as unknown as { category?: string | null }).category ?? null, etf.name || '');
   const podobne = await getPodobneFondy(etf.index_name, etf.isin, etf.name || '');
+  // Fond s výnosem mimo svůj trh (> 1,5 p. b. od mediánu fondů na stejný index, src/lib/trhy.ts) –
+  // nejčastěji opožděná cena u zdroje. Pravidlo č. 1: číslo nechat, ale viditelně upozornit.
+  const trhOdlehly = (await nactiTrhy())?.find((r) => r.odlehle.some((f) => f.isin === etf.isin)) ?? null;
   const souper = podobne.find((f) => f.primary_ticker && TICKER_OK.test(f.primary_ticker));
   const parHref = souper && etf.primary_ticker && TICKER_OK.test(etf.primary_ticker)
     ? `/srovnani/${etf.primary_ticker.toLowerCase()}-vs-${souper.primary_ticker!.toLowerCase()}` : null;
@@ -556,6 +560,12 @@ export default async function ETFDetailPreview(
             title="Výkonnost fondu"
             desc="Kolik fond reálně vydělal – přepněte měnu podle toho, jak to pocítíte na účtu. Kč zahrnuje pohyb kurzu (bez daní a poplatků brokera)."
           />
+          {trhOdlehly && (
+            <p role="note" className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 leading-relaxed">
+              <strong>Pozor na aktuálnost výnosů:</strong> výnos za 12 měsíců se u tohoto fondu liší o víc než 1,5 p. b. od ostatních fondů na stejný trh – {trhOdlehly.trh.label} (medián {trhOdlehly.median != null ? `${trhOdlehly.median.toFixed(1).replace('.', ',')} %` : '—'} v Kč). Nejčastější příčinou je opožděná cena u zdroje dat. Porovnejte s{' '}
+              <Link href={trhOdlehly.trh.href} className="font-medium underline underline-offset-2">ostatními fondy na stejný trh</Link>.
+            </p>
+          )}
           <EtfReturns byCur={returnsByCur} fundCurrency={etf.fund_currency} short={shortPeriods} vol={volForReturns} />
           {/* USP v jedné větě – jen u čerstvých dat (pravidlo č. 1: raději nic než staré číslo) */}
           {!isStale && !isLev && czk.y5 != null && (

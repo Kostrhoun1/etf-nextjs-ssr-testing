@@ -230,7 +230,7 @@ export default async function DesignPreviewV2() {
                 <HeroSearch priklady={['VWCE', 'S&P 500', 'zlato', 'dluhopisy']} />
               </div>
               <div className="mt-4 md:mt-5 flex flex-wrap items-center gap-x-6 gap-y-1">
-                <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 min-h-11 text-sm font-semibold text-white hover:bg-teal-500 transition-colors">
+                <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 min-h-11 text-sm font-semibold text-white ring-1 ring-teal-500/40 hover:bg-teal-800 transition-colors">
                   Otevřít srovnávač fondů <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link href="/vyber-etf" className="inline-flex items-center gap-1.5 min-h-11 text-sm font-medium text-slate-100 underline decoration-slate-500 underline-offset-4 hover:text-white hover:decoration-white transition-colors">
@@ -238,7 +238,7 @@ export default async function DesignPreviewV2() {
                 </Link>
               </div>
               {datumText && (
-                <p className="mt-3 md:mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
+                <p className="hidden md:flex mt-4 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
                   <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{pocet} fondů</span><span aria-hidden="true">·</span>
                   <span>{CATEGORY_COUNT} žebříčků</span><span aria-hidden="true">·</span>
@@ -285,7 +285,7 @@ export default async function DesignPreviewV2() {
             <div className="mb-4">
               <h2 id="h-zacit" className="text-xl font-bold tracking-tight">Kterým ETF začít?</h2>
               <p className="text-sm text-slate-600 mt-1">
-                Tři nejčastější první volby českých investorů – široce rozložené, levné a akumulační. Pro orientaci, ne jako doporučení.{starsiText && ` U některého fondu jsou data starší (${starsiText}).`}
+                Fondy, které si naši návštěvníci otevírají nejčastěji (posledních 90 dní) – široce rozložené, levné a akumulační. Pro orientaci, ne jako doporučení.{starsiText && ` U některého fondu jsou data starší (${starsiText}).`}
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
@@ -310,9 +310,9 @@ export default async function DesignPreviewV2() {
                       <div><dt>12 měs. v Kč</dt><dd className={`mt-0.5 text-sm font-semibold tabular-nums ${r == null ? 'text-slate-500' : r >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(r)}</dd></div>
                       <div><dt>Velikost</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900 tabular-nums">{money(etf.fund_size_numeric, etf.fund_currency)}</dd></div>
                     </dl>
-                    {st && dalsich > 0 && (
+                    {st && (dalsich > 0 || !trhy) && (
                       <Link href={st.href} className="mt-1 md:mt-2 inline-flex items-center gap-1 min-h-10 text-sm font-medium text-teal-700 hover:text-teal-800">
-                        Porovnat s {dalsich} dalšími fondy na {st.na} <ArrowRight className="w-4 h-4" />
+                        Porovnat s dalšími fondy na {st.na} <ArrowRight className="w-4 h-4" />
                       </Link>
                     )}
                   </div>
@@ -353,6 +353,11 @@ export default async function DesignPreviewV2() {
                 </Link>
               </li>
             ))}
+            <li className="hidden lg:block">
+              <Link href="/portfolio-strategie" className="flex h-full min-h-24 flex-col justify-center gap-1 rounded-xl border border-dashed border-slate-300 p-4 text-sm font-semibold text-teal-700 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
+                Porovnat všechna portfolia <ArrowRight className="w-4 h-4" />
+              </Link>
+            </li>
           </ul>
           <p className="mt-2 hidden sm:flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
             {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
@@ -395,7 +400,9 @@ export default async function DesignPreviewV2() {
                   <span className="text-sm font-semibold text-slate-900">{broker!.name}{robo && <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}</span>
                   <span className="hidden sm:block text-sm text-slate-600">{forWhom}</span>
                   <span className="order-4 sm:order-none col-span-2 sm:col-span-1 text-xs sm:text-sm text-slate-600"><span className="text-slate-500">{poplatek.popisek}:</span> <span className="font-medium text-slate-900">{poplatek.hodnota}</span></span>
-                  <span className="order-2 sm:order-none text-right text-sm font-semibold tabular-nums text-teal-800" title={`Naše skóre ${broker!.rating} ze 100`}>{broker!.rating}<span className="text-xs font-normal text-slate-500">/100</span></span>
+                  {robo
+                    ? <span className="order-2 sm:order-none text-right text-xs text-slate-500" title="Robo-poradce hodnotíme jinou metodikou než brokery">jiné hodnocení</span>
+                    : <span className="order-2 sm:order-none text-right text-sm font-semibold tabular-nums text-teal-800" title={`Naše skóre ${broker!.rating} ze 100`}>{broker!.rating}<span className="text-xs font-normal text-slate-500">/100</span></span>}
                 </Link>
               </li>
             ))}
