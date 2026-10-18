@@ -414,6 +414,42 @@ const main = async () => {
     varovani.push({ co: `Kontrolu čísla stroje času se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── MODELOVÁ PORTFOLIA: číslo na stránce = backtest z jejího vlastního odkazu (18. 10. 2026) ──
+  // Revize: stránka strategie ukazovala 617 tis./10,5 %, backtest z jejího odkazu 612 992 Kč/10,4 % (ISR cache vs. jiný
+  // konec dat). Teď odkaz nese složení, start i konec dat (`do`) a karta/sekce má data-kontrola-backtest="<odkaz>|<cagr>".
+  // Kontrola z odkazu sestaví požadavek na API a porovná CAGR – poplach při rozdílu > 0,1 p. b.
+  try {
+    const hub = await fetch(`${WEB_URL}/portfolio-strategie`).then((r) => (r.ok ? r.text() : ''));
+    const slugy = [...new Set([...hub.matchAll(/href="\/portfolio-strategie\/([a-z0-9-]+)"/g)].map((m) => m[1]))];
+    const stranky = [['/portfolio-strategie', hub]];
+    for (const s of slugy) stranky.push([`/portfolio-strategie/${s}`, await fetch(`${WEB_URL}/portfolio-strategie/${s}`).then((r) => (r.ok ? r.text() : ''))]);
+    const nesedi = [], chybi = [];
+    let overeno = 0;
+    for (const [cesta, html] of stranky) {
+      const kontroly = [...html.matchAll(/data-kontrola-backtest="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+      if (cesta !== '/portfolio-strategie' && !kontroly.length) { chybi.push(cesta); continue; }
+      for (const k of kontroly) {
+        const [odkaz, cagrStr] = k.split('|');
+        const q = new URL(odkaz, WEB_URL).searchParams;
+        const portfolio = (q.get('slozeni') || '').split(',').map((x) => x.split(':')).filter(([c, w]) => c && Number(w) > 0)
+          .map(([c, w]) => ({ isin: c, name: c, indexCode: c, weight: Number(w) / 100, ter: 0 }));
+        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ portfolio, startDate: q.get('start'), endDate: q.get('do') || new Date().toISOString().slice(0, 10), initialAmount: Number(q.get('amount') || 100000), currency: 'CZK', rebalancingStrategy: q.get('vyvazovani') || 'yearly' }),
+        }).then((r) => r.json()).catch(() => null);
+        const api = bt?.summary?.cagr, web = Number(cagrStr);
+        overeno++;
+        if (!(Number.isFinite(api) && Number.isFinite(web))) nesedi.push(`${cesta}: nešlo spočítat (${q.get('slozeni')})`);
+        else if (Math.abs(api - web) > 0.001) nesedi.push(`${cesta} ${q.get('slozeni')}: stránka ${(web * 100).toFixed(2)} % vs. backtest ${(api * 100).toFixed(2)} % (do ${q.get('do')})`);
+      }
+    }
+    if (nesedi.length) poplach.push({ co: 'Modelová portfolia: číslo na stránce nesedí s backtestem z jejího odkazu (> 0,1 p. b. CAGR)', ukazka: nesedi.slice(0, 8) });
+    if (chybi.length) varovani.push({ co: 'Detail modelového portfolia bez kontrolního údaje data-kontrola-backtest (backtest se nespočítal?)', ukazka: chybi });
+    if (!overeno) varovani.push({ co: 'Kontrola modelových portfolií nenašla žádné číslo k ověření', ukazka: [] });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu modelových portfolií se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── KURZY pro backtest/grafy (exchange_rates_historical, pg_cron fx-topup → denně 17:00 UTC) ──
   // Do 18. 10. 2026 se plnily jen v pondělí ráno → poslední týden se přepočítával až 10 dní starým kurzem.
   try {
