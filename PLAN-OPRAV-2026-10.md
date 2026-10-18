@@ -380,3 +380,38 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
   (Admin API, stav GOOGLE_SIGNALS_DISABLED) i v kódu (`allow_google_signals: false`,
   `allow_ad_personalization_signals: false` v src/components/GoogleAnalytics.tsx). GA4 dál ukládá vlastní
   analytickou cookie `_ga`; zda GA4 časem úplně vypnout, rozhodne majitel po 2–3 měsících vlastního měření.
+
+## 18. 10. 2026 noc – revize 8 klíčových stránek (art director ×2 + test Markéta/Martin)
+
+Známky: art director 4–6,5/10, Markéta (začátečnice, mobil) 5/10, Martin (pokročilý, desktop) 5/10.
+Výnosy v Kč na detailu i backtest prošly nezávislou kontrolou (justETF + ČNB). Revize ale našla datové chyby:
+
+- ✅ **Největší pozice bez NVIDIE u všech fondů** – scraper zahazoval 1. řádek tabulky (etf-astro 541142c),
+  data opraví noční scrape 19. 10.; nový poplach v check-fund-data (podíl fondů s právě 9 pozicemi).
+- ✅ **Backtest: počáteční vklad 0 Kč → tiše 10 000 Kč** (vloženo 532 000 místo 522 000); engine opraven
+  (marketNav nezávislý na počáteční částce) + kontrola v check-fund-data (2024: vloženo musí být 11 000).
+- ✅ Backtest: preset nechal starý výsledek → přepočet + zašednutí „platí pro předchozí nastavení“;
+  „vloženo“ v grafu schodovitě místo vodorovné čáry; TER proxy fondů aktualizován (VWCE 0,22 → 0,14 %)
+  + kontrola manifest vs. data.
+- ✅ Detail fondu: všechny burzy (XETRA první, bez Mexika), riziko „v EUR“, české země/sektory, varovný box
+  nerozpadlý do sloupců, koncentrace až od 80 %.
+- ✅ Srovnávač: prázdné tickery (~1 000 fondů), logo místo hvězdiček, bez nespolehlivého regionu, čísla bez
+  zalomení, štítek „zajištěno do EUR/USD“.
+- ✅ Brokeři: srovnávací tabulka generovaná z jednoho zdroje (IBKR $0.005/akcii, XTB „licence ČNB“ pryč),
+  věta o 35 % dani opravena, IBKR texty pro UCITS + minimum 2 USD u konverze.
+- ✅ Kvíz: „Nechci velké propady“ už nevede na 100 % akcií bez varování; vykání; ne „doporučení“.
+- ✅ Žebříčky: „Vybrané podle dat“, bez „bezpečná volba“, nejvýkonnější bez ESG/Leaders/hedged variant a < 100 mil. €.
+- ✅ Modelová portfolia: krize = propad od vrcholu (jako backtest), max. pokles z backtestu, „klidnější“ jen podle dat.
+- ✅ Porovnání: datum dat, vítěz jen při viditelném rozdílu, bez lišty porovnání, „počet pozic ve fondu“.
+- ✅ GA4: Google signals vypnuté (rozhodnutí majitele).
+
+**Zbývá (UX, další kola):**
+- Backtest: výsledek hned po načtení (předpočet), u odkazu z FB (run=1) posun k výsledku, popisky os, jedna výhrada místo pěti.
+- Kalkulačka (zapojení 29 %): výsledek nahoře, chipy výnosu u správného pole, sbalená tabulka, texty („za 30 let“, jednorázový vklad).
+- Srovnávač: menší hero, filtry v jednom řádku, řazení na mobilu, počty v záložkách (5 124 vs 4 974), limit porovnání 4 vs „5“ v textu,
+  úklid 538 položek v nabídce indexů, výběr více indexů.
+- **Data – region fondů** (Korea „Evropa“, zlato a EUR dluhopisy „Celosvětově“) – opravit mapování + kontrola; do té doby se v řádku nezobrazuje.
+- Detail fondu: graf vývoje v Kč, zkrátit konec stránky. Porovnání: graf; SPYI bez indexu (index_name prázdný u části fondů).
+- Žebříčky: živá čísla na kartách /zebricky, plná tabulka fondů kategorie; celosvětový žebříček má jako největší EUNL (MSCI World).
+- Brokeři: Portu mimo skóre brokerů, spočítaný řádek „nákup za 5 000 Kč stojí…“, mobilní hlavička, sjednotit /kde-koupit a /srovnani-brokeru.
+- /kalkulacky zmiňuje hypotéky a úvěry (redakční hranice) – rozhodne majitel.
