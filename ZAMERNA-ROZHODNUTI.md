@@ -216,7 +216,8 @@ Ve strukturovaných datech (src/components/SEO/AuthorSchema.tsx – description 
 ## Homepage = srovnávač, ne investiční web (rozhodnutí majitele 18. 10. 2026)
 
 Na homepage nepatří simulace „kolik by z toho bylo za X let“ (dřív hero box „5 000 Kč měsíčně od 2010
-→ 2,9 mil. Kč“), výnosy modelových portfolií ani dlaždice „Jak si vedou trhy“. Simulace patří do nástrojů
+→ 2,9 mil. Kč“) ani dlaždice „Jak si vedou trhy“. **Výkon modelových portfolií (12 měs. v Kč, 3 roky) na homepage
+ZŮSTÁVÁ** – majitel 18. 10. 2026: „když jsi u modelových portfolií dal pryč performance, úplně to ztratilo šťávu“. Simulace patří do nástrojů
 (/stroj-casu, /backtest). Kontrola čísla stroje času proto hlídá /stroj-casu, ne homepage.
 
 ## Ověřené „podivné“ hodnoty (18. 10. 2026) – nejsou to chyby
