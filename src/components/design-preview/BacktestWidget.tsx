@@ -29,6 +29,8 @@ import type { RebalancingStrategy } from '@/lib/backtest/types';
 import { STRESS_WINDOWS } from '@/lib/backtest/calculations';
 import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
 import { kulateKroky, fmtOsa } from '@/lib/osyGrafu';
+import { vkladyVCase, zhodnoceniVkladu } from '@/lib/backtest/zhodnoceniVkladu';
+import { FaqSeznam } from '@/components/design-preview/brokerUI';
 
 type Currency = 'EUR' | 'CZK' | 'USD';
 type ContributionFrequency = 'none' | 'monthly' | 'quarterly' | 'yearly';
@@ -102,6 +104,8 @@ const categoryOf = (i: IndexDef) =>
 const AVAILABLE_INDEXES = BACKTEST_INDEX_CODES.map((code) => {
   const i = INDEX_BY_CODE[code];
   if (!i) throw new Error(`BacktestWidget: index '${code}' není v manifestu indexes.ts`);
+  // Fond k nákupu jen evropský (UCITS) – americký fond Čech nekoupí → raději „—“ (revize 18. 10. 2026).
+  const ucits = !!i.proxyEtf && !/^US/.test(i.proxyEtf.isin);
   return {
     indexCode: i.code,
     name: i.name,
@@ -110,16 +114,21 @@ const AVAILABLE_INDEXES = BACKTEST_INDEX_CODES.map((code) => {
     since: i.since,
     zdroj: zdrojDat(i),
     category: categoryOf(i),
-    isin: i.proxyEtf?.isin ?? '',
-    etfName: i.proxyEtf?.name ?? '',
-    ter: i.proxyEtf?.ter ?? 0,
+    isin: ucits ? i.proxyEtf!.isin : '',
+    etfName: ucits ? i.proxyEtf!.name : '',
+    ter: ucits ? i.proxyEtf!.ter : 0,
   };
 });
 
-// === Hotová portfolia – 1:1 z originálu ===
+/* === Hotová portfolia ===
+ * „Celý svět“ znamená ve všech nástrojích totéž: fond Vanguard Total World (VT, index FTSE Global All Cap),
+ * data od 6/2008 (stejně jako složka „Celý svět“ a stroj času). Starší aproximace 60 % S&P 500 + 40 % svět
+ * mimo USA se jmenuje poctivě „USA + zbytek světa“ (revize 18. 10. 2026: dřív se jí říkalo „Celý svět“).
+ * Id 'global-since-2000' zůstává kvůli sdíleným odkazům. */
 const PRESET_PORTFOLIOS = [
   { id: 'sp500-100', name: '100% S&P 500', description: '500 největších firem USA v jednom indexu – nejsledovanější akciová sázka na americkou ekonomiku. Nejvyšší dlouhodobý výnos, ale i hluboké propady.', etfs: [{ indexCode: 'sp500', weight: 100 }] },
-  { id: 'global-since-2000', name: 'Celý svět (vč. EM)', description: 'Akcie celého světa: 60 % USA (S&P 500) + 40 % zbytek světa (vyspělé i rozvíjející se trhy). Proč takhle? Celosvětový fond má data až od roku 2008 – tahle dvojice sahá do roku 2000, takže projde i krizí dot-com a 2008.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
+  { id: 'cely-svet', name: 'Celý svět', description: 'Akcie celého světa v jednom fondu – vyspělé i rozvíjející se trhy, velké i malé firmy (Vanguard Total World, VT). Data od června 2008; delší historii ukáže „USA + zbytek světa“.', etfs: [{ indexCode: 'ftse_all_world', weight: 100 }] },
+  { id: 'global-since-2000', name: 'USA + zbytek světa', description: '60 % USA (S&P 500) + 40 % akcie mimo USA (vyspělé i rozvíjející se trhy). Přibližuje akcie celého světa i před rokem 2008, kdy celosvětový fond ještě nebyl – data od roku 2000, projde krizí dot-com i 2008. USA mají ve světovém indexu většinou méně než 60 %.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
   { id: '60-40', name: '60/40 portfolio', description: 'Klasika investování: 60 % akcie, 40 % dluhopisy. Dluhopisy tlumí propady – klidnější jízda za cenu o něco nižšího výnosu.', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
   {
     id: 'all-weather', name: 'All Weather (Ray Dalio)', description: 'Portfolio slavného investora Raye Dalia: akcie + dlouhé i krátké dluhopisy + zlato a komodity. Cíl není nejvyšší výnos, ale obstát v každé fázi ekonomiky (růst, recese, inflace).',
@@ -148,7 +157,8 @@ const PRESET_PORTFOLIOS = [
 // Krátké názvy presetů pro kompaktní chipy (jedna scrollovací řádka).
 const PRESET_SHORT: Record<string, string> = {
   'sp500-100': 'S&P 500',
-  'global-since-2000': 'Celý svět',
+  'cely-svet': 'Celý svět',
+  'global-since-2000': 'USA + zbytek světa',
   'developed-world': 'Rozvinutý svět',
   '60-40': '60/40',
   'all-weather': 'All Weather',
@@ -277,6 +287,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     }));
   });
   const [startDate, setStartDate] = useState(defaultStart ?? VYCHOZI_SCENAR.startDate);
+  /* Zadal počáteční datum uživatel sám (pole „Počáteční datum“)? Jen pak je posun startu důvod k varování.
+     Start z presetu, výchozího scénáře nebo odkazu (FB) se tiše posune na první den dat (revize 18. 10. 2026:
+     odkaz z FB hlásil „Zadali jste start 1. 7. 2002…“, ač návštěvník nic nezadával). */
+  const [startZadal, setStartZadal] = useState(false);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [initialAmount, setInitialAmount] = useState(defaultAmount ?? VYCHOZI_SCENAR.initialAmount);
   const [contributionAmount, setContributionAmount] = useState(VYCHOZI_SCENAR.contributions.amount);
@@ -312,7 +326,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const cur = CURRENCIES.find((c) => c.code === currency)?.label ?? '';
     const freq = { monthly: 'měsíčně', quarterly: 'čtvrtletně', yearly: 'ročně', none: '' }[contributionFrequency];
     const vklady = `${initialAmount.toLocaleString('cs-CZ')} ${cur}${contributionFrequency !== 'none' && contributionAmount > 0 ? ` + ${contributionAmount.toLocaleString('cs-CZ')} ${cur} ${freq}` : ''}`;
-    return { slozeni, vklady, start: startDate, kody: selectedETFs.map((e) => e.indexCode), mena: currency };
+    return { slozeni, vklady, start: startDate, startZadal, kody: selectedETFs.map((e) => e.indexCode), mena: currency, pocatecni: initialAmount, vklad: contributionFrequency !== 'none' ? contributionAmount : 0, frekvence: contributionFrequency };
   };
   const [popisVysledku, setPopisVysledku] = useState<ReturnType<typeof popisNastaveni> | null>(() => (initialResult ? popisNastaveni() : null));
   // Odkaz s nastavením v URL: serverový (výchozí) výsledek schovat, dokud se nespočítá ten z odkazu.
@@ -620,44 +634,49 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   // bylo léta „pod vloženými penězi“ (test s uživatelem 18. 10. 2026). Nesedí-li součet s výsledkem
   // enginu, čáru nekreslíme (pravidlo č. 1).
   const chartData = useMemo(() => {
-    if (!result) return [];
+    if (!result || !popisVysledku) return [];
     const ev = result.evolution;
-    const vklad = contributionFrequency !== 'none' ? contributionAmount : 0;
-    const obdobi = (d: Date) => contributionFrequency === 'monthly' ? d.getUTCFullYear() * 12 + d.getUTCMonth()
-      : contributionFrequency === 'quarterly' ? d.getUTCFullYear() * 4 + Math.floor(d.getUTCMonth() / 3) : d.getUTCFullYear();
-    const vlozeno: number[] = [];
-    let suma = initialAmount;
-    for (let i = 0; i < ev.length; i++) {
-      if (i > 0 && vklad > 0 && obdobi(new Date(ev[i].date)) !== obdobi(new Date(ev[i - 1].date))) suma += vklad;
-      vlozeno.push(suma);
-    }
-    const sedi = Math.abs(suma - result.summary.amountInvested) < 1;
+    // Vklady podle parametrů, se kterými výsledek POČÍTAL (popisVysledku), ne podle aktuálního formuláře.
+    const { kumul, celkem } = vkladyVCase(ev, popisVysledku.pocatecni, popisVysledku.vklad, popisVysledku.frekvence);
+    const sedi = Math.abs(celkem - result.summary.amountInvested) < 1;
     const MAX = 400;
     const step = ev.length > MAX ? Math.ceil(ev.length / MAX) : 1;
     const out: { date: string; t: number; value: number; vlozeno?: number }[] = [];
-    const bod = (i: number) => ({ date: ev[i].date, t: Date.parse(ev[i].date), value: Math.round(ev[i].value), ...(sedi ? { vlozeno: vlozeno[i] } : {}) });
+    const bod = (i: number) => ({ date: ev[i].date, t: Date.parse(ev[i].date), value: Math.round(ev[i].value), ...(sedi ? { vlozeno: kumul[i] } : {}) });
     for (let i = 0; i < ev.length; i += step) out.push(bod(i));
     if (out.length && out[out.length - 1].date !== ev[ev.length - 1].date) out.push(bod(ev.length - 1));
     return out;
-    // Parametry vkladů se čtou k výsledku; při změně nastavení je výsledek zašedlý (vysledekPro ≠ konfig).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result]);
+  }, [result, popisVysledku]);
+  /* Roční zhodnocení VAŠICH vkladů (XIRR) – jen když se pravidelně vkládalo. Srovnatelné s kalkulačkou se
+     stálým výnosem; CAGR výše je časově vážený výnos portfolia (nezávisí na tom, kdy jste vkládali). */
+  const irr = useMemo(() => {
+    if (!result || !popisVysledku || !(popisVysledku.vklad > 0)) return null;
+    return zhodnoceniVkladu(result.evolution, popisVysledku.pocatecni, popisVysledku.vklad, popisVysledku.frekvence, result.summary.amountInvested);
+  }, [result, popisVysledku]);
   const maVlozeno = chartData.length > 0 && chartData[0].vlozeno != null;
 
-  // Pokročilé ukazatele z ročních výnosů (engine je počítá time-weighted, bez vkladů).
+  // Neúplné krajní roky (výpočet nezačal v lednu / data nekončí v prosinci) – nesoutěží o nejlepší/nejhorší rok.
+  const castecneRoky = useMemo(() => {
+    const out = new Set<number>();
+    const ev = result?.evolution ?? [];
+    if (ev.length < 2) return out;
+    const p = new Date(ev[0].date), k = new Date(ev[ev.length - 1].date);
+    if (p.getUTCMonth() > 0 || p.getUTCDate() > 7) out.add(p.getUTCFullYear());
+    if (!(k.getUTCMonth() === 11 && k.getUTCDate() >= 28)) out.add(k.getUTCFullYear());
+    return out;
+  }, [result]);
+
+  // Nejlepší/nejhorší CELÝ rok (časově vážené roční výnosy z enginu).
   const advanced = useMemo(() => {
-    const ar = result?.returns.annualReturns ?? [];
+    const ar = (result?.returns.annualReturns ?? []).filter((r) => !castecneRoky.has(r.year));
     if (ar.length === 0 || !result) return null;
     let best = ar[0], worst = ar[0];
     for (const r of ar) {
       if (r.return > best.return) best = r;
       if (r.return < worst.return) worst = r;
     }
-    // Sortino (bezriziková sazba 0) = CAGR / kolísavost jen záporných let.
-    const downside = Math.sqrt(ar.reduce((a, r) => a + (r.return < 0 ? r.return * r.return : 0), 0) / ar.length);
-    const sortino = downside > 0 ? result.summary.cagr / downside : null;
-    return { best, worst, sortino };
-  }, [result]);
+    return { best, worst };
+  }, [result, castecneRoky]);
 
   // Největší propady (drawdowny) – API je počítá z time-weighted NAV. Nejhlubší první.
   const topDrawdowns = useMemo(() => {
@@ -681,9 +700,12 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       : popisVysledku.mena !== 'USD' && zadano < Date.UTC(2000, 0, 1)
         ? 'kurzy koruny a eura máme až od ledna 2000'
         : comparison ? 'porovnání běží na společném období všech portfolií' : 'ne všechny složky mají data od zvoleného dne';
-    return { zadano: fmtDen(popisVysledku.start), duvod };
+    return { zadano: fmtDen(popisVysledku.start), duvod, zadal: popisVysledku.startZadal };
   })();
   const zastaraly = !!result && vysledekPro !== konfig;
+  // Ovládací prvek období ukazuje SKUTEČNÝ začátek výpočtu (dřív „od 1/2005“, ač výpočet začínal 6/2008).
+  // Vlastní zadání uživatele necháváme, jak ho napsal (u něj se posun hlásí varováním).
+  const startZobrazeny = !startZadal && !zastaraly && !loading && prvni ? prvni.slice(0, 10) : startDate;
   const osaY = useMemo(() => {
     const max = chartData.reduce((m, d) => Math.max(m, d.value, d.vlozeno ?? 0), 0);
     return kulateKroky(max, 0, 4);
@@ -694,13 +716,35 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     const min = ddData.reduce((m, d) => Math.min(m, d.dd), 0);
     return kulateKroky(0, min, 3);
   }, [ddData]);
-  // Kolik času strávilo portfolio hluboko pod vrcholem (z měsíční řady propadů – text musí sedět s grafem).
+  /* Kolik měsíců bylo portfolio hluboko pod vrcholem – ze STEJNÉ řady jako graf (za měsíc nejhlubší bod
+     denních dat, takže dno grafu = max. pokles). Dřív se podíl zaokrouhloval na celá procenta a „max. pokles
+     −20,4 %“ stál vedle „víc než 20 % pod vrcholem v 0 % měsíců“ (revize 18. 10. 2026) → počty měsíců. */
   const podVrcholem = useMemo(() => {
     const dd = result?.drawdownSeries ?? [];
     if (dd.length < 12) return null;
-    const pod = (x: number) => Math.round((dd.filter((p) => p.drawdown < -x).length / dd.length) * 100);
-    return { deset: pod(0.1), dvacet: pod(0.2) };
+    const pocet = (x: number) => dd.filter((p) => p.drawdown < -x).length;
+    return { deset: pocet(0.1), dvacet: pocet(0.2), celkem: dd.length };
   }, [result]);
+  /* MOBIL: výsledek je nad nastavením, takže po kliku na preset se měnil mimo obrazovku (revize 18. 10. 2026).
+     Když karta výsledku není vidět, drží se dole lišta s číslem (jako v kalkulačce) – při výpočtu „Počítám…“,
+     u zastaralého výsledku tlačítko „Přepočítat“. */
+  const vysledekRef = useRef<HTMLDivElement>(null);
+  const [vysledekVidet, setVysledekVidet] = useState(true);
+  useEffect(() => {
+    const el = vysledekRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([z]) => setVysledekVidet(z.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const listaDole = !vysledekVidet && !cekamNaUrl && (loading || !!result);
+  useEffect(() => {
+    // Lišta nesmí zakrýt konec stránky (patičku) – dočasné odsazení těla jen na mobilu.
+    if (!listaDole || window.matchMedia('(min-width: 1024px)').matches) return;
+    const puvodni = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = '64px';
+    return () => { document.body.style.paddingBottom = puvodni; };
+  }, [listaDole]);
   const nKrizi = result?.stressPeriods?.length ?? 0;
   const gridKrizi = nKrizi >= 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : nKrizi === 3 ? 'sm:grid-cols-3' : nKrizi === 2 ? 'sm:grid-cols-2' : '';
 
@@ -708,7 +752,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     <div className="space-y-8">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
         {/* ===== VÝSLEDEK (mobil: první; desktop: vpravo, lepkavý) ===== */}
-        <div id="vysledek" data-sekce="backtest-vysledek" className="lg:order-2 lg:sticky lg:top-[4.5rem] space-y-3 scroll-mt-20">
+        <div id="vysledek" ref={vysledekRef} data-sekce="backtest-vysledek" className="lg:order-2 lg:sticky lg:top-[4.5rem] space-y-3 scroll-mt-20">
           {zastaraly && !loading && !cekamNaUrl && (
             <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
               <p className="text-sm text-amber-900">Výsledek platí pro <b>předchozí nastavení</b>.</p>
@@ -748,14 +792,19 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-900 leading-snug">{popisVysledku?.slozeni}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{popisVysledku?.vklady} · {fmtMes(prvni)} – {fmtDen(posledni)}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {popisVysledku?.vklady} · {fmtMes(prvni)} – {fmtDen(posledni)}
+                      {posunStartu && !posunStartu.zadal && (
+                        <> · <InfoTip label={`Výpočet začíná ${fmtDen(prvni)}, protože ${posunStartu.duvod}.`}>data od {fmtMes(prvni)}</InfoTip></>
+                      )}
+                    </p>
                   </div>
                   <a href="#nastaveni" className="lg:hidden shrink-0 inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 min-h-[40px] text-sm font-medium text-teal-700">
                     <Pencil className="w-3.5 h-3.5" /> Upravit
                   </a>
                 </div>
 
-                {posunStartu && (
+                {posunStartu?.zadal && (
                   <p className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 leading-relaxed">
                     <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-600" />
                     <span>Zadali jste start {posunStartu.zadano}, ale {posunStartu.duvod}. <b>Výsledek začíná {fmtDen(prvni)}.</b></span>
@@ -784,6 +833,14 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     </span>
                   </span>
                 </div>
+                {irr != null && (
+                  <p className="mt-2 text-sm text-slate-600">
+                    <InfoTip label={`Vnitřní výnosové procento vašich vkladů (XIRR): jaký stálý roční výnos by ze stejných vkladů ve stejných dnech udělal stejnou konečnou částku – srovnatelné s investiční kalkulačkou. Roční zhodnocení portfolia níže (CAGR) je časově vážené: nezávisí na tom, kdy a kolik jste vkládali. Liší se, protože pozdější vklady byly investované kratší dobu a zažily jiné roky než počáteční vklad.`}>
+                      Vaše vklady se zhodnocovaly
+                    </InfoTip>{' '}
+                    <span className={`font-semibold tabular-nums ${irr >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtPct(irr * 100)} ročně</span>
+                  </p>
+                )}
 
                 {/* Graf vývoje hodnoty */}
                 <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -839,7 +896,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   <div className="pr-2 sm:pr-3">
                     <p className="text-xs text-slate-500 flex items-center gap-0.5">
                       <span className="sm:hidden">Ročně</span><span className="hidden sm:inline">Roční zhodnocení</span>
-                      <InfoTip label="Průměrné roční tempo růstu se zohledněním složeného úročení (CAGR), bez vlivu vkladů. Nominálně = v korunách, jak je vidíte na účtu."><span className="sr-only">vysvětlení</span></InfoTip>
+                      <InfoTip label="Časově vážený výnos portfolia (CAGR): průměrné roční tempo se složeným úročením, očištěné od toho, kdy a kolik jste vkládali. U portfolia z více složek ho vklady mohou nepatrně ovlivnit, protože se rozdělují podle cílových vah. Nominálně = v korunách, jak je vidíte na účtu."><span className="sr-only">vysvětlení</span></InfoTip>
                     </p>
                     <p className={`mt-0.5 text-lg md:text-xl font-bold tabular-nums ${result.summary.cagr >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtPct(result.summary.cagr * 100)}</p>
                     <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">
@@ -851,10 +908,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   <div className="px-2 sm:px-3">
                     <p className="text-xs text-slate-500 flex items-center gap-0.5">
                       Max. pokles
-                      <InfoTip label="Největší propad hodnoty od předchozího vrcholu po dno (bez vlivu vkladů). Ukazuje, kolik nervů by takové držení vyžadovalo."><span className="sr-only">vysvětlení</span></InfoTip>
+                      <InfoTip label="Největší propad od vrcholu po dno kdykoli v období – z denních dat časově vážené hodnoty portfolia (vklady ho nemaskují). „Zpět“ = za jak dlouho od dna se hodnota vrátila na předchozí vrchol."><span className="sr-only">vysvětlení</span></InfoTip>
                     </p>
                     <p className="mt-0.5 text-lg md:text-xl font-bold tabular-nums text-red-600">{fmtPct(result.risk.maxDrawdown.depth * 100)}</p>
-                    <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">dno {fmtMes(result.risk.maxDrawdown.troughDate)}</p>
+                    <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">dno {fmtMes(result.risk.maxDrawdown.troughDate)} · <span className={result.risk.maxDrawdown.recovered ? 'text-emerald-700' : 'text-amber-700'}>{navratPoPropadu(result.risk.maxDrawdown)}</span></p>
                   </div>
                   <div className="pl-2 sm:pl-3">
                     <p className="text-xs text-slate-500 flex items-center gap-0.5">
@@ -884,7 +941,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           {/* Hotová portfolia */}
           <div className="mb-4">
             <p className="text-xs font-medium text-slate-500 mb-2">Hotové portfolio</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-1.5">
               {PRESET_PORTFOLIOS.map((preset) => {
                 const on = activePreset === preset.id;
                 return (
@@ -894,7 +951,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     aria-pressed={on}
                     data-track={`preset:${preset.id}`}
                     onClick={() => { applyPreset(preset.id); setTimeout(() => runBacktestRef.current(), 90); }}
-                    className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors min-h-[40px] ${on ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
+                    className={`rounded-lg border px-2 py-1.5 text-sm font-medium leading-tight transition-colors min-h-[44px] ${on ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/60'}`}
                   >
                     {PRESET_SHORT[preset.id] ?? preset.name}
                   </button>
@@ -906,9 +963,17 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             )}
           </div>
 
-          {/* Investiční styly (faktory) – rychlé porovnání faktor vs S&P 500 */}
-          <div className="mb-4">
-            <p className="text-xs font-medium text-slate-500 mb-2">…nebo investiční styl proti S&amp;P&nbsp;500</p>
+          {/* Investiční styly (faktory) – sbalené (revize 18. 10. 2026: 15 tlačítek pod sebou byla stěna) */}
+          <details className="group mb-4 rounded-lg border border-slate-200 bg-white" {...(activeStyle ? { open: true } : {})}>
+            <summary className="flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer list-none min-h-[44px] rounded-lg hover:bg-slate-50">
+              <span className="text-sm font-medium text-slate-700">Investiční styly (faktory)</span>
+              <span className="flex items-center gap-2 text-xs text-slate-500">
+                <span className="group-open:hidden">{activeStyle ? FACTOR_STYLES.find((s) => s.code === activeStyle)?.label : 'proti S&P 500'}</span>
+                <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+              </span>
+            </summary>
+            <div className="px-3 pb-3 pt-3 border-t border-slate-200">
+            <p className="text-xs text-slate-500 mb-2">Value, growth, malé firmy… vždy 100&nbsp;% stylu proti S&amp;P&nbsp;500.</p>
             <div className="flex flex-wrap gap-1.5">
               {FACTOR_STYLES.map((s) => {
                 const on = activeStyle === s.code;
@@ -931,7 +996,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 Porovnáváte <b>{FACTOR_STYLES.find((s) => s.code === activeStyle)?.label}</b> (100&nbsp;%) se S&amp;P&nbsp;500 – období od vzniku reálného fondu{(activeStyle === 'us_momentum' || activeStyle === 'us_quality') ? ' (2014)' : ''}, bez pravidelných vkladů.
               </p>
             )}
-          </div>
+            </div>
+          </details>
 
           {/* Složení – default jen souhrn; editor vah na rozklik (progressive disclosure) */}
           <div className="mb-4">
@@ -961,19 +1027,21 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 <div key={idRadku(etf)} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
                   <div className="flex-1 min-w-0">
                     {etf.fond ? (<>
-                      <span className="block text-sm font-medium text-slate-900 truncate">{etf.fond.ticker ? `${etf.fond.ticker} · ` : ''}{etf.name}</span>
-                      <span className="block text-xs text-slate-500 truncate" title={etf.fond.zdroj}>
+                      <span className="block text-sm font-medium text-slate-900 break-words">{etf.fond.ticker ? `${etf.fond.ticker} · ` : ''}{etf.name}</span>
+                      <span className="block text-xs text-slate-500 break-words" title={etf.fond.zdroj}>
                         historie: {etf.fond.zdroj}{etf.fond.shoda === 'blizky' ? ' – podobný index' : ''} · TER {fmtPct(etf.ter * 100, 2)}
                       </span>
                     </>) : (<>
-                      <span className="flex items-center gap-1 min-w-0 text-sm font-medium text-slate-900">
-                        <span className="truncate">{etf.indexName}</span>
+                      <span className="flex items-start gap-1 min-w-0 text-sm font-medium text-slate-900">
+                        <span className="break-words leading-snug">{etf.indexName}</span>
                         {zdrojSlozky(etf.indexCode) && (
                           <InfoTip label={zdrojSlozky(etf.indexCode)}><span className="sr-only">Odkud jsou data</span></InfoTip>
                         )}
                       </span>
-                      <span className="block text-xs text-slate-500 truncate" title={`Fond k nákupu: ${etf.name}`}>
-                        fond k nákupu: {etf.name} · TER {fmtPct(etf.ter * 100, 2)}
+                      <span className="block text-xs text-slate-500 leading-snug break-words">
+                        {etf.name
+                          ? <>fond k nákupu: {etf.name} · TER {fmtPct(etf.ter * 100, 2)}</>
+                          : <>fond k nákupu: — <span className="text-slate-400">(evropský fond na tento index nemáme)</span></>}
                       </span>
                     </>)}
                   </div>
@@ -1171,11 +1239,11 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           </div>
 
           {/* ===== POKROČILÉ NASTAVENÍ (rozklik) – období, vyvažování, měna, inflace ===== */}
-          <details className="group mb-4 rounded-lg border border-slate-200 bg-white">
+          <details className="group rounded-lg border border-slate-200 bg-white">
             <summary className="flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer list-none min-h-[44px] rounded-lg hover:bg-slate-50">
               <span className="text-sm font-medium text-slate-700">Období, měna a další</span>
               <span className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="tabular-nums group-open:hidden">od {fmtMes(startDate)} · {currency}</span>
+                <span className="tabular-nums group-open:hidden">od {fmtMes(startZobrazeny)} · {currency}</span>
                 <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
               </span>
             </summary>
@@ -1184,7 +1252,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="bt-start" className="block text-sm text-slate-600 mb-1">Počáteční datum</label>
-                  <input id="bt-start" type="date" min="1993-01-01" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+                  <input id="bt-start" type="date" min="1993-01-01" value={startZobrazeny} onChange={(e) => { setStartDate(e.target.value); setStartZadal(true); }}
                     className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
                   <p className="text-xs text-slate-500 mt-1">Výpočet začne, až mají data všechny složky. V Kč a eurech nejdřív od ledna 2000 (od té doby máme kurzy), v dolarech S&amp;P&nbsp;500 od roku 1993.</p>
                 </div>
@@ -1258,15 +1326,17 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             </div>
           </details>
 
-          {/* Spustit */}
+          {/* Spustit – jen když je co počítat (presety a styly se spouštějí samy; revize 18. 10. 2026). */}
+          {(!result || zastaraly || !!error || totalWeight !== 100) && (
           <button
             onClick={() => runBacktest()}
             data-track="backtest-spustit"
             disabled={loading || totalWeight !== 100 || selectedETFs.length === 0}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors min-h-[48px]"
+            className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors min-h-[48px]"
           >
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Počítám historický vývoj…</> : <><Zap className="w-4 h-4" /> Otestovat na historii</>}
+            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Počítám historický vývoj…</> : <><Zap className="w-4 h-4" /> {result ? 'Přepočítat' : 'Otestovat na historii'}</>}
           </button>
+          )}
           {/* Čtečky obrazovky: oznámit začátek a konec výpočtu (vizuálně to ukazuje tlačítko). */}
           <p aria-live="polite" className="sr-only">{loading ? 'Počítám historický vývoj…' : result ? 'Výsledek backtestu je připravený.' : ''}</p>
           {totalWeight !== 100 && (
@@ -1294,13 +1364,25 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <p className="text-sm text-slate-500 mt-0.5">Jak hluboké byly propady a jak dlouho trval návrat.</p>
             </div>
 
+            {/* Max. pokles (výsledek nahoře) a krize jsou DVĚ různá měření – propojit je, ať −52,8 % vedle −49,7 %
+                nevypadá jako rozpor (revize 18. 10. 2026). */}
+            {result.risk.maxDrawdown.depth < 0 && (
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl border border-red-100 bg-red-50/50 px-4 py-3">
+                <span className="text-sm text-slate-700">Největší propad od vrcholu kdykoli (max. pokles)</span>
+                <span className="text-xl font-bold tabular-nums text-red-600">{fmtPct(result.risk.maxDrawdown.depth * 100)}</span>
+                <span className="text-xs text-slate-500">
+                  vrchol {fmtMes(result.risk.maxDrawdown.startDate)} → dno {fmtMes(result.risk.maxDrawdown.troughDate)} · {navratPoPropadu(result.risk.maxDrawdown)}
+                </span>
+              </div>
+            )}
+
             {nKrizi > 0 && (
               <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-6">
                 <p className="text-sm font-semibold text-slate-900 flex items-center gap-1">
                   Známé krize
-                  <InfoTip label="Propad od vrcholu po dno UVNITŘ pevného okna krize (např. leden–říjen 2022). Tabulka největších propadů v části Pro pokročilé hledá propady bez ohledu na kalendář – proto může u téže krize ukázat jiné číslo i data."><span className="sr-only">vysvětlení</span></InfoTip>
+                  <InfoTip label="Propad od vrcholu po dno UVNITŘ pevného okna krize (např. leden–říjen 2022). Max. pokles hledá propad kdykoli – může začít už před oknem krize, a proto bývá hlubší."><span className="sr-only">vysvětlení</span></InfoTip>
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5 mb-3">Propad uvnitř okna krize. Ukazujeme jen krize, které vaše období pokrývá.</p>
+                <p className="text-xs text-slate-500 mt-0.5 mb-3">Propad jen uvnitř okna každé krize. Ukazujeme krize, které vaše období pokrývá.</p>
                 <div className={`grid grid-cols-1 ${gridKrizi} gap-2 sm:gap-3`}>
                   {result.stressPeriods!.map((s) => {
                     const rec = s.recoveryMonths;
@@ -1312,11 +1394,16 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                         : rec < 18
                         ? `návrat za ${rec} měs.`
                         : `návrat za ~${y} ${y === 1 ? 'rok' : y < 5 ? 'roky' : 'let'}`;
+                    // Obsahuje okno krize dno max. poklesu? Pak ukázat, že celý propad (od dřívějšího vrcholu) byl hlubší.
+                    const w = STRESS_WINDOWS.find((x) => x.key === s.key);
+                    const md = result.risk.maxDrawdown;
+                    const sMax = !!w && md.depth < s.drop - 0.0005 && md.troughDate.slice(0, 10) >= w.start && md.troughDate.slice(0, 10) <= w.end;
                     return (
                       <div key={s.key} className="flex items-center justify-between gap-3 sm:block rounded-lg border border-slate-200 bg-slate-50/60 p-3 sm:p-3.5">
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-slate-900 leading-snug">{s.name}</p>
-                          <p className="text-[11px] text-slate-500">okno {oknoKrize(s.key)}</p>
+                          <p className="text-[11px] text-slate-500">propad v okně krize {oknoKrize(s.key)}</p>
+                          {sMax && <p className="text-[11px] text-red-700">celý propad od vrcholu {fmtMes(md.startDate)}: {fmtPct(md.depth * 100)} = max. pokles</p>}
                           <p className="text-xs text-slate-500 mt-0.5 sm:hidden">
                             dno {fmtMes(s.troughDate)} · <span className={rec == null ? 'text-amber-700' : 'text-emerald-700'}>{recLabel}</span>
                           </p>
@@ -1336,11 +1423,11 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-6">
                 <p className="text-sm font-semibold text-slate-900 flex items-center gap-1">
                   O kolik procent pod předchozím vrcholem
-                  <InfoTip label="Graf ztráty od předchozího maxima v čase (drawdown). Nula = nový vrchol, čím hlouběji, tím větší dočasná ztráta. Bez vlivu vkladů."><span className="sr-only">vysvětlení</span></InfoTip>
+                  <InfoTip label="Graf ztráty od předchozího maxima v čase (drawdown) – časově vážená hodnota portfolia, vklady propady nemaskují. Za každý měsíc nejhlubší bod denních dat, proto dno grafu = max. pokles. Nula = nový vrchol."><span className="sr-only">vysvětlení</span></InfoTip>
                 </p>
                 {podVrcholem && (
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Víc než 10 % pod vrcholem bylo portfolio v {podVrcholem.deset} % měsíců, víc než 20 % v {podVrcholem.dvacet} %.
+                    Víc než 10 % pod vrcholem bylo portfolio v {mesicu(podVrcholem.deset, podVrcholem.celkem)}, víc než 20 % v {mesicu(podVrcholem.dvacet, podVrcholem.celkem)} (počítá se nejhlubší bod měsíce).
                   </p>
                 )}
                 <div className="mt-3 h-48 md:h-56 w-full">
@@ -1386,7 +1473,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           <section data-sekce="backtest-vynosy" className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Jak spolehlivý byl výnos</h2>
-              <p className="text-sm text-slate-500 mt-0.5">Jednotlivé roky i delší horizonty, bez vlivu vkladů.</p>
+              <p className="text-sm text-slate-500 mt-0.5">Jednotlivé roky i delší horizonty – časově vážený výnos portfolia.</p>
             </div>
 
             {result.returns.annualReturns.length > 0 && (
@@ -1395,10 +1482,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 {(() => {
                   // Krajní roky jsou jen za část roku (engine skládá měsíce, které období pokrývá) – říct to.
                   const castecne: string[] = [];
-                  if (prvni && new Date(prvni).getUTCMonth() > 0) castecne.push(`${new Date(prvni).getUTCFullYear()} od ${fmtDen(prvni)}`);
-                  if (posledni && !(new Date(posledni).getUTCMonth() === 11 && new Date(posledni).getUTCDate() >= 28)) castecne.push(`${new Date(posledni).getUTCFullYear()} do ${fmtDen(posledni)}`);
+                  if (prvni && castecneRoky.has(new Date(prvni).getUTCFullYear())) castecne.push(`${new Date(prvni).getUTCFullYear()} od ${fmtDen(prvni)}`);
+                  if (posledni && castecneRoky.has(new Date(posledni).getUTCFullYear()) && new Date(posledni).getUTCFullYear() !== new Date(prvni!).getUTCFullYear()) castecne.push(`${new Date(posledni).getUTCFullYear()} do ${fmtDen(posledni)}`);
                   return castecne.length
-                    ? <p className="text-xs text-slate-500 mt-0.5 mb-3">Za část roku: {castecne.join(', ')}.</p>
+                    ? <p className="text-xs text-slate-500 mt-0.5 mb-3">Čárkovaně = jen část roku ({castecne.join(', ')}); nesoutěží o nejlepší a nejhorší rok.</p>
                     : <div className="mb-3" />;
                 })()}
                 <div className="grid grid-cols-4 md:grid-cols-6 gap-1.5 sm:gap-2 pt-2">
@@ -1406,8 +1493,9 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     const pos = r.return >= 0;
                     const isBest = !!advanced && r.year === advanced.best.year;
                     const isWorst = !!advanced && r.year === advanced.worst.year;
+                    const cast = castecneRoky.has(r.year);
                     return (
-                      <div key={r.year} className={`relative rounded-lg border px-1 py-2 sm:p-2.5 text-center ${isBest ? 'border-emerald-400 ring-1 ring-emerald-300' : isWorst ? 'border-red-400 ring-1 ring-red-300' : pos ? 'border-emerald-100 bg-emerald-50/50' : 'border-red-100 bg-red-50/50'}`}>
+                      <div key={r.year} title={cast ? 'Jen část roku' : undefined} className={`relative rounded-lg border px-1 py-2 sm:p-2.5 text-center ${isBest ? 'border-emerald-400 ring-1 ring-emerald-300' : isWorst ? 'border-red-400 ring-1 ring-red-300' : cast ? 'border-dashed border-slate-300 bg-white' : pos ? 'border-emerald-100 bg-emerald-50/50' : 'border-red-100 bg-red-50/50'}`}>
                         {(isBest || isWorst) && (
                           <span className={`absolute -top-2 left-1/2 -translate-x-1/2 rounded-full px-1.5 py-0.5 text-[9px] font-medium leading-none ${isBest ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
                             {isBest ? 'nejlepší' : 'nejhorší'}
@@ -1550,7 +1638,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             if (resultCurrency === 'CZK' && selectedETFs.some((e) => !!INDEX_BY_CODE[e.indexCode])) karty.push({ href: '/menove-riziko-etf', titulek: 'Kolik z výsledku dělá kurz koruny?', text: 'Indexy jsou v cizí měně – výnos v Kč zvyšuje i snižuje pohyb kurzu.' });
             if (!karty.length) return null;
             return (
-              <div data-sekce="backtest-navazujici" className="grid gap-3 sm:grid-cols-2">
+              <div data-sekce="backtest-navazujici" className={`grid gap-3 ${karty.length > 1 ? 'sm:grid-cols-2' : ''}`}>
                 {karty.map((k) => (
                   <Link key={k.href} href={k.href} className="group rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors">
                     <span className="flex items-center justify-between text-sm font-semibold text-slate-900">{k.titulek}<ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-700" /></span>
@@ -1562,15 +1650,64 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           })()}
         </div>
       )}
+
+      {listaDole && (
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
+          {loading ? (
+            <p className="flex min-h-[40px] items-center gap-2 text-sm text-slate-600"><Loader2 className="w-4 h-4 animate-spin text-teal-700" /> Počítám historický vývoj…</p>
+          ) : zastaraly ? (
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-slate-600">Výsledek platí pro předchozí nastavení</span>
+              <button type="button" onClick={() => runBacktestRef.current()} disabled={totalWeight !== 100} className="min-h-10 shrink-0 rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white disabled:bg-slate-300">Přepočítat</button>
+            </div>
+          ) : result ? (
+            <button type="button" onClick={() => vysledekRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="flex w-full items-center justify-between gap-3 text-left">
+              <span className="min-w-0">
+                <span className="block truncate text-xs text-slate-500">{popisVysledku?.slozeni}</span>
+                <span className="block text-base font-bold tabular-nums text-slate-900">
+                  {fmtMoney(result.summary.netAssetValue, resultCurrency)}
+                  <span className={`ml-2 text-sm font-semibold ${result.summary.cagr >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtPct(result.summary.cagr * 100)} ročně</span>
+                </span>
+              </span>
+              <span className="shrink-0 text-sm font-medium text-teal-700">Výsledek ↑</span>
+            </button>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
 
-// Nejlepší/nejhorší rok z ročních výnosů (v %).
-const bestYearPct = (r: BacktestResult) =>
-  r.returns.annualReturns.length ? Math.max(...r.returns.annualReturns.map((a) => a.return)) * 100 : 0;
-const worstYearPct = (r: BacktestResult) =>
-  r.returns.annualReturns.length ? Math.min(...r.returns.annualReturns.map((a) => a.return)) * 100 : 0;
+/** „45 z 214 měsíců (21 %)“ – malé podíly nezaokrouhlovat na 0 %. */
+function mesicu(n: number, z: number) {
+  if (n === 0) return 'žádném měsíci';
+  const pct = (n / z) * 100;
+  const p = pct < 1 ? 'méně než 1 %' : `${Math.round(pct)} %`;
+  return `${n} ${n === 1 ? 'měsíci' : 'měsících'} z ${z} (${p})`;
+}
+
+/** „zpět za 4 roky“ – od dna propadu zpět na předchozí vrchol. */
+function navratPoPropadu(d: { troughDate: string; endDate: string | null; recovered: boolean }) {
+  if (!d.recovered || !d.endDate) return 'zatím pod vrcholem';
+  const mes = Math.round((Date.parse(d.endDate) - Date.parse(d.troughDate)) / (30.44 * 864e5));
+  if (mes < 1) return 'zpět do měsíce';
+  if (mes < 18) return `zpět za ${mes} měs.`;
+  const r = Math.round(mes / 12);
+  return `zpět za ${r} ${r < 5 ? 'roky' : 'let'}`;
+}
+
+// Nejlepší/nejhorší CELÝ rok z ročních výnosů (v %) – neúplné krajní roky se nepočítají.
+const celeRoky = (r: BacktestResult) => {
+  const ev = r.evolution;
+  if (ev.length < 2) return r.returns.annualReturns;
+  const p = new Date(ev[0].date), k = new Date(ev[ev.length - 1].date);
+  const cast = new Set<number>();
+  if (p.getUTCMonth() > 0 || p.getUTCDate() > 7) cast.add(p.getUTCFullYear());
+  if (!(k.getUTCMonth() === 11 && k.getUTCDate() >= 28)) cast.add(k.getUTCFullYear());
+  return r.returns.annualReturns.filter((a) => !cast.has(a.year));
+};
+const bestYearPct = (r: BacktestResult) => { const a = celeRoky(r); return a.length ? Math.max(...a.map((x) => x.return)) * 100 : NaN; };
+const worstYearPct = (r: BacktestResult) => { const a = celeRoky(r); return a.length ? Math.min(...a.map((x) => x.return)) * 100 : NaN; };
 
 function ComparisonBlock({
   portfolios, currency,
@@ -1605,8 +1742,8 @@ function ComparisonBlock({
     { label: 'Max. pokles', values: portfolios.map((p) => p.result.risk.maxDrawdown.depth * 100), fmt: (v) => fmtPct(v), better: 'high' },
     { label: 'Kolísavost', values: portfolios.map((p) => p.result.summary.standardDeviation * 100), fmt: (v) => fmtPct(v), better: 'low' },
     { label: 'Sharpe', values: portfolios.map((p) => p.result.summary.sharpeRatio), fmt: (v) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), better: 'high' },
-    { label: 'Nejlepší rok', values: portfolios.map((p) => bestYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
-    { label: 'Nejhorší rok', values: portfolios.map((p) => worstYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
+    { label: 'Nejlepší celý rok', values: portfolios.map((p) => bestYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
+    { label: 'Nejhorší celý rok', values: portfolios.map((p) => worstYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
   ];
 
   const bestIndex = (values: number[], better: 'high' | 'low') => {
@@ -1699,7 +1836,7 @@ function ComparisonBlock({
                   {row.values.map((v, ci) => (
                     <td key={ci}
                       className={`text-right py-2.5 px-3 tabular-nums whitespace-nowrap ${ci === bi ? 'font-bold text-teal-700 bg-teal-50/60 rounded' : 'text-slate-700'}`}>
-                      {row.fmt(v)}
+                      {Number.isFinite(v) ? row.fmt(v) : "—"}
                     </td>
                   ))}
                 </tr>
