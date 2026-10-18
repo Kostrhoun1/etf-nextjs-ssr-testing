@@ -6,7 +6,7 @@ import { X, Plus, Pencil } from 'lucide-react';
 import FondHledani from '@/components/design-preview/FondHledani';
 import { setCompare } from '@/components/design-preview/compareStore';
 import { COMPARE_MAX } from '@/components/design-preview/compareLimit';
-import { BARVY_FONDU } from '@/components/design-preview/PorovnaniGraf';
+import { BARVY_FONDU } from '@/lib/barvyFondu';
 
 /* „Upravit výběr“ přímo na stránce porovnání (revize 18. 10. 2026): odebrat fond křížkem, přidat
    hledáním – bez návratu do srovnávače. Výběr se zapíše i do lišty porovnání (localStorage),

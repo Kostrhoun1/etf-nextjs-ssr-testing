@@ -15,9 +15,25 @@ export function emitentFondu(nazev: string | null | undefined): string | null {
   return EMITENTI.find(([re]) => re.test(n))?.[1] ?? null;
 }
 
-export default function EmitentLogo({ nazev, size = 20, className = '' }: { nazev: string | null | undefined; size?: number; className?: string }) {
+/** Neutrální monogram (první písmeno emitenta v kroužku) – jen kde bez loga rozpadá zarovnání řádků
+ *  (srovnávač, porovnání; art director 18. 10. 2026: řádky Xetra-Gold, Ossiam „vypadly“ z mřížky). */
+function Monogram({ text, size, className }: { text: string; size: number; className: string }) {
+  const p = (text.trim().match(/[A-Za-zÀ-ž0-9]/)?.[0] ?? '·').toUpperCase();
+  return (
+    <span aria-hidden="true" className={`shrink-0 inline-flex items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 font-semibold text-slate-500 ${className}`}
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}>
+      {p}
+    </span>
+  );
+}
+
+export default function EmitentLogo({ nazev, size = 20, className = '', monogram }: {
+  nazev: string | null | undefined; size?: number; className?: string;
+  /** Text (emitent), ze kterého se udělá monogram, když logo nemáme. Bez něj neznámý emitent = nic. */
+  monogram?: string | null;
+}) {
   const k = emitentFondu(nazev);
-  if (!k) return null;
+  if (!k) return monogram ? <Monogram text={monogram} size={size} className={className} /> : null;
   // Jednotná bílá dlaždice s rámečkem – loga mají různé poměry a optickou váhu (art director 18. 10. 2026).
   // iShares nemá čtvercovou značku (favicon je jen „i“, vypadalo jako ikona info) → wordmark SVG z Wikimedia Commons.
   const src = k === 'ishares' ? '/loga-emitentu/ishares.svg' : `/loga-emitentu/${k}.png`;

@@ -187,7 +187,7 @@ naopak jen skryje, když jsou data starší 7 dní.
 
 Ve strukturovaných datech (src/components/SEO/AuthorSchema.tsx – description a slogan) je tvrzení
 „Největší český průvodce ETF fondy“. Expertní posudek ho označil za nedoložitelné; majitel rozhodl,
-že **zůstává**. Neodstraňovat. Počet fondů v textu musí odpovídat realitě (dřív „4300+“, teď „více než 5 000“).
+že **zůstává**. Neodstraňovat. Počet fondů v textu musí odpovídat realitě (dřív „4300+“, pak „více než 5 000“; od 18. 10. 2026 „přibližně 5 000“ – počet fondů v nabídce bez pákových produktů je 4 981, viz getTotalETFCount).
 
 ## Homepage = srovnávač, ne investiční web (rozhodnutí majitele 18. 10. 2026)
 

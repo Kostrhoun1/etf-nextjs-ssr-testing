@@ -8,9 +8,9 @@ import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
 import { sestavIndexy, type IndexOptionGroup } from '@/utils/indexNormalization';
-import { TRHY } from '@/data/trhyDvojcata';
 import { distKind, type DistKind } from '@/utils/distribution';
 import { detectHedging } from '@/utils/hedgingDetection';
+import { TRHY_SROVNAVACE, INDEXY_TRHU } from '@/lib/screenerTrhy';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
@@ -488,20 +488,37 @@ export async function getLastModifiedDate(): Promise<string | null> {
   }
 }
 
-/**
- * Get total ETF count
- */
+/* ─────────────────────────────────────────────────────────────────────────
+   POČET FONDŮ „V NABÍDCE“ – JEDNA definice pro celý web (revize 18. 10. 2026: na jedné obrazovce
+   „4 974 fondů“ vs. záložka „Vše 4 981“, homepage a brokeři „5 124“ = tři různé počty).
+   = přesně výchozí výsledek srovnávače: fond s názvem, data stažená za posledních 30 dní
+   (starší = typicky už není v nabídce), bez pákových a inverzních produktů (ve srovnávači
+   ve výchozím stavu skryté). Hranice 30 dní se počítá od začátku dne (UTC), aby stránky
+   vyrenderované týž den dávaly totéž číslo. Používá: srovnávač (getScreenerRows), homepage,
+   srovnání brokerů a všechny texty „N fondů“ (getTotalETFCount / getETFCountLabel).
+   ───────────────────────────────────────────────────────────────────────── */
+export const NABIDKA_DNI = 30;
+export function nabidkaOd(): string {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  return new Date(d.getTime() - NABIDKA_DNI * 864e5).toISOString();
+}
+/** Fond je v nabídce srovnávače (bez ohledu na páku – tu řeší filtr). JS zrcadlo dotazu v getTotalETFCount. */
+export function jeVNabidce(e: { name: string | null; scraping_date: string | null }): boolean {
+  return !!e.name && e.name.trim() !== '' && !!e.scraping_date
+    && new Date(e.scraping_date).getTime() >= new Date(nabidkaOd()).getTime();
+}
+
+/** Počet fondů v nabídce = výchozí výsledek srovnávače (viz výše). 0 = chyba dotazu. */
 export async function getTotalETFCount(): Promise<number> {
   try {
-    // Počítá jen fondy, které web opravdu ukazuje (stejná pravidla jako srovnávač): s názvem
-    // a s daty mladšími 30 dní. Dřív se počítaly všechny řádky tabulky → titulek srovnávače
-    // hlásil 5 146 fondů, zatímco srovnávač jich ukazoval méně (pravidlo č. 1).
     const { count, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('*', { count: 'exact', head: true })
+      .select('isin', { count: 'exact', head: true })
       .not('name', 'is', null)
       .neq('name', '')
-      .gte('scraping_date', new Date(Date.now() - 30 * 864e5).toISOString());
+      .not('is_leveraged', 'is', true)
+      .gte('scraping_date', nabidkaOd());
 
     if (error) {
       console.error('Error getting ETF count:', error);
@@ -516,7 +533,7 @@ export async function getTotalETFCount(): Promise<number> {
 }
 
 /**
- * Počet fondů do textu a titulků: zaokrouhleno DOLŮ na stovky („5 100+"), aby text zůstal
+ * Počet fondů do textu a titulků (z getTotalETFCount – stejné číslo jako srovnávač): zaokrouhleno DOLŮ na stovky („4 900+"), aby text zůstal
  * pravdivý a titulek se neměnil každý den. Dřív bylo „4 800+" a „4 300+" napevno v kódu.
  */
 export async function getETFCountLabel(): Promise<string> {
@@ -907,7 +924,7 @@ export interface ScreenerRow {
   _region: string | null;
   _hedge: string;   // hedgingType
   _index: string;   // label sledovaného indexu ('' = nevíme – viz sestavIndexy)
-  /** Trh z ručně ověřeného seznamu (src/data/trhyDvojcata.ts – „Celý svět“, „S&P 500“…), jinak null. */
+  /** Celý trh („Celý svět“, „S&P 500“…) = fond je v žebříčku daného trhu (TRHY_SROVNAVACE), jinak null. */
   _trh: string | null;
   _repl: string;    // 'Fyzická' | 'Syntetická' | '—'
   _dist: DistKind;  // typ výplaty – stejná logika jako detail fondu (src/utils/distribution.ts)
@@ -929,8 +946,8 @@ export interface ScreenerOptions {
   /** Počet fondů (bez pákových) v regionu – stejné pořadí jako `regions`. */
   regionCounts: number[];
   indexGroups: IndexOptionGroup[];
-  /** Široké trhy z ručně ověřeného seznamu (stejné jako na homepage). */
-  trhy: { id: string; label: string; popis: string; count: number }[];
+  /** Celé trhy = PŘESNĚ výběr žebříčku (filtrKategorie). count = vč. zajištěných tříd, countNezaj = bez nich. */
+  trhy: { id: string; label: string; popis: string; slug: string; count: number; countNezaj: number }[];
   currencies: string[];
   replications: string[];
   categories: string[];
@@ -968,6 +985,30 @@ function inceptionYear(v: string | null): number | null {
   return y >= 1970 && y <= new Date().getFullYear() + 1 ? y : null;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   CELÉ TRHY VE SROVNÁVAČI (revize 18. 10. 2026: „S&P 500“ byl v nabídce 2× s jiným počtem – 33 v „Celých
+   trzích“, 73 v indexech – a žebříček měl 58). Teď JEDNA položka na trh a její obsah je PŘESNĚ výběr
+   žebříčku: stejný SQL filtr (filtrKategorie – názvy, vyřazené varianty ESG/Equal Weight…, velikost
+   ≥ 100 mil. €, čerstvá data, bez páky). Počet ve srovnávači = počet na žebříčku. Měnově zajištěné třídy
+   žebříček obsahuje; srovnávač je umí přepínačem skrýt.
+   ───────────────────────────────────────────────────────────────────────── */
+/** ISINy fondů každého trhu = výběr žebříčku (filtrKategorie). Při chybě dotazu trh prázdný (nabídka ho skryje). */
+async function nactiTrhySrovnavace(): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  await Promise.all(TRHY_SROVNAVACE.map(async (t) => {
+    const cfg = categoryConfigs[t.slug];
+    if (!cfg) return;
+    try {
+      const { data, error } = await filtrKategorie(supabaseAdmin.from('etf_funds').select('isin'), cfg).limit(1000);
+      if (error) { console.error(`Trh srovnávače ${t.id}:`, error); return; }
+      out.set(t.id, ((data ?? []) as { isin: string }[]).map((r) => r.isin));
+    } catch (e) {
+      console.error(`Trh srovnávače ${t.id}:`, e);
+    }
+  }));
+  return out;
+}
+
 const CATEGORY_ORDER = ['Akcie', 'Dluhopisy', 'Nemovitosti', 'Komodity', 'Krypto', 'Peněžní trh'];
 
 /** Kategorie pro srovnávač. Fondy peněžního trhu (overnight/€STR, investment_focus „Money Market“)
@@ -990,14 +1031,21 @@ export const getScreenerRows = reactCache(async (): Promise<{
   // Fondy bez názvu jsou rozbité řádky ze scraperu (12 k 17. 10. 2026) – do srovnávače nepatří.
   // Fondy se zamrzlými daty (scraper je 30+ dní neaktualizoval – typicky už nejsou v nabídce)
   // by ukazovaly staré výnosy jako dnešní; detail fondu zůstává dostupný s varováním.
-  const zamrzleOd = Date.now() - 30 * 864e5;
-  const raw = (await getScreenerETFData()).filter((e) =>
-    e.name && e.name.trim() !== '' && (!e.scraping_date || new Date(e.scraping_date).getTime() >= zamrzleOd));
+  // Stejná definice „v nabídce“ jako getTotalETFCount (homepage, brokeři) – viz jeVNabidce.
+  const [vse, trhIsiny] = await Promise.all([getScreenerETFData(), nactiTrhySrovnavace()]);
+  const raw = vse.filter(jeVNabidce);
 
   // Index každého fondu (čištění nabídky + odvození z názvu, viz src/utils/indexNormalization.ts).
-  const { indexy, skupiny: indexGroups } = sestavIndexy(raw);
+  const { indexy, skupiny: vsechnySkupiny } = sestavIndexy(raw);
+  // S&P 500, MSCI World a Nasdaq 100 jsou v nabídce jako celý trh (= žebříček) – podruhé jako index ne.
+  const indexGroups = vsechnySkupiny
+    .map((g) => {
+      const keep = g.options.map((o, i) => i).filter((i) => !(g.options[i] in INDEXY_TRHU));
+      return { ...g, options: keep.map((i) => g.options[i]), counts: g.counts ? keep.map((i) => g.counts![i]) : undefined };
+    })
+    .filter((g) => g.options.length > 0);
   const trhPodleIsin = new Map<string, string>();
-  for (const t of TRHY) for (const i of t.isins) trhPodleIsin.set(i, t.id);
+  for (const t of TRHY_SROVNAVACE) for (const i of trhIsiny.get(t.id) ?? []) if (!trhPodleIsin.has(i)) trhPodleIsin.set(i, t.id);
 
   const rows: ScreenerRow[] = raw.map((e, idx) => {
     const tickers = [
@@ -1075,8 +1123,10 @@ export const getScreenerRows = reactCache(async (): Promise<{
     regions,
     regionCounts: regions.map((r) => regionPocty.get(r) ?? 0),
     indexGroups,
-    trhy: TRHY.map((t) => ({ id: t.id, label: t.label, popis: t.index, count: bezPaky.filter((r) => r._trh === t.id).length }))
-      .filter((t) => t.count > 0),
+    trhy: TRHY_SROVNAVACE.map((t) => {
+      const v = bezPaky.filter((r) => r._trh === t.id);
+      return { id: t.id, label: t.label, popis: t.popis, slug: t.slug, count: v.length, countNezaj: v.filter((r) => r._hedge === 'unhedged').length };
+    }).filter((t) => t.count > 0),
     currencies: [...new Set(raw.map((e) => e.fund_currency).filter(Boolean))].sort() as string[],
     replications: [...replSet].sort(),
     categories,

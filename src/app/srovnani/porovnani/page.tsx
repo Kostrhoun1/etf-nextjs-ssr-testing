@@ -11,6 +11,7 @@ import UpravitVyber from '@/components/design-preview/UpravitVyber';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { platnyTicker } from '@/lib/ticker';
+import { datumCen } from '@/lib/datumCen';
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
@@ -44,7 +45,8 @@ export default async function PorovnaniPreview(
 
   // Každé číslo má datum (pravidlo č. 1): nejstarší datum stažení dat mezi porovnávanými fondy.
   const nejstarsi = etfs.map((e) => (e as unknown as { scraping_date?: string | null }).scraping_date).filter(Boolean).sort()[0];
-  const datumDat = nejstarsi ? new Date(nejstarsi) : null;
+  // „Data k“ = den CEN (předchozí obchodní den před stažením), stejně jako srovnávač – ne den stažení (src/lib/datumCen.ts).
+  const datumDat = nejstarsi ? datumCen(new Date(nejstarsi)) : null;
   // Rok dat: letošní (YTD) sloupec grafu a posledních 5 dokončených roků se počítají od data dat, ne od dneška.
   const rokDat = (datumDat ?? new Date()).getFullYear();
   const fondy = etfs.map((e) => ({ isin: e.isin, label: platnyTicker(e.primary_ticker) ?? e.isin.slice(0, 8) }));
