@@ -212,7 +212,7 @@ export default async function DesignPreviewV2() {
           </Link>
           <MobileMenu />
           <SiteNav />
-          {/* Hledání v hlavičce na homepage ne – hlavní akcí je hledání v hero (dvě pole = zmatek). */}
+          {/* Desktopové hledací pole v hlavičce na homepage ne – hlavní akcí je hledání v hero (na mobilu zůstává ikona v menu). */}
         </div>
       </header>
 
@@ -242,7 +242,7 @@ export default async function DesignPreviewV2() {
                   <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{pocet} fondů</span><span aria-hidden="true">·</span>
                   <span>{CATEGORY_COUNT} žebříčků</span><span aria-hidden="true">·</span>
-                  <span>Data z justETF stažena <strong className="font-semibold text-slate-200">{datumText}</strong>, kurzy ČNB</span>
+                  <span>Data k <strong className="font-semibold text-slate-200">{datumText}</strong>, kurzy ČNB</span>
                 </p>
               )}
             </div>
@@ -275,7 +275,7 @@ export default async function DesignPreviewV2() {
                 Pro každý trh vybíráme jen z fondů, které kopírují široký index – bez sektorů, měnového zajištění a ESG variant. Data k {datumText}.
               </p>
             </div>
-            <TriPohledyTrhu radky={trhy} dvojice={DVOJICE} />
+            <TriPohledyTrhu radky={trhy} />
           </section>
         )}
 
@@ -319,6 +319,12 @@ export default async function DesignPreviewV2() {
                 );
               })}
             </div>
+            <p className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-slate-600">
+              <span className="mr-1">Srovnání dvojic:</span>
+              {DVOJICE.map(([href, label]) => (
+                <Link key={href} href={href} className="inline-flex items-center min-h-8 rounded-md border border-slate-200 bg-white px-2.5 font-medium text-slate-700 hover:border-teal-300 hover:text-teal-800">{label}</Link>
+              ))}
+            </p>
           </section>
         )}
 
@@ -370,7 +376,7 @@ export default async function DesignPreviewV2() {
           <ul className="grid gap-x-3 gap-y-2.5 md:gap-y-3 md:grid-cols-3 rounded-xl border border-slate-200 bg-white p-4 md:border-0 md:bg-transparent md:p-0">
             <li className="flex gap-3 md:rounded-xl md:border md:border-slate-200 md:bg-white md:p-4">
               <Database className="w-5 h-5 shrink-0 text-teal-700 mt-0.5" aria-hidden="true" />
-              <span className="text-sm text-slate-600 leading-relaxed"><strong className="block text-slate-900">{pocet} fondů denně z justETF, u každého čísla datum</strong><span className="hidden md:inline">Data fondů stahujeme každý den. U každého čísla je datum, ke kterému platí.</span></span>
+              <span className="text-sm text-slate-600 leading-relaxed"><strong className="block text-slate-900">{pocet} fondů, aktualizace každý den</strong><span className="hidden md:inline">U každého čísla je datum, ke kterému platí.</span></span>
             </li>
             <li className="flex gap-3 md:rounded-xl md:border md:border-slate-200 md:bg-white md:p-4">
               <Coins className="w-5 h-5 shrink-0 text-teal-700 mt-0.5" aria-hidden="true" />
@@ -391,13 +397,17 @@ export default async function DesignPreviewV2() {
             <p className="text-sm text-slate-600 mt-1">Brokeři dostupní v ČR seřazení podle našeho skóre (poplatky, ochrana, nabídka, čeština, daně, flexibilita), robo-poradce zvlášť. Nebereme provize ani reklamu. Ceníky ověřeny {new Date(CENIKY_OVERENY).toLocaleDateString('cs-CZ')}.</p>
           </div>
           <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
-            <li className="hidden sm:grid sm:grid-cols-[1.2fr_1.6fr_1.4fr_auto] gap-4 px-4 py-2.5 text-xs font-medium text-slate-500">
+            <li className="hidden sm:grid sm:grid-cols-[1.2fr_1.6fr_1.4fr_7rem] gap-4 px-4 py-2.5 text-xs font-medium text-slate-500">
               <span>Broker</span><span>Pro koho</span><span>Poplatek</span><span className="text-right">Skóre</span>
             </li>
             {HOME_BROKERS.map(({ id, forWhom, poplatek, broker, robo }, bi) => (
               <li key={id} className={bi >= 4 ? 'hidden sm:block' : undefined}>
-                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1.2fr_1.6fr_1.4fr_auto] gap-x-4 gap-y-0.5 px-4 py-2.5 sm:py-3 items-center hover:bg-teal-50/40 transition-colors">
-                  <span className="text-sm font-semibold text-slate-900">{broker!.name}{robo && <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}</span>
+                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1.2fr_1.6fr_1.4fr_7rem] gap-x-4 gap-y-0.5 px-4 py-2.5 sm:py-3 items-center hover:bg-teal-50/40 transition-colors">
+                  <span className="flex items-center gap-3 min-w-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={broker!.logo} alt="" width={36} height={36} loading="lazy" className="w-9 h-9 shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-0.5" />
+                    <span className="text-sm font-semibold text-slate-900">{broker!.name}{robo && <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}</span>
+                  </span>
                   <span className="hidden sm:block text-sm text-slate-600">{forWhom}</span>
                   <span className="order-4 sm:order-none col-span-2 sm:col-span-1 text-xs sm:text-sm text-slate-600"><span className="text-slate-500">{poplatek.popisek}:</span> <span className="font-medium text-slate-900">{poplatek.hodnota}</span></span>
                   {robo

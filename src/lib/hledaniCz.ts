@@ -117,7 +117,8 @@ export function navrhniKategorie(dotaz: string, kategorie: Record<string, string
     if (skore > 0) vysledky.push({ slug, label: titulek, skore });
   }
   return vysledky
-    .sort((a, b) => b.skore - a.skore)
+    // Při shodě skóre obecnější (kratší) žebříček napřed: „dluhopisy“ → Dluhopisové ETF před vládními.
+    .sort((a, b) => b.skore - a.skore || a.label.length - b.label.length)
     .slice(0, limit)
     .map((v) => ({ href: `/nejlepsi-etf/${v.slug}`, label: v.label }));
 }

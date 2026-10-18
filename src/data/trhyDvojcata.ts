@@ -27,9 +27,10 @@ export interface Trh {
 
 export const TRHY: Trh[] = [
   {
-    id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
+    id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI a podobné', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
     isins: ['IE00BK5BQT80', 'IE00B3RBWM25', 'IE00B6R52259', 'IE000716YHJ7', 'IE0000QLH0G6', 'IE00BYM11H29', 'IE00BJXFZ989',
-      'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65', 'IE00B44Z5B48'],
+      'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65', 'IE00B44Z5B48', 'IE0009HF1MK9', 'IE0003XJA0J9',
+      'LU2903252349'],
   },
   {
     id: 'world', label: 'MSCI World', index: 'vyspělé trhy', href: '/nejlepsi-etf/nejlepsi-msci-world-etf',
@@ -73,6 +74,11 @@ export const VYJIMKY: Record<string, string> = {
   XS2427355958: 'WisdomTree S&P 500 – ETP s ISIN XS, ne UCITS fond',
   IE00B3YLTY66: 'SPDR MSCI ACWI IMI (Investable Market) – jiný index (i malé firmy)',
   IE000DD75KQ5: 'SPDR MSCI ACWI IMI (Investable Market) Dist – jiný index',
+  IE00BK5BQV03: 'Vanguard FTSE Developed World – jiný index než MSCI World (Korea mezi vyspělými)',
+  IE00BKX55T58: 'Vanguard FTSE Developed World Dist – jiný index než MSCI World',
+  IE00BFXR5S54: 'L&G Global Equity – vlastní index vyspělých trhů (Solactive), ne MSCI World',
+  IE00BKM4GZ66: 'iShares Core MSCI EM IMI – širší index (i malé firmy), ne MSCI EM',
+  IE00BD45KH83: 'iShares Core MSCI EM IMI Dist – širší index, ne MSCI EM',
 };
 
 /** Fond s výnosem dál než tolik p. b. od mediánu svého trhu = podezřelý (18. 10. 2026: tři třídy

@@ -12,9 +12,9 @@ type Pohled = 'ter' | 'size' | 'r1';
 /* Odkaz pod tabulkou vede tam, kde data odpovídají pohledu (revize 18. 10.: srovnávač řazený podle
    TER ukazoval nahoře chybné 0 %, podle výkonu sektory a země – proto u výkonu výslovně „i sektory“). */
 const POHLEDY: { id: Pohled; label: string; dalsi: { href: string; text: string } }[] = [
-  { id: 'ter', label: 'Nejlevnější (TER)', dalsi: { href: '/nejlepsi-etf/nejlevnejsi-etf', text: 'Celý žebříček nejlevnějších ETF' } },
-  { id: 'size', label: 'Největší', dalsi: { href: '/srovnani?sort=size&smer=desc', text: 'Všechny fondy podle velikosti ve srovnávači' } },
-  { id: 'r1', label: 'Nejvýkonnější · 12 měs. v Kč', dalsi: { href: '/srovnani?kat=Akcie&sort=r1&smer=desc', text: 'Nejvýkonnější ze všech fondů, i sektory a země' } },
+  { id: 'ter', label: 'Nejlevnější (TER)', dalsi: { href: '/nejlepsi-etf/nejlevnejsi-etf', text: 'Žebříček nejlevnějších ETF' } },
+  { id: 'size', label: 'Největší', dalsi: { href: '/srovnani?sort=size&smer=desc', text: 'Všechny fondy podle velikosti' } },
+  { id: 'r1', label: 'Nejvýkonnější · 12 měs. v Kč', dalsi: { href: '/srovnani?kat=Akcie&sort=r1&smer=desc', text: 'Všechny fondy podle výkonu' } },
 ];
 
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -43,16 +43,11 @@ function Trh({ r }: { r: RadekTrhu }) {
   );
 }
 
-export default function TriPohledyTrhu({ radky, dvojice }: {
-  radky: RadekTrhu[]; dvojice: [string, string][];
-}) {
+export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
   const [pohled, setPohled] = useState<Pohled>('ter');
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const poVykonu = [...radky].sort((a, b) => (b.median ?? -1e9) - (a.median ?? -1e9));
   const vyrazene = radky.flatMap((r) => r.odlehle);
-  const sVykonem = radky.filter((r) => r.median != null && r.min != null && r.max != null);
-  const maxRozpeti = sVykonem.length ? Math.max(...sVykonem.map((r) => r.max! - r.min!)) : null;
-  const mezitrhy = sVykonem.length >= 2 ? Math.max(...sVykonem.map((r) => r.median!)) - Math.min(...sVykonem.map((r) => r.median!)) : null;
 
   const onKey = (e: React.KeyboardEvent, i: number) => {
     const n = POHLEDY.length;
@@ -130,34 +125,17 @@ export default function TriPohledyTrhu({ radky, dvojice }: {
           {p.id === 'ter' && (
             <p className="mt-2 text-xs text-slate-500">TER = roční poplatek fondu. Syntetické (swapové) fondy mohou mít navíc swap poplatek – detail u fondu.</p>
           )}
-          {p.id === 'r1' && maxRozpeti != null && mezitrhy != null && (
-            <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-              Mezi trhy byl za 12 měsíců rozdíl <strong className="tabular-nums">{cz(mezitrhy)} p. b.</strong>, mezi fondy na stejný trh nejvýš <strong className="tabular-nums">{cz(maxRozpeti)} p. b.</strong> Víc tedy rozhoduje výběr trhu než konkrétní fond. Rozdíly kolem 0,5 p. b. jsou v mezích přesnosti dat (fondy se oceňují v různé dny). Minulý výnos se nemusí opakovat.
-            </p>
-          )}
           {p.id === 'r1' && vyrazene.length > 0 && (
-            // Pravidlo č. 1: vyřazení přiznat, ne tiše schovat (revize 18. 10. 2026).
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-              Vyřazeno pro neověřený výnos ({vyrazene.length}): {vyrazene.map((v, i) => (
-                <span key={v.isin}>{i > 0 && ', '}<Link href={`/etf/${v.isin}`} className="underline underline-offset-2 hover:text-teal-800">{v.nazev}</Link></span>
-              ))}. Výnos se od ostatních fondů na stejný trh liší o víc než 1,5 p. b. – nejčastěji kvůli opožděné ceně u zdroje dat.
-            </p>
+            // Pravidlo č. 1: vyřazení přiznat (podrobnosti a upozornění jsou na detailu fondu), ale stručně.
+            <p className="mt-2 text-xs text-slate-500">Fondy s neověřeným výnosem v přehledu neukazujeme.</p>
           )}
         </div>
       ))}
       {radkyPohledu.length === 0 && <p className="mt-3 text-sm text-slate-500">Data se nepodařilo načíst.</p>}
 
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Link href={aktivni.href} className="inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
-          {aktivni.text} <ArrowRight className="w-4 h-4" />
-        </Link>
-        <p className="hidden sm:flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-slate-500">
-          <span>Často srovnávané:</span>
-          {dvojice.map(([href, label]) => (
-            <Link key={href} href={href} className="inline-flex items-center min-h-8 rounded-md px-1.5 font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-800">{label}</Link>
-          ))}
-        </p>
-      </div>
+      <Link href={aktivni.href} className="mt-2 inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
+        {aktivni.text} <ArrowRight className="w-4 h-4" />
+      </Link>
     </div>
   );
 }

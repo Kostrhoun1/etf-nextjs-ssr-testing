@@ -294,6 +294,7 @@ export default async function ETFDetailPreview(
     ytd: num(r.return_ytd as number),
   };
   const returnsByCur = { CZK: czk, EUR: eur, USD: usd };
+  const NEOVERENO = { y1: null, y3: null, y5: null, ytd: null };
 
   const ticker = etf.primary_ticker || '—';
   const allTickers = uniqueTickers(etf as unknown as Record<string, unknown>);
@@ -384,7 +385,8 @@ export default async function ETFDetailPreview(
     },
   };
   const hasYtd = ytdCol.vals.EUR != null || ytdCol.vals.CZK != null || ytdCol.vals.USD != null;
-  const calCols2 = hasYtd ? [...calCols, ytdCol] : calCols;
+  // Fond s ověřeně opožděnou cenou (trhOdlehly): letošní výnos také neověřený → bez sloupce YTD.
+  const calCols2 = hasYtd && !trhOdlehly ? [...calCols, ytdCol] : calCols;
 
   // krátká období (v měně fondu) + kolísavost pro výnosovou sekci
   const shortPeriods = {
@@ -562,11 +564,17 @@ export default async function ETFDetailPreview(
           />
           {trhOdlehly && (
             <p role="note" className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 leading-relaxed">
-              <strong>Pozor na aktuálnost výnosů:</strong> výnos za 12 měsíců se u tohoto fondu liší o víc než 1,5 p. b. od ostatních fondů na stejný trh – {trhOdlehly.trh.label} (medián {trhOdlehly.median != null ? `${trhOdlehly.median.toFixed(1).replace('.', ',')} %` : '—'} v Kč). Nejčastější příčinou je opožděná cena u zdroje dat. Porovnejte s{' '}
+              <strong>Pozor na aktuálnost výnosů:</strong> výnos za 12 měsíců se u tohoto fondu lišil o víc než 1,5 p. b. od ostatních fondů na stejný trh – {trhOdlehly.trh.label} (medián {trhOdlehly.median != null ? `${trhOdlehly.median.toFixed(1).replace('.', ',')} %` : '—'} v Kč). Nejčastější příčinou je opožděná cena u zdroje dat, proto výnosy za jednotlivá období neukazujeme. Porovnejte s{' '}
               <Link href={trhOdlehly.trh.href} className="font-medium underline underline-offset-2">ostatními fondy na stejný trh</Link>.
             </p>
           )}
-          <EtfReturns byCur={returnsByCur} fundCurrency={etf.fund_currency} short={shortPeriods} vol={volForReturns} />
+          {/* Pravidlo č. 1: u fondu s výnosem mimo trh (opožděná cena u zdroje) výnosy za období neukazovat („—“). */}
+          <EtfReturns
+            byCur={trhOdlehly ? { CZK: NEOVERENO, EUR: NEOVERENO, USD: NEOVERENO } : returnsByCur}
+            fundCurrency={etf.fund_currency}
+            short={trhOdlehly ? { m1: null, m3: null, m6: null } : shortPeriods}
+            vol={volForReturns}
+          />
           {/* USP v jedné větě – jen u čerstvých dat (pravidlo č. 1: raději nic než staré číslo) */}
           {!isStale && !isLev && !trhOdlehly && czk.y5 != null && (
             <p className="mt-3 rounded-lg border border-teal-200 bg-teal-50/60 px-4 py-3 text-sm text-slate-700 leading-relaxed">
