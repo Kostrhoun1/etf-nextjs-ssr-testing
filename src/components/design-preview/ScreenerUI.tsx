@@ -156,14 +156,17 @@ function HedgeChip({ h }: { h: string }) {
    z ručně ověřeného seznamu (stejný jako na homepage), pod tím vyčištěné indexy s počty,
    s hledáním a zaškrtáváním více položek. Hodnota trhu = „trh:<id>“.
    ───────────────────────────────────────────────────────────────────────── */
-function IndexList({ options, vybrane, setVybrane }: { options: ScreenerOptions; vybrane: string[]; setVybrane: (v: string[]) => void }) {
+function IndexList({ options, vybrane, setVybrane, kompakt = false }: { options: ScreenerOptions; vybrane: string[]; setVybrane: (v: string[]) => void; kompakt?: boolean }) {
   const [hledat, setHledat] = useState('');
   const h = hledat.trim().toLowerCase();
   const prepni = (v: string) => setVybrane(vybrane.includes(v) ? vybrane.filter((x) => x !== v) : [...vybrane, v]);
   const trhy = options.trhy.filter((t) => !h || `${t.label} ${t.popis}`.toLowerCase().includes(h));
+  // Kompaktní režim (panel na mobilu): bez hledání jen trhy + populární + už vybrané – 200 položek
+  // v posuvném panelu by se nedaly projít; ostatní indexy najde hledání.
   const skupiny = options.indexGroups
-    .map((g) => ({ ...g, idx: g.options.map((o, i) => i).filter((i) => !h || g.options[i].toLowerCase().includes(h)) }))
+    .map((g) => ({ ...g, idx: g.options.map((o, i) => i).filter((i) => (h ? g.options[i].toLowerCase().includes(h) : !kompakt || g.heading === 'Populární indexy' || vybrane.includes(g.options[i]))) }))
     .filter((g) => g.idx.length > 0);
+  const vsech = options.indexGroups.reduce((n, g) => n + g.options.length, 0);
   const Polozka = ({ v, label, note, count }: { v: string; label: string; note?: string; count?: number }) => {
     const on = vybrane.includes(v);
     return (
@@ -185,11 +188,11 @@ function IndexList({ options, vybrane, setVybrane }: { options: ScreenerOptions;
         <input type="search" value={hledat} onChange={(e) => setHledat(e.target.value)} placeholder="Hledat index (např. ACWI, S&P 500)" aria-label="Hledat index"
           className="w-full min-h-[38px] rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
       </div>
-      <div className="mt-2 max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain pr-1">
+      <div className={kompakt ? 'mt-2' : 'mt-2 max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain pr-1'}>
         {trhy.length > 0 && (
           <div className="mb-2">
             <p className="px-2 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Celé trhy · ověřený výběr</p>
-            {trhy.map((t) => <Polozka key={t.id} v={`trh:${t.id}`} label={t.label} note={t.popis} count={t.count} />)}
+            {trhy.map((t) => <Polozka key={t.id} v={`trh:${t.id}`} label={t.label} note={`${t.popis} · bez zajištěných tříd`} count={t.count} />)}
           </div>
         )}
         {skupiny.map((g) => (
@@ -199,6 +202,7 @@ function IndexList({ options, vybrane, setVybrane }: { options: ScreenerOptions;
           </div>
         ))}
         {trhy.length === 0 && skupiny.length === 0 && <p className="px-2 py-3 text-sm text-slate-500">Žádný index neodpovídá.</p>}
+        {kompakt && !h && <p className="px-2 pt-1 text-xs text-slate-500">Ostatní indexy (celkem {vsech.toLocaleString("cs-CZ")}) najdete hledáním.</p>}
       </div>
     </div>
   );
@@ -851,7 +855,7 @@ export default function ScreenerUI({
               </div>
               <div className="md:hidden">
                 <span className="block mb-1 text-xs font-medium text-slate-500">Sledovaný index nebo trh (lze víc)</span>
-                <IndexList options={options} vybrane={indexSel} setVybrane={setIdx} />
+                <IndexList kompakt options={options} vybrane={indexSel} setVybrane={setIdx} />
               </div>
               <div className="md:hidden grid grid-cols-1 gap-3">
                 <Field label="Region / země">{regionSelect}</Field>

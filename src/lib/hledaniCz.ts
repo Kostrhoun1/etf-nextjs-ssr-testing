@@ -106,7 +106,7 @@ const UZKA = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|pr
 /**
  * Relevance fondu pro hledaný výraz – JEDNA logika pro našeptávač (/api/etf/search) i srovnávač
  * (revize 18. 10. 2026: srovnávač na „sp500“ ukázal nahoře zajištěné UBS fondy místo SXR8/CSPX).
- *   4 = přesná shoda ISIN/tickeru, 3 = začátek tickeru, 2 = název začíná výrazem, 1 = název ho
+ *   4 = přesná shoda ISIN/tickeru, 3 = začátek tickeru (u obecného výrazu jen 0,9), 2 = název začíná výrazem, 1 = název ho
  *   obsahuje, 1,0x = shoda přes český výraz / variantu zápisu (`termy` z anglickeTermy, dřívější =
  *   přesnější); úzké varianty −0,5. 0 = neodpovídá.
  * `term` = dotaz malými písmeny (oříznutý), `tickers` malými písmeny.
@@ -115,7 +115,9 @@ export function skoreHledani(term: string, termy: string[], f: { isin: string; n
   const isin = f.isin.toLowerCase();
   const name = f.name.toLowerCase();
   if (isin === term || f.tickers.includes(term)) return 4;
-  if (f.tickers.some((t) => t.startsWith(term))) return 3;
+  // Začátek tickeru: u obecného výrazu („sp500“ → S&P 500) jen slabá shoda – jinak by vyhrály švýcarské
+  // tickery zajištěných tříd SP500S/SP500E/SP500H místo CSPX/SXR8 (revize 18. 10. 2026).
+  if (f.tickers.some((t) => t.startsWith(term))) return termy.length ? 0.9 : 3;
   const dividendovy = /divid/.test(term) || termy.some((t) => /dividend/i.test(t));
   const uzka = UZKA.test(name) || (!dividendovy && /(high dividend|dividend yield|dividend)/i.test(name)) ? 0.5 : 0;
   if (name.startsWith(term)) return 2 - uzka;

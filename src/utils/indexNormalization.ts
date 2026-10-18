@@ -160,7 +160,9 @@ const POSKYTOVATEL_INDEXU = /^(msci|s&p|ftse|stoxx|euro stoxx|euro istoxx|istoxx
 
 /** Čistý zápis indexu k zobrazení: bez metadat třídy, ®/™, „ex-“ = „ex “, bez koncového „Swap/SF/Index/NR/TR/II“. */
 function cistyZapis(raw?: string | null): string {
-  let s = normalizeIndexName(raw).replace(/[®™]/g, '').replace(/\bex-/gi, 'ex ');
+  let s = normalizeIndexName(raw).replace(/[®™]/g, '').replace(/\bex-/gi, 'ex ')
+    // „MSCI All Country World X“ = „MSCI AC World X“ = „MSCI ACWI X“ (jeden index, tři zápisy)
+    .replace(/\bMSCI (All Country World|AC World)\b/gi, 'MSCI ACWI');
   for (let i = 0; i < 3; i++) s = s.replace(/\s+(swap|sf|index|nr|tr|ii|net total return|net return|total return)$/i, '');
   return s.replace(/\s+/g, ' ').trim();
 }

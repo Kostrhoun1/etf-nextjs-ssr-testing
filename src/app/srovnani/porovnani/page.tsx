@@ -6,6 +6,11 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowLeft, Search, Scale } from 'lucide-react';
 import { getComparisonETFsByIsins } from '@/lib/etf-data';
 import PorovnaniTable from '@/components/design-preview/PorovnaniTable';
+import PorovnaniGraf from '@/components/design-preview/PorovnaniGraf';
+import UpravitVyber from '@/components/design-preview/UpravitVyber';
+import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
+import AktualnostDat from '@/components/design-preview/AktualnostDat';
+import { platnyTicker } from '@/lib/ticker';
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
@@ -39,7 +44,10 @@ export default async function PorovnaniPreview(
 
   // Každé číslo má datum (pravidlo č. 1): nejstarší datum stažení dat mezi porovnávanými fondy.
   const nejstarsi = etfs.map((e) => (e as unknown as { scraping_date?: string | null }).scraping_date).filter(Boolean).sort()[0];
-  const datumDat = nejstarsi ? new Date(nejstarsi).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Europe/Prague' }) : null;
+  const datumDat = nejstarsi ? new Date(nejstarsi) : null;
+  // Rok dat: letošní (YTD) sloupec grafu a posledních 5 dokončených roků se počítají od data dat, ne od dneška.
+  const rokDat = (datumDat ?? new Date()).getFullYear();
+  const fondy = etfs.map((e) => ({ isin: e.isin, label: platnyTicker(e.primary_ticker) ?? e.isin.slice(0, 8) }));
 
   if (etfs.length < 2) {
     return (
@@ -48,7 +56,7 @@ export default async function PorovnaniPreview(
         <main id="obsah" className="max-w-6xl mx-auto px-4 py-16 text-center">
           <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-teal-50 text-teal-700 mb-4"><Scale className="w-6 h-6" /></span>
           <h1 className="text-xl font-bold text-slate-900">Vyberte fondy k porovnání</h1>
-          <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">Přidejte alespoň dva fondy tlačítkem „Do porovnání" ve srovnávači nebo na detailu fondu. Vybrané fondy se pak zobrazí tady vedle sebe.</p>
+          <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">Přidejte aspoň dva fondy tlačítkem „Porovnat“ ve srovnávači nebo na detailu fondu (nejvýš 4). Vybrané fondy se pak zobrazí tady vedle sebe.</p>
           <Link href="/srovnani" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><Search className="w-4 h-4" /> Otevřít srovnávač</Link>
         </main>
       </div>
@@ -65,15 +73,21 @@ export default async function PorovnaniPreview(
           <span className="text-slate-700">Porovnání</span>
         </nav>
 
-        <section className="pb-6">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Porovnání {etfs.length} fondů</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Výnosy přepočtené do zvolené měny (výchozí koruny).
-            {datumDat && <> · <span className="whitespace-nowrap">Data k {datumDat}</span></>}
-          </p>
+        <section className="pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Porovnání {etfs.length} fondů</h1>
+            <div className="flex items-center gap-3">
+              {datumDat && <AktualnostDat datum={datumDat} />}
+              <CurrencyToggle size="sm" showLabel={false} />
+            </div>
+          </div>
         </section>
 
-        <PorovnaniTable etfs={etfs} />
+        <div className="space-y-4">
+          <UpravitVyber fondy={fondy} />
+          <PorovnaniGraf rokDat={rokDat} fondy={etfs.map((e, i) => ({ ...fondy[i], data: Object.fromEntries(Object.entries(e).filter(([k]) => k.startsWith("return_"))) }))} />
+          <PorovnaniTable etfs={etfs} rokDat={rokDat} />
+        </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700"><ArrowLeft className="w-4 h-4" /> Zpět do srovnávače</Link>
