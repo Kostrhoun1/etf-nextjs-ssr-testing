@@ -10,7 +10,7 @@ import {
   getETFsByIsins, categoryConfigs, type ETFBasicInfo,
 } from '@/lib/etf-data';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
-import { portfolioModels } from '@/components/design-preview/portfolioData';
+import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
 import { brokers } from '@/data/brokerData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -82,15 +82,16 @@ const CATEGORIES = [
    který na homepage jmenoval brokery a dával doporučení). Skóre a jména z brokerData;
    krátká věta „pro koho" jen na homepage, plné srovnání je v sekci Kde koupit. */
 type Poplatek = { popisek: string; hodnota: string };
-// Poplatek na kartě je ručně zkrácený a OVĚŘENÝ u ceníku brokera (18. 10. 2026). Dřív se bral
+// Poplatek na kartě je ručně zkrácený a OVĚŘENÝ u ceníku brokera (18. 10. 2026; zdroje a datum v
+// brokerData.ts → CENIKY_OVERENY, denní kontrola hlídá stáří). Dřív se bral
 // z brokerData.etfFee ořezem před první čárkou → Portu „0,24-1 % ročně“ se ukazoval jako „0“.
 const BROKER_PICK: { id: string; forWhom: string; poplatek: Poplatek }[] = [
-  { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.', poplatek: { popisek: 'Správa', hodnota: '0,24–1 % ročně' } },
-  { id: 'xtb', forWhom: 'Akcie i ETF bez poplatku, česká podpora 24/7.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 % do 100 000 EUR/měs.' } },
-  { id: 'trading212', forWhom: 'Nulové poplatky a frakční ETF pro malé částky.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 %' } },
-  { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.', poplatek: { popisek: 'Nákup ETF (Xetra)', hodnota: '0,05 %, min. 1,25 EUR' } },
-  { id: 'degiro', forWhom: 'Levné nákupy ze seznamu ETF Selection pro buy-and-hold.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 EUR (ETF Selection)' } },
-  { id: 'fio', forWhom: 'Český broker, dividendy z ČR akcií jen 15 %.', poplatek: { popisek: 'Nákup ETF', hodnota: 'od 0,29 %' } },
+  { id: 'portu', forWhom: 'Robo-poradce – sestaví a spravuje portfolio za vás.', poplatek: { popisek: 'Vše v ceně', hodnota: '0,24–1 % ročně' } },
+  { id: 'xtb', forWhom: 'ETF bez provize do 100 000 € měsíčně, česká podpora v pracovní dny.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 € do 100 000 €/měs.' } },
+  { id: 'trading212', forWhom: 'Bez provize, frakční ETF už od 1 €.', poplatek: { popisek: 'Nákup ETF', hodnota: '0 € (směna měny 0,15 %)' } },
+  { id: 'ibkr', forWhom: 'Nejširší nabídka trhů pro pokročilé investory.', poplatek: { popisek: 'Xetra', hodnota: '0,05 %, min. 1,25 € + burza' } },
+  { id: 'degiro', forWhom: 'Levné nákupy ze seznamu ETF Selection pro buy-and-hold.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 € ETF Selection, jinak 3 €' } },
+  { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.', poplatek: { popisek: 'Nákup ETF', hodnota: 'Xetra 3,95 € do 1 400 €' } },
 ];
 const HOME_BROKERS = BROKER_PICK
   .map((p) => ({ ...p, broker: brokers.find((b) => b.id === p.id) }))
@@ -104,7 +105,7 @@ const TOOLS = [
   { href: '/backtest', label: 'Backtest portfolia', desc: 'Jak by se portfolio z ETF chovalo v minulosti (v Kč)', icon: History },
   { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Kolik naspoříte pravidelnou investicí', icon: Calculator },
   { href: '/kolik-vydelaly-etf', label: 'Kolik vydělaly ETF', desc: 'Datový rozbor výnosů v korunách', icon: LineChart },
-  { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: `${portfolioModels.length} příkladů, jak sestavit portfolio z ETF`, icon: LayoutGrid },
+  { href: '/stroj-casu', label: 'Korunový stroj času', desc: 'Kolik by dnes měla investice od zvoleného roku', icon: Sparkles },
   { href: '/fire', label: 'Finanční nezávislost', desc: 'Kolik potřebujete na FIRE (v Kč)', icon: Flame },
   { href: '/co-rikaji-data', label: 'Co říkají data', desc: 'Naráz, nebo postupně? Měnové riziko? Daně?', icon: BookOpen },
 ];
@@ -308,6 +309,30 @@ export default async function DesignPreviewV2() {
           <Link href="/zebricky" className="mt-3 inline-flex items-center gap-1 min-h-11 text-sm font-medium text-teal-700 hover:text-teal-800">
             Všech {CATEGORY_COUNT} žebříčků podle kategorií <ArrowRight className="w-4 h-4" />
           </Link>
+        </section>
+
+        {/* 3b. MODELOVÁ PORTFOLIA – GA4 90 dní: 11 % přechodů z homepage (víc než kalkulačky, průvodce
+            a brokeři dohromady). Jen složení a profil, BEZ výnosů (jsme srovnávač, ne investiční web). */}
+        <section className="pb-10">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold tracking-tight">Modelová portfolia z ETF</h2>
+            <p className="text-sm text-slate-500 mt-0.5">Příklady, jak poskládat portfolio z ETF – složení a konkrétní fondy. Pro inspiraci, ne jako doporučení.</p>
+          </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {portfolioModels.map((p) => (
+              <li key={p.slug}>
+                <Link href={`/portfolio-strategie/${p.slug}`} className="group flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 min-h-12 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
+                  <span className="text-sm font-medium text-slate-800 leading-tight">{p.name}</span>
+                  <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium leading-none ${RISK_PILL[p.risk]}`}>{p.risk}</span>
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link href="/portfolio-strategie" className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-slate-300 px-3.5 min-h-12 py-2.5 text-sm font-medium text-teal-700 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
+                Porovnat všechna portfolia <ArrowRight className="w-4 h-4" />
+              </Link>
+            </li>
+          </ul>
         </section>
 
         {/* 4. NÁSTROJE – backtest první (nejpoužívanější). */}
