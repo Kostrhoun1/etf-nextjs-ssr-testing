@@ -234,7 +234,7 @@ type Section = { title: string; rows: Row[] };
 function Bunka({ children, vitez }: { children: React.ReactNode; vitez: boolean }) {
   if (!vitez) return <>{children}</>;
   return (
-    <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+    <span className="inline-flex items-center gap-1 font-bold text-slate-900 [&_span]:font-bold">
       {children}
       <Check className="w-3.5 h-3.5 shrink-0 text-teal-700" aria-label="nejlepší v řádku" />
     </span>

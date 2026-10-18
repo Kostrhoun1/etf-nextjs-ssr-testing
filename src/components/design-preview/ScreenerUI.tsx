@@ -826,7 +826,7 @@ export default function ScreenerUI({
               const c = distChip(e._dist);
               const tk = platnyTicker(e.primary_ticker);
               return (
-                <tr key={e.isin} className="even:bg-slate-50/70 hover:bg-amber-50/50 transition-colors [&>td]:border-b [&>td]:border-slate-100 last:[&>td]:border-b-0">
+                <tr key={e.isin} className="even:bg-slate-50 hover:bg-amber-50/50 transition-colors [&>td]:border-b [&>td]:border-slate-100 last:[&>td]:border-b-0">
                   <td className="py-2.5 pl-3 pr-2">
                     <div className="flex items-center gap-2.5">
                       <EmitentLogo nazev={e.name} size={28} monogram={e.fund_provider ?? e.name} />
