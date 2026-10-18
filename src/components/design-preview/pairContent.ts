@@ -32,7 +32,7 @@ export interface PairContent {
   faqs?: PairFaq[];
 }
 
-const DANE_PRODEJ = 'Zisk z prodeje je osvobozený, pokud fond držíte déle než 3 roky (od roku 2026 bez horního limitu), nebo když příjmy z prodejů za rok nepřesáhnou 100 000 Kč.';
+const DANE_PRODEJ = 'Zisk z prodeje je osvobozený, pokud fond držíte déle než 3 roky (od roku 2026 bez horního limitu), nebo když příjmy z prodejů za rok nepřesáhnou 100 000 Kč.';
 
 export const pairContent: Record<string, PairContent> = {
   'iwda-vs-cspx': {
@@ -41,8 +41,8 @@ export const pairContent: Record<string, PairContent> = {
       'IWDA sleduje MSCI World, tedy velké a střední firmy z vyspělých zemí. CSPX sleduje S&P 500, tedy jen 500 největších firem z USA.',
       'Americké firmy mají v MSCI World velkou váhu, takže se oba fondy z velké části překrývají. Kolik tvoří USA v každém z nich, ukazuje část „Do čeho fondy investují“.',
     ],
-    pick1: 'IWDA: jeden fond na celý vyspělý svět – vedle USA i Evropa, Japonsko, Kanada nebo Austrálie.',
-    pick2: 'CSPX: jen americký trh. Celá investice tak závisí na jedné zemi a jednom kurzu (USD/CZK).',
+    pick1: 'Jeden fond na celý vyspělý svět – vedle USA i Evropa, Japonsko, Kanada nebo Austrálie.',
+    pick2: 'Jen americký trh. Celá investice tak závisí na jedné zemi a jednom kurzu (USD/CZK).',
     faqs: [
       {
         q: 'Není IWDA skoro totéž co CSPX, když má většinu v USA?',
@@ -63,8 +63,8 @@ export const pairContent: Record<string, PairContent> = {
       'Oba fondy jsou akumulační, liší se složením. VWCE sleduje FTSE All-World – vyspělé i rozvíjející se trhy (Čína, Indie, Tchaj-wan…).',
       'IWDA sleduje MSCI World – jen vyspělé trhy, rozvíjející se v něm nejsou. Počet firem v obou fondech je v tabulce parametrů.',
     ],
-    pick1: 'VWCE: celý svět včetně rozvíjejících se trhů v jednom fondu, váhy regionů řídí index.',
-    pick2: 'IWDA: jen vyspělé trhy. Rozvíjející se trhy lze přikoupit zvlášť a jejich váhu si řídit sami.',
+    pick1: 'Celý svět včetně rozvíjejících se trhů v jednom fondu, váhy regionů řídí index.',
+    pick2: 'Jen vyspělé trhy. Rozvíjející se trhy lze přikoupit zvlášť a jejich váhu si řídit sami.',
     faqs: [
       {
         q: 'Když k IWDA přikoupím fond na rozvíjející se trhy, dostanu totéž co VWCE?',
@@ -81,8 +81,8 @@ export const pairContent: Record<string, PairContent> = {
       'Oba fondy sledují stejný index MSCI World, oba jsou akumulační a s domicilem v Irsku. Liší se správcem (SPDR a iShares), poplatkem a velikostí.',
       'IWDA je starší (od roku 2009) a výrazně větší, SWRD vznikl v roce 2019. Poplatek a velikost obou jsou v tabulce parametrů.',
     ],
-    pick1: 'SWRD: stejný index s jiným poplatkem – rozdíl ukazuje tabulka parametrů.',
-    pick2: 'IWDA: větší fond s delší historií.',
+    pick1: 'Stejný index s jiným poplatkem – rozdíl ukazuje tabulka parametrů.',
+    pick2: 'Větší fond s delší historií.',
     faqs: [
       {
         q: 'Vyplatí se kvůli nižšímu poplatku prodat IWDA a koupit SWRD?',
@@ -95,8 +95,8 @@ export const pairContent: Record<string, PairContent> = {
       'Oba fondy sledují S&P 500, oba jsou akumulační a s domicilem v Irsku. Liší se správcem (iShares a Vanguard), velikostí a stářím.',
       'Výnosy se liší jen nepatrně – jak přesně fond kopíruje index. Rozdíly v poplatku a velikosti ukazuje tabulka parametrů.',
     ],
-    pick1: 'CSPX: největší a nejstarší z obou fondů (od roku 2010).',
-    pick2: 'VUAA: stejný index od Vanguardu (od roku 2019).',
+    pick1: 'Největší a nejstarší z obou fondů (od roku 2010).',
+    pick2: 'Stejný index od Vanguardu (od roku 2019).',
     faqs: [
       {
         q: 'Který z nich koupím u DEGIRO nebo XTB?',
@@ -112,10 +112,10 @@ export const pairContent: Record<string, PairContent> = {
     intro: [
       'Jde o dvě třídy téhož fondu Vanguard S&P 500 – stejný index i poplatek. Liší se jen výplatou dividend.',
       'VUSA je distribuční a dividendy čtvrtletně vyplácí na účet. VUAA je akumulační a dividendy reinvestuje uvnitř fondu.',
-      'Vyplacené dividendy se v Česku daní 15 % a uvádějí v daňovém přiznání. U akumulační třídy daň z dividend neřešíte.',
+      'Vyplacené dividendy se v Česku daní 15 % a uvádějí v daňovém přiznání. U akumulační třídy daň z dividend neřešíte.',
     ],
-    pick1: 'VUSA: pravidelná výplata dividend na účet (zdaněná 15 %).',
-    pick2: 'VUAA: dividendy se reinvestují, roční daň z dividend odpadá.',
+    pick1: 'Pravidelná výplata dividend na účet (zdaněná 15 %).',
+    pick2: 'Dividendy se reinvestují, roční daň z dividend odpadá.',
     faqs: [
       {
         q: 'Znamená akumulace, že prodej nebudu danit?',
@@ -134,14 +134,14 @@ export const pairContent: Record<string, PairContent> = {
   'cspx-vs-spy5': {
     intro: [
       'Oba fondy sledují S&P 500. Liší se výplatou dividend: CSPX je akumulační, SPY5 distribuční (vyplácí čtvrtletně).',
-      'SPY5 má nižší poplatek, ale vyplacené dividendy se v Česku daní 15 %. Poplatek i velikost obou jsou v tabulce parametrů.',
+      'SPY5 má nižší poplatek, ale vyplacené dividendy se v Česku daní 15 %. Poplatek i velikost obou jsou v tabulce parametrů.',
     ],
-    pick1: 'CSPX: dividendy se reinvestují uvnitř fondu, daň z dividend neřešíte.',
-    pick2: 'SPY5: nižší poplatek a dividendy na účet (zdaněné 15 %).',
+    pick1: 'Dividendy se reinvestují uvnitř fondu, daň z dividend neřešíte.',
+    pick2: 'Nižší poplatek a dividendy na účet (zdaněné 15 %).',
     faqs: [
       {
         q: 'Je SPY5 akumulační, nebo distribuční?',
-        a: 'Distribuční – dividendy vyplácí na účet. Každou výplatu v Česku zdaníte 15 %.',
+        a: 'Distribuční – dividendy vyplácí na účet. Každou výplatu v Česku zdaníte 15 %.',
       },
       {
         q: 'Souvisí akumulace s časovým testem?',
@@ -153,14 +153,14 @@ export const pairContent: Record<string, PairContent> = {
     intro: [
       'Jde o dvě třídy téhož fondu Vanguard FTSE All-World – stejné složení i poplatek. Liší se jen výplatou dividend.',
       'VWCE je akumulační a dividendy reinvestuje uvnitř fondu. VWRL je distribuční a vyplácí je čtvrtletně na účet.',
-      'Vyplacené dividendy se v Česku daní 15 %, i když je pak sami reinvestujete. U VWCE daň z dividend neřešíte.',
+      'Vyplacené dividendy se v Česku daní 15 %, i když je pak sami reinvestujete. U VWCE daň z dividend neřešíte.',
     ],
-    pick1: 'VWCE: dividendy se reinvestují uvnitř fondu, daň z dividend odpadá.',
-    pick2: 'VWRL: pravidelná výplata dividend na účet (zdaněná 15 %).',
+    pick1: 'Dividendy se reinvestují uvnitř fondu, daň z dividend odpadá.',
+    pick2: 'Pravidelná výplata dividend na účet (zdaněná 15 %).',
     faqs: [
       {
         q: 'Když dividendu z VWRL sám reinvestuji, vyjde to stejně jako VWCE?',
-        a: 'Ne úplně. Dividendu nejdřív zdaníte 15 % a za dokoupení obvykle zaplatíte poplatek brokerovi.',
+        a: 'Ne úplně. Dividendu nejdřív zdaníte 15 % a za dokoupení obvykle zaplatíte poplatek brokerovi.',
       },
       {
         q: 'Liší se VWCE a VWRL měnovým rizikem?',
@@ -171,11 +171,11 @@ export const pairContent: Record<string, PairContent> = {
   'cspx-vs-vusa': {
     intro: [
       'Oba fondy sledují S&P 500 a mají stejný poplatek. Liší se správcem (iShares a Vanguard) a hlavně výplatou dividend.',
-      'CSPX je akumulační a dividendy reinvestuje. VUSA je distribuční a vyplácí je čtvrtletně na účet, kde je v Česku zdaníte 15 %.',
+      'CSPX je akumulační a dividendy reinvestuje. VUSA je distribuční a vyplácí je čtvrtletně na účet, kde je v Česku zdaníte 15 %.',
       'Pro srovnání jen správců porovnejte stejné třídy – akumulační CSPX a VUAA.',
     ],
-    pick1: 'CSPX: dividendy se reinvestují uvnitř fondu, daň z dividend neřešíte.',
-    pick2: 'VUSA: pravidelná výplata dividend na účet (zdaněná 15 %).',
+    pick1: 'Dividendy se reinvestují uvnitř fondu, daň z dividend neřešíte.',
+    pick2: 'Pravidelná výplata dividend na účet (zdaněná 15 %).',
     faqs: [
       {
         q: 'Musím u CSPX řešit daň z dividend?',

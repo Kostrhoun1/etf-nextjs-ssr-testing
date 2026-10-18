@@ -548,7 +548,8 @@ export default async function ETFDetailPreview(
     podklad
       ? [<InfoTip key="podklad" label="Zdroj dat u tohoto produktu index neuvádí; podklad přebíráme z popisu fondu.">Sleduje</InfoTip>, podklad]
       : ['Sledovaný index', etf.index_name || '—'],
-    [<InfoTip key="hold" label="Počet cenných papírů, které fond reálně drží.">Počet držených pozic</InfoTip>, etf.total_holdings != null ? etf.total_holdings.toLocaleString('cs-CZ') : '—'],
+    // Komodita/krypto bez pozic: řádek „—“ by mátl (drží kov/kryptoměnu, ne cenné papíry).
+    ...(komodita && etf.total_holdings == null ? [] : [[<InfoTip key="hold" label="Počet cenných papírů, které fond reálně drží.">Počet držených pozic</InfoTip>, etf.total_holdings != null ? etf.total_holdings.toLocaleString('cs-CZ') : '—'] as [React.ReactNode, React.ReactNode]]),
     [<InfoTip key="mena" label="Měna, ve které fond vede účetnictví. Měnové riziko vůči koruně určuje hlavně to, do čeho fond investuje.">Měna fondu</InfoTip>, etf.fund_currency || '—'],
     ['Datum vzniku', dateLabel(etf.inception_date)],
     ['Emitent', etf.fund_provider || '—'],
@@ -651,7 +652,7 @@ export default async function ETFDetailPreview(
                     </div>
                   ))}
                 </dl>
-                <div className="mt-4 grid grid-cols-2 gap-2 md:mt-auto md:pt-4 [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap [&_button]:px-2 [&_a]:px-2">
+                <div className="mt-4 grid grid-cols-2 gap-2 md:mt-auto md:pt-4 [&_a]:h-11 [&_button]:h-11 md:[&_a]:h-10 md:[&_button]:h-10 [&_a]:py-0 [&_button]:py-0 [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap [&_button]:px-2 [&_a]:px-2">
                   <Link href="/kde-koupit" className="flex items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-teal-700">
                     Kde koupit <ArrowRight className="w-4 h-4" />
                   </Link>

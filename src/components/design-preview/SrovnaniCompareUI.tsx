@@ -128,13 +128,14 @@ export function SrovnaniParamTabulka({
   rows: RadekProps[];
 }) {
   return (
-    <div className="hidden md:block rounded-lg border border-slate-200 bg-white overflow-hidden">
+    // Bez overflow-hidden na obalu – jinak nefunguje plovoucí záhlaví (sticky top-14 pod hlavičkou webu, 16 řádků).
+    <div className="hidden md:block rounded-lg border border-slate-200 bg-white">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-slate-50 text-slate-600 text-left">
-            <th className="py-3 px-4 font-medium w-2/5">Parametr</th>
+          <tr className="text-slate-600 text-left [&>th]:sticky [&>th]:top-14 [&>th]:z-10 [&>th]:bg-slate-50 [&>th]:shadow-[inset_0_-1px_0_#e2e8f0]">
+            <th className="py-3 px-4 font-medium w-2/5 rounded-tl-lg">Parametr</th>
             <th className="py-3 px-4 font-medium text-right">{ticker1}</th>
-            <th className="py-3 px-4 font-medium text-right">{ticker2}</th>
+            <th className="py-3 px-4 font-medium text-right rounded-tr-lg">{ticker2}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -172,13 +173,13 @@ export function SrovnaniParamKarty({
   rows: RadekProps[];
 }) {
   return (
-    <div className="md:hidden overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="md:hidden rounded-lg border border-slate-200 bg-white">
       <table className="w-full table-fixed text-[13px]">
         <thead>
-          <tr className="bg-slate-50 text-xs text-slate-500">
-            <th className="w-[38%] py-2 pl-3 pr-1 text-left font-medium">Parametr</th>
+          <tr className="text-xs text-slate-500 [&>th]:sticky [&>th]:top-14 [&>th]:z-10 [&>th]:bg-slate-50 [&>th]:shadow-[inset_0_-1px_0_#e2e8f0]">
+            <th className="w-[38%] py-2 pl-3 pr-1 text-left font-medium rounded-tl-lg">Parametr</th>
             <th className="py-2 px-1 text-right font-semibold text-slate-700">{ticker1}</th>
-            <th className="py-2 pl-1 pr-3 text-right font-semibold text-slate-700">{ticker2}</th>
+            <th className="py-2 pl-1 pr-3 text-right font-semibold text-slate-700 rounded-tr-lg">{ticker2}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -317,8 +318,8 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
     },
     {
       label: 'ISIN',
-      v1: etf1.isin,
-      v2: etf2.isin,
+      v1: <span className="font-mono text-[11px] md:text-sm">{etf1.isin}</span>,
+      v2: <span className="font-mono text-[11px] md:text-sm">{etf2.isin}</span>,
       winner: 0,
     },
   ];

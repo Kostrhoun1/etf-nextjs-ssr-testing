@@ -319,7 +319,7 @@ export default async function PairComparePage(
                 <div key={tk} className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900"><span className="h-2.5 w-2.5 rounded-full" style={{ background: barvaFondu(i) }} aria-hidden="true" /> {tk}</span>
-                    <span className="text-sm text-slate-500"><strong className="text-xl font-bold text-slate-900 tabular-nums">{e.total_holdings?.toLocaleString('cs-CZ') ?? '—'}</strong> pozic</span>
+                    {e.total_holdings != null && <span className="text-sm text-slate-500"><strong className="text-xl font-bold text-slate-900 tabular-nums">{e.total_holdings.toLocaleString('cs-CZ')}</strong> pozic</span>}
                   </div>
                   {zeme.length > 0 ? (
                     <>
