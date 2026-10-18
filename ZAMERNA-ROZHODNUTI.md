@@ -102,6 +102,24 @@ jsou skutečné – ověřeno proti justETF.
 ověřený; přesměrování na recenzi DEGIRO, ta zůstává), duplicity `globalni`→`celosvetove`,
 `clean-energy`→`obnovitelne-zdroje`, `nemovitostni`→`realitni`, `zlate`→`zlato`. Nevytvářet znovu.
 
+**„Celosvětové ETF“ = celý svět VČETNĚ rozvíjejících se trhů, ne MSCI World (18. 10. 2026).** Žebříček
+`nejlepsi-celosvetove-etf` bere jen FTSE All-World, MSCI ACWI (i IMI), FTSE Global All Cap a Amundi Prime
+All Country World (Solactive GBS). Fondy na MSCI World (EUNL, XDWD…) do něj NEpatří – mají vlastní
+`nejlepsi-msci-world-etf`. Dřív sem padalo vše se slovem „World/Global“ a „největším celosvětovým fondem“
+byl EUNL. Indexové žebříčky (S&P 500, MSCI World, Nasdaq-100, celý svět) záměrně vynechávají varianty
+s jinou metodikou (`INDEX_VARIANTY` v etf-data.ts: ESG/Screened/Leaders/Equal Weight/aktivní „Enhanced“,
+Islamic…) – ty jsou v `nejlepsi-esg-etf`. Nasdaq = jen Nasdaq-100; S&P 500 bez Top 20/Capped/Covered Call.
+Měnově zajištěné třídy v žebříčcích ZŮSTÁVAJÍ (štítek „zajištěno“, filtr v tabulce), jen nevyhrávají
+„Nejvýkonnější“. Hlídá `ZLATA_SADA` v check-fund-data.mjs.
+
+**Rozcestník `/zebricky` počítá čísla JS zrcadlem SQL filtru** (`odpovidaKategorii` v src/lib/zebricky.ts,
+jeden dotaz místo 48). Při změně filtru kategorie v `getTopETFsForCategory`/`filtrKategorie` uprav i
+zrcadlo – denní kontrola porovnává počet fondů rozcestník × žebříček a při rozdílu dá poplach.
+
+**„Nejvýkonnější“ na stránce žebříčku = výnos za 3 roky v Kč** (za 1 rok jen když 3leté údaje mají méně
+než 3 fondy). Roční momentum u indexových kategorií je šum (revize 18. 10. 2026). Nejnižší poplatek
+ignoruje TER 0 % (u akcií/dluhopisů chyba zdroje, u Xetra-Gold apod. náklady mimo TER).
+
 **Krátkodobé výnosy (1M/3M/6M) jsou v EUR** a tak jsou i popsané – data je v jiné měně nemají.
 
 **Investiční kalkulačka úročí měsíčně sazbou (1 + r)^(1/12) − 1, ne r/12.** Zadaný „výnos p.a." je tak
