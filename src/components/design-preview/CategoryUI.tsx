@@ -188,6 +188,8 @@ const SECTOR_CS: Record<string, string> = {
   Financials: 'Finance', 'Financial Services': 'Finance', Industrials: 'Průmysl',
   'Health Care': 'Zdravotnictví', Healthcare: 'Zdravotnictví',
   'Consumer Discretionary': 'Spotřeba (cyklická)', 'Consumer Staples': 'Spotřeba (běžná)',
+  'Consumer Cyclicals': 'Spotřeba (cyklická)', 'Consumer Non-Cyclicals': 'Spotřeba (běžná)',
+  'Basic Materials': 'Materiály', 'Telecommunications Services': 'Telekomunikace',
   'Communication Services': 'Komunikace', Communications: 'Komunikace',
   Energy: 'Energetika', Materials: 'Materiály', Utilities: 'Utility',
   'Real Estate': 'Nemovitosti', Telecommunications: 'Telekomunikace', Other: 'Ostatní',
@@ -216,6 +218,11 @@ function pickDimension(
     if (meaningful.length >= 2) return { dim, slices };
   }
   return null;
+}
+
+/** Vykreslí CompositionInfographic něco? (Kvůli rozložení stránky – komponenta jinak vrací null.) */
+export function slozeniPouzitelne(comp: FlagshipComposition | null, prefer: Dimension = 'country'): boolean {
+  return !!comp && pickDimension(comp, prefer) != null;
 }
 
 const DIM_META: Record<Dimension, { title: string; icon: typeof Globe2; localize: Record<string, string> }> = {
@@ -316,13 +323,13 @@ export function CompositionInfographic({
  * indexů (dle fondů v kategorii) s odborným popisem. Unikátní obsah pro SEO/GEO.
  * Graceful: když žádný index nemá popis, celá sekce se nevykreslí.
  */
-export function CategoryIndexes({ indexes, total }: { indexes: { info: IndexInfo; count: number }[]; total: number }) {
+export function CategoryIndexes({ indexes, total, sloupce = 2 }: { indexes: { info: IndexInfo; count: number }[]; total: number; sloupce?: 1 | 2 }) {
   if (!indexes.length) return null;
   const shown = indexes.reduce((s, i) => s + i.count, 0);
   const rest = Math.max(0, total - shown);
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className={`grid gap-3 ${sloupce === 2 ? 'sm:grid-cols-2' : ''}`}>
         {indexes.map(({ info, count }) => (
           <div key={info.label} className="rounded-xl border border-slate-200 bg-white p-5">
             <div className="flex items-start justify-between gap-3">

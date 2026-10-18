@@ -38,15 +38,17 @@ const CYKLUS = /(short duration|short maturity|short[- ]term|ultrashort|ultra sh
 
 // Zlatá sada: ISINy, které v žebříčku MUSÍ být (vlajkové fondy), a názvy, které tam být NESMÍ.
 const ZLATA_SADA = [
-  { slug: 'nejlepsi-sp500-etf', musi: ['IE00B5BMR087'], nesmi: /equal weight|sector|ex[- ]/i },          // CSPX/SXR8
+  { slug: 'nejlepsi-sp500-etf', musi: ['IE00B5BMR087'], nesmi: /equal weight|sector|ex[- ]|\bESG\b|screened|scored|leaders|top 20|capped|covered call|low vol/i }, // CSPX/SXR8
   { slug: 'nejlepsi-msci-world-etf', musi: ['IE00B4L5Y983'], nesmi: /all[- ]world|acwi|ex[- ]usa/i },    // IWDA/EUNL
-  { slug: 'nejlepsi-celosvetove-etf', musi: ['IE00BK5BQT80'] },                                          // VWCE
+  // Celý svět = vyspělé I rozvíjející se trhy (18. 10. 2026: dřív vedl EUNL = MSCI World, jen vyspělé trhy).
+  { slug: 'nejlepsi-celosvetove-etf', musi: ['IE00BK5BQT80', 'IE00B3YLTY66', 'IE00B6R52259'],            // VWCE, SPYI, IUSQ
+    nesmi: /\bMSCI World\b|developed|ex[- ]?u\.?s|\bESG\b|\bSRI\b|screened|paris|climate|enhanced|\bactive\b/i },
   { slug: 'nejlepsi-emerging-markets-etf', musi: ['IE00BKM4GZ66'], nesmi: /\bEMU\b/i },                 // EIMI/EMIM
   { slug: 'nejlepsi-japonske-etf', nesmi: /ex[- ]?japan/i },
   { slug: 'nejlepsi-cinske-etf', nesmi: /ex[- .]*china/i },
   { slug: 'nejlepsi-zlato-etf', musi: ['IE00B4ND3602'] },                                               // SGLN
   { slug: 'nejlepsi-ropa-etf' },
-  { slug: 'nejlepsi-nasdaq-etf', nesmi: /biotech/i },
+  { slug: 'nejlepsi-nasdaq-etf', nesmi: /biotech|cyber|semiconductor|smart grid|covered call|aerospace/i },
 ];
 
 async function nactiFondy() {
@@ -284,10 +286,23 @@ const main = async () => {
   // Ověřuje, že v kategorii JSOU fondy, které tam patří, a NEJSOU tam pákové produkty a fondy
   // „ex <region>" (audit 17. 10. 2026: japonské obsahovaly „ex Japan", čínské „ex-China", ropa
   // vedla 2× pákovým WTI). Selhání = POPLACH – žebříčky jsou nejnavštěvovanější stránky z Bingu.
+  // Rozcestník /zebricky počítá fondy žebříčků vlastním (JS) filtrem z jednoho dotazu, žebříček SQL dotazem
+  // (src/lib/zebricky.ts vs. getTopETFsForCategory). Když se rozejdou, rozcestník slibuje jiný počet fondů.
+  let pocetRozcestnik = new Map();
+  try {
+    const h = await fetch(`${WEB_URL}/zebricky`).then((r) => (r.ok ? r.text() : ''));
+    pocetRozcestnik = new Map([...h.matchAll(/data-pocet="(\d+)" data-slug="([a-z0-9-]+)"/g)].map((m) => [m[2], Number(m[1])]));
+    if (!pocetRozcestnik.size) varovani.push({ co: 'Rozcestník /zebricky neukazuje počty fondů (data-pocet) – nenačetl se, nebo DB nedostupná', ukazka: [] });
+  } catch { varovani.push({ co: 'Rozcestník /zebricky se nenačetl', ukazka: [] }); }
+  const nesouhlasi = [];
+
   for (const z of ZLATA_SADA) {
     let html = '';
     try { html = await fetch(`${WEB_URL}/nejlepsi-etf/${z.slug}`).then((r) => (r.ok ? r.text() : '')); } catch { /* níže */ }
     if (!html) { poplach.push({ co: `Žebříček /nejlepsi-etf/${z.slug} se nenačetl`, ukazka: [] }); continue; }
+    const pocetZebricek = Number(html.match(/data-pocet-fondu="(\d+)"/)?.[1] ?? NaN);
+    const pocetHub = pocetRozcestnik.get(z.slug);
+    if (pocetHub != null && Number.isFinite(pocetZebricek) && pocetHub !== pocetZebricek) nesouhlasi.push(`${z.slug}: rozcestník ${pocetHub}, žebříček ${pocetZebricek}`);
     const isiny = new Set([...html.matchAll(/\/etf\/([A-Z]{2}[A-Z0-9]{10})/g)].map((m) => m[1]));
     const chybi = (z.musi || []).filter((i) => !isiny.has(i));
     const byName = new Map(fondy.map((f) => [f.isin, f]));
@@ -295,6 +310,7 @@ const main = async () => {
     if (chybi.length) poplach.push({ co: `Žebříček ${z.slug}: chybí fondy, které tam patří`, ukazka: chybi });
     if (cizi.length) poplach.push({ co: `Žebříček ${z.slug}: obsahuje fondy, které tam nepatří (páka / jiný region)`, ukazka: ukazka(cizi) });
   }
+  if (nesouhlasi.length) poplach.push({ co: 'Rozcestník /zebricky ukazuje jiný počet fondů než žebříček (JS a SQL filtr kategorie se rozešly)', ukazka: nesouhlasi });
 
   // ── POPLATKY ZDROJOVÝCH FONDŮ BACKTESTU (manifest vs. DB) ──
   // Backtest „konkrétního fondu“ přepočítává data na poplatek vybraného fondu podle sourceTer
