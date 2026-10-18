@@ -8,11 +8,13 @@ export interface CompareItem {
   label: string; // ticker nebo krátký název pro chip
 }
 
+import { COMPARE_MAX } from '@/components/design-preview/compareLimit';
+
 const KEY = 'dp-compare-v1';
-const MAX = 4;
+const MAX = COMPARE_MAX;
 const EVT = 'dp-compare-change';
 
-export const COMPARE_MAX = MAX;
+export { COMPARE_MAX };
 
 export function getCompare(): CompareItem[] {
   if (typeof window === 'undefined') return [];
@@ -56,6 +58,11 @@ export function removeCompare(isin: string) {
 
 export function clearCompare() {
   save([]);
+}
+
+/** Přepíše celý výběr (úprava výběru přímo na stránce porovnání – lišta pak sedí se stránkou). */
+export function setCompare(list: CompareItem[]) {
+  save(list);
 }
 
 /** Přihlášení k odběru změn (i mezi záložkami přes storage event). */

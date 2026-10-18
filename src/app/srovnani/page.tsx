@@ -3,11 +3,11 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { TrendingUp, ArrowRight, Wallet, Database, CalendarDays, Swords, SlidersHorizontal, Coins, Layers } from 'lucide-react';
+import { TrendingUp, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { getScreenerRows, buildInitialScreenerRows, getDataDate, getTotalETFCount } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
-import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { COMPARE_MAX } from '@/components/design-preview/compareLimit';
 
 const currentYear = new Date().getFullYear();
 
@@ -41,13 +41,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `Srovnávač ETF: filtrujte a porovnejte ${count} fondů`,
     description:
-      'Interaktivní srovnávač ETF pro české investory. Filtrujte podle TER, typu, replikace a regionu, řaďte podle výnosu v Kč a proklikněte se na detail fondu.',
+      'Interaktivní srovnávač ETF pro české investory. Filtrujte podle indexu, TER a typu výplaty, řaďte podle výnosu v Kč a porovnejte fondy vedle sebe.',
     alternates: { canonical: '/srovnani' },
   };
 }
 
 export default async function SrovnaniScreenerPreview() {
   const { rows, options, total } = await getScreenerRows();
+  // Stejné číslo jako záložka „Vše“ ve výchozím stavu (pákové produkty jsou skryté).
+  const pocet = rows.filter((r) => !r.is_leveraged).length;
   const initialRows = buildInitialScreenerRows(rows, '', 50);
   const today = new Date();
   const dataDate = await getDataDate(today);
@@ -99,20 +101,16 @@ export default async function SrovnaniScreenerPreview() {
           <span className="text-slate-700">Srovnávač ETF</span>
         </nav>
 
-        {/* HERO – na mobilu krátký (dřív 380 px před filtry; UX audit 17. 10. 2026) */}
-        <section className="pb-4 md:pb-6">
-          <div className="rounded-2xl bg-slate-900 text-white px-5 py-5 md:px-9 md:py-8">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Srovnávač ETF</h1>
-            <p className="mt-1.5 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">
-              <span className="md:hidden">Filtrujte a řaďte fondy podle poplatku a výnosu <strong className="text-white">v korunách</strong>.</span>
-              <span className="hidden md:inline">
-                Projděte a porovnejte největší ETF fondy dostupné pro české investory. Filtrujte podle poplatku (TER),
-                typu, replikace a regionu, řaďte podle výnosu <strong className="text-white">přepočteného do korun</strong> a
-                proklikněte se na detail každého fondu.
-              </span>
-            </p>
-            <AktualnostDat datum={dataDate} tmavy className="mt-3" />
+        {/* HLAVIČKA – jen nadpis, jeden řádek a datum dat. Revize art directora 18. 10. 2026: tmavý hero
+            (220 px) + filtry ve dvou řádcích odsunuly první fond na y≈800, na mobilu až k dolnímu okraji. */}
+        <section className="pb-3 md:pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <h1 className="text-2xl md:text-[1.75rem] font-bold tracking-tight leading-tight text-slate-900">Srovnávač ETF</h1>
+            <AktualnostDat datum={dataDate} />
           </div>
+          <p className="mt-0.5 text-sm text-slate-600">
+            {pocet.toLocaleString('cs-CZ')} fondů<span className="hidden sm:inline"> dostupných z Česka</span> · výnosy přepočtené do korun
+          </p>
         </section>
 
         {/* SCREENER – hlavní obsah stránky (výpis fondů z databáze) */}
@@ -120,100 +118,66 @@ export default async function SrovnaniScreenerPreview() {
           <ScreenerUI initialRows={initialRows} total={total} options={options} dataDate={dateStr} />
         </section>
 
-        {/* Ukázkový souboj – featured (až POD samotným výpisem fondů) */}
-        <section className="pt-8">
-          <Link href="/srovnani/vwce-vs-cspx" className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
-            <span className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Swords className="w-4 h-4" /></span>
-              <span>
-                <span className="block text-sm font-semibold text-slate-900">Souboj fondů: VWCE vs CSPX</span>
-                <span className="block text-xs text-slate-500">Detailní porovnání dvou nejoblíbenějších fondů – celý svět vs S&amp;P 500.</span>
-              </span>
-            </span>
-            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-700 shrink-0" />
-          </Link>
-        </section>
-
-        {/* Nejhledanější kategorie – prolink na žebříčky (interní linkbuilding + SEO) */}
+        {/* Nejhledanější kategorie – prolink na žebříčky (navigace + interní odkazy) */}
         <section className="pt-10">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><Layers className="w-4 h-4" /></span>
-            <h2 className="text-lg font-bold tracking-tight text-slate-900">Nejhledanější kategorie ETF</h2>
-          </div>
-          <p className="mb-4 max-w-2xl text-sm text-slate-600 leading-relaxed">
-            Nevíte, kde začít? Projděte hotové žebříčky nejlepších fondů v dané kategorii – vybrané,
-            seřazené a s výnosy přepočtenými do korun.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <h2 className="text-base font-semibold tracking-tight text-slate-900">Hotové žebříčky podle kategorie</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
             {POPULAR_CATEGORIES.map((c) => (
               <Link
                 key={c.slug}
                 href={`/nejlepsi-etf/${c.slug}`}
-                className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:border-teal-300 hover:shadow-sm transition-all"
+                title={c.note}
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700"
               >
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-slate-900 group-hover:text-teal-700">{c.label}</span>
-                  <span className="block text-xs text-slate-500">{c.note}</span>
-                </span>
-                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-700 shrink-0" />
+                {c.label}
               </Link>
             ))}
-          </div>
-          <div className="mt-4">
-            <Link href="/zebricky" className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
-              Všechny žebříčky ETF <ArrowRight className="w-4 h-4" />
+            <Link href="/zebricky" className="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
+              Všechny žebříčky <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </section>
 
-        {/* Co je srovnávač / jak používat / co porovnávat – SEO obsah (parita se starým webem) */}
-        <section className="pt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <article className="rounded-xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><Database className="w-4 h-4" /></span>
-              <h2 className="text-base font-bold text-slate-900">Co je srovnávač ETF</h2>
+        {/* Jak srovnávač používat – JEDEN sbalený blok (dřív 3 karty + text o hvězdičkách + žlutý box
+            s upozorněním, které je i v patičce; revize 18. 10. 2026). Text zůstává v HTML pro vyhledávače. */}
+        <section className="pt-8">
+          <details className="group rounded-xl border border-slate-200 bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+              <span className="inline-flex items-center gap-2"><HelpCircle className="w-4 h-4 text-teal-700" /> Jak srovnávač používat a co u ETF porovnávat</span>
+              <ChevronDown className="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="grid gap-6 border-t border-slate-100 px-4 py-4 text-sm leading-relaxed text-slate-600 md:grid-cols-3">
+              <div>
+                <h2 className="mb-1.5 text-sm font-semibold text-slate-900">Co je srovnávač ETF</h2>
+                <p>
+                  Nástroj pro české investory: projdete {pocet.toLocaleString('cs-CZ')} ETF fondů a seřadíte je podle poplatku (TER),
+                  velikosti nebo výnosu. Na rozdíl od zahraničních srovnávačů ukazuje <strong className="text-slate-800">výnosy přepočtené
+                  do korun</strong> kurzem ČNB – tedy kolik byste reálně vydělali vy.
+                </p>
+              </div>
+              <div>
+                <h2 className="mb-1.5 text-sm font-semibold text-slate-900">Jak ho používat</h2>
+                <ol className="list-decimal space-y-1 pl-4">
+                  <li>Nahoře vyberte třídu aktiv (akcie, dluhopisy, komodity…).</li>
+                  <li>Zvolte index nebo celý trh (např. „Celý svět“ nebo S&amp;P 500) – i víc najednou.</li>
+                  <li>Seřaďte podle poplatku, velikosti nebo výnosu v Kč.</li>
+                  <li>Tlačítkem <strong className="text-slate-800">Porovnat</strong> vyberte 2–{COMPARE_MAX} fondy a uvidíte je vedle sebe
+                    (třeba <Link href="/srovnani/vwce-vs-cspx" className="text-teal-700 hover:underline">VWCE vs. CSPX</Link>).</li>
+                </ol>
+              </div>
+              <div>
+                <h2 className="mb-1.5 text-sm font-semibold text-slate-900">Co u ETF porovnávat</h2>
+                <ul className="list-disc space-y-1 pl-4">
+                  <li><strong className="text-slate-800">TER</strong> – roční poplatek, dlouhodobě dělá velký rozdíl.</li>
+                  <li><strong className="text-slate-800">Velikost fondu</strong> – větší fond bývá levnější na obchodování.</li>
+                  <li><strong className="text-slate-800">Výnos v Kč</strong> – kurz koruny mění reálný výsledek.</li>
+                  <li><strong className="text-slate-800">ACC / DIST</strong> – reinvestice vs. výplata dividend.</li>
+                  <li><strong className="text-slate-800">Replikace</strong> – fyzická vs. syntetická (swap).</li>
+                </ul>
+                <p className="mt-2 text-xs text-slate-500">Výnosy jsou minulé a nezaručují budoucí vývoj.</p>
+              </div>
             </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Srovnávač je nástroj pro české investory, který nechá <strong className="text-slate-800">filtrovat {total.toLocaleString('cs-CZ')} ETF fondů</strong>{' '}
-              podle poplatku (TER), typu výplaty, replikace a regionu. Na rozdíl od zahraničních nástrojů
-              ukazuje <strong className="text-slate-800">výnosy přepočtené do korun</strong> – tedy kolik reálně vyděláte vy.
-            </p>
-          </article>
-          <article className="rounded-xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><SlidersHorizontal className="w-4 h-4" /></span>
-              <h2 className="text-base font-bold text-slate-900">Jak srovnávač používat</h2>
-            </div>
-            <ol className="text-sm text-slate-600 leading-relaxed space-y-1.5 list-decimal pl-4">
-              <li>Vyberte třídu aktiv nahoře (akcie, dluhopisy, komodity…).</li>
-              <li>Zúžením filtrů nastavte TER, region, index či velikost fondu.</li>
-              <li>Seřaďte tabulku podle výnosu v Kč, TER nebo velikosti.</li>
-              <li>Tlačítkem <span className="font-medium text-slate-700">+</span> přidejte až {`5`} fondů do detailního porovnání.</li>
-            </ol>
-          </article>
-          <article className="rounded-xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-50 text-teal-700"><Coins className="w-4 h-4" /></span>
-              <h2 className="text-base font-bold text-slate-900">Co u ETF porovnávat</h2>
-            </div>
-            <ul className="text-sm text-slate-600 leading-relaxed space-y-1.5 list-disc pl-4">
-              <li><strong className="text-slate-800">TER</strong> – roční nákladovost, dlouhodobě zásadní.</li>
-              <li><strong className="text-slate-800">Velikost fondu</strong> – větší fond bývá likvidnější a stabilnější.</li>
-              <li><strong className="text-slate-800">Výnos v Kč</strong> – kurz koruny mění reálný výsledek.</li>
-              <li><strong className="text-slate-800">Akum. vs. distr.</strong> – reinvestice vs. výplata dividend.</li>
-              <li><strong className="text-slate-800">Replikace</strong> – fyzická vs. syntetická.</li>
-            </ul>
-          </article>
-        </section>
-
-        {/* Disclaimer */}
-        <section className="pt-8 space-y-3">
-          <p className="text-xs text-slate-500 leading-relaxed">
-            Výnosy jsou přepočtené do Kč a ukazují minulou výkonnost – nezaručují budoucí vývoj.
-            Hvězdičkové hodnocení je orientační souhrn (velikost, náklady, historická výkonnost),
-            ne investiční doporučení.
-          </p>
-          <InvestmentDisclaimer />
+          </details>
         </section>
       </main>
     </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { categoryConfigs } from '@/lib/etf-data';
-import { anglickeTermy, navrhniKategorie } from '@/lib/hledaniCz';
+import { anglickeTermy, navrhniKategorie, skoreHledani } from '@/lib/hledaniCz';
 
 // slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší zlato ETF).
 const KATEGORIE: Record<string, string> = Object.fromEntries(Object.entries(categoryConfigs).map(([slug, c]) => [slug, c.title]));
@@ -50,26 +50,12 @@ export async function GET(request: NextRequest) {
     }
 
     const term = q.toLowerCase();
-    // Relevance: přesná shoda ISIN/tickeru nahoru, pak prefix tickeru, pak prefix/část názvu.
-    const score = (row: Record<string, unknown>): number => {
-      const tickers = TICKER_FIELDS
-        .map((f) => (row[f] as string | null)?.trim().toLowerCase())
-        .filter((t): t is string => !!t && t !== '-');
-      const isin = String(row.isin).toLowerCase();
-      const name = String(row.name).toLowerCase();
-      if (isin === term || tickers.includes(term)) return 4;
-      if (tickers.some((t) => t.startsWith(term))) return 3;
-      // Úzké varianty (sektory, ESG, opční „income“, páka) za široké fondy – „sp 500“ nemá vrátit IT sektor.
-      const dividendovy = /divid/.test(term) || termy.some((t) => /dividend/i.test(t));
-      const uzka = /(esg|sri|screened|climate|paris|\bpab\b|sector|information tech|premium income|covered call|leveraged|\bshort\b|daily|equal weight|\(ch\))/i.test(name)
-        || (!dividendovy && /(high dividend|dividend yield|dividend)/i.test(name)) ? 0.5 : 0;
-      if (name.startsWith(term)) return 2 - uzka;
-      if (name.includes(term)) return 1 - uzka;
-      // České hledání: dřívější term = přesnější („svět“ → All-World před MSCI World).
-      const i = termy.findIndex((t) => name.includes(t.toLowerCase()));
-      if (i >= 0) return 1 + (termy.length - i) / 100 - uzka;
-      return 0;
-    };
+    // Relevance: sdílená se srovnávačem (src/lib/hledaniCz.ts → skoreHledani).
+    const score = (row: Record<string, unknown>): number => skoreHledani(term, termy, {
+      isin: String(row.isin),
+      name: String(row.name),
+      tickers: TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim().toLowerCase()).filter((t): t is string => !!t && t !== '-'),
+    });
 
     const rows = (data ?? []) as unknown as Record<string, unknown>[];
     const skore = rows.map((row) => ({ row, s: score(row) }));

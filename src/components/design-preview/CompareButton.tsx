@@ -5,7 +5,7 @@ import { Plus, Check } from 'lucide-react';
 import { isInCompare, toggleCompare, subscribeCompare, getCompare, COMPARE_MAX } from '@/components/design-preview/compareStore';
 
 /* Přidat/odebrat fond z porovnání. Varianta „button" (velké) nebo „chip" (kompaktní do řádku/karty). */
-export default function CompareButton({ isin, label, variant = 'button' }: { isin: string; label: string; variant?: 'button' | 'chip' | 'hero' }) {
+export default function CompareButton({ isin, label, variant = 'button' }: { isin: string; label: string; variant?: 'button' | 'chip' | 'hero' | 'row' }) {
   const [inList, setInList] = useState(false);
   const [full, setFull] = useState(false);
 
@@ -22,6 +22,23 @@ export default function CompareButton({ isin, label, variant = 'button' }: { isi
   };
 
   const disabled = full && !inList;
+
+  /* Řádek srovnávače: tlačítko S TEXTEM. Samotné „+“ uživatelé nepoznali (revize 18. 10. 2026). */
+  if (variant === 'row') {
+    return (
+      <button
+        type="button" onClick={onClick} disabled={disabled}
+        aria-pressed={inList}
+        aria-label={inList ? `Odebrat ${label} z porovnání` : `Přidat ${label} do porovnání`}
+        title={disabled ? `Porovnat jde nejvýš ${COMPARE_MAX} fondy – nejdřív některý odeberte` : undefined}
+        className={`inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-lg border h-9 sm:h-8 px-2.5 text-xs font-medium shrink-0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          inList ? 'border-teal-600 bg-teal-600 text-white hover:bg-teal-700' : 'border-slate-300 bg-white text-slate-700 hover:border-teal-500 hover:text-teal-700'
+        }`}
+      >
+        {inList ? <><Check className="w-3.5 h-3.5" /> Vybráno</> : <><Plus className="w-3.5 h-3.5" /> Porovnat</>}
+      </button>
+    );
+  }
 
   if (variant === 'chip') {
     return (
