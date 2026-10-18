@@ -5,6 +5,7 @@ import { ter, money, pct, dist, repl, domicile } from '@/components/design-previ
 import { pickReturn, curLabel, type Currency } from '@/components/design-preview/currency';
 import { platnyTicker } from '@/lib/ticker';
 import EmitentLogo from '@/components/home/EmitentLogo';
+import InfoTip from '@/components/design-preview/InfoTip';
 
 /* ------------------------------------------------------------------ *
  * Pomocné komponenty SPECIFICKÉ pro stránku "Srovnání dvou ETF".
@@ -22,45 +23,52 @@ export function fundAge(inception: string | null): string {
   return `${Math.floor(years)} let na trhu`;
 }
 
-/* Karta jednoho fondu v souboji v HERO panelu (na tmavém pozadí). */
+/* Karta jednoho fondu v úvodu srovnání (na tmavém pozadí). Kolo 3 (18. 10. 2026): kompaktní, na mobilu
+   dvě vedle sebe – první čísla (poplatek, výnos 5 let v Kč) nad zlomem. Barevná tečka = barva fondu
+   v grafech (src/lib/barvyFondu.ts). */
 export function SrovnaniSoubojKarta({
   etf,
   podtitul,
-  accent,
+  barva,
   ticker,
+  odlehly = false,
 }: {
   etf: ComparisonETF;
   podtitul: string;
-  accent: 'teal' | 'sky';
-  /** Ticker, jak ho člověk hledal (z URL), např. „CSPX (SXR8)“ – jinak primární ticker fondu. */
+  /** Barva fondu z palety barvyFondu (stejná jako v grafu). */
+  barva: string;
+  /** Jméno fondu na stránce (ticker z XETRA), např. „SXR8“. */
   ticker?: string;
+  /** Výnos fondu mimo trh (src/lib/trhy.ts) → výnos neukazovat. */
+  odlehly?: boolean;
 }) {
-  const ring = accent === 'teal' ? 'border-teal-500/40' : 'border-slate-500/40';
-  const chip = accent === 'teal' ? 'text-teal-300' : 'text-slate-300';
+  const r5 = odlehly ? null : etf.return_5y_czk;
+  const r3 = odlehly ? null : etf.return_3y_czk;
+  const vynos = r5 != null ? { label: '5 let v Kč', v: r5 } : { label: '3 roky v Kč', v: r3 };
   return (
-    <div className={`flex-1 rounded-xl bg-white/5 border ${ring} px-5 py-4`}>
-      <p className={`text-xs font-medium uppercase tracking-wide ${chip}`}>{podtitul}</p>
-      <div className="mt-1.5 flex items-center gap-2.5">
-        <EmitentLogo nazev={etf.name} size={32} />
-        <div className="min-w-0">
-          <p className="text-xl font-bold text-white leading-tight">{ticker ?? platnyTicker(etf.primary_ticker) ?? '—'}</p>
-          <p className="text-xs text-slate-400 leading-snug">{etf.name}</p>
-        </div>
+    <div className="min-w-0 flex-1 rounded-xl bg-white/[0.06] ring-1 ring-white/10 p-3 md:px-5 md:py-4">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: barva }} aria-hidden="true" />
+        <p className="text-lg md:text-2xl font-bold text-white leading-tight">{ticker ?? platnyTicker(etf.primary_ticker) ?? '—'}</p>
+        <span className="ml-auto hidden md:block"><EmitentLogo nazev={etf.name} size={28} /></span>
       </div>
-      <dl className="mt-3 space-y-1.5 text-sm">
-        <div className="flex items-center justify-between">
-          <dt className="text-slate-400">Poplatek (TER)</dt>
-          <dd className="tabular-nums font-medium text-white">{ter(etf.ter_numeric)}</dd>
+      <p className="mt-0.5 text-[11px] md:text-xs text-slate-400 leading-snug line-clamp-2">{podtitul}</p>
+      <dl className="mt-2.5 space-y-1 text-xs md:text-sm">
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-slate-400">Poplatek</dt>
+          <dd className="tabular-nums font-semibold text-white">{ter(etf.ter_numeric)}</dd>
         </div>
-        <div className="flex items-center justify-between">
-          <dt className="text-slate-400">Velikost fondu</dt>
-          <dd className="tabular-nums font-medium text-white">{money(etf.fund_size_numeric, etf.fund_currency)}</dd>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-slate-400">{vynos.label}</dt>
+          <dd className={`tabular-nums font-semibold ${vynos.v == null ? 'text-slate-500' : vynos.v >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>{pct(vynos.v)}</dd>
         </div>
-        <div className="flex items-center justify-between">
-          <dt className="text-slate-400">Počet firem</dt>
-          <dd className="tabular-nums font-medium text-white">
-            {etf.total_holdings ? etf.total_holdings.toLocaleString('cs-CZ') : '—'}
-          </dd>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-slate-400">Firem</dt>
+          <dd className="tabular-nums font-semibold text-white">{etf.total_holdings ? etf.total_holdings.toLocaleString('cs-CZ') : '—'}</dd>
+        </div>
+        <div className="hidden md:flex items-baseline justify-between gap-2">
+          <dt className="text-slate-400">Velikost</dt>
+          <dd className="tabular-nums font-semibold text-white">{money(etf.fund_size_numeric, etf.fund_currency)}</dd>
         </div>
       </dl>
     </div>
@@ -126,7 +134,8 @@ export function SrovnaniParamTabulka({
   );
 }
 
-/* Mobilní varianta tabulky parametrů – stacked karty (< md). */
+/* Mobilní varianta tabulky parametrů (< md). Kolo 3: kompaktní tabulka (parametr | fond 1 | fond 2)
+   místo karet po řádcích – dřív 16 karet ≈ 1 800 px. Vysvětlivky v tooltipu. */
 export function SrovnaniParamKarty({
   ticker1,
   ticker2,
@@ -137,29 +146,25 @@ export function SrovnaniParamKarty({
   rows: RadekProps[];
 }) {
   return (
-    <div className="md:hidden space-y-2">
-      {rows.map((r) => (
-        <div key={r.label} className="rounded-lg border border-slate-200 bg-white p-4">
-          <p className="text-sm font-medium text-slate-800">{r.label}</p>
-          {r.hint && <p className="text-xs text-slate-400 mt-0.5">{r.hint}</p>}
-          <div className="mt-2.5 grid grid-cols-2 gap-2">
-            <div className={`rounded-md px-3 py-2 ${r.winner === 1 ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50'}`}>
-              <p className="text-xs text-slate-500">{ticker1}</p>
-              <p className="tabular-nums font-medium text-slate-900 flex items-center">
-                {r.v1}
-                <CellMark win={r.winner === 1} />
-              </p>
-            </div>
-            <div className={`rounded-md px-3 py-2 ${r.winner === 2 ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50'}`}>
-              <p className="text-xs text-slate-500">{ticker2}</p>
-              <p className="tabular-nums font-medium text-slate-900 flex items-center">
-                {r.v2}
-                <CellMark win={r.winner === 2} />
-              </p>
-            </div>
-          </div>
-        </div>
-      ))}
+    <div className="md:hidden overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <table className="w-full table-fixed text-[13px]">
+        <thead>
+          <tr className="bg-slate-50 text-xs text-slate-500">
+            <th className="w-[40%] py-2 pl-3 pr-1 text-left font-medium">Parametr</th>
+            <th className="py-2 px-1 text-right font-semibold text-slate-700">{ticker1}</th>
+            <th className="py-2 pl-1 pr-3 text-right font-semibold text-slate-700">{ticker2}</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 text-slate-700">
+          {rows.map((r) => (
+            <tr key={r.label}>
+              <td className="py-2 pl-3 pr-1 align-top text-slate-600 leading-snug">{r.hint ? <InfoTip label={r.hint}>{r.label}</InfoTip> : r.label}</td>
+              <td className={`py-2 px-1 text-right align-top tabular-nums break-words ${r.winner === 1 ? 'font-semibold text-emerald-700' : ''}`}>{r.v1}<CellMark win={r.winner === 1} /></td>
+              <td className={`py-2 pl-1 pr-3 text-right align-top tabular-nums break-words ${r.winner === 2 ? 'font-semibold text-emerald-700' : ''}`}>{r.v2}<CellMark win={r.winner === 2} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

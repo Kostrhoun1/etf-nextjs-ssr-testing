@@ -55,3 +55,18 @@ export async function nactiDoplnkyFondu(isins: string[]): Promise<Record<string,
     return {};
   }
 }
+
+/** Ticker, pod kterým fond v Česku nejčastěji koupíte: listing na XETRA (DEGIRO, XTB, Trading 212),
+ *  jinak primární ticker. Kolo 3 (18. 10. 2026): stránka „CSPX vs …“ střídala CSPX a SXR8 – teď jednou
+ *  vysvětlí, že jde o tentýž fond, a dál drží jedno jméno (to z XETRA). */
+export function tickerProCesko(etf: object): string | null {
+  const r = etf as Record<string, unknown>;
+  for (let i = 1; i <= 10; i++) {
+    if (/xetra/i.test(String(r[`exchange_${i}_name`] ?? ''))) {
+      const t = r[`exchange_${i}_ticker`];
+      if (typeof t === 'string' && t.trim() && t.trim() !== '-') return t.trim();
+    }
+  }
+  const p = r.primary_ticker;
+  return typeof p === 'string' && p.trim() && p.trim() !== '-' ? p.trim() : null;
+}

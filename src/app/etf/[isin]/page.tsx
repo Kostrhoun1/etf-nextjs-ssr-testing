@@ -29,7 +29,7 @@ import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy } from '@/lib/trhy';
 import { platnyTicker } from '@/lib/ticker';
 import { datumCen } from '@/lib/datumCen';
-import { ceskaZeme, ceskySektor } from '@/lib/preklady';
+import { ceskaZeme, ceskySektor, ceskeZamereni } from '@/lib/preklady';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -435,11 +435,19 @@ export default async function ETFDetailPreview(
     ],
   };
 
+  // Hlavní ticker = XETRA (DEGIRO, XTB, Trading 212 nakupují tam); ostatní burzy až pod „Další burzy“ (Markéta:
+  // „SXR8 · CSSPX · CSPX · CSP1 – který koupit?“).
+  const xetra = exchanges.find((e) => /xetra/i.test(e.name));
+  const hlavniListing = xetra ?? exchanges[0] ?? null;
+  const hlavniTicker = hlavniListing?.ticker ?? platnyTicker(etf.primary_ticker) ?? null;
+  const ostatniTickery = allTickers.filter((t) => t.toUpperCase() !== (hlavniTicker ?? '').toUpperCase() && platnyTicker(t));
+  const dalsiBurzy = exchanges.filter((e) => e !== hlavniListing);
+
   /* ---------- graf vývoje: jen fond, který PŘESNĚ sedí na index z manifestu (pravidlo č. 1) ---------- */
   const presnyIndex = btFond && btFond.shoda === 'stejny' ? btFond : null;
   // Graf končí STEJNÝM dnem jako data fondu (datum cen) – jinak se rozchází s výnosy v úvodu (revize kola 2).
   const vyvoj = presnyIndex ? await nactiVyvojIndexu(presnyIndex.indexCode, dataDate.toISOString().slice(0, 10)) : null;
-  const tkHlavni = platnyTicker(etf.primary_ticker) ?? null;
+  const tkHlavni = hlavniTicker; // v grafu i odkazech stejné jméno jako v úvodu (XETRA)
   const jeZdrojovyFond = !!presnyIndex && INDEX_BY_CODE[presnyIndex.indexCode]?.sourceIsin === etf.isin;
   const velkym = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
   const podnadpisVyvoje = presnyIndex
@@ -448,20 +456,16 @@ export default async function ETFDetailPreview(
   const zdrojVyvoje = presnyIndex
     ? jeZdrojovyFond ? 'Řada je přímo tento fond.' : `Řada je ${presnyIndex.zdroj} – fond na stejný index s historií delší než ${tkHlavni ?? 'tento fond'}. Liší se jen poplatkem a drobnou odchylkou od indexu.`
     : '';
-  const rozdilVyvoje = presnyIndex && !jeZdrojovyFond ? `od výnosu ${tkHlavni ?? 'fondu'} se liší poplatkem a zdaněním dividend` : undefined;
+  // Akciové indexy: fond platí srážkovou daň z dividend, zdrojový US fond ne. Zlato/dluhopisy: jen poplatek.
+  const akciovyIndex = presnyIndex ? ['region', 'factor', 'sector'].includes(INDEX_BY_CODE[presnyIndex.indexCode]?.group ?? '') : false;
+  const rozdilVyvoje = presnyIndex && !jeZdrojovyFond
+    ? `od výnosu ${tkHlavni ?? 'fondu'} se liší ${akciovyIndex ? 'poplatkem a zdaněním dividend' : 'poplatkem a drobnou odchylkou od indexu'}`
+    : undefined;
   // Backtest počítá v Kč až od prvního kurzu (30. 12. 1999, vznik eura) → rok z dat, ne natvrdo (revize 18. 10. 2026:
   // „od 1993“ vs. „od 2000“). +7 dní: řada začínající posledními dny roku se počítá od dalšího roku.
   const btOdRok = btCode
     ? Math.max(Number(INDEX_BY_CODE[btCode].since.slice(0, 4)), vyvoj && btCode === presnyIndex?.indexCode ? new Date(new Date(vyvoj.zacatek).getTime() + 7 * 864e5).getUTCFullYear() : 2000)
     : null;
-
-  // Hlavní ticker = XETRA (DEGIRO, XTB, Trading 212 nakupují tam); ostatní burzy až pod „Další burzy“ (Markéta:
-  // „SXR8 · CSSPX · CSPX · CSP1 – který koupit?“).
-  const xetra = exchanges.find((e) => /xetra/i.test(e.name));
-  const hlavniListing = xetra ?? exchanges[0] ?? null;
-  const hlavniTicker = hlavniListing?.ticker ?? tkHlavni;
-  const ostatniTickery = allTickers.filter((t) => t.toUpperCase() !== (hlavniTicker ?? '').toUpperCase() && platnyTicker(t));
-  const dalsiBurzy = exchanges.filter((e) => e !== hlavniListing);
 
   // Top 10 pozic: scraper do 18. 10. 2026 zahazoval 1. řádek (u S&P 500 chyběla NVIDIA). Neúplný seznam
   // (9 pozic u fondu s víc než 9 tituly) NEukazovat jako „největší pozice“ – pravidlo č. 1.
@@ -484,6 +488,7 @@ export default async function ETFDetailPreview(
     [<InfoTip key="dom" label="Země, kde fond právně sídlí. Irsko má výhodnou daňovou smlouvu s USA, W-8BEN neřešíte.">Domicil</InfoTip>, domText],
     ['Na trhu od', rokVzniku],
   ];
+  const zamereni = ceskeZamereni((etf as unknown as { investment_focus?: string | null }).investment_focus ?? null) || null;
   const pocetDalsich = Math.max(0, (etf.total_holdings ?? 0) - holdings.length);
   const popisFondu = etf.description_cs && etf.description_cs.trim() !== '' && !jeAnglicky(etf.description_cs) ? cleanDesc(etf.description_cs) : null;
 
@@ -605,6 +610,12 @@ export default async function ETFDetailPreview(
                   )}
                   <span className="font-mono text-xs text-slate-400">ISIN {etf.isin}</span>
                 </p>
+                {(zamereni || etf.total_holdings) && (
+                  <p className="mt-3 flex flex-wrap gap-1.5 text-xs">
+                    {zamereni && <span className="rounded-full bg-white/10 px-2.5 py-1 text-slate-200">{zamereni}</span>}
+                    {etf.total_holdings != null && etf.total_holdings > 1 && <span className="rounded-full bg-white/10 px-2.5 py-1 text-slate-200 tabular-nums">{etf.total_holdings.toLocaleString('cs-CZ')} {etf.total_holdings < 5 ? 'pozice' : 'pozic'} ve fondu</span>}
+                  </p>
+                )}
 
                 <div className="mt-5 md:mt-auto md:pt-6">
                   <HeroVynosy
@@ -631,7 +642,7 @@ export default async function ETFDetailPreview(
               <div className="mt-5 md:mt-0 flex flex-col rounded-xl bg-white/[0.04] ring-1 ring-white/10 p-4">
                 <dl className="grid grid-cols-3 gap-x-3 gap-y-3 md:grid-cols-1 md:gap-y-0 md:divide-y md:divide-white/10">
                   {faktaHero.map(([k, v], i) => (
-                    <div key={i} className="min-w-0 md:flex md:items-baseline md:justify-between md:gap-3 md:py-2 md:first:pt-0">
+                    <div key={i} className="min-w-0 md:flex md:items-baseline md:justify-between md:gap-3 md:py-[7px] md:first:pt-0">
                       <dt className="text-[11px] md:text-xs text-slate-400">{k}</dt>
                       <dd className="text-sm font-semibold text-white tabular-nums truncate">{v}</dd>
                     </div>

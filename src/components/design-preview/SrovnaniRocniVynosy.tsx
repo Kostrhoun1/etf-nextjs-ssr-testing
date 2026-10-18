@@ -7,9 +7,10 @@ import type { RokVynosu } from '@/lib/srovnaniRocni';
 
 /* Roční výnosy dvou fondů vedle sebe (stránky srovnání, 18. 10. 2026). Vodorovné dvojice sloupců
    od nulové osy – na mobilu čitelné i se 6 roky. Data = skutečné výnosy fondů (ne index).
-   Barvy: teal-600 / indigo-500 (ověřeno validátorem palety: CVD i kontrast OK); identitu nese i legenda. */
-
-const BARVY = ['#0d9488', '#6366f1'];
+   Barvy: jedna paleta fondů pro všechna srovnání (src/lib/barvyFondu.ts); identitu nese i legenda.
+   Přepínač měny je na stránce jen tady – tabulka parametrů ho sdílí přes currencyStore (kolo 3). */
+import { barvaFondu } from '@/lib/barvyFondu';
+const BARVY = [barvaFondu(0), barvaFondu(1)];
 const pct = (v: number | null) => {
   if (v == null) return '—';
   const r = Math.round(v * 10) / 10 || 0;
