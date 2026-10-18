@@ -163,7 +163,8 @@ function cistyZapis(raw?: string | null): string {
   let s = normalizeIndexName(raw).replace(/[®™]/g, '').replace(/\bex-/gi, 'ex ')
     // „MSCI All Country World X“ = „MSCI AC World X“ = „MSCI ACWI X“ (jeden index, tři zápisy)
     .replace(/\bMSCI (All Country World|AC World)\b/gi, 'MSCI ACWI');
-  for (let i = 0; i < 3; i++) s = s.replace(/\s+(swap|sf|index|nr|tr|ii|net total return|net return|total return)$/i, '');
+  // „Xtrackers“ na konci = jméno emitenta přilepené ke kódu indexu (SCWX: „MSCI AC World Xtrackers“), ne jiný index.
+  for (let i = 0; i < 3; i++) s = s.replace(/\s+(swap|sf|index|nr|tr|ii|net total return|net return|total return|xtrackers)$/i, '');
   return s.replace(/\s+/g, ' ').trim();
 }
 

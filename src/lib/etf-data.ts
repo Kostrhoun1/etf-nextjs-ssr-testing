@@ -4,6 +4,7 @@
  */
 import { cache as reactCache } from 'react';
 import { datumCen } from '@/lib/datumCen';
+import { platnyTicker } from '@/lib/ticker';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
@@ -101,9 +102,11 @@ const ETF_SELECT_FIELDS = `
 `;
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- builder Supabase dotazu má generický typ podle selectu */
-/** Filtr kategorie + společné pojistky – sdílí ho výpis žebříčku i počet fondů (getCategoryCount).
- *  JS zrcadlo pro rozcestník /zebricky: odpovidaKategorii v src/lib/zebricky.ts (musí se shodovat). */
-function filtrKategorie(q: any, config: CategoryConfig): any {
+/** JEDINÁ definice „fond patří do žebříčku“ = filtr kategorie + společné pojistky (revize 18. 10. 2026).
+ *  Používá ho výpis žebříčku (getTopETFsForCategory), počet fondů (getCategoryCount), souhrn na rozcestníku
+ *  /zebricky (getCategorySouhrn) i srovnávač. Žádné JS zrcadlo – dřív rozcestník počítal vlastním filtrem
+ *  a sliboval jiný počet fondů, než ukázal žebříček. */
+export function filtrKategorie(q: any, config: CategoryConfig): any {
     let query = q;
 
     // Apply category filter (simple eq - works well alone)
@@ -179,6 +182,44 @@ export async function getCategoryCount(config: CategoryConfig): Promise<number |
     return count ?? null;
   } catch (error) {
     console.error(`Error in getCategoryCount for ${config.slug}:`, error);
+    return null;
+  }
+}
+
+export interface SouhrnKategorie {
+  slug: string;
+  /** Kolik fondů do žebříčku patří (stejný filtr jako žebříček). */
+  pocet: number;
+  /** Nejnižší TER > 0 (TER 0 % u akcií/dluhopisů je chyba zdroje; stejně jako „Nejnižší poplatek“ na žebříčku). */
+  nejlevnejsi: { isin: string; ticker: string | null; ter: number } | null;
+  nejvetsi: { isin: string; ticker: string | null; nazev: string; velikost: number; r1: number | null } | null;
+}
+
+/** Souhrn žebříčku pro rozcestník /zebricky: počet + největší fond (jeden dotaz) a nejlevnější fond (druhý).
+ *  Oba dotazy jdou přes filtrKategorie → rozcestník a žebříček nemůžou ukázat jiný počet. null = chyba DB. */
+export async function getCategorySouhrn(config: CategoryConfig): Promise<SouhrnKategorie | null> {
+  try {
+    const sloupce = 'isin,name,primary_ticker,fund_size_numeric,ter_numeric,return_1y_czk';
+    const [vel, lev] = await Promise.all([
+      filtrKategorie(supabaseAdmin.from('etf_funds').select(sloupce, { count: 'exact' }), config)
+        .order('fund_size_numeric', { ascending: false }).limit(1),
+      filtrKategorie(supabaseAdmin.from('etf_funds').select(sloupce), config)
+        .gt('ter_numeric', 0).order('ter_numeric', { ascending: true }).order('fund_size_numeric', { ascending: false }).limit(1),
+    ]);
+    if (vel.error || lev.error) { console.error(`getCategorySouhrn ${config.slug}:`, vel.error ?? lev.error); return null; }
+    const n = vel.data?.[0];
+    const t = lev.data?.[0];
+    return {
+      slug: config.slug,
+      pocet: vel.count ?? 0,
+      nejlevnejsi: t ? { isin: t.isin, ticker: platnyTicker(t.primary_ticker), ter: Number(t.ter_numeric) } : null,
+      nejvetsi: n ? {
+        isin: n.isin, ticker: platnyTicker(n.primary_ticker), nazev: n.name, velikost: Number(n.fund_size_numeric),
+        r1: n.return_1y_czk == null ? null : Number(n.return_1y_czk),
+      } : null,
+    };
+  } catch (error) {
+    console.error(`getCategorySouhrn ${config.slug}:`, error);
     return null;
   }
 }
@@ -1197,12 +1238,14 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   'nejlepsi-etf-2026': {
     slug: 'nejlepsi-etf-2026',
     title: 'Nejlepší ETF 2026',
-    description: 'Top ETF fondy pro rok 2026 podle výkonnosti a ratingu',
-    metaDescription: 'Nejlepší ETF fondy pro rok 2026 - kompletní přehled top hodnocených ETF s nejnižšími poplatky a nejvyšší výkonností.',
+    // Řazeno podle velikosti, ne podle vlastního „hodnocení“ (revize 18. 10. 2026: jsme srovnávač, ne poradce –
+    // „podle našeho hodnocení“ šlo proti „nedáváme doporučení“).
+    description: 'Největší ETF fondy napříč všemi třídami aktiv – poplatky, velikost a výnosy v Kč',
+    metaDescription: 'Největší ETF fondy roku 2026 napříč akciemi, dluhopisy i komoditami – srovnání poplatků, velikosti a výnosů v korunách.',
     filters: {
       minFundSize: 100,
     },
-    sortBy: 'rating',
+    sortBy: 'fund_size_numeric',
     sortOrder: 'desc',
     limit: 200,
   },

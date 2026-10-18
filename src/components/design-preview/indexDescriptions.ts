@@ -8,7 +8,7 @@
  * shoda chybí, getIndexInfo zkusí rodinové fallbacky (dluhopisy, krypto, sektory).
  */
 
-import { canonicalIndexKey, canonicalIndexLabel, getIndexProvider, normalizeIndexName } from '@/utils/indexNormalization';
+import { canonicalIndexKey, canonicalIndexLabel, getIndexProvider, normalizeIndexName, indexFonduLabel } from '@/utils/indexNormalization';
 
 export interface IndexInfo {
   label: string;      // zobrazovaný název
@@ -22,7 +22,7 @@ export interface IndexInfo {
 const EXACT: Record<string, Omit<IndexInfo, 'label'>> = {
   'msci world': {
     provider: 'MSCI',
-    holdings: '~1 400 firem',
+    holdings: '~1 300 firem', // MSCI factsheet 6/2026: 1 283 složek
     what: 'Velké a střední firmy z 23 vyspělých trhů světa, vážené tržní kapitalizací. Pokrývá zhruba 85 % kapitalizace vyspělých trhů, ale nezahrnuje rozvíjející se ekonomiky. Váhu drtivě určují USA (kolem 70 %).',
   },
   's&p 500': {
@@ -32,8 +32,14 @@ const EXACT: Record<string, Omit<IndexInfo, 'label'>> = {
   },
   'msci acwi': {
     provider: 'MSCI',
-    holdings: '~2 700 firem',
+    holdings: '~2 500 firem', // MSCI factsheet 8/2026: 2 458 složek
     what: 'MSCI All Country World – velké a střední firmy z 23 vyspělých a 24 rozvíjejících se trhů. Jedním indexem pokryje zhruba 85 % globální investovatelné kapitalizace včetně rozvíjejících se trhů.',
+  },
+  'msci acwi imi': {
+    provider: 'MSCI',
+    holdings: '~8 200 firem',
+    // MSCI factsheet 6/2026: 8 195 složek, 23 vyspělých + 24 rozvíjejících se trhů, ~99 % investovatelného trhu.
+    what: 'MSCI ACWI rozšířený o malé firmy (IMI = Investable Market Index): velké, střední i malé firmy z 23 vyspělých a 24 rozvíjejících se trhů. Pokrývá zhruba 99 % investovatelné kapitalizace světových akcií.',
   },
   'ftse all-world': {
     provider: 'FTSE Russell',
@@ -218,19 +224,23 @@ export function getIndexInfo(rawOrLabel?: string | null): IndexInfo | null {
  * počty poctivě rámovat vůči celku.
  */
 export function topIndexesForCategory(
-  etfs: { index_name?: string | null }[],
+  etfs: { index_name?: string | null; name?: string | null }[],
   limit = 4
 ): { info: IndexInfo; count: number }[] {
+  // Index fondu stejnou funkcí jako srovnávač (indexFonduLabel): `index_name` je u ~3 000 fondů prázdný
+  // nebo useknutý → index se pozná i z názvu fondu (revize 18. 10. 2026: „MSCI ACWI 6 z 24“, ve skutečnosti 14).
   const byKey = new Map<string, { info: IndexInfo; count: number }>();
   for (const e of etfs) {
-    const key = canonicalIndexKey(cleanIndexForDescription(e.index_name));
+    const label = indexFonduLabel(e);
+    if (!label) continue;
+    const key = canonicalIndexKey(cleanIndexForDescription(label));
     if (!key) continue;
     const existing = byKey.get(key);
     if (existing) {
       existing.count += 1;
       continue;
     }
-    const info = getIndexInfo(e.index_name);
+    const info = getIndexInfo(label);
     if (info) byKey.set(key, { info, count: 1 });
   }
   return [...byKey.values()]

@@ -109,16 +109,32 @@ All Country World (Solactive GBS). Fondy na MSCI World (EUNL, XDWD…) do něj N
 byl EUNL. Indexové žebříčky (S&P 500, MSCI World, Nasdaq-100, celý svět) záměrně vynechávají varianty
 s jinou metodikou (`INDEX_VARIANTY` v etf-data.ts: ESG/Screened/Leaders/Equal Weight/aktivní „Enhanced“,
 Islamic…) – ty jsou v `nejlepsi-esg-etf`. Nasdaq = jen Nasdaq-100; S&P 500 bez Top 20/Capped/Covered Call.
-Měnově zajištěné třídy v žebříčcích ZŮSTÁVAJÍ (štítek „zajištěno“, filtr v tabulce), jen nevyhrávají
-„Nejvýkonnější“. Hlídá `ZLATA_SADA` v check-fund-data.mjs.
+Měnově zajištěné třídy v žebříčcích ZŮSTÁVAJÍ (počítají se do „N fondů“ i do počtu v rozcestníku), ale
+tabulka je **ve výchozím stavu SKRÝVÁ** („17 z 24 fondů – bez 7 měnově zajištěných tříd“, přepínač zůstává)
+– jinak by se v jednom sloupci míchaly výnosy v Kč s výnosy zajištěnými do jiné měny (revize kola 3, 18. 10.).
+Nevyhrávají „Nejvýkonnější“. Hlídá `ZLATA_SADA` v check-fund-data.mjs.
 
-**Rozcestník `/zebricky` počítá čísla JS zrcadlem SQL filtru** (`odpovidaKategorii` v src/lib/zebricky.ts,
-jeden dotaz místo 48). Při změně filtru kategorie v `getTopETFsForCategory`/`filtrKategorie` uprav i
-zrcadlo – denní kontrola porovnává počet fondů rozcestník × žebříček a při rozdílu dá poplach.
+**`filtrKategorie` (src/lib/etf-data.ts) je JEDINÁ definice „fond patří do žebříčku“** (revize 18. 10. 2026).
+Používá ji žebříček, počet fondů, rozcestník /zebricky (`getCategorySouhrn` – 2 malé dotazy na žebříček,
+po dávkách 8) i srovnávač. Dřív měl rozcestník vlastní JS zrcadlo (`odpovidaKategorii`) – nevracet.
+Denní kontrola dál porovnává počet rozcestník × žebříček.
+
+**Žebříček `nejlepsi-etf-2026` řadí podle VELIKOSTI fondu, ne podle `rating`** (18. 10. 2026). `rating` je
+naše vlastní skóre ze scraperu (etf-astro/scraper/etf_rating.py) – „podle našeho hodnocení“ šlo proti
+„jsme srovnávač, nedáváme doporučení“. Na rozcestníku se jmenuje „Největší fondy“. Titulek (SEO) zůstává.
 
 **„Nejvýkonnější“ na stránce žebříčku = výnos za 3 roky v Kč** (za 1 rok jen když 3leté údaje mají méně
 než 3 fondy). Roční momentum u indexových kategorií je šum (revize 18. 10. 2026). Nejnižší poplatek
 ignoruje TER 0 % (u akcií/dluhopisů chyba zdroje, u Xetra-Gold apod. náklady mimo TER).
+**U indexových žebříčků (S&P 500, MSCI World, Nasdaq-100, celý svět, DAX, STOXX 600, FTSE 100, zlato,
+stříbro, bitcoin – `INDEXOVE` v nejlepsi-etf/[slug]/page.tsx) karta „Nejvýkonnější“ ZÁMĚRNĚ CHYBÍ** –
+fondy mají stejný podklad, rozdíl 1–2 p. b. je šum tříd a poplatků. Místo ní neutrální „Jak vybrat mezi
+fondy na stejný index“ (TER, velikost, Acc/Dist, kde koupit). Jinde karta ukazuje pravidlo výběru a medián;
+práh velikosti je aspoň velikost nejmenšího načteného fondu (dluhopisy: tabulka nese 300 z ~800 fondů).
+
+**Index fondu na žebříčku („Co v kategorii je“) = `indexFonduLabel`** (stejná funkce jako srovnávač, odvozuje
+i z názvu fondu – `index_name` je u ~3 000 fondů prázdný/useknutý). Hlídá check-fund-data: u indexových
+žebříčků musí být index poznán u ≥ 80–90 % fondů.
 
 **Detail fondu `/etf/[isin]` ukazuje graf JEN z dat fondu – žádný čárový graf podle indexu/proxy (18. 10. 2026).**
 Rozhodnutí majitele: „je divné ukazovat graf indexu, a ne daného ETF“. Dřív měl SXR8 graf „Vývoj 10 000 Kč“

@@ -5,12 +5,12 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, Layers, BarChart3, Globe2, Factory,
-  Sparkles, Coins, Compass, PieChart, ShoppingCart, Star, ChevronRight, ListOrdered,
+  Sparkles, Coins, Compass, PieChart, ShoppingCart, ChevronRight, ListOrdered,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { categoryConfigs, getTotalETFCount, getDataDate } from '@/lib/etf-data';
-import { nactiFondyProZebricky, spocitejSouhrn, type SouhrnZebricku } from '@/lib/zebricky';
+import { nactiSouhrnyZebricku, type SouhrnZebricku } from '@/lib/zebricky';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 
 export const revalidate = 86400;
@@ -28,7 +28,7 @@ const catHref = (slug: string) => `/nejlepsi-etf/${slug}`;
 /* Krátký název do řádku rozcestníku („Nejlepší S&P 500 ETF“ ×48 byla zeď stejných slov – revize
    18. 10. 2026) + nepovinné upřesnění. Titulek stránky žebříčku (SEO) zůstává beze změny. */
 const POPISKY: Record<string, [string, string?]> = {
-  'nejlepsi-etf-2026': ['Nejlépe hodnocené fondy', 'podle našeho hodnocení'],
+  'nejlepsi-etf-2026': ['Největší fondy', 'napříč všemi třídami aktiv'],
   'nejlevnejsi-etf': ['Nejlevnější fondy', 'podle poplatku TER'],
   'nejlepsi-akciove-etf': ['Akciové'],
   'nejlepsi-dluhopisove-etf': ['Dluhopisové'],
@@ -78,8 +78,7 @@ const POPISKY: Record<string, [string, string?]> = {
   'nejlepsi-distribucni-etf': ['Distribuční', 'dividendy se vyplácejí'],
 };
 
-/* Nejhledanější žebříčky – zvýrazněné hvězdičkou v rámci své skupiny (dřív samostatná sekce,
-   která je duplikovala). */
+/* Nejhledanější žebříčky – štítek „populární“ (ne hvězda: ★ jinde na webu znamená hodnocení). */
 const HLEDANE = new Set(['nejlepsi-sp500-etf', 'nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlevnejsi-etf', 'nejlepsi-nasdaq-etf', 'nejlepsi-zlato-etf']);
 
 /* Skupiny žebříčků (id = kotva). Každý žebříček právě jednou; co v configu chybí ve skupinách,
@@ -124,7 +123,6 @@ const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigi
 const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${cz(Math.abs(v))} %`);
 const terF = (v: number | null | undefined) => (v == null ? '—' : `${cz(v, 2)} %`);
 const fondu = (n: number) => (n === 1 ? 'fond' : n >= 2 && n <= 4 ? 'fondy' : 'fondů');
-const kratkyIsin = (isin: string) => `${isin.slice(0, 2)}…${isin.slice(-4)}`;
 const fmtDatum = (d: Date) => d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
 
 /** Řádek žebříčku: název (+ upřesnění), počet fondů, nejnižší TER, největší fond a jeho výnos za 12 m v Kč. */
@@ -141,19 +139,19 @@ function Radek({ slug, s }: { slug: string; s: SouhrnZebricku | null }) {
         <span className="min-w-0">
           <span className="flex items-center gap-1.5 min-w-0">
             <span className="text-[15px] font-semibold text-slate-900 group-hover:text-teal-800 truncate">{label}</span>
-            {HLEDANE.has(slug) && <Star className="w-3.5 h-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="často hledané" />}
+            {HLEDANE.has(slug) && <span className="shrink-0 rounded-full bg-teal-50 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-teal-800 ring-1 ring-teal-100">populární</span>}
           </span>
           {/* Mobil: počet a poplatek pod názvem; desktop: upřesnění */}
           <span className="block text-xs text-slate-500 truncate">
             <span className="sm:hidden">{s ? `${s.pocet.toLocaleString('cs-CZ')} ${fondu(s.pocet)} · TER od ${terF(s.nejlevnejsi?.ter)}` : '—'}</span>
-            <span className="hidden sm:inline">{sub ?? ' '}</span>
+            {sub && <span className="hidden sm:inline">{sub}</span>}
           </span>
         </span>
         <span className="hidden sm:block text-right text-sm tabular-nums text-slate-700">{s ? s.pocet.toLocaleString('cs-CZ') : '—'}</span>
         <span className="hidden sm:block text-right text-sm tabular-nums text-slate-700">{terF(s?.nejlevnejsi?.ter)}</span>
         <span className="text-right">
           <span className={`block text-sm font-semibold tabular-nums ${r1 == null ? 'text-slate-400' : r1 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(r1)}</span>
-          <span className="block text-[11px] text-slate-500 whitespace-nowrap">{nv ? (nv.ticker ?? kratkyIsin(nv.isin)) : '—'}<span className="sm:hidden"> · 12 m</span></span>
+          <span className="block text-[11px] text-slate-500 whitespace-nowrap">{nv ? (nv.ticker ?? nv.isin) : '—'}<span className="sm:hidden"> · 12 m</span></span>
         </span>
         <ChevronRight className="hidden sm:block w-4 h-4 text-slate-300 group-hover:text-teal-700" />
       </Link>
@@ -162,8 +160,8 @@ function Radek({ slug, s }: { slug: string; s: SouhrnZebricku | null }) {
 }
 
 export default async function ZebrickyPage() {
-  const [fondy, totalCount, dataDate] = await Promise.all([
-    nactiFondyProZebricky(),
+  const [souhrn, totalCount, dataDate] = await Promise.all([
+    nactiSouhrnyZebricku(),
     getTotalETFCount(),
     getDataDate(new Date()),
   ]);
@@ -175,10 +173,6 @@ export default async function ZebrickyPage() {
   const ostatni = Object.keys(categoryConfigs).filter((s) => !covered.has(s));
   if (ostatni.length) groups.push({ id: 'dalsi', title: 'Další žebříčky', chip: 'Další', icon: Layers, slugs: ostatni });
 
-  // Souhrny z jednoho načtení fondů (null = DB nedostupná → v řádcích „—“, nikdy vymyšlené číslo).
-  const souhrn = new Map<string, SouhrnZebricku | null>(
-    Object.keys(categoryConfigs).map((s) => [s, fondy ? spocitejSouhrn(s, fondy) : null]),
-  );
   const totalCategories = Object.keys(categoryConfigs).length;
 
   const breadcrumbSchema = {
@@ -207,7 +201,7 @@ export default async function ZebrickyPage() {
   const hlavicka = (
     <div className="hidden sm:grid sm:grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_6.5rem_1rem] gap-x-3 px-4 py-2 text-[11px] font-medium text-slate-500 border-b border-slate-100 bg-slate-50/60">
       <span>Žebříček</span>
-      <span className="text-right">Fondů</span>
+      <span className="text-right whitespace-nowrap"><InfoTip label="Kolik fondů žebříček ukazuje. Bez pákových produktů a fondů, jejichž data nebyla 14 dní aktualizována; většina žebříčků bere jen fondy nad 50 nebo 100 mil. € (práh je uvedený na stránce žebříčku).">Fondů</InfoTip></span>
       <span className="text-right whitespace-nowrap"><InfoTip label="Nejnižší roční poplatek (TER) mezi fondy žebříčku.">TER od</InfoTip></span>
       <span className="text-right whitespace-nowrap"><InfoTip label={`Výnos největšího fondu žebříčku za posledních 12 měsíců v Kč, k ${datum}. Pod číslem jeho ticker.`}>Největší, 12 m</InfoTip></span>
       <span />
@@ -268,9 +262,10 @@ export default async function ZebrickyPage() {
         <p className="sm:hidden -mt-1 pb-4 text-xs text-slate-500">Vpravo výnos největšího fondu žebříčku za 12 měsíců v Kč.</p>
 
         {/* Skupiny – dva sloupce na desktopu, kompaktní řádky s čísly */}
-        <div className="grid gap-x-5 gap-y-6 lg:grid-cols-2 lg:items-start pb-10">
+        {/* Sloupce (ne mřížka po dvojicích): krátká skupina vedle dlouhé nenechá díru (revize kola 2). */}
+        <div className="lg:columns-2 lg:gap-5 pb-4">
           {groups.map((g) => (
-            <section key={g.id} id={g.id} data-sekce={`skupina-${g.id}`} className="scroll-mt-20 min-w-0" aria-labelledby={`h-${g.id}`}>
+            <section key={g.id} id={g.id} data-sekce={`skupina-${g.id}`} className="scroll-mt-20 min-w-0 break-inside-avoid pb-6" aria-labelledby={`h-${g.id}`}>
               <h2 id={`h-${g.id}`} className="flex items-center gap-2 mb-2 text-lg font-bold tracking-tight text-slate-900">
                 <g.icon className="w-[18px] h-[18px] text-teal-700" /> {g.title}
               </h2>
@@ -310,7 +305,7 @@ export default async function ZebrickyPage() {
         </section>
 
         <section className="pb-12">
-          <InvestmentDisclaimer variant="box" />
+          <InvestmentDisclaimer variant="inline" />
         </section>
       </main>
     </div>
