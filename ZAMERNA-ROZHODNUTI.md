@@ -275,3 +275,7 @@ neověřeno, zda T212 české akcie nabízí. **DEGIRO – roční poplatek za p
 max. 2,5 EUR) se do „za rok“ na /kde-koupit nepočítá, jen v poznámce (výše závisí na hodnotě účtu). Nevymýšlet
 odhady, dokud nejsou ověřené u oficiálního ceníku. Shodu poplatku a směny mezi /kde-koupit, /srovnani-brokeru
 a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
+- **Stejný výnos v Kč na 4 desetinná místa u různých tříd/fondů (SXR8 = IUSA = VUSA 1R 21,7501 %; VWCE = VWRL),
+  18. 10. 2026:** není chyba. Zdroj (justETF) dává výnos v EUR na 2 desetinná místa a ty jsou u fondů na stejný
+  index se stejným TER shodné (21,70 %); Kč se počítá z EUR stejným kurzem ČNB → shodný výsledek. VUAA (21,59 %) se liší.
+- **Velikost fondu 0 (např. IE000C75IMX8):** zdroj uvádí „EUR 0m“ = fond pod 0,5 mil. € (nový/malý). Pravdivé.
