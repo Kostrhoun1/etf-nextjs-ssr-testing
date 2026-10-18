@@ -58,7 +58,7 @@ const ZLATA_SADA = [
 ];
 
 async function nactiFondy() {
-  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name,primary_ticker,total_exchanges,index_name,investment_focus';
+  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name,primary_ticker,total_exchanges,index_name,investment_focus,volatility_1y,volatility_3y,volatility_5y';
   let all = [];
   for (let off = 0; ; off += 1000) {
     const r = await fetch(`${URL_DB}?select=${cols}&order=isin&limit=1000&offset=${off}`,
@@ -159,6 +159,51 @@ const main = async () => {
     const podle = {};
     for (const x of mmSpatne) podle[x.category ?? '—'] = (podle[x.category ?? '—'] || 0) + 1;
     varovani.push({ co: `${mmSpatne.length} fondů peněžního trhu (investment_focus „Money Market“) nemá kategorii „Peněžní trh“ (${Object.entries(podle).map(([k, v]) => `${k}: ${v}`).join(', ')})`, ukazka: ukazka(mmSpatne, (x) => `${x.isin} ${String(x.name).slice(0, 40)} → ${x.category}`) });
+  }
+
+  // ── VOLATILITA TŘÍD TÉHOŽ FONDU (revize kola 4, 18. 10. 2026) ──
+  // Zdroj měl u tříd téhož fondu volatilitu lišící se až 2× (SPDR MSCI ACWI IMI: SPYI 10,4 % vs SPSA 21,1 %;
+  // Vanguard All-World High Dividend: VHYL 8,1 % vs VGWE 10,8 %, 3 roky 10,0 vs 17,0 %). Stejné portfolio musí
+  // v eurech kolísat stejně (nezávisle z denních cen Yahoo: SPYI.DE 10–11 %, SPSA.DE 12 %). Web takový údaj
+  // ukazuje jako „—“ (src/lib/tridyFondu.ts); tady se počet sleduje. NEZÁVISLÁ implementace (ne kód webu):
+  // třída = stejný poskytovatel + název před posledním „ETF/ETC/ETP“ + zbytek bez měny/Acc/Dist/1C… + stejné
+  // měnové zajištění (zajištěná třída kolísá jinak – porovnává se jen se zajištěnou do stejné měny).
+  // Práh: rozdíl > 30 % relativně a zároveň ≥ 1 p. b. (peněžní trh pod 1 % = šum).
+  {
+    const MENY = 'EUR|USD|GBP|CHF|JPY|SEK|SGD|AUD|CAD|NOK|DKK|HKD|PLN|CZK|MXN|CNH';
+    const zajisteni = (n) => {
+      const t = n.replace(/\b(interest rate hedged|tail hedge|hedged equity|dynamically hedged)\b/gi, '');
+      if (/unhedged/i.test(t)) return '-';
+      const m = t.match(new RegExp(`(?:^|[\\s-])h(${MENY})\\b`)) || t.match(new RegExp(`\\b(${MENY})\\)?[\\s-]*(?:(?:daily|monthly)\\s+)?(?:hedged?|hdg|pfhdg)\\b`, 'i'))
+        || t.match(new RegExp(`\\b(?:hedged?|hdg)\\s*\\(?\\s*(?:to\\s+)?(${MENY}|euro)\\b`, 'i')) || t.match(new RegExp(`\\bH[- ](${MENY})\\b`));
+      if (m) return m[1].toUpperCase().replace('EURO', 'EUR');
+      return /\b(hedged?|hdg|pfhdg)\b|\(H\)/i.test(t) ? '?' : '-';
+    };
+    const TRIDA_SLOVO = new RegExp(`^(${MENY.toLowerCase()}|euro|hedged?|unhedged|hdg|pfhdg|daily|monthly|to|acc|accumulating|accumulation|capitalisation|capitalization|dist|dis|distributing|distribution|inc|income|[a-z]|\\d[a-z]|dr|class|inst|institutional|uk|ukdis|ukacc|h(eur|usd|gbp|chf))$`);
+    const tridaKlic = (x) => {
+      const m = String(x.name ?? '').match(/^(.*)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b(.*)$/i);
+      if (!m || !m[1].trim()) return null;
+      const zbytek = m[2].toLowerCase().split(/[^a-z0-9]+/).filter((w) => w && !TRIDA_SLOVO.test(w)).join(' ');
+      return `${x.fund_provider}|${zajisteni(String(x.name))}|${m[1].toLowerCase().replace(/\s+/g, ' ').trim()}|${zbytek}`;
+    };
+    const skupiny = new Map();
+    for (const x of fondy.filter((f) => f.name && dni(f) <= 30)) {
+      const k = tridaKlic(x);
+      if (k) skupiny.set(k, [...(skupiny.get(k) ?? []), x]);
+    }
+    const lisi = (a, b) => Math.abs(a - b) >= 1 && Math.max(a, b) / Math.min(a, b) > 1.3;
+    const nalezy = [];
+    for (const g of skupiny.values()) {
+      if (g.length < 2) continue;
+      for (const o of ['1y', '3y', '5y']) {
+        const h = g.filter((x) => Number(x[`volatility_${o}`]) > 0).map((x) => ({ x, v: Number(x[`volatility_${o}`]) }));
+        if (h.length < 2) continue;
+        const v = h.map((y) => y.v);
+        if (!lisi(Math.min(...v), Math.max(...v))) continue;
+        nalezy.push(`${o}: ${h.map((y) => `${y.x.primary_ticker || y.x.isin} ${y.v.toFixed(1)} %`).join(' / ')} – ${String(g[0].name).slice(0, 48)}`);
+      }
+    }
+    if (nalezy.length) varovani.push({ co: `${nalezy.length}× volatilita tříd téhož fondu se liší o víc než 30 % (chyba zdroje; web ji u nich ukazuje jako „—“)`, ukazka: nalezy.slice(0, 6) });
   }
 
   const bezPolitiky = fondy.filter((x) => !x.distribution_policy).length;
@@ -292,6 +337,10 @@ const main = async () => {
       { q: 'evropa', zebricek: 'nejlepsi-evropske-etf' },
       // 18. 10. 2026: „sp500“ dávalo nahoru zajištěné UBS třídy (švýcarské tickery SP500S/E/H) místo CSPX/SXR8.
       { q: 'sp500', isin: 'IE00B5BMR087', poCeskem: true },
+      // Revize kola 4 (18. 10. 2026): „All-World“ dávalo VWCE až na 43. místo (nahoře UBS ACWI), „gold“ vracel
+      // fondy Goldman Sachs. Teď celá slova + přesná shoda indexu + velikost (src/lib/hledaniCz.ts).
+      { q: 'All-World', isin: 'IE00BK5BQT80', poCeskem: true }, { q: 'msci world', isin: 'IE00B4L5Y983', poCeskem: true },
+      { q: 'nasdaq', isin: 'IE00B53SZB19', poCeskem: true }, { q: 'gold', bezGoldman: true, poCeskem: true },
     ];
     const chyby = [];
     for (const o of OCEKAVANI) {
@@ -299,6 +348,7 @@ const main = async () => {
       if (!Array.isArray(r.results)) { chyby.push(`${o.q}: API neodpovědělo`); continue; }
       if (o.poCeskem && !('kategorie' in r)) continue; // produkce ještě bez sdílené relevance (před nasazením)
       if (o.isin && r.results[0]?.isin !== o.isin) chyby.push(`${o.q}: první výsledek ${r.results[0]?.isin ?? 'nic'} místo ${o.isin}`);
+      if (o.bezGoldman && r.results.some((x) => /goldman/i.test(x.name))) chyby.push(`${o.q}: mezi výsledky je Goldman Sachs (shoda uvnitř slova)`);
       if (o.zebricek) {
         if (!('kategorie' in r)) continue; // produkce ještě bez českého hledání (před nasazením)
         if (!r.kategorie.some((k) => k.href.endsWith(o.zebricek))) chyby.push(`${o.q}: chybí žebříček ${o.zebricek}`);

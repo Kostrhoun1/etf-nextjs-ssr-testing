@@ -12,6 +12,7 @@ import { sestavIndexy, type IndexOptionGroup } from '@/utils/indexNormalization'
 import { distKind, type DistKind } from '@/utils/distribution';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { TRHY_SROVNAVACE, INDEXY_TRHU } from '@/lib/screenerTrhy';
+import { volatilitaNesedi, type ObdobiVol } from '@/lib/tridyFondu';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
@@ -746,6 +747,8 @@ export interface ComparisonETF {
   inception_date: string | null;
   is_leveraged: boolean | null;
   category: string | null;
+  /** Období, kde volatilita zdroje nesedí s jinou třídou téhož fondu → web ukazuje „—“ (src/lib/tridyFondu.ts). */
+  _volNesedi?: ObdobiVol[];
 }
 
 /** Burzy fondu (pro odpověď „stejný fond, jiný ticker" – kde a v jaké měně se obchoduje). */
@@ -849,7 +852,21 @@ export async function getComparisonETFsByIsins(isins: string[]): Promise<Compari
       .in('isin', isins.slice(0, 4));
     if (error || !data) return [];
     const byIsin = new Map((data as ComparisonETF[]).map((e) => [e.isin, e]));
-    return isins.map((i) => byIsin.get(i)).filter((e): e is ComparisonETF => !!e);
+    const vysledek = isins.map((i) => byIsin.get(i)).filter((e): e is ComparisonETF => !!e);
+    // Ostatní třídy téhož fondu (stejný poskytovatel a název před „UCITS ETF“) – kontrola volatility.
+    const sourozenci = await Promise.all(vysledek.map(async (e) => {
+      const zaklad = String(e.name ?? '').match(/^(.*)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b/i)?.[1]?.trim();
+      if (!zaklad || !e.fund_provider) return [];
+      const { data: d } = await supabaseAdmin.from('etf_funds')
+        .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y')
+        .eq('fund_provider', e.fund_provider).ilike('name', `${zaklad.replace(/[%_]/g, '')}%`)
+        .gte('scraping_date', nabidkaOd()).limit(60);
+      return (d ?? []) as { isin: string; name: string | null; fund_provider: string | null; volatility_1y: number | null; volatility_3y: number | null; volatility_5y: number | null }[];
+    }));
+    const tridy = new Map(sourozenci.flat().map((f) => [f.isin, f]));
+    for (const e of vysledek) if (!tridy.has(e.isin)) tridy.set(e.isin, e as never);
+    const nesedi = volatilitaNesedi([...tridy.values()]);
+    return vysledek.map((e) => (nesedi.has(e.isin) ? { ...e, _volNesedi: nesedi.get(e.isin) } : e));
   } catch (error) {
     console.error('Error in getComparisonETFsByIsins:', error);
     return [];
@@ -975,6 +992,8 @@ export interface ScreenerRow {
   return_3y: number | null; return_3y_czk: number | null; return_3y_usd: number | null;
   return_5y: number | null; return_5y_czk: number | null; return_5y_usd: number | null; // jen pro export CSV
   volatility_1y: number | null;
+  /** 1 = volatilitu zdroje neukazujeme: nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts). Jinak chybí. */
+  _volX?: 1;
   fund_provider: string | null;
   // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
   _region: string | null;
@@ -1100,6 +1119,8 @@ export const getScreenerRows = reactCache(async (): Promise<{
       return { ...g, options: keep.map((i) => g.options[i]), counts: g.counts ? keep.map((i) => g.counts![i]) : undefined };
     })
     .filter((g) => g.options.length > 0);
+  // Volatilita, která nesedí s jinou třídou téhož fondu → „—“ (pravidlo č. 1, src/lib/tridyFondu.ts).
+  const volNesedi = volatilitaNesedi(raw, ['1y']);
   const trhPodleIsin = new Map<string, string>();
   for (const t of TRHY_SROVNAVACE) for (const i of trhIsiny.get(t.id) ?? []) if (!trhPodleIsin.has(i)) trhPodleIsin.set(i, t.id);
 
@@ -1130,7 +1151,8 @@ export const getScreenerRows = reactCache(async (): Promise<{
       return_1y: r1(e.return_1y), return_1y_czk: r1(e.return_1y_czk), return_1y_usd: r1(e.return_1y_usd),
       return_3y: r1(e.return_3y), return_3y_czk: r1(e.return_3y_czk), return_3y_usd: r1(e.return_3y_usd),
       return_5y: r1(e.return_5y), return_5y_czk: r1(e.return_5y_czk), return_5y_usd: r1(e.return_5y_usd),
-      volatility_1y: r1(e.volatility_1y),
+      volatility_1y: volNesedi.has(e.isin) ? null : r1(e.volatility_1y),
+      ...(volNesedi.has(e.isin) ? { _volX: 1 as const } : {}),
       fund_provider: e.fund_provider,
       _dom: domLabelSrv(e.fund_domicile),
       _year: inceptionYear(e.inception_date),
