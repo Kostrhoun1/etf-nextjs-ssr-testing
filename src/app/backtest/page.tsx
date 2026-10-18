@@ -1,19 +1,18 @@
 import { Metadata } from 'next';
-import type { ReactNode } from 'react';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
-  TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
-  Coins, Wallet, Scale, Landmark, ShieldCheck, Crown, HelpCircle, BookOpen,
-  History, Repeat, LineChart,
+  TrendingUp, ArrowRight, User, Database, Calculator,
+  Wallet, Scale, Landmark, HelpCircle, BookOpen,
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
-import BacktestWidget from '@/components/design-preview/BacktestWidget';
+import BacktestWidget, { type BacktestResult } from '@/components/design-preview/BacktestWidget';
+import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
+import { simulateAndSerialize } from '@/lib/backtest/simulate';
 import { ogImage } from '@/lib/ogImage';
 
 export const revalidate = 86400;
@@ -34,37 +33,84 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Výchozí scénář (100 % S&P 500, od 1/2005, 100 000 Kč + 5 000 Kč měsíčně) spočítaný při ISR renderu
+ * STEJNÝM jádrem a STEJNÝM tělem požadavku jako widget (VYCHOZI_SCENAR) → číslo a graf jsou vidět hned
+ * po načtení, bez kliknutí a bez volání API (revize 18. 10. 2026: 19 s na zobrazení, výsledek nikdo neviděl).
+ * Do HTML jde jen to, co widget kreslí: denní řada → první bod měsíce + poslední bod, bez měsíčních
+ * výnosů, z propadů jen 5 nejhlubších. Při chybě null → widget ukáže formulář (raději nic než špatně).
+ */
+async function predpocitejVychozi(): Promise<BacktestResult | null> {
+  try {
+    const r = await simulateAndSerialize({
+      ...VYCHOZI_SCENAR,
+      endDate: new Date().toISOString().split('T')[0],
+    });
+    const mesicni: { date: string; value: number }[] = [];
+    let posledni = '';
+    for (const p of r.evolution) {
+      const k = p.date.slice(0, 7);
+      if (k !== posledni) { mesicni.push(p); posledni = k; }
+    }
+    const konec = r.evolution[r.evolution.length - 1];
+    if (konec && mesicni[mesicni.length - 1] !== konec) mesicni.push(konec);
+    const nejhlubsi = [...r.risk.allDrawdowns].sort((a, b) => a.depth - b.depth).slice(0, 5);
+    return {
+      evolution: mesicni,
+      summary: r.summary,
+      returns: { annualReturns: r.returns.annualReturns },
+      inflation: r.inflation,
+      risk: { maxDrawdown: r.risk.maxDrawdown, allDrawdowns: nejhlubsi, valueAtRisk95: r.risk.valueAtRisk95 },
+      stressPeriods: r.stressPeriods,
+      drawdownSeries: r.drawdownSeries,
+      rollingReturns: r.rollingReturns,
+    } as BacktestResult;
+  } catch (e) {
+    console.error('[backtest] předpočet výchozího scénáře selhal:', e);
+    return null;
+  }
+}
+
 export default async function BacktestPreview() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
-  const etfCount = await getTotalETFCount();
-  const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
+  const vychozi = await predpocitejVychozi();
+  const posledniDen = vychozi?.evolution[vychozi.evolution.length - 1]?.date;
+  const datumDat = posledniDen
+    ? new Date(posledniDen).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    : null;
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
     {
       q: 'Co je backtest portfolia?',
-      a: 'Backtest je historický test investiční strategie – ukáže, jak by se vaše portfolio chovalo v minulosti na reálných tržních datech. Pomáhá pochopit, jak silně portfolio kolísalo, jaké zažilo propady a jakým tempem dlouhodobě rostlo. Důležité je, že minulá výkonnost nezaručuje budoucí výnosy.',
+      a: 'Backtest je historický test investiční strategie – ukáže, jak by se vaše portfolio chovalo v minulosti na reálných tržních datech: jakým tempem rostlo, jak silně kolísalo a jaké zažilo propady. Minulá výkonnost nezaručuje budoucí výnosy.',
     },
     {
-      q: 'Odkud bere kalkulačka historická data?',
-      a: 'Pracujeme s historickými daty indexů od roku 2000 (S&P 500, MSCI World, rozvíjející se trhy, státní i firemní dluhopisy, zlato a komodity). Data jsou vedena v eurech a do korun či dolarů se přepočítávají historickými kurzy ECB a ČNB. Výpočet běží na našem serveru, ne z odhadu – jde o stejná data jako v plné verzi nástroje.',
+      q: 'Jak výsledky backtestu správně číst?',
+      a: 'Backtest je mapa minulosti, ne věštba. Ukazuje povahu strategie – jak rostla, kolísala a jak hluboké propady přinášela. Dívejte se vždy na dvojici výnos + největší pokles: vysoký výnos s 50% propadem se v reálu těžko drží. Výchozí nastavení vrací portfolio k zadaným vahám jednou ročně (vyvážení), jinou frekvenci zvolíte v nastavení.',
+    },
+    {
+      q: 'Odkud bere backtest historická data?',
+      a: 'Z denních cen skutečných fondů, které dané trhy sledují – například S&P 500 z fondu SPDR S&P 500 (SPY) od roku 1993, akcie celého světa z fondu Vanguard Total World (VT) od června 2008, evropské dluhopisy z evropských fondů iShares a Xtrackers. U každé složky najdete zdroj pod ikonou ⓘ. Data jsou v měně daného fondu (většinou v dolarech, evropské dluhopisy v eurech) a do korun se přepočítávají historickými denními kurzy; kurzy máme od ledna 2000, proto výpočet v korunách začíná nejdřív tehdy. Výpočet běží na našem serveru nad celou historií, ne z odhadu.',
+    },
+    {
+      q: 'Jsou ve výsledku započtené poplatky?',
+      a: 'Poplatky fondů ano – data jsou ceny skutečných fondů, jejich roční poplatek je v nich už obsažený. U konkrétního fondu, který si vyhledáte (např. VWCE), výpočet data přepočítá na jeho poplatek. Poplatky brokera, spready ani daně backtest nezahrnuje.',
     },
     {
       q: 'Co znamená roční zhodnocení (CAGR)?',
-      a: 'Roční zhodnocení (CAGR) je průměrné roční tempo růstu portfolia se zohledněním složeného úročení. Na rozdíl od prostého průměru přesně ukazuje, jakým tempem hodnota skutečně rostla rok za rokem. Roční zhodnocení 7 % znamená, že portfolio v průměru každý rok narostlo o 7 % včetně reinvestovaných výnosů.',
+      a: 'Roční zhodnocení (CAGR) je průměrné roční tempo růstu portfolia se zohledněním složeného úročení. Na rozdíl od prostého průměru ukazuje, jakým tempem hodnota skutečně rostla rok za rokem. Počítá se bez vlivu vkladů, takže je srovnatelné mezi portfolii.',
+    },
+    {
+      q: 'Proč se „Známé krize“ liší od tabulky největších propadů?',
+      a: 'Jde o dvě různá měření. Známé krize měří propad jen uvnitř pevného okna krize (například medvědí trh leden–říjen 2022). Tabulka největších propadů hledá propady od vrcholu po dno bez ohledu na kalendář – může tedy začít už před oknem krize nebo skončit po něm a ukázat proto hlubší číslo.',
     },
     {
       q: 'Co je maximální pokles a proč na něm záleží?',
-      a: 'Maximální pokles (anglicky drawdown) je největší propad hodnoty portfolia od předchozího vrcholu po dno. Ukazuje nejhorší situaci, kterou byste v daném období zažili. Pokud portfolio kleslo o 50 %, znamená to, že dočasně ztratilo polovinu hodnoty – a právě toto číslo prozradí, kolik nervů by takové držení vyžadovalo.',
-    },
-    {
-      q: 'Co je vyvážení portfolia (rebalancing)?',
-      a: 'Vyvážení je pravidelné obnovení původních vah jednotlivých složek. Když například akcie vyrostou rychleji než dluhopisy, portfolio se vychýlí od poměru 60/40. Vyvážením část akcií prodáte a dokoupíte dluhopisy, čímž udržíte zamýšlenou míru rizika. Tento backtest standardně vyvažuje jednou ročně.',
+      a: 'Maximální pokles (drawdown) je největší propad hodnoty portfolia od předchozího vrcholu po dno. Ukazuje nejhorší situaci, kterou byste v daném období zažili. Pokles o 50 % znamená, že portfolio dočasně ztratilo polovinu hodnoty – a právě toto číslo prozradí, kolik nervů by držení vyžadovalo.',
     },
     {
       q: 'Jsou výsledky backtestu spolehlivé pro budoucnost?',
-      a: 'Ne zcela. Backtest ukazuje minulost, ne budoucnost. Hlavní omezení: minulé výnosy se nemusí opakovat, výpočet nezahrnuje poplatky brokera, spready ani daně a nepočítá s nepředvídatelnými událostmi. Backtest je užitečný k pochopení povahy strategie – jak kolísá a jak hluboké propady přináší – nikoli jako předpověď.',
+      a: 'Ne. Backtest ukazuje minulost: minulé výnosy se nemusí opakovat a trh se v dalších letech může chovat úplně jinak. Je užitečný k pochopení povahy strategie – jak kolísá a jak hluboké propady přináší – nikoli jako předpověď.',
     },
   ];
   const faqSchema = {
@@ -82,7 +128,7 @@ export default async function BacktestPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Backtest portfolia ETF', item: 'https://etfpruvodce.cz/kalkulacky/backtest-portfolia' },
+      { '@type': 'ListItem', position: 3, name: 'Backtest portfolia ETF', item: 'https://etfpruvodce.cz/backtest' },
     ],
   };
 
@@ -116,76 +162,29 @@ export default async function BacktestPreview() {
           <span className="text-slate-600">Backtest portfolia</span>
         </nav>
 
-        {/* HERO */}
-        <section className="pb-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 md:py-8">
-            <div>
-              <div className="max-w-2xl">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Backtest portfolia ETF</h1>
-                <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Zadáte portfolio, my ukážeme, jak by obstálo v minulosti (
-                  <InfoTip label="Backtest = historický test strategie. Ukáže, jak by se portfolio chovalo v minulosti – kolik vydělalo, jak kolísalo a jak hluboko klesalo.">backtest</InfoTip>
-                  ) – výnos, propady i kolísavost na reálných datech od roku 2000, v korunách.
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-                  <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
-                  <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2.5">
-                  <Link href="#backtest" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit backtest</Link>
-                  <Link href="/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít ETF do portfolia</Link>
-                </div>
-              </div>
-
-            </div>
-          </div>
+        {/* ÚVOD – nadpis + jedna věta. Dřív tmavý hero s tlačítkem „Spustit backtest“ a nástroj až
+            na druhé obrazovce (revize 18. 10. 2026). Výsledek je teď hned pod nadpisem. */}
+        <section data-sekce="backtest-uvod" className="pb-5">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Backtest portfolia ETF</h1>
+          <p className="mt-1.5 text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed">
+            Jak by vaše portfolio obstálo v minulosti (
+            <InfoTip label="Backtest = historický test strategie na skutečných datech: kolik by vydělala, jak kolísala a jak hluboko klesala.">backtest</InfoTip>
+            ) – výnos i propady v korunách, na reálných datech od roku 2000.
+          </p>
         </section>
 
-        {/* Sekce „Co vám backtest ukáže" odstraněna – 3 pojmy (CAGR/propad/kolísavost)
-            vysvětlují ⓘ tooltipy přímo u výsledku, sekce jen tlačila nástroj dolů. */}
-
-        {/* NÁSTROJ */}
-        <section id="backtest" className="pb-10 scroll-mt-16">
-          <SectionHead title="Sestavte a otestujte portfolio" desc="Vyberte fondy a váhy, zadejte období a vklady. Výpočet běží na reálných historických datech." />
-          <BacktestWidget />
+        {/* NÁSTROJ – výsledek výchozího scénáře je předpočítaný na serveru */}
+        <section id="backtest" className="pb-12 scroll-mt-16">
+          <BacktestWidget initialResult={vychozi} />
         </section>
 
-        {/* JAK BACKTEST ČÍST – edukace vetkaná (ikonové karty) */}
-        <section className="pb-10">
-          <SectionHead title="Jak výsledky správně číst" desc="Backtest je mapa minulosti, ne věštba. Tři věci, na které nezapomenout." />
-          <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Historie ukazuje povahu strategie – jak rostla, jak kolísala a jak hluboké propady přinášela. Neříká ale, co bude.
-              Trh se v dalších letech může chovat úplně jinak a backtest <strong className="text-slate-900">nezahrnuje poplatky brokera, spready ani daně</strong>.
-            </p>
-            <div className="mt-4 grid sm:grid-cols-3 gap-3">
-              {([
-                [History, 'Ukazuje minulost', 'Reálná data, ale jen do včerejška. Budoucnost se může lišit – černé labutě nikdo nenastaví dopředu.'],
-                [Repeat, 'Standardně vyvažuje ročně', (
-                  <>Portfolio se jednou za rok vrací k zadaným vahám (<InfoTip label="Vyvážení – obnovení původních vah. Prodá to, co vyrostlo, dokoupí to, co zaostalo, a drží míru rizika.">vyvážení</InfoTip>), aby si drželo zamýšlenou míru rizika.</>
-                )],
-                [LineChart, 'Sledujte i propady', 'Vysoký výnos s 50% propadem se těžko drží. Důležitá je dvojice výnos + největší pokles, ne jen jedno číslo.'],
-              ] as [typeof History, string, ReactNode][]).map(([Icon, t, d]) => (
-                <div key={t} className="rounded-lg bg-slate-50 p-4">
-                  <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-white text-teal-700 border border-slate-200 mb-3"><Icon className="w-4 h-4" /></span>
-                  <p className="font-medium text-slate-900 text-sm">{t}</p>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">{d}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ */}
-        <section className="pb-10">
+        {/* FAQ (sem se přesunulo i „Jak výsledky správně číst“) */}
+        <section data-sekce="faq" className="pb-10">
           <SectionHead title="Časté dotazy" />
           <div className="space-y-2">
             {faqs.map((f) => (
               <details key={f.q} className="group rounded-lg border border-slate-200 bg-white">
-                <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none">
+                <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none min-h-[44px]">
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
@@ -197,24 +196,8 @@ export default async function BacktestPreview() {
           </div>
         </section>
 
-        {/* TRUST PRUH */}
-        <section className="pb-10">
-          <div className="grid sm:grid-cols-3 gap-4">
-            {([
-              [ShieldCheck, 'Reálná historická data', 'Indexy od roku 2000, kurzy ECB/ČNB – ne odhad ani vymyšlená čísla.'],
-              [Crown, '12 let praxe ve financích', 'Obsah od jmenného autora, ne anonymně.'],
-              [Database, 'Vlastní databáze ETF', `${etfCountLabel} fondů a brokeři z naší databáze. Aktualizováno ${dateStr}.`],
-            ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
-              <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
-                <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
-                <span><span className="block font-semibold text-sm text-slate-900">{t}</span><span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{d}</span></span>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* POKRAČUJTE DÁL */}
-        <section className="pb-10">
+        <section data-sekce="pokracujte" className="pb-10">
           <SectionHead title="Pokračujte dál" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
@@ -234,29 +217,24 @@ export default async function BacktestPreview() {
           </div>
         </section>
 
-        {/* E-E-A-T patička + disclaimer DOLE */}
-        <section className="pb-12">
+        {/* Autor + zdroje + jediné obecné upozornění (dřív 5 varování na jedné stránce) */}
+        <section data-sekce="autor" className="pb-12">
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <div className="flex items-start gap-3">
               <span className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-500 shrink-0"><User className="w-5 h-5" /></span>
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Nástroj i data stavíme nezávisle, na základě veřejných historických dat – bez placeného pořadí.
+                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Nástroj i data stavíme nezávisle, na veřejných historických datech – bez placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
-            <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: historická data indexů od roku 2000, kurzy ECB a ČNB, index spotřebitelských cen ČSÚ (reálné zhodnocení po inflaci), vlastní databáze ETF a brokerů. Aktualizováno {dateStr}.</p>
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Backtest pracuje s minulými daty a slouží ke vzdělávání. Nezahrnuje poplatky brokera, spready ani daně. <strong>Minulá výkonnost nezaručuje budoucí výnosy a backtest není předpovědí.</strong> Obsah nepředstavuje investiční doporučení. Investice do ETF nesou riziko ztráty.</p>
+            <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+              <p className="flex items-start gap-1.5 text-xs text-slate-500"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: denní ceny fondů sledujících dané trhy (zdroj každé složky pod ⓘ), historické kurzy měn, index spotřebitelských cen ČSÚ (výnos po inflaci).{datumDat ? ` Data k ${datumDat}.` : ''}</p>
+              <InvestmentDisclaimer variant="inline" />
             </div>
           </div>
-        </section>
-
-        {/* DISCLAIMER – úplný konec obsahu */}
-        <section className="pb-12">
-          <InvestmentDisclaimer />
         </section>
       </main>
 

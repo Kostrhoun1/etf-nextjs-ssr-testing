@@ -5,16 +5,14 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
-  TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
-  Coins, Wallet, Scale, Landmark, ShieldCheck, Crown, HelpCircle, BookOpen,
-  PiggyBank, Clock, Repeat,
+  TrendingUp, ArrowRight, User, Database, Calculator,
+  Scale, Landmark, HelpCircle, BookOpen, PiggyBank, Clock, Repeat, History,
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvesticniKalkulackaWidget, { type HistorickyVynos } from '@/components/design-preview/InvesticniKalkulackaWidget';
 import { nactiStrojCasu, cagrOd, STROJ_PRESETY } from '@/lib/strojCasu';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -29,15 +27,19 @@ export const metadata: Metadata = {
 export default async function InvesticniKalkulackaPreview() {
   // Skutečné průměrné roční výnosy v Kč za STEJNÉ období (od 1/2004 – první rok, kdy mají data
   // všechny tři presety). Ověřeno: CAGR z měsíčních dat vs. backtest ±0,07 p. b.
+  // Každé číslo má datum: posíláme první měsíc a poslední den dat (dřív jen roky „2004–2026“).
   const OBDOBI_OD = '2004-01';
   const rady = await nactiStrojCasu(['sp500', 'svet', 'vyvazene']);
   const historicke: HistorickyVynos[] = rady.flatMap((r) => {
     const c = cagrOd(r, OBDOBI_OD);
     const p = STROJ_PRESETY.find((x) => x.id === r.id);
-    return c && p ? [{ id: r.id, nazev: p.nazev, cagr: c.cagr, od: 2004, do: Number(r.posledniDen.slice(0, 4)) }] : [];
+    return c && p ? [{ id: r.id, nazev: p.nazev, cagr: c.cagr, odMesic: OBDOBI_OD, doDen: r.posledniDen }] : [];
   });
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Pořadí rychlých voleb: S&P 500, celý svět, 60/40 (od nejvyššího rizika).
+  const PORADI = ['sp500', 'svet', 'vyvazene'];
+  historicke.sort((a, b) => PORADI.indexOf(a.id) - PORADI.indexOf(b.id));
+  // Všechny volby musí mít STEJNÝ konec období (jinak by srovnání neplatilo) – jinak je raději nezobrazit.
+  const stejneObdobi = historicke.every((h) => h.doDen === historicke[0]?.doDen);
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -47,19 +49,19 @@ export default async function InvesticniKalkulackaPreview() {
     },
     {
       q: 'Jak kalkulačka počítá pravidelné investování?',
-      a: 'U měsíčního vkladu kalkulačka simuluje rok po měsících: každý měsíc přičte váš vklad a poté na celou hodnotu portfolia aplikuje měsíční výnos odpovídající zadanému ročnímu (při 7 % ročně je to zhruba 0,565 % měsíčně, aby za 12 měsíců vyšlo přesně 7 %). U ročního vkladu přičte vklad jednou za rok a aplikuje celý roční výnos. Výsledek je tak srovnatelný s reálným pravidelným investováním.',
+      a: 'U měsíčního vkladu kalkulačka simuluje rok po měsících: na začátku každého měsíce přičte váš vklad a poté na celou hodnotu aplikuje měsíční výnos odpovídající zadanému ročnímu – (1 + r)^(1/12) − 1, při 7 % ročně zhruba 0,565 % měsíčně, aby za 12 měsíců vyšlo přesně 7 %. U ročního vkladu přičte vklad jednou za rok a aplikuje celý roční výnos.',
     },
     {
       q: 'Jaký výnos mám do kalkulačky zadat?',
-      a: 'Globální akciové indexy (například MSCI World nebo S&P 500) historicky dosahovaly zhruba 7–10 % ročně před inflací. Po zohlednění inflace bývá reálný výnos nižší, kolem 4–7 % ročně. Výchozí hodnota 7 % je realistický střed, konkrétní budoucí výnos ale nikdo nezaručí.',
+      a: 'Orientaci dají rychlé volby pod polem výnosu: kolik skutečně vynesly S&P 500, akcie celého světa a portfolio 60/40 v korunách od ledna 2004 (po poplatcích fondů, před daní). Výchozích 7 % je zaokrouhlený předpoklad, ne předpověď – budoucí výnos nikdo nezaručí. Jak by stejné vklady dopadly na skutečných datech i s propady, ukáže backtest.',
+    },
+    {
+      q: 'Počítá kalkulačka s poplatky a inflací?',
+      a: 'Kalkulačka bere výnos tak, jak ho zadáte – poplatky ani inflaci sama neodečítá. Chcete-li výsledek po poplatcích fondu, zadejte výnos už po nich; historické výnosy u rychlých voleb jsou po poplatcích fondů (před daní). Poplatky brokera nezahrnuje. Přepočet do dnešních cen pod výsledkem je orientační, při inflaci 2 % ročně (inflační cíl ČNB).',
     },
     {
       q: 'Počítá kalkulačka s daní z výnosů?',
-      a: 'Volitelně ano. V Česku platí časový test: při držení ETF déle než 3 roky je zisk z prodeje osvobozen (0 % daň). Proto je výchozí daň 0 %. Pokud obchodujete aktivně a držíte kratší dobu, můžete zadat 15 % (případně 23 % u vyšších příjmů) a kalkulačka sníží konečnou hodnotu o daň ze zisku.',
-    },
-    {
-      q: 'Počítá kalkulačka s inflací a poplatky?',
-      a: 'Ne. Kalkulačka pracuje s nominálním výnosem a nezahrnuje inflaci ani poplatky fondu (TER) či brokera. Dopad poplatků na dlouhodobý výnos si můžete spočítat v samostatné kalkulačce poplatků. Reálnou kupní sílu zohledníte tak, že do výnosu zadáte nižší, reálné číslo.',
+      a: 'Volitelně ano (rozbalovací pole Daň z výnosů). V Česku platí časový test: při držení ETF déle než 3 roky je zisk z prodeje osvobozen (0 % daň). Proto je výchozí daň 0 %. Pokud držíte kratší dobu, můžete zadat 15 % (případně 23 % u vyšších příjmů) a kalkulačka sníží konečnou hodnotu o daň ze zisku.',
     },
   ];
   const faqSchema = {
@@ -77,7 +79,7 @@ export default async function InvesticniKalkulackaPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Investiční kalkulačka', item: 'https://etfpruvodce.cz/kalkulacky/investicni-kalkulacka' },
+      { '@type': 'ListItem', position: 3, name: 'Investiční kalkulačka', item: 'https://etfpruvodce.cz/investicni-kalkulacka' },
     ],
   };
 
@@ -86,7 +88,7 @@ export default async function InvesticniKalkulackaPreview() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
-      {/* Header */}
+      {/* Header – stejný jako backtest (dřív navíc zelené tlačítko „Kalkulačky“, které na mobilu tlačilo logo) */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
@@ -97,10 +99,7 @@ export default async function InvesticniKalkulackaPreview() {
           </Link>
           <MobileMenu />
           <SiteNav />
-          <div className="flex items-center gap-2">
-            <HeaderSearch />
-            <Link href="/kalkulacky" className="rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800">Kalkulačky</Link>
-          </div>
+          <HeaderSearch />
         </div>
       </header>
 
@@ -114,152 +113,52 @@ export default async function InvesticniKalkulackaPreview() {
           <span className="text-slate-600">Investiční kalkulačka</span>
         </nav>
 
-        {/* HERO */}
-        <section className="pb-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-5 py-5 md:px-9 md:py-8">
-            <div className="md:flex md:items-center md:justify-between gap-8">
-              <div className="max-w-xl">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Investiční kalkulačka</h1>
-                <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Spočítejte, na kolik narostou vaše peníze díky{' '}
-                  <InfoTip label="Výnosy se reinvestují a samy dál vydělávají – úrok z úroku. Čím delší horizont, tím silnější efekt.">složenému úročení</InfoTip>
-                  <span className="hidden md:inline"> – jednorázový i pravidelný vklad, v přepočtu na koruny</span>.
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-                  <span className="hidden md:inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
-                    <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
-                  <span className="hidden md:inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výsledky v korunách</span>
-                </div>
-                <div className="mt-4 md:mt-5 flex flex-wrap gap-2.5">
-                  <Link href="#kalkulacka" className="hidden md:inline-block rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit kalkulačku</Link>
-                  <Link href="/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít vhodný ETF</Link>
-                </div>
+        {/* ÚVOD – nadpis + jedna věta. Dřív tmavý hero s prázdným pravým sloupcem a výsledek pod okrajem. */}
+        <section data-sekce="kalk-uvod" className="pb-5">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Investiční kalkulačka</h1>
+          <p className="mt-1.5 text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed">
+            Na kolik narostou vaše peníze díky{' '}
+            <InfoTip label="Výnosy se reinvestují a samy dál vydělávají – úrok z úroku. Čím delší horizont, tím silnější efekt.">složenému úročení</InfoTip>
+            {' '}– jednorázový i pravidelný vklad, výsledek v korunách se počítá hned.
+          </p>
+        </section>
+
+        <section id="kalkulacka" className="pb-12 scroll-mt-16">
+          <InvesticniKalkulackaWidget historicke={stejneObdobi ? historicke : []} />
+        </section>
+
+        {/* CO JE SLOŽENÉ ÚROČENÍ – krátce, ve třech kartách (dřív dvě sekce s odstavci) */}
+        <section data-sekce="kalk-slozene-uroceni" className="pb-10">
+          <SectionHead title="Co je složené úročení" desc="100 000 Kč při 7 % ročně je po roce 107 000 Kč; druhý rok se 7 % počítá už ze 107 000 Kč = 114 490 Kč." />
+          <div className="grid sm:grid-cols-3 gap-3">
+            {([
+              [Repeat, 'Výnos z výnosů', 'Připsaný výnos se reinvestuje a sám dál vydělává – ne jen původní vklad.'],
+              [Clock, 'Čas je klíčový', 'Dvojnásobek let neznamená dvojnásobek peněz, ale výrazně víc.'],
+              [PiggyBank, 'Pravidelnost vyhrává', (
+                <>
+                  <InfoTip label="Pravidelné investování stejné částky v čase rozkládá nákupy do různých cen a snižuje riziko špatného načasování.">Pravidelné vklady</InfoTip>
+                  {' '}rozkládají riziko špatného načasování.
+                </>
+              )],
+            ] as [typeof Repeat, string, ReactNode][]).map(([Icon, t, d]) => (
+              <div key={t} className="flex items-start gap-3 sm:block rounded-lg border border-slate-200 bg-white p-4">
+                <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700 sm:mb-3"><Icon className="w-4 h-4" /></span>
+                <span className="block">
+                  <span className="block font-medium text-slate-900 text-sm">{t}</span>
+                  <span className="block text-xs text-slate-500 mt-1 leading-relaxed">{d}</span>
+                </span>
               </div>
-
-              {/* Mini-vysvětlení principu */}
-              <div className="hidden md:grid mt-6 md:mt-0 md:w-72 shrink-0 md:grid-cols-1 gap-2.5">
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Vstupujete</p>
-                  <p className="text-lg font-bold tabular-nums">Vklad + výnos</p>
-                  <p className="text-xs text-slate-400">jednorázově i pravidelně</p>
-                </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Pracuje pro vás</p>
-                  <p className="text-lg font-bold tabular-nums text-emerald-400">Úrok z úroku</p>
-                  <p className="text-xs text-slate-400">složené úročení</p>
-                </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Vidíte</p>
-                  <p className="text-lg font-bold tabular-nums">Vklad vs. zisk</p>
-                  <p className="text-xs text-slate-400">graf + hodnoty v Kč</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="kalkulacka" className="pb-10 scroll-mt-16">
-          <SectionHead title="Spočítejte si svůj výnos" desc="Zadejte vklady, dobu a očekávaný roční výnos. Výsledek i graf se přepočítají hned." />
-          <InvesticniKalkulackaWidget historicke={historicke} />
-        </section>
-
-        {/* CO JE SLOŽENÉ ÚROČENÍ – edukace vetkaná */}
-        {/* PROČ NA SLOŽENÉM ÚROČENÍ ZÁLEŽÍ – edukace NAD kalkulačkou */}
-        <section className="pb-10">
-          <SectionHead title="Proč funguje pravidelné investování" desc="Krátké vysvětlení principu, než si spočítáte vlastní případ." />
-          <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Pravidelné investování spojuje dvě síly: <strong className="text-slate-900">disciplínu</strong> (vkládáte stejnou
-              částku bez ohledu na náladu trhu) a <strong className="text-slate-900">složené úročení</strong> (výnosy se
-              reinvestují a samy dál vydělávají). Výsledek roste nejdřív pomalu, ale s časem zrychluje.
-            </p>
-
-            <div className="mt-4 rounded-lg bg-teal-50 border border-teal-200 px-4 py-3 text-sm text-teal-900 flex items-center gap-2.5">
-              <Clock className="w-4 h-4 text-teal-700 shrink-0" />
-              <span>Čím dřív začnete, tím větší podíl konečné hodnoty tvoří <strong>výnosy z výnosů</strong>, ne vaše vklady.</span>
-            </div>
-          </div>
-        </section>
-
-        {/* KALKULAČKA */}
-        <section className="pb-10">
-          <SectionHead title="Co je složené úročení" desc="Princip, který se schovává za každým číslem v kalkulačce." />
-          <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <p className="text-sm text-slate-600 leading-relaxed">
-              <strong className="text-slate-900">Složené úročení</strong> znamená, že výnosy nedostáváte jen z původního
-              vkladu, ale i z dříve připsaných výnosů. Příklad v korunách:{' '}
-              <strong className="text-slate-900">100 000 Kč při 7 % p.a.</strong> je po roce 107 000 Kč; druhý rok se 7 %
-              počítá už ze 107 000 Kč = 114 490 Kč. Rozdíl se každý rok zvětšuje.
-            </p>
-            <div className="mt-4 grid sm:grid-cols-3 gap-3">
-              {([
-                [Repeat, 'Výnos z výnosů', 'Připsaný výnos se reinvestuje a sám dál vydělává – ne jen původní vklad.'],
-                [Clock, 'Čas je klíčový', 'Efekt se zesiluje s délkou horizontu. Dvojnásobek let neznamená dvojnásobek, ale výrazně víc.'],
-                [PiggyBank, 'Pravidelnost vyhrává', (
-                  <>
-                    Důležitější než výše vkladu je vytrvalost.{' '}
-                    <InfoTip label="Pravidelné investování stejné částky v čase rozkládá nákupy do různých cen a snižuje riziko špatného načasování.">Pravidelné vklady</InfoTip>
-                    {' '}rozkládají riziko načasování.
-                  </>
-                )],
-              ] as [typeof Repeat, string, ReactNode][]).map(([Icon, t, d]) => (
-                <div key={t} className="rounded-lg bg-slate-50 p-4">
-                  <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-white text-teal-700 border border-slate-200 mb-3"><Icon className="w-4 h-4" /></span>
-                  <p className="font-medium text-slate-900 text-sm">{t}</p>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">{d}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ČESKÝ DAŇOVÝ ÚHEL */}
-        <section className="pb-10">
-          <SectionHead title="Výnos a daně v Česku" desc="Co kalkulačka počítá – a co ne." />
-          <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Kalkulačka pracuje s <strong className="text-slate-900">nominálním výnosem</strong> a nezahrnuje inflaci ani
-              poplatky. Daň je volitelná: v Česku platí <strong className="text-slate-900">časový test</strong> – při držení
-              ETF déle než 3 roky je zisk z prodeje osvobozen (0 %). Proto je výchozí daň 0 %. Při kratším držení a aktivním
-              obchodování se zisk daní 15 %, u vyšších příjmů 23 %.
-            </p>
-            <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
-              {([
-                [Wallet, 'Vklad', 'co sami vložíte'],
-                [TrendingUp, 'Výnos', 'zhodnocení trhem'],
-                [Scale, 'Daň', 'jen při držení do 3 let'],
-              ] as [typeof Wallet, string, string][]).map(([Icon, t, d], i) => (
-                <div key={t} className="flex items-stretch sm:items-center gap-2">
-                  {i > 0 && <span className="text-slate-300 font-semibold self-center px-0.5">{t === 'Daň' ? '−' : '+'}</span>}
-                  <div className="flex-1 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 min-w-[8rem]">
-                    <span className="flex items-center gap-1.5 font-medium text-slate-900 text-sm"><Icon className="w-4 h-4 text-teal-700 shrink-0" /> {t}</span>
-                    <span className="block text-xs text-slate-500 mt-0.5">{d}</span>
-                  </div>
-                </div>
-              ))}
-              <span className="text-slate-300 font-semibold self-center px-0.5 hidden sm:inline">=</span>
-              <div className="rounded-lg bg-teal-50 border border-teal-200 px-3 py-2.5 min-w-[8rem]">
-                <span className="flex items-center gap-1.5 font-medium text-teal-900 text-sm"><Coins className="w-4 h-4 text-teal-700 shrink-0" /> Čistá hodnota</span>
-                <span className="block text-xs text-teal-700/80 mt-0.5">to, co vám zůstane</span>
-              </div>
-            </div>
-            <p className="mt-3">
-              <Link href="/pruvodce" className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 font-medium text-sm">
-                Více o daních a fungování ETF <ArrowRight className="w-4 h-4" />
-              </Link>
-            </p>
+            ))}
           </div>
         </section>
 
         {/* FAQ */}
-        <section className="pb-10">
+        <section data-sekce="faq" className="pb-10">
           <SectionHead title="Časté dotazy" />
           <div className="space-y-2">
             {faqs.map((f) => (
               <details key={f.q} className="group rounded-lg border border-slate-200 bg-white">
-                <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none">
+                <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none min-h-[44px]">
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
@@ -271,31 +170,15 @@ export default async function InvesticniKalkulackaPreview() {
           </div>
         </section>
 
-        {/* TRUST PRUH */}
-        <section className="pb-10">
-          <div className="grid sm:grid-cols-3 gap-4">
-            {([
-              [ShieldCheck, 'Nezávislý nástroj', 'Bez placeného pořadí a reklamních doporučení.'],
-              [Crown, '12 let praxe ve financích', 'Obsah od jmenného autora, ne anonymně.'],
-              [Database, 'Ověřená metodika', `Stejný výpočet jako naše původní kalkulačka. Aktualizováno ${dateStr}.`],
-            ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
-              <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
-                <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
-                <span><span className="block font-semibold text-sm text-slate-900">{t}</span><span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{d}</span></span>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* POKRAČUJTE DÁL */}
-        <section className="pb-10">
+        <section data-sekce="pokracujte" className="pb-10">
           <SectionHead title="Pokračujte dál" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
+              ['/backtest', 'Backtest na skutečných datech', History],
               ['/kalkulacka', 'Kalkulačka poplatků', Scale],
               ['/srovnani', 'Srovnání ETF', TrendingUp],
               ['/kde-koupit', 'Kde koupit ETF', Landmark],
-              ['/portfolio-strategie', 'Modelová portfolia', PiggyBank],
               ['/pruvodce', 'Co jsou ETF', BookOpen],
               ['/kalkulacky', 'Další kalkulačky', Calculator],
             ] as [string, string, typeof Scale][]).map(([href, label, Icon]) => (
@@ -307,29 +190,31 @@ export default async function InvesticniKalkulackaPreview() {
           </div>
         </section>
 
-        {/* E-E-A-T patička + zdroje */}
-        <section className="pb-6">
+        {/* Autor + metodika (vzorec místo kruhového „ověřená metodika“) + jedno obecné upozornění */}
+        <section data-sekce="autor" className="pb-12">
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <div className="flex items-start gap-3">
               <span className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-slate-500 shrink-0"><User className="w-5 h-5" /></span>
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačku stavíme nezávisle – výpočet vychází z ověřené metodiky složeného úročení.
+                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačku stavíme nezávisle, bez placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
-            <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Metodika: model složeného úročení s měsíční/roční frekvencí vkladu. Aktualizováno {dateStr}.</p>
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Kalkulačka má vzdělávací charakter a pracuje s modelovým konstantním výnosem – skutečné výnosy kolísají a nelze je zaručit.</p>
+            <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+              <p className="flex items-start gap-1.5 text-xs text-slate-500">
+                <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                <span>
+                  Výpočet: každý měsíc (hodnota + vklad) × (1 + r)<sup>1/12</sup>, takže zadaný roční výnos r platí přesně za rok.
+                  Historické výnosy u rychlých voleb: ceny fondů SPY, VT, VGTSX a AGG přepočtené do Kč historickými kurzy
+                  {historicke[0] ? `, data k ${new Date(`${historicke[0].doDen}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}` : ''}.
+                </span>
+              </p>
+              <InvestmentDisclaimer variant="inline" />
             </div>
           </div>
-        </section>
-
-        {/* DISCLAIMER – úplný konec obsahu */}
-        <section className="pb-12">
-          <InvestmentDisclaimer />
         </section>
       </main>
 
