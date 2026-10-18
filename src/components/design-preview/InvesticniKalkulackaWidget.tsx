@@ -44,8 +44,8 @@ interface YearRow {
 }
 
 // ===== VÝPOČET (původně 1:1 z utils/investmentCalculations.ts, ten už neexistuje) =====
-// 17. 10. 2026 OPRAVENO (pravidlo č. 1): měsíční sazba byla „roční / 12", takže zadaných 7 % p.a.
-// ve skutečnosti úročilo 7,23 % ročně a výsledek za 20 let byl o ~3 % vyšší (3,02 vs. 2,94 mil. Kč
+// 17. 10. 2026 OPRAVENO (pravidlo č. 1): měsíční sazba byla „roční / 12", takže zadaných 7 % p.a.
+// ve skutečnosti úročilo 7,23 % ročně a výsledek za 20 let byl o ~3 % vyšší (3,02 vs. 2,94 mil. Kč
 // u 100 000 + 5 000/měs.). Teď (1 + r)^(1/12) − 1 – zadaný roční výnos je skutečně roční.
 function calculateInvestment(params: {
   initialInvestment: number;
@@ -104,6 +104,11 @@ function calculateInvestment(params: {
 }
 // ===== KONEC převzaté logiky =====
 
+/** Číslo v české notaci pro pole („7,5“, „100 000“). */
+const ciselnyText = (v: number, kc: boolean) => (kc ? (v === 0 ? '' : v.toLocaleString('cs-CZ')) : v.toLocaleString('cs-CZ', { maximumFractionDigits: 2 }));
+
+/* Pole s číslem: desetinná ČÁRKA (dřív type=number ukazoval „7.5“), mezery v tisících u Kč a VIDITELNÁ hláška,
+   když zadání leží mimo rozsah (revize kola 4: výnos 50 % se tiše ořezal na 30 %, −3 % na 0, doba 0 na 1). */
 function NumberField({
   id,
   label,
@@ -123,52 +128,66 @@ function NumberField({
   max?: number;
   suffix?: string;
 }) {
+  const kc = suffix === 'Kč';
+  const [text, setText] = useState<string | null>(null);
+  const [mimo, setMimo] = useState<string | null>(null);
+  const stepNum = parseFloat(step ?? '1') || 1;
+  const jednotka = (n: number) => (suffix === 'let' ? (n === 1 ? 'rok' : n >= 2 && n <= 4 ? 'roky' : 'let') : suffix ?? '');
+  const nastav = (raw: number) => {
+    let v = raw;
+    if (min != null && v < min) v = min;
+    if (max != null && v > max) v = max;
+    v = Number(v.toFixed(6));
+    setMimo(v !== raw
+      ? `Povolený rozsah je ${(min ?? 0).toLocaleString('cs-CZ')}–${(max ?? 0).toLocaleString('cs-CZ')}\u00a0${jednotka(max ?? 0)} – počítáme s ${v.toLocaleString('cs-CZ')}\u00a0${jednotka(v)}.`
+      : null);
+    onChange(v);
+  };
   return (
     <div>
       <label htmlFor={id} className="block text-sm text-slate-600 mb-1">
         {label}
       </label>
-      {(() => {
-        const stepNum = parseFloat(step ?? '1') || 1;
-        const clamp = (v: number) => {
-          if (min != null && v < min) v = min;
-          if (max != null && v > max) v = max;
-          return Number(v.toFixed(6));
-        };
-        return (
-          <div className="relative">
-            <input
-              id={id}
-              // Částky v Kč jako text s mezerami mezi tisíci („100 000"), stejně jako backtest;
-              // procenta a roky zůstávají číselné pole (UX audit 17. 10. 2026).
-              type={suffix === 'Kč' ? 'text' : 'number'}
-              inputMode={suffix === 'Kč' ? 'numeric' : 'decimal'}
-              step={suffix === 'Kč' ? undefined : step}
-              min={suffix === 'Kč' ? undefined : min}
-              max={suffix === 'Kč' ? undefined : max}
-              value={suffix === 'Kč' ? (value === 0 ? '' : value.toLocaleString('cs-CZ')) : value}
-              placeholder={suffix === 'Kč' ? '0' : undefined}
-              onChange={(e) => suffix === 'Kč'
-                ? onChange(clamp(Number(e.target.value.replace(/[^0-9]/g, '') || 0)))
-                : onChange(Number(e.target.value))}
-              className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-[4.25rem] py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-              {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
-              <div className="flex flex-col">
-                <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => onChange(clamp(value + stepNum))}
-                  className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300">
-                  <ChevronUp className="w-3.5 h-3.5" />
-                </button>
-                <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => onChange(clamp(value - stepNum))}
-                  className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px">
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
+      <div className="relative">
+        <input
+          id={id}
+          type="text"
+          inputMode={kc ? 'numeric' : 'decimal'}
+          value={text ?? ciselnyText(value, kc)}
+          placeholder={kc ? '0' : undefined}
+          aria-describedby={mimo ? `${id}-mimo` : undefined}
+          onFocus={() => setText(ciselnyText(value, kc))}
+          onBlur={() => setText(null)}
+          onChange={(e) => {
+            if (kc) {
+              const t = e.target.value.replace(/[^0-9]/g, '');
+              setText(t === '' ? '' : Number(t).toLocaleString('cs-CZ'));
+              nastav(Number(t || 0));
+              return;
+            }
+            const t = e.target.value.replace(/[^0-9,.\-−]/g, '').replace('.', ',').replace('−', '-');
+            setText(t);
+            const n = Number(t.replace(',', '.'));
+            if (t !== '' && t !== '-' && Number.isFinite(n)) nastav(n);
+          }}
+          className="w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white pl-3 pr-10 md:pr-[4.25rem] text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+          {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
+          {/* Šipky jen s myší (desktop); na mobilu by byly pod 32 px (revize kola 4). */}
+          <div className="hidden md:flex flex-col">
+            <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => nastav(value + stepNum)}
+              className="flex items-center justify-center w-6 h-4 rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300">
+              <ChevronUp className="w-3.5 h-3.5" />
+            </button>
+            <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => nastav(value - stepNum)}
+              className="flex items-center justify-center w-6 h-4 rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px">
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
           </div>
-        );
-      })()}
+        </div>
+      </div>
+      {mimo && <p id={`${id}-mimo`} role="status" className="mt-1 text-xs text-amber-700">{mimo}</p>}
     </div>
   );
 }
@@ -230,7 +249,7 @@ const rokyOsy = (n: number) => {
 const fmtMil = (v: number) => v >= 1e6
   ? `${(v / 1e6).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
   : fmtCZK(Math.round(v / 1000) * 1000);
-const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace('-', '−')}\u00a0%`;
 const mesRok = (iso: string) => { const d = new Date(iso); return `${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
 
 export default function InvesticniKalkulackaWidget({ historicke = [], skutecnostVychozi = null }: {
@@ -277,10 +296,10 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
   }, [results, initialInvestment]);
   const osaY = useMemo(() => kulateKroky(chartData.reduce((m, d) => Math.max(m, d.total), 0), 0, 4), [chartData]);
 
-  // Neutrální poznámka mimo obvyklé rozpětí (revize 18. 10. 2026: varování „zkontrolujte zadání“ při 0–2 % působilo jako chyba).
+  // Neutrální poznámka mimo obvyklé rozpětí (revize 18. 10. 2026: varování „zkontrolujte zadání“ při 0–2 % působilo jako chyba).
   const poznamkaVynos = averageReturn < 3
-    ? 'Výnos pod 3 % ročně odpovídá spíš spořicímu účtu nebo dluhopisům než akciím.'
-    : averageReturn > 15 ? 'Výnos nad 15 % ročně je výrazně nad dlouhodobou historií velkých akciových trhů v Kč (viz rychlé volby).' : null;
+    ? 'Výnos pod 3 % ročně odpovídá spíš spořicímu účtu nebo dluhopisům než akciím.'
+    : averageReturn > 15 ? 'Výnos nad 15 % ročně je výrazně nad dlouhodobou historií velkých akciových trhů v Kč (viz rychlé volby).' : null;
   const hasData = Boolean(finalResult) && investmentPeriod > 0;
 
   // Vybraná rychlá volba (shoda s historickým výnosem) → podle ní i odkaz do backtestu.
@@ -326,7 +345,16 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
     io.observe(el);
     return () => io.disconnect();
   }, [hasData]);
-  const listaDole = hasData && !vysledekVidet;
+  // Nad patičkou se lišta schová (stejně jako v backtestu).
+  const [paticka, setPaticka] = useState(false);
+  useEffect(() => {
+    const el = document.querySelector('footer');
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([z]) => setPaticka(z.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const listaDole = hasData && !vysledekVidet && !paticka;
   useEffect(() => {
     // Lišta nesmí zakrýt konec patičky – dočasné odsazení těla jen na mobilu (md:hidden lišta).
     if (!listaDole || window.matchMedia('(min-width: 768px)').matches) return;
@@ -360,7 +388,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 min={0}
                 max={50000000}
                 step="10000"
-                onChange={(v) => setInitialInvestment(Math.max(0, v))}
+                onChange={(v) => setInitialInvestment(v)}
                 suffix="Kč"
               />
             </div>
@@ -371,46 +399,24 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 value={investmentPeriod}
                 min={1}
                 max={50}
-                onChange={(v) => setInvestmentPeriod(Math.max(1, Math.min(50, v)))}
+                onChange={(v) => setInvestmentPeriod(Math.round(v))}
                 suffix="let"
               />
             </div>
 
             {/* Pravidelný vklad + frekvence */}
             <div className="col-span-2">
-              <label htmlFor="recurring" className="block text-sm text-slate-600 mb-1">
-                Pravidelný vklad
-              </label>
+              <p className="block text-sm text-slate-600 mb-1">Pravidelný vklad</p>
               <div className="flex gap-2">
-                <div className="relative flex-1 min-w-0">
-                  <input
-                    id="recurring"
-                    type="text"
-                    inputMode="numeric"
-                    value={recurringInvestment === 0 ? '' : recurringInvestment.toLocaleString('cs-CZ')}
-                    placeholder="0"
-                    onChange={(e) => setRecurringInvestment(Math.min(1000000, Number(e.target.value.replace(/[^0-9]/g, '') || 0)))}
-                    className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-[4.25rem] py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                    <span className="pointer-events-none text-sm text-slate-400">Kč</span>
-                    <div className="flex flex-col">
-                      <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => setRecurringInvestment(Math.min(1000000, recurringInvestment + 500))}
-                        className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300">
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => setRecurringInvestment(Math.max(0, recurringInvestment - 500))}
-                        className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px">
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <NumberField id="recurring" label={<span className="sr-only">Částka</span>} value={recurringInvestment} min={0} max={1000000} step="500"
+                    onChange={(v) => setRecurringInvestment(v)} suffix="Kč" />
                 </div>
                 <select
                   aria-label="Frekvence pravidelného vkladu"
                   value={recurringFrequency}
                   onChange={(e) => setRecurringFrequency(e.target.value as 'monthly' | 'yearly')}
-                  className="min-h-[44px] rounded-lg border border-slate-200 bg-white px-2.5 py-2.5 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                  className="vyber self-start mt-1 h-11 lg:h-10 rounded-lg border border-slate-200 bg-white pl-2.5 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
                 >
                   <option value="monthly">měsíčně</option>
                   <option value="yearly">ročně</option>
@@ -434,7 +440,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 step="0.1"
                 min={0}
                 max={30}
-                onChange={(v) => setAverageReturn(Math.max(0, Math.min(30, v)))}
+                onChange={(v) => setAverageReturn(v)}
                 suffix="%"
               />
               {/* Skutečné výnosy v Kč místo odhadu. Všechny za STEJNÉ období – jinak by rozdíl dělalo
@@ -442,8 +448,8 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               {historicke.length > 0 && (
                 <div className="mt-2.5 rounded-lg bg-teal-50/70 border border-teal-100 p-2.5">
                   <p className="text-xs text-teal-900 flex items-center gap-1 flex-wrap">
-                    Kolik skutečně vynesly v Kč ({fmtMesic(historicke[0].odMesic)} – {fmtDen(historicke[0].doDen)})
-                    <InfoTip label="Průměrné roční zhodnocení (CAGR) v korunách z historických cen fondů: S&P 500 = fond SPY; celý svět = fond Vanguard Total World (VT), do 6/2008, kdy ještě nebyl, 60 % S&P 500 + 40 % svět mimo USA; 60/40 = 60 % akcie celého světa + 40 % americké dluhopisy (AGG). Po poplatcích těchto fondů, před daní. Minulost, ne předpověď.">
+                    Průměrný roční výnos trhu v Kč, {fmtMesic(historicke[0].odMesic)} – {fmtDen(historicke[0].doDen)}
+                    <InfoTip label="Průměrné roční zhodnocení trhu (CAGR) v korunách z historických cen fondů – jako by se 1. 1. 2004 vložilo jednou a nechalo ležet. S&P 500 = fond SPY; celý svět = fond Vanguard Total World (VT), do 6/2008, kdy ještě nebyl, 60 % S&P 500 + 40 % svět mimo USA; 60/40 = 60 % akcie celého světa + 40 % americké dluhopisy v dolarech (AGG). Po poplatcích těchto fondů, před daní. Backtest od jiného dne vyjde jinak (např. S&P 500 od 1/2005). Minulost, ne předpověď.">
                       <span className="sr-only">odkud jsou čísla</span>
                     </InfoTip>
                   </p>
@@ -455,7 +461,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                         <button key={h.id} type="button" aria-pressed={on} data-track={`kalk-vynos:${h.id}`} onClick={() => setAverageReturn(pct)}
                           className={`min-h-[48px] rounded-lg border px-1.5 py-1 text-center transition-colors ${on ? 'border-teal-700 bg-teal-700 text-white' : 'border-teal-200 bg-white text-slate-700 hover:border-teal-400'}`}>
                           <span className="block text-[11px] leading-tight">{h.id === 'vyvazene' ? '60/40' : h.nazev}</span>
-                          <span className="block text-sm font-semibold tabular-nums">{pct.toLocaleString('cs-CZ')} %</span>
+                          <span className="block text-sm font-semibold tabular-nums">{pct.toLocaleString('cs-CZ')} %</span>
                         </button>
                       );
                     })}
@@ -468,12 +474,12 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
           {/* Kontrola parametrů */}
           {poznamkaVynos && <p className="mt-2 text-xs text-slate-500 leading-relaxed">{poznamkaVynos}</p>}
 
-          {/* Daň – do „dalšího nastavení“ (časový test = výchozí 0 %) */}
+          {/* Daň – do „dalšího nastavení“ (časový test = výchozí 0 %) */}
           <details className="group mt-4 rounded-lg border border-slate-200">
             <summary className="flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer list-none min-h-[44px] rounded-lg hover:bg-slate-50">
               <span className="text-sm font-medium text-slate-700">Daň z výnosů</span>
               <span className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="group-open:hidden tabular-nums">{taxRate} %</span>
+                <span className="group-open:hidden tabular-nums">{taxRate} %</span>
                 <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
               </span>
             </summary>
@@ -481,13 +487,13 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               <NumberField
                 id="tax"
                 label={
-                  <InfoTip label="Při držení ETF déle než 3 roky je zisk v ČR osvobozen (časový test = 0 %). Při kratším držení se zisk daní 15 %, resp. 23 %.">Daň ze zisku</InfoTip>
+                  <InfoTip label="Při držení ETF déle než 3 roky je zisk v ČR osvobozen (časový test = 0 %). Při kratším držení se zisk daní 15 %, resp. 23 %.">Daň ze zisku</InfoTip>
                 }
                 value={taxRate}
                 step="1"
                 min={0}
                 max={23}
-                onChange={(v) => setTaxRate(Math.max(0, Math.min(23, v)))}
+                onChange={(v) => setTaxRate(v)}
                 suffix="%"
               />
             </div>
@@ -573,7 +579,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               </ResponsiveContainer>
             </div>
             <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-              Model se stálým výnosem {averageReturn.toLocaleString('cs-CZ')} % každý rok. Skutečný trh kolísá – hodnota může i klesat, někdy i roky.
+              Model se stálým výnosem {averageReturn.toLocaleString('cs-CZ')} % každý rok. Skutečný trh kolísá – hodnota může i klesat, někdy i roky.
             </p>
           </div>
         )}
@@ -592,12 +598,12 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 : initialInvestment > 0
                   ? <>Když jednorázově vložíte {fmtCZK(initialInvestment)}, </>
                   : <>Když budete vkládat {fmtCZK(recurringInvestment)} {frekvenceText}, </>}
-              vložíte za {investmentPeriod} {let_(investmentPeriod)} celkem {fmtCZK(finalResult.totalInvested)}. Při výnosu {averageReturn.toLocaleString('cs-CZ')} % ročně z toho bude{' '}
+              vložíte za {investmentPeriod} {let_(investmentPeriod)} celkem {fmtCZK(finalResult.totalInvested)}. Při výnosu {averageReturn.toLocaleString('cs-CZ')} % ročně z toho bude{' '}
               <strong className="font-semibold text-white">{fmtCZK(finalResult.netValue)}</strong>
-              {podilVynosu > 0 && <> – {Math.round(podilVynosu * 100)} % konečné částky tvoří výnos, ne vaše vklady</>}.
+              {podilVynosu > 0 && <> – {Math.round(podilVynosu * 100)} % konečné částky tvoří výnos, ne vaše vklady</>}.
             </p>
             <p className="mt-2 text-xs text-teal-100/90 leading-relaxed">
-              V dnešních cenách to při inflaci 2 % ročně (cíl ČNB) odpovídá zhruba {fmtCZK(Math.round(vDnesnichCenach / 1000) * 1000)}.
+              V dnešních cenách to při inflaci 2 % ročně (cíl ČNB) odpovídá zhruba {fmtCZK(Math.round(vDnesnichCenach / 1000) * 1000)}.
             </p>
           </div>
 
@@ -607,41 +613,46 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
             <p className="mt-1 text-sm text-slate-600 leading-relaxed">
               Stejné vklady {scenar.doCeho} od {fmtMesic(scenar.start)} na skutečných historických datech v Kč
               {scenar.priblizeni && (
-                <> <InfoTip label="Celosvětový fond Vanguard Total World (VT) má data až od 7/2008. Pro dřívější začátek proto počítáme přiblížení: 60 % S&P 500 + 40 % akcie mimo USA (stejně jako preset „USA + zbytek světa“ v backtestu).">
+                <> <InfoTip label="Celosvětový fond Vanguard Total World (VT) má data až od 7/2008. Pro dřívější začátek proto počítáme přiblížení: 60 % S&P 500 + 40 % akcie mimo USA (stejně jako preset „USA + zbytek světa“ v backtestu).">
                   <span className="sr-only">proč</span></InfoTip></>
               )}
               {scenar.zkraceno && ' – data v Kč máme až od tohoto měsíce, období je proto kratší než zadaných ' + investmentPeriod + ' ' + let_(investmentPeriod)}:
             </p>
             {skutecnostStav === 'chyba' && !skutecnostAktualni ? (
-              <p className="mt-3 text-sm text-slate-500">— <span className="text-xs">Historický výpočet se teď nepodařil.</span></p>
-            ) : (
-              <div className={`mt-3 transition-opacity ${skutecnostStav === 'pocitam' ? 'opacity-40' : ''}`}>
-                <p className="flex items-center gap-2 text-3xl font-bold tracking-tight tabular-nums text-slate-900">
-                  {skutecnost ? fmtCZK(skutecnostAktualni?.hodnota ?? skutecnost.hodnota) : '…'}
-                  {skutecnostStav === 'pocitam' && <Loader2 className="w-5 h-5 animate-spin text-teal-700" aria-label="Počítám" />}
-                </p>
-                {skutecnost && (() => {
-                  const v = skutecnostAktualni ?? skutecnost;
-                  return (
-                    <ul className="mt-2 space-y-1 text-sm text-slate-600">
-                      <li>Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(v.vlozeno)}</span></li>
-                      {!scenar.zkraceno && taxRate === 0 && (
-                        <li>Kalkulačka se stálými {averageReturn.toLocaleString('cs-CZ')}&nbsp;%: <span className="font-semibold tabular-nums text-slate-800">{fmtMil(finalResult.netValue)}</span></li>
-                      )}
-                      {v.irr != null && (
-                        <li>
-                          <InfoTip label="Vnitřní výnosové procento vašich vkladů (XIRR): stálý roční výnos, který by ze stejných vkladů ve stejných dnech udělal stejnou částku. Je přímo srovnatelný s výnosem zadaným do kalkulačky. Od průměrného ročního zhodnocení samotného trhu (CAGR) se liší, protože pozdější vklady byly investované kratší dobu.">Vklady se zhodnocovaly</InfoTip>{' '}
-                          <span className="font-semibold tabular-nums text-slate-800">{fmtPct1(v.irr * 100)} ročně</span>
-                        </li>
-                      )}
-                      <li>Největší propad <span className="font-semibold tabular-nums text-red-600">{fmtPct1(v.maxPokles * 100)}</span> <span className="text-slate-500">(dno {mesRok(v.dnoPoklesu)})</span> – stálý výnos kalkulačky ho nevidí</li>
-                    </ul>
-                  );
-                })()}
+              <p className="mt-3 text-sm text-slate-500">— <span className="text-xs">{!(scenar.body.initialAmount > 0) && !scenar.body.contributions ? 'Zadejte vklad.' : 'Historický výpočet se teď nepodařil.'}</span></p>
+            ) : !skutecnostAktualni ? (
+              /* Během přepočtu žádné staré číslo pod novým popiskem (revize kola 4) – jen kostra. */
+              <div className="mt-3" aria-label="Počítám">
+                <p className="flex items-center gap-2 text-3xl font-bold tracking-tight text-slate-300">— <Loader2 className="w-5 h-5 animate-spin text-teal-700" /></p>
+                <div className="mt-3 space-y-2">
+                  <div className="h-3.5 w-2/3 rounded bg-slate-100 animate-pulse" />
+                  <div className="h-3.5 w-3/4 rounded bg-slate-100 animate-pulse" />
+                  <div className="h-3.5 w-1/2 rounded bg-slate-100 animate-pulse" />
+                </div>
               </div>
-            )}
+            ) : (() => {
+              const v = skutecnostAktualni;
+              return (
+                <div className="mt-3">
+                  <p className="text-3xl font-bold tracking-tight tabular-nums text-slate-900">{fmtCZK(v.hodnota)}</p>
+                  <ul className="mt-2 space-y-1 text-sm text-slate-600">
+                    <li>Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(v.vlozeno)}</span></li>
+                    {!scenar.zkraceno && taxRate === 0 && (
+                      <li>Kalkulačka se stálými {averageReturn.toLocaleString('cs-CZ')}&nbsp;%: <span className="font-semibold tabular-nums text-slate-800">{fmtMil(finalResult.netValue)}</span></li>
+                    )}
+                    {v.irr != null && (
+                      <li>
+                        Vaše vklady by se zhodnocovaly <span className="font-semibold tabular-nums text-slate-800">{fmtPct1(v.irr * 100)} ročně</span>{' '}
+                        <InfoTip label="Zhodnocení vašich vkladů (XIRR): stálý roční výnos, který by ze stejných vkladů ve stejných dnech udělal stejnou částku – přímo srovnatelný s výnosem zadaným do kalkulačky. Je to JINÝ údaj než průměrný roční výnos trhu u rychlých voleb: ten počítá s jedním vkladem na začátku, kdežto pozdější pravidelné vklady byly investované kratší dobu a zažily jiné roky (např. nákupy levně po propadu 2008–09). Proto vychází jinak."><span className="text-xs text-slate-500">(jiný údaj než průměrný výnos trhu)</span></InfoTip>
+                      </li>
+                    )}
+                    <li>Největší propad <span className="font-semibold tabular-nums text-red-600">{fmtPct1(v.maxPokles * 100)}</span> <span className="text-slate-500">(dno {mesRok(v.dnoPoklesu)})</span> – stálý výnos kalkulačky ho nevidí</li>
+                  </ul>
+                </div>
+              );
+            })()}
             <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pt-4">
-              <span className="text-xs text-slate-500">{skutecnost ? `Data k ${fmtDen((skutecnostAktualni ?? skutecnost).posledniDen.slice(0, 10))}, před daní` : ''}</span>
+              <span className="text-xs text-slate-500">{skutecnostAktualni ? `Data k ${fmtDen(skutecnostAktualni.posledniDen.slice(0, 10))}, před daní` : ''}</span>
               <Link href={scenar.backtestHref} data-track="kalk-do-backtestu" className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-800">
                 Podrobně v backtestu <ArrowRight className="w-4 h-4" />
               </Link>
@@ -659,7 +670,8 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
           </div>
           <table className="mt-3 w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 text-slate-500 text-xs">
+              {/* Plovoucí záhlaví (hlavička webu h-14) – po „Zobrazit všechny roky“ až 50 řádků. */}
+              <tr className="text-slate-500 text-xs [&>th]:sticky [&>th]:top-14 [&>th]:z-10 [&>th]:bg-slate-50">
                 <th className="py-2 px-2 md:px-3 text-left font-medium">Rok</th>
                 <th className="py-2 px-2 md:px-3 text-right font-medium">Vloženo</th>
                 <th className="hidden sm:table-cell py-2 px-2 md:px-3 text-right font-medium">Výnos za rok</th>
@@ -697,7 +709,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
       )}
 
       {/* Mobil: výsledek v liště dole, jen když velké číslo není na obrazovce. */}
-      {/* CO JE SLOŽENÉ ÚROČENÍ – příklad se ZADANÝM výnosem (dřív napevno 7 %) */}
+      {/* CO JE SLOŽENÉ ÚROČENÍ – příklad se ZADANÝM výnosem (dřív napevno 7 %) */}
       {(() => {
         const r = averageReturn / 100;
         const r1 = Math.round(100000 * (1 + r)), r2 = Math.round(100000 * (1 + r) * (1 + r));
@@ -706,7 +718,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
           <section data-sekce="kalk-slozene-uroceni">
             <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900">Co je složené úročení</h2>
             <p className="mt-1 mb-4 text-sm text-slate-600 leading-relaxed">
-              100 000 Kč při {pct} % ročně je po roce {fmtCZK(r1)}; druhý rok se {pct} % počítá už z {fmtCZK(r1)} = {fmtCZK(r2)}.
+              100 000 Kč při {pct} % ročně je po roce {fmtCZK(r1)}; druhý rok se {pct} % počítá už z {fmtCZK(r1)} = {fmtCZK(r2)}.
             </p>
             <div className="grid sm:grid-cols-3 gap-3">
               {([

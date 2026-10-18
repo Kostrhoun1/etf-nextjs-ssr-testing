@@ -57,15 +57,15 @@ export default async function InvesticniKalkulackaPreview() {
   const faqs = [
     {
       q: 'Co je složené úročení a proč na něm tolik záleží?',
-      a: 'Složené úročení znamená, že výnosy nedostáváte jen z původně vložené částky, ale i z dříve připsaných výnosů. Příklad: 100 000 Kč při 7 % ročně je po roce 107 000 Kč; druhý rok se počítá 7 % už ze 107 000 Kč, tedy 114 490 Kč. Čím delší horizont, tím větší podíl konečné hodnoty tvoří výnosy z výnosů – proto je čas u investování zásadní.',
+      a: 'Složené úročení znamená, že výnosy nedostáváte jen z původně vložené částky, ale i z dříve připsaných výnosů. Příklad: 100 000 Kč při 7 % ročně je po roce 107 000 Kč; druhý rok se počítá 7 % už ze 107 000 Kč, tedy 114 490 Kč. Čím delší horizont, tím větší podíl konečné hodnoty tvoří výnosy z výnosů – proto je čas u investování zásadní.',
     },
     {
       q: 'Jak kalkulačka počítá pravidelné investování?',
-      a: 'U měsíčního vkladu kalkulačka simuluje rok po měsících: na začátku každého měsíce přičte váš vklad a poté na celou hodnotu aplikuje měsíční výnos odpovídající zadanému ročnímu – (1 + r)^(1/12) − 1, při 7 % ročně zhruba 0,565 % měsíčně, aby za 12 měsíců vyšlo přesně 7 %. U ročního vkladu přičte vklad jednou za rok a aplikuje celý roční výnos.',
+      a: 'U měsíčního vkladu kalkulačka simuluje rok po měsících: na začátku každého měsíce přičte váš vklad a poté na celou hodnotu aplikuje měsíční výnos odpovídající zadanému ročnímu – (1 + r)^(1/12) − 1, při 7 % ročně zhruba 0,565 % měsíčně, aby za 12 měsíců vyšlo přesně 7 %. U ročního vkladu přičte vklad jednou za rok a aplikuje celý roční výnos.',
     },
     {
       q: 'Jaký výnos mám do kalkulačky zadat?',
-      a: 'Orientaci dají rychlé volby pod polem výnosu: kolik skutečně vynesly S&P 500, akcie celého světa a portfolio 60/40 v korunách od ledna 2004 (po poplatcích fondů, před daní). Výchozích 7 % je zaokrouhlený předpoklad, ne předpověď – budoucí výnos nikdo nezaručí. Jak by stejné vklady dopadly na skutečných datech i s propady, ukazuje karta „A jak by to dopadlo doopravdy?“ pod výsledkem (stejný výpočet jako backtest).',
+      a: 'Orientaci dají rychlé volby pod polem výnosu: kolik skutečně vynesly S&P 500, akcie celého světa a portfolio 60/40 v korunách od ledna 2004 (po poplatcích fondů, před daní). Výchozích 7 % je zaokrouhlený předpoklad, ne předpověď – budoucí výnos nikdo nezaručí. Jak by stejné vklady dopadly na skutečných datech i s propady, ukazuje karta „A jak by to dopadlo doopravdy?“ pod výsledkem (stejný výpočet jako backtest).',
     },
     {
       q: 'Proč se skutečná historie liší od kalkulačky se stejným výnosem?',
@@ -73,11 +73,11 @@ export default async function InvesticniKalkulackaPreview() {
     },
     {
       q: 'Počítá kalkulačka s poplatky a inflací?',
-      a: 'Kalkulačka bere výnos tak, jak ho zadáte – poplatky ani inflaci sama neodečítá. Chcete-li výsledek po poplatcích fondu, zadejte výnos už po nich; historické výnosy u rychlých voleb jsou po poplatcích fondů (před daní). Poplatky brokera nezahrnuje. Přepočet do dnešních cen pod výsledkem je orientační, při inflaci 2 % ročně (inflační cíl ČNB).',
+      a: 'Kalkulačka bere výnos tak, jak ho zadáte – poplatky ani inflaci sama neodečítá. Chcete-li výsledek po poplatcích fondu, zadejte výnos už po nich; historické výnosy u rychlých voleb jsou po poplatcích fondů (před daní). Poplatky brokera nezahrnuje. Přepočet do dnešních cen pod výsledkem je orientační, při inflaci 2 % ročně (inflační cíl ČNB).',
     },
     {
       q: 'Počítá kalkulačka s daní z výnosů?',
-      a: 'Volitelně ano (rozbalovací pole Daň z výnosů). V Česku platí časový test: při držení ETF déle než 3 roky je zisk z prodeje osvobozen (0 % daň). Proto je výchozí daň 0 %. Pokud držíte kratší dobu, můžete zadat 15 % (případně 23 % u vyšších příjmů) a kalkulačka sníží konečnou hodnotu o daň ze zisku.',
+      a: 'Volitelně ano (rozbalovací pole Daň z výnosů). V Česku platí časový test: při držení ETF déle než 3 roky je zisk z prodeje osvobozen (0 % daň). Proto je výchozí daň 0 %. Pokud držíte kratší dobu, můžete zadat 15 % (případně 23 % u vyšších příjmů) a kalkulačka sníží konečnou hodnotu o daň ze zisku.',
     },
   ];
   const faqSchema = {

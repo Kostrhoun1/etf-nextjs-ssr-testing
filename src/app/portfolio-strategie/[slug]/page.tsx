@@ -13,12 +13,13 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { PortfolioBar, RizikoTecky, fmtPct } from '@/components/design-preview/portfolioComponents';
 import {
-  portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, barvaSlozky, nazevSlozky, backtestOdkaz,
+  portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, BEZ_HISTORIE, barvaSlozky, nazevSlozky, backtestOdkaz, narocnost,
 } from '@/components/design-preview/portfolioData';
 import PortfolioBacktest from '@/components/design-preview/PortfolioBacktest';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
 import { getMetricsByIsins } from '@/lib/etf-data';
+import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
 
 /* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
 const SP500_ISIN = 'IE00B5BMR087';
@@ -43,7 +44,7 @@ export async function generateMetadata(
 }
 
 const pct = (v: number | null) =>
-  v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  v == null ? '—' : `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace('-', '−')} %`;
 
 export default async function PortfolioDetailPreview(
   { params }: { params: Promise<{ slug: string }> },
@@ -58,8 +59,8 @@ export default async function PortfolioDetailPreview(
     ? await Promise.all([predpocitejPortfolio(btConfig.items, btConfig.start), predpocitejPortfolio([BACKTEST_BENCHMARK], btConfig.start)])
     : [null, null];
   const btInitial = btPf && btBench ? { pf: btPf, bench: btBench } : null;
-  // Kurátorský max. pokles strategie (číslo z „do −15 %").
-  // Max. pokles: skutečný z backtestu (stejné období a měna jako srovnání), kurátorský odhad „do −40 %“ jen
+  // Kurátorský max. pokles strategie (číslo z „do −15 %").
+  // Max. pokles: skutečný z backtestu (stejné období a měna jako srovnání), kurátorský odhad „do −40 %“ jen
   // když backtest chybí. Dřív byla na stránce tři různá čísla (revize 18. 10. 2026).
   const btDD = btPf?.risk.maxDrawdown.depth;
   const benchDD = btBench?.risk.maxDrawdown.depth;
@@ -79,6 +80,11 @@ export default async function PortfolioDetailPreview(
   const isins = model.allocations.map((a) => a.isin);
   const ret = await getMetricsByIsins([...isins, SP500_ISIN]);
   const sp = ret[SP500_ISIN];
+  // Bez backtestu (Dividendové) = srovnání z dat fondů → datum, ke kterému data fondů platí (nejstarší ze složek).
+  const datumyFondu = btConfig ? [] : Object.values(await vynosyFonduSDatem([...isins, SP500_ISIN])).map((f) => f.datum).filter((d): d is string => !!d).sort();
+  const dateStrFondy = datumyFondu[0]
+    ? new Date(`${datumyFondu[0]}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    : null;
   const weighted = (key: 'return_1y_czk' | 'return_3y_czk' | 'volatility_1y') => {
     let sum = 0, w = 0;
     for (const a of model.allocations) {
@@ -91,7 +97,7 @@ export default async function PortfolioDetailPreview(
   const perf3y = weighted('return_3y_czk');
 
   /* NÁKLADY PORTFOLIA. Vážený TER složek + kolik to dělá v korunách ročně.
-     Samotné „0,18 %" čtenáři nic neřekne; „1 800 Kč ročně z milionu" ano – a je to
+     Samotné „0,18 %" čtenáři nic neřekne; „1 800 Kč ročně z milionu" ano – a je to
      přesně to číslo, které o strategii rozhoduje víc než odhad výnosu.
      Pokud některá složka TER v databázi nemá, vážíme jen pokrytou část a řekneme to. */
   const NAKLADY_PRIKLAD = 1_000_000;
@@ -128,13 +134,15 @@ export default async function PortfolioDetailPreview(
   const cmp = (sp && (perf1y != null || pfVol != null)) ? {
     ret1y: { pf: perf1y, sp: sp.return_1y_czk },
     ret3y: { pf: perf3y, sp: sp.return_3y_czk },
-    vol: { pf: pfVol, sp: sp.volatility_1y },
+    // Kolísavost portfolia je jen odhad (korelace 0,3) – jako „klidnější průběh“ ji neukazujeme (kolo 5: 95% akciové
+    // portfolio vycházelo „klidnější“ než S&P 500, ačkoli propady má podobné). Ukazujeme jen data fondů.
+    vol: { pf: null as number | null, sp: sp.volatility_1y },
     maxdd: { pf: pfMaxDD, sp: ddZBacktestu ? benchDD! * 100 : sp.max_drawdown_all },
   } : null;
   const fmtVol = (v: number | null) =>
-    v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+    v == null ? '—' : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace('-', '−')} %`;
   const fmtDD = (v: number | null) =>
-    v == null ? '—' : `${v < 0 ? '−' : ''}${Math.abs(Math.round(v))} %`;
+    v == null ? '—' : `${v < 0 ? '−' : ''}${Math.abs(Math.round(v))} %`;
   const cmpNarrative = (() => {
     if (!cmp) return '';
     const parts: string[] = [];
@@ -148,11 +156,11 @@ export default async function PortfolioDetailPreview(
       parts.push(`Ve výnosu za poslední rok ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostává za' : 'vede nad'} S&P 500: ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)}.`);
     }
     // Pravidlo č. 1: obecné tvrzení o diverzifikaci jen tam, kde ho data portfolia potvrzují
-    // (test s uživateli 18. 10. 2026: akciové portfolio slibovalo „mělčí propady“ při propadu −33 % vs −32 %).
+    // (test s uživateli 18. 10. 2026: akciové portfolio slibovalo „mělčí propady“ při propadu −33 % vs −32 %).
     const melci = cmp.maxdd.pf != null && cmp.maxdd.sp != null && cmp.maxdd.pf > cmp.maxdd.sp + 3;
     parts.push(melci
       ? 'To je jádro diverzifikace – menší výkyvy a mělčí propady výměnou za nižší růst. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní korelaci 0,3; protože se aktiva nehýbou stejně, je skutečná ještě nižší.'
-      : 'Portfolio je převážně akciové, takže propady jsou podobné jako u akciového indexu. Kolísavost portfolia je odhad z kolísavosti složek při konzervativní korelaci 0,3.');
+      : 'Portfolio je převážně akciové, takže v krizích lze čekat podobné propady jako u akciového indexu.');
     return parts.join(' ');
   })();
 
@@ -161,13 +169,13 @@ export default async function PortfolioDetailPreview(
     ...(terInfo ? [{
       icon: Wallet,
       label: (
-        <InfoTip label={`Vážený průměr ročních poplatků (TER) fondů v portfoliu podle jejich vah${terInfo.uplne ? '' : ` – z ${Math.round(terInfo.pokryti)} % portfolia, u zbytku poplatek v databázi nemáme`}. Strhává se průběžně z hodnoty fondu, nikoli fakturou.`}>
+        <InfoTip label={`Vážený průměr ročních poplatků (TER) fondů v portfoliu podle jejich vah${terInfo.uplne ? '' : ` – z ${Math.round(terInfo.pokryti)} % portfolia, u zbytku poplatek v databázi nemáme`}. Strhává se průběžně z hodnoty fondu, nikoli fakturou.`}>
           Roční poplatek
         </InfoTip>
       ),
-      value: `${terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`,
+      value: `${terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`,
     }] : []),
-    { icon: CalendarDays, label: 'Doporučený horizont', value: model.horizon },
+    { icon: CalendarDays, label: 'Typický horizont', value: model.horizon },
     { icon: Layers, label: 'Podíl akcií', value: fmtPct(model.stocksPct) },
   ];
 
@@ -186,7 +194,7 @@ export default async function PortfolioDetailPreview(
         </div>
       </header>
 
-      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-14">
+      <main id="obsah" className="max-w-6xl mx-auto px-4 pb-14" data-bez-backtestu={BEZ_HISTORIE[slug] ? '' : undefined}>
         {/* Breadcrumb */}
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link>
@@ -203,7 +211,7 @@ export default async function PortfolioDetailPreview(
             <h1 className="mt-3 text-2xl md:text-3xl font-bold tracking-tight leading-tight">{model.name}</h1>
             <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">{model.tagline}</p>
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              {dateStr && <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Data k {dateStr}</span>}
+              {(dateStr ?? dateStrFondy) && <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Data k {dateStr ?? dateStrFondy}</span>}
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
             </div>
             {btLink && (
@@ -241,6 +249,7 @@ export default async function PortfolioDetailPreview(
               </div>
             ))}
           </div>
+          <p className="mt-2 text-xs text-slate-500">{narocnost(model)}.</p>
         </section>
 
         {/* SLOŽENÍ */}
@@ -264,7 +273,7 @@ export default async function PortfolioDetailPreview(
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
                     <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: barvaSlozky(a) }} />{a.label}</span>
-                    <span>TER <span className="tabular-nums text-slate-700">{ter != null ? `${ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %` : '—'}</span></span>
+                    <span>TER <span className="tabular-nums text-slate-700">{ter != null ? `${ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %` : '—'}</span></span>
                     <span>1 rok v Kč <span className={`tabular-nums font-medium ${r1 == null ? 'text-slate-400' : r1 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(r1)}</span></span>
                   </div>
                   <span className="mt-1 block font-mono text-[11px] text-slate-400">{a.isin}</span>
@@ -299,7 +308,7 @@ export default async function PortfolioDetailPreview(
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-700 whitespace-nowrap">{fmtPct(a.percentage)}</td>
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-600">{ret[a.isin]?.ter_numeric != null ? `${ret[a.isin]!.ter_numeric!.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %` : '—'}</td>
+                    <td className="py-3 px-4 text-right tabular-nums text-slate-600">{ret[a.isin]?.ter_numeric != null ? `${ret[a.isin]!.ter_numeric!.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %` : '—'}</td>
                     <td className={`py-3 px-4 text-right tabular-nums font-medium whitespace-nowrap ${ret[a.isin]?.return_1y_czk == null ? 'text-slate-400' : (ret[a.isin]?.return_1y_czk ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(ret[a.isin]?.return_1y_czk ?? null)}</td>
                   </tr>
                 ))}
@@ -310,10 +319,10 @@ export default async function PortfolioDetailPreview(
             <p className="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-3.5 text-sm text-slate-700 leading-relaxed">
               <span className="font-medium text-slate-900">Kolik portfolio stojí:</span>{' '}
               vážený roční poplatek je{' '}
-              <span className="font-semibold tabular-nums">{terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</span>
+              <span className="font-semibold tabular-nums">{terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</span>
               {' '}– z investovaného milionu korun tedy{' '}
               <span className="font-semibold tabular-nums">{terInfo.korunRocne.toLocaleString('cs-CZ')} Kč ročně</span>.
-              {!terInfo.uplne && ` Počítáno z ${Math.round(terInfo.pokryti)} % portfolia – u zbylých fondů poplatek v databázi nemáme.`}
+              {!terInfo.uplne && ` Počítáno z ${Math.round(terInfo.pokryti)} % portfolia – u zbylých fondů poplatek v databázi nemáme.`}
               {' '}Poplatek se strhává průběžně z hodnoty fondu, žádnou fakturu nedostanete.
               K tomu připočtěte náklady brokera (poplatek za nákup a případnou měnovou konverzi) –
               ty se u{' '}
@@ -326,13 +335,15 @@ export default async function PortfolioDetailPreview(
         {btConfig ? (
           <section data-sekce="historie" className="pb-8" data-kontrola-backtest={btLink && btPf ? `${btLink}|${btPf.summary.cagr}` : undefined}>
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Historická výkonnost a chování v krizích</h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech od července 2008 – růst, kolísavost, propady a krize.</p>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech{btPf?.evolution[0] ? ` od ${new Date(btPf.evolution[0].date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })}` : ''} – růst, kolísavost, propady a krize.</p>
+            {btConfig.nahrada && <p className="-mt-2 mb-4 text-sm text-amber-900 leading-relaxed">≈ {btConfig.nahrada}</p>}
             <PortfolioBacktest config={btConfig} portfolioName={model.name} initialCzk={btInitial} />
           </section>
         ) : cmp ? (
           <section className="pb-8">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie (S&amp;P 500)</h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu, kolísavosti i nejhorším propadu.</p>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data fondů ve složení: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu a kolísavosti{dateStrFondy ? ` (data k ${dateStrFondy})` : ''}.</p>
+            {BEZ_HISTORIE[slug] && <p className="-mt-2 mb-4 text-sm text-slate-600 leading-relaxed">Backtest od roku 2008 tu není. {BEZ_HISTORIE[slug]}</p>}
             <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5">
               {[
                 { label: 'Výnos za 1 rok (Kč)', pf: cmp.ret1y.pf, sp: cmp.ret1y.sp, kind: 'ret' as const },

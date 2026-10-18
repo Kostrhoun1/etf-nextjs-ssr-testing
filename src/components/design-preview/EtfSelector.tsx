@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Compass, ArrowRight, ArrowLeft, RefreshCw, Sparkles, ShieldCheck, Info, Wallet, Filter } from 'lucide-react';
+import { Compass, ArrowRight, ArrowLeft, RefreshCw, Sparkles, ShieldCheck, Info, Wallet, Filter, Scale } from 'lucide-react';
+import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
-/* AI ETF průvodce – Fáze 0: pravidlový průvodce výběrem (bez nákladů na LLM,
-   plně compliant). Z odpovědí odvodí vhodnou kategorii z naší databáze a pošle
-   uživatele na její detail s konkrétními fondy. NENÍ investiční doporučení. */
+/* Průvodce výběrem typu ETF – pravidlový (bez LLM). Z odpovědí odvodí kategorii z naší databáze (srovnávač, ne poradce):
+   ukazuje, které typy fondů odpovídají odpovědím, se SKUTEČNÝMI čísly v Kč a datem (revize kola 4, 18. 10. 2026).
+   Nízká tolerance propadů → první výsledek jsou modelová portfolia s dluhopisy (historie z backtestu), akciové ETF až
+   jako druhá možnost (dřív „celosvětové ETF“ + varování, což testovací uživatelka četla jako rozpor). */
 
 type Answers = { horizon?: string; risk?: string; focus?: string; payout?: string };
 
@@ -45,48 +47,65 @@ const QUESTIONS: { key: keyof Answers; q: string; help?: string; options: { v: s
     options: [
       { v: 'acc', label: 'Reinvestovat (růst)', desc: 'Akumulační – nechci řešit daně z dividend' },
       { v: 'dist', label: 'Vyplácet na účet', desc: 'Distribuční – chci pravidelný příjem' },
-      { v: 'idk', label: 'Nevím / je mi to jedno', desc: 'Poraďte mi' },
+      { v: 'idk', label: 'Nevím', desc: 'Je mi to jedno' },
     ],
   },
 ];
 
-const CATS: Record<string, { slug: string; label: string; vVete?: string; why: string }> = {
-  world: { slug: 'nejlepsi-celosvetove-etf', label: 'Celosvětové ETF', why: 'jedním nákupem tisíce firem z celého světa – nejširší rozložení rizika' },
-  usa: { slug: 'nejlepsi-sp500-etf', label: 'S&P 500 ETF', vVete: 'ETF na S&P 500', why: '500 největších amerických firem, nízké poplatky, historicky silný výnos' },
-  europe: { slug: 'nejlepsi-evropske-etf', label: 'Evropské ETF', why: 'expozice na evropské firmy' },
-  dividends: { slug: 'nejlepsi-dividendove-etf', label: 'Dividendové ETF', why: 'fondy zaměřené na pravidelnou výplatu dividend' },
-  tech: { slug: 'nejlepsi-technologicke-etf', label: 'Technologické ETF', why: 'tematická sázka na technologický sektor (vyšší výnos i kolísavost)' },
+/** `vVete` = tvar do věty (správná velká písmena: „ETF na S&P 500“, ne „s&p 500 etf“). */
+const CATS: Record<string, { slug: string; label: string; vVete: string; why: string }> = {
+  world: { slug: 'nejlepsi-celosvetove-etf', label: 'Celosvětové ETF', vVete: 'celosvětové ETF', why: 'jedním nákupem tisíce firem z celého světa – nejširší rozložení rizika' },
+  usa: { slug: 'nejlepsi-sp500-etf', label: 'S&P 500 ETF', vVete: 'ETF na S&P 500', why: '500 největších amerických firem, nízké poplatky, jen jedna země' },
+  europe: { slug: 'nejlepsi-evropske-etf', label: 'Evropské ETF', vVete: 'evropské ETF', why: 'expozice na evropské firmy' },
+  dividends: { slug: 'nejlepsi-dividendove-etf', label: 'Dividendové ETF', vVete: 'dividendové ETF', why: 'fondy zaměřené na pravidelnou výplatu dividend' },
+  tech: { slug: 'nejlepsi-technologicke-etf', label: 'Technologické ETF', vVete: 'technologické ETF', why: 'tematická sázka na technologický sektor (vyšší výnos i kolísavost)' },
   esg: { slug: 'nejlepsi-esg-etf', label: 'ESG ETF', vVete: 'ESG ETF', why: 'fondy s ohledem na udržitelnost' },
-  bonds: { slug: 'nejlepsi-dluhopisove-etf', label: 'Dluhopisové ETF', why: 'nižší kolísavost než akcie – vhodnější na krátký horizont a nízké riziko' },
+  bonds: { slug: 'nejlepsi-dluhopisove-etf', label: 'Dluhopisové ETF', vVete: 'dluhopisové ETF', why: 'nižší kolísavost než akcie – kratší horizont a nižší riziko' },
 };
 
-// Test s uživatelem 18. 10. 2026: odpověď „Nechci velké propady“ + USA vedla na 100 % akcií BEZ varování.
-// Akciové ETF (i celý svět nebo S&P 500) v krizi 2008 v Kč spadly zhruba o polovinu (backtest: S&P 500 −49,7 %).
-const PROPADY = 'Akciové ETF – i celosvětové nebo S&P 500 – v krizi 2008 spadly v korunách zhruba o polovinu a návrat trval roky. Když nechcete velké propady, dejte část peněz do dluhopisů nebo zvolte portfolio s dluhopisy.';
+/** Ukázkový fond kategorie se skutečným výnosem v Kč a datem (z /vyber-etf/page.tsx, data fondu). */
+export interface UkazkaFondu { isin: string; nazev: string; ticker: string | null; r5: number | null; datum: string | null }
+/** Modelové portfolio s dluhopisy – historie z backtestu (předpočet, stejné jádro jako /backtest). */
+export interface PortfolioKlid { slug: string; nazev: string; cagr: number; maxPokles: number; od: string; do: string; nahrada?: string }
 
-function recommend(a: Answers): { key: string; caution?: string } {
+const pct = (v: number, d = 1) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
+const mesRok = (iso: string) => `${Number(iso.slice(5, 7))}/${iso.slice(0, 4)}`;
+const den = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+
+function recommend(a: Answers): { key: string; klid: boolean; caution?: string } {
   if (a.horizon === 'short') {
-    return { key: 'bonds', caution: 'Na horizont kratší než 3 roky jsou akciové ETF riskantní – trh může být zrovna dole, až budete peníze potřebovat. Zvažte spíš dluhopisové ETF, spořicí účet nebo delší horizont.' };
+    return { key: 'bonds', klid: false, caution: 'Na horizont kratší než 3 roky jsou akciové ETF riskantní – trh může být zrovna dole, až budete peníze potřebovat. I dluhopisy kolísají (viz výnos níže); jistotu dává spíš spořicí účet.' };
   }
-  const nizkeRiziko = a.risk === 'low';
-  // Tématické/regionální volby respektujeme.
-  if (a.focus && a.focus !== 'world' && CATS[a.focus]) {
-    const caution = nizkeRiziko ? PROPADY
-      : a.focus === 'tech' ? 'Technologie jsou volatilnější než celý trh – berte je jako doplněk k širokému základu, ne jako jediný fond.'
-      : undefined;
-    return { key: a.focus, caution };
-  }
-  // Default: celý svět (nejširší základ).
-  return { key: 'world', caution: nizkeRiziko ? PROPADY : undefined };
+  const klid = a.risk === 'low';
+  const key = a.focus && CATS[a.focus] ? a.focus : 'world';
+  const caution = !klid && key === 'tech' ? 'Technologie jsou volatilnější než celý trh – obvykle doplněk k širokému základu, ne jediný fond.' : undefined;
+  return { key, klid, caution };
 }
 
 function payoutNote(payout?: string): string {
-  if (payout === 'dist') return 'Hledejte distribuční (Dist) variantu – dividendy vám chodí na účet (v ČR je daníte 15 %).';
+  if (payout === 'dist') return 'Hledejte distribuční (Dist) variantu – dividendy vám chodí na účet (v ČR je daníte 15 %).';
   if (payout === 'acc') return 'Hledejte akumulační (Acc) variantu – dividendy se reinvestují uvnitř fondu a v ČR je řešit nemusíte.';
-  return 'Pro dlouhodobý růst dává smysl akumulační (Acc) varianta – dividendy se reinvestují a nemusíte je danit.';
+  return 'Akumulační (Acc) varianta dividendy reinvestuje uvnitř fondu (v ČR je nedaníte), distribuční (Dist) je vyplácí na účet (daň 15 %).';
 }
 
-export default function EtfSelector() {
+function FondRadek({ f }: { f?: UkazkaFondu }) {
+  if (!f) return null;
+  return (
+    <p className="text-sm text-slate-700 leading-relaxed">
+      Například{' '}
+      <Link href={`/etf/${f.isin}`} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">{f.ticker ? `${f.ticker} · ` : ''}{f.nazev}</Link>:{' '}
+      za 5 let v Kč{' '}
+      <span className={`font-semibold tabular-nums ${f.r5 == null ? 'text-slate-400' : f.r5 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{f.r5 == null ? '—' : pct(f.r5)}</span>
+      <span className="text-slate-500">{f.datum ? ` (celkem, data k ${den(f.datum)})` : ' (aktuální data nemáme)'}</span>.
+    </p>
+  );
+}
+
+export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = null }: {
+  fondy?: Record<string, UkazkaFondu>; portfoliaKlid?: PortfolioKlid[];
+  /** 100 % akcie celého světa (VT) ve stejném backtestu – pro srovnání propadu. */
+  akcie?: { cagr: number; maxPokles: number } | null;
+}) {
   const [step, setStep] = useState(0);
   const [a, setA] = useState<Answers>({});
   const done = step >= QUESTIONS.length;
@@ -99,18 +118,20 @@ export default function EtfSelector() {
 
   if (!done) {
     const cur = QUESTIONS[step];
+    // Mřížka podle počtu voleb – 3 volby ve 2 sloupcích nechávaly osamělou třetí (revize kola 4).
+    const grid = cur.options.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2';
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
         <div className="flex items-center justify-between mb-5">
           <span className="inline-flex items-center gap-2 text-sm font-medium text-teal-700"><Compass className="w-4 h-4" /> Otázka {step + 1} ze {QUESTIONS.length}</span>
-          {step > 0 && <button onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600"><ArrowLeft className="w-3.5 h-3.5" /> Zpět</button>}
+          {step > 0 && <button onClick={() => setStep((s) => s - 1)} className="inline-flex min-h-10 items-center gap-1 text-sm text-slate-500 hover:text-slate-700"><ArrowLeft className="w-3.5 h-3.5" /> Zpět</button>}
         </div>
         <div className="mb-1 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
           <div className="h-full rounded-full bg-teal-600 transition-all" style={{ width: `${(step / QUESTIONS.length) * 100}%` }} />
         </div>
         <h2 className="mt-5 text-xl md:text-2xl font-bold tracking-tight text-slate-900">{cur.q}</h2>
         {cur.help && <p className="mt-1.5 text-sm text-slate-500 leading-relaxed">{cur.help}</p>}
-        <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+        <div className={`mt-5 grid gap-2.5 ${grid}`}>
           {cur.options.map((o) => (
             <button key={o.v} onClick={() => pick(cur.key, o.v)} className="group flex flex-col items-start rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-teal-400 hover:shadow-sm min-h-[64px]">
               <span className="font-semibold text-slate-900 group-hover:text-teal-700">{o.label}</span>
@@ -124,42 +145,84 @@ export default function EtfSelector() {
 
   const rec = recommend(a);
   const cat = CATS[rec.key];
+  const klid = rec.klid && portfoliaKlid.length > 0;
 
   return (
     <div className="rounded-2xl border border-teal-200 bg-white overflow-hidden">
       <div className="bg-slate-900 text-white px-6 py-6 md:px-8">
         <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-300"><Sparkles className="w-4 h-4" /> Podle vašich odpovědí</span>
-        <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">{cat.label}</h2>
-        <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Vašim odpovědím odpovídají <strong className="text-white">{cat.vVete ?? cat.label.toLowerCase()}</strong> – {cat.why}.</p>
+        {klid ? (<>
+          <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">Portfolia s dluhopisy</h2>
+          <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Když nechcete velké propady, odpovídají vám spíš <strong className="text-white">portfolia, kde akcie tvoří menšinu</strong> a zbytek hlavně dluhopisy a zlato. Propadům se nevyhnou, ale bývají mělčí.</p>
+        </>) : (<>
+          <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">{cat.label}</h2>
+          <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Vašim odpovědím odpovídají <strong className="text-white">{cat.vVete}</strong> – {cat.why}.</p>
+        </>)}
       </div>
-      <div className="p-6 md:p-8 space-y-4">
+      <div className="p-6 md:p-8 space-y-5">
+        {klid && (
+          <section className="space-y-3">
+            <ul className="grid gap-2.5 sm:grid-cols-2">
+              {portfoliaKlid.map((p) => (
+                <li key={p.slug} className="rounded-xl border border-slate-200 p-4">
+                  <Link href={`/portfolio-strategie/${p.slug}`} className="font-semibold text-slate-900 hover:text-teal-700">{p.nazev}</Link>
+                  <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <div><dt className="text-xs text-slate-500">Ročně v Kč</dt><dd className="text-lg font-bold tabular-nums text-slate-900">{pct(p.cagr * 100)}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Max. pokles v Kč</dt><dd className="text-lg font-bold tabular-nums text-slate-900">{pct(p.maxPokles * 100)}</dd></div>
+                  </dl>
+                  <p className="mt-1 text-xs text-slate-500">Backtest {mesRok(p.od)} – {den(p.do)}, po poplatcích fondů{p.nahrada ? ` · ≈ ${p.nahrada}` : ''}</p>
+                </li>
+              ))}
+            </ul>
+            <Link href="/portfolio-strategie?povaha=klid" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-teal-700 px-5 text-sm font-semibold text-white hover:bg-teal-800">
+              <Scale className="w-4 h-4" /> Modelová portfolia „Chci hlavně klid“ <ArrowRight className="w-4 h-4" />
+            </Link>
+            {akcie && <p className="text-xs text-slate-500">Pro srovnání: 100&nbsp;% akcie celého světa (fond VT) ve stejném backtestu {pct(akcie.cagr * 100)} ročně, max. pokles {pct(akcie.maxPokles * 100)}.</p>}
+          </section>
+        )}
+
+        {klid ? (
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+            <p className="text-sm font-semibold text-slate-900">Druhá možnost: {cat.vVete}</p>
+            <p className="text-sm text-slate-600 leading-relaxed">Čistě akciové fondy rostly víc, ale propady byly hlubší.</p>
+            <FondRadek f={fondy[rec.key]} />
+            <Link href={`/nejlepsi-etf/${cat.slug}`} className="inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">Fondy v kategorii {cat.label} <ArrowRight className="w-4 h-4" /></Link>
+          </section>
+        ) : (
+          <FondRadek f={fondy[rec.key]} />
+        )}
+
         {rec.caution && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900/90 leading-relaxed">
-            <Info className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" /> <span>{rec.caution} {rec.caution === PROPADY && <Link href="/portfolio-strategie" className="font-medium underline underline-offset-2">Modelová portfolia →</Link>}</span>
+            <Info className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" /> <span>{rec.caution}</span>
           </div>
         )}
         <div className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
           <Wallet className="w-4 h-4 mt-0.5 shrink-0 text-teal-700" /> <span>{payoutNote(a.payout)}</span>
         </div>
-        <div className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
-          <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0 text-teal-700" /> <span>Na stránce kategorie uvidíte konkrétní fondy s <strong>výnosem přepočteným do korun</strong>, poplatky a českým daňovým kontextem (časový test 3 roky apod.).</span>
-        </div>
+        {!klid && (
+          <div className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
+            <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0 text-teal-700" /> <span>Na stránce kategorie uvidíte konkrétní fondy s <strong>výnosem přepočteným do korun</strong>, poplatky a českým daňovým kontextem (časový test 3 roky apod.).</span>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-3 pt-1">
-          <Link href={`/nejlepsi-etf/${cat.slug}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800">
-            Zobrazit fondy v kategorii <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link href="/srovnani" className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">
+          {!klid && (
+            <Link href={`/nejlepsi-etf/${cat.slug}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-teal-700 px-5 text-sm font-semibold text-white hover:bg-teal-800">
+              Zobrazit fondy v kategorii <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
+          <Link href="/srovnani" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">
             <Filter className="w-4 h-4" /> Profiltrovat všechny fondy
           </Link>
-          <button onClick={reset} className="inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-600">
+          <button onClick={reset} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-medium text-slate-500 hover:text-slate-700">
             <RefreshCw className="w-4 h-4" /> Znovu
           </button>
         </div>
 
-        <p className="border-t border-slate-100 pt-4 text-xs text-slate-400 leading-relaxed">
-          Tento průvodce je <strong>vzdělávací pomůcka</strong>, která vás zorientuje mezi typy ETF – <strong>není to investiční doporučení</strong> ani analýza vašich osobních poměrů. ETFpruvodce.cz není investiční poradce. Konečné rozhodnutí a jeho důsledky jsou na vás; investování do ETF nese riziko ztráty.
-        </p>
+        <div className="border-t border-slate-100 pt-4">
+          <InvestmentDisclaimer variant="inline" />
+        </div>
       </div>
     </div>
   );

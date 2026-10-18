@@ -68,7 +68,7 @@ export default async function PortfolioStrategieDesignPreview() {
     const r = cfg ? await predpocitejPortfolio(cfg.items, cfg.start) : null;
     const evo = r?.evolution ?? [];
     return [m.slug, r && evo.length > 1 ? {
-      cagr: r.summary.cagr, maxPokles: r.risk.maxDrawdown.depth, od: evo[0].date.slice(0, 10), do: evo[evo.length - 1].date.slice(0, 10), proxy: cfg?.proxyNote,
+      cagr: r.summary.cagr, maxPokles: r.risk.maxDrawdown.depth, od: evo[0].date.slice(0, 10), do: evo[evo.length - 1].date.slice(0, 10), proxy: cfg?.proxyNote, nahrada: cfg?.nahrada,
       odkaz: backtestOdkaz(m.slug, evo[evo.length - 1].date.slice(0, 10)),
     } : null] as const;
   })));
@@ -158,7 +158,7 @@ export default async function PortfolioStrategieDesignPreview() {
         {/* 2. JÁDRO: výběr podle povahy + karty */}
         <section data-sekce="portfolia" className="pb-8">
           <p className="mb-3 text-xs text-slate-500">
-            Seřazeno od nejklidnějšího. Zhodnocení a max. pokles z backtestu v korunách
+            Seřazeno podle největšího propadu v historii, od nejmenšího. Zhodnocení a max. pokles z backtestu v korunách
             {historieOd && historieDo ? ` (${mr(historieOd)} – ${new Date(`${historieDo}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })})` : ''}, po poplatcích fondů; ≈ = část složení počítáme přes podobný index.
           </p>
           <PortfolioVyber returns={returns} historie={historie} />

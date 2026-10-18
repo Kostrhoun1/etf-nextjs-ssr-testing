@@ -6,7 +6,8 @@
  *
  * „Celý svět“ = fond VT (index FTSE Global All Cap) od 7/2008 – stejně jako preset „Celý svět“ v backtestu.
  * Začne-li období dřív, backtest celosvětový fond nemá a počítá „USA + zbytek světa“ (60 % S&P 500 + 40 % svět
- * mimo USA) – karta to tak i pojmenuje. Stejně 60/40: od 7/2008 60 % VT + 40 % AGG, dřív 36/24/40.
+ * mimo USA) – karta to tak i pojmenuje. Stejně 60/40: od 7/2008 60 % VT + 40 % AGG, dřív 36/24/40 (odkaz do backtestu
+ * vždy jako explicitní složení – preset „60/40“ v backtestu má od 18. 10. 2026 dluhopisy eurozóny).
  */
 import { STROJ_PRESETY, slozeniProStart } from '@/lib/strojCasuVypocet';
 import { zhodnoceniVkladu } from '@/lib/backtest/zhodnoceniVkladu';
@@ -54,7 +55,9 @@ export function scenarSkutecnosti(v: SkutecnostVstup, dnes = new Date()): Skutec
   if (preset.id === 'sp500') { q.set('portfolio', 'sp500-100'); doCeho = 'do S&P 500'; nazev = 'S&P 500'; }
   else if (preset.id === 'svet' && !priblizeni) { q.set('portfolio', 'cely-svet'); doCeho = 'do akcií celého světa'; nazev = 'Celý svět'; }
   else if (preset.id === 'svet') { q.set('portfolio', 'global-since-2000'); doCeho = 'do portfolia USA + zbytek světa'; nazev = 'USA + zbytek světa'; }
-  else if (preset.id === 'vyvazene' && !priblizeni) { q.set('portfolio', '60-40'); doCeho = 'do portfolia 60/40'; nazev = '60/40'; }
+  // 60/40 kalkulačky = stroj času (60 % VT + 40 % AGG v USD). Preset „60/40“ v backtestu má od kola 5 dluhopisy eurozóny
+  // (= modelové portfolio) → odkaz nese explicitní složení, aby číslo karty = číslo backtestu.
+  else if (preset.id === 'vyvazene' && !priblizeni) { q.set('slozeni', slozeni.map((s) => `${s.indexCode}:${Math.round(s.weight * 100)}`).join(',')); doCeho = 'do portfolia 60/40 (s americkými dluhopisy)'; nazev = '60/40'; }
   else { q.set('slozeni', slozeni.map((s) => `${s.indexCode}:${Math.round(s.weight * 100)}`).join(',')); doCeho = `do ${preset.nazev2p}`; nazev = preset.nazev; }
 
   const startDate = `${start}-01`;

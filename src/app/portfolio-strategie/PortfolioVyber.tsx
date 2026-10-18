@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { History, ArrowRight } from 'lucide-react';
 import { PortfolioCard, type HistorieMap, type ReturnsMap } from '@/components/design-preview/portfolioComponents';
@@ -17,7 +17,18 @@ const VOLBY: { id: 'vse' | PortfolioRisk; label: string }[] = [
 
 export default function PortfolioVyber({ returns, historie }: { returns?: ReturnsMap; historie?: HistorieMap }) {
   const [volba, setVolba] = useState<'vse' | PortfolioRisk>('vse');
-  const vybrane = portfolioModels.filter((m) => volba === 'vse' || m.risk === volba);
+  // ?povaha=klid|stred|rust – odkaz z průvodce /vyber-etf („Nechci velké propady“ → portfolia s dluhopisy).
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get('povaha');
+    const m: Record<string, PortfolioRisk> = { klid: 'Konzervativní', stred: 'Umírněné', rust: 'Agresivní' };
+    if (p && m[p]) setVolba(m[p]);
+  }, []);
+  /* Pořadí = největší historický propad z backtestu, od nejmělčího (revize kola 4: text „od nejklidnějšího“ stál nad
+     řazením podle podílu akcií a 60/40 −18 % bylo za Permanentním −20 %). Shoda → méně akcií první; bez historie na konec. */
+  const pokles = (slug: string) => historie?.[slug]?.maxPokles ?? -Infinity;
+  const vybrane = portfolioModels
+    .filter((m) => volba === 'vse' || m.risk === volba)
+    .sort((a, b) => (Math.abs(pokles(b.slug) - pokles(a.slug)) > 0.0005 ? pokles(b.slug) - pokles(a.slug) : a.stocksPct - b.stocksPct));
   return (
     <div>
       <div role="group" aria-label="Vyberte podle povahy" className="-mx-4 px-4 mb-4 flex gap-1.5 overflow-x-auto pb-1 sm:mx-0 sm:px-0 sm:flex-wrap">

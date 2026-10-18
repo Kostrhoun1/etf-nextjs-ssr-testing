@@ -33,7 +33,7 @@ export interface PortfolioModel {
   risk: PortfolioRisk;
   /** % v akciích – pro tabulku „pro koho". */
   stocksPct: number;
-  horizon: string;         // doporučený horizont
+  horizon: string;         // typický horizont
   forWhom: string;         // verdikt do tabulky
   allocations: PortfolioAllocation[];
 }
@@ -175,7 +175,7 @@ export const portfolioModels: PortfolioModel[] = [
     slug: 'globalni-jadro-small-cap-value',
     name: 'Svět + malé firmy',
     kratkyNazev: 'Svět + malé firmy',
-    tagline: 'Pro pokročilé: daňově optimalizované světové jádro (85 %) a k němu jediný faktor, který přežije náklady — malé hodnotové firmy (15 %).',
+    tagline: 'Pro pokročilé: daňově optimalizované světové jádro (85 %) a k němu jediný faktor, který přežije náklady — malé hodnotové firmy (15 %).',
     risk: 'Agresivní',
     stocksPct: 100,
     horizon: 'od 12 let',
@@ -189,12 +189,24 @@ export const portfolioModels: PortfolioModel[] = [
   },
 ];
 
+/** Portfolia BEZ historie v backtestu – proč (jedna věta místo čísla; pravidlo č. 1: raději „—“ než cizí historie). */
+export const BEZ_HISTORIE: Record<string, string> = {
+  'dividendove-portfolio': 'Historii nemáme: řada dividendového indexu (S&P Global Dividend Aristocrats) v datech není a celý světový trh místo něj by ukazoval jiné portfolio.',
+};
+
+/** „4 fondy · poměry vrátit jednou ročně“ – fakta pro rozhodnutí, kolik práce portfolio dá (revize kola 4, persona Markéta). */
+export function narocnost(m: PortfolioModel): string {
+  const n = new Set(m.allocations.map((a) => a.isin)).size;
+  const fondy = n === 1 ? 'fond' : n < 5 ? 'fondy' : 'fondů';
+  return `${n} ${fondy} · jednou ročně vrátit poměry na cíl`;
+}
+
 /** Riziko jako 1–3 tečky (stejně jako homepage), bez červeného „poplašného“ štítku. */
 export const RIZIKO_TECKY: Record<PortfolioRisk, number> = { 'Konzervativní': 1, 'Umírněné': 2, 'Agresivní': 3 };
 
 /* Odkaz do backtestu se STEJNÝMI vstupy jako předpočet na stránce: složení, start, 100 000 Kč, bez dalších
    vkladů, roční rebalancování a KONEC DAT = poslední den předpočtu (`do`). Revize 18. 10. 2026: stránka ukazovala
-   617 tis./10,5 % a backtest z jejího odkazu 612 992 Kč/10,4 % – stránka je v ISR cache, backtest počítal do jiného
+   617 tis./10,5 % a backtest z jejího odkazu 612 992 Kč/10,4 % – stránka je v ISR cache, backtest počítal do jiného
    dne. Složení jde vždy explicitně (?slozeni=kod:vaha), backtest si k němu sám najde hotový preset se stejnými
    vahami (název). Denní kontrola (scripts/check-fund-data.mjs) z tohohle odkazu počítá API a porovná s číslem. */
 export function backtestOdkaz(slug: string, doDen?: string): string | null {
@@ -215,8 +227,9 @@ export function backtestOdkaz(slug: string, doDen?: string): string | null {
    Modelová portfolia napojujeme na reálná denní historická data (tabulka
    index_historical_data, engine src/lib/backtest). Kde nemáme přesný index
    (nemovitostní REIT, dividendový index), použijeme nejbližší proxy a otevřeně
-   to přiznáme v `proxyNote`. `start` = nejzazší datum, kde mají VŠECHNY složky
-   data (vázáno hlavně ftse_all_world od 2008‑06). */
+   to přiznáme v `proxyNote` (tooltip) a `nahrada` (viditelně u čísla). Kde by proxy byla jiné portfolio
+   (dividendový index přes celý trh), historie chybí („—“). `start` = první den dat ftse_all_world (26. 6. 2008).
+   Přehled náhrad: ZAMERNA-ROZHODNUTI.md. */
 export interface BacktestItem {
   indexCode: string;
   weight: number; // 0–1
@@ -227,15 +240,22 @@ export interface BacktestConfig {
   items: BacktestItem[];
   /** Část složení je v backtestu nahrazená podobným indexem → čísla s „≈“ a tímto vysvětlením v tooltipu. */
   proxyNote?: string;
+  /** Krátká VIDITELNÁ věta u čísel (revize kola 4: náhrada jen v tooltipu nestačí – „čím je historie počítaná“). */
+  nahrada?: string;
   /** Měnové riziko složek, které nejsou v korunách ani zajištěné (jedna věta do tooltipu). */
   menoveRiziko?: string;
 }
+
+/* Start = první den dat fondu VT (index ftse_all_world, manifest: since 2008-06-26). Stejný start má preset v backtestu
+   („data od 6/2008“) i odkaz z modelového portfolia (revize kola 4, 18. 10. 2026: karta „od 7/2008“ 8,9 % × backtest
+   „od 6/2008“ 8,7 %). 1. 7. 2008 by engine stejně vynechal (vadné ticky 1. dne v měsíci, bezVadnychTicku). */
+const START_VT = '2008-06-26';
 
 const USD_DLUHOPISY = 'Dluhopisy jsou v tomto portfoliu americké a v dolarech – jejich hodnota v korunách kolísá s kurzem USD/CZK, takže „bezpečná“ část v korunách tak klidná není.';
 
 export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
   'globalni-jadro-small-cap-value': {
-    start: '2008-07-01',
+    start: START_VT,
     items: [
       { indexCode: 'sp500', weight: 0.54, ter: 0.0005 },
       // 18. 10. 2026: dřív world_ex_us (VGTSX = vyspělé I rozvíjející se trhy) + zvlášť EM → EM se počítaly dvakrát.
@@ -245,9 +265,10 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'us_small_cap', weight: 0.15, ter: 0.0039 }, // proxy globálního small-cap value
     ],
     proxyNote: 'Malé hodnotové firmy (Avantis Global Small Cap Value) počítáme přes americké malé firmy (Russell 2000) – bez hodnotového zaměření a jen USA. Vyspělé trhy mimo USA přes index EAFE (bez Kanady). Výsledek je orientační.',
+    nahrada: 'Historie počítá malé hodnotové firmy přes americké malé firmy (Russell 2000, bez hodnotového zaměření).',
   },
   'permanentni-portfolio': {
-    start: '2008-07-01',
+    start: START_VT,
     items: [
       { indexCode: 'ftse_all_world', weight: 0.25, ter: 0.0022 },
       { indexCode: 'us_treasury_20y', weight: 0.25, ter: 0.0007 },
@@ -257,24 +278,28 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
     menoveRiziko: '„Hotovost“ i dlouhé dluhopisy jsou v tomto portfoliu americké státní dluhopisy v dolarech – v korunách kolísají s kurzem USD/CZK, takže hotovost tu není korunová jistota.',
   },
   'nobel-portfolio': {
-    start: '2008-07-01',
+    start: START_VT,
     items: [
       { indexCode: 'ftse_all_world', weight: 0.55, ter: 0.0022 },
-      { indexCode: 'us_aggregate_bond', weight: 0.25, ter: 0.0025 },
+      // 18. 10. 2026 (kolo 5): dřív us_aggregate_bond (AGG v USD) – v Kč se chová úplně jinak než fond ve složení,
+      // který je zajištěný do eur (USD/CZK 2008: +35 %). Nejbližší EUR řada v manifestu = státní dluhopisy eurozóny.
+      { indexCode: 'eur_govt_bond', weight: 0.25, ter: 0.0007 },
       { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
     ],
-    proxyNote: 'Nemovitosti počítáme přes evropské akcie (dlouhá řada nemovitostních fondů v datech není) a dluhopisy přes americké dluhopisy v dolarech (AGG), ačkoli fond ve složení je globální a zajištěný do eur. Výsledek je orientační.',
+    proxyNote: 'Nemovitosti počítáme přes evropské akcie (dlouhá řada nemovitostních fondů v datech není) a dluhopisy přes státní dluhopisy eurozóny v eurech (fond Xtrackers Eurozone Government Bond); fond ve složení je globální agregátní, zajištěný do eur. Výsledek je orientační.',
+    nahrada: 'Historie počítá nemovitosti přes evropské akcie a dluhopisy přes státní dluhopisy eurozóny – fondy ve složení se mohou chovat jinak.',
   },
   'akciove-portfolio': {
-    start: '2008-07-01',
+    start: START_VT,
     items: [
       { indexCode: 'ftse_all_world', weight: 0.80, ter: 0.0022 },
       { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
     ],
     proxyNote: 'Nemovitosti počítáme přes evropské akcie – dlouhá řada nemovitostních fondů v datech není (americký sektor nemovitostí až od 2015). Backtest tak srovnává akcie s akciemi a o chování nemovitostí nic neříká. Výsledek je orientační.',
+    nahrada: 'Historie počítá nemovitosti přes evropské akcie – o chování nemovitostí nic neříká.',
   },
   'ray-dalio-all-weather': {
-    start: '2008-07-01',
+    start: START_VT,
     items: [
       { indexCode: 'us_treasury_20y', weight: 0.40, ter: 0.0007 },
       { indexCode: 'ftse_all_world', weight: 0.30, ter: 0.0022 },
@@ -285,21 +310,18 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
     menoveRiziko: USD_DLUHOPISY,
   },
   'portfolio-60-40': {
-    start: '2008-07-01',
+    start: START_VT,
     items: [
       { indexCode: 'ftse_all_world', weight: 0.60, ter: 0.0022 },
-      { indexCode: 'us_aggregate_bond', weight: 0.40, ter: 0.0025 },
+      // 18. 10. 2026 (kolo 5): dřív us_aggregate_bond (AGG v USD) – viz Nobelovo portfolio.
+      { indexCode: 'eur_govt_bond', weight: 0.40, ter: 0.0007 },
     ],
-    proxyNote: 'Dluhopisy počítáme přes americké dluhopisy v dolarech (AGG); fond ve složení je globální a zajištěný do eur – v korunách se chová jinak (kurz USD/CZK u něj odpadá, kurz EUR/CZK ne). Výsledek je orientační.',
+    proxyNote: 'Dluhopisy počítáme přes státní dluhopisy eurozóny v eurech (fond Xtrackers Eurozone Government Bond, data od 2008). Fond ve složení (iShares Core Global Aggregate EUR Hedged) je globální, i s firemními dluhopisy, zajištěný do eur a existuje až od 2017. Výsledek je orientační.',
+    nahrada: 'Historie počítá dluhopisy přes státní dluhopisy eurozóny v eurech – fond ve složení je globální a zajištěný do eur, výsledek se může lišit.',
   },
-  'dividendove-portfolio': {
-    start: '2008-07-01',
-    items: [
-      { indexCode: 'ftse_all_world', weight: 0.95, ter: 0.0045 }, // proxy dividendového indexu
-      { indexCode: 'ftse_europe', weight: 0.05, ter: 0.0040 },    // proxy nemovitostí
-    ],
-    proxyNote: 'Dividendové akcie počítáme přes celý světový akciový trh a nemovitosti přes evropské akcie – výsledek ukazuje spíš průběh akcií obecně než dividendové strategie. Orientační.',
-  },
+  /* 'dividendove-portfolio' ZÁMĚRNĚ BEZ HISTORIE (kolo 5, 18. 10. 2026): dřív 95 % celý svět jako „proxy“ dividendového
+     indexu → karta tvrdila „Dividendové ≈ +10,9 % ročně, −32 %“, což je historie celosvětových akcií, ne dividendového
+     portfolia. Řada S&P Global Dividend Aristocrats v manifestu není (us_dividend = americký VYM, jiný index) → „—“. */
 };
 
 // Benchmark pro srovnání „portfolio vs čisté akcie".
