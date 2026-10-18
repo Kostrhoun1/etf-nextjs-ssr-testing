@@ -586,7 +586,8 @@ const main = async () => {
     for (const [cesta, html] of stranky) {
       const kontroly = [...html.matchAll(/data-kontrola-backtest="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
       // Portfolio záměrně bez historie (Dividendové – data-bez-backtestu): nesmí ukazovat cizí historii (kolo 5, 18. 10. 2026).
-      if (html.includes('data-bez-backtestu')) {
+      // Skutečný atribut v HTML značce – ne výskyt v RSC datech („data-bez-backtestu":"$undefined" je na každé stránce).
+      if (/<[a-z]+[^>]*\sdata-bez-backtestu(="")?[\s>]/i.test(html)) {
         if (kontroly.length) nesedi.push(`${cesta}: portfolio bez historie ukazuje backtest (náhradní index = jiné portfolio)`);
         continue;
       }
