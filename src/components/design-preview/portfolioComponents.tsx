@@ -4,6 +4,8 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import {
   barvaSlozky,
   backtestOdkaz,
+  BEZ_HISTORIE,
+  narocnost,
   RIZIKO_TECKY,
   type PortfolioModel,
   type PortfolioRisk,
@@ -21,6 +23,8 @@ export interface HistoriePortfolia {
   cagr: number; maxPokles: number; od: string; do: string;
   /** Část složení je v backtestu nahrazená podobným indexem (proxyNote z PORTFOLIO_BACKTEST). */
   proxy?: string;
+  /** Krátká viditelná věta, čím je historie počítaná (nahrada z PORTFOLIO_BACKTEST). */
+  nahrada?: string;
   /** Odkaz do backtestu se stejnými vstupy včetně konce dat (backtestOdkaz(slug, do)). */
   odkaz?: string | null;
 }
@@ -81,25 +85,31 @@ export function PortfolioBar({ model, showLegend = true }: { model: PortfolioMod
 }
 
 /* ---------- Metriky z backtestu (karta) ----------
-   Proxy složení = „≈“ u čísla a vysvětlení v tooltipu (dřív oranžová věta na každé kartě). */
-function HistorieMetriky({ h }: { h: HistoriePortfolia | null | undefined }) {
+   Proxy složení = „≈“ u čísla + VIDITELNÁ věta, čím je historie počítaná (revize kola 4: jen tooltip nestačil).
+   Portfolio bez historie (BEZ_HISTORIE) = „—“ a jedna věta proč. */
+function HistorieMetriky({ h, bezHistorie }: { h: HistoriePortfolia | null | undefined; bezHistorie?: string }) {
   const obdobi = h ? `${mesicRok(h.od)}–${mesicRok(h.do)}` : '';
   const ap = h?.proxy ? '≈\u00a0' : '';
   const pozn = h?.proxy ? ` ≈ orientační: ${h.proxy}` : '';
+  const chybi = bezHistorie ?? 'Backtest se teď nepodařilo spočítat.';
   return (
-    <div className="grid grid-cols-2 gap-3 text-sm">
-      <div>
-        <span className="block text-xs text-slate-500">
-          <InfoTip label={h ? `Průměrné roční zhodnocení (CAGR) v backtestu ${obdobi}, v korunách, po poplatcích fondů, vyvažování jednou ročně. Historie nezaručuje budoucí výnosy.${pozn}` : 'Backtest se teď nepodařilo spočítat.'}>Ročně od {h ? mesicRok(h.od) : '—'}</InfoTip>
-        </span>
-        <span className={`tabular-nums text-lg font-bold ${h ? (h.cagr >= 0 ? 'text-slate-900' : 'text-red-700') : 'text-slate-400'}`}>{h ? `${ap}${pctZnam(h.cagr * 100)}` : '—'}</span>
+    <div>
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <span className="block text-xs text-slate-500">
+            <InfoTip label={h ? `Průměrné roční zhodnocení (CAGR) v backtestu ${obdobi}, v korunách, po poplatcích fondů, vyvažování jednou ročně. Historie nezaručuje budoucí výnosy.${pozn}` : chybi}>{h ? `Ročně od ${mesicRok(h.od)}` : 'Ročně v historii'}</InfoTip>
+          </span>
+          <span className={`tabular-nums text-lg font-bold ${h ? (h.cagr >= 0 ? 'text-slate-900' : 'text-red-700') : 'text-slate-400'}`}>{h ? `${ap}${pctZnam(h.cagr * 100)}` : '—'}</span>
+        </div>
+        <div>
+          <span className="block text-xs text-slate-500">
+            <InfoTip label={h ? `Největší propad hodnoty od vrcholu ke dnu kdykoli v témže backtestu (${obdobi}, v Kč).${pozn}` : chybi}>Max. pokles</InfoTip>
+          </span>
+          <span className={`tabular-nums text-lg font-bold ${h ? 'text-slate-900' : 'text-slate-400'}`}>{h ? `${ap}${pctZnam(h.maxPokles * 100)}` : '—'}</span>
+        </div>
       </div>
-      <div>
-        <span className="block text-xs text-slate-500">
-          <InfoTip label={h ? `Největší propad hodnoty od vrcholu ke dnu kdykoli v témže backtestu (${obdobi}, v Kč).${pozn}` : 'Backtest se teď nepodařilo spočítat.'}>Max. pokles</InfoTip>
-        </span>
-        <span className={`tabular-nums text-lg font-bold ${h ? 'text-slate-900' : 'text-slate-400'}`}>{h ? `${ap}${pctZnam(h.maxPokles * 100, 0)}` : '—'}</span>
-      </div>
+      {h?.nahrada && <p className="mt-1.5 text-[11px] leading-snug text-slate-500">≈ {h.nahrada}</p>}
+      {!h && bezHistorie && <p className="mt-1.5 text-[11px] leading-snug text-slate-500">{bezHistorie}</p>}
     </div>
   );
 }
@@ -117,22 +127,26 @@ export function PortfolioCard({ model, returns, historie }: { model: PortfolioMo
       <div className="mt-1 mb-2"><RizikoTecky risk={model.risk} /></div>
       <p className="mb-3 text-sm leading-snug text-slate-600">{model.forWhom}</p>
       <PortfolioBar model={model} />
-      <div className="mt-4 border-t border-slate-100 pt-3">
-        <HistorieMetriky h={historie} />
-        <p className="mt-2 text-xs text-slate-500">
-          <InfoTip label="Vážený průměr korunových výnosů ETF ve složení za posledních 12 měsíců, bez rebalancování. Když některému fondu data chybí, číslo neukazujeme.">Za 12 měs. v Kč</InfoTip>{' '}
-          <span className={`font-semibold tabular-nums ${real1y == null ? 'text-slate-400' : real1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{real1y == null ? '—' : pctZnam(real1y)}</span>
-        </p>
-      </div>
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-4">
-        <Link href={`/portfolio-strategie/${model.slug}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800">
-          Detail <ArrowRight className="h-4 w-4" />
-        </Link>
-        {bt && (
-          <Link href={bt} className="inline-flex min-h-10 items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
-            <History className="h-4 w-4" /> V backtestu
+      <p className="mt-3 text-xs text-slate-500">{narocnost(model)}</p>
+      {/* KPI dole zarovnané napříč kartami v řadě (mt-auto) – dřív skákaly podle délky legendy. */}
+      <div className="mt-auto pt-4">
+        <div className="border-t border-slate-100 pt-3">
+          <HistorieMetriky h={historie} bezHistorie={BEZ_HISTORIE[model.slug]} />
+          <p className="mt-2 text-xs text-slate-500">
+            <InfoTip label="Vážený průměr korunových výnosů ETF ve složení za posledních 12 měsíců, bez rebalancování. Když některému fondu data chybí, číslo neukazujeme.">Za 12 měs. v Kč</InfoTip>{' '}
+            <span className={`font-semibold tabular-nums ${real1y == null ? 'text-slate-400' : real1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{real1y == null ? '—' : pctZnam(real1y)}</span>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-4">
+          <Link href={`/portfolio-strategie/${model.slug}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800">
+            Detail <ArrowRight className="h-4 w-4" />
           </Link>
-        )}
+          {bt && (
+            <Link href={bt} className="inline-flex min-h-10 items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">
+              <History className="h-4 w-4" /> V backtestu
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

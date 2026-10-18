@@ -61,7 +61,7 @@ async function fetchBacktest(items: BacktestItem[], start: string, end: string, 
   }
 }
 
-/** Roky, které výpočet nepokrývá celé (první začíná v červenci 2008, poslední končí letos). */
+/** Roky, které výpočet nepokrývá celé (první začíná v červnu 2008, poslední končí letos). */
 function neuplneRoky(evo: EvoPoint[]) {
   const out = new Set<number>();
   if (evo.length < 2) return out;
@@ -187,7 +187,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
         <p className="text-sm text-slate-600 max-w-2xl">
           Denní data {mesRok(prvni)} – {den(posledni)}, {jednotka(cur)}, srovnání se 100&nbsp;% akciemi celého světa (fond VT).
           {cur === 'CZK' && (
-            <> <InfoTip label="Výpočet začíná v červenci 2008, kdy byla koruna vůči dolaru nejsilnější v historii (USD/CZK kolem 14,5; dnes kolem 21–22). Pozdější oslabení koruny výsledky v Kč zvedá – a v krizi 2008–09 tlumilo propad akcií. Jiný start by vyšel jinak; vlastní období si zvolte v backtestu.">
+            <> <InfoTip label={`Výpočet začíná ${den(prvni)}, v létě 2008, kdy byla koruna vůči dolaru nejsilnější v historii (USD/CZK kolem 15; dnes kolem 21). Pozdější oslabení koruny výsledky v Kč zvedá – a v krizi 2008–09 tlumilo propad akcií. Jiný start by vyšel jinak; vlastní období si zvolte v backtestu.`}>
               <span className="text-slate-500">vliv kurzu</span>
             </InfoTip></>
           )}

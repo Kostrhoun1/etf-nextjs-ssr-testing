@@ -13,12 +13,13 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { PortfolioBar, RizikoTecky, fmtPct } from '@/components/design-preview/portfolioComponents';
 import {
-  portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, barvaSlozky, nazevSlozky, backtestOdkaz,
+  portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, BEZ_HISTORIE, barvaSlozky, nazevSlozky, backtestOdkaz, narocnost,
 } from '@/components/design-preview/portfolioData';
 import PortfolioBacktest from '@/components/design-preview/PortfolioBacktest';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
 import { getMetricsByIsins } from '@/lib/etf-data';
+import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
 
 /* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
 const SP500_ISIN = 'IE00B5BMR087';
@@ -79,6 +80,11 @@ export default async function PortfolioDetailPreview(
   const isins = model.allocations.map((a) => a.isin);
   const ret = await getMetricsByIsins([...isins, SP500_ISIN]);
   const sp = ret[SP500_ISIN];
+  // Bez backtestu (Dividendové) = srovnání z dat fondů → datum, ke kterému data fondů platí (nejstarší ze složek).
+  const datumyFondu = btConfig ? [] : Object.values(await vynosyFonduSDatem([...isins, SP500_ISIN])).map((f) => f.datum).filter((d): d is string => !!d).sort();
+  const dateStrFondy = datumyFondu[0]
+    ? new Date(`${datumyFondu[0]}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    : null;
   const weighted = (key: 'return_1y_czk' | 'return_3y_czk' | 'volatility_1y') => {
     let sum = 0, w = 0;
     for (const a of model.allocations) {
@@ -167,7 +173,7 @@ export default async function PortfolioDetailPreview(
       ),
       value: `${terInfo.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`,
     }] : []),
-    { icon: CalendarDays, label: 'Doporučený horizont', value: model.horizon },
+    { icon: CalendarDays, label: 'Typický horizont', value: model.horizon },
     { icon: Layers, label: 'Podíl akcií', value: fmtPct(model.stocksPct) },
   ];
 
@@ -203,7 +209,7 @@ export default async function PortfolioDetailPreview(
             <h1 className="mt-3 text-2xl md:text-3xl font-bold tracking-tight leading-tight">{model.name}</h1>
             <p className="mt-2 max-w-2xl text-slate-300 text-sm md:text-base leading-relaxed">{model.tagline}</p>
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              {dateStr && <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Data k {dateStr}</span>}
+              {(dateStr ?? dateStrFondy) && <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Data k {dateStr ?? dateStrFondy}</span>}
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
             </div>
             {btLink && (
@@ -241,6 +247,7 @@ export default async function PortfolioDetailPreview(
               </div>
             ))}
           </div>
+          <p className="mt-2 text-xs text-slate-500">{narocnost(model)}.</p>
         </section>
 
         {/* SLOŽENÍ */}
@@ -326,13 +333,15 @@ export default async function PortfolioDetailPreview(
         {btConfig ? (
           <section data-sekce="historie" className="pb-8" data-kontrola-backtest={btLink && btPf ? `${btLink}|${btPf.summary.cagr}` : undefined}>
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Historická výkonnost a chování v krizích</h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech od července 2008 – růst, kolísavost, propady a krize.</p>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech{btPf?.evolution[0] ? ` od ${new Date(btPf.evolution[0].date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })}` : ''} – růst, kolísavost, propady a krize.</p>
+            {btConfig.nahrada && <p className="-mt-2 mb-4 text-sm text-amber-900 leading-relaxed">≈ {btConfig.nahrada}</p>}
             <PortfolioBacktest config={btConfig} portfolioName={model.name} initialCzk={btInitial} />
           </section>
         ) : cmp ? (
           <section className="pb-8">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie (S&amp;P 500)</h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu, kolísavosti i nejhorším propadu.</p>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data fondů ve složení: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu a kolísavosti{dateStrFondy ? ` (data k ${dateStrFondy})` : ''}.</p>
+            {BEZ_HISTORIE[slug] && <p className="-mt-2 mb-4 text-sm text-slate-600 leading-relaxed">Dlouhou historii (backtest od roku 2008) neukazujeme. {BEZ_HISTORIE[slug]}</p>}
             <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5">
               {[
                 { label: 'Výnos za 1 rok (Kč)', pf: cmp.ret1y.pf, sp: cmp.ret1y.sp, kind: 'ret' as const },

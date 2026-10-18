@@ -5,7 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, User, Database, Calculator,
-  Wallet, Scale, Landmark, BookOpen,
+  Wallet, Scale, Landmark,
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
@@ -204,7 +204,6 @@ export default async function BacktestPreview() {
               ['/portfolio-strategie', 'Modelová portfolia', Scale],
               ['/srovnani', 'Srovnání ETF', TrendingUp],
               ['/kde-koupit', 'Kde koupit ETF', Landmark],
-              ['/pruvodce', 'Co jsou ETF', BookOpen],
             ] as [string, string, typeof Wallet][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>
