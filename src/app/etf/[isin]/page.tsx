@@ -728,7 +728,7 @@ export default async function ETFDetailPreview(
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-lg border border-slate-200 bg-white p-5">
               <p className="flex items-center gap-2 text-sm text-slate-500">
-                <InfoTip label="Roční kolísavost (volatilita) ceny. Vyšší číslo = větší výkyvy nahoru i dolů.">Kolísavost (1 rok)</InfoTip>
+                <InfoTip label="Roční kolísavost (volatilita) ceny. Vyšší číslo = větší výkyvy nahoru i dolů.">Kolísavost (1 rok, v EUR)</InfoTip>
               </p>
               <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">
                 {vol1 != null ? `${vol1.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—'}
@@ -742,7 +742,7 @@ export default async function ETFDetailPreview(
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-5">
               <p className="flex items-center gap-2 text-sm text-slate-500">
-                <InfoTip label="Největší propad z vrcholu na dno – kolik byste v nejhorším dočasně viděli v minusu.">Max. pokles</InfoTip>
+                <InfoTip label="Největší propad z vrcholu na dno – kolik byste v nejhorším dočasně viděli v minusu.">Max. pokles (v EUR)</InfoTip>
               </p>
               <p className="mt-1 text-2xl font-bold tabular-nums text-red-600">{pct(dd1)} <span className="text-xs font-medium text-slate-400">1R</span></p>
               <p className="mt-1 text-xs text-slate-400 tabular-nums">

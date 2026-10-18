@@ -88,7 +88,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
     omit: etfs.every((e) => ret(e, period) == null),
   });
   const riskRow = (label: string, key: string, suffix = ' %'): Row => ({
-    label, cell: (e) => { const v = num(raw(e)[key]); return v == null ? <span className="text-slate-400">—</span> : <span className="tabular-nums text-slate-700">{v.toLocaleString('cs-CZ', { maximumFractionDigits: 2 })}{suffix}</span>; },
+    label, cell: (e) => { const v = num(raw(e)[key]); return v == null ? <span className="text-slate-400">—</span> : <span className="tabular-nums text-slate-700">{v.toLocaleString('cs-CZ', suffix ? { minimumFractionDigits: 1, maximumFractionDigits: 1 } : { maximumFractionDigits: 2 })}{suffix}</span>; },
     omit: etfs.every((e) => num(raw(e)[key]) == null),
   });
 
@@ -115,7 +115,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
       rows: [
         { label: 'Roční poplatek (TER)', cell: (e) => ter(num(e.ter_numeric)), best: (e) => num(e.ter_numeric) === bestLowTer },
         { label: 'Velikost fondu', cell: (e) => money(num(e.fund_size_numeric), e.fund_currency), best: (e) => num(e.fund_size_numeric) === bestSize && bestSize !== -Infinity },
-        { label: 'Počet firem v indexu', cell: (e) => e.total_holdings != null ? e.total_holdings.toLocaleString('cs-CZ') : '—' },
+        { label: 'Počet pozic ve fondu', cell: (e) => e.total_holdings != null ? e.total_holdings.toLocaleString('cs-CZ') : '—' },
         { label: 'Stáří fondu', cell: (e) => age(e.inception_date) },
       ],
     },
@@ -136,7 +136,7 @@ export default function PorovnaniTable({ etfs }: { etfs: ComparisonETF[] }) {
       rows: ['2025', '2024', '2023', '2022', '2021'].map((y) => perf(y, `Rok ${y}`)),
     },
     {
-      title: 'Riziko a kolísavost',
+      title: 'Riziko a kolísavost (počítáno v EUR)',
       rows: [
         riskRow('Volatilita 1 rok', 'volatility_1y'),
         riskRow('Volatilita 3 roky', 'volatility_3y'),

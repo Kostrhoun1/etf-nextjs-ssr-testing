@@ -75,6 +75,13 @@ function SortH({ k, children, right, tip, sortKey, sortDir, toggleSort }: {
   );
 }
 
+/* Zajištěná měnová třída – u useknutého názvu jinak nepoznáte, že „ACWI“ je EUR Hedged (test s uživatelem 18. 10. 2026). */
+function HedgeChip({ h }: { h: string }) {
+  if (!h || h === 'unhedged') return null;
+  const mena = h.split('_')[0].toUpperCase();
+  return <span className="rounded bg-sky-50 px-1 text-[10px] font-medium text-sky-800">{mena === 'OTHER' ? 'zajištěno' : `zajištěno do ${mena}`}</span>;
+}
+
 /* Odvozené hodnoty (region/hedging/index/rating/fulltext) přicházejí PŘEDPOČÍTANÉ
    ze serveru (ScreenerRow._*), takže klient přes ~4900 fondů nepouští žádné regexy. */
 interface Enriched {
@@ -658,6 +665,7 @@ export default function ScreenerUI({
                       <span className="flex items-center gap-1.5 text-xs text-slate-500">
                         {platnyTicker(e.primary_ticker) ?? e.isin}
                         {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
+                        <HedgeChip h={e._hedge} />
                       </span>
                     </div>
                   </div>
@@ -711,6 +719,7 @@ export default function ScreenerUI({
                     <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
                       {platnyTicker(e.primary_ticker) ?? e.isin}
                       {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
+                      <HedgeChip h={e._hedge} />
                     </span>
                   </div>
                 </div>

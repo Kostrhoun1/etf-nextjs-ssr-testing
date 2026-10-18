@@ -187,7 +187,7 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
       winner: higherWin(etf1.fund_size_numeric, etf2.fund_size_numeric),
     },
     {
-      label: 'Počet firem v indexu',
+      label: 'Počet pozic ve fondu',
       hint: 'Více firem = širší rozložení rizika (diverzifikace)',
       v1: etf1.total_holdings ? etf1.total_holdings.toLocaleString('cs-CZ') : '—',
       v2: etf2.total_holdings ? etf2.total_holdings.toLocaleString('cs-CZ') : '—',
@@ -226,14 +226,14 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
       winner: 0,
     },
     {
-      label: 'Kolísavost (1 rok)',
+      label: 'Kolísavost (1 rok, v EUR)',
       hint: 'Roční volatilita ceny – nižší číslo znamená klidnější průběh',
       v1: etf1.volatility_1y != null ? `${etf1.volatility_1y.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—',
       v2: etf2.volatility_1y != null ? `${etf2.volatility_1y.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %` : '—',
       winner: lowerTerWin(etf1.volatility_1y, etf2.volatility_1y),
     },
     {
-      label: 'Max. pokles (1 rok)',
+      label: 'Max. pokles (1 rok, v EUR)',
       hint: 'Největší dočasný propad z vrcholu na dno – blíž k nule je lepší',
       v1: pct(etf1.max_drawdown_1y),
       v2: pct(etf2.max_drawdown_1y),

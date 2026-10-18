@@ -169,7 +169,7 @@ export default async function SrovnaniPreview() {
                 </span>
                 <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
                 <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroj: justETF / vlastní databáze</span>
-                <span className="inline-flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5" /> Data k dnešnímu dni</span>
+                <span className="inline-flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5" /> Data k {dateStr}</span>
               </div>
             </div>
 
@@ -323,9 +323,9 @@ export default async function SrovnaniPreview() {
             {/* Společný poměrový pruh – kolikrát víc firem drží VWCE */}
             {holdings1 != null && holdings2 != null && holdings1 > 0 && holdings2 > 0 && (
               <div className="mt-4 rounded-lg bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-600">Poměr počtu firem</p>
+                <p className="text-xs font-medium text-slate-600">Poměr počtu pozic ve fondu</p>
                 <div className="mt-2 relative h-7 w-full overflow-hidden rounded-md bg-teal-100">
-                  <div className="absolute inset-y-0 left-0 bg-teal-700 flex items-center px-2" style={{ width: '100%' }}>
+                  <div className="absolute inset-y-0 left-0 bg-teal-700 flex items-center justify-end px-2" style={{ width: '100%' }}>
                     <span className="text-[11px] font-semibold text-white tabular-nums">{t1} · {holdings1.toLocaleString('cs-CZ')}</span>
                   </div>
                   <div className="absolute inset-y-0 left-0 bg-slate-700 flex items-center px-2 rounded-r-md" style={{ width: `${Math.max((holdings2 / holdings1) * 100, 8)}%` }}>
@@ -333,7 +333,7 @@ export default async function SrovnaniPreview() {
                   </div>
                 </div>
                 <p className="text-xs text-slate-500 mt-2">
-                  {t1} drží zhruba <strong className="text-slate-700 tabular-nums">{(holdings1 / holdings2).toFixed(1).replace('.', ',')}×</strong> více firem než {t2}.
+                  {t1} drží zhruba <strong className="text-slate-700 tabular-nums">{(holdings1 / holdings2).toFixed(1).replace('.', ',')}×</strong> více pozic než {t2}.
                 </p>
               </div>
             )}
@@ -533,7 +533,7 @@ export default async function SrovnaniPreview() {
           <div className="grid sm:grid-cols-3 gap-4">
             {([
               [ShieldCheck, 'Nezávislé srovnání', 'Žádné placené pořadí ani reklamní žebříček.'],
-              [BadgeCheck, 'Aktuální data z DB', `Parametry obou fondů k ${dateStr}.`],
+              [BadgeCheck, 'Aktuální data', `Parametry obou fondů k ${dateStr}.`],
               [Database, 'Doložené zdroje', 'justETF, S&P Dow Jones Indices, FTSE Russell, ČNB.'],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">

@@ -201,7 +201,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     "forWhom": "Hodí se pro začátečníky a dlouhodobé pasivní investory, kteří investují menší pravidelné částky do ETF, ocení frakční nákupy od 25 Kč a chtějí automatizovat DCA přes AutoInvest bez transakčních poplatků. Nevhodný je pro investory, kteří vyžadují českou telefonickou podporu, pokročilé obchodní příkazy a analytiku, chtějí obchodovat české akcie na BCPP nebo jim vadí automatické zapojení pozic do lending programu (půjčování akcií).",
     "feesText": [
       "Reálné náklady českého ETF investora u Trading 212 jsou velmi nízké. Za nákup i prodej akcií a ETF neplatíte žádnou provizi (0 %, bez limitu objemu), vklady i výběry jsou zdarma. Hlavním nákladem je měnová konverze: účet vedete typicky v EUR, takže při vkladu korun z české banky proběhne konverze CZK/EUR s přirážkou 0,15 % (o víkendu 0,5 %). Této konverzi se lze částečně vyhnout posíláním eur, případně vedením účtu přímo v EUR a nákupem ETF v původní měně.",
-      "Z daňového hlediska je zásadní volba správného ETF. U akumulačních (accumulating) ETF s domicilem v Irsku se dividenda reinvestuje uvnitř fondu a řeší se pouze zdanění při prodeji (v ČR lze využít časový nebo hodnotový test na osvobození). U distribučních ETF Trading 212 dividendy nezdaňuje sám a nesráží žádný vlastní poplatek za výplatu, ale u fondů s americkou expozicí bez správně vyplněného formuláře W-8BEN hrozí srážka 30 %. Proto českým investorům obvykle dává největší smysl irský akumulační ETF (např. na index S&P 500 nebo celý svět), kde odpadá řešení 15 vs. 35% srážkové daně z dividend a náklady se blíží nule."
+      "Z daňového hlediska je zásadní volba správného ETF. U akumulačních (accumulating) ETF s domicilem v Irsku se dividenda reinvestuje uvnitř fondu a řeší se pouze zdanění při prodeji (v ČR lze využít časový nebo hodnotový test na osvobození). U distribučních ETF Trading 212 dividendy nezdaňuje sám a nesráží žádný vlastní poplatek za výplatu, ale u amerických akcií bez vyplněného formuláře W-8BEN hrozí srážka 30 % místo 15 %. Proto českým investorům obvykle dává největší smysl irský akumulační ETF (např. na index S&P 500 nebo celý svět), kde odpadá řešení 15 vs. 35% srážkové daně z dividend a náklady se blíží nule."
     ],
     "verdict": [
       "Trading 212 patří k nejlevnějším způsobům, jak z Česka pravidelně investovat do ETF. Kombinace nulových provizí, frakčních nákupů od 25 Kč, bezplatných vkladů/výběrů a propracovaného AutoInvestu z něj dělá jednu z nejlepších voleb pro začátečníky a spořicí strategii DCA. Klienty z Česka obsluhuje kyperská Trading 212 Markets Ltd. (CySEC); investice kryje kyperský garanční fond ICF do 20 000 EUR.",
@@ -231,7 +231,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Jak se u Trading 212 daní dividendy z ETF?",
-        "a": "Trading 212 sám nesráží žádný poplatek za výplatu dividend, ale u fondů s americkou expozicí bez vyplněného formuláře W-8BEN hrozí srážka až 30 %. Nejjednodušší je zvolit irský akumulační ETF, kde se dividendy reinvestují uvnitř fondu a řešíte jen případnou daň při prodeji podle českého časového/hodnotového testu."
+        "a": "Trading 212 sám nesráží žádný poplatek za výplatu dividend, ale u amerických akcií bez vyplněného formuláře W-8BEN hrozí srážka 30 % místo 15 %. Nejjednodušší je zvolit irský akumulační ETF, kde se dividendy reinvestují uvnitř fondu a řešíte jen případnou daň při prodeji podle českého časového/hodnotového testu."
       },
       {
         "q": "Kolik platím za měnovou konverzi z korun?",
@@ -256,7 +256,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     ],
     "forWhom": "IBKR se hodí pro pokročilého a zkušeného ETF investora, který se neztratí v anglickém rozhraní, chce jeden účet pro globální trhy (US, Evropa, Asie) a ocení levnou konverzi měn a férové 15% zdanění amerických dividend. Ideální je při vyšším kapitálu a pravidelných nákupech větších objemů. Nevhodný je pro úplného začátečníka, pro investora, který chce vše česky a jednoduše, a pro toho, kdo hledá jen bezpoplatkový nákup pár evropských ETF - tam bývají XTB, Trading 212 nebo DEGIRO praktičtější.",
     "feesText": [
-      "Reálné náklady českého investora: nákup amerických ETF stojí 0,005 USD za akcii s minimem 1 USD za pokyn (a stropem 1 % hodnoty obchodu), evropské ETF pak 0,05 % hodnoty s minimem 1,25 EUR a maximem 29 EUR. Při běžných nákupech to znamená typicky kolem 1 USD za obchod, což je u větších objemů velmi levné, ale u malých pravidelných nákupů (např. 100 EUR měsíčně) se minimální poplatek 1 USD projeví citelněji než u brokerů s nulovým poplatkem. Minimální vklad je 0 USD (zrušen v roce 2021) a IBKR neúčtuje poplatky za neaktivitu.",
+      "Reálné náklady českého investora: evropské (UCITS) ETF stojí v cenovém plánu Tiered 0,05 % hodnoty s minimem 1,25 EUR plus poplatky burzy, v plánu Fixed minimálně 3 EUR. Americké ETF retailoví investoři z EU nekoupí (chybí jim dokument KID). U větších objemů je to velmi levné, ale u malých pravidelných nákupů (např. 100 EUR měsíčně) je minimum 1,25 EUR znát (1,25 %). Konverze měn stojí 0,002 %, ale nejméně 2 USD – u vkladu 5 000 Kč tedy kolem 0,9 %. Minimální vklad je 0 USD (zrušen v roce 2021) a IBKR neúčtuje poplatky za neaktivitu.",
       "Klíčová výhoda pro Čecha je měnová konverze: IBKR převádí CZK na USD či EUR za pouhých 0,002 % objemu (0,20 bazického bodu) s minimem 2 USD za konverzi, tedy řádově levněji než většina konkurence - lze si držet vícem měnovou hotovost a konvertovat cíleně. U zdanění dividend je ale potřeba rozlišovat dva světy. U amerických dividend je IBKR příznivý: se správně vyplněným formulářem W-8BEN se srážková daň drží na smluvních 15 % místo základních 30 %, stejně jako u XTB. U dividend z českých akcií je to naopak: IBKR drží české papíry na sběrném (omnibus) účtu, kde depozitář nezná daňovou rezidenci konečného vlastníka, a proto se sráží plošných 35 % - zpět je lze žádat jen individuálně u finančního úřadu a bez záruky. Pro české dividendy bez komplikací se hodí spíš Fio nebo Portu. Pozor na tržní data - přístup k některým datovým zdrojům je zpoplatněn 1-45 USD měsíčně podle typu."
     ],
     "verdict": [
@@ -274,7 +274,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Žádná česká lokalizace ani česká podpora - komunikace probíhá pouze anglicky",
       "Platforma TWS je pro začátečníky složitá až zastrašující a i registrace je náročnější",
       "Ochrana prostředků evropské entity jen do 20 000 EUR (ICF); SIPC do 500 000 USD kryje pouze americkou entitu, ne českého klienta",
-      "Minimální poplatek 1 USD za pokyn činí malé pravidelné nákupy relativně dražšími než u brokerů s nulovým poplatkem",
+      "Minimum 1,25 EUR za pokyn a 2 USD za konverzi měn činí malé pravidelné nákupy relativně dražšími než u brokerů s nulovým poplatkem",
       "Placený přístup k některým tržním datům (1-45 USD měsíčně) a jen omezené možnosti automatického investování/DCA",
       "Z dividend českých akcií se sráží 35 % (sběrný účet neumožňuje identifikovat konečného vlastníka), vratka jen individuální žádostí bez záruky"
     ],
@@ -301,7 +301,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Kolik zaplatím za nákup ETF?",
-        "a": "U amerických ETF je to 0,005 USD za akcii s minimem 1 USD za pokyn (max. 1 % hodnoty obchodu). U evropských ETF 0,05 % hodnoty s minimem 1,25 EUR a maximem 29 EUR. U větších objemů jsou náklady velmi nízké, u malých pravidelných nákupů se ale minimální poplatek projeví."
+        "a": "U evropských (UCITS) ETF v plánu Tiered 0,05 % hodnoty s minimem 1,25 EUR plus poplatky burzy, v plánu Fixed minimálně 3 EUR. Americké ETF retailoví investoři z EU nekoupí (chybí KID). U větších objemů jsou náklady velmi nízké, u malých pravidelných nákupů se ale minimální poplatek projeví."
       }
     ]
   },

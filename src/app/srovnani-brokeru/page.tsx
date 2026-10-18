@@ -66,7 +66,7 @@ const PROFILES = [
 /* Ikonové vysvětlivky – na co u brokera koukat (žádné box-šipka schéma). */
 const WATCH = [
   { icon: Coins, title: 'Poplatky za ETF', text: 'Komise za nákup i roční náklady; u malých částek rozhodují fixní poplatky.' },
-  { icon: Receipt, title: 'Zdanění dividend 15 vs 35 %', text: 'U dividend z fondů s americkou expozicí může broker srazit 35 %, jinde platí českých 15 %.' },
+  { icon: Receipt, title: 'Zdanění dividend 15 vs 35 %', text: 'Z dividend českých akcií se sráží 15 %, u brokera se sběrným účtem bez identifikace vlastníka 35 %. Irských akumulačních ETF se to netýká.' },
   { icon: ArrowLeftRight, title: 'Konverze měn', text: 'Přirážka při směně CZK na EUR/USD se opakuje při každém vkladu i nákupu.' },
   { icon: PieChart, title: 'Frakční investování', text: 'Umožní koupit část akcie či ETF za pevnou částku – ideální pro pravidelné menší vklady.' },
   { icon: ShieldCheck, title: 'Regulace a ochrana', text: 'Pod kým broker spadá (ČNB, BaFin, CySEC) a do jaké výše jsou kryté vaše prostředky.' },
@@ -239,7 +239,7 @@ export default async function SrovnaniBrokeruPage() {
             <InfoTip label="Roční poplatek za správu fondu; strhává se automaticky z hodnoty.">TER</InfoTip>,{' '}
             <InfoTip label="Nákup části akcie nebo ETF za pevnou částku, ne za celý kus.">frakční investování</InfoTip>{' '}
             nebo rozdíl mezi{' '}
-            <InfoTip label="Sráží se u zdroje u dividend z fondů s americkou expozicí; část lze získat zpět přes daňové přiznání.">srážkovou daní 35 %</InfoTip>{' '}
+            <InfoTip label="Sráží se z dividend českých akcií, když broker drží akcie na sběrném účtu bez identifikace vlastníka; rozdíl oproti 15 % lze získat zpět přes daňové přiznání.">srážkovou daní 35 %</InfoTip>{' '}
             a{' '}
             <InfoTip label="České standardní zdanění dividend.">15 %</InfoTip>{' '}
             vysvětlujeme přímo v textu.

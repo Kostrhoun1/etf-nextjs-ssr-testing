@@ -129,7 +129,7 @@ export default function EtfReturns({
             : <> Bez zahrnutí pohybu kurzu vůči koruně – český investor navíc nese měnové riziko (přepněte na Kč pro reálný dopad).</>}
           {hasVol && (
             <>
-              {' '}Kolísavost (roční):{' '}
+              {' '}Kolísavost (roční, v EUR):{' '}
               {vol!.v3 != null && <>3R <span className="font-medium text-slate-700">{vol!.v3.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span></>}
               {vol!.v3 != null && vol!.v5 != null && <> · </>}
               {vol!.v5 != null && <>5R <span className="font-medium text-slate-700">{vol!.v5.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span></>}
