@@ -26,12 +26,12 @@ interface Result {
 const INITIAL: Record<Currency, number> = { CZK: 100000, EUR: 4000, USD: 4500 };
 
 const pctD = (v: number | null | undefined, digits = 1) =>
-  v == null ? '—' : `${v >= 0 ? '+' : ''}${(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits })} %`;
+  v == null ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits })}\u00a0%`;
 
 const money = (v: number, cur: Currency) => {
-  const sym = cur === 'CZK' ? ' Kč' : cur === 'EUR' ? ' €' : ' $';
-  if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 })} mil.${sym}`;
-  if (Math.abs(v) >= 1_000) return `${Math.round(v / 1000).toLocaleString('cs-CZ')} tis.${sym}`;
+  const sym = cur === 'CZK' ? '\u00a0Kč' : cur === 'EUR' ? '\u00a0€' : '\u00a0$';
+  if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 2 })}\u00a0mil.${sym}`;
+  if (Math.abs(v) >= 1_000) return `${Math.round(v / 1000).toLocaleString('cs-CZ')}\u00a0tis.${sym}`;
   return `${Math.round(v).toLocaleString('cs-CZ')}${sym}`;
 };
 
@@ -64,8 +64,10 @@ const POZNAMKA_KRIZE: Record<string, string> = {
   dotcom: 'splasknutí technologické bubliny',
 };
 
-function LineChart({ portfolio, bench, cur }: { portfolio: EvoPoint[]; bench: EvoPoint[]; cur: Currency }) {
-  const W = 720, H = 260, padL = 8, padR = 8, padT = 12, padB = 22;
+/* Graf vývoje hodnoty. Kreslí se ve dvou velikostech: na mobilu vlastní (užší a vyšší) viewBox, aby popisky
+   nebyly 5px drobné (revize 18. 10. 2026). Vodorovné linky s částkou, ať jde graf číst bez tooltipu. */
+function LineChartSvg({ portfolio, bench, cur, W, H, font }: { portfolio: EvoPoint[]; bench: EvoPoint[]; cur: Currency; W: number; H: number; font: number }) {
+  const padL = 4, padR = 8, padT = 10, padB = font + 12;
   const sample = (arr: EvoPoint[], n = 160) => {
     if (arr.length <= n) return arr;
     const step = (arr.length - 1) / (n - 1);
@@ -81,18 +83,34 @@ function LineChart({ portfolio, bench, cur }: { portfolio: EvoPoint[]; bench: Ev
   const x = (iso: string) => padL + ((new Date(iso).getTime() - t0) / (t1 - t0)) * (W - padL - padR);
   const y = (v: number) => padT + (1 - (v - min) / (max - min || 1)) * (H - padT - padB);
   const path = (arr: EvoPoint[]) => arr.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(d.date).toFixed(1)},${y(d.value).toFixed(1)}`).join(' ');
-  const years = Array.from(new Set(p.map((d) => new Date(d.date).getFullYear()))).filter((_, i, a) => i % Math.ceil(a.length / 7) === 0);
-
+  const allYears = Array.from(new Set(p.map((d) => new Date(d.date).getFullYear())));
+  const every = Math.ceil(allYears.length / (W < 500 ? 4 : 7));
+  const years = allYears.filter((_, i) => i % every === 0).filter((yr) => x(`${yr}-01-01`) > padL + 12);
+  const ticks = [0.25, 0.5, 0.75, 1].map((f) => min + (max - min) * f);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Vývoj hodnoty portfolia">
-      {years.map((yr) => {
-        const xx = x(`${yr}-01-01`);
-        return <text key={yr} x={xx} y={H - 6} fontSize="11" fill="#94a3b8" textAnchor="middle">{yr}</text>;
-      })}
+      {ticks.map((v) => (
+        <g key={v}>
+          <line x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="#e2e8f0" strokeWidth="1" />
+          <text x={padL + 2} y={y(v) - 3} fontSize={font - 1} fill="#94a3b8">{money(v, cur)}</text>
+        </g>
+      ))}
+      {years.map((yr) => (
+        <text key={yr} x={x(`${yr}-01-01`)} y={H - 4} fontSize={font} fill="#94a3b8" textAnchor="middle">{yr}</text>
+      ))}
       <path d={path(b)} fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" />
       <path d={path(p)} fill="none" stroke="#0f766e" strokeWidth="2.25" />
       <circle cx={x(p[p.length - 1].date)} cy={y(p[p.length - 1].value)} r="3.5" fill="#0f766e" />
     </svg>
+  );
+}
+
+function LineChart(props: { portfolio: EvoPoint[]; bench: EvoPoint[]; cur: Currency }) {
+  return (
+    <>
+      <div className="md:hidden"><LineChartSvg {...props} W={360} H={240} font={11} /></div>
+      <div className="hidden md:block"><LineChartSvg {...props} W={720} H={260} font={11} /></div>
+    </>
   );
 }
 
@@ -221,7 +239,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
 
   const tiles = [
     { label: 'Zhodnocení p.a.', value: pctD(s.cagr), tone: s.cagr >= 0 ? 'pos' : 'neg', sub: 'průměrně ročně (CAGR)' },
-    { label: 'Kolísavost', value: `± ${dec1(annualVol * 100)} %`, tone: 'neutral', sub: 'roční – míra výkyvů' },
+    { label: 'Kolísavost', value: `±\u00a0${dec1(annualVol * 100)}\u00a0%`, tone: 'neutral', sub: 'roční – míra výkyvů' },
     { label: 'Nejhlubší propad', value: pctD(dd.depth), tone: 'neg', sub: dd.recovered ? `zotaveno za ${dd.lengthMonths} měs.` : 'zatím nezotaveno' },
     { label: 'Nejlepší rok', value: pctD(best?.return), tone: 'pos', sub: best ? String(best.year) : '' },
     { label: 'Nejhorší rok', value: pctD(worst?.return), tone: 'neg', sub: worst ? String(worst.year) : '' },
@@ -269,9 +287,9 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
           <h3 className="text-sm font-semibold text-slate-900">Kolik by vydělalo {money(INITIAL[cur], cur)}</h3>
-          <div className="flex items-center gap-4 text-xs">
-            <span className="inline-flex items-center gap-1.5"><span className="w-3 h-0.5 bg-teal-700 rounded" />{portfolioName}: <span className="font-semibold text-slate-900">{money(s.netAssetValue, cur)}</span></span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-3 h-0.5 bg-slate-400 rounded" style={{ borderTop: '1px dashed' }} />Čisté akcie: <span className="font-medium text-slate-700">{money(bench.summary.netAssetValue, cur)}</span></span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="w-3 h-0.5 bg-teal-700 rounded" />{portfolioName}: <span className="font-semibold text-slate-900">{money(s.netAssetValue, cur)}</span></span>
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="w-3 h-0.5 bg-slate-400 rounded" style={{ borderTop: '1px dashed' }} />Čisté akcie: <span className="font-medium text-slate-700">{money(bench.summary.netAssetValue, cur)}</span></span>
           </div>
         </div>
         <LineChart portfolio={pf.evolution} bench={bench.evolution} cur={cur} />
@@ -293,7 +311,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
             <tbody>
               {[
                 { label: 'Výnos p.a.', pfV: pctD(s.cagr), bV: pctD(benchCagr), badge: s.cagr >= benchCagr - 0.002 ? null : 'nižší růst', good: false, hint: 'kolik ročně vydělalo' },
-                { label: 'Kolísavost (výkyvy)', pfV: `± ${dec1(annualVol * 100)} %`, bV: `± ${dec1(benchVol * 100)} %`, badge: calmer ? 'klidnější' : null, good: calmer, hint: 'čím míň, tím klidnější jízda' },
+                { label: 'Kolísavost (výkyvy)', pfV: `±\u00a0${dec1(annualVol * 100)}\u00a0%`, bV: `±\u00a0${dec1(benchVol * 100)}\u00a0%`, badge: calmer ? 'klidnější' : null, good: calmer, hint: 'čím míň, tím klidnější jízda' },
                 { label: 'Nejhlubší propad', pfV: pctD(dd.depth), bV: pctD(benchDD), badge: shallower ? 'mělčí' : null, good: shallower, hint: 'kolik nejvíc spadlo od vrcholu' },
               ].map((r) => (
                 <tr key={r.label} className="border-b border-slate-50 last:border-0">
