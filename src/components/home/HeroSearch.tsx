@@ -16,7 +16,7 @@ interface Result {
   fund_provider?: string | null;
 }
 
-export default function HeroSearch() {
+export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
   // Na mobilu kratší nápověda (dlouhá se ořízla na „(na…“).
   const [placeholder, setPlaceholder] = useState('Název, ISIN nebo ticker');
   useEffect(() => {
@@ -31,6 +31,7 @@ export default function HeroSearch() {
   const [active, setActive] = useState(-1); // -1 = žádná položka (Enter → srovnávač)
   const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -105,6 +106,7 @@ export default function HeroSearch() {
       <div className="flex items-center gap-2.5 rounded-xl bg-white px-4 h-12 md:h-14 ring-2 ring-transparent focus-within:ring-teal-400 transition-shadow">
         <Search className="w-5 h-5 text-slate-400 shrink-0" />
         <input
+          ref={inputRef}
           type="search"
           role="combobox"
           aria-expanded={open}
@@ -119,9 +121,19 @@ export default function HeroSearch() {
         />
         {loading && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin shrink-0" />}
       </div>
+      {priklady.length > 0 && (
+        // Příklady dotazů – ukazují, že funguje ticker i čeština („zlato“, „dluhopisy“).
+        <p className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-xs text-slate-400">
+          <span>Zkuste:</span>
+          {priklady.map((p) => (
+            <button key={p} type="button" onClick={() => { setQuery(p); inputRef.current?.focus(); }}
+              className="rounded-full bg-white/10 px-2.5 py-1 min-h-7 font-medium text-slate-200 hover:bg-white/20 transition-colors">{p}</button>
+          ))}
+        </p>
+      )}
 
       {open && (results.length > 0 || (query.trim().length >= 2 && !loading)) && (
-        <div className="absolute left-0 top-full mt-1.5 w-full min-w-[20rem] rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden z-50">
+        <div className="absolute left-0 top-12 md:top-14 mt-1.5 w-full min-w-[20rem] rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden z-50">
           {kategorie.length > 0 && (
             <ul className="border-b border-slate-100 py-1" aria-label="Žebříčky">
               {kategorie.map((k) => (

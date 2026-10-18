@@ -184,8 +184,8 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* JAK TVOŘÍME OBSAH / METODIKA */}
-        <section className="pb-10">
+        {/* JAK TVOŘÍME OBSAH / METODIKA (kotva #metodika – odkaz „Odkud čísla bereme“ z homepage) */}
+        <section id="metodika" className="pb-10 scroll-mt-20">
           <h2 className="text-2xl font-bold tracking-tight mb-1">Jak tvoříme obsah</h2>
           <p className="text-sm text-slate-500 mb-5">Odkud bereme data a podle čeho řadíme fondy.</p>
           <div className="grid sm:grid-cols-2 gap-3">

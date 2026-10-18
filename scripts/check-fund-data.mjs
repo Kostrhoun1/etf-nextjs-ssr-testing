@@ -212,6 +212,37 @@ const main = async () => {
     varovani.push({ co: `Kontrolu hledání se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── TRHY NA HOMEPAGE (src/data/trhyDvojcata.ts): čerstvost, odlehlé výnosy ──
+  // Fondy na stejný index se za 12 měsíců liší o desetiny p. b. Odchylka > 1,5 p. b. od mediánu trhu =
+  // vadná data (18. 10. 2026: tři třídy UBS MSCI EM +30,7 % vs. trh +23,6 % – vadná poslední cena
+  // u justETF, ověřeno na burzovních cenách Yahoo). Homepage takový fond vyřadí; tady poplach.
+  try {
+    const zdroj = readFileSync('src/data/trhyDvojcata.ts', 'utf8');
+    const trhy = [...zdroj.matchAll(/id: '([a-z0-9]+)'[\s\S]*?isins: \[([\s\S]*?)\]/g)]
+      .map((m) => ({ id: m[1], isins: [...m[2].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
+    if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
+    const vse = trhy.flatMap((t) => t.isins);
+    const r = await fetch(`${URL_DB}?select=isin,name,return_1y_czk,scraping_date&isin=in.(${vse.join(',')})`, {
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
+    }).then((x) => x.json());
+    if (!Array.isArray(r)) throw new Error('neplatná odpověď DB');
+    const podle = new Map(r.map((x) => [x.isin, x]));
+    const odlehle = [], chybi = [];
+    for (const t of trhy) {
+      const f = t.isins.map((i) => podle.get(i)).filter(Boolean).filter((x) => x.scraping_date && dni(x) <= 14);
+      chybi.push(...t.isins.filter((i) => !f.some((x) => x.isin === i)).map((i) => `${t.id}: ${i}`));
+      const v = f.filter((x) => x.return_1y_czk != null).map((x) => Number(x.return_1y_czk)).sort((a, b) => a - b);
+      if (v.length < 3) { poplach.push({ co: `Trh ${t.id} na homepage má jen ${v.length} fondů s daty`, ukazka: [] }); continue; }
+      const med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
+      for (const x of f) if (x.return_1y_czk != null && Math.abs(Number(x.return_1y_czk) - med) > 1.5)
+        odlehle.push(`${t.id}: ${x.isin} ${String(x.name).slice(0, 34)} ${Number(x.return_1y_czk).toFixed(1)} % vs. medián ${med.toFixed(1)} %`);
+    }
+    if (odlehle.length) poplach.push({ co: `${odlehle.length} fondů má výnos 12 m mimo svůj trh (> 1,5 p. b. od mediánu) – vadná data u zdroje? Ověřit na burzovních cenách`, ukazka: odlehle.slice(0, 8) });
+    if (chybi.length) varovani.push({ co: `${chybi.length} fondů ze seznamu trhů chybí nebo nemá čerstvá data`, ukazka: chybi.slice(0, 6) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu trhů na homepage se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── ZLATÁ SADA ŽEBŘÍČKŮ (živý web) ──
   // Ověřuje, že v kategorii JSOU fondy, které tam patří, a NEJSOU tam pákové produkty a fondy
   // „ex <region>" (audit 17. 10. 2026: japonské obsahovaly „ex Japan", čínské „ex-China", ropa

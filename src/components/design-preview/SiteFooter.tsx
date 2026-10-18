@@ -43,9 +43,9 @@ export default function SiteFooter() {
   const year = new Date().getFullYear();
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
         {/* Mobil: odkazové sloupce po dvou (dřív pod sebou → patička 978 px; UX audit 17. 10. 2026) */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:gap-y-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           {/* Brand + USP */}
           <div className="col-span-2 md:col-span-1 min-w-0">
             <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-slate-900">
@@ -76,7 +76,7 @@ export default function SiteFooter() {
         </div>
 
         {/* Spodní lišta: copyright + disclaimer */}
-        <div className="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="mt-8 md:mt-10 pt-5 md:pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <p>© {year} ETF průvodce.cz</p>
           <p className="max-w-xl text-center sm:text-right leading-relaxed">
             Obsah má vzdělávací charakter a nepředstavuje investiční ani daňové doporučení. Minulá výkonnost nezaručuje budoucí výnosy.
