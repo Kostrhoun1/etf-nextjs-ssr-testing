@@ -183,8 +183,8 @@ export const brokers: Broker[] = [
     rating: 85,
     web: 'https://www.interactivebrokers.ie',
     regulation: 'CBI (IE pro CZ klienty), SEC (US)',
-    protection: '20 000 EUR (ICF, IE); SIPC jen US entita',
-    ochrana: { hotovost: 'Do 20 000 EUR – společný limit s cennými papíry', cennePapiry: '20 000 EUR (irský kompenzační systém); SIPC jen US entita' },
+    protection: '90 % ztráty, max. 20 000 EUR (ICCL, IE); SIPC jen US entita', // interactivebrokers.ie/en/general/security-investor-protection.php, ověřeno 18. 10. 2026
+    ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC jen US entita' },
     // Tiered: 0,05 % z objemu, min. 1,25 EUR + poplatky burzy; směna 0,002 %, min. 2 USD.
     nakup: { pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0 }], plusBurza: true, smena: { procento: 0.002, minUsd: 2 } },
     etfFee: 'Xetra: 0,05 % (min. 1,25 EUR, Tiered + poplatky burzy), Fixed min. 3 EUR',

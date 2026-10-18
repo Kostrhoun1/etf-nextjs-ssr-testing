@@ -273,7 +273,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     "cons": [
       "Žádná česká lokalizace ani česká podpora - komunikace probíhá pouze anglicky",
       "Platforma TWS je pro začátečníky složitá až zastrašující a i registrace je náročnější",
-      "Ochrana prostředků evropské entity jen do 20 000 EUR (ICF); SIPC do 500 000 USD kryje pouze americkou entitu, ne českého klienta",
+      "Ochrana prostředků evropské entity jen 90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC do 500 000 USD kryje pouze americkou entitu, ne českého klienta",
       "Minimum 1,25 EUR za pokyn a 2 USD za konverzi měn činí malé pravidelné nákupy relativně dražšími než u brokerů s nulovým poplatkem",
       "Placený přístup k některým tržním datům (1-45 USD měsíčně) a jen omezené možnosti automatického investování/DCA",
       "Z dividend českých akcií se sráží 35 % (sběrný účet neumožňuje identifikovat konečného vlastníka), vratka jen individuální žádostí bez záruky"
@@ -285,7 +285,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Jaká je ochrana mých peněz u IBKR pro českého klienta?",
-        "a": "Český klient má smlouvu s evropskou entitou Interactive Brokers Ireland Ltd., na kterou se vztahuje irský kompenzační fond (ICF) do 20 000 EUR. Slavné SIPC pojištění do 500 000 USD kryje pouze americkou entitu, nikoliv evropské klienty. Aktiva jsou navíc vedena odděleně (segregovaně)."
+        "a": "Český klient má smlouvu s evropskou entitou Interactive Brokers Ireland Ltd., na kterou se vztahuje irský kompenzační systém ICCL – 90 % ztráty, nejvýš 20 000 EUR. Slavné SIPC pojištění do 500 000 USD kryje pouze americkou entitu, nikoliv evropské klienty. Aktiva jsou navíc vedena odděleně (segregovaně)."
       },
       {
         "q": "Kolik stojí konverze korun na dolary nebo eura?",
