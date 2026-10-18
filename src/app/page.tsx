@@ -93,16 +93,6 @@ const BROKER_PICK: { id: string; forWhom: string; poplatek: Poplatek }[] = [
   { id: 'degiro', forWhom: 'Levné nákupy ze seznamu ETF Selection pro buy-and-hold.', poplatek: { popisek: 'Nákup ETF', hodnota: '1 € ETF Selection, jinak 3 €' } },
   { id: 'fio', forWhom: 'Česká banka s pobočkami, vše v češtině.', poplatek: { popisek: 'Nákup ETF', hodnota: 'Xetra 3,95 € do 1 400 €' } },
 ];
-// Poplatek na kartě: ručně zkrácený a OVĚŘENÝ u ceníku (18. 10. 2026). Dřív ořez etfFee před první
-// čárkou → Portu „0,24-1 % ročně“ se ukazoval jako „0“.
-const POPLATEK_KARTA: Record<string, [string, string]> = {
-  portu: ['Vše v ceně', '0,24–1 % ročně'],
-  xtb: ['Nákup ETF', '0 € do 100 000 €/měs.'],
-  trading212: ['Nákup ETF', '0 € (směna měny 0,15 %)'],
-  ibkr: ['Xetra', '0,05 %, min. 1,25 € + burza'],
-  degiro: ['Nákup ETF', '1 € ETF Selection, jinak 3 €'],
-  fio: ['Nákup ETF', 'Xetra 3,95 € do 1 400 €'],
-};
 const HOME_BROKERS = BROKER_PICK
   .map((p) => ({ ...p, broker: brokers.find((b) => b.id === p.id) }))
   .filter((x) => x.broker)
