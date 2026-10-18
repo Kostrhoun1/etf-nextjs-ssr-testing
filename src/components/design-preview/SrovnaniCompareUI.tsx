@@ -150,7 +150,7 @@ export function SrovnaniParamKarty({
       <table className="w-full table-fixed text-[13px]">
         <thead>
           <tr className="bg-slate-50 text-xs text-slate-500">
-            <th className="w-[40%] py-2 pl-3 pr-1 text-left font-medium">Parametr</th>
+            <th className="w-[38%] py-2 pl-3 pr-1 text-left font-medium">Parametr</th>
             <th className="py-2 px-1 text-right font-semibold text-slate-700">{ticker1}</th>
             <th className="py-2 pl-1 pr-3 text-right font-semibold text-slate-700">{ticker2}</th>
           </tr>
@@ -158,9 +158,9 @@ export function SrovnaniParamKarty({
         <tbody className="divide-y divide-slate-100 text-slate-700">
           {rows.map((r) => (
             <tr key={r.label}>
-              <td className="py-2 pl-3 pr-1 align-top text-slate-600 leading-snug">{r.hint ? <InfoTip label={r.hint}>{r.label}</InfoTip> : r.label}</td>
-              <td className={`py-2 px-1 text-right align-top tabular-nums break-words ${r.winner === 1 ? 'font-semibold text-emerald-700' : ''}`}>{r.v1}<CellMark win={r.winner === 1} /></td>
-              <td className={`py-2 pl-1 pr-3 text-right align-top tabular-nums break-words ${r.winner === 2 ? 'font-semibold text-emerald-700' : ''}`}>{r.v2}<CellMark win={r.winner === 2} /></td>
+              <td className="py-2 pl-3 pr-1 align-top text-slate-600 leading-snug">{r.label}{r.hint && <> <InfoTip label={r.hint}><span className="sr-only">Vysvětlení</span></InfoTip></>}</td>
+              <td className={`py-2 px-1 text-right align-top tabular-nums whitespace-nowrap ${r.winner === 1 ? 'font-semibold text-emerald-700' : ''}`}>{r.v1}<CellMark win={r.winner === 1} /></td>
+              <td className={`py-2 pl-1 pr-3 text-right align-top tabular-nums whitespace-nowrap ${r.winner === 2 ? 'font-semibold text-emerald-700' : ''}`}>{r.v2}<CellMark win={r.winner === 2} /></td>
             </tr>
           ))}
         </tbody>

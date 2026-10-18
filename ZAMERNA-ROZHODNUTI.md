@@ -120,6 +120,14 @@ zrcadlo – denní kontrola porovnává počet fondů rozcestník × žebříče
 než 3 fondy). Roční momentum u indexových kategorií je šum (revize 18. 10. 2026). Nejnižší poplatek
 ignoruje TER 0 % (u akcií/dluhopisů chyba zdroje, u Xetra-Gold apod. náklady mimo TER).
 
+**Detail fondu `/etf/[isin]` ukazuje graf JEN z dat fondu – žádný čárový graf podle indexu/proxy (18. 10. 2026).**
+Rozhodnutí majitele: „je divné ukazovat graf indexu, a ne daného ETF“. Dřív měl SXR8 graf „Vývoj 10 000 Kč“
+z řady SPY. Teď mají VŠECHNY fondy stejnou kostru: sloupce kalendářních výnosů fondu (Kč/EUR/USD), kumulativní
+1R/3R/5R fondu v úvodu a „10 000 Kč před 1/3/5 lety → dnes“ spočtené z `return_*_czk` fondu – vše ke stejnému
+dni (datumCen(scraping_date)). Časovou řadu cen fondu zatím nemáme; až bude (denní NAV fondu), lze čáru vrátit
+z ní. Delší historie indexu patří do backtestu (odkaz „Delší historie indexu v backtestu“), kde je proxy popsaná.
+**Nevracet graf z `index_historical_data` na detail.**
+
 **Krátkodobé výnosy (1M/3M/6M) jsou v EUR** a tak jsou i popsané – data je v jiné měně nemají.
 
 **Investiční kalkulačka úročí měsíčně sazbou (1 + r)^(1/12) − 1, ne r/12.** Zadaný „výnos p.a." je tak

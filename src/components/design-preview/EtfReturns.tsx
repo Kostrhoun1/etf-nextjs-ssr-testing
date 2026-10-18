@@ -69,6 +69,24 @@ export default function EtfReturns({
         ))}
       </div>
 
+      {/* 10 000 Kč před 1/3/5 lety → dnes: vlastní čísla fondu (return_*_czk), ne index. Jen v Kč –
+          výnos v EUR/USD na korunovou částku použít nejde. */}
+      {cur === 'CZK' && [v.y1, v.y3, v.y5].some((x) => x != null) && (
+        <div className="mt-3">
+          <p className="text-xs text-slate-500">
+            <InfoTip label="Kolik by dnes měla hodnotu jednorázová investice 10 000 Kč do tohoto fondu – spočteno z výnosu fondu v Kč za dané období (po poplatcích fondu, bez daní a poplatků brokera).">Kolik je dnes 10 000 Kč vložených…</InfoTip>
+          </p>
+          <div className="mt-1 grid grid-cols-3 text-sm">
+            {([['před rokem', v.y1], ['před 3 lety', v.y3], ['před 5 lety', v.y5]] as const).map(([k, x]) => (
+              <span key={k} className="min-w-0">
+                <span className="block text-[11px] text-slate-400">{k}</span>
+                <span className="font-semibold tabular-nums text-slate-900 whitespace-nowrap">{x == null ? '—' : `${Math.round(10000 * (1 + x / 100)).toLocaleString('cs-CZ')} Kč`}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {hasShort && (
         <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2.5">
           <p className="text-xs text-slate-500">

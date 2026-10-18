@@ -14,7 +14,6 @@ import CompareButton from '@/components/design-preview/CompareButton';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import GrafVykonnosti from './GrafVykonnosti';
 import HeroVynosy from './HeroVynosy';
-import { nactiVyvojIndexu } from './vyvojIndexu';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
@@ -443,28 +442,12 @@ export default async function ETFDetailPreview(
   const ostatniTickery = allTickers.filter((t) => t.toUpperCase() !== (hlavniTicker ?? '').toUpperCase() && platnyTicker(t));
   const dalsiBurzy = exchanges.filter((e) => e !== hlavniListing);
 
-  /* ---------- graf vývoje: jen fond, který PŘESNĚ sedí na index z manifestu (pravidlo č. 1) ---------- */
-  const presnyIndex = btFond && btFond.shoda === 'stejny' ? btFond : null;
-  // Graf končí STEJNÝM dnem jako data fondu (datum cen) – jinak se rozchází s výnosy v úvodu (revize kola 2).
-  const vyvoj = presnyIndex ? await nactiVyvojIndexu(presnyIndex.indexCode, dataDate.toISOString().slice(0, 10)) : null;
-  const tkHlavni = hlavniTicker; // v grafu i odkazech stejné jméno jako v úvodu (XETRA)
-  const jeZdrojovyFond = !!presnyIndex && INDEX_BY_CODE[presnyIndex.indexCode]?.sourceIsin === etf.isin;
-  const velkym = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
-  const podnadpisVyvoje = presnyIndex
-    ? jeZdrojovyFond ? `Data přímo tohoto fondu (${INDEX_BY_CODE[presnyIndex.indexCode].name})` : `${velkym(presnyIndex.zdroj)} – ne přímo ${tkHlavni ?? 'tento fond'}`
-    : '';
-  const zdrojVyvoje = presnyIndex
-    ? jeZdrojovyFond ? 'Řada je přímo tento fond.' : `Řada je ${presnyIndex.zdroj} – fond na stejný index s historií delší než ${tkHlavni ?? 'tento fond'}. Liší se jen poplatkem a drobnou odchylkou od indexu.`
-    : '';
-  // Akciové indexy: fond platí srážkovou daň z dividend, zdrojový US fond ne. Zlato/dluhopisy: jen poplatek.
-  const akciovyIndex = presnyIndex ? ['region', 'factor', 'sector'].includes(INDEX_BY_CODE[presnyIndex.indexCode]?.group ?? '') : false;
-  const rozdilVyvoje = presnyIndex && !jeZdrojovyFond
-    ? `od výnosu ${tkHlavni ?? 'fondu'} se liší ${akciovyIndex ? 'poplatkem a zdaněním dividend' : 'poplatkem a drobnou odchylkou od indexu'}`
-    : undefined;
-  // Backtest počítá v Kč až od prvního kurzu (30. 12. 1999, vznik eura) → rok z dat, ne natvrdo (revize 18. 10. 2026:
-  // „od 1993“ vs. „od 2000“). +7 dní: řada začínající posledními dny roku se počítá od dalšího roku.
+  const tkHlavni = hlavniTicker; // v odkazech stejné jméno jako v úvodu (XETRA)
+  // Graf vývoje podle indexu/proxy fondu ZRUŠEN (rozhodnutí majitele 18. 10. 2026) – na detailu jen data fondu.
+  // Proxy a delší historie indexu patří do backtestu (tam je popsaná). Backtest počítá v Kč až od prvního
+  // kurzu (30. 12. 1999) → od roku max(začátek řady, 2000); +7 dní: řada z posledních dnů roku = od dalšího roku.
   const btOdRok = btCode
-    ? Math.max(Number(INDEX_BY_CODE[btCode].since.slice(0, 4)), vyvoj && btCode === presnyIndex?.indexCode ? new Date(new Date(vyvoj.zacatek).getTime() + 7 * 864e5).getUTCFullYear() : 2000)
+    ? Math.max(new Date(new Date(INDEX_BY_CODE[btCode].since).getTime() + 7 * 864e5).getUTCFullYear(), 2000)
     : null;
 
   // Top 10 pozic: scraper do 18. 10. 2026 zahazoval 1. řádek (u S&P 500 chyběla NVIDIA). Neúplný seznam
@@ -488,7 +471,10 @@ export default async function ETFDetailPreview(
     [<InfoTip key="dom" label="Země, kde fond právně sídlí. Irsko má výhodnou daňovou smlouvu s USA, W-8BEN neřešíte.">Domicil</InfoTip>, domText],
     ['Na trhu od', rokVzniku],
   ];
-  const zamereni = ceskeZamereni((etf as unknown as { investment_focus?: string | null }).investment_focus ?? null) || null;
+  // Zaměření fondu jako štítek: bez kódů měn (USD vedle „Spojené státy“ je navíc) a „7-10“ → „7–10 let“.
+  const zamereni = (ceskeZamereni((etf as unknown as { investment_focus?: string | null }).investment_focus ?? null) || '')
+    .split(', ').filter((c) => c && !/^[A-Z]{3}$/.test(c)).map((c) => (/^\d+-\d+$/.test(c) ? `${c.replace('-', '–')} let` : /^\d+\+$/.test(c) ? `${c} let` : c))
+    .join(', ') || null;
   const pocetDalsich = Math.max(0, (etf.total_holdings ?? 0) - holdings.length);
   const popisFondu = etf.description_cs && etf.description_cs.trim() !== '' && !jeAnglicky(etf.description_cs) ? cleanDesc(etf.description_cs) : null;
 
@@ -674,7 +660,7 @@ export default async function ETFDetailPreview(
           )}
           <div className="grid gap-4 lg:grid-cols-5 items-start">
             <div className="lg:col-span-3 min-w-0">
-              <GrafVykonnosti vyvoj={vyvoj} podnadpis={podnadpisVyvoje} zdroj={zdrojVyvoje} rozdilPoznamka={rozdilVyvoje} cols={calCols2} />
+              <GrafVykonnosti cols={calCols2} />
             </div>
             <div className="lg:col-span-2 min-w-0">
               {/* Pravidlo č. 1: u fondu s výnosem mimo trh (opožděná cena u zdroje) výnosy za období neukazovat („—“). */}
@@ -685,7 +671,7 @@ export default async function ETFDetailPreview(
               >
                 {btCode && (
                   <Link href={`/backtest?fondy=${etf.isin}:100&run=1`} className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
-                    Backtest {tkHlavni ?? 'fondu'} v Kč od roku {btOdRok} <ArrowRight className="w-4 h-4" />
+                    Delší historie indexu v backtestu (v Kč od roku {btOdRok}) <ArrowRight className="w-4 h-4" />
                   </Link>
                 )}
                 {/* Stroj času jen při PŘESNÉ shodě indexu s presetem (S&P 500). */}

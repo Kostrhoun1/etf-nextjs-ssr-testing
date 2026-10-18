@@ -209,7 +209,7 @@ export default async function SrovnaniPreview() {
           <p className="mt-1 text-sm text-slate-500">Oba fondy jsou akumulační a irské – výplatou dividend ani daněmi se neliší. Liší se tím, do čeho investují.</p>
           <div className="mt-4 grid gap-4 lg:grid-cols-5">
             <div className="lg:col-span-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <table className="w-full text-sm">
+              <table className="w-full text-[13px] sm:text-sm">
                 <thead>
                   <tr className="bg-slate-50 text-xs text-slate-500">
                     <th className="py-2.5 pl-4 pr-2 text-left font-medium" />
@@ -224,8 +224,8 @@ export default async function SrovnaniPreview() {
                   {kostka.map((r, i) => (
                     <tr key={i}>
                       <td className="py-2.5 pl-4 pr-2 text-slate-600">{r.label}{r.pozn && <span className="block text-[11px] text-slate-400">{r.pozn}</span>}</td>
-                      <td className="py-2.5 px-2 text-right font-medium text-slate-900">{r.v1}</td>
-                      <td className="py-2.5 pl-2 pr-4 text-right font-medium text-slate-900">{r.v2}</td>
+                      <td className="py-2.5 px-2 text-right font-medium text-slate-900 whitespace-nowrap">{r.v1}</td>
+                      <td className="py-2.5 pl-2 pr-4 text-right font-medium text-slate-900 whitespace-nowrap">{r.v2}</td>
                     </tr>
                   ))}
                 </tbody>
