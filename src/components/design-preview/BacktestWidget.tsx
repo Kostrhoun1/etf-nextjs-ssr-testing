@@ -122,7 +122,7 @@ const PRESET_PORTFOLIOS = [
   { id: 'global-since-2000', name: 'Celý svět (vč. EM)', description: 'Akcie celého světa: 60 % USA (S&P 500) + 40 % zbytek světa (vyspělé i rozvíjející se trhy). Proč takhle? Celosvětový fond má data až od roku 2008 – tahle dvojice sahá do roku 2000, takže projde i krizí dot-com a 2008.', etfs: [{ indexCode: 'sp500', weight: 60 }, { indexCode: 'world_ex_us', weight: 40 }] },
   { id: '60-40', name: '60/40 portfolio', description: 'Klasika investování: 60 % akcie, 40 % dluhopisy. Dluhopisy tlumí propady – klidnější jízda za cenu o něco nižšího výnosu.', etfs: [{ indexCode: 'ftse_all_world', weight: 60 }, { indexCode: 'us_aggregate_bond', weight: 40 }] },
   {
-    id: 'all-weather', name: 'Ray Dalio All-Weather', description: 'Portfolio slavného investora Raye Dalia: akcie + dlouhé i krátké dluhopisy + zlato a komodity. Cíl není nejvyšší výnos, ale obstát v každé fázi ekonomiky (růst, recese, inflace).',
+    id: 'all-weather', name: 'All Weather (Ray Dalio)', description: 'Portfolio slavného investora Raye Dalia: akcie + dlouhé i krátké dluhopisy + zlato a komodity. Cíl není nejvyšší výnos, ale obstát v každé fázi ekonomiky (růst, recese, inflace).',
     etfs: [
       { indexCode: 'ftse_all_world', weight: 30 }, { indexCode: 'us_treasury_20y', weight: 40 },
       { indexCode: 'us_treasury_7_10y', weight: 15 }, { indexCode: 'gold', weight: 7.5 }, { indexCode: 'commodities', weight: 7.5 },
@@ -151,7 +151,7 @@ const PRESET_SHORT: Record<string, string> = {
   'global-since-2000': 'Celý svět',
   'developed-world': 'Rozvinutý svět',
   '60-40': '60/40',
-  'all-weather': 'All-Weather',
+  'all-weather': 'All Weather',
   'permanent': 'Permanentní',
   'buffett-90-10': 'Buffett 90/10',
 };
@@ -1307,7 +1307,9 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     const y = rec != null ? Math.round(rec / 12) : 0;
                     const recLabel = rec == null
                       ? 'zatím bez návratu'
-                      : rec < 18
+                      : rec < 1
+                        ? 'návrat do měsíce'
+                        : rec < 18
                         ? `návrat za ${rec} měs.`
                         : `návrat za ~${y} ${y === 1 ? 'rok' : y < 5 ? 'roky' : 'let'}`;
                     return (

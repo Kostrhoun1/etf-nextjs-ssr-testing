@@ -231,7 +231,7 @@ export default async function BacktestPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
-              <p className="flex items-start gap-1.5 text-xs text-slate-500"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: denní ceny fondů sledujících dané trhy (zdroj každé složky pod ⓘ), historické kurzy měn, index spotřebitelských cen ČSÚ (výnos po inflaci).{datumDat ? ` Data k ${datumDat}.` : ''}</p>
+              <p className="flex items-start gap-1.5 text-xs text-slate-500"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: denní ceny fondů sledujících dané trhy (zdroj každé složky pod ⓘ), historické referenční kurzy ECB, index spotřebitelských cen ČSÚ (výnos po inflaci).{datumDat ? ` Data k ${datumDat}.` : ''}</p>
               <InvestmentDisclaimer variant="inline" />
             </div>
           </div>

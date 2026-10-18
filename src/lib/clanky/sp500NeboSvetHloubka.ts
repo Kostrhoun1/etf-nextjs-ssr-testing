@@ -1,7 +1,7 @@
 /**
  * „S&P 500, nebo celý svět?“ – HLOUBKOVÝ rozbor (17. 10. 2026, na přání majitele „mnohem větší detail“).
  *
- * Stejný engine jako backtest (runBacktest, denní řady, Kč přes kurzy ČNB). Řady:
+ * Stejný engine jako backtest (runBacktest, denní řady, Kč přes referenční kurzy ECB). Řady:
  *   sp500        = SPY (S&P 500, od 1993)
  *   ftse_all_world = VT (celý svět, FTSE Global All Cap, od 6/2008)
  *   world_ex_us  = VGTSX (svět mimo USA, od 1996) – pro dlouhou historii před 2008

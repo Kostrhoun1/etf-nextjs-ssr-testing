@@ -391,7 +391,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
                   <tr key={k.key} className="border-b border-slate-50 last:border-0">
                     <td className="py-2.5 pr-3">
                       <span className="font-medium text-slate-800">{k.name}</span>
-                      <span className="block text-[11px] text-slate-400">{POZNAMKA_KRIZE[k.key] ?? ''}{k.recoveryMonths != null ? ` · návrat za ${k.recoveryMonths} měs.` : ''}</span>
+                      <span className="block text-[11px] text-slate-400">{POZNAMKA_KRIZE[k.key] ?? ''}{k.recoveryMonths != null ? (k.recoveryMonths < 1 ? ' · návrat do měsíce' : ` · návrat za ${k.recoveryMonths} měs.`) : ''}</span>
                     </td>
                     <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-red-600">{pctD(k.drop)}</td>
                     <td className="py-2.5 pl-3 text-right tabular-nums text-red-600">{pctD(bch)}</td>
@@ -406,7 +406,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
       <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
         <span>
-          Backtest na reálných denních datech indexů (přepočet do {curLabel[cur]} kurzem ČNB), rebalancováno ročně, po odečtení TER fondů.
+          Backtest na reálných denních cenách fondů (přepočet do {curLabel[cur]} referenčními kurzy ECB), rebalancováno ročně; poplatky fondů jsou už v cenách.
           Historická výkonnost nezaručuje budoucí výnosy.{config.proxyNote ? ` ${config.proxyNote}` : ''}
         </span>
       </p>

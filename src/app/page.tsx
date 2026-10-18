@@ -17,6 +17,7 @@ import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfoli
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { TrendingUp, ArrowRight, Globe, LineChart, Building2, ChevronDown, Check } from 'lucide-react';
+import { BARVY_SLOZEK } from '@/components/design-preview/portfolioData';
 
 export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
@@ -104,7 +105,8 @@ const LOGO_BROKERA: Record<string, string> = {
   xtb: '/loga-brokeru/xtb-ikona.png', trading212: '/loga-brokeru/trading212-ikona.png', ibkr: '/loga-brokeru/ibkr-ikona.png',
   degiro: '/loga-brokeru/degiro-ikona.png', fio: '/loga-brokeru/fio-ikona.png', portu: '/loga-brokeru/portu-ikona.png',
 };/* Složení modelových portfolií – barvy tříd aktiv pro proužek. */
-const BARVA_TRIDY: Record<string, string> = { akcie: 'bg-teal-600', dluhopisy: 'bg-sky-400', zlato: 'bg-amber-400', komodity: 'bg-amber-600', nemovitosti: 'bg-violet-400' };
+// Stejná paleta jako modelová portfolia (portfolioData.ts – Okabe–Ito, rozlišitelná i pro barvoslepé).
+const BARVA_TRIDY: Record<string, string> = { akcie: BARVY_SLOZEK.akcie, dluhopisy: BARVY_SLOZEK.dluhopisyDlouhe, zlato: BARVY_SLOZEK.zlato, komodity: BARVY_SLOZEK.komodity, nemovitosti: BARVY_SLOZEK.nemovitosti };
 const PORADI_RIZIKA: Record<string, number> = { 'Konzervativní': 0, 'Umírněné': 1, 'Agresivní': 2 };
 /* Na mobilu jen 4 nejklikanější portfolia z homepage (GA4 90 dní); ostatní za „Porovnat portfolia“. */
 const PORTFOLIA_MOBIL = new Set(['dividendove-portfolio', 'permanentni-portfolio', 'akciove-portfolio', 'globalni-jadro-small-cap-value']);
@@ -371,7 +373,7 @@ export default async function DesignPreviewV2() {
             Modelová portfolia z ETF
           </Nadpis>
           <p className="-mt-2 mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500" aria-label="Legenda složení">
-            {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
+            {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b }} />{c}</span>)}
           </p>
           {/* Řádkový přehled jako tabulka trhů (art director: mřížka 4+3 nechávala osiřelou kartu). */}
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
@@ -389,7 +391,7 @@ export default async function DesignPreviewV2() {
                     </span>
                   </span>
                   <span className="order-3 md:order-none col-span-2 md:col-span-1 flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`Složení: ${p.slozeni.map(([c, v]) => `${c} ${v} %`).join(', ')}`}>
-                    {p.slozeni.map(([c, v]) => <span key={c} className={BARVA_TRIDY[c] ?? 'bg-slate-400'} style={{ width: `${v}%` }} />)}
+                    {p.slozeni.map(([c, v]) => <span key={c} style={{ width: `${v}%`, backgroundColor: BARVA_TRIDY[c] ?? '#94a3b8' }} />)}
                   </span>
                   <span className={`order-2 md:order-none text-right text-base font-semibold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                     {pct(p.return1y)}<span className="md:hidden block text-[11px] font-normal text-slate-500">12 měs.</span>
