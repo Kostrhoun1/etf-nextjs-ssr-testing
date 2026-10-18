@@ -243,6 +243,44 @@ const main = async () => {
     varovani.push({ co: `Kontrolu stáří ceníků brokerů se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── CENÍKY BROKERŮ: stejná čísla na všech stránkách ──
+  // Revize 18. 10. 2026: /kde-koupit, /srovnani-brokeru a recenze mají ukazovat u každého brokera STEJNÝ
+  // poplatek za nákup a směnu (jeden zdroj brokerData → popisPoplatku/popisSmeny). Stránky je vykreslují
+  // v atributech data-broker / data-poplatek / data-smena; tady je posbíráme z ostrého webu a porovnáme.
+  // Rozdíl = někdo číslo natvrdo přepsal na jedné stránce, nebo běží rozdílné verze (cache).
+  try {
+    const BROKERI = ['xtb', 'trading212', 'degiro', 'ibkr', 'fio'];
+    const stranky = ['/kde-koupit', '/srovnani-brokeru', ...BROKERI.map((id) => `/recenze/${id}`)];
+    const norm = (t) => t.replace(/&nbsp;|&#160;|&#xa0;| /gi, ' ').replace(/\s+/g, ' ').trim();
+    const nalez = {}; // nalez[broker][pole] = Map(hodnota → [stránky])
+    const bezDat = [];
+    for (const s of stranky) {
+      let html = '';
+      try { html = await fetch(`${WEB_URL}${s}`).then((r) => (r.ok ? r.text() : '')); } catch { /* níže */ }
+      let broker = null, pocet = 0;
+      for (const m of html.matchAll(/data-(broker|poplatek|smena)="([^"]*)"/g)) {
+        if (m[1] === 'broker') { broker = m[2]; continue; }
+        if (!broker || !BROKERI.includes(broker)) continue;
+        const pole = m[1] === 'poplatek' ? 'poplatek za nákup' : 'směna CZK→EUR';
+        ((nalez[broker] ??= {})[pole] ??= new Map());
+        const v = norm(m[2]);
+        nalez[broker][pole].set(v, [...new Set([...(nalez[broker][pole].get(v) ?? []), s])]);
+        pocet++;
+      }
+      if (!pocet) bezDat.push(s);
+    }
+    const rozdily = [];
+    for (const [broker, pole] of Object.entries(nalez)) {
+      for (const [co, hodnoty] of Object.entries(pole)) {
+        if (hodnoty.size > 1) rozdily.push(`${broker} – ${co}: ${[...hodnoty].map(([v, st]) => `„${v}“ (${st.join(', ')})`).join(' × ')}`);
+      }
+    }
+    if (rozdily.length) varovani.push({ co: `Ceníky brokerů se liší mezi /kde-koupit, /srovnani-brokeru a recenzemi (počet rozdílů: ${rozdily.length}) – sjednotit (zdroj src/data/brokerData.ts)`, ukazka: rozdily });
+    if (bezDat.length) varovani.push({ co: `Ceníky brokerů: ${bezDat.length} stránek bez čísel k porovnání (data-poplatek/data-smena) – stránka nenačtena, nebo před nasazením`, ukazka: bezDat });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu shody ceníků brokerů se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── HLEDÁNÍ: české výrazy a tickery (hlavní akce homepage) ──
   // 18. 10. 2026: „svět“, „zlato“, „dluhopisy“, „dividendové“ vracely 0 výsledků (názvy fondů jsou
   // anglicky). Teď src/lib/hledaniCz.ts – dotaz musí vrátit fondy a (u českých slov) i žebříček.

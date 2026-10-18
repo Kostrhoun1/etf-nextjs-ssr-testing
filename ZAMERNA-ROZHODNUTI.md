@@ -264,3 +264,14 @@ období 1M/3M/6M jsou na porovnání v samostatné sekci „v EUR“.
   Nezávislý přepočet (Yahoo adj. close VT + AGG, denní kurzy USD/CZK z ročních lístků ČNB, roční rebalancing od 7/2008):
   −18,2 %, vrchol 15. 4. 2015 → dno 11. 2. 2016. V letech 2008–09 propad akcií v Kč tlumilo oslabení koruny
   (USD/CZK ~14,5 → ~22). Neopravovat.
+
+## Brokeři: „—“ a „od“ v nákladech jsou záměr (revize 18. 10. 2026)
+
+**Fio – směna „—“, součet „od“:** Fio směnu zvlášť neúčtuje, náklad je v kurzu banky a ceník jeho výši neuvádí.
+**IBKR – součet „od“:** k provizi (Tiered, 0,05 %, min. 1,25 EUR) se připočítávají poplatky burzy a vypořádání;
+oficiální stránka poplatků Xetry (interactivebrokers.ie/.co.uk, IBIS-StkFees) vrací robotům 403, číslo tedy nemáme
+ověřené z primárního zdroje → nezapočítáváme a ukazujeme spodní hranici. **Trading 212 – daň z CZ dividend „—“:**
+neověřeno, zda T212 české akcie nabízí. **DEGIRO – roční poplatek za připojení k burze** (nejvýš 0,25 % hodnoty účtu,
+max. 2,5 EUR) se do „za rok“ na /kde-koupit nepočítá, jen v poznámce (výše závisí na hodnotě účtu). Nevymýšlet
+odhady, dokud nejsou ověřené u oficiálního ceníku. Shodu poplatku a směny mezi /kde-koupit, /srovnani-brokeru
+a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
