@@ -18,16 +18,13 @@ export function emitentFondu(nazev: string | null | undefined): string | null {
 export default function EmitentLogo({ nazev, size = 20, className = '' }: { nazev: string | null | undefined; size?: number; className?: string }) {
   const k = emitentFondu(nazev);
   if (!k) return null;
-  // iShares má jako ikonu jen černé „i“ – vypadalo jako ikona „info“ (art director 18. 10. 2026) → textová značka.
-  if (k === 'ishares') {
-    return (
-      <span aria-hidden="true" className={`shrink-0 inline-flex items-center justify-center rounded-[4px] bg-black font-bold tracking-tight text-white ${className}`}
-        style={{ width: size, height: size, fontSize: Math.max(6, Math.round(size * 0.28)) }}>iSh</span>
-    );
-  }
+  // Jednotná bílá dlaždice s rámečkem – loga mají různé poměry a optickou váhu (art director 18. 10. 2026).
+  // iShares nemá čtvercovou značku (favicon je jen „i“, vypadalo jako ikona info) → wordmark SVG z Wikimedia Commons.
+  const src = k === 'ishares' ? '/loga-emitentu/ishares.svg' : `/loga-emitentu/${k}.png`;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={`/loga-emitentu/${k}.png`} alt="" width={size} height={size} loading="lazy"
-      className={`shrink-0 rounded-[4px] bg-white object-contain ${className}`} style={{ width: size, height: size }} />
+    <span aria-hidden="true" className={`shrink-0 inline-flex items-center justify-center rounded-md bg-white ring-1 ring-slate-200 ${className}`} style={{ width: size, height: size }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" loading="lazy" className="object-contain" style={{ width: k === 'ishares' ? '88%' : '70%', height: k === 'ishares' ? '88%' : '70%' }} />
+    </span>
   );
 }

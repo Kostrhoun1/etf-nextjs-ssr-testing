@@ -91,7 +91,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     ],
     "verdict": [
       "XTB patří mezi nejsilnější volby pro běžného českého ETF investora. Nabízí nákup ETF bez provize do 100 000 EUR měsíčně, dohled ČNB nad českou pobočkou, plnou češtinu a českou telefonickou podporu — kombinaci, kterou většina zahraničních brokerů nemá. Platforma xStation 5 je moderní a přehledná, frakční podíly a investiční plány usnadňují pravidelné spoření i s malým kapitálem.",
-      "Slabší stránkou jsou konverzní náklady 0,5 % pro investory obchodující v cizí měně, chybějící opce a futures a zejména 35% srážková daň z dividend českých akcií. Ochrana prostředků přes polský garanční fond KDPW dosahuje jen zhruba 22 000 EUR, což je méně než 100 000 EUR u bankovních brokerů typu Fio nebo DEGIRO. Pro dlouhodobého investora do širokých ETF jsou to však vesměs okrajové výhrady a XTB lze doporučit."
+      "Slabší stránkou jsou konverzní náklady 0,5 % pro investory obchodující v cizí měně, chybějící opce a futures a zejména 35% srážková daň z dividend českých akcií. Ochrana prostředků přes polský garanční systém dosahuje jen 20 100 EUR (90 % z 22 000 EUR), což je méně než 100 000 EUR u bankovních brokerů typu Fio nebo DEGIRO. Pro dlouhodobého investora do širokých ETF jsou to však vesměs okrajové výhrady a XTB lze doporučit."
     ],
     "pros": [
       "Nákup akcií a ETF bez provize do objemu 100 000 EUR měsíčně (nad limit 0,2 %)",
@@ -104,7 +104,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     "cons": [
       "Konverze měn se spreadem 0,5 % zatíží každý nákup i prodej ETF v cizí měně",
       "Dividendy z českých akcií daněny sráženou sazbou 35 % místo 15 %",
-      "Nižší ochrana prostředků (~22 000 EUR přes polský fond KDPW) oproti 100 000 EUR u bankovních brokerů",
+      "Nižší ochrana prostředků (20 100 EUR přes polský garanční systém) oproti 100 000 EUR u bankovních brokerů",
       "Nenabízí obchodování opcí ani futures kontraktů",
       "Nad objem 100 000 EUR měsíčně se u nákupu ETF účtuje 0,2 %"
     ],
@@ -127,7 +127,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Jsou peníze a ETF u XTB v bezpečí?",
-        "a": "XTB je burzovně obchodovaná společnost kótovaná na varšavské burze s licencí ČNB a prostředky klientů drží na oddělených (segregovaných) účtech. Ochrana investorů je zajištěna přes polský garanční systém KDPW zhruba do 22 000 EUR, což je méně než 100 000 EUR u bankovních brokerů (Fio, DEGIRO). Samotné držené ETF jsou ale vaším majetkem odděleným od majetku brokera."
+        "a": "XTB je burzovně obchodovaná společnost kótovaná na varšavské burze (licence polského KNF, česká pobočka pod dohledem ČNB) a prostředky klientů drží na oddělených (segregovaných) účtech. Ochrana investorů je zajištěna přes polský garanční systém do 20 100 EUR, což je méně než 100 000 EUR u bankovních brokerů (Fio, DEGIRO). Samotné držené ETF jsou ale vaším majetkem odděleným od majetku brokera."
       },
       {
         "q": "Lze u XTB pravidelně investovat do ETF (DCA)?",
@@ -204,7 +204,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Z daňového hlediska je zásadní volba správného ETF. U akumulačních (accumulating) ETF s domicilem v Irsku se dividenda reinvestuje uvnitř fondu a řeší se pouze zdanění při prodeji (v ČR lze využít časový nebo hodnotový test na osvobození). U distribučních ETF Trading 212 dividendy nezdaňuje sám a nesráží žádný vlastní poplatek za výplatu, ale u fondů s americkou expozicí bez správně vyplněného formuláře W-8BEN hrozí srážka 30 %. Proto českým investorům obvykle dává největší smysl irský akumulační ETF (např. na index S&P 500 nebo celý svět), kde odpadá řešení 15 vs. 35% srážkové daně z dividend a náklady se blíží nule."
     ],
     "verdict": [
-      "Trading 212 patří k nejlevnějším způsobům, jak z Česka pravidelně investovat do ETF. Kombinace nulových provizí, frakčních nákupů od 25 Kč, bezplatných vkladů/výběrů a propracovaného AutoInvestu z něj dělá jednu z nejlepších voleb pro začátečníky a spořicí strategii DCA. Ochrana prostředků je solidní: hotovost je držena u bank s pojištěním do 100 000 EUR, investice kryje kyperský fond ICF do 20 000 EUR.",
+      "Trading 212 patří k nejlevnějším způsobům, jak z Česka pravidelně investovat do ETF. Kombinace nulových provizí, frakčních nákupů od 25 Kč, bezplatných vkladů/výběrů a propracovaného AutoInvestu z něj dělá jednu z nejlepších voleb pro začátečníky a spořicí strategii DCA. Klienty z Česka obsluhuje kyperská Trading 212 Markets Ltd. (CySEC); investice kryje kyperský garanční fond ICF do 20 000 EUR.",
       "Slabinami jsou absence české a telefonické podpory (komunikace probíhá anglicky), chybějící pokročilé nástroje a příkazy, žádné české akcie na BCPP a měnová konverze 0,15 %. Pozornost si zaslouží i automatické zapojení akcií do lending programu, který lze naštěstí vypnout. Aktivní tradeři a investoři vyžadující detailní analytiku či česky mluvící podporu budou spokojenější u XTB nebo DEGIRO; pro levné dlouhodobé budování ETF portfolia je však Trading 212 těžko překonatelný."
     ],
     "pros": [

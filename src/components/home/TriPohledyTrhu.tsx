@@ -30,11 +30,11 @@ function Fond({ f }: { f: FondTrhu | null }) {
   if (!f) return <span className="text-slate-500">—</span>;
   return (
     <Link href={`/etf/${f.isin}`} className="group/f min-w-0 min-h-11 flex items-center gap-2.5 py-0.5">
-      <EmitentLogo nazev={f.nazev} size={22} />
+      <EmitentLogo nazev={f.nazev} size={28} />
       <span className="min-w-0 flex flex-col">
         <span className="text-[15px] font-medium leading-snug text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2 md:truncate">{f.nazev}</span>
         {/* Bez tickeru (fondy na Nasdaq-100 ho v datech nemají) ISIN – skutečný identifikátor, stejný rytmus řádku. */}
-        <span className="text-xs text-slate-500">{f.ticker ?? <span className="font-mono text-[11px] text-slate-400" title={f.isin}>{`${f.isin.slice(0, 2)}…${f.isin.slice(-4)}`}</span>}</span>
+        <span className="text-xs text-slate-500">{f.ticker ?? <span className="text-xs text-slate-400" title={f.isin}>{`${f.isin.slice(0, 2)}…${f.isin.slice(-4)}`}</span>}</span>
       </span>
     </Link>
   );
@@ -78,7 +78,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
       {POHLEDY.map((p) => (
         <div key={p.id} role="tabpanel" id={`panel-${p.id}`} aria-labelledby={`tab-${p.id}`} hidden={pohled !== p.id} className="mt-3">
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
-            <li className="hidden md:grid md:grid-cols-[13rem_minmax(0,1fr)_10rem_8rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
+            <li className="hidden md:grid md:grid-cols-[12rem_minmax(0,1fr)_11rem_7rem_7rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
               <span>Trh</span>
               <span>{p.id === 'ter' ? 'Nejlevnější fond' : p.id === 'size' ? 'Největší fond' : 'Nejvýkonnější fond'}</span>
               <span className="text-right">
@@ -87,14 +87,15 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
                   : p.sloupec}
               </span>
               <span className="text-right">{p.id === 'size' ? 'Poplatek (TER)' : 'Velikost'}</span>
+              <span className="text-right">{p.id === 'r1' ? 'Poplatek (TER)' : '12 měs. v Kč'}</span>
             </li>
             {radky.map((r) => {
               const f = p.id === 'ter' ? r.nejlevnejsi : p.id === 'size' ? r.nejvetsi : r.nejvykonnejsi;
               const hlavni = p.id === 'ter' ? terF(f?.ter ?? null) : p.id === 'size' ? mld(f?.velikost ?? null) : pct(f?.r1 ?? null);
-              const vedlejsi = p.id === 'size' ? terF(f?.ter ?? null) : mld(f?.velikost ?? null);
+              const vedlejsi = p.id === 'size' ? terF(f?.ter ?? null) : mld(f?.velikost ?? null); // r1: velikost
               const barva = p.id === 'r1' && f?.r1 != null ? (f.r1 >= 0 ? 'text-emerald-700' : 'text-red-700') : 'text-slate-900';
               return (
-                <li key={r.trh.id} className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[13rem_minmax(0,1fr)_10rem_8rem] gap-x-6 gap-y-1 px-4 md:px-5 py-3 items-center">
+                <li key={r.trh.id} className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[12rem_minmax(0,1fr)_11rem_7rem_7rem] gap-x-6 gap-y-1 px-4 md:px-5 py-3 items-center">
                   <Link href={r.trh.href} className="min-w-0 min-h-6 inline-flex flex-col py-0.5 hover:text-teal-800">
                     {/* Mobil: trh jako malý nadpis nad fondem (dva stejně velké názvy splývaly). */}
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 md:text-[15px] md:normal-case md:tracking-normal md:text-slate-900 hover:underline underline-offset-2">{r.trh.label}</span>
@@ -103,11 +104,18 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
                   <span className="order-3 md:order-none col-span-2 md:col-span-1 min-w-0"><Fond f={f} /></span>
                   <span className={`order-2 md:order-none text-right text-base font-semibold tabular-nums ${barva}`}>
                     {hlavni}
+                    {/* Mobil nemá hlavičku sloupců → popisek přímo u čísla (test s uživateli). */}
+                    <span className="md:hidden block text-[11px] font-normal text-slate-500">{p.id === 'ter' ? 'poplatek ročně' : p.id === 'size' ? 'velikost fondu' : '12 měs. v Kč'}</span>
                     {p.id === 'ter' && r.stejnyTer > 0 && (
-                      <span className="block text-xs font-normal text-slate-500">a {r.stejnyTer} {r.stejnyTer === 1 ? 'další fond' : r.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'} za {terF(f?.ter ?? null)}</span>
+                      <span className="block whitespace-nowrap text-xs font-normal text-slate-500">a {r.stejnyTer} {r.stejnyTer === 1 ? 'další fond' : r.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'} za {terF(f?.ter ?? null)}</span>
                     )}
                   </span>
                   <span className="hidden md:block text-right text-sm tabular-nums text-slate-600">{vedlejsi}</span>
+                  {/* Výnos v Kč (USP) ve všech záložkách; v záložce výkonu je hlavním číslem → tady TER. */}
+                  <span className={`hidden md:block text-right text-sm tabular-nums ${p.id === 'r1' ? 'text-slate-600' : f?.r1 == null || r.odlehle.some((o) => o.isin === f.isin) ? 'text-slate-500' : f.r1 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                    {/* Fond s neověřeným výnosem (odlehlý) i tady „—“ – pravidlo č. 1. */}
+                    {p.id === 'r1' ? terF(f?.ter ?? null) : pct(f && !r.odlehle.some((o) => o.isin === f.isin) ? f.r1 : null)}
+                  </span>
                 </li>
               );
             })}

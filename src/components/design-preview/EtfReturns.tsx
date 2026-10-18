@@ -122,7 +122,8 @@ export default function EtfReturns({
         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
         <span>
           Letošní výnos (od ledna): <span className="font-medium text-slate-700">{pct(v.ytd)}</span>.
-          {' '}Průměrný roční výnos (p.a.) přepočítáváme z kumulativního jako geometrický průměr – u 3letého výnosu {pct(v.y3)} to znamená {paLabel(v.y3, 3) ?? '—'}
+          {/* Bez 3letého výnosu věta nedává smysl („— to znamená —“) → jen u fondů s daty. */}
+          {v.y3 != null && paLabel(v.y3, 3) && <>{' '}Průměrný roční výnos (p.a.) přepočítáváme z kumulativního jako geometrický průměr – u 3letého výnosu {pct(v.y3)} to znamená {paLabel(v.y3, 3)}</>}
           {cur === 'CZK'
             ? <> Výnosy jsou přepočtené kurzem ČNB do Kč a zohledňují pohyb kurzu {fundCurrency ? `${fundCurrency}/CZK` : 'cizí měny vůči koruně'}, který výnos českého investora zvyšuje i snižuje.</>
             : <> Bez zahrnutí pohybu kurzu vůči koruně – český investor navíc nese měnové riziko (přepněte na Kč pro reálný dopad).</>}

@@ -221,7 +221,7 @@ export const brokers: Broker[] = [
 
 export const comparisonData: ComparisonRow[] = [
   { feature: 'Regulace (hlavní)', degiro: 'BaFin (DE), DNB/AFM (NL)', xtb: 'Licence ČNB (CZ), varšavská burza', fio: 'ČNB (CZ)', trading212: 'FCA (UK), CySEC (EU pro CZ klienty)', ibkr: 'CBI (IE), SEC (US)', portu: 'ČNB (CZ)' },
-  { feature: 'Ochrana prostředků', degiro: '100 000 EUR (banka, DE)', xtb: '~22 000 EUR (KDPW)', fio: '100 000 EUR (banka, CZ)', trading212: '100 000 EUR (hotovost v bankách), 20 000 EUR (ICF)', ibkr: '20 000 EUR (ICF, IE); SIPC jen US entita', portu: '20 000 EUR (garanční fond) + oddělená aktiva' },
+  { feature: 'Ochrana prostředků', degiro: '100 000 EUR (banka, DE)', xtb: '20 100 EUR (polský garanční systém)', fio: '100 000 EUR (banka, CZ)', trading212: '20 000 EUR (ICF, Kypr)', ibkr: '20 000 EUR (ICF, IE); SIPC jen US entita', portu: '20 000 EUR (garanční fond) + oddělená aktiva' },
   { feature: 'Poplatek nákup ETF', degiro: '1 EUR (ETF Selection), 3 EUR (ostatní ETF)', xtb: '0 % do 100 000 EUR/měs., pak 0,2 %', fio: '0,29-0,35 % (CZ), 3,95 EUR do 1 400 EUR (XETRA)', trading212: '0% (bez limitu)', ibkr: '$0.005/akcii (min. $1)', portu: '0,24-1% ročně (dle částky)' },
   { feature: 'Konverze měn', degiro: 'CZK/EUR zdarma, ostatní 0,25%', xtb: '0,5%', fio: 'Zdarma (dle kurzu banky)', trading212: '0,15%', ibkr: '0,002 % (min. 2 USD)', portu: 'Zahrnut v poplatku' },
   { feature: 'Frakční ETF', degiro: 'Ne', xtb: 'Ano', fio: 'Ne', trading212: 'Ano (od 1 EUR)', ibkr: 'Ano', portu: 'Ano (automaticky)' },

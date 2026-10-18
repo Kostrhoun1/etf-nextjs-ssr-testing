@@ -76,15 +76,14 @@ const CATEGORY_COUNT = Object.keys(categoryConfigs).length;
 
 /* Žebříčky v hero – trhy, na které z homepage lidé nejčastěji klikali (GA4 90 dní). */
 const HERO_ZEBRICKY = [
-  // Trhy z tabulky „tři pohledy“ (svět, S&P 500, Evropa, EM…) se proklikávají tam; tady ostatní
-  // nejklikanější žebříčky (GA4: dividendové, zlato, technologické) + typy fondů. Mobil: první 4.
+  // „Oblíbené žebříčky“ = nejklikanější z homepage podle GA4 (90 dní). Dřív „Další žebříčky“ – v hero
+  // nedávalo smysl, nad nimi žádné nejsou (majitel 18. 10. 2026).
+  { href: '/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'Celosvětové ETF' },
+  { href: '/nejlepsi-etf/nejlepsi-evropske-etf', label: 'Evropské ETF' },
+  { href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf', label: 'Rozvíjející se trhy' },
   { href: '/nejlepsi-etf/nejlepsi-dividendove-etf', label: 'Dividendové ETF' },
   { href: '/nejlepsi-etf/nejlepsi-zlato-etf', label: 'Zlato' },
-  { href: '/nejlepsi-etf/nejlepsi-dluhopisove-etf', label: 'Dluhopisové ETF' },
   { href: '/nejlepsi-etf/nejlepsi-technologicke-etf', label: 'Technologické ETF' },
-  { href: '/nejlepsi-etf/nejlepsi-small-cap-etf', label: 'Malé firmy (small cap)' },
-  { href: '/nejlepsi-etf/nejlepsi-realitni-etf', label: 'Nemovitosti (REIT)' },
-  { href: '/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější ETF' },
 ];
 /* Krátké názvy portfolií na homepage (dlouhé se lámaly a posouvaly čísla). „ETF průvodce portfolio“
    působilo jako reklama na sebe → název podle obsahu (test s uživateli 18. 10. 2026). */
@@ -101,8 +100,9 @@ const RIZIKO_TECKY: Record<string, number> = { 'Konzervativní': 1, 'Umírněné
 /* Loga brokerů ořezaná na obsah (public/loga-brokeru, z lovable-uploads 18. 10. 2026). Portu má jen
    provizorní zástupné logo → jméno textem. */
 const LOGO_BROKERA: Record<string, string> = {
-  xtb: '/loga-brokeru/xtb.png', trading212: '/loga-brokeru/trading212.png', ibkr: '/loga-brokeru/ibkr.png',
-  degiro: '/loga-brokeru/degiro.png', fio: '/loga-brokeru/fio.png',
+  // Čtvercové ikony brokerů (favicony z jejich webů, 18. 10. 2026) – jeden režim: ikona + jméno.
+  xtb: '/loga-brokeru/xtb-ikona.png', trading212: '/loga-brokeru/trading212-ikona.png', ibkr: '/loga-brokeru/ibkr-ikona.png',
+  degiro: '/loga-brokeru/degiro-ikona.png', fio: '/loga-brokeru/fio-ikona.png', portu: '/loga-brokeru/portu-ikona.png',
 };/* Složení modelových portfolií – barvy tříd aktiv pro proužek. */
 const BARVA_TRIDY: Record<string, string> = { akcie: 'bg-teal-600', dluhopisy: 'bg-sky-400', zlato: 'bg-amber-400', komodity: 'bg-amber-600', nemovitosti: 'bg-violet-400' };
 const PORADI_RIZIKA: Record<string, number> = { 'Konzervativní': 0, 'Umírněné': 1, 'Agresivní': 2 };
@@ -274,11 +274,11 @@ export default async function DesignPreviewV2() {
                 <span>kurz ČNB</span><span aria-hidden="true">·</span><span>denní kontrola dat</span><span aria-hidden="true">·</span><span>bez provizí a reklamy</span>
               </p>
             </div>
-            <nav aria-label="Další žebříčky ETF" className="hidden md:block relative md:mt-1">
-              <p className="hidden md:block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Další žebříčky</p>
+            <nav aria-label="Oblíbené žebříčky ETF" className="hidden md:block relative md:mt-1">
+              <p className="hidden md:block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Oblíbené žebříčky</p>
               {/* Mobil: vodorovný posuv s náznakem pokračování (mask fade vpravo). */}
               <ul className="flex md:flex-col gap-2 md:gap-0 overflow-x-auto px-4 md:px-0 pb-1 md:pb-0 [scrollbar-width:none] md:divide-y md:divide-white/10 [mask-image:linear-gradient(to_right,black_85%,transparent)] md:[mask-image:none]">
-                {HERO_ZEBRICKY.slice(0, 5).map((z) => (
+                {HERO_ZEBRICKY.map((z) => (
                   <li key={z.href} className="shrink-0">
                     <Link href={z.href} className="flex items-center justify-between gap-3 whitespace-nowrap rounded-full md:rounded-none bg-white/10 md:bg-transparent px-3.5 md:px-1 min-h-10 md:min-h-11 text-sm text-slate-300 hover:text-white hover:bg-white/20 md:hover:bg-white/5 transition-colors">
                       {z.label} <ArrowRight className="hidden md:block w-4 h-4 text-slate-500" />
@@ -298,7 +298,7 @@ export default async function DesignPreviewV2() {
         {/* S2 TŘI POHLEDY PODLE TRHU – jádro srovnávače (ruční seznam fondů: src/data/trhyDvojcata.ts). */}
         {trhy && trhy.length > 0 && datumText && (
           <section className="pt-4 pb-12" aria-labelledby="h-trhy">
-            <Nadpis id="h-trhy" meta={`k ${datumText}`} podnadpis="Šest hlavních trhů, jen fondy na široké indexy.">
+            <Nadpis id="h-trhy" meta={`data k ${datumText}`} podnadpis="Šest hlavních trhů, jen fondy na široké indexy.">
               Nejlevnější, největší a nejvýkonnější ETF
             </Nadpis>
             <TriPohledyTrhu radky={trhy} />
@@ -309,7 +309,7 @@ export default async function DesignPreviewV2() {
             ročně za 5 let (12 měsíců svádělo ke čtení „ETF vydělá 20 % ročně“ – test s uživateli). */}
         {starters.length > 0 && (
           <section className="pb-12" aria-labelledby="h-zacit">
-            <Nadpis id="h-zacit" podnadpis={`Nejčastěji otevírané fondy u nás – široce rozložené, levné a akumulační. Pro orientaci, ne jako doporučení.${starsiText ? ` U některého fondu jsou data starší (${starsiText}).` : ''}`}>
+            <Nadpis id="h-zacit" meta={datumText ? `data k ${datumText}` : undefined} podnadpis={`Nejčastěji otevírané fondy u nás – široce rozložené, levné a akumulační. Pro orientaci, ne jako doporučení.${starsiText ? ` U některého fondu jsou data starší (${starsiText}).` : ''}`}>
               Kterým ETF začít?
             </Nadpis>
             <div className="grid gap-3 md:grid-cols-3">
@@ -321,9 +321,9 @@ export default async function DesignPreviewV2() {
                 return (
                   <div key={etf.isin} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
                     <Link href={`/etf/${etf.isin}`} className="group flex items-start gap-3">
-                      <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-xl border border-slate-200 bg-white">
-                        {emitentFondu(etf.name) ? <EmitentLogo nazev={etf.name} size={24} /> : <Icon className="w-5 h-5 text-teal-700" />}
-                      </span>
+                      {emitentFondu(etf.name)
+                        ? <EmitentLogo nazev={etf.name} size={40} className="rounded-xl" />
+                        : <span className="flex items-center justify-center w-10 h-10 shrink-0 rounded-xl border border-slate-200 bg-white"><Icon className="w-5 h-5 text-teal-700" /></span>}
                       <span className="min-w-0">
                         <span className="block text-xs font-medium uppercase tracking-wide text-slate-500">{meta?.tag}</span>
                         <span className="block text-base font-semibold text-slate-900 leading-snug group-hover:text-teal-800">{short(etf.name)} <span className="font-normal text-slate-500">· {etf.primary_ticker}</span></span>
@@ -366,31 +366,37 @@ export default async function DesignPreviewV2() {
         {/* S4 MODELOVÁ PORTFOLIA – s výkonností v Kč a datem; řazené podle rizika, krátké názvy,
             neutrální značení rizika (červený štítek působil jako chyba). */}
         <section className="pb-12" aria-labelledby="h-portfolia">
-          <Nadpis id="h-portfolia" meta={datumText ? `k ${datumText}` : undefined} podnadpis="Hotová složení z konkrétních fondů a jak si vedla v korunách. Pro inspiraci, ne jako doporučení."
+          <Nadpis id="h-portfolia" meta={datumText ? `data k ${datumText}` : undefined} podnadpis="Hotová složení z konkrétních fondů a jak si vedla v korunách. Pro inspiraci, ne jako doporučení."
             odkaz={{ href: '/portfolio-strategie', text: 'Porovnat portfolia' }}>
             Modelová portfolia z ETF
           </Nadpis>
           <p className="-mt-2 mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500" aria-label="Legenda složení">
             {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className={`inline-block w-2.5 h-2.5 rounded-full ${b}`} />{c}</span>)}
           </p>
-          <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white sm:divide-y-0 sm:border-0 sm:bg-transparent sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3">
+          {/* Řádkový přehled jako tabulka trhů (art director: mřížka 4+3 nechávala osiřelou kartu). */}
+          <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
+            <li className="hidden md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_7rem_7rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
+              <span>Portfolio a riziko</span><span>Složení</span><span className="text-right">12 měs. v Kč</span><span className="text-right">3 roky celkem</span>
+            </li>
             {portfolia.map((p) => (
-              <li key={p.slug} className={PORTFOLIA_MOBIL.has(p.slug) ? undefined : 'hidden sm:block'}>
-                <Link href={`/portfolio-strategie/${p.slug}`} className="group flex h-full flex-col gap-2.5 px-4 py-3 sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-4 hover:bg-teal-50/40 sm:hover:border-teal-300 transition-all">
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="truncate text-[15px] font-semibold text-slate-900 group-hover:text-teal-800">{NAZEV_PORTFOLIA[p.slug] ?? p.name}</span>
+              <li key={p.slug} className={PORTFOLIA_MOBIL.has(p.slug) ? undefined : 'hidden md:block'}>
+                <Link href={`/portfolio-strategie/${p.slug}`} className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_7rem_7rem] gap-x-6 gap-y-1.5 px-4 md:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
+                  <span className="min-w-0 flex items-center gap-3">
+                    <span className="truncate text-[15px] font-semibold text-slate-900">{NAZEV_PORTFOLIA[p.slug] ?? p.name}</span>
                     <span className="shrink-0 inline-flex items-center gap-1 text-[11px] text-slate-500" title={`Riziko: ${p.risk}`}>
                       {[1, 2, 3].map((d) => <span key={d} className={`inline-block w-1.5 h-1.5 rounded-full ${d <= (RIZIKO_TECKY[p.risk] ?? 0) ? 'bg-slate-600' : 'bg-slate-200'}`} />)}
                       <span className="ml-0.5">{p.risk}</span>
                     </span>
                   </span>
-                  <span className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`Složení: ${p.slozeni.map(([c, v]) => `${c} ${v} %`).join(', ')}`}>
+                  <span className="order-3 md:order-none col-span-2 md:col-span-1 flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`Složení: ${p.slozeni.map(([c, v]) => `${c} ${v} %`).join(', ')}`}>
                     {p.slozeni.map(([c, v]) => <span key={c} className={BARVA_TRIDY[c] ?? 'bg-slate-400'} style={{ width: `${v}%` }} />)}
                   </span>
-                  <dl className="grid grid-cols-2 gap-2 text-xs text-slate-500">
-                    <div><dt>12 měs.</dt><dd className={`text-base font-semibold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(p.return1y)}</dd></div>
-                    <div><dt>3 roky</dt><dd className={`text-base font-semibold tabular-nums ${p.return3y == null ? '' : p.return3y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{p.return3y == null ? <span className="text-xs font-normal text-slate-500">kratší historie</span> : pct(p.return3y)}</dd></div>
-                  </dl>
+                  <span className={`order-2 md:order-none text-right text-base font-semibold tabular-nums ${p.return1y == null ? 'text-slate-500' : p.return1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                    {pct(p.return1y)}<span className="md:hidden block text-[11px] font-normal text-slate-500">12 měs.</span>
+                  </span>
+                  <span className={`hidden md:block text-right text-base font-semibold tabular-nums ${p.return3y == null ? 'text-slate-500' : p.return3y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                    {p.return3y == null ? <span className="text-xs font-normal">kratší historie</span> : pct(p.return3y)}
+                  </span>
                 </Link>
               </li>
             ))}
@@ -404,21 +410,21 @@ export default async function DesignPreviewV2() {
             Kde ETF koupit
           </Nadpis>
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
-            <li className="hidden sm:grid sm:grid-cols-[16rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
+            <li className="hidden sm:grid sm:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
               <span>Broker</span><span>Pro koho</span><span>Poplatky (nákup ETF, směna)</span><span className="text-right">Skóre</span>
             </li>
             {HOME_BROKERS.map(({ id, forWhom, poplatek, broker, robo }, bi) => (
               <li key={id} className={bi >= 4 ? 'hidden sm:block' : undefined}>
-                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[16rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-x-6 gap-y-1 px-4 sm:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
+                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-x-6 gap-y-1 px-4 sm:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
                   <span className="flex items-center gap-2 min-w-0">
                     {/* Wordmark brokera v jednotném rámečku (obsahuje jméno → bez duplicitního textu); Fio má
                         logo bez čitelného názvu a Portu jen provizorní → jméno textem. */}
-                    {/* Jednotný optický rámeček 80×24 pro logo + jméno textem u všech (art director: nemíchat škálu). */}
-                    <span className="flex items-center justify-start w-20 h-6 shrink-0">
+                    {/* Jeden režim: čtvercová ikona brokera + jméno (art director: nemíchat škálu ani wordmarky). */}
+                    <span className="flex items-center justify-center w-8 h-8 shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
                       {LOGO_BROKERA[id]
                         // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={LOGO_BROKERA[id]} alt="" loading="lazy" className="max-w-full max-h-full object-contain" />
-                        : <span aria-hidden="true" className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-xs font-bold text-slate-600">{broker!.name.charAt(0)}</span>}
+                        ? <img src={LOGO_BROKERA[id]} alt="" loading="lazy" className="w-full h-full object-contain" />
+                        : <span aria-hidden="true" className="text-xs font-bold text-slate-600">{broker!.name.charAt(0)}</span>}
                     </span>
                     <span className="text-sm font-semibold text-slate-900 truncate">{broker!.name}</span>
                     {robo && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">robo-poradce</span>}
@@ -466,7 +472,8 @@ export default async function DesignPreviewV2() {
   );
 }
 
-/** Jednotná hlavička sekce: větší H2, datum jako štítek vpravo (ne věta), max. jeden řádek podnadpisu. */
+/** Jednotná hlavička sekce (art director 18. 10. 2026): odkaz vždy vpravo na úrovni nadpisu,
+    podnadpis a datum vždy v jednom řádku pod ním. */
 function Nadpis({ id, children, meta, podnadpis, odkaz }: {
   id: string; children: ReactNode; meta?: string; podnadpis?: string; odkaz?: { href: string; text: string };
 }) {
@@ -474,15 +481,14 @@ function Nadpis({ id, children, meta, podnadpis, odkaz }: {
     <div className="mb-5">
       <div className="flex items-baseline justify-between gap-4">
         <h2 id={id} className="text-2xl md:text-[28px] font-semibold tracking-tight leading-tight text-balance">{children}</h2>
-        {meta && <span className="shrink-0 text-xs text-slate-500 tabular-nums">{meta}</span>}
-        {!meta && odkaz && <Link href={odkaz.href} className="shrink-0 hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800">{odkaz.text} <ArrowRight className="w-4 h-4" /></Link>}
+        {odkaz && <Link href={odkaz.href} className="shrink-0 hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800">{odkaz.text} <ArrowRight className="w-4 h-4" /></Link>}
       </div>
-      {(podnadpis || (meta && odkaz)) && (
-        <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          {podnadpis && <p className="text-[15px] text-slate-600 text-pretty">{podnadpis}</p>}
-          {meta && odkaz && <Link href={odkaz.href} className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800">{odkaz.text} <ArrowRight className="w-4 h-4" /></Link>}
-        </div>
+      {(podnadpis || meta) && (
+        <p className="mt-1.5 text-[15px] text-slate-600 text-pretty">
+          {podnadpis}{podnadpis && meta && ' '}{meta && <span className="whitespace-nowrap text-sm text-slate-500">· {meta}</span>}
+        </p>
       )}
+      {odkaz && <Link href={odkaz.href} className="sm:hidden mt-1 inline-flex items-center gap-1 min-h-10 text-sm font-semibold text-teal-700">{odkaz.text} <ArrowRight className="w-4 h-4" /></Link>}
     </div>
   );
 }
