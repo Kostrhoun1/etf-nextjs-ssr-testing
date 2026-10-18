@@ -233,3 +233,6 @@ přeřazuje (jen ve srovnávači, žebříčky to neovlivňuje).
 
 **Výnosy v Kč/USD bez fallbacku na EUR i v `pickReturn`** (`currency.ts`): chybí-li přepočet, je „—“. Krátká
 období 1M/3M/6M jsou na porovnání v samostatné sekci „v EUR“.
+- **Ropné ETC +137 % za rok (WisdomTree Brent JE00B78CGV99, 18. 10. 2026):** skutečnost. Burzovní cena BRNT.MI
+  (EUR) 16. 10. 2025 → 16. 10. 2026: 39,96 → 94,03 = +135,3 % (Yahoo). Spotová Brent jen +79,9 % v USD – rozdíl
+  dělá výnos z rolování futures v backwardaci (ETC sleduje total-return futures index). Neopravovat.
