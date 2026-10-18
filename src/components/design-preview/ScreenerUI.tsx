@@ -226,7 +226,8 @@ function IndexList({ options, vybrane, setVybrane, pocty, vcZajist, setVcZajist,
                 vč. měnově zajištěných
               </label>
             </div>
-            {trhy.map((t) => <Polozka key={t.id} v={`trh:${t.id}`} label={t.label} note={`${t.popis} · fondy od 100 mil. €`} count={pocty.trh(t.id)} />)}
+            <p className="px-2 pb-1 text-[11px] leading-snug text-slate-400">Stejný výběr jako žebříčky: fondy od 100 mil. €, bez ESG, sektorových a jiných variant indexu.</p>
+            {trhy.map((t) => <Polozka key={t.id} v={`trh:${t.id}`} label={t.label} note={t.popis} count={pocty.trh(t.id)} />)}
           </div>
         )}
         {skupiny.map((g) => (
@@ -728,7 +729,7 @@ export default function ScreenerUI({
       </div>
 
       {/* AKTIVNÍ FILTRY – odebíratelné štítky */}
-      {(stitky.length > 0 || (anyFilter && q)) && (
+      {stitky.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {stitky.map((s) => (
             <button key={s.k} type="button" onClick={() => { s.off(); setShown(PAGE); }} className="inline-flex items-center gap-1 rounded-full bg-teal-50 pl-2.5 pr-1.5 py-1 text-xs font-medium text-teal-800 ring-1 ring-teal-200 hover:bg-teal-100" aria-label={`Zrušit filtr ${s.label}`}>
@@ -741,10 +742,10 @@ export default function ScreenerUI({
 
       {trhDotazu && !indexSel.includes(`trh:${trhDotazu.id}`) && (
         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2 text-sm text-slate-700">
-          <span>Hledáte fondy na celý trh {trhDotazu.label}? Hledání vrací i sektorové a ESG varianty.</span>
+          <span>Hledáte fondy na {trhDotazu.id === 'svet' ? 'celý svět' : `celý trh ${trhDotazu.label}`}? Hledání podle názvu vrací i sektorové, ESG a další varianty.</span>
           <button type="button" onClick={() => { setQ(''); setIdx([`trh:${trhDotazu.id}`]); }}
             className="font-medium text-teal-800 underline decoration-teal-300 underline-offset-2 hover:decoration-teal-700">
-            Zobrazit {pocty.trh(trhDotazu.id).toLocaleString('cs-CZ')} fondů na {trhDotazu.label} (jako žebříček)
+            Zobrazit {pocty.trh(trhDotazu.id).toLocaleString('cs-CZ')} fondů {trhDotazu.id === 'svet' ? 'na celý svět' : `na ${trhDotazu.label}`} (jako žebříček)
           </button>
         </div>
       )}

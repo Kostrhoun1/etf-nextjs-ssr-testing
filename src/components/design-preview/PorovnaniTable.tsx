@@ -60,6 +60,39 @@ function burzy(e: ComparisonETF): { burza: string; ticker: string; mena: string 
   return out.sort((a, b) => Number(/xetra/i.test(b.burza)) - Number(/xetra/i.test(a.burza)));
 }
 const BURZA_CS: Record<string, string> = { 'London Stock Exchange': 'Londýn', 'SIX Swiss Exchange': 'SIX (Švýcarsko)', 'Borsa Italiana': 'Milán', 'Euronext Amsterdam': 'Amsterdam', 'Euronext Paris': 'Paříž', 'Stuttgart Stock Exchange': 'Stuttgart', 'Bolsa Mexicana de Valores': 'Mexiko' };
+function skupinyBurz(e: ComparisonETF) {
+  const skupiny = new Map<string, { ticker: string; mena: string | null; burzy: string[] }>();
+  for (const x of burzy(e)) {
+    const k = `${x.ticker}|${x.mena ?? ''}`;
+    const g = skupiny.get(k) ?? { ticker: x.ticker, mena: x.mena, burzy: [] };
+    g.burzy.push(BURZA_CS[x.burza] ?? x.burza);
+    skupiny.set(k, g);
+  }
+  return [...skupiny.values()];
+}
+
+/* Mobil: burzy po fondech přes celou šířku (ve 3–4 úzkých sloupcích se seznam lámal po slovech). */
+function BurzyMobil({ etfs }: { etfs: ComparisonETF[] }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white divide-y divide-slate-100">
+      <p className="px-2.5 pt-2 text-xs text-slate-500">Burzy a tickery <span className="text-slate-400">· stejný fond, jiná burza a měna</span></p>
+      {etfs.map((e, i) => {
+        const g = skupinyBurz(e);
+        return (
+          <div key={e.isin} className="flex gap-2 px-2.5 py-2 text-xs">
+            <span aria-hidden="true" className="mt-1 inline-block w-2 h-2 shrink-0 rounded-[2px]" style={{ background: barvaFondu(i) }} />
+            <span className="min-w-0 leading-relaxed text-slate-500">
+              {g.length === 0 ? '—' : g.slice(0, 4).map((x, j) => (
+                <span key={j} className="mr-2.5 inline-block"><strong className="font-semibold text-slate-800">{x.ticker}</strong> {x.mena} · {x.burzy.join(', ')}</span>
+              ))}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Burzy({ e }: { e: ComparisonETF }) {
   // Seskupeno podle tickeru a měny („VWCE · EUR: XETRA, gettex, Milán…“) – dřív 10 řádků na fond.
   const skupiny = new Map<string, { ticker: string; mena: string | null; burzy: string[] }>();
@@ -257,7 +290,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
         { label: 'Domicil', cell: (e) => dom(e.fund_domicile) },
         { label: 'Právní struktura', cell: (e) => str(raw(e).legal_structure) ?? '—' },
         { label: 'Měna fondu', cell: (e) => str(e.fund_currency) ?? '—' },
-        { label: <InfoTip label="Stejný fond se obchoduje na více burzách pod různými tickery a v různých měnách – poplatek i výnos fondu jsou stejné. V Česku se nejčastěji kupuje na XETRA.">Burzy a tickery</InfoTip>, top: true, cell: (e) => <Burzy e={e} />, omit: etfs.every((e) => burzy(e).length === 0) },
+        { label: <InfoTip label="Stejný fond se obchoduje na více burzách pod různými tickery a v různých měnách – poplatek i výnos fondu jsou stejné. V Česku se nejčastěji kupuje na XETRA.">Burzy a tickery</InfoTip>, top: true, cell: (e) => <Burzy e={e} />, omit: etfs.every((e) => burzy(e).length === 0), mobil: <BurzyMobil etfs={etfs} /> },
       ],
     },
     {
@@ -385,16 +418,24 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
         {visibleSections.map((sec) => (
           <div key={sec.title}>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">{sec.title}</h3>
-            {/* Jedna karta na sekci, řádky oddělené linkou (dřív karta na každý řádek = 40 rámečků pod sebou). */}
-            <div className={sec.rows.some((r) => r.mobil) ? 'space-y-2' : 'rounded-lg border border-slate-200 bg-white divide-y divide-slate-100'}>
-              {sec.rows.map((r, i) => r.mobil ? <div key={i}>{r.mobil}</div> : (
-                <div key={i} className="px-2.5 py-2">
-                  <p className="text-xs text-slate-500 mb-1">{r.label}</p>
-                  <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${etfs.length}, minmax(0,1fr))` }}>
-                    {etfs.map((e) => (
-                      <div key={e.isin} className={`min-w-0 text-sm text-slate-800 ${r.top ? '' : 'tabular-nums'}`}><Bunka vitez={vitez(r, e)}>{r.cell(e)}</Bunka></div>
-                    ))}
-                  </div>
+            {/* Jedna karta na skupinu řádků, řádky oddělené linkou (dřív karta na každý řádek = 40 rámečků pod sebou).
+                Řádky s vlastním mobilním vykreslením (váhy, burzy) stojí samostatně. */}
+            <div className="space-y-2">
+              {sec.rows.reduce<Row[][]>((acc, r) => {
+                if (r.mobil || !acc.length || acc[acc.length - 1][0].mobil) acc.push([r]); else acc[acc.length - 1].push(r);
+                return acc;
+              }, []).map((skup, si) => skup[0].mobil ? <div key={si}>{skup[0].mobil}</div> : (
+                <div key={si} className="rounded-lg border border-slate-200 bg-white divide-y divide-slate-100">
+                  {skup.map((r, i) => (
+                    <div key={i} className="px-2.5 py-2">
+                      <p className="text-xs text-slate-500 mb-1">{r.label}</p>
+                      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${etfs.length}, minmax(0,1fr))` }}>
+                        {etfs.map((e) => (
+                          <div key={e.isin} className={`min-w-0 text-sm text-slate-800 ${r.top ? '' : 'tabular-nums'}`}><Bunka vitez={vitez(r, e)}>{r.cell(e)}</Bunka></div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
