@@ -266,6 +266,13 @@ const main = async () => {
       const cel = rows.filter((r) => r._region === 'Celosvětově').length / rows.length;
       if (cel > 0.4) varovani.push({ co: `${(cel * 100).toFixed(0)} % fondů ve srovnávači je „Celosvětově“ – region se zase odvozuje špatně`, ukazka: [] });
     }
+    // Měnové zajištění: 18. 10. 2026 srovnávač nepoznal „PfHdg“ (Invesco) ani „hEUR/hCHF“ (UBS) → filtr
+    // „Nezajištěné“ vracel zajištěné třídy. Nezávislý široký vzor z NÁZVU (ne kód webu) proti tomu, co
+    // srovnávač ukazuje (_hedge). Zajištění úroků/opcemi („Interest Rate Hedged“, „Tail Hedge“…) měnové není.
+    const VZOR_ZAJ = /hedg|hdg|(^|[\s-])h(EUR|USD|GBP|CHF|JPY|SEK|SGD)\b|\bEAH [A-Z]{3}\b|\bH[- ][A-Z]{3}\b|\b[A-Z]{3} \(H\)|\b[A-Z]{3}-H\b/;
+    const NE_MENOVE = /unhedged|not hedged|interest rate hedged|tail hedge|hedged equity|dynamically hedged/i;
+    const zajNepoznano = rows.filter((r) => VZOR_ZAJ.test(r.name || '') && !NE_MENOVE.test(r.name || '') && r._hedge === 'unhedged');
+    if (zajNepoznano.length) varovani.push({ co: `${zajNepoznano.length} fondů má v názvu vzor měnového zajištění, ale srovnávač je vede jako NEzajištěné (src/utils/hedgingDetection.ts)`, ukazka: ukazka(zajNepoznano, (x) => `${x.isin} ${String(x.name).slice(0, 60)}`) });
     // Peněžní trh: zdroj ho řadí pod „Akcie“ (45 fondů 18. 10. 2026), srovnávač ho přeřazuje do vlastní záložky.
     const mm = rows.filter((r) => r.category === 'Akcie' && /overnight|money market|€str|\bestr\b/i.test(r.name));
     if (mm.length) varovani.push({ co: `${mm.length} fondů peněžního trhu je ve srovnávači pod „Akcie“`, ukazka: ukazka(mm) });

@@ -15,6 +15,8 @@
  * Ověření přiřazení: scripts/overeni-fond-na-index.mjs (projde všechny fondy v DB).
  */
 
+import { detectHedging } from '@/utils/hedgingDetection';
+
 export type Shoda = 'stejny' | 'blizky';
 
 export interface FondProPrirazeni {
@@ -32,18 +34,9 @@ export interface Prirazeni {
   zdroj: string;
 }
 
-/** Měnově zajištěné třídy – stejná logika jako src/utils/hedgingDetection.ts (tam je i historie
- *  chyb: „Unhedged“ obsahuje „hedged“, zkratka „Hdg“) + UBS „hEUR/hCHF…“ a Invesco „PfHdg“. */
-function jeZajisteny(jmeno: string, menoveRiziko?: string | null): boolean {
-  const r = (menoveRiziko ?? '').toLowerCase();
-  if (r) {
-    if (r.includes('unhedged') || r.includes('not hedged')) return false;
-    if (r.includes('hedged')) return true;
-  }
-  const n = jmeno.toLowerCase();
-  if (/\b(unhedged|not hedged)\b/.test(n)) return false;
-  return /\b(hedged|hdg)\b|pfhdg/.test(n) || /\bh(EUR|USD|GBP|CHF|JPY|SGD)\b/.test(jmeno);
-}
+/** Měnově zajištěné třídy – JEDNA funkce pro celý web (src/utils/hedgingDetection.ts; dřív tu byla
+ *  vlastní kopie, která neznala Swisscanto „EAH EUR“, Allianz „(H-CHF)“ ani BNP „EUR (H)“). */
+const jeZajisteny = (jmeno: string, menoveRiziko?: string | null): boolean => detectHedging(jmeno, menoveRiziko).isHedged;
 /** Dluhopisové varianty s jiným výnosem/rizikem než široký index. */
 const DLUHOPISY_JINE =
   /active|advantage|climate|carbon|paris|\bpab\b|\bsri\b|\besg\b|screened|fossil|green|transition|sustainab|target duration|\d+\+\s*y|1m\b|yield plus|large cap|bbb|portfolio|short duration|inflation|linked|floating|bulletshares|ibonds|\b20\d\d\b|0-1\b|ultrashort|interest rate hedged|enhanced|highest rated|macro/i;
