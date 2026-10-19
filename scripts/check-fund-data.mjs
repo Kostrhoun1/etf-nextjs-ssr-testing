@@ -804,6 +804,26 @@ const main = async () => {
   } catch (e) {
     varovani.push({ co: `Kontrolu výnosů za období (letos, 1 m … 5 let) se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
+
+  // ── SKÓRE BROKERŮ ZRUŠENO (rozhodnutí majitele 19. 10. 2026, ZAMERNA-ROZHODNUTI.md) ──
+  // Redakční skóre 0–100 působilo jako doporučení. Viditelný text stránek o brokerech (bez skriptů a JSON-LD) nesmí
+  // obsahovat „Skóre“ ani „/100“ a strukturovaná data nesmí mít hodnocení (ratingValue / aggregateRating).
+  try {
+    const nalezy = [], nenacteno = [];
+    for (const s of ['/srovnani-brokeru', '/kde-koupit', '/recenze/xtb', '/']) {
+      const html = await fetch(`${WEB_URL}${s}`).then((r) => (r.ok ? r.text() : '')).catch(() => '');
+      if (!html) { nenacteno.push(s); continue; }
+      const text = html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;|&#160;| /g, ' ').replace(/\s+/g, ' ');
+      const m = text.match(/.{0,40}(Skóre|skóre|\d\s*\/\s*100\b).{0,30}/);
+      if (m) nalezy.push(`${s}: „${m[0].trim()}“`);
+      if (/"(ratingValue|aggregateRating)"/.test(html)) nalezy.push(`${s}: JSON-LD s hodnocením (ratingValue/aggregateRating)`);
+    }
+    if (nalezy.length) poplach.push({ co: 'Stránky o brokerech ukazují zrušené skóre brokerů (Skóre, /100 nebo hodnocení v JSON-LD)', ukazka: nalezy });
+    if (nenacteno.length) varovani.push({ co: 'Kontrolu zrušeného skóre brokerů nešlo provést – stránka se nenačetla', ukazka: nenacteno });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu zrušeného skóre brokerů se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
   // --- /kolo5 C ---
 
   // ── výstup ──

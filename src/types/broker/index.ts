@@ -3,7 +3,8 @@ export interface Broker {
   name: string;
   logo: string;
   description: string;
-  /** Redakční skóre 0–100. null = robo-poradce (Portu) – jiná kategorie, skóre brokerů se na něj nevztahuje. */
+  /** ZRUŠENO 19. 10. 2026 (rozhodnutí majitele, ZAMERNA-ROZHODNUTI.md): skóre brokerů se na webu NEUKAZUJE a neřadí se
+   *  podle něj. Pole zůstává jen kvůli homepage (src/app/page.tsx), kterou upravuje jiný vývojář – po ní pole smazat. */
   rating: number | null;
   /** Robo-poradce (spravuje portfolio za roční poplatek) – ve srovnání brokerů zvlášť, bez skóre. */
   robo?: boolean;

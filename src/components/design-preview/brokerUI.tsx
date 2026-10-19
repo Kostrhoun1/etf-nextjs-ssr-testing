@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowRight, ChevronDown, Sparkles, Coins, Layers, Globe, Landmark, Bot } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
-import { brokers, brokeriPodleSkore, nakladNakupu, provizeEur, popisSmeny, type Kurzy } from '@/data/brokerData';
+import { brokers, brokeriAbecedne, nakladNakupu, provizeEur, popisSmeny, type Kurzy } from '@/data/brokerData';
 import type { Broker } from '@/types/broker/index';
 
 export const najdiBrokera = (id: string) => brokers.find((b) => b.id === id)!;
@@ -18,18 +18,6 @@ export function BrokerLogo({ id, size = 'md' }: { id: string; size?: 'sm' | 'md'
     <span className={`${cls} flex items-center justify-center shrink-0 overflow-hidden bg-white ring-1 ring-slate-200`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`/loga-brokeru/${id}-ikona.png`} alt="" width={64} height={64} loading="lazy" className="w-full h-full object-contain" />
-    </span>
-  );
-}
-
-/* ---------- Skóre (jen brokeři; robo-poradce „—“) ---------- */
-export function Skore({ b, className = '' }: { b: Broker; className?: string }) {
-  if (b.rating == null) {
-    return <span className={`tabular-nums text-slate-400 ${className}`} title="Robo-poradce je jiná kategorie – skóre brokerů se na něj nevztahuje">—</span>;
-  }
-  return (
-    <span className={`tabular-nums font-bold text-slate-900 ${className}`} title={`Naše skóre ${b.rating} ze 100`}>
-      {b.rating}<span className="text-xs font-medium text-slate-400">/100</span>
     </span>
   );
 }
@@ -78,7 +66,7 @@ export function doporuceniProfily(kurzy: Kurzy | null): Profil[] {
   // Malé částky: nejlevnější celkový nákup za 2 000 Kč (provize + směna) mezi brokery se známým součtem.
   let nejlevnejsi = t212;
   if (kurzy) {
-    const znam = brokeriPodleSkore
+    const znam = brokeriAbecedne
       .map((b) => ({ b, n: nakladNakupu(b, 2000, kurzy) }))
       .filter((x) => x.n?.celkemKc != null && !x.n.plusBurza)
       .sort((a, b) => a.n!.celkemKc! - b.n!.celkemKc!);
@@ -111,14 +99,13 @@ export function ProfilKarty({ kurzy }: { kurzy: Kurzy | null }) {
             <span className="mt-2.5 flex items-center gap-2.5">
               <BrokerLogo id={b.id} />
               <span className="font-semibold text-slate-900">{b.name}</span>
-              <Skore b={b} className="ml-auto text-sm" />
             </span>
             <span className="mt-2 flex-1 text-sm leading-snug text-slate-600">{p.proc}</span>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Recenze <ArrowRight className="h-4 w-4" /></span>
           </Link>
         );
       })}
-      {/* Robo-poradce – jiná kategorie (spravuje portfolio za roční poplatek), bez skóre brokerů */}
+      {/* Robo-poradce – jiná kategorie (spravuje portfolio za roční poplatek), ve srovnání zvlášť */}
       <Link href={reviewHref.portu} className="group flex flex-col rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 transition-colors hover:border-teal-300">
         <span className="flex items-center gap-2 text-xs font-medium text-slate-500">
           <Bot className="h-4 w-4 text-slate-500" /> Nechci nic vybírat
@@ -129,7 +116,7 @@ export function ProfilKarty({ kurzy }: { kurzy: Kurzy | null }) {
           <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">robo-poradce</span>
         </span>
         <span className="mt-2 flex-1 text-sm leading-snug text-slate-600">
-          Jiná kategorie než broker: portfolio sestaví a spravuje za vás za {portu.managementFee.replace(' (dle objemu a fixace)', '')}. Proto bez skóre brokerů.
+          Jiná kategorie než broker: portfolio sestaví a spravuje za vás za {portu.managementFee.replace(' (dle objemu a fixace)', '')}.
         </span>
         <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Recenze <ArrowRight className="h-4 w-4" /></span>
       </Link>
@@ -178,7 +165,7 @@ export function RoboKarta() {
           <span className="block text-sm text-slate-600">Portfolio sestaví a spravuje za vás. Neplatíte za nákup, ale {portu.managementFee} z celé hodnoty.</span>
         </span>
       </span>
-      <span className="text-xs text-slate-500 sm:ml-auto sm:max-w-[16rem]">Skóre brokerů na něj nepoužíváme – srovnávat ho s brokery ke svépomocnému nákupu by nebylo férové.</span>
+      <span className="text-xs text-slate-500 sm:ml-auto sm:max-w-[16rem]">S brokery ke svépomocnému nákupu ho v tabulce nesrovnáváme – platí se jinak (roční poplatek z celé hodnoty).</span>
       <Link href={reviewHref.portu} className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">Recenze <ArrowRight className="h-4 w-4" /></Link>
     </div>
   );

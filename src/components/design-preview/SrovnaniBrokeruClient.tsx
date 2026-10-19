@@ -3,10 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Check, X, ArrowRight } from 'lucide-react';
-import InfoTip from '@/components/design-preview/InfoTip';
 import { TipZaTextem } from '@/components/design-preview/brokerUI';
 import {
-  brokeriPodleSkore, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru, nezlomit,
+  brokeriAbecedne, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru, nezlomit,
 } from '@/data/brokerData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import type { Broker } from '@/types/broker/index';
@@ -69,8 +68,6 @@ const RADKY: Radek[] = [
   },
 ];
 
-const TIP_SKORE = 'Redakční skóre 0–100 podle stejných šesti os pro všechny brokery – metodika na stránce Kde koupit ETF.';
-
 function Bunka({ h, sData = true }: { h: Hodnota; sData?: boolean }) {
   const ikona = h.ano === true
     ? <Check className="h-4 w-4 shrink-0 text-emerald-600" strokeWidth={2.5} />
@@ -92,23 +89,12 @@ function Logo({ id }: { id: string }) {
   );
 }
 
-function ScoreBar({ score }: { score: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-bold tabular-nums text-slate-900">{score}<span className="text-xs font-medium text-slate-400">/100</span></span>
-      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-teal-600" style={{ width: `${score}%` }} />
-      </div>
-    </div>
-  );
-}
-
 /* Sticky záhlaví: buňky th (ne thead – Safari sticky na thead ignoruje), neprůhledné pozadí a spodní linka. */
 const ZAHLAVI = 'sticky top-14 z-20 bg-slate-50 shadow-[0_1px_0_0_rgb(226_232_240)]';
 
 /** Desktop (md+): celá tabulka, záhlaví se při scrollu drží pod hlavičkou webu. */
 function Tabulka({ profil }: { profil: Record<string, string> }) {
-  const brokeri = brokeriPodleSkore;
+  const brokeri = brokeriAbecedne;
   return (
     <table className="hidden w-full table-fixed text-sm md:table">
       <colgroup>
@@ -130,14 +116,8 @@ function Tabulka({ profil }: { profil: Record<string, string> }) {
         </tr>
       </thead>
       <tbody className="tabular-nums">
-        <tr>
-          <th scope="row" className="px-4 py-3 text-left font-medium text-slate-900">
-            <InfoTip label={TIP_SKORE}>Skóre</InfoTip>
-          </th>
-          {brokeri.map((b) => <td key={b.id} className="px-3 py-3"><ScoreBar score={b.rating ?? 0} /></td>)}
-        </tr>
-        {RADKY.map((r) => (
-          <tr key={r.nazev} className="border-t border-slate-100">
+        {RADKY.map((r, i) => (
+          <tr key={r.nazev} className={i ? 'border-t border-slate-100' : undefined}>
             <th scope="row" className="px-4 py-3 text-left align-top font-medium leading-snug text-slate-700">
               {r.tip ? <TipZaTextem text={r.nazev} tip={r.tip} /> : r.nazev}
             </th>
@@ -161,11 +141,12 @@ function Tabulka({ profil }: { profil: Record<string, string> }) {
   );
 }
 
-/** Mobil (< md): dva brokeři vedle sebe, výběr nahoře; výchozí XTB vs Trading 212. */
+/** Mobil (< md): dva brokeři vedle sebe, výběr nahoře; výchozí první dva abecedně. */
 function DvaBrokeri({ profil }: { profil: Record<string, string> }) {
-  const brokeri = brokeriPodleSkore;
-  const [a, setA] = useState('xtb');
-  const [b, setB] = useState('trading212');
+  const brokeri = brokeriAbecedne;
+  // Výchozí dvojice = první dva abecedně (neutrálně; dřív XTB vs Trading 212 = nejvyšší skóre, zrušeno 19. 10. 2026).
+  const [a, setA] = useState(brokeri[0].id);
+  const [b, setB] = useState(brokeri[1].id);
   const najdi = (id: string) => brokeri.find((x) => x.id === id) ?? brokeri[0];
   const vybrat = (strana: 'a' | 'b', id: string) => {
     // Stejný broker na obou stranách nedává smysl → strany prohodit.
@@ -198,10 +179,6 @@ function DvaBrokeri({ profil }: { profil: Record<string, string> }) {
         ))}
       </div>
       <dl className="divide-y divide-slate-100 text-[13px] tabular-nums">
-        <div className="px-3 py-2.5">
-          <dt className="text-xs font-medium text-slate-500"><InfoTip label={TIP_SKORE}>Skóre</InfoTip></dt>
-          <dd className="mt-1 grid grid-cols-2 gap-2">{dva.map((x) => <span key={x.id}><ScoreBar score={x.rating ?? 0} /></span>)}</dd>
-        </div>
         {RADKY.map((r) => (
           <div key={r.nazev} className="px-3 py-2.5">
             <dt className="text-xs font-medium text-slate-500">{r.tip ? <TipZaTextem text={r.nazev} tip={r.tip} /> : r.nazev}</dt>

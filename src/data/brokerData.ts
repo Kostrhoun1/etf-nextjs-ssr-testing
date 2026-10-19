@@ -275,11 +275,12 @@ export const brokers: Broker[] = [
    revize 18. 10. 2026). */
 
 /* ---------- Brokeři vs robo-poradce ---------- */
-/** Brokeři ke svépomocnému nákupu, seřazení podle skóre (bez robo-poradce). */
-export const brokeriPodleSkore: Broker[] = brokers
-  .filter((b) => !b.robo && b.rating != null)
-  .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-/** Robo-poradci (Portu) – jiná kategorie, bez skóre. */
+/** Brokeři ke svépomocnému nákupu ABECEDNĚ (bez robo-poradce). Skóre zrušeno 19. 10. 2026; řazení podle nákladů by
+ *  zvýhodnilo jednu částku, proto neutrálně podle jména. */
+export const brokeriAbecedne: Broker[] = brokers
+  .filter((b) => !b.robo)
+  .sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+/** Robo-poradci (Portu) – jiná kategorie, ve srovnání zvlášť. */
 export const roboPoradci: Broker[] = brokers.filter((b) => b.robo);
 
 /* ---------- Kolik stojí nákup ETF za X Kč (spočítané z ceníků výše, ne natvrdo) ---------- */
@@ -401,7 +402,7 @@ export function nejlevnejsiPodleCastky(k: Kurzy, odKc = 100, doKc = 1_000_000, k
     let vitez: Broker | null = null;
     let min = Infinity;
     let spodniOstatnich = Infinity;
-    for (const b of brokeriPodleSkore) {
+    for (const b of brokeriAbecedne) {
       const n = nakladNakupu(b, a, k);
       if (!n) continue;
       if (n.celkemKc != null && !n.plusBurza) {

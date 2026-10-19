@@ -12,7 +12,7 @@ import {
 } from '@/components/design-preview/brokerUI';
 import NakladyKalkulacka from '@/components/design-preview/NakladyKalkulacka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { brokers, brokeriPodleSkore, nejlevnejsiPodleCastky, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
+import { brokers, brokeriAbecedne, nejlevnejsiPodleCastky, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
 import { FondHero, BezFondu } from './FondZDetailu';
 import { FondProvider } from '@/components/design-preview/FondKontext';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
@@ -49,16 +49,17 @@ export default async function KdeKoupitPage() {
         v: u.b ? `${u.b.name}${u.b.nakup?.ostatniEtfEur != null ? ' (ETF Selection)' : ''}` : '—',
       }))
     : [{ k: 'Nejlevnější nákup', v: kurzy ? 'podle částky – viz tabulka' : '—' }];
-  const bezProvize = brokeriPodleSkore.filter((b) => b.nakup && b.nakup.pasma.every((p) => p.pevneEur === 0 && p.procento === 0 && p.minEur === 0));
+  const bezProvize = brokeriAbecedne.filter((b) => b.nakup && b.nakup.pasma.every((p) => p.pevneEur === 0 && p.procento === 0 && p.minEur === 0));
   const cesky = brokers.filter((b) => b.czSupport);
 
+  // Co u každého brokera uvádíme – stejné údaje pro všechny, BEZ bodování a vah (skóre /100 zrušeno 19. 10. 2026).
   const axes = [
-    { icon: Percent, t: 'Poplatky', d: 'Poplatek za nákup ETF, směna měny a vedení účtu.' },
-    { icon: Layers, t: 'Nabídka', d: 'Počet a šíře dostupných UCITS ETF.' },
-    { icon: ShieldCheck, t: 'Regulace', d: 'Dohled a ochrana hotovosti i cenných papírů.' },
-    { icon: Headphones, t: 'Česká podpora', d: 'Komunikace a dokumenty v češtině.' },
-    { icon: Landmark, t: 'Daně', d: 'Zdanění českých dividend, daňové podklady.' },
-    { icon: ListChecks, t: 'Použitelnost', d: 'Přehlednost aplikace, vhodnost pro začátečníky.' },
+    { icon: Percent, t: 'Náklady nákupu', d: 'Poplatek za nákup ETF a směna korun na eura, spočítané z ceníku pro vaši částku.' },
+    { icon: ShieldCheck, t: 'Ochrana', d: 'Hotovost na účtu a cenné papíry při krachu brokera.' },
+    { icon: Landmark, t: 'Regulace a daně', d: 'Kdo brokera dohlíží a kolik sráží z českých dividend.' },
+    { icon: Layers, t: 'Část podílu', d: 'Zda koupíte ETF i za částku menší než jeden podíl.' },
+    { icon: Headphones, t: 'Česká podpora', d: 'Zda broker komunikuje česky.' },
+    { icon: ListChecks, t: 'Min. vklad a vedení účtu', d: 'Kolik musíte poslat a zda účet něco stojí.' },
   ];
 
   const faqs = [
@@ -84,7 +85,7 @@ export default async function KdeKoupitPage() {
     },
     {
       q: 'Robo-poradce, nebo broker?',
-      a: 'Robo-poradce (Portu) za vás sestaví a spravuje portfolio ETF za roční poplatek z celé hodnoty. U brokera si fondy vybíráte a kupujete sami a platíte jen za nákup. Proto Portu nehodnotíme skóre brokerů, ale zvlášť.',
+      a: 'Robo-poradce (Portu) za vás sestaví a spravuje portfolio ETF za roční poplatek z celé hodnoty. U brokera si fondy vybíráte a kupujete sami a platíte jen za nákup. Proto Portu uvádíme zvlášť.',
     },
   ];
 
@@ -224,19 +225,19 @@ export default async function KdeKoupitPage() {
             <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Table2 className="w-5 h-5" /></span>
             <span className="flex-1">
               <span className="block font-semibold text-slate-900">Detailní srovnání brokerů</span>
-              <span className="block text-sm text-slate-500">Regulace, ochrana hotovosti a cenných papírů, daně, podpora a skóre vedle sebe.</span>
+              <span className="block text-sm text-slate-500">Regulace, ochrana hotovosti a cenných papírů, daně a podpora vedle sebe.</span>
             </span>
             <span className="flex items-center gap-1.5">
-              {brokeriPodleSkore.map((b) => <BrokerLogo key={b.id} id={b.id} size="sm" />)}
+              {brokeriAbecedne.map((b) => <BrokerLogo key={b.id} id={b.id} size="sm" />)}
             </span>
             <span className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 group-hover:text-teal-800">Otevřít srovnání <ArrowRight className="w-4 h-4" /></span>
           </Link>
         </section>
 
-        {/* 5. METODIKA SKÓRE (kotva #metodika – odkaz „Jak hodnotíme“ z homepage) */}
+        {/* 5. JAK SROVNÁVÁME (kotva #metodika – odkazuje na ni homepage; dřív „Jak počítáme skóre“, skóre zrušeno 19. 10. 2026) */}
         <section id="metodika" data-sekce="metodika" className="pb-10 scroll-mt-20">
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Jak počítáme skóre</h2>
-          <p className="mt-1 mb-4 text-sm text-slate-500">Skóre 0–100 skládáme ze šesti os, stejně pro všechny brokery. Robo-poradce Portu je jiná kategorie, proto bez skóre.</p>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Jak srovnáváme</h2>
+          <p className="mt-1 mb-4 text-sm text-slate-500">U každého brokera stejné údaje z veřejných ceníků a dokumentů, bez bodování. Brokery řadíme abecedně, náklady podle zadané částky. Robo-poradce Portu je jiná kategorie, proto zvlášť.</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 rounded-xl border border-slate-200 bg-white p-5 text-sm">
             {axes.map(({ icon: Icon, t, d }) => (
               <div key={t} className="flex items-start gap-2.5">

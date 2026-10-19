@@ -12,7 +12,7 @@ import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { useFond } from '@/components/design-preview/FondKontext';
 import { TipZaTextem } from '@/components/design-preview/brokerUI';
 import {
-  brokeriPodleSkore, nakladNakupu, nakladRocne, popisPoplatku, popisSmeny, type Kurzy,
+  brokeriAbecedne, nakladNakupu, nakladRocne, popisPoplatku, popisSmeny, type Kurzy,
 } from '@/data/brokerData';
 
 const NB = ' ';
@@ -60,7 +60,7 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
     );
   }
 
-  const rady = brokeriPodleSkore
+  const rady = brokeriAbecedne
     .filter((b) => b.nakup)
     .map((b) => {
       const n = platna ? nakladNakupu(b, castka, kurzy) : null;
@@ -153,7 +153,7 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                       {b.name.split(/(\S+-\S+)/).map((c, i) => (i % 2 ? <span key={i} className="whitespace-nowrap">{c}</span> : c))}
                     </span>
                   </Link>
-                  {nej && <span className="ml-9 mt-1 inline-block rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-800 ring-1 ring-teal-200">nejlevnější pro {kc(castka)}</span>}
+                  {nej && <span className="ml-9 mt-1 inline-block whitespace-nowrap rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-800 ring-1 ring-teal-200">nejlevnější pro {kc(castka)}</span>}
                   {/* Mobil: rozpis pod jménem (sloupce poplatek/směna jsou jen od md) */}
                   {n && (
                     <span className="mt-1 block pl-9 text-xs leading-snug text-slate-500 md:hidden">

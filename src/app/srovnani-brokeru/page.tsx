@@ -10,7 +10,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruClient';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { RoboKarta, FaqSeznam, AutorBox, doporuceniProfily } from '@/components/design-preview/brokerUI';
-import { brokeriPodleSkore, roboPoradci, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
+import { brokeriAbecedne, roboPoradci, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
 
@@ -20,14 +20,15 @@ import { nactiKurzCnb } from '@/lib/kurzCnb';
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Srovnání brokerů pro ETF 2026 – poplatky, ochrana, daně, skóre',
+  title: 'Srovnání brokerů pro ETF 2026 – poplatky, směna, ochrana, daně',
   description:
-    'Srovnání 5 brokerů pro ETF se skóre /100 a robo-poradce Portu: poplatek za nákup, směna měny, ochrana hotovosti a cenných papírů, zdanění českých dividend.',
+    'Srovnání 5 brokerů pro ETF a robo-poradce Portu vedle sebe: poplatek za nákup, směna měny, ochrana hotovosti a cenných papírů, zdanění českých dividend.',
   alternates: { canonical: '/srovnani-brokeru' },
 };
 
-/* Pořadí dle skóre (jen brokeři); robo-poradce je jiná kategorie bez skóre (revize 18. 10. 2026). */
-const ordered = [...brokeriPodleSkore, ...roboPoradci];
+/* Brokeři ABECEDNĚ, robo-poradce zvlášť na konci. Skóre /100 zrušeno rozhodnutím majitele 19. 10. 2026 (působilo jako
+   doporučení) – ZAMERNA-ROZHODNUTI.md. */
+const ordered = [...brokeriAbecedne, ...roboPoradci];
 
 const FAQ = [
   {
@@ -122,7 +123,7 @@ export default async function SrovnaniBrokeruPage() {
         <section data-sekce="hero" className="pb-6">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-slate-900">Srovnání brokerů pro ETF 2026</h1>
           <p className="mt-2 max-w-2xl text-base text-slate-600 leading-relaxed">
-            {brokeriPodleSkore.length} brokerů vedle sebe: poplatky, směna měny, ochrana hotovosti i cenných papírů, daně a podpora.
+            {brokeriAbecedne.length} brokerů vedle sebe: poplatky, směna měny, ochrana hotovosti i cenných papírů, daně a podpora.
             Kolik stojí konkrétní nákup, máme spočítané na stránce <Link href="/kde-koupit#naklady" className="text-teal-700 underline underline-offset-2 hover:text-teal-800">Kde koupit ETF</Link>.
           </p>
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
@@ -130,7 +131,7 @@ export default async function SrovnaniBrokeruPage() {
             <span aria-hidden>·</span>
             <span>bez provizí a reklamy</span>
             <span aria-hidden>·</span>
-            <Link href="/kde-koupit#metodika" className="hover:text-slate-700 underline underline-offset-2">jak počítáme skóre</Link>
+            <Link href="/kde-koupit#metodika" className="hover:text-slate-700 underline underline-offset-2">jak srovnáváme</Link>
           </p>
         </section>
 
@@ -168,7 +169,7 @@ export default async function SrovnaniBrokeruPage() {
 
           <div className="mt-6 space-y-3">
             <AutorBox>
-              Skóre /100 je redakční hodnocení podle stejných os pro všechny brokery (<Link href="/kde-koupit#metodika" className="text-teal-700 hover:underline">jak skóre počítáme</Link>), není to placené pořadí.
+              Brokery srovnáváme podle stejných parametrů z veřejných ceníků (<Link href="/kde-koupit#metodika" className="text-teal-700 hover:underline">jak srovnáváme</Link>), seřazené abecedně – žádné pořadí ani placené umístění.
             </AutorBox>
             <p className="text-xs leading-relaxed text-slate-500">
               <span>

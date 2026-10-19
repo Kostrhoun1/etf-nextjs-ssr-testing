@@ -172,7 +172,7 @@ export default async function BrokerReview(
           <span className="text-slate-700">{b.name}</span>
         </nav>
 
-        {/* HERO – logo, název, skóre, jedna věta bez čísel. Žádné tlačítko (ani na mobilu). */}
+        {/* HERO – logo, název, jedna věta bez čísel (skóre /100 zrušeno 19. 10. 2026). Žádné tlačítko (ani na mobilu). */}
         <section data-sekce="hero" className="pb-6">
           <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-8">
             <div className="flex items-start gap-3.5">
@@ -181,9 +181,6 @@ export default async function BrokerReview(
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">{b.name}: recenze</h1>
                 <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                   <span>{b.robo ? 'Robo-poradce' : 'Broker'}</span>
-                  {b.rating != null
-                    ? <span className="text-slate-200">Skóre <span className="font-semibold text-white tabular-nums">{b.rating}</span>/100 (<Link href="/kde-koupit#metodika" className="underline underline-offset-2 hover:text-white">metodika</Link>)</span>
-                    : <span>bez skóre brokerů – jiná kategorie</span>}
                   <span className="inline-flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" /> ceník ověřen {cenikyOverenyStr}</span>
                 </p>
               </div>

@@ -373,3 +373,34 @@ odkaz do backtestu proto nese explicitní `slozeni=`, ne preset „60/40“ (ten
 **Backtest – „Největší propady“ se dvěma stejnými čísly NEJSOU duplicita.** 70 % celý svět + 30 % EUR dluhopisy od 2008:
 −19,93 % (9/2008 → 11/2008) a −19,93 % (11/2021 → 4/2023), resp. bez vkladů −19,93/−19,82 a −18,73/−18,70 (2015–16 × 2020) –
 různé epizody (ověřeno z API na plnou přesnost 19. 10. 2026). Tabulka při shodě na 1 desetinné místo ukazuje setiny a pod ní větu.
+
+## Skóre brokerů zrušeno na celém webu (rozhodnutí majitele 19. 10. 2026)
+
+Redakční skóre brokerů (0–100) se nikde neukazuje – stejně jako dřív hodnocení fondů působilo jako doporučení.
+Brokeři se řadí **abecedně** (neutrálně; řazení podle nákladů by zvýhodnilo jednu částku), robo-poradce Portu je dál
+zvlášť. Kalkulačka na /kde-koupit řadí podle nákladů PRO ZADANOU ČÁSTKU – to je fakt, ne pořadí. Sekce #metodika na
+/kde-koupit je „Jak srovnáváme“ (stejné údaje pro všechny, bez bodování); kotvu #metodika zachovat, odkazuje na ni homepage.
+Bez JSON-LD Review/aggregateRating s číslem. Pole `rating` v src/data/brokerData.ts zůstává jen kvůli homepage – až ji
+upraví, smazat. Skóre nevracet. Denní kontrola (scripts/check-fund-data.mjs, blok kolo5 C) hlídá „Skóre“ a „/100“ na
+/srovnani-brokeru, /kde-koupit, /recenze/xtb a homepage.
+
+## Zdroj dat fondů se uvádí v patičce detailu fondu a porovnání (rozhodnutí majitele 19. 10. 2026)
+
+„Data fondu: justETF“ se v patičce detailu fondu (/etf/…) a stránek porovnání (/srovnani/…) UVÁDÍ. Nejmenuje se
+jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homepage.
+
+## Brokeři: ověřené údaje, které vypadají divně (19. 10. 2026)
+
+- **XTB – cenné papíry při krachu „Vracejí se vám“, náhrada max. 20 100 EUR jen za chybějící.** Polský systém KDPW:
+  100 % do 3 000 EUR, nad to 90 %, chráněná částka do 22 000 EUR → výplata max. 20 100 EUR, společně pro hotovost
+  i cenné papíry (XTB PDF „Informácie o systéme ochrany investícií“, čl. 2.2 a 2.4; xtb.com/pl/ochrona-srodkow-klientow-kb).
+  Cenné papíry vede XTB odděleně (CZ VOP čl. 4.36). Frakce vlastní právně XTB ve svěřenské správě (VOP čl. 7.70) – zda je
+  kryje systém náhrad, dokumenty neuvádějí, proto to netvrdíme. Dřív „Cenné papíry při krachu: 20 100 EUR“ se četlo
+  jako „chráněné jen do 20 100 EUR“.
+- **Trading 212 – směna 0,15 % BEZ „o víkendu 0,5 %“.** Víkendovou přirážku se nepodařilo doložit oficiálním zdrojem
+  (trading212.com blokuje stažení ochranou proti botům), Wise (zdroje ověřeny 15. 7. 2026) uvádí, že se o víkendu nemění;
+  0,5 % je sazba CFD účtu. Nevracet bez oficiálního zdroje.
+- **DEGIRO – česká podpora „Ne“, i když má český web.** degiro.cz/helpdesk/contact: „our Service Desk is not available
+  in Czech“. Na webu proto „web česky, podpora jen anglicky“.
+- **DEGIRO u konkrétního fondu (/kde-koupit?isin=…) ukazuje dvě sazby** (ETF Selection 1 EUR / mimo 3 EUR) a nemá
+  štítek „nejlevnější“: seznam ETF Selection ověřený nemáme. Neopravovat na jednu sazbu.

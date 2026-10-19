@@ -36,7 +36,7 @@ const GROUPS: { title: string; intro: string; items: Item[] }[] = [
     intro: 'Kde a u koho ETF koupit.',
     items: [
       { href: '/kde-koupit', label: 'Kde koupit ETF', desc: 'Výběr brokera krok za krokem.', icon: Banknote },
-      { href: '/srovnani-brokeru', label: 'Srovnání brokerů', desc: '6 brokerů se skóre /100.', icon: Scale },
+      { href: '/srovnani-brokeru', label: 'Srovnání brokerů', desc: '5 brokerů a robo-poradce vedle sebe.', icon: Scale },
       { href: '/broker', label: 'Recenze brokera', desc: 'Šablona detailní recenze.', icon: Building2 },
     ],
   },

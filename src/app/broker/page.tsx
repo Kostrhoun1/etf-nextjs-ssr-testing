@@ -8,12 +8,10 @@ import {
   TrendingUp, ArrowRight, ArrowUpRight, Check, X, AlertTriangle, Info,
   ShieldCheck, Wallet, Landmark, Banknote, Percent, Layers, Coins,
   User, CalendarDays, Database, BadgeCheck, HelpCircle, BookOpen,
-  Building2, Globe, Smartphone, Scale, Calculator, FileText, ListChecks,
+  Building2, Globe, Smartphone, Scale, Calculator, FileText,
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
-import { degiroOverall } from '@/components/design-preview/BrokerScore';
-import BrokerScoreGrid from '@/components/design-preview/BrokerScoreGrid';
 import BrokerFeeTable from '@/components/design-preview/BrokerFeeTable';
 import { getDataDate } from '@/lib/etf-data';
 // Ceníky brokerů: datum ověření z brokerData (CENIKY_OVERENY), ne obecná redakční kontrola (18. 10. 2026).
@@ -25,9 +23,10 @@ const YEAR = new Date().getFullYear();
 const BROKER_HREF = 'https://www.degiro.cz';
 
 export const metadata: Metadata = {
-  title: `Recenze DEGIRO ${YEAR}: poplatky, daně a verdikt ${degiroOverall}/100`,
+  // Skóre brokerů zrušeno rozhodnutím majitele 19. 10. 2026 (působilo jako doporučení) – ZAMERNA-ROZHODNUTI.md.
+  title: `Recenze DEGIRO ${YEAR}: poplatky, daně a pro koho se hodí`,
   description:
-    `Nezávislá recenze DEGIRO ${YEAR} pro české investory. Hodnocení ${degiroOverall}/100, poplatky za ETF (1 EUR Core), 35% daň z CZ dividend a vratka, vklady v Kč a poctivé pro koho ANO/NE.`,
+    `Nezávislá recenze DEGIRO ${YEAR} pro české investory. Poplatky za ETF (1 EUR Core), 35% daň z CZ dividend a vratka, vklady v Kč a poctivé pro koho ANO/NE.`,
   robots: { index: false, follow: false },
   alternates: { canonical: 'https://etfpruvodce.cz/recenze/degiro' },
 };
@@ -116,12 +115,6 @@ export default async function BrokerReviewPreview() {
     publisher: { '@type': 'Organization', name: 'ETF průvodce.cz' },
     datePublished: `${YEAR}-01-01`,
     dateModified: today.toISOString().slice(0, 10),
-    reviewRating: {
-      '@type': 'Rating',
-      ratingValue: degiroOverall,
-      bestRating: 100,
-      worstRating: 0,
-    },
   };
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -226,19 +219,6 @@ export default async function BrokerReviewPreview() {
                 </div>
               </div>
 
-              {/* Skóre panel */}
-              <div className="mt-6 md:mt-0 md:w-64 shrink-0 flex">
-                <div className="w-full rounded-xl bg-white/5 border border-white/10 px-5 py-6 flex flex-col items-center justify-center text-center">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Celkové hodnocení</p>
-                  <p className="mt-1 text-5xl font-bold tabular-nums leading-none">
-                    {degiroOverall}<span className="text-xl font-medium text-slate-400">/100</span>
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-teal-300">Dobrá volba</p>
-                  <Link href="#hodnoceni" className="mt-3 text-xs text-slate-300 hover:text-white inline-flex items-center gap-1">
-                    Z čeho se skóre skládá <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
             </div>
           </div>
         </section>
@@ -265,19 +245,14 @@ export default async function BrokerReviewPreview() {
             <div className="text-sm text-slate-700 leading-relaxed">
               <p className="font-medium text-slate-900">Nezávislé a nekomerční</p>
               <p className="mt-1">
-                Nebereme žádné provize ani reklamu. Odkaz na brokera je čistě pro vaše pohodlí – hodnocení stavíme jen
-                na datech a stejnou metodikou pro všechny brokery.{' '}
-                <Link href="/srovnani-brokeru" className="text-teal-700 hover:underline">Jak hodnotíme brokery</Link>.
+                Nebereme žádné provize ani reklamu. Odkaz na brokera je čistě pro vaše pohodlí – srovnání stavíme jen
+                na veřejných cenících a stejných parametrech pro všechny brokery.{' '}
+                <Link href="/srovnani-brokeru" className="text-teal-700 hover:underline">Srovnání brokerů</Link>.
               </p>
             </div>
           </div>
         </section>
 
-        {/* HODNOCENÍ – dílčí skóre */}
-        <section id="hodnoceni" className="pb-10 scroll-mt-16">
-          <SectionHead title="Z čeho se skládá skóre 79/100" desc="Šest kritérií s váhami. Celkové číslo je jejich vážený průměr – stejné v heru i v závěru." />
-          <BrokerScoreGrid />
-        </section>
 
         {/* VÝHODY A NEVÝHODY */}
         <section className="pb-10">
@@ -548,12 +523,6 @@ export default async function BrokerReviewPreview() {
           <SectionHead title="Závěrečný verdikt" />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <div className="flex items-start gap-4">
-              <div className="shrink-0 text-center">
-                <p className="text-4xl font-bold tabular-nums text-slate-900 leading-none">
-                  {degiroOverall}<span className="text-base font-medium text-slate-400">/100</span>
-                </p>
-                <p className="mt-1 text-sm font-medium text-teal-700">Dobrá</p>
-              </div>
               <div className="text-sm text-slate-600 leading-relaxed space-y-2.5">
                 <p>
                   DEGIRO je <span className="font-medium text-slate-900">dobrá volba pro levné dlouhodobé ETF investování</span>.
@@ -609,7 +578,7 @@ export default async function BrokerReviewPreview() {
         <section className="pb-10">
           <div className="grid sm:grid-cols-3 gap-4">
             {([
-              [ShieldCheck, 'Nezávislé hodnocení', 'Jednotná metodika pro všechny brokery, žádné placené pořadí.'],
+              [ShieldCheck, 'Nezávislé srovnání', 'Stejné parametry pro všechny brokery, žádné placené pořadí.'],
               [BadgeCheck, 'Bez provizí a reklam', 'Nekomerční vzdělávací obsah – nebereme provize ani reklamu.'],
               [Database, 'Ověřená data', `Z veřejných zdrojů a ceníku DEGIRO. Naposledy ručně ověřeno ${editorialCheckDateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
@@ -659,7 +628,6 @@ export default async function BrokerReviewPreview() {
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
               <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: ceník DEGIRO, ČNB, zákon o daních z příjmů. Poplatky jsme naposledy ověřili u ceníku <time dateTime={editorialCheckDateIso}>{editorialCheckDateStr}</time>.</p>
-              <p className="flex items-start gap-1.5"><ListChecks className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Hodnocení {degiroOverall}/100 je vážený průměr šesti kritérií podle naší jednotné metodiky.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční ani daňové doporučení. Investice nesou riziko ztráty.</p>
             </div>
           </div>
