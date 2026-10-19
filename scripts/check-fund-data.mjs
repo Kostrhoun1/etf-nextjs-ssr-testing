@@ -700,6 +700,112 @@ const main = async () => {
     varovani.push({ co: `Tabulku client_errors se nepodařilo načíst (HTTP ${ce.status})`, ukazka: [] });
   }
 
+  // --- kolo5 C ---
+  // ── VÝNOSY ZA OBDOBÍ (letos, 1 m, 3 m, 6 m, 1 r, 3 r, 5 let) vs. nezávislý přepočet z denních cen ──
+  // 19. 10. 2026: scrape z 18. 10. měl výnosy za období posunuté u všech fondů (SXR8 letos +18,64 % místo +17,69 %
+  // v EUR, EMIM naopak 21,06 místo 21,58 %): zdroj měl při stahování jako poslední bod předběžnou evropskou cenu
+  // (≈ závěr Xetry v 17:30), začátky období ale v pozdní (večerní) kotaci. Chyba = pohyb trhu mezi 17:30 a večerem,
+  // u fondů na USA běžně 0,3–1 % – stejná u všech období jednoho fondu. Kalendářní roky (return_2025…) sedí.
+  // DVĚ VRSTVY:
+  //  A) PŘESNÁ: výnosy přepočítané TÍMTO skriptem z holých denních cen (justETF performance-chart, s dividendami
+  //     kvůli distribučním fondům) ke dni dat. Finální data sedí na 0,00 p. b. – ověřeno 19. 10. 2026 proti profilu
+  //     justETF (SXR8 17,69 / 4,04 / 3,83 / 14,39 / 20,72 / 69,23 / 87,13 %; EXSA i SGLN beze změny).
+  //  B) NEZÁVISLÝ ZDROJ: závěrečné ceny Xetra (Yahoo, adjclose kvůli dividendám). Závěr Xetry (17:30) a večerní
+  //     kotace se u fondů na USA liší o 0,25 % (medián) až 0,7 % (p90) denně – stejně jako samotná chyba, takže
+  //     jemnou chybu Xetra rozlišit NEUMÍ (simulace na 251 dnech 10/2025–10/2026: práh 0,4 p. b. = falešný poplach
+  //     52 % dní, zachytí 17 % chyb). Hlídá hrubé chyby (data o dny pozadu, jiná měna, jiný fond): medián rozdílu
+  //     přes období > 2,5 p. b. (simulace: 0 falešných poplachů za rok). Yahoo z GitHub Actions funguje
+  //     (sync-indexes.yml stahuje stejné API denně, User-Agent nutný).
+  // Den dat = poslední pracovní den před stažením (stejná logika jako src/lib/datumCen.ts), pro každý fond zvlášť.
+  // Poplach: rozdíl u ≥ 2 kotevních fondů; u 1 fondu varování. Zdroj neodpoví → varování, nikdy tichý úspěch.
+  try {
+    const UA = { 'User-Agent': 'Mozilla/5.0 (compatible; etfpruvodce.cz kontrola dat)' };
+    const KOTVY = [
+      ['IE00B5BMR087', 'SXR8.DE'], ['IE00BK5BQT80', 'VWCE.DE'], ['IE00B4L5Y983', 'EUNL.DE'], ['DE0002635307', 'EXSA.DE'],
+      ['IE00BKM4GZ66', 'IS3N.DE'], ['IE00B53SZB19', 'SXRV.DE'], ['IE00B4ND3602', 'PPFB.DE'], // IS3N = EMIM na Xetře, PPFB = SGLN
+    ];
+    const OBDOBI = { ytd: 'letos', '1m': '1 m', '3m': '3 m', '6m': '6 m', '1y': '1 r', '3y': '3 r', '5y': '5 let' };
+    const MESICU = { '1m': 1, '3m': 3, '6m': 6, '1y': 12, '3y': 36, '5y': 60 };
+    const PRAH_A = 0.4, PRAH_B = 2.5; // p. b.
+    const datumCenD = (stazeno) => { // kopie src/lib/datumCen.ts (stažení před 18:00 Praha → předchozí pracovní den)
+      const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false }).formatToParts(stazeno);
+      const v = (t) => Number(p.find((x) => x.type === t)?.value);
+      const d = new Date(Date.UTC(v('year'), v('month') - 1, v('day'), 12));
+      const prac = (x) => x.getUTCDay() !== 0 && x.getUTCDay() !== 6;
+      if (v('hour') < 18 || !prac(d)) { do d.setUTCDate(d.getUTCDate() - 1); while (!prac(d)); }
+      return d.toISOString().slice(0, 10);
+    };
+    const zpet = (d, mes) => { // o `mes` měsíců zpět, den oříznutý na konec měsíce (31. 3. − 1 m = 28. 2.)
+      const [r, m, den] = d.split('-').map(Number);
+      const t = r * 12 + (m - 1) - mes, nr = Math.floor(t / 12), nm = t - nr * 12;
+      const posl = new Date(Date.UTC(nr, nm + 1, 0)).getUTCDate();
+      return `${nr}-${String(nm + 1).padStart(2, '0')}-${String(Math.min(den, posl)).padStart(2, '0')}`;
+    };
+    const zacatek = (d, o) => (o === 'ytd' ? `${Number(d.slice(0, 4)) - 1}-12-31` : zpet(d, MESICU[o]));
+    const bod = (rada, d) => { let r = null; for (const b of rada) { if (b[0] <= d) r = b; else break; } return r; }; // poslední cena ≤ d
+    const dnu = (a, b) => (new Date(b) - new Date(a)) / 864e5;
+    const vynos = (rada, d, o, maxStariKonce) => {
+      const e = bod(rada, d), s = bod(rada, zacatek(d, o));
+      if (!e || !s || dnu(e[0], d) > maxStariKonce || dnu(s[0], zacatek(d, o)) > 7) return null;
+      return (e[1] / s[1] - 1) * 100;
+    };
+    const fmt = (x) => x.toFixed(2).replace('.', ',');
+    const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,scraping_date,${Object.keys(OBDOBI).map((o) => `return_${o}`).join(',')}&isin=in.(${KOTVY.map((k) => k[0]).join(',')})`,
+      { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+    if (!Array.isArray(db)) throw new Error('neplatná odpověď DB');
+    const vysA = [], vysB = [], nejdeA = [], nejdeB = [];
+    for (const [isin, xetra] of KOTVY) {
+      const f = db.find((x) => x.isin === isin);
+      if (!f?.scraping_date) { nejdeA.push(`${isin}: v DB chybí`); continue; }
+      const D = datumCenD(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
+      const jm = `${f.primary_ticker || isin}`;
+      // A) justETF holé denní ceny (EUR, s dividendami). Řada má i víkendy → konec musí být přesně den dat.
+      try {
+        const od = zpet(D, 62);
+        const j = await fetch(`https://www.justetf.com/api/etfs/${isin}/performance-chart?locale=en&currency=EUR&valuesType=MARKET_VALUE&reduceData=false&includeDividends=true&features=DIVIDENDS&dateFrom=${od}&dateTo=${D}`, { headers: UA })
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))));
+        const rada = (j.series ?? []).map((p) => [p.date, Number(p.value?.raw)]).filter(([, v]) => v > 0);
+        const rozdily = Object.keys(OBDOBI).flatMap((o) => {
+          const v = vynos(rada, D, o, 0), dbV = f[`return_${o}`];
+          return v == null || dbV == null ? [] : [{ o, dbV: Number(dbV), v, r: Number(dbV) - v }];
+        });
+        if (rozdily.length < 3) nejdeA.push(`${jm}: k ${D} málo dat (${rozdily.length} období)`);
+        else {
+          const nej = rozdily.reduce((a, b) => (Math.abs(b.r) > Math.abs(a.r) ? b : a));
+          if (Math.abs(nej.r) > PRAH_A) vysA.push(`${jm} k ${D}: ${rozdily.filter((x) => Math.abs(x.r) > PRAH_A).map((x) => `${OBDOBI[x.o]} DB ${fmt(x.dbV)} % vs. přepočet ${fmt(x.v)} %`).join('; ')}`);
+        }
+      } catch (e) { nejdeA.push(`${jm}: justETF neodpověděl (${e.message})`); }
+      // B) Yahoo – závěrečné ceny Xetra (adjclose = s dividendami). Konec nejvýš 4 dny před dnem dat (svátek burzy).
+      try {
+        const y = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${xetra}?interval=1d&range=6y`, { headers: UA })
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))));
+        const res = y?.chart?.result?.[0];
+        const adj = res?.indicators?.adjclose?.[0]?.adjclose ?? res?.indicators?.quote?.[0]?.close;
+        if (!res?.timestamp || !adj) throw new Error('bez dat');
+        const rada = res.timestamp.map((t, i) => [new Date(t * 1000).toISOString().slice(0, 10), adj[i]]).filter(([, v]) => v > 0);
+        const rozdily = Object.keys(OBDOBI).flatMap((o) => {
+          const v = vynos(rada, D, o, 4), dbV = f[`return_${o}`];
+          return v == null || dbV == null ? [] : [{ o, dbV: Number(dbV), v, r: Number(dbV) - v }];
+        }).sort((a, b) => a.r - b.r);
+        if (rozdily.length < 3) nejdeB.push(`${xetra}: k ${D} málo dat (${rozdily.length} období)`);
+        else {
+          const med = rozdily[Math.floor(rozdily.length / 2)];
+          if (Math.abs(med.r) > PRAH_B) vysB.push(`${jm} (${xetra}) k ${D}: medián rozdílu ${fmt(med.r)} p. b. (${rozdily.map((x) => `${OBDOBI[x.o]} ${fmt(x.dbV)} vs. ${fmt(x.v)}`).join(', ')})`);
+        }
+      } catch (e) { nejdeB.push(`${xetra}: Yahoo neodpověděl (${e.message})`); }
+    }
+    const TEXT = 'Výnosy za období nesedí s burzovními cenami (scrape stáhl předběžná data?)';
+    if (vysA.length >= 2) poplach.push({ co: `${TEXT} – ${vysA.length} z ${KOTVY.length} kotevních fondů se liší o víc než ${fmt(PRAH_A)} p. b. od přepočtu z denních cen (justETF). Znovu stáhnout po zveřejnění finálních cen (scraper etf-astro).`, ukazka: vysA });
+    else if (vysA.length === 1) varovani.push({ co: `Výnosy za období: 1 kotevní fond se liší o víc než ${fmt(PRAH_A)} p. b. od přepočtu z denních cen (justETF)`, ukazka: vysA });
+    if (vysB.length >= 2) poplach.push({ co: `${TEXT} – ${vysB.length} z ${KOTVY.length} kotevních fondů se liší od závěrečných cen Xetra o víc než ${fmt(PRAH_B)} p. b. (medián přes období)`, ukazka: vysB });
+    else if (vysB.length === 1) varovani.push({ co: `Výnosy za období: 1 kotevní fond se liší od závěrečných cen Xetra o víc než ${fmt(PRAH_B)} p. b.`, ukazka: vysB });
+    if (nejdeA.length) varovani.push({ co: `Kontrolu výnosů za období proti denním cenám (justETF) nešlo provést u ${nejdeA.length} z ${KOTVY.length} kotevních fondů`, ukazka: nejdeA });
+    if (nejdeB.length) varovani.push({ co: `Kontrolu výnosů za období proti cenám Xetra (Yahoo) nešlo provést u ${nejdeB.length} z ${KOTVY.length} kotevních fondů`, ukazka: nejdeB });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu výnosů za období (letos, 1 m … 5 let) se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+  // --- /kolo5 C ---
+
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
   const radky = [`# Kontrola dat fondů`, '', souhrn, ''];
