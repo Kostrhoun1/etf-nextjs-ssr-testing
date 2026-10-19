@@ -16,7 +16,6 @@ export const brokers: Broker[] = [
     name: 'DEGIRO',
     logo: '/lovable-uploads/f9bacf3b-7b11-4c31-917d-e16803dc0887.png',
     description: 'Populární evropský broker s nízkými poplatky a širokou nabídkou ETF. Ideální pro nákladově uvědomělé investory.',
-    rating: 79,
     web: 'https://www.degiro.cz',
     regulation: 'BaFin (DE), DNB/AFM (NL)',
     protection: '100 000 EUR (DE), 20 000 EUR (investice)',
@@ -60,7 +59,6 @@ export const brokers: Broker[] = [
     name: 'XTB',
     logo: '/lovable-uploads/a7162820-5478-4cd8-9bfd-fd04b80a42ff.png',
     description: 'Polský broker kótovaný na varšavské burze (licence KNF, v ČR organizační složka), ETF bez provize do 100 000 EUR měsíčně a česká podpora v pracovní dny.',
-    rating: 94,
     web: 'https://www.xtb.com/cz',
     regulation: 'KNF (PL), v ČR organizační složka pod dohledem ČNB',
     protection: 'max. 20 100 EUR (polský systém náhrad KDPW)',
@@ -108,7 +106,6 @@ export const brokers: Broker[] = [
     name: 'Fio e-Broker',
     logo: '/lovable-uploads/55aac89b-3834-421c-8689-34fb13fad2b1.png',
     description: 'Český broker s lokální podporou a srážkou z českých dividend 15 %.',
-    rating: 75,
     web: 'https://www.fio.cz/investice',
     regulation: 'ČNB (CZ)',
     protection: '100 000 EUR (hotovost, FPV), 20 000 EUR (cenné papíry, GFOCP)',
@@ -155,7 +152,6 @@ export const brokers: Broker[] = [
     name: 'Trading 212',
     logo: '/lovable-uploads/25c6d816-7993-40c3-abe2-e21c45cc239d.png',
     description: 'Zcela bezpoplatkový broker s moderní mobilní aplikací, frakčním investováním a AutoInvest funkcí.',
-    rating: 87,
     web: 'https://www.trading212.com',
     regulation: 'CySEC (CY) pro CZ klienty, FCA (UK)',
     protection: '20 000 EUR (ICF, Kypr)',
@@ -195,7 +191,6 @@ export const brokers: Broker[] = [
     logo: '/lovable-uploads/4465126c-b9d7-4fc5-b560-477d3425500d.png',
     // Rok založení a počet účtů se v textech rozcházely (1977/1978, 1,5/2,7 mil.) → vypuštěno (revize 18. 10. 2026).
     description: 'Americký broker kótovaný na Nasdaq; české klienty obsluhuje irská entita. Profesionální řešení pro zkušené investory.',
-    rating: 85,
     web: 'https://www.interactivebrokers.ie',
     regulation: 'CBI (IE) pro CZ klienty, SEC (US)',
     protection: '90 % ztráty, max. 20 000 EUR (ICCL, IE); SIPC jen US entita', // interactivebrokers.ie/en/general/security-investor-protection.php, ověřeno 18. 10. 2026
@@ -235,7 +230,6 @@ export const brokers: Broker[] = [
     description: 'Česká automatizovaná investiční platforma (robo-poradce) zřízená v roce 2017. Sestaví a spravuje portfolio ETF za roční poplatek.',
     // Robo-poradce: skóre brokerů se na něj nevztahuje (jiná kategorie, revize 18. 10. 2026). Dřív 98 → nejvyšší
     // „skóre“ v tabulce brokerů, ač nejde o brokera ke svépomocnému nákupu.
-    rating: null,
     robo: true,
     web: 'https://www.portu.cz',
     regulation: 'ČNB (CZ)',

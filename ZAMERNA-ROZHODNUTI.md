@@ -385,8 +385,7 @@ Redakční skóre brokerů (0–100) se nikde neukazuje – stejně jako dřív 
 Brokeři se řadí **abecedně** (neutrálně; řazení podle nákladů by zvýhodnilo jednu částku), robo-poradce Portu je dál
 zvlášť. Kalkulačka na /kde-koupit řadí podle nákladů PRO ZADANOU ČÁSTKU – to je fakt, ne pořadí. Sekce #metodika na
 /kde-koupit je „Jak srovnáváme“ (stejné údaje pro všechny, bez bodování); kotvu #metodika zachovat, odkazuje na ni homepage.
-Bez JSON-LD Review/aggregateRating s číslem. Pole `rating` v src/data/brokerData.ts zůstává jen kvůli homepage – až ji
-upraví, smazat. Skóre nevracet. Denní kontrola (scripts/check-fund-data.mjs, blok kolo5 C) hlídá „Skóre“ a „/100“ na
+Bez JSON-LD Review/aggregateRating s číslem. Pole `rating` z dat brokerů odstraněno. Skóre nevracet. Denní kontrola (scripts/check-fund-data.mjs, blok kolo5 C) hlídá „Skóre“ a „/100“ na
 /srovnani-brokeru, /kde-koupit, /recenze/xtb a homepage.
 
 ## Zdroj dat fondů se uvádí v patičce detailu fondu a porovnání (rozhodnutí majitele 19. 10. 2026)
