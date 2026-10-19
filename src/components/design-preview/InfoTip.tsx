@@ -23,6 +23,18 @@ const MEZERA = 6; // px mezi ikonou a bublinou
 
 type Zdroj = 'hover' | 'focus' | 'click';
 
+/** Je ikona na tmavém pozadí? (první neprůhledné pozadí předka, relativní jas < 0,35). Kolo 5: tmavá bublina
+ *  na tmavém hero detailu splývala s pozadím a zakrývala název fondu → tam světlá bublina s rámečkem. */
+function naTmavem(el: HTMLElement | null): boolean {
+  for (let n: HTMLElement | null = el; n; n = n.parentElement) {
+    const m = getComputedStyle(n).backgroundColor.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/);
+    if (!m || (m[4] !== undefined && Number(m[4]) < 0.5)) continue;
+    const [r, g, b] = [m[1], m[2], m[3]].map((x) => Number(x) / 255);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.35;
+  }
+  return false;
+}
+
 export function TipTlacitko({
   obsah,
   ariaLabel = 'Vysvětlení pojmu',
@@ -40,6 +52,7 @@ export function TipTlacitko({
   const bub = useRef<HTMLSpanElement>(null);
   const [zdroj, setZdroj] = useState<Zdroj | null>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const [svetla, setSvetla] = useState(false);
   const otevrenoV = useRef(0);
   const open = zdroj != null;
 
@@ -58,6 +71,7 @@ export function TipTlacitko({
     const left = Math.max(OKRAJ, Math.min(r.left + r.width / 2 - w / 2, vw - w - OKRAJ));
     const nahore = r.top - MEZERA - h;
     const top = nahore >= OKRAJ ? nahore : r.bottom + MEZERA;
+    setSvetla(naTmavem(b));
     setPos({ left: Math.round(left), top: Math.round(top) });
   }, []);
 
@@ -123,7 +137,7 @@ export function TipTlacitko({
             width: 'max-content',
             maxWidth: `min(16rem, calc(100vw - ${2 * OKRAJ}px))`,
           }}
-          className="z-[60] block rounded-lg bg-slate-900 px-3 py-2 text-left text-xs font-normal normal-case tracking-normal leading-relaxed text-white shadow-lg whitespace-normal break-words pointer-events-none"
+          className={`z-[60] block rounded-lg px-3 py-2 text-left text-xs font-normal normal-case tracking-normal leading-relaxed whitespace-normal break-words pointer-events-none ${svetla ? 'bg-white text-slate-800 shadow-xl ring-1 ring-slate-300' : 'bg-slate-900 text-white shadow-lg ring-1 ring-white/10'}`}
         >
           {obsah}
         </span>,

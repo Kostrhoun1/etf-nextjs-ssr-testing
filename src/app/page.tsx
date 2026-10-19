@@ -378,7 +378,10 @@ export default async function DesignPreviewV2() {
             Modelová portfolia z ETF
           </Nadpis>
           <p className="-mt-2 mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500" aria-label="Legenda složení">
-            {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b }} />{c}</span>)}
+            {/* Kolo 5: legenda jen pro barvy, které jsou vidět – na mobilu jen ze 4 zobrazených portfolií. */}
+            {Object.entries(BARVA_TRIDY).filter(([c]) => portfolia.some((p) => p.slozeni.some(([k]) => k === c))).map(([c, b]) => (
+              <span key={c} className={`${portfolia.some((p) => PORTFOLIA_MOBIL.has(p.slug) && p.slozeni.some(([k]) => k === c)) ? 'inline-flex' : 'hidden md:inline-flex'} items-center gap-1.5`}><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b }} />{c}</span>
+            ))}
           </p>
           {/* Řádkový přehled jako tabulka trhů (art director: mřížka 4+3 nechávala osiřelou kartu). */}
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
@@ -408,6 +411,12 @@ export default async function DesignPreviewV2() {
               </li>
             ))}
           </ul>
+          {/* Mobil ukazuje 4 ze 7 (záměr) – zbytek přiznat odkazem, jako u brokerů (kolo 5). */}
+          {portfolia.length > PORTFOLIA_MOBIL.size && (
+            <Link href="/portfolio-strategie" className="md:hidden mt-2 inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
+              Další {portfolia.length - portfolia.filter((p) => PORTFOLIA_MOBIL.has(p.slug)).length} portfolia a srovnání <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
         </section>
 
         {/* S5 KDE ETF KOUPIT – loga, ověřené poplatky (CENIKY_OVERENY); robo-poradce bez srovnání skóre. */}
