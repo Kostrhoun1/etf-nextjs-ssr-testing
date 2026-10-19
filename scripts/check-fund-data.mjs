@@ -696,17 +696,18 @@ const main = async () => {
 
     // 1) HOMEPAGE TRHY = VÝBĚR ŽEBŘÍČKU. „Celý svět“ na homepage vyřazoval SPDR MSCI ACWI IMI (SPYI, SPSA), žebříček
     //    i srovnávač ho měly → homepage a žebříček ukazovaly jiného vítěze/jiné rozpětí. Pro 4 trhy srovnávače
-    //    (svet, world, sp500, nasdaq) PŘESNÁ shoda: nezajištěné fondy žebříčku = fondy homepage nad 100 mil. € (čerstvé).
-    //    Evropa a EM: žebříček je záměrně širší (DAX, CAC, FTSE EM…), proto jen „každý fond homepage nad 100 mil. € je
-    //    v žebříčku“. V žebříčku bez homepage smí být jen to, co homepage vyřazuje podle svých pravidel (trhyDvojcata.ts):
-    //    měnově zajištěné třídy, francouzské PEA verze, „Min TE“ (optimalizované) a VYJIMKY.
+    //    (svet, world, sp500, nasdaq) a EM (od 19. 10. 2026 i MSCI EM IMI) PŘESNÁ shoda: fondy žebříčku = fondy homepage
+    //    nad 100 mil. € (čerstvé). Evropa: žebříček je záměrně širší (DAX, CAC, Euro Stoxx…), proto jen „každý fond homepage
+    //    nad 100 mil. € je v žebříčku“. V žebříčku bez homepage smí být jen to, co homepage vyřazuje podle svých pravidel
+    //    (trhyDvojcata.ts): měnově zajištěné třídy, PEA verze, „Min TE“, ESG/sektorové/regionální varianty (EM Asia,
+    //    Latin America, ex China…), aktivní fondy a VYJIMKY (jiný index – FTSE EM bez Koreje, Solactive…).
     try {
       const zdroj = readFileSync('src/data/trhyDvojcata.ts', 'utf8');
       const trhy = [...zdroj.matchAll(/id: '([a-z0-9]+)'[\s\S]*?href: '\/nejlepsi-etf\/([a-z0-9-]+)'[\s\S]*?isins: \[([\s\S]*?)\]/g)]
         .map((m) => ({ id: m[1], slug: m[2], isins: [...m[3].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
       if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
       const vyjimky = new Set([...(zdroj.match(/VYJIMKY[\s\S]*?\};/)?.[0] ?? '').matchAll(/([A-Z]{2}[A-Z0-9]{10}):/g)].map((m) => m[1]));
-      const PRESNE = new Set(['svet', 'world', 'sp500', 'nasdaq']);
+      const PRESNE = new Set(['svet', 'world', 'sp500', 'nasdaq', 'em']);
       const nesedi = [];
       for (const t of trhy) {
         const stranka = await html(`/nejlepsi-etf/${t.slug}`);
@@ -717,7 +718,8 @@ const main = async () => {
         const podle = new Map(db.map((x) => [x.isin, x]));
         const homeVelke = t.isins.filter((i) => { const f = podle.get(i); return f && f.fund_size_numeric >= 100 && dni(f) <= 14; });
         const chybiVZeb = homeVelke.filter((i) => !zeb.has(i));
-        const pravidloHome = (n) => zajistena(n) || /\bPEA\b|\bMin TE\b/i.test(n || '');
+        const VARIANTA = /\bPEA\b|Emergent|\bMin TE\b|ex[- ]?China|\bAsia\b|Latin|EMEA|ESG|\bSRI\b|Screened|\bCTB\b|Climate|Paris|\bPAB\b|Islamic|Socially|Responsible|Transition|Selection|Universal|Enhanced|Active|Research|Multi-?Factor|Internet|Quant|\b3D\b|Focus|Equal/i;
+        const pravidloHome = (n) => zajistena(n) || VARIANTA.test(n || '');
         const chybiNaHome = PRESNE.has(t.id) ? [...zeb].filter((i) => !t.isins.includes(i) && !vyjimky.has(i) && !pravidloHome(podle.get(i)?.name)) : [];
         for (const i of chybiVZeb) nesedi.push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} je na homepage, v žebříčku ne`);
         for (const i of chybiNaHome) nesedi.push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} je v žebříčku, na homepage ne`);

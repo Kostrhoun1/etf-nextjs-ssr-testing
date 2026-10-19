@@ -30,7 +30,7 @@ export const TRHY: Trh[] = [
     id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI, MSCI ACWI IMI, FTSE Global All Cap, Solactive GBS', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
     isins: ['IE00BK5BQT80', 'IE00B3RBWM25', 'IE00B6R52259', 'IE000716YHJ7', 'IE0000QLH0G6', 'IE00BYM11H29', 'IE00BJXFZ989',
       'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65', 'IE00B44Z5B48', 'IE0009HF1MK9', 'IE0003XJA0J9',
-      'LU2903252349', 'IE000VAHT5T0',
+      'LU2903252349', 'IE000VAHT5T0', 'IE000CVUM3N6',
       // MSCI ACWI IMI (i malé firmy) – stejně jako FTSE Global All Cap (VALL) patří k celému světu; žebříček
       // i srovnávač ho mají (kolo 5, 19. 10. 2026: homepage je dřív vyřazovala a „Celý svět“ nesouhlasil).
       'IE00B3YLTY66', 'IE000DD75KQ5'],
@@ -64,11 +64,14 @@ export const TRHY: Trh[] = [
       'LU3046617984', 'IE000ZQOIPB1', 'IE00B60SWY32', 'LU3254395307', 'LU3086268573'],
   },
   {
-    id: 'em', label: 'Rozvíjející se trhy', index: 'MSCI EM', href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf',
+    id: 'em', label: 'Rozvíjející se trhy', index: 'MSCI EM, MSCI EM IMI', href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf',
     isins: ['IE00BTJRMP35', 'IE00B4L5YC18', 'IE00B0M63177', 'LU0950674175', 'LU2573966905', 'LU2573967036', 'LU1681045370',
       'LU1437017350', 'IE00B5SSQT16', 'LU0480132876', 'IE00B469F816', 'IE000KCS7J59', 'LU1681045453', 'LU1737652583',
       'FR0010429068', 'LU0292107645', 'IE000GWA2J58', 'IE00B3DWVS88', 'IE000S3N6R34', 'LU2675291913', 'IE00B3Z3FS74',
-      'LU1126036976', 'LU2277591868'],
+      'LU1126036976', 'LU2277591868',
+      // MSCI EM IMI (i malé firmy) – stejné pravidlo jako u „Celý svět“: homepage = žebříček (rozhodnutí 19. 10. 2026).
+      // BNP Paribas Easy MSCI Emerging (nový fond na MSCI EM) chyběl.
+      'IE00BKM4GZ66', 'IE00BD45KH83', 'LU3086273813'],
   },
 ];
 
@@ -78,8 +81,14 @@ export const VYJIMKY: Record<string, string> = {
   IE00BK5BQV03: 'Vanguard FTSE Developed World – jiný index než MSCI World (Korea mezi vyspělými)',
   IE00BKX55T58: 'Vanguard FTSE Developed World Dist – jiný index než MSCI World',
   IE00BFXR5S54: 'L&G Global Equity – vlastní index vyspělých trhů (Solactive), ne MSCI World',
-  IE00BKM4GZ66: 'iShares Core MSCI EM IMI – širší index (i malé firmy), ne MSCI EM',
-  IE00BD45KH83: 'iShares Core MSCI EM IMI Dist – širší index, ne MSCI EM',
+  // EM: jiné indexy než MSCI EM / EM IMI (v žebříčku EM jsou, homepage trh EM je MSCI). Výnos se liší o víc, než
+  // snese kontrola odlehlých hodnot (19. 10. 2026, 12 m v Kč: MSCI EM ~23,6 %, FTSE EM 13,5 % – FTSE řadí Koreu mezi
+  // vyspělé trhy; Amundi Prime EM 21,3 %).
+  IE00B3VVMM84: 'Vanguard FTSE Emerging Markets Dist – FTSE EM (bez Koreje), jiný index než MSCI EM',
+  IE00BK5BR733: 'Vanguard FTSE Emerging Markets Acc – FTSE EM (bez Koreje), jiný index než MSCI EM',
+  LU2300295123: 'Amundi Prime Emerging Markets – Solactive GBS EM, jiný index než MSCI EM',
+  IE000CBYU7J5: 'L&G Emerging Markets Equity – Solactive Core EM Large & Mid Cap, ne MSCI EM',
+  IE000K975W13: 'Avantis Emerging Markets Equity – aktivně řízený fond, ne index',
 };
 
 /** Fond s výnosem dál než tolik p. b. od mediánu svého trhu = podezřelý (18. 10. 2026: tři třídy
