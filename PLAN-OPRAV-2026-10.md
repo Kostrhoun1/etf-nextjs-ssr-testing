@@ -358,8 +358,11 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
   fondů bez přepočtu, např. IE000YUAPTQ0), homepage startovní karty, infografiky, pruh tickerů, tržní přehled.
 - ✅ **Kontrola:** `check-fund-data.mjs` – roční výnosy kontroluje u VŠECH fondů (bez okna 3 dny) + nový
   poplach na fallback EUR→Kč/USD ve zdrojovém kódu.
-- ⏳ Na produkci až s dalším deployem (kód). Do té doby: stránka /etf/IE000WARATZ3 je v ISR cache s EUR číslem
-  u Kč/USD (vygenerovala se v mezidobí, kdy byla pole prázdná); ostatní nově generované stránky mají správná čísla.
+- ✅ **Nasazeno 19. 10. 2026 v 7:05 (faze4 = 7697094, na pokyn majitele dřív než v 8:00).** Ověřeno na produkci:
+  /etf/IE000WARATZ3 2025 = Kč 14,3756 / USD 34,3746 (EUR 18,81); IE000YUAPTQ0 Kč/USD 2024–25 = null („—“);
+  SXR8 2025 USD 17,58 %; backtest 0 Kč + 1 000 Kč/měs. 2024 → vloženo 11 000; /srovnani/vwce-vs-spyi ukazuje
+  IE00B3YLTY66. Kontrola dat po nasazení: zmizely poplachy (c) vklady a (d) dvojice; zbývá „9 pozic“ (čeká na
+  dnešní noční scrape, ten se na GitHubu ještě nespustil – ověří úloha 20. 10.) a známé „12 m mimo trh“.
 - ⏳ Zjistit, proč 10 aktuálních fondů nemá přepočet ročních výnosů do Kč/USD (scraper, etf-astro).
 
 ## 18. 10. 2026 večer – nová homepage + měření chování (nasazení 19. 10. ráno)
@@ -373,7 +376,9 @@ a 7 – tam se nespěchá), limit 1 deploy denně.
   záložky, FAQ, scroll 25/50/75/100, aktivní čas). Žádné cookies ani identifikátory v prohlížeči (náhodné pv
   jen v paměti stránky), IP/UA se neukládá, boti vyřazeni, ukládá jen host etfpruvodce.cz, retence 400 dní
   (pg_cron `web-events-retence`). Report: `node scripts/chovani-report.mjs [dny] [cesta]`.
-- ⏳ Nasazení s ranním deployem 19. 10. (úloha `nasazeni-2026-10-19` ověří homepage i zápis událostí).
+- ✅ Nasazeno 19. 10. 2026 ráno: homepage (desktop i mobil 375 px bez přetečení, 6 sekcí, loga 200, konzole
+  čistá), měření zapisuje zobrazeni/sekce/scroll/klik/zalozka/cas (dávka se odešle při odchodu ze stránky),
+  cizí Origin → 403, 0 chyb z prohlížečů za 2 h; testovací řádky smazány.
 - ⏳ Revize dalších klíčových stránek (art director ×2 + test začátečník/pokročilý): /srovnani, porovnání,
   detail fondu, žebříčky, /backtest, /investicni-kalkulacka, /kde-koupit, /portfolio-strategie.
 - ✅ **GA4 a cookies (rozhodnutí majitele 18. 10. 2026 večer):** Google signals VYPNUTÉ – v administraci GA4
