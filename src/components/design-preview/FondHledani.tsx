@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Search, Loader2, Plus, Check } from 'lucide-react';
 import { platnyTicker } from '@/lib/ticker';
+import TridaStitky from '@/components/design-preview/TridaStitky';
+import type { TridaFondu } from '@/lib/nazevFondu';
 import EmitentLogo from '@/components/home/EmitentLogo';
 
 /* Hledání fondu pro ÚPRAVU VÝBĚRU k porovnání (lišta porovnání + stránka porovnání, revize
@@ -12,7 +14,7 @@ import EmitentLogo from '@/components/home/EmitentLogo';
 
 export interface NalezenyFond { isin: string; label: string; name: string }
 
-interface Vysledek { isin: string; name: string; primary_ticker?: string | null }
+interface Vysledek { isin: string; name: string; primary_ticker?: string | null; nazev?: string; trida?: TridaFondu | null }
 
 export default function FondHledani({
   vybrane,
@@ -87,7 +89,7 @@ export default function FondHledani({
                 >
                   <EmitentLogo nazev={v.name} size={24} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-slate-800">{v.name}</span>
+                    <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-slate-800" title={v.name}><span className="truncate">{v.nazev ?? v.name}</span><TridaStitky t={v.trida} /></span>
                     <span className="block text-xs text-slate-500">{platnyTicker(v.primary_ticker) ?? v.isin}</span>
                   </span>
                   {uz
