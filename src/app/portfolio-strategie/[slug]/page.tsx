@@ -70,6 +70,29 @@ export default async function PortfolioDetailPreview(
   // Datum dat = poslední bod backtestu (dřív datum renderu „Data k 18. října“). Odkaz do backtestu počítá do téhož dne.
   const btDo = btPf?.evolution[btPf.evolution.length - 1]?.date.slice(0, 10);
   const btLink = backtestOdkaz(slug, btDo);
+
+  /* Čísla v redakčním textu JEN z dat (pravidlo č. 1, revize 19. 10. 2026): značky v portfolioContent.ts se doplní
+     z téhož backtestu jako tabulka historie. Chybí-li data → „—“. */
+  const mr = (iso?: string | null) => (iso ? `${Number(iso.slice(5, 7))}/${iso.slice(0, 4)}` : '—');
+  const pctTxt = (v?: number | null) => (v == null || !Number.isFinite(v) ? '—' : `${v < 0 ? '−' : v > 0 ? '+' : ''}${Math.abs(v * 100).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}\u00a0%`);
+  const ddPf = btPf?.risk.maxDrawdown;
+  const navratTxt = (() => {
+    if (!ddPf) return '—';
+    if (!ddPf.recovered || !ddPf.endDate) return 'zatím bez návratu na vrchol';
+    const mes = Math.round((Date.parse(ddPf.endDate) - Date.parse(ddPf.troughDate)) / (30.44 * 864e5));
+    if (mes < 18) return `návrat na vrchol za ${Math.max(mes, 1)} měs.`;
+    const r = Math.round(mes / 12);
+    return `návrat na vrchol za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
+  })();
+  const rok2022 = btPf?.returns.annualReturns.find((a) => a.year === 2022)?.return;
+  const melciNezAkcie = btDD != null && benchDD != null && btDD > benchDD + 0.01;
+  const doplnit = (t: string) => (melciNezAkcie ? t : t.replace('A mírnější propady než u čistých akcií: největší', 'Největší'))
+    .replace(/\{maxPokles\}/g, pctTxt(ddPf?.depth))
+    .replace(/\{obdobiPropadu\}/g, ddPf ? `vrchol ${mr(ddPf.startDate)} → dno ${mr(ddPf.troughDate)}` : '—')
+    .replace(/\{navrat\}/g, navratTxt)
+    .replace(/\{od\}/g, mr(btPf?.evolution[0]?.date))
+    .replace(/\{maxPoklesAkcie\}/g, pctTxt(benchDD))
+    .replace(/\{rok2022\}/g, pctTxt(rok2022));
   const btOd = btConfig ? new Date(btConfig.start).getFullYear() : null;
 
   const dateStr = btDo
@@ -227,13 +250,13 @@ export default async function PortfolioDetailPreview(
           <section className="pb-8">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1 flex items-center gap-2"><BookOpen className="w-5 h-5 text-teal-700" /> O strategii</h2>
             <div className="mt-3 space-y-3 text-sm md:text-[15px] text-slate-700 leading-relaxed max-w-3xl">
-              {content.intro.map((p, i) => <p key={i}>{p}</p>)}
+              {content.intro.map((p, i) => <p key={i}>{doplnit(p)}</p>)}
             </div>
             <div className="mt-4 flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 max-w-3xl">
               <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Settings2 className="w-4 h-4" /></span>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Jak funguje</p>
-                <p className="mt-0.5 text-sm text-slate-700 leading-relaxed">{content.howItWorks}</p>
+                <p className="mt-0.5 text-sm text-slate-700 leading-relaxed">{doplnit(content.howItWorks)}</p>
               </div>
             </div>
           </section>
@@ -333,15 +356,15 @@ export default async function PortfolioDetailPreview(
 
         {/* HISTORICKÁ VÝKONNOST – reálný backtest (dlouhodobě + chování v krizích) */}
         {btConfig ? (
-          <section data-sekce="historie" className="pb-8" data-kontrola-backtest={btLink && btPf ? `${btLink}|${btPf.summary.cagr}` : undefined}>
+          <section data-sekce="historie" className="pb-8" data-kontrola-backtest={btLink && btPf ? `${btLink}|${btPf.summary.cagr}|${btPf.summary.netAssetValue}|${btPf.kurzyDo ?? ''}` : undefined}>
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Historická výkonnost a chování v krizích</h2>
             <p className="text-sm text-slate-500 mb-4 leading-relaxed">Jak by se toto portfolio chovalo na reálných datech{btPf?.evolution[0] ? ` od ${new Date(btPf.evolution[0].date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })}` : ''} – růst, kolísavost, propady a krize.</p>
-            {btConfig.nahrada && <p className="-mt-2 mb-4 text-sm text-amber-900 leading-relaxed">≈ {btConfig.nahrada}</p>}
+            {btConfig.nahrada && <p className="-mt-2 mb-4 text-sm text-slate-600 leading-relaxed">≈ {btConfig.nahrada}</p>}
             <PortfolioBacktest config={btConfig} portfolioName={model.name} initialCzk={btInitial} />
           </section>
         ) : cmp ? (
           <section className="pb-8">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie (S&amp;P 500)</h2>
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie USA (S&amp;P 500)</h2>
             <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data fondů ve složení: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu a kolísavosti{dateStrFondy ? ` (data k ${dateStrFondy})` : ''}.</p>
             {BEZ_HISTORIE[slug] && <p className="-mt-2 mb-4 text-sm text-slate-600 leading-relaxed">Backtest od roku 2008 tu není. {BEZ_HISTORIE[slug]}</p>}
             <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5">
@@ -355,7 +378,7 @@ export default async function PortfolioDetailPreview(
                 const fmt = r.kind === 'ret' ? pct : r.kind === 'dd' ? fmtDD : fmtVol;
                 const rows = [
                   { who: 'Toto portfolio', v: r.pf as number, bar: 'bg-teal-600' },
-                  { who: 'S&P 500', v: r.sp as number, bar: 'bg-slate-400' },
+                  { who: 'Akcie USA (S&P 500)', v: r.sp as number, bar: 'bg-slate-400' },
                 ];
                 return (
                   <div key={i}>
@@ -363,7 +386,7 @@ export default async function PortfolioDetailPreview(
                     <div className="space-y-1.5">
                       {rows.map((x) => (
                         <div key={x.who} className="flex items-center gap-2">
-                          <span className="w-24 shrink-0 text-xs text-slate-500">{x.who}</span>
+                          <span className="w-28 shrink-0 text-xs leading-tight text-slate-500">{x.who}</span>
                           <span className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
                             <span className={`block h-full rounded-full ${x.bar}`} style={{ width: `${(Math.abs(x.v) / max) * 100}%` }} />
                           </span>
@@ -385,11 +408,11 @@ export default async function PortfolioDetailPreview(
             <div className="grid md:grid-cols-2 gap-4">
               <div className="min-w-0 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                 <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-emerald-700 mb-2"><ThumbsUp className="w-4 h-4" /> Kdy září</p>
-                <p className="text-sm text-emerald-900/90 leading-relaxed">{content.strengths}</p>
+                <p className="text-sm text-emerald-900/90 leading-relaxed">{doplnit(content.strengths)}</p>
               </div>
               <div className="min-w-0 rounded-xl border border-amber-200 bg-amber-50 p-5">
                 <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-amber-700 mb-2"><TrendingDown className="w-4 h-4" /> Slabina</p>
-                <p className="text-sm text-amber-900/90 leading-relaxed">{content.weakness}</p>
+                <p className="text-sm text-amber-900/90 leading-relaxed">{doplnit(content.weakness)}</p>
               </div>
             </div>
           </section>

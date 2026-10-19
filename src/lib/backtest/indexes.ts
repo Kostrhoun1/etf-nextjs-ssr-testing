@@ -180,7 +180,9 @@ export const INDEXES: IndexDef[] = [
   // max. pokles −21,0 % → −21,6 %. Delší durace vládních dluhopisů, sedí.
   { code: 'eur_govt_bond', ticker: 'XGLE.DE', currency: 'EUR', name: 'EUR vládní dluhopisy', group: 'bond', since: '2008-01-31',
     dataIsNetOfFees: true, sourceIsin: 'LU0290355717', sourceTer: 0.0007, inBacktest: true, inDashboard: true, managed: true,
-    proxyEtf: { isin: 'IE00B4WXJJ64', name: 'iShares Core EUR Govt Bond', ter: 0.0007 } },
+    // 19. 10. 2026 (kolo 5): fond k nákupu = PŘÍMO zdrojový fond dat (dřív iShares Core € Govt Bond Dist IE00B4WXJJ64 –
+    // podobný, ale jiný fond). Modelová portfolia 60/40 a Nobelovo mají ve složení tentýž fond (portfolioData.ts).
+    proxyEtf: { isin: 'LU0290355717', name: 'Xtrackers II Eurozone Government Bond 1C', ter: 0.0007 } },
   { code: 'eur_corp_bond', ticker: 'IEAC.L', currency: 'EUR', name: 'EUR firemní dluhopisy', group: 'bond', since: '2009-03-06',
     dataIsNetOfFees: true, sourceIsin: 'IE00B3F81R35', sourceTer: 0.0009, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B3F81R35', name: 'iShares Core EUR Corp Bond', ter: 0.0009 } },

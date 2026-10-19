@@ -24,7 +24,13 @@ export function kulateKroky(max: number, min = 0, cil = 4): number[] {
 /** Číslo na osu bez jednotky: „2,5 mil.“, „500 tis.“, „0“. Jednotka patří do nadpisu grafu. */
 export const fmtOsa = (v: number) => {
   const a = Math.abs(v);
-  if (a >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}\u00a0mil.`;
-  if (a >= 1_000) return `${(v / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })}\u00a0tis.`;
-  return v.toLocaleString('cs-CZ', { maximumFractionDigits: 0 });
+  // Z\u00e1porn\u00e9 hodnoty typografick\u00fdm minus \u201e\u2212\u201c (U+2212), ne spojovn\u00edkem (revize 19. 10. 2026).
+  const z = v < 0 ? '\u2212' : '';
+  if (a >= 1_000_000) return `${z}${(a / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}\u00a0mil.`;
+  if (a >= 1_000) return `${z}${(a / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })}\u00a0tis.`;
+  const r = a.toLocaleString('cs-CZ', { maximumFractionDigits: 0 });
+  return r === '0' ? '0' : `${z}${r}`;
 };
+
+/** Procenta na osu: \u201e\u221220 %\u201c s typografick\u00fdm minus a nezlomitelnou mezerou. */
+export const fmtOsaPct = (v: number) => `${v < 0 && Math.round(v) !== 0 ? '\u2212' : ''}${Math.abs(Math.round(v))}\u00a0%`;

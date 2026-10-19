@@ -51,6 +51,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Váhy: jen konečná nezáporná čísla. Složky s vahou 0 engine vynechá (výsledek = portfolio bez nich);
+    // dřív 0 % shodilo výsledek na null a UI ukázalo „0 Kč, ztráta −100 %“ (revize 19. 10. 2026).
+    if (body.portfolio.some((item) => typeof item.weight !== 'number' || !Number.isFinite(item.weight) || item.weight < 0)) {
+      return NextResponse.json({ error: 'Váha složky musí být číslo od 0 do 100 %.' }, { status: 400 })
+    }
+    if (!body.portfolio.some((item) => item.weight > 0)) {
+      return NextResponse.json({ error: 'Alespoň jedna složka musí mít nenulovou váhu.' }, { status: 400 })
+    }
+
     // Validate weights sum to 1
     const totalWeight = body.portfolio.reduce((sum, item) => sum + item.weight, 0)
     if (Math.abs(totalWeight - 1) > 0.01) {

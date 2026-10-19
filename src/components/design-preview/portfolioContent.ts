@@ -1,5 +1,11 @@
 /* Redakční obsah k modelovým portfoliím – úvod, princip, silné/slabé stránky.
  * Popisuje SKUTEČNÉ složení z portfolioData (ne učebnicovou verzi). Klíč = slug.
+ *
+ * ČÍSLA JEN Z DAT (pravidlo č. 1, revize 19. 10. 2026): místo čísel bez zdroje („klidně o 45 %“, „−40 % i víc“)
+ * zástupné značky, které detail doplní z backtestu stránky (stejná data a období jako tabulka historie):
+ *   {maxPokles} největší propad portfolia, {obdobiPropadu} „vrchol 10/2007 → dno 3/2009“, {navrat} „návrat za ~4 roky“,
+ *   {od} začátek dat („6/2008“), {maxPoklesAkcie} propad 100 % akcií světa (VT) ve stejném období, {rok2022} výnos 2022.
+ * Chybí-li data, doplní se „—“ (raději žádné číslo než špatné).
  */
 
 export interface PortfolioContent {
@@ -14,18 +20,27 @@ export interface PortfolioContent {
 }
 
 export const portfolioContent: Record<string, PortfolioContent> = {
+  'portfolio-60-40': {
+    intro: [
+      'Portfolio 60/40 je nejznámější vyvážené portfolio: 60 % peněz v akciích, 40 % v dluhopisech. Desítky let slouží jako měřítko pro smíšené a penzijní fondy – když se mluví o „vyváženém portfoliu“, obvykle se myslí právě tento poměr.',
+      'Tady ho skládáte ze dvou fondů: akcie celého světa (Vanguard FTSE All-World) a státní dluhopisy zemí eurozóny v eurech (Xtrackers II Eurozone Government Bond). Historie níže je počítaná z dat právě tohoto dluhopisového fondu.',
+    ],
+    howItWorks: 'Akcie nesou dlouhodobý růst, dluhopisy tlumí výkyvy. Jednou ročně vrátíte poměr na 60/40 (vyvážení) – prodáte část toho, co narostlo, a dokoupíte to, co zaostalo. Po propadu akcií tak dokupujete akcie levněji.',
+    strengths: 'Jednoduchost: dva fondy a jedno vyvážení ročně. A mírnější propady než u čistých akcií: největší propad v datech od {od} byl {maxPokles} ({obdobiPropadu}), u 100 % akcií celého světa ve stejném období {maxPoklesAkcie}.',
+    weakness: 'Když akcie i dluhopisy padají současně – jako v roce 2022, kdy rychle rostly úrokové sazby – dluhopisy propad netlumí: portfolio v roce 2022 ztratilo {rok2022} (v Kč). Za klidnější průběh navíc platíte nižším dlouhodobým výnosem než u čistě akciového portfolia.',
+  },
   'globalni-jadro-small-cap-value': {
     intro: [
       'ETF průvodce portfolio je vzorové portfolio, na kterém ukazujeme, jak bychom sami stavěli čistě akciové portfolio, kdyby šlo o vlastní dlouhodobé peníze — s důrazem na dvě věci, které se dají doložit čísly: minimalizovat daně a náklady jádra a přidat jen ty faktory, které po nákladech reálně přežijí. Není to investiční doporučení, ale poctivě odůvodněný příklad.',
-      'Jádro (85 %) záměrně nestavíme na jednom „all-world" fondu, ale na třech cap-weight stavebních kamenech vybraných kvůli daním a nákladům: syntetický S&P 500 (vyhýbá se americké srážkové dani z dividend — na 10 letech dat reálně o ~20 bp/rok lepší než fyzická replikace), MSCI World ex USA a rozvíjející se trhy (EM IMI). Dohromady tvoří stejný globální trh jako jeden all-world fond, ale s ověřeným nadvýnosem ~+15–20 bp ročně. Je to málo — ale je to zadarmo a natrvalo.',
-      'U faktorů jsme byli tvrdí. Value, quality, momentum i size jsou na papíře reálné prémie, jenže otázka pro českého UCITS investora nezní „existují?", ale „dokážu je po nákladech vytěžit?". A tam většina padá: value po poplatcích ~0, quality taky (QUAL zaostal −0,4 % za trhem), momentum se v UCITS obalu nedá koupit za rozumnou cenu. Jediný faktor, který přežívá i po nákladech a má za sebou 44 let živé historie, je small-cap value — fond DFSVX vydělával ~11,4 % ročně od 1993, ~+1,8 pb/rok nad svým benchmarkem.',
-      'Proto je jediný náklon v tomhle portfoliu 15% satelit small-cap value (Avantis). A nedržíme ho kvůli honbě za výnosem — bereme ho jako režimovou pojistku: pomáhá nejvíc ve „ztracené dekádě" cap-weight trhu, jeho očekávaný přínos je skromný (0–15 bp s pravděpodobností úspěchu ~60–65 %). To znamená disciplínu: závazek držet ho i roky, kdy zaostává, protože přesně to je cena za tu prémii.',
-      'A ještě jedna vědomá volba — proč zrovna Avantis Global Small Cap Value, a ne obyčejný small-value indexový fond. AVWS není indexový fond: je to systematická aktivní strategie od týmu kolem Eduarda Repetta (bývalého CIO Dimensional, který v roce 2019 založil Avantis). Stejná akademická DNA jako slavné fondy DFA, jen modernější a levnější. Akcie nevybírá podle indexu, ale podle kombinace levného ocenění × ziskovosti — chce firmy, které jsou levné vůči účetní hodnotě (očištěné o goodwill, aby „levnost" nebyla jen iluze z akvizic) A ZÁROVEŇ provozně ziskové. Právě ta kombinace nese většinu prémie: levná nezisková firma bývá levná právem (value past), drahá zisková firma prémii nemá.',
-      'Navíc vědomě vyřazuje „lottery tickets" — malé neziskové, agresivně investující firmy, kvůli jejichž katastrofálním výnosům samotný size faktor v indexech nefunguje — a obchoduje průběžně a trpělivě místo pololetních rekonstitucí (žádné front-runnutí rebalančních dnů, čerstvé signály místo půl roku starých). Obyčejný small-value index tohle nedělá: hrubé P/B s goodwillovými iluzemi, žádný filtr ziskovosti, rekonstituce 2× ročně. To je ten ~0,2–0,3 % rozdíl v poplatku, který si Avantis „vydělává zpátky" — fondy s touhle DNA historicky doručovaly zhruba +1 pb ročně nad srovnatelné value indexy čistě.',
+      'Jádro (85 %) záměrně nestavíme na jednom „all-world“ fondu, ale na třech cap-weight stavebních kamenech vybraných kvůli daním a nákladům: syntetický S&P 500 (vyhýbá se americké srážkové dani z dividend — na 10 letech dat reálně o ~20 bp/rok lepší než fyzická replikace), MSCI World ex USA a rozvíjející se trhy (EM IMI). Dohromady tvoří stejný globální trh jako jeden all-world fond, ale s ověřeným nadvýnosem ~+15–20 bp ročně. Je to málo — ale je to zadarmo a natrvalo.',
+      'U faktorů jsme byli tvrdí. Value, quality, momentum i size jsou na papíře reálné prémie, jenže otázka pro českého UCITS investora nezní „existují?“, ale „dokážu je po nákladech vytěžit?“. A tam většina padá: value po poplatcích ~0, quality taky (QUAL zaostal −0,4 % za trhem), momentum se v UCITS obalu nedá koupit za rozumnou cenu. Jediný faktor, který přežívá i po nákladech a má za sebou 44 let živé historie, je small-cap value — fond DFSVX vydělával ~11,4 % ročně od 1993, ~+1,8 pb/rok nad svým benchmarkem.',
+      'Proto je jediný náklon v tomhle portfoliu 15% satelit small-cap value (Avantis). A nedržíme ho kvůli honbě za výnosem — bereme ho jako režimovou pojistku: pomáhá nejvíc ve „ztracené dekádě“ cap-weight trhu, jeho očekávaný přínos je skromný (0–15 bp s pravděpodobností úspěchu ~60–65 %). To znamená disciplínu: závazek držet ho i roky, kdy zaostává, protože přesně to je cena za tu prémii.',
+      'A ještě jedna vědomá volba — proč zrovna Avantis Global Small Cap Value, a ne obyčejný small-value indexový fond. AVWS není indexový fond: je to systematická aktivní strategie od týmu kolem Eduarda Repetta (bývalého CIO Dimensional, který v roce 2019 založil Avantis). Stejná akademická DNA jako slavné fondy DFA, jen modernější a levnější. Akcie nevybírá podle indexu, ale podle kombinace levného ocenění × ziskovosti — chce firmy, které jsou levné vůči účetní hodnotě (očištěné o goodwill, aby „levnost“ nebyla jen iluze z akvizic) A ZÁROVEŇ provozně ziskové. Právě ta kombinace nese většinu prémie: levná nezisková firma bývá levná právem (value past), drahá zisková firma prémii nemá.',
+      'Navíc vědomě vyřazuje „lottery tickets“ — malé neziskové, agresivně investující firmy, kvůli jejichž katastrofálním výnosům samotný size faktor v indexech nefunguje — a obchoduje průběžně a trpělivě místo pololetních rekonstitucí (žádné front-runnutí rebalančních dnů, čerstvé signály místo půl roku starých). Obyčejný small-value index tohle nedělá: hrubé P/B s goodwillovými iluzemi, žádný filtr ziskovosti, rekonstituce 2× ročně. To je ten ~0,2–0,3 % rozdíl v poplatku, který si Avantis „vydělává zpátky“ — fondy s touhle DNA historicky doručovaly zhruba +1 pb ročně nad srovnatelné value indexy čistě.',
     ],
     howItWorks: 'Jednou ročně vyvážíte zpět na 54/22/9/15. Jádro (85 %) dělá hlavní práci a přebírá tržní výnos co nejlevněji a daňově nejčistěji; small-cap value satelit (15 %) je dlouhodobá pojistka, se kterou se neobchoduje podle nálady — nechává se běžet i v letech, kdy zaostává za trhem.',
     strengths: 'Levné, daňově optimalizované světové jádro s ověřeným nadvýnosem nad jedním all-world fondem, plus jediný faktor s doloženým přínosem po nákladech. Poctivost je tu záměrná: nepřidáváme faktory, které po poplatcích mizí, a u satelitu otevřeně přiznáváme, že jde o pojistku se skromným očekáváním, ne o zázračný výnos.',
-    weakness: 'Je to 100% akciové portfolio — počítejte s propady i −50 % a lety návratu na vrchol. Small-cap value může zaostávat i celou dekádu a vyžaduje pevné nervy a závazek ho neprodat. A oproti jednomu all-world fondu je náročnější na správu: čtyři fondy, pravidelný rebalancing a víc administrativy — vyplatí se jen tomu, kdo to opravdu udrží dlouhé roky.',
+    weakness: 'Je to 100% akciové portfolio — v datech od {od} spadlo až o {maxPokles} ({obdobiPropadu}, {navrat}). Small-cap value může zaostávat i celou dekádu a vyžaduje pevné nervy a závazek ho neprodat. A oproti jednomu all-world fondu je náročnější na správu: čtyři fondy, pravidelné vyvažování na cílové podíly a víc administrativy — vyplatí se jen tomu, kdo to opravdu udrží dlouhé roky.',
   },
   'permanentni-portfolio': {
     intro: [
@@ -38,11 +53,11 @@ export const portfolioContent: Record<string, PortfolioContent> = {
   },
   'nobel-portfolio': {
     intro: [
-      'Nobelovo portfolio staví na moderní teorii portfolia Harryho Markowitze, za kterou dostal Nobelovu cenu za ekonomii. Její jádro zní: kombinací aktiv, která se nehýbou stejně, lze při daném výnosu snížit riziko – diverzifikace je „jediný oběd zdarma" na trhu.',
+      'Nobelovo portfolio staví na moderní teorii portfolia Harryho Markowitze, za kterou dostal Nobelovu cenu za ekonomii. Její jádro zní: kombinací aktiv, která se nehýbou stejně, lze při daném výnosu snížit riziko – diverzifikace je „jediný oběd zdarma“ na trhu.',
       'V praxi jde o vyváženou střední cestu: většinu tvoří světové akcie kvůli růstu (55 %), zbytek doplňují globální dluhopisy (25 %) a nemovitosti (20 %) pro tlumení výkyvů a stálý příjem. Výsledek míří mezi klid konzervativního a růst agresivního portfolia.',
     ],
-    howItWorks: 'Akcie táhnou dlouhodobý výnos, dluhopisy a nemovitosti snižují celkovou kolísavost. Poměr udržujete pravidelným rebalancingem, ideálně jednou ročně.',
-    strengths: 'Rozumný kompromis – slušný růst při znatelně menších výkyvech než čistě akciové portfolio. Vhodné jako „univerzální" jádro pro střední horizont.',
+    howItWorks: 'Akcie táhnou dlouhodobý výnos, dluhopisy a nemovitosti snižují celkovou kolísavost. Poměr udržujete pravidelným vyvažováním – jednou ročně vrátíte složky na cílové podíly.',
+    strengths: 'Rozumný kompromis – slušný růst při znatelně menších výkyvech než čistě akciové portfolio. Vhodné jako „univerzální“ jádro pro střední horizont.',
     weakness: 'Není extrémní v žádném směru: neroste tak rychle jako akciové portfolio a v krizi neklesá tak málo jako to permanentní. Kdo chce jedno z toho naplno, sáhne jinam.',
   },
   'akciove-portfolio': {
@@ -52,12 +67,12 @@ export const portfolioContent: Record<string, PortfolioContent> = {
     ],
     howItWorks: 'Pravidelně investujete do širokého akciového ETF (a menší části nemovitostí) a hlavně roky nic neprodáváte. Rozhoduje čas na trhu, ne časování trhu.',
     strengths: 'Nejvyšší očekávaný dlouhodobý výnos. Na horizontu 10+ let historicky poráží konzervativnější strategie díky složenému úročení akcií.',
-    weakness: 'Nejhlubší propady – v krizích může spadnout o 40 % i víc a návrat na vrchol trvá roky. Není vhodné pro krátký horizont ani pro nervy, které propady neustojí.',
+    weakness: 'Hluboké propady – v datech od {od} spadlo až o {maxPokles} ({obdobiPropadu}, {navrat}). Na krátký horizont a pro nervy, které propady neustojí, se nehodí.',
   },
   'ray-dalio-all-weather': {
     intro: [
-      'Portfolio „pro každé počasí" navrhl Ray Dalio, zakladatel největšího hedgeového fondu Bridgewater. Nestaví na předpovědi budoucnosti, ale na tzv. paritě rizika: rozloží riziko tak, aby portfolio obstálo ve všech čtyřech ekonomických „počasích" – růstu, útlumu, inflaci i deflaci.',
-      'Proto má oproti běžným portfoliím velkou váhu dluhopisů (40 % dlouhé + 15 % střednědobé státní dluhopisy USA), doplněnou akciemi (30 %) a menšími pojistkami proti inflaci – komoditami (7,5 %) a zlatem (7,5 %). Dluhopisy tu nejsou jen „brzda", ale plnohodnotný zdroj stability.',
+      'Portfolio „pro každé počasí“ navrhl Ray Dalio, zakladatel největšího hedgeového fondu Bridgewater. Nestaví na předpovědi budoucnosti, ale na tzv. paritě rizika: rozloží riziko tak, aby portfolio obstálo ve všech čtyřech ekonomických „počasích“ – růstu, útlumu, inflaci i deflaci.',
+      'Proto má oproti běžným portfoliím velkou váhu dluhopisů (40 % dlouhé + 15 % střednědobé státní dluhopisy USA), doplněnou akciemi (30 %) a menšími pojistkami proti inflaci – komoditami (7,5 %) a zlatem (7,5 %). Dluhopisy tu nejsou jen „brzda“, ale plnohodnotný zdroj stability.',
     ],
     howItWorks: 'Váhy jsou nastavené tak, aby žádné jediné aktivum neurčovalo celkový výsledek. Dlouhé dluhopisy silně reagují na úrokové sazby a v recesích táhnou portfolio nahoru, zatímco komodity a zlato chrání při inflaci.',
     strengths: 'Odolnost napříč scénáři a nízké propady díky velké váze státních dluhopisů a zlata. Historicky velmi vyrovnaný průběh.',
@@ -65,12 +80,12 @@ export const portfolioContent: Record<string, PortfolioContent> = {
   },
   'dividendove-portfolio': {
     intro: [
-      'Dividendové portfolio cílí na pravidelný příjem z výplat dividend. Drží převážně fond dividendových „aristokratů" (95 %) – kvalitních firem s dlouhou historií rostoucích dividend – doplněný nemovitostmi (5 %) pro další příjem.',
+      'Dividendové portfolio cílí na pravidelný příjem z výplat dividend. Drží převážně fond dividendových „aristokratů“ (95 %) – kvalitních firem s dlouhou historií rostoucích dividend – doplněný nemovitostmi (5 %) pro další příjem.',
       'Myšlenka je mít z portfolia hmatatelný cash-flow, aniž byste museli prodávat podíly. Firmy, které desítky let nepřetržitě zvyšují dividendu, bývají stabilní a ziskové, takže portfolio kombinuje příjem s určitou obranností.',
     ],
     howItWorks: 'Fond vyplácí dividendy (typicky čtvrtletně), které buď čerpáte jako příjem, nebo reinvestujete. Pozor: vyplácené dividendy se v ČR daní, na rozdíl od akumulačních fondů.',
     strengths: 'Pravidelný a relativně předvídatelný příjem bez prodeje podílů. Zaměření na kvalitní firmy s tradicí výplat dodává určitou stabilitu.',
-    weakness: 'Je to stále z 95 % akciové portfolio – v krizích padá podobně hluboko jako trh, klidně o 45 %. Zaměření na dividendy navíc opomíjí řadu růstových firem, takže dlouhodobý celkový výnos může zaostat za širokým indexem. Dividendy se daní.',
+    weakness: 'Je to stále z 95 % akciové portfolio – v krizích padá podobně hluboko jako akciový trh. Zaměření na dividendy navíc opomíjí řadu růstových firem, takže dlouhodobý celkový výnos může zaostat za širokým indexem. Dividendy se daní.',
   },
 };
 

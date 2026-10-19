@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, History } from 'lucide-react';
-import InfoTip from '@/components/design-preview/InfoTip';
+import InfoTip, { TipTlacitko } from '@/components/design-preview/InfoTip';
 import {
   barvaSlozky,
   backtestOdkaz,
@@ -27,6 +27,9 @@ export interface HistoriePortfolia {
   nahrada?: string;
   /** Odkaz do backtestu se stejnými vstupy včetně konce dat (backtestOdkaz(slug, do)). */
   odkaz?: string | null;
+  /** Konečná hodnota ze 100 000 Kč a datum kurzu posledního bodu – pro denní kontrolu dat (kolo5 A). */
+  nav?: number;
+  kurzyDo?: string;
 }
 export type HistorieMap = Record<string, HistoriePortfolia | null | undefined>;
 
@@ -75,6 +78,8 @@ export function PortfolioBar({ model, showLegend = true }: { model: PortfolioMod
             <li key={i} className="flex items-center gap-1.5 text-xs text-slate-600">
               <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: barvaSlozky(a) }} />
               <span className="font-medium text-slate-700 leading-tight">{a.label}</span>
+              {/* Vysvětlivka pro začátečníky (revize 19. 10. 2026: „Hotovost (krátké dluhopisy)“ = žargon). */}
+              {a.vysvetleni && <TipTlacitko obsah={a.vysvetleni} ariaLabel={`Co je ${a.label}`} maly />}
               <span className="ml-auto tabular-nums text-slate-500 sm:ml-0">{fmtPct(a.percentage)}</span>
             </li>
           ))}
@@ -103,7 +108,7 @@ function HistorieMetriky({ h, bezHistorie }: { h: HistoriePortfolia | null | und
         </div>
         <div>
           <span className="block text-xs text-slate-500">
-            <InfoTip label={h ? `Největší propad hodnoty od vrcholu ke dnu kdykoli v témže backtestu (${obdobi}, v Kč).${pozn}` : chybi}>Max. pokles</InfoTip>
+            <InfoTip label={h ? `Největší propad hodnoty od vrcholu ke dnu v témže backtestu (${obdobi}, v Kč). Data začínají ${mesicRok(h.od)} – dřívější propady (např. 2007–08) nezachycují.${pozn}` : chybi}>Max. pokles od {h ? mesicRok(h.od) : '—'}</InfoTip>
           </span>
           <span className={`tabular-nums text-lg font-bold ${h ? 'text-slate-900' : 'text-slate-400'}`}>{h ? `${ap}${pctZnam(h.maxPokles * 100)}` : '—'}</span>
         </div>
@@ -118,7 +123,7 @@ export function PortfolioCard({ model, returns, historie }: { model: PortfolioMo
   const bt = historie?.odkaz ?? backtestOdkaz(model.slug);
   return (
     <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 sm:p-5 transition-colors hover:border-teal-300"
-      data-kontrola-backtest={historie?.odkaz ? `${historie.odkaz}|${historie.cagr}` : undefined}>
+      data-kontrola-backtest={historie?.odkaz ? `${historie.odkaz}|${historie.cagr}|${historie.nav ?? ''}|${historie.kurzyDo ?? ''}` : undefined}>
       <h3 className="text-base font-bold leading-tight text-slate-900">
         <Link href={`/portfolio-strategie/${model.slug}`} className="hover:text-teal-800">{model.name}</Link>
       </h3>
@@ -127,7 +132,7 @@ export function PortfolioCard({ model, returns, historie }: { model: PortfolioMo
       <PortfolioBar model={model} />
       <p className="mt-3 text-xs text-slate-500">{narocnost(model)}</p>
       {/* Čím je historie počítaná – nad KPI, aby čísla ve všech kartách řady stála na stejné výšce. */}
-      {historie?.nahrada && <p className="mt-2 text-xs leading-snug text-amber-800">≈ {historie.nahrada}</p>}
+      {historie?.nahrada && <p className="mt-2 text-xs leading-snug text-slate-500">≈ {historie.nahrada}</p>}
       {!historie && BEZ_HISTORIE[model.slug] && <p className="mt-2 text-xs leading-snug text-slate-600">{BEZ_HISTORIE[model.slug]}</p>}
       {/* KPI dole zarovnané napříč kartami v řadě (mt-auto) – dřív skákaly podle délky legendy. */}
       <div className="mt-auto pt-4">

@@ -31,13 +31,14 @@ export default function PortfolioVyber({ returns, historie }: { returns?: Return
     .sort((a, b) => (Math.abs(pokles(b.slug) - pokles(a.slug)) > 0.0005 ? pokles(b.slug) - pokles(a.slug) : a.stocksPct - b.stocksPct));
   return (
     <div>
-      <div role="group" aria-label="Vyberte podle povahy" className="-mx-4 px-4 mb-4 flex gap-1.5 overflow-x-auto pb-1 sm:mx-0 sm:px-0 sm:flex-wrap">
+      {/* Mobil: mřížka 2×2 (revize 19. 10. 2026: vodorovný pás přetékal – 596 px na 390 px), cíl dotyku 44 px. */}
+      <div role="group" aria-label="Vyberte podle povahy" className="mb-4 grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
         {VOLBY.map((v) => {
           const n = v.id === 'vse' ? portfolioModels.length : portfolioModels.filter((m) => m.risk === v.id).length;
           const on = volba === v.id;
           return (
             <button key={v.id} type="button" aria-pressed={on} onClick={() => setVolba(v.id)} data-track={`portfolia-filtr:${v.id}`}
-              className={`shrink-0 rounded-full border px-3.5 min-h-[40px] text-sm font-medium whitespace-nowrap transition-colors ${on ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'}`}>
+              className={`rounded-full border px-3 sm:px-3.5 min-h-[44px] text-sm font-medium leading-tight transition-colors ${on ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'}`}>
               {v.label} <span className={on ? 'text-teal-100' : 'text-slate-400'}>{n}</span>
             </button>
           );

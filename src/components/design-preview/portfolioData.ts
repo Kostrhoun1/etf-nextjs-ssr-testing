@@ -18,6 +18,10 @@ export interface PortfolioAllocation {
   /** Třída aktiva. */
   cls: AssetClass;
   druh?: DruhDluhopisu;
+  /** Odstín akcií (0–3), když má portfolio víc akciových složek – jinak by byly v pruhu i legendě stejnou barvou. */
+  odstin?: number;
+  /** Krátká lidská vysvětlivka k názvu složky (ikona i u legendy) – pro začátečníky. */
+  vysvetleni?: string;
   percentage: number;
   isin: string;
   etfName: string;
@@ -51,10 +55,20 @@ export const BARVY_SLOZEK = {
   komodity: '#8c510a',
 } as const;
 
-export function barvaSlozky(a: Pick<PortfolioAllocation, 'cls' | 'druh'>): string {
+/* Odstíny akcií pro portfolia s víc akciovými složkami (Svět + malé firmy: 4 složky dřív jednou barvou, revize 19. 10. 2026).
+   Střídá se tmavý a světlý odstín, ať jsou sousedé v pruhu rozlišitelní i v odstínech šedi. */
+export const ODSTINY_AKCII = ['#0f766e', '#5eead4', '#134e4a', '#99f6e4'] as const;
+
+export function barvaSlozky(a: Pick<PortfolioAllocation, 'cls' | 'druh' | 'odstin'>): string {
   if (a.cls === 'dluhopisy') return a.druh === 'kratke' ? BARVY_SLOZEK.hotovost : a.druh === 'stredni' ? BARVY_SLOZEK.dluhopisyStredni : BARVY_SLOZEK.dluhopisyDlouhe;
+  if (a.cls === 'akcie' && a.odstin != null) return ODSTINY_AKCII[a.odstin % ODSTINY_AKCII.length];
   return BARVY_SLOZEK[a.cls];
 }
+
+const VYSV_KRATKE = 'Krátkodobé státní dluhopisy USA (splatnost 1–3 roky). V portfoliu hrají roli hotovosti: kolísají málo – v korunách ale s kurzem dolaru.';
+const VYSV_DLOUHE = 'Státní dluhopisy USA se splatností přes 20 let. Silně reagují na úrokové sazby: když sazby klesají, rostou, a naopak.';
+const VYSV_STREDNI_USD = 'Státní dluhopisy USA se splatností 7–10 let – na sazby reagují méně než dlouhé.';
+const VYSV_EUR_STATNI = 'Státní dluhopisy zemí eurozóny (Německo, Francie, Itálie…) v eurech, všechny splatnosti.';
 
 export const NAZEV_TRIDY: Record<AssetClass, string> = {
   akcie: 'Akcie', dluhopisy: 'Dluhopisy', nemovitosti: 'Nemovitosti', komodity: 'Komodity', zlato: 'Zlato',
@@ -86,8 +100,8 @@ export const portfolioModels: PortfolioModel[] = [
     forWhom: 'Chci klid a co nejmenší výkyvy, růst je až druhořadý.',
     allocations: [
       { label: 'Akcie', cls: 'akcie', percentage: 25, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World UCITS ETF' },
-      { label: 'Dlouhodobé dluhopisy', cls: 'dluhopisy', druh: 'dlouhe', percentage: 25, isin: 'IE00BFM6TC58', etfName: 'iShares USD Treasury Bond 20+yr UCITS ETF (Acc)' },
-      { label: 'Hotovost (krátké dluhopisy)', cls: 'dluhopisy', druh: 'kratke', percentage: 25, isin: 'IE00BYXPSP02', etfName: 'iShares USD Treasury Bond 1-3yr UCITS ETF' },
+      { label: 'Dlouhodobé dluhopisy', cls: 'dluhopisy', druh: 'dlouhe', vysvetleni: VYSV_DLOUHE, percentage: 25, isin: 'IE00BFM6TC58', etfName: 'iShares USD Treasury Bond 20+yr UCITS ETF (Acc)' },
+      { label: 'Hotovost (krátké dluhopisy)', cls: 'dluhopisy', druh: 'kratke', vysvetleni: VYSV_KRATKE, percentage: 25, isin: 'IE00BYXPSP02', etfName: 'iShares USD Treasury Bond 1-3yr UCITS ETF' },
       { label: 'Zlato', cls: 'zlato', percentage: 25, isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold ETC' },
     ],
   },
@@ -102,9 +116,9 @@ export const portfolioModels: PortfolioModel[] = [
     horizon: 'od 5 let',
     forWhom: 'Chci odolnost proti všem scénářům, ne sázku na jediný vývoj.',
     allocations: [
-      { label: 'Dlouhodobé dluhopisy', cls: 'dluhopisy', druh: 'dlouhe', percentage: 40, isin: 'IE00BFM6TC58', etfName: 'iShares USD Treasury Bond 20+yr UCITS ETF (Acc)' },
+      { label: 'Dlouhodobé dluhopisy', cls: 'dluhopisy', druh: 'dlouhe', vysvetleni: VYSV_DLOUHE, percentage: 40, isin: 'IE00BFM6TC58', etfName: 'iShares USD Treasury Bond 20+yr UCITS ETF (Acc)' },
       { label: 'Akcie', cls: 'akcie', percentage: 30, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World UCITS ETF' },
-      { label: 'Střednědobé dluhopisy', cls: 'dluhopisy', druh: 'stredni', percentage: 15, isin: 'IE00B3VWN518', etfName: 'iShares USD Treasury Bond 7-10yr UCITS ETF (Acc)' },
+      { label: 'Střednědobé dluhopisy', cls: 'dluhopisy', druh: 'stredni', vysvetleni: VYSV_STREDNI_USD, percentage: 15, isin: 'IE00B3VWN518', etfName: 'iShares USD Treasury Bond 7-10yr UCITS ETF (Acc)' },
       { label: 'Komodity', cls: 'komodity', percentage: 7.5, isin: 'IE00BD6FTQ80', etfName: 'Invesco Bloomberg Commodity UCITS ETF (Acc)' },
       { label: 'Zlato', cls: 'zlato', percentage: 7.5, isin: 'IE00B4ND3602', etfName: 'iShares Physical Gold ETC' },
     ],
@@ -121,7 +135,9 @@ export const portfolioModels: PortfolioModel[] = [
     forWhom: 'Chci slušný růst, ale ne na úkor úplného klidu.',
     allocations: [
       { label: 'Akcie', cls: 'akcie', percentage: 55, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World UCITS ETF' },
-      { label: 'Dluhopisy', cls: 'dluhopisy', druh: 'stredni', percentage: 25, isin: 'IE00BDBRDM35', etfName: 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)' },
+      // Kolo 5 (19. 10. 2026): dřív iShares Core Global Aggregate EUR Hedged (IE00BDBRDM35), historie ale počítala
+      // státní dluhopisy eurozóny → složení = přesně fond, jehož data historie používá (eur_govt_bond, XGLE.DE).
+      { label: 'Státní dluhopisy eurozóny', cls: 'dluhopisy', druh: 'stredni', vysvetleni: VYSV_EUR_STATNI, percentage: 25, isin: 'LU0290355717', etfName: 'Xtrackers II Eurozone Government Bond UCITS ETF 1C' },
       { label: 'Nemovitosti', cls: 'nemovitosti', percentage: 20, isin: 'IE00B0M63284', etfName: 'iShares European Property Yield UCITS ETF' },
     ],
   },
@@ -137,7 +153,9 @@ export const portfolioModels: PortfolioModel[] = [
     forWhom: 'Chci osvědčenou rovnováhu růstu a stability bez vymýšlení.',
     allocations: [
       { label: 'Světové akcie', cls: 'akcie', percentage: 60, isin: 'IE00BK5BQT80', etfName: 'Vanguard FTSE All-World UCITS ETF' },
-      { label: 'Dluhopisy', cls: 'dluhopisy', druh: 'stredni', percentage: 40, isin: 'IE00BDBRDM35', etfName: 'iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)' },
+      // Kolo 5 (19. 10. 2026): dřív IE00BDBRDM35 (globální agregátní, zajištěný do eur, od 2017) – historie, homepage
+      // i backtest teď počítají TENTÝŽ fond: Xtrackers II Eurozone Government Bond 1C (XGLE, data eur_govt_bond). Viz ZAMERNA-ROZHODNUTI.md.
+      { label: 'Státní dluhopisy eurozóny', cls: 'dluhopisy', druh: 'stredni', vysvetleni: VYSV_EUR_STATNI, percentage: 40, isin: 'LU0290355717', etfName: 'Xtrackers II Eurozone Government Bond UCITS ETF 1C' },
     ],
   },
   {
@@ -181,10 +199,10 @@ export const portfolioModels: PortfolioModel[] = [
     horizon: 'od 12 let',
     forWhom: 'Chci prostý světový základ a k němu jeden faktor navíc — a udržím ho i v letech, kdy zaostává.',
     allocations: [
-      { label: 'Jádro — USA (S&P 500)', cls: 'akcie', percentage: 54, isin: 'IE00B3YCGJ38', etfName: 'Invesco S&P 500 UCITS ETF (Acc, syntetický)' },
-      { label: 'Jádro — svět mimo USA', cls: 'akcie', percentage: 22, isin: 'IE0006WW1TQ4', etfName: 'Xtrackers MSCI World ex USA UCITS ETF' },
-      { label: 'Jádro — rozvíjející se trhy', cls: 'akcie', percentage: 9, isin: 'IE00BKM4GZ66', etfName: 'iShares Core MSCI EM IMI UCITS ETF' },
-      { label: 'Malé hodnotové firmy (satelit)', cls: 'akcie', percentage: 15, isin: 'IE0003R87OG3', etfName: 'Avantis Global Small Cap Value UCITS ETF' },
+      { label: 'Jádro — USA (S&P 500)', cls: 'akcie', odstin: 0, percentage: 54, isin: 'IE00B3YCGJ38', etfName: 'Invesco S&P 500 UCITS ETF (Acc, syntetický)' },
+      { label: 'Jádro — svět mimo USA', cls: 'akcie', odstin: 1, percentage: 22, isin: 'IE0006WW1TQ4', etfName: 'Xtrackers MSCI World ex USA UCITS ETF' },
+      { label: 'Jádro — rozvíjející se trhy', cls: 'akcie', odstin: 2, percentage: 9, isin: 'IE00BKM4GZ66', etfName: 'iShares Core MSCI EM IMI UCITS ETF' },
+      { label: 'Malé hodnotové firmy (satelit)', cls: 'akcie', odstin: 3, vysvetleni: 'Menší firmy, které jsou levné vzhledem ke svým ziskům a majetku. „Satelit“ = menší doplněk k hlavnímu jádru portfolia.', percentage: 15, isin: 'IE0003R87OG3', etfName: 'Avantis Global Small Cap Value UCITS ETF' },
     ],
   },
 ];
@@ -286,8 +304,8 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
       { indexCode: 'eur_govt_bond', weight: 0.25, ter: 0.0007 },
       { indexCode: 'ftse_europe', weight: 0.20, ter: 0.0040 }, // proxy nemovitostí
     ],
-    proxyNote: 'Nemovitosti počítáme přes evropské akcie (dlouhá řada nemovitostních fondů v datech není) a dluhopisy přes státní dluhopisy eurozóny v eurech (fond Xtrackers Eurozone Government Bond); fond ve složení je globální agregátní, zajištěný do eur. Výsledek je orientační.',
-    nahrada: 'Historie počítá nemovitosti přes evropské akcie a dluhopisy přes státní dluhopisy eurozóny – fondy ve složení se mohou chovat jinak.',
+    proxyNote: 'Nemovitosti počítáme přes evropské akcie (dlouhá řada nemovitostních fondů v datech není). Dluhopisy jsou data přímo fondu ve složení (Xtrackers II Eurozone Government Bond). Výsledek je orientační.',
+    nahrada: 'Historie počítá nemovitosti přes evropské akcie – o chování nemovitostí nic neříká.',
   },
   'akciove-portfolio': {
     start: START_VT,
@@ -314,10 +332,10 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
     items: [
       { indexCode: 'ftse_all_world', weight: 0.60, ter: 0.0022 },
       // 18. 10. 2026 (kolo 5): dřív us_aggregate_bond (AGG v USD) – viz Nobelovo portfolio.
+      // 19. 10. 2026: data eur_govt_bond = přímo fond ve složení (Xtrackers II Eurozone Government Bond 1C, LU0290355717)
+      // → žádná náhrada, bez „≈“. (Akcie: VT místo VWCE – stejně jako u všech portfolií, „celý svět“ = VT.)
       { indexCode: 'eur_govt_bond', weight: 0.40, ter: 0.0007 },
     ],
-    proxyNote: 'Dluhopisy počítáme přes státní dluhopisy eurozóny v eurech (fond Xtrackers Eurozone Government Bond, data od 2008). Fond ve složení (iShares Core Global Aggregate EUR Hedged) je globální, i s firemními dluhopisy, zajištěný do eur a existuje až od 2017. Výsledek je orientační.',
-    nahrada: 'Historie počítá dluhopisy přes státní dluhopisy eurozóny v eurech – fond ve složení je globální a zajištěný do eur, výsledek se může lišit.',
   },
   /* 'dividendove-portfolio' ZÁMĚRNĚ BEZ HISTORIE (kolo 5, 18. 10. 2026): dřív 95 % celý svět jako „proxy“ dividendového
      indexu → karta tvrdila „Dividendové ≈ +10,9 % ročně, −32 %“, což je historie celosvětových akcií, ne dividendového

@@ -41,8 +41,8 @@ const FAQ: { q: string; a: string }[] = [
     a: 'Rozhodněte se podle toho, jak velký propad unesete. Konzervativní portfolia (Permanentní, All Weather) mají méně akcií a mírnější výkyvy; akciová portfolia rostla v historii nejvíc, ale propadala se nejhlouběji – skutečný největší pokles každého portfolia od roku 2008 vidíte přímo na kartě.',
   },
   {
-    q: 'Jak často rebalancovat?',
-    a: 'Obvykle stačí jednou ročně, případně když se některá třída aktiv odchýlí od cílového podílu o více než zhruba 5 procentních bodů. Rebalancing znamená vrátit poměry na původní cílové hodnoty – prodat to, co narostlo, a dokoupit to, co zaostalo.',
+    q: 'Jak často portfolio vyvažovat?',
+    a: 'Obvykle stačí jednou ročně, případně když se některá třída aktiv odchýlí od cílového podílu o více než zhruba 5 procentních bodů. Vyvážení (anglicky rebalancing) znamená vrátit poměry na původní cílové hodnoty – prodat to, co narostlo, a dokoupit to, co zaostalo.',
   },
   {
     q: 'Funguje to i pro malé částky?',
@@ -69,6 +69,7 @@ export default async function PortfolioStrategieDesignPreview() {
     const evo = r?.evolution ?? [];
     return [m.slug, r && evo.length > 1 ? {
       cagr: r.summary.cagr, maxPokles: r.risk.maxDrawdown.depth, od: evo[0].date.slice(0, 10), do: evo[evo.length - 1].date.slice(0, 10), proxy: cfg?.proxyNote, nahrada: cfg?.nahrada,
+      nav: r.summary.netAssetValue, kurzyDo: r.kurzyDo,
       odkaz: backtestOdkaz(m.slug, evo[evo.length - 1].date.slice(0, 10)),
     } : null] as const;
   })));

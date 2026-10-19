@@ -104,6 +104,10 @@ const rokyOsy = (t0: number, t1: number) => {
   return out;
 };
 const OSA_TICK = { fontSize: 12, fill: '#64748b' } as const;
+/* Srovnávací řada = 100 % akcie CELÉHO SVĚTA (fond VT). Název jednoznačně (revize 19. 10. 2026: Dividendové portfolio
+   srovnávalo „100 % akcie (S&P 500)“ a 60/40 „100 % akcie (VT)“ – stejný název, jiný index). */
+const BENCH = '100\u00a0% akcie světa (VT)';
+const BENCH_KRATCE = 'Akcie světa (VT)';
 
 export default function PortfolioBacktest({ config, portfolioName, initialCzk }: {
   config: BacktestConfig; portfolioName: string;
@@ -172,10 +176,11 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
   // Krize 2008 v tabulce krizí chybí (řada začíná 7/2008, po vrcholu trhu 10/2007). Je největší propad v 2008–09?
   const ddVKrizi2008 = dd.troughDate.slice(0, 7) <= '2009-03' && dd.troughDate.slice(0, 7) >= '2008-07';
 
-  const radky: { label: string; hint?: string; pfV: string; bV: string; badge?: string | null; sub?: string; bSub?: string }[] = [
+  const radky: { label: string; hint?: string; pfV: string; bV: string; badge?: string | null; sub?: string; sub2?: string; bSub?: string }[] = [
     { label: 'Roční zhodnocení', hint: 'průměrně ročně (CAGR)', pfV: `${ap}${pctD(s.cagr)}`, bV: pctD(b.cagr) },
     { label: 'Kolísavost', hint: 'ročně, z měsíčních výnosů', pfV: `${ap}${pct0(s.standardDeviation)}`, bV: pct0(b.standardDeviation), badge: klidnejsi ? 'klidnější' : null },
-    { label: 'Největší propad', hint: 'od vrcholu kdykoli', pfV: `${ap}${pctD(dd.depth)}`, bV: pctD(bdd.depth), badge: melci ? 'mělčí' : null, sub: `dno ${mesRok(dd.troughDate)} · ${navrat(dd)}`, bSub: `dno ${mesRok(bdd.troughDate)}` },
+    // „od vrcholu kdykoli“ bylo nepřesné: data začínají 6/2008, propad od vrcholu 10/2007 by byl hlubší (revize 19. 10. 2026).
+    { label: 'Největší propad', hint: `od vrcholu, data od ${mesRok(prvni)}`, pfV: `${ap}${pctD(dd.depth)}`, bV: pctD(bdd.depth), badge: melci ? 'mělčí' : null, sub: `dno ${mesRok(dd.troughDate)}`, sub2: navrat(dd), bSub: `dno ${mesRok(bdd.troughDate)}` },
     { label: 'Nejlepší celý rok', pfV: u.best ? `${ap}${pctD(u.best.return)}` : '—', bV: ub.best ? pctD(ub.best.return) : '—', sub: u.best ? String(u.best.year) : undefined, bSub: ub.best ? String(ub.best.year) : undefined },
     { label: 'Nejhorší celý rok', pfV: u.worst ? `${ap}${pctD(u.worst.return)}` : '—', bV: ub.worst ? pctD(ub.worst.return) : '—', sub: u.worst ? String(u.worst.year) : undefined, bSub: ub.worst ? String(ub.worst.year) : undefined },
     { label: 'Roky v plusu', hint: 'jen celé roky', pfV: `${u.kladne} z ${u.cele.length}`, bV: `${ub.kladne} z ${ub.cele.length}` },
@@ -185,7 +190,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-600 max-w-2xl">
-          Denní data {mesRok(prvni)} – {den(posledni)}, {jednotka(cur)}, srovnání se 100&nbsp;% akciemi celého světa (fond VT).
+          Denní data {mesRok(prvni)} – {den(posledni)}, {jednotka(cur)}, srovnání se 100&nbsp;% akciemi celého světa (fond VT, index FTSE Global All Cap).
           {cur === 'CZK' && (
             <> <InfoTip label={`Výpočet začíná ${den(prvni)}, v létě 2008, kdy byla koruna vůči dolaru nejsilnější v historii (USD/CZK kolem 15; dnes kolem 21). Pozdější oslabení koruny výsledky v Kč zvedá – a v krizi 2008–09 tlumilo propad akcií. Jiný start by vyšel jinak; vlastní období si zvolte v backtestu.`}>
               <span className="text-slate-500">vliv kurzu</span>
@@ -201,7 +206,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
           <h3 className="text-sm font-semibold text-slate-900">Kolik by bylo ze {money(INITIAL[cur], cur)} <span className="font-normal text-slate-500">(hodnota {jednotka(cur)})</span></h3>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 h-0.5 bg-teal-600" />{portfolioName}: <span className="font-semibold text-slate-900">{ap}{money(s.netAssetValue, cur)}</span></span>
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 border-t border-dashed border-slate-500" />100 % akcie: <span className="font-medium text-slate-800">{money(b.netAssetValue, cur)}</span></span>
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><span className="inline-block w-3 border-t border-dashed border-slate-500" />{BENCH}: <span className="font-medium text-slate-800">{money(b.netAssetValue, cur)}</span></span>
           </div>
         </div>
         <div className="mt-3 h-60 md:h-64 w-full">
@@ -226,7 +231,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
                     <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
                       <div className="font-semibold mb-0.5">{new Date(p.date).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</div>
                       <div>{portfolioName}: <span className="tabular-nums font-medium">{money(p.pf, cur)}</span></div>
-                      {p.b != null && <div className="text-slate-300">100 % akcie: <span className="tabular-nums">{money(p.b, cur)}</span></div>}
+                      {p.b != null && <div className="text-slate-300">{BENCH}: <span className="tabular-nums">{money(p.b, cur)}</span></div>}
                     </div>
                   );
                 }}
@@ -241,7 +246,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
       {/* Jediné místo s ukazateli: portfolio × 100 % akcie */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
         <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1">
-          {portfolioName} proti 100&nbsp;% akciím
+          {portfolioName} proti 100&nbsp;% akciím světa
           {priblizne && <InfoTip label={`≈ = orientační čísla. ${config.proxyNote}`}><span className="sr-only">proč přibližně</span></InfoTip>}
         </h3>
         <p className="text-xs text-slate-500 mt-0.5 mb-3">
@@ -256,7 +261,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
             <tr className="text-xs text-slate-500 border-b border-slate-100">
               <th className="text-left font-medium py-2 pr-2"><span className="hidden sm:inline">Za období {mesRok(prvni)} – {mesRok(posledni)}</span><span className="sm:hidden">Od {mesRok(prvni)}</span></th>
               <th className="text-right font-medium py-2 px-2">Toto portfolio</th>
-              <th className="text-right font-medium py-2 pl-2">100&nbsp;% akcie</th>
+              <th className="text-right font-medium py-2 pl-2">{BENCH_KRATCE}</th>
             </tr>
           </thead>
           <tbody>
@@ -269,7 +274,8 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
                 <td className="py-2.5 px-2 text-right">
                   <span className="tabular-nums font-semibold text-slate-900 whitespace-nowrap">{r.pfV}</span>
                   {r.badge && <span className="ml-1.5 inline-flex rounded-full bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 whitespace-nowrap">✓ {r.badge}</span>}
-                  {r.sub && <span className="block text-[11px] text-slate-500">{r.sub}</span>}
+                  {r.sub && <span className="block text-[11px] text-slate-500 whitespace-nowrap">{r.sub}</span>}
+                  {r.sub2 && <span className="block text-[11px] text-slate-500 whitespace-nowrap">{r.sub2}</span>}
                 </td>
                 <td className="py-2.5 pl-2 text-right">
                   <span className="tabular-nums text-slate-600 whitespace-nowrap">{r.bV}</span>
@@ -316,7 +322,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
             <tr className="text-xs text-slate-500 border-b border-slate-100">
               <th className="text-left font-medium py-2 pr-2">Krize</th>
               <th className="text-right font-medium py-2 px-2">Toto portfolio</th>
-              <th className="text-right font-medium py-2 pl-2">100&nbsp;% akcie</th>
+              <th className="text-right font-medium py-2 pl-2">{BENCH_KRATCE}</th>
             </tr>
           </thead>
           <tbody>
