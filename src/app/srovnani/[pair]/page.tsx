@@ -25,6 +25,7 @@ import { datumCen } from '@/lib/datumCen';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { ceskaZeme } from '@/lib/preklady';
+import { indexFonduLabel } from '@/utils/indexNormalization';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -174,7 +175,9 @@ export default async function PairComparePage(
   const tkOf = (e: ComparisonETF | null) => (e ? (e === etf1 ? cz1 : cz2) : null);
   const druhy = (e: ComparisonETF) => (e === etf1 ? etf2 : etf1);
 
-  const sameIndex = !!etf1.index_name && etf1.index_name === etf2.index_name;
+  // Index k zobrazení = indexFonduLabel (jako porovnání a detail): index_name bývá prázdný řetězec (SPYI).
+  const ix1 = indexFonduLabel(etf1), ix2 = indexFonduLabel(etf2);
+  const sameIndex = !!ix1 && ix1 === ix2;
   // Sourozenecké třídy (VWCE vs VWRL, VUAA vs VUSA): stejný index, jiná výplata dividend.
   const d1 = distKind(etf1.distribution_policy), d2 = distKind(etf2.distribution_policy);
   const sourozenci = sameIndex && d1 !== 'unknown' && d2 !== 'unknown' && d1 !== d2;
@@ -192,8 +195,8 @@ export default async function PairComparePage(
   faqs.push({
     q: sameIndex ? `Sledují ${cz1} a ${cz2} stejný index?` : `Jaký je hlavní rozdíl mezi ${cz1} a ${cz2}?`,
     a: sameIndex
-      ? `Ano, oba sledují ${etf1.index_name}. Liší se pak poplatkem, velikostí fondu, typem výplaty (akumulační vs distribuční) a domicilem.`
-      : `${cz1} sleduje index ${etf1.index_name ?? '—'}, zatímco ${cz2} sleduje ${etf2.index_name ?? '—'}. To je hlavní zdroj rozdílu ve výnosu i riziku – jiná expozice na regiony a firmy.`,
+      ? `Ano, oba sledují ${ix1}. Liší se pak poplatkem, velikostí fondu, typem výplaty (akumulační vs distribuční) a domicilem.`
+      : `${cz1} sleduje ${ix1 ? `index ${ix1}` : 'jiný index'}, zatímco ${cz2} ${ix2 ? `index ${ix2}` : 'jiný index'}. To je hlavní zdroj rozdílu ve výnosu i riziku – jiná expozice na regiony a firmy.`,
   });
   if (sizeW) faqs.push({
     q: `Který fond je větší?`,
@@ -245,8 +248,8 @@ export default async function PairComparePage(
               Poplatky, výnos přepočtený do korun a riziko obou fondů vedle sebe. <span className="text-slate-400">Data k {dateStr}.</span>
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2.5 md:gap-4">
-              <SrovnaniSoubojKarta etf={etf1} ticker={cz1} podtitul={etf1.index_name ?? etf1.name} barva={barvaFondu(0)} odlehly={!!dp1?.odlehly} />
-              <SrovnaniSoubojKarta etf={etf2} ticker={cz2} podtitul={etf2.index_name ?? etf2.name} barva={barvaFondu(1)} odlehly={!!dp2?.odlehly} />
+              <SrovnaniSoubojKarta etf={etf1} ticker={cz1} podtitul={ix1 ?? etf1.name} barva={barvaFondu(0)} odlehly={!!dp1?.odlehly} />
+              <SrovnaniSoubojKarta etf={etf2} ticker={cz2} podtitul={ix2 ?? etf2.name} barva={barvaFondu(1)} odlehly={!!dp2?.odlehly} />
             </div>
             {aliasy.map(([u, c, e]) => (
               <p key={u} className="mt-3 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
@@ -274,7 +277,7 @@ export default async function PairComparePage(
               <Link href="/akumulacni-vs-distribucni-etf" className="font-medium text-teal-700 underline underline-offset-2">Akumulační, nebo distribuční?</Link>
             </p>
           ) : (
-            <p className="mt-1 text-sm text-slate-500">{sameIndex ? `Oba sledují ${etf1.index_name} – liší se hlavně poplatkem a velikostí.` : 'Každý fond sleduje jiný index – to je hlavní zdroj rozdílu ve výnosu i riziku.'}</p>
+            <p className="mt-1 text-sm text-slate-500">{sameIndex ? `Oba sledují ${ix1} – liší se hlavně poplatkem a velikostí.` : 'Každý fond sleduje jiný index – to je hlavní zdroj rozdílu ve výnosu i riziku.'}</p>
           )}
           <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {terW && <FaktRow icon={Coins} label="Poplatek (TER)" value={`Nižší má ${tkOf(terW)}`} detail={`${ter(terW.ter_numeric)} vs ${ter(druhy(terW).ter_numeric)} ročně`} />}

@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { Check } from 'lucide-react';
 import type { ComparisonETF } from '@/lib/etf-data';
 import { useCurrency, pickReturn, curLabel } from '@/components/design-preview/currencyStore';
-import { platnyTicker } from '@/lib/ticker';
-import { ceskaZeme, ceskySektor, ceskeZamereni } from '@/lib/preklady';
+import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
+import { ceskaZeme, ceskySektor, ceskeZamereni, SEKTORY_POZNAMKA } from '@/lib/preklady';
 import { indexFonduLabel } from '@/utils/indexNormalization';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -14,6 +14,7 @@ import { detectHedging } from '@/utils/hedgingDetection';
 import { barvaFondu } from '@/lib/barvyFondu';
 import { cislo, procenta, terText, velikostText } from '@/lib/formatSrovnavac';
 import { RIZIKO_NESEDI_TEXT, type RizikoPole } from '@/lib/tridyFondu';
+import { VYPLATA_ACC, VYPLATA_DIST, DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
 const num = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
@@ -203,7 +204,7 @@ function VahyOtocene({ etfs, prefix, n }: { etfs: ComparisonETF[]; prefix: strin
             {etfs.map((e, i) => (
               <th key={e.isin} className="py-1.5 px-1.5 text-right font-semibold text-slate-700 whitespace-nowrap">
                 <span aria-hidden="true" className="mr-1 inline-block w-2 h-2 rounded-[2px] align-middle" style={{ background: barvaFondu(i) }} />
-                {platnyTicker(e.primary_ticker) ?? `${i + 1}.`}
+                {zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? `${i + 1}.`}
               </th>
             ))}
           </tr>
@@ -277,7 +278,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
       omit: etfs.every((e) => num(raw(e)[key]) == null),
     };
   };
-  const vahyRow = (label: string, prefix: string, n: number): Row => ({
+  const vahyRow = (label: React.ReactNode, prefix: string, n: number): Row => ({
     label, top: true, cell: (e) => <WeightList e={e} prefix={prefix} n={n} />,
     omit: etfs.every((e) => vahy(e, prefix, n).length === 0 || (prefix === 'holding' && poziceNeuplne(e))),
     mobil: <VahyOtocene etfs={etfs} prefix={prefix} n={n} />,
@@ -288,7 +289,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
     {
       title: 'Základní informace',
       rows: [
-        { label: 'Ticker', cell: (e) => <span className="font-semibold text-slate-800">{platnyTicker(e.primary_ticker) ?? '—'}</span> },
+        { label: 'Ticker', cell: (e) => <span className="font-semibold text-slate-800">{zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? '—'}</span> },
         /* ISIN je jediný identifikátor, podle kterého se zadává pokyn u brokera –
            musí být vidět vždy, i když má fond ticker. */
         { label: 'ISIN', cell: (e) => <span className="font-mono text-xs text-slate-700">{e.isin}</span> },
@@ -299,8 +300,8 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
         { label: 'Výplata dividend', cell: (e) => {
           const t = distTypeLabel(e.distribution_policy, e.distribution_frequency);
           if (komodita(e) && t !== 'Distribuční') return <span className="text-slate-500">Nevyplácí</span>;
-          if (t === 'Akumulační') return 'Reinvestuje (ACC)';
-          if (t === 'Distribuční') { const c = CETNOST.find(([re]) => re.test(e.distribution_frequency ?? ''))?.[1]; return `Vyplácí (DIST)${c ? `, ${c}` : ''}`; }
+          if (t === 'Akumulační') return VYPLATA_ACC;
+          if (t === 'Distribuční') { const c = CETNOST.find(([re]) => re.test(e.distribution_frequency ?? ''))?.[1]; return `${VYPLATA_DIST}${c ? `, ${c}` : ''}`; }
           return <span className="text-slate-400">—</span>;
         } },
         { label: <InfoTip label="Fyzická = fond drží cenné papíry indexu (nebo fyzický kov). Syntetická = výnos indexu dodává protistrana swapem; „unfunded“ = fond drží vlastní koš cenných papírů a jeho výnos za výnos indexu směňuje.">Replikace</InfoTip>, cell: (e) => replLabel(e.replication) },
@@ -358,14 +359,15 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
           // „—“ = údaj chybí. Akumulační fond dividendy reinvestuje, komodity a krypto nevyplácejí → slovy, ne pomlčkou.
           if (d == null || d === 0) {
             if (komodita(e)) return <span className="text-slate-500" title="Komoditní a kryptoměnové produkty dividendy nevyplácejí">nevyplácí</span>;
-            if (distTypeLabel(e.distribution_policy, e.distribution_frequency) === 'Akumulační') return <span className="text-slate-500" title="Akumulační fond dividendy reinvestuje uvnitř fondu">reinvestuje</span>;
+            if (distTypeLabel(e.distribution_policy, e.distribution_frequency) === 'Akumulační') return <span className="whitespace-nowrap text-slate-500" title={DIV_VYNOS_ACC_TIP}>{DIV_VYNOS_ACC}</span>;
           }
           return pct1(d);
         }, nej: { v: (e) => { const d = num(e.current_dividend_yield_numeric); return d != null && d > 0 ? d : null; }, smer: 1, fmt: pct1 } },
       ],
     },
     { title: 'Největší pozice (top 10)', rows: [vahyRow('Držené firmy', 'holding', 10)] },
-    { title: 'Sektory', rows: [vahyRow('Rozložení sektorů', 'sector', 5)] },
+    // Kolo 5: sektory jsou v klasifikaci zdroje dat, ne GICS (src/lib/preklady.ts) – vysvětlivka u řádku.
+    { title: 'Sektory', rows: [vahyRow(<InfoTip label={SEKTORY_POZNAMKA}>Rozložení sektorů</InfoTip>, 'sector', 5)] },
     { title: 'Země', rows: [vahyRow('Geografické rozložení', 'country', 5)] },
   ];
 
@@ -418,7 +420,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
                     <div className="min-w-0">
                       <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900 leading-tight">
                         <span aria-hidden="true" className="inline-block w-2.5 h-2.5 shrink-0 rounded-[3px]" style={{ background: barvaFondu(i) }} />
-                        {platnyTicker(e.primary_ticker) ?? e.isin}
+                        {zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? e.isin}
                       </span>
                       <Link href={`/etf/${e.isin}`} title={e.name} className="mt-0.5 block truncate text-xs font-normal text-slate-500 hover:text-teal-700 leading-snug">{kratkyNazev(e.name)}</Link>
                     </div>
@@ -452,7 +454,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
         <div className="grid gap-2 sticky top-14 z-10 bg-slate-50 py-2" style={{ gridTemplateColumns: `repeat(${etfs.length}, minmax(0,1fr))` }}>
           {etfs.map((e) => (
             <Link key={e.isin} href={`/etf/${e.isin}`} className="min-w-0 rounded-lg bg-white border border-slate-200 p-2 text-center" style={{ borderTop: `3px solid ${barvaFondu(etfs.indexOf(e))}` }}>
-              <span className="block text-sm font-semibold text-slate-900 leading-tight truncate">{platnyTicker(e.primary_ticker) ?? e.isin}</span>
+              <span className="block text-sm font-semibold text-slate-900 leading-tight truncate">{zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? e.isin}</span>
               <span className="block text-[11px] text-slate-500 truncate" title={e.name}>{kratkyNazev(e.name)}</span>
             </Link>
           ))}

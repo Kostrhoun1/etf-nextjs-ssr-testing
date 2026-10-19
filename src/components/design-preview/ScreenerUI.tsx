@@ -17,6 +17,7 @@ import EmitentLogo from '@/components/home/EmitentLogo';
 import { TipTlacitko } from '@/components/design-preview/InfoTip';
 import { procenta, terText, velikostText } from '@/lib/formatSrovnavac';
 import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
+import { DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
@@ -41,7 +42,7 @@ const distChip = (k: 'acc' | 'dist' | 'unknown') =>
 const PAGE = 25;
 
 /* Sloupec „Div.“: „—“ znamená „údaj chybí“. Akumulační fond dividendy nevyplácí (reinvestuje) – u něj
-   by pomlčka mátla, proto „reinv.“ s vysvětlivkou (revize 18. 10. 2026). */
+   „— (reinvestuje)“ jako na porovnání a detailu (jednotné názvy, kolo 5: dřív „reinv.“). */
 function Dividenda({ e }: { e: ScreenerRow }) {
   const d = num(e.current_dividend_yield_numeric);
   if ((e.category === 'Komodity' || e.category === 'Krypto') && (d == null || d === 0)) {
@@ -49,7 +50,7 @@ function Dividenda({ e }: { e: ScreenerRow }) {
     return <span title="Komoditní a kryptoměnové produkty dividendy nevyplácejí" className="cursor-help text-slate-400">—<span className="sr-only"> nevyplácí</span></span>;
   }
   if (e._dist === 'acc' && (d == null || d === 0)) {
-    return <span title="Akumulační fond – dividendy nevyplácí, reinvestuje je uvnitř fondu" className="text-xs text-slate-400">reinv.</span>;
+    return <span title={DIV_VYNOS_ACC_TIP} className="whitespace-nowrap text-xs text-slate-500">{DIV_VYNOS_ACC}</span>;
   }
   return <>{pct1(d)}</>;
 }
@@ -84,7 +85,7 @@ const VYSVETLIVKY: Record<string, string> = {
   r3: 'Výnos za poslední 3 roky celkem (ne za rok), přepočtený do zvolené měny.',
   r5: 'Výnos za posledních 5 let celkem (ne za rok), přepočtený do zvolené měny. Řekne o fondu víc než jeden rok.',
   vol: 'Kolísavost (volatilita) za poslední rok, počítaná v eurech. Vyšší číslo = divočejší průběh, ne nutně horší fond. „—“ = údaj chybí nebo nesedí s jinou třídou téhož fondu.',
-  div: 'Dividendový výnos = roční dividendy vůči ceně fondu. Akumulační (ACC) fondy dividendy nevyplácejí, reinvestují je uvnitř – proto „reinv.“. Pomlčka = údaj chybí, u komodit a krypta = nevyplácí.',
+  div: 'Dividendový výnos = roční dividendy vůči ceně fondu. Akumulační (ACC) fondy dividendy nevyplácejí, reinvestují je uvnitř – proto „— (reinvestuje)“. Pomlčka = údaj chybí, u komodit a krypta = nevyplácí.',
   typ: 'Štítek u názvu: ACC (akumulační) dividendy reinvestuje uvnitř fondu, DIST (distribuční) je vyplácí na váš účet. „Zajištěno do EUR“ = třída fondu s měnovým zajištěním.',
 };
 
@@ -105,7 +106,34 @@ const selCls = 'vyber h-11 md:h-10 w-full rounded-lg border border-slate-200 bg-
 /* Prezentační obal pole filtru (label + input/select). Definováno na úrovni
    modulu, aby si input při každém překreslení zachoval stabilní identitu a
    neztrácel fokus po každém stisku klávesy. */
+/* Vysvětlivky filtrů (kolo 5, 19. 10. 2026): začátečnice ve Filtrech nenašla ani jednu (i) – Value, Growth,
+   Replikace, Domicil… nic neříkaly. Jedna lidská věta ke každé skupině; bublina TipTlacitko (drží se v okně). */
+const TIPY_FILTRU: Record<string, string> = {
+  'Region / země': 'Kam fond investuje – do oblasti (Evropa, rozvíjející se trhy) nebo do jedné země.',
+  'Typ výplaty': 'Akumulační fond dividendy reinvestuje uvnitř fondu, distribuční je vyplácí na váš účet.',
+  'Investiční styl': 'Fondy, které vybírají akcie podle jednoho rysu: Value = levné vůči zisku, Growth = rychle rostoucí, Momentum = v poslední době rostoucí, Quality = ziskové s nízkým dluhem, Small cap = malé firmy.',
+  'Max. TER (%)': 'Nejvyšší roční poplatek fondu, který vám ještě nevadí – např. 0,20 %.',
+  'Velikost fondu': 'Kolik peněz fond spravuje – větší fondy mívají nižší náklady na obchodování a menší riziko, že je emitent zruší.',
+  'Měnové zajištění': 'Zajištěná třída za malý poplatek tlumí výkyvy kurzu (např. dolaru vůči euru) – do koruny ale nezajišťuje žádná.',
+  'Min. dividenda (%)': 'Jen fondy, které za rok vyplatí na dividendách aspoň tolik procent z ceny podílu.',
+  'Replikace': 'Fyzická = fond akcie z indexu opravdu drží; syntetická = výnos indexu mu dodává banka přes swap.',
+  'Stáří fondu': 'Jak dlouho fond existuje – starší fond má delší a ověřenější historii výnosů.',
+  'Měna fondu': 'Měna, ve které fond vede účetnictví; o kurzovém riziku rozhoduje hlavně to, do čeho fond investuje.',
+  'Domicil fondu': 'Země, kde fond právně sídlí – fondy z Irska platí z amerických dividend nižší srážkovou daň.',
+  'Poskytovatel (emitent)': 'Firma, která fond spravuje a vydává (iShares, Vanguard, Xtrackers…).',
+};
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const tip = TIPY_FILTRU[label];
+  // S vysvětlivkou není obal <label> (tlačítko (i) by se stalo ovládacím prvkem popisku); pole mají aria-label.
+  if (tip) {
+    return (
+      <div>
+        <span className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-500">{label}<TipTlacitko obsah={tip} ariaLabel={`Co znamená ${label}`} maly /></span>
+        {children}
+      </div>
+    );
+  }
   return (
     <label className="block"><span className="block mb-1 text-xs font-medium text-slate-500">{label}</span>{children}</label>
   );
@@ -316,6 +344,27 @@ export default function ScreenerUI({
   const [shown, setShown] = useState(PAGE);
   const [cur] = useCurrency();
   const rootRef = useRef<HTMLDivElement>(null);
+  // Konec tabulky (kolo 5): plovoucí hlavička na konci zakrývala poslední řádek a pod ní zbyl jeho proužek.
+  // Když spodek tabulky vyjede nad hlavičku + jeden řádek, hlavička přestane plavat (odjede s tabulkou).
+  const tabulkaRef = useRef<HTMLTableElement>(null);
+  const [konecTabulky, setKonecTabulky] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const mer = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const t = tabulkaRef.current;
+        if (!t) return;
+        const hlavicka = t.tHead?.getBoundingClientRect().height ?? 0;
+        const posledni = t.tBodies[0]?.rows[t.tBodies[0].rows.length - 1]?.getBoundingClientRect().height ?? 0;
+        setKonecTabulky(t.getBoundingClientRect().bottom < 56 + hlavicka + posledni);
+      });
+    };
+    mer();
+    window.addEventListener('scroll', mer, { passive: true });
+    window.addEventListener('resize', mer);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('scroll', mer); window.removeEventListener('resize', mer); };
+  }, []);
 
   // Progresivní načtení: stránka vloží jen prvních ~50 řádků (rychlý FCP + SEO);
   // celou databázi si dotáhneme z cachovaného API a odemkneme filtrování nad celkem.
@@ -764,8 +813,8 @@ export default function ScreenerUI({
       {/* Plovoucí hlavička (majitel 18. 10. 2026): sticky funguje jen bez overflow na předkovi → od lg (tabulka se vejde)
           kontejner bez overflow-x-auto; md–lg (úzké okno) se dál posouvá do strany a hlavička neplave. */}
       <div className="mt-2 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto lg:overflow-visible">
-        <table className="w-full min-w-[60rem] text-sm border-separate border-spacing-0">
-          <thead className="lg:sticky lg:top-14 z-20 shadow-[0_1px_0_0_theme(colors.slate.200)]">
+        <table ref={tabulkaRef} className="w-full min-w-[60rem] text-sm border-separate border-spacing-0">
+          <thead className={`${konecTabulky ? '' : 'lg:sticky'} lg:top-14 z-20 shadow-[0_1px_0_0_theme(colors.slate.200)]`}>
             {/* Dvouřádková hlavička: měna výnosů jednou nad skupinou sloupců (explicitně, ale bez opakování). */}
             <tr className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide">
               <SortH k="name" wide rowSpan={2} tip="typ" cls="rounded-tl-xl" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Fond</SortH>
@@ -774,7 +823,7 @@ export default function ScreenerUI({
               <th colSpan={4} className="pt-2 px-2 text-center font-semibold normal-case tracking-normal text-xs text-teal-800 bg-teal-50 border-l border-slate-200">
                 <span className="block border-b border-slate-200 pb-1">Výnos v {cur === 'CZK' ? 'korunách' : cur === 'EUR' ? 'eurech' : 'dolarech'}</span>
               </th>
-              <SortH k="vol" right rowSpan={2} tip="vol" cls={SKUPINA} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Kolísavost</SortH>
+              <SortH k="vol" right rowSpan={2} tip="vol" cls={SKUPINA} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Kolísavost (EUR)</SortH>
               <SortH k="div" right rowSpan={2} tip="div" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Div.</SortH>
               <th rowSpan={2} className="py-2.5 px-2 font-medium text-center rounded-tr-xl"><span className="sr-only">Porovnat</span></th>
             </tr>
@@ -872,7 +921,8 @@ export default function ScreenerUI({
                   </div>
                   <CompareButton isin={e.isin} label={tk ?? e.name.slice(0, 8)} variant="row" />
                 </div>
-                <dl className="mt-2.5 grid grid-cols-4 gap-1.5 text-xs">
+                {/* Kolo 5: poslední sloupec podle obsahu – „139,4 mld. €“ přetékalo čtvrtinu karty o ~5 px. */}
+                <dl className="mt-2.5 grid grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-1.5 text-xs">
                   <div>
                     <dt className="text-slate-500">1 rok</dt>
                     <dd className={`tabular-nums text-sm font-semibold whitespace-nowrap ${barva(r1)}`}>{pct(r1)}</dd>

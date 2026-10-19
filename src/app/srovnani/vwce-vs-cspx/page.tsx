@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { indexFonduLabel } from '@/utils/indexNormalization';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -105,7 +106,7 @@ export default async function SrovnaniPreview() {
     },
     {
       q: `Jaký je hlavní rozdíl mezi ${t1} a ${t2}?`,
-      a: `${t1} (${etf1.index_name}) drží zhruba ${holdings1?.toLocaleString('cs-CZ') ?? 'tisíce'} firem z celého světa – USA, Evropa, Japonsko i rozvíjející se trhy. ${t2} (${etf2.index_name}) drží ${holdings2?.toLocaleString('cs-CZ') ?? '500'} největších firem z USA. ${t1} je tedy celosvětová diverzifikace, ${t2} soustředění na americký trh.`,
+      a: `${t1} (${indexFonduLabel(etf1) ?? 'index celého světa'}) drží zhruba ${holdings1?.toLocaleString('cs-CZ') ?? 'tisíce'} firem z celého světa – USA, Evropa, Japonsko i rozvíjející se trhy. ${t2} (${indexFonduLabel(etf2) ?? 'S&P 500'}) drží ${holdings2?.toLocaleString('cs-CZ') ?? '500'} největších firem z USA. ${t1} je tedy celosvětová diverzifikace, ${t2} soustředění na americký trh.`,
     },
     {
       q: 'Vyplácejí tyto fondy dividendy?',
@@ -142,7 +143,7 @@ export default async function SrovnaniPreview() {
 
   /* Rozdíly v kostce – fakta z dat, bez „vítěze“. */
   const kostka: { label: React.ReactNode; v1: string; v2: string; pozn?: string }[] = [
-    { label: 'Index', v1: etf1.index_name ?? '—', v2: etf2.index_name ?? '—' },
+    { label: 'Index', v1: indexFonduLabel(etf1) ?? '—', v2: indexFonduLabel(etf2) ?? '—' },
     { label: 'Počet firem', v1: holdings1?.toLocaleString('cs-CZ') ?? '—', v2: holdings2?.toLocaleString('cs-CZ') ?? '—' },
     { label: 'Podíl USA', v1: f1(usa1), v2: f1(usa2) },
     { label: <InfoTip label="Roční poplatek za správu fondu (TER), strhává se průběžně z hodnoty investice.">Poplatek (TER)</InfoTip>, v1: ter(etf1.ter_numeric), v2: ter(etf2.ter_numeric), pozn: terNizsi ? `nižší má ${terNizsi === 1 ? t1 : t2}` : undefined },

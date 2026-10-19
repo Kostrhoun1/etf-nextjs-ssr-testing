@@ -22,16 +22,17 @@ import EtfReturns from '@/components/design-preview/EtfReturns';
 import { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
 import { getDataDate, getPodobneFondy, SPECIFICKY_FOND, rizikoNesediFondu } from '@/lib/etf-data';
 import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
-import { canonicalIndexLabel } from '@/utils/indexNormalization';
+import { canonicalIndexLabel, indexFonduLabel } from '@/utils/indexNormalization';
 import { isHeadFund } from '@/lib/etf-head';
 import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy } from '@/lib/trhy';
-import { platnyTicker } from '@/lib/ticker';
+import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
+import OdkazBurzy from './OdkazBurzy';
 import { datumCen } from '@/lib/datumCen';
-import { ceskaZeme, ceskySektor, ceskeZamereni } from '@/lib/preklady';
+import { ceskaZeme, ceskySektor, ceskeZamereni, SEKTORY_POZNAMKA } from '@/lib/preklady';
 import { terFmt, procenta, velikostFondu, cislo, NBSP } from '@/lib/formatyCisel';
-import { nevyplaciKomodita } from '@/lib/dividendyFondu';
+import { nevyplaciKomodita, VYPLATA_ACC, VYPLATA_DIST } from '@/lib/dividendyFondu';
 
 // 30 dní (ne 1 den): ~4970 ETF stránek se dlouhým ocasem regeneruje ISR na požádání,
 // crawleři (Seznam/Bing) je projíždějí a každá expirovaná = 1 Vercel ISR Write. Při
@@ -74,11 +75,13 @@ export async function generateMetadata(
   const { isin } = await params;
   const { data } = await supabaseAdmin
     .from('etf_funds')
-    .select('name, fund_size_numeric, ' + TICKER_KEYS.join(', '))
+    .select('name, fund_size_numeric, ' + SLOUPCE_TICKERU.join(', '))
     .eq('isin', isin).single();
   const fund = data as Record<string, unknown> | null;
   const name = (fund?.name as string) || 'ETF fond';
-  const tickers = uniqueTickers(fund);
+  // Zobrazovaný ticker (jeden pro celý web, src/lib/ticker.ts) první – stejný jako hero, srovnávač a žebříčky.
+  const zt = zobrazovanyTicker(fund);
+  const tickers = zt ? [zt, ...uniqueTickers(fund).filter((t) => t.toUpperCase() !== zt.toUpperCase())] : uniqueTickers(fund);
   const titleTk = tickers.slice(0, 4).join(', '); // titulek: max 4 (kdyby jich měl fond 8)
   // DIFERENCOVANÁ INDEXACE (experiment od 2026-07-07, měří CEO):
   // - Bing/Seznam/ostatní: indexovat VŠECHNY detaily – už dnes z nich chodí traffic
@@ -329,7 +332,10 @@ export default async function ETFDetailPreview(
   // Kam dál + kontextové odkazy (deep dive 17. 10. 2026: z detailu na články vedlo 0 z 1 243 prokliků).
   const canonIdx = canonicalIndexLabel(etf.index_name);
   // Sledovaný podklad: index ze zdroje, jinak doslovně z popisu fondu (zlato: „Spotová cena zlata v USD“).
-  const podklad = etf.index_name?.trim() ? null : podkladZPopisu((r.description_en as string | null) ?? etf.description_cs);
+  // Sledovaný index k ZOBRAZENÍ = stejná funkce jako porovnání a srovnávač (kolo 5, 19. 10. 2026): SPYI má index_name
+  // prázdný řetězec → dřív prázdná buňka, porovnání přitom ukázalo „MSCI ACWI IMI“. Raw index_name jen pro dotazy.
+  const indexLabel = indexFonduLabel({ index_name: etf.index_name, name: etf.name, investment_focus: (r.investment_focus as string | null) ?? null });
+  const podklad = indexLabel ? null : podkladZPopisu((r.description_en as string | null) ?? etf.description_cs);
   const btFond = prirazeniFondu(etf as unknown as FondProPrirazeni);
   const btTer = etf.ter_numeric == null ? null : Number(etf.ter_numeric) / 100;
   // Odkaz jen když umíme fond poctivě spočítat: přiřazený index se známým poplatkem zdroje a známé TER fondu.
@@ -445,17 +451,22 @@ export default async function ETFDetailPreview(
     ],
   };
 
-  // Hlavní ticker = XETRA (DEGIRO, XTB, Trading 212 nakupují tam); ostatní burzy až pod „Další burzy“ (Markéta:
+  // Sekce burz: XETRA nahoře (DEGIRO, XTB, Trading 212 nakupují tam); ostatní burzy až pod „Další burzy“ (Markéta:
   // „SXR8 · CSSPX · CSPX · CSP1 – který koupit?“).
   const xetra = exchanges.find((e) => /xetra/i.test(e.name));
   const hlavniListing = xetra ?? exchanges[0] ?? null;
-  const hlavniTicker = hlavniListing?.ticker ?? platnyTicker(etf.primary_ticker) ?? null;
+  // Ticker v úvodu, <title>, FAQ a tlačítku porovnání = JEDEN zobrazovaný ticker webu (src/lib/ticker.ts) – kolo 5:
+  // u zlata detail ukazoval PPFB (XETRA), zbytek webu SGLN. Burza v úvodu = první listing s tímto tickerem.
+  const hlavniTicker = zobrazovanyTicker(etf as unknown as Record<string, unknown>);
+  const tickerListing = hlavniTicker ? exchanges.find((e) => e.ticker.trim().toUpperCase() === hlavniTicker.toUpperCase()) ?? null : null;
   const ostatniTickery = allTickers.filter((t) => t.toUpperCase() !== (hlavniTicker ?? '').toUpperCase() && platnyTicker(t));
   const dalsiBurzy = exchanges.filter((e) => e !== hlavniListing);
-  // Úvod i „Další burzy“ počítají ze STEJNÉHO seznamu (revize kola 4: „+ 3 další burzy“ vs „Další burzy (7)“).
-  // V úvodu jsou to tickery (gettex/Stuttgart mají stejný ticker jako XETRA), v rozbalovacím seznamu burzy.
+  // „Další burzy“ = tickery mimo XETRA listing; v úvodu tickery mimo zobrazovaný (gettex/Stuttgart mají stejný ticker).
   const dalsiTickery = Array.from(new Set(dalsiBurzy.map((e) => e.ticker.trim().toUpperCase())))
+    .filter((t) => t !== (hlavniListing?.ticker ?? '').trim().toUpperCase());
+  const tickeryUvod = Array.from(new Set(exchanges.map((e) => e.ticker.trim().toUpperCase())))
     .filter((t) => t !== (hlavniTicker ?? '').toUpperCase());
+  const burzyUvod = exchanges.filter((e) => e !== tickerListing).length;
   const tickeryText = (n: number) => (n === 1 ? 'další ticker' : n < 5 ? 'další tickery' : 'dalších tickerů');
   const burzyText = (n: number) => (n === 1 ? '1 další burze' : `${n} dalších burzách`);
 
@@ -483,7 +494,7 @@ export default async function ETFDetailPreview(
   const faktaHero: [React.ReactNode, string][] = [
     [<InfoTip key="ter" label="Total Expense Ratio – roční poplatek za správu fondu, strhává se průběžně z hodnoty investice.">Poplatek (TER)</InfoTip>, ter(etf.ter_numeric)],
     ['Velikost fondu', money(etf.fund_size_numeric, etf.fund_currency)],
-    [<InfoTip key="dist" label={komodita ? TIP_KOMODITA : TIP_DIVIDENDY}>Dividendy</InfoTip>, komodita ? 'Nevyplácí' : isAcc ? 'Reinvestuje' : isDist ? (divYield != null ? `Vyplácí ${procenta(divYield, 2, false)}` : 'Vyplácí') : 'Neuvedeno'],
+    [<InfoTip key="dist" label={komodita ? TIP_KOMODITA : TIP_DIVIDENDY}>Dividendy</InfoTip>, komodita ? 'Nevyplácí' : isAcc ? VYPLATA_ACC : isDist ? (divYield != null ? `${VYPLATA_DIST} ${procenta(divYield, 2, false)}` : VYPLATA_DIST) : 'Neuvedeno'],
     [<InfoTip key="rep" label="Fyzická replikace = fond reálně nakupuje cenné papíry z indexu; syntetická používá swap s protistranou.">Replikace</InfoTip>, replText.split(' ')[0]],
     [<InfoTip key="dom" label="Země, kde fond právně sídlí. Irsko má výhodnou daňovou smlouvu s USA, W-8BEN neřešíte.">Domicil</InfoTip>, domText],
     ['Na trhu od', rokVzniku],
@@ -506,9 +517,9 @@ export default async function ETFDetailPreview(
     {
       q: `Je ${hlavniTicker ? `${hlavniTicker} (${shortName})` : shortName} vhodný pro dlouhodobé investování?`,
       a: isLev
-        ? `Pro dlouhodobé držení obecně ne. Jde o pákový (nebo inverzní) produkt, který násobí DENNÍ pohyb ${etf.index_name ? `indexu ${etf.index_name}` : 'podkladového trhu'} a každý den se přenastavuje. Za delší období se proto jeho výnos může výrazně lišit od násobku výnosu indexu – při kolísavém trhu i směrem dolů – a o investici lze přijít i úplně. Je určený ke krátkodobému obchodování zkušenými investory.`
+        ? `Pro dlouhodobé držení obecně ne. Jde o pákový (nebo inverzní) produkt, který násobí DENNÍ pohyb ${indexLabel ? `indexu ${indexLabel}` : 'podkladového trhu'} a každý den se přenastavuje. Za delší období se proto jeho výnos může výrazně lišit od násobku výnosu indexu – při kolísavém trhu i směrem dolů – a o investici lze přijít i úplně. Je určený ke krátkodobému obchodování zkušenými investory.`
         : [
-            `Je to ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}${komodita === 'kryptoměna' ? 'kryptoměnový produkt' : komodita ? 'komoditní produkt' : 'fond'}${etf.index_name ? ` sledující index ${etf.index_name}` : podklad ? ` (podklad: ${podklad.charAt(0).toLowerCase()}${podklad.slice(1)})` : ''}${replikaceVeta(etf.replication) ? ` ${replikaceVeta(etf.replication)}` : ''}.`,
+            `Je to ${isAcc ? 'akumulační ' : isDist ? 'distribuční ' : ''}${komodita === 'kryptoměna' ? 'kryptoměnový produkt' : komodita ? 'komoditní produkt' : 'fond'}${indexLabel ? ` sledující index ${indexLabel}` : podklad ? ` (podklad: ${podklad.charAt(0).toLowerCase()}${podklad.slice(1)})` : ''}${replikaceVeta(etf.replication) ? ` ${replikaceVeta(etf.replication)}` : ''}.`,
             `Velikost fondu je ${money(etf.fund_size_numeric, etf.fund_currency)}, roční poplatek ${ter(etf.ter_numeric)}${sidloVeta(etf.fund_domicile) ? ` a ${sidloVeta(etf.fund_domicile)}` : ''}.`,
             'Vhodnost pro vás závisí na vašem cíli, horizontu a na tom, jak snesete kolísání (viz Riziko a kolísavost).',
           ].join(' '),
@@ -545,13 +556,13 @@ export default async function ETFDetailPreview(
   const faktaTabulka: [React.ReactNode, React.ReactNode][] = [
     [<InfoTip key="ter" label="Total Expense Ratio – roční poplatek za správu fondu, strhává se průběžně z hodnoty investice.">Roční poplatek (TER)</InfoTip>, ter(etf.ter_numeric)],
     ['Velikost fondu', money(etf.fund_size_numeric, etf.fund_currency)],
-    [<InfoTip key="dist" label={komodita ? TIP_KOMODITA : TIP_DIVIDENDY}>Dividendy</InfoTip>, komodita ? `Nevyplácí (${komodita})` : `${distText}${isAcc ? ' (reinvestuje)' : isDist ? ' (vyplácí)' : ''}`],
+    [<InfoTip key="dist" label={komodita ? TIP_KOMODITA : TIP_DIVIDENDY}>Dividendy</InfoTip>, komodita ? `Nevyplácí (${komodita})` : isAcc ? VYPLATA_ACC : isDist ? VYPLATA_DIST : distText], // jednotné názvy (kolo 5)
     ...(isDist ? [[<InfoTip key="dy" label="Dividendový výnos – kolik fond za rok vyplatil na dividendách vůči své ceně.">Dividendový výnos</InfoTip>, divYield != null ? procenta(divYield, 2, false) : '—'] as [React.ReactNode, React.ReactNode]] : []),
     [<InfoTip key="rep" label="Fyzická replikace = fond reálně nakupuje cenné papíry z indexu; syntetická používá swap s protistranou.">Replikace</InfoTip>, replText],
     [<InfoTip key="dom" label="Země, kde fond právně sídlí. Irsko má výhodnou daňovou smlouvu s USA, W-8BEN neřešíte.">Domicil</InfoTip>, domText],
     podklad
       ? [<InfoTip key="podklad" label="Zdroj dat u tohoto produktu index neuvádí; podklad přebíráme z popisu fondu.">Sleduje</InfoTip>, podklad]
-      : ['Sledovaný index', etf.index_name || '—'],
+      : ['Sledovaný index', indexLabel ?? '—'],
     // Komodita/krypto bez pozic: řádek „—“ by mátl (drží kov/kryptoměnu, ne cenné papíry).
     ...(komodita && etf.total_holdings == null ? [] : [[<InfoTip key="hold" label="Počet cenných papírů, které fond reálně drží.">Počet držených pozic</InfoTip>, etf.total_holdings != null ? etf.total_holdings.toLocaleString('cs-CZ') : '—'] as [React.ReactNode, React.ReactNode]]),
     [<InfoTip key="mena" label="Měna, ve které fond vede účetnictví. Měnové riziko vůči koruně určuje hlavně to, do čeho fond investuje.">Měna fondu</InfoTip>, etf.fund_currency || '—'],
@@ -600,19 +611,20 @@ export default async function ETFDetailPreview(
                   <EmitentLogo nazev={etf.name} size={40} className="!rounded-lg" />
                   <div className="min-w-0 text-xs text-slate-400 leading-snug">
                     <span className="block text-slate-300 font-medium">{etf.fund_provider}</span>
-                    {etf.index_name ? <span className="block truncate">Index {etf.index_name}</span> : podklad && <span className="block truncate">{podklad}</span>}
+                    {indexLabel ? <span className="block truncate">Index {indexLabel}</span> : podklad && <span className="block truncate">{podklad}</span>}
                   </div>
                 </div>
                 <h1 className="mt-3 text-[22px] md:text-3xl font-bold tracking-tight leading-tight">{etf.name}</h1>
                 <p className="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-slate-300">
                   {hlavniTicker && (
                     <span>
-                      {hlavniListing ? <>Ticker na {burzaKratce(hlavniListing.name)}: </> : 'Ticker: '}
-                      <strong className="font-semibold text-white">{hlavniTicker}</strong>
-                      {dalsiTickery.length > 0 && (
-                        <span className="ml-1.5 text-xs text-slate-400">
-                          <InfoTip label={`Stejný fond se obchoduje i na ${burzyText(dalsiBurzy.length)} pod tickery ${dalsiTickery.join(', ')}. Poplatek, složení i výnos jsou stejné, liší se jen burza a měna obchodování. Seznam je dole v části Další burzy.`}>+{NBSP}{dalsiTickery.length} {tickeryText(dalsiTickery.length)}</InfoTip>
-                        </span>
+                      {tickerListing ? <>Ticker na {burzaKratce(tickerListing.name)}: </> : 'Ticker: '}
+                      <strong data-ticker className="font-semibold text-white">{hlavniTicker}</strong>
+                      {tickeryUvod.length > 0 && (
+                        // Kolo 5: klik dřív nic viditelně neudělal (jen bublina) → odscroluje na burzy a rozbalí je.
+                        <OdkazBurzy title={`Stejný fond se obchoduje i na ${burzyText(burzyUvod)} pod tickery ${tickeryUvod.join(', ')}. Poplatek, složení i výnos jsou stejné, liší se jen burza a měna obchodování.`}>
+                          +{NBSP}{tickeryUvod.length} {tickeryText(tickeryUvod.length)}
+                        </OdkazBurzy>
                       )}
                     </span>
                   )}
@@ -743,8 +755,9 @@ export default async function ETFDetailPreview(
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="font-semibold text-slate-900 flex items-center gap-2">
                       <Layers className="w-4 h-4 text-teal-700" />
-                      <InfoTip label="Sektory podle klasifikace TRBC (Refinitiv), proto se liší od GICS, kterou používají emitenti indexů – např. Alphabet a Meta tu patří do technologií, ne do komunikačních služeb.">Sektory</InfoTip>
+                      <InfoTip label={SEKTORY_POZNAMKA}>Sektory</InfoTip>
                     </h3>
+                    <p className="mt-1 text-xs text-slate-500">Podle klasifikace zdroje dat, ne GICS.</p>
                     <div className="mt-3 divide-y divide-slate-100">
                       {sectors.map((s) => (
                         <WeightRow key={s.name} label={ceskySektor(s.name)} weight={s.weight!} max={sectorMax} />
@@ -855,7 +868,7 @@ export default async function ETFDetailPreview(
 
           {/* Burzy – hlavní listing vidět, ostatní sbalené */}
           {exchanges.length > 0 && (
-            <div data-sekce="burzy" className="mt-4 rounded-xl border border-slate-200 bg-white">
+            <div id="burzy" data-sekce="burzy" className="mt-4 scroll-mt-20 rounded-xl border border-slate-200 bg-white">
               {hlavniListing && (
                 <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
                   <span className="text-slate-600">
@@ -866,9 +879,9 @@ export default async function ETFDetailPreview(
                 </div>
               )}
               {dalsiBurzy.length > 0 && (
-                <details className="group border-t border-slate-100">
+                <details id="dalsi-burzy" className="group border-t border-slate-100">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    <span>Další burzy ({dalsiBurzy.length}) <span className="font-normal text-slate-500">– {dalsiTickery.length > 0 ? `${dalsiTickery.length === 1 ? 'ticker' : 'tickery'} ${dalsiTickery.join(', ')}` : `stejný ticker ${hlavniTicker ?? ''}`}, stejný fond</span></span>
+                    <span>Další burzy ({dalsiBurzy.length}) <span className="font-normal text-slate-500">– {dalsiTickery.length > 0 ? `${dalsiTickery.length === 1 ? 'ticker' : 'tickery'} ${dalsiTickery.join(', ')}` : `stejný ticker ${hlavniListing?.ticker ?? ''}`}, stejný fond</span></span>
                     <ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" />
                   </summary>
                   <ul className="divide-y divide-slate-100 border-t border-slate-100">
@@ -889,7 +902,7 @@ export default async function ETFDetailPreview(
         {(podobne.length > 0 || parHref) && (
           <section data-sekce="podobne-fondy" className="pb-10">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-              <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Další fondy na {etf.index_name ? `index ${etf.index_name}` : 'stejný index'}</h2>
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Další fondy na {indexLabel ? `index ${indexLabel}` : 'stejný index'}</h2>
               <Link href={zebricekHref} className="inline-flex items-center gap-1 text-sm font-medium text-teal-700 hover:text-teal-800">{zebricekLabel} <ArrowRight className="w-4 h-4" /></Link>
             </div>
             <div className="grid gap-4 lg:grid-cols-3 items-start">

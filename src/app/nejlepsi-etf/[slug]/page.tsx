@@ -22,8 +22,9 @@ import CompareButton from '@/components/design-preview/CompareButton';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import TabulkaFondu, { type RadekFondu } from '@/components/zebricky/TabulkaFondu';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { platnyTicker } from '@/lib/ticker';
+import { zobrazovanyTicker } from '@/lib/ticker';
 import { detectHedging } from '@/utils/hedgingDetection';
+import { tridaFondu } from '@/lib/nazevFondu';
 import { distKind } from '@/utils/distribution';
 
 export const revalidate = 86400;
@@ -85,20 +86,18 @@ function zajisteni(nazev: string): string | null {
  *  závorky po poslední – „UBS ETF (CH) Gold (USD) A-dis“ pak bylo „UBS ETF A-dis“.) */
 const nazevFondu = (n: string) => n.replace(/\s+UCITS\b.*$/i, '').replace(/\s+\([^()]*\)\s*$/, '').trim() || n;
 
-/** Třída fondu z konce názvu („UCITS ETF hEUR acc“ → „hEUR acc“, „(USD) Accumulating“ → „USD Accumulating“). */
-const tridaFondu = (n: string) => (n.match(/\bUCITS\s+ETF\b(.*)$/i)?.[1] ?? '').replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
-
-/** Krátké názvy pro tabulku: když dva fondy vyjdou stejně (6× „UBS MSCI ACWI SF“), připojí se třída
- *  (měna, hEUR, Ukdis, acc/dis). Když se liší jen něčím mimo název, odliší je druhý řádek (ticker/ISIN).
- *  Revize kola 2: řádky nešly odlišit. */
+/** Krátké názvy pro tabulku: když dva fondy vyjdou stejně (6× „UBS MSCI ACWI SF“), připojí se měna třídy.
+ *  Kolo 5 (19. 10. 2026): dřív syrový konec názvu („· 1C“, „· 4C“, „· USD acc“ vs „· USD Acc“, „· USD Ukdis“).
+ *  Teď normalizovaně ze sdílené funkce (src/lib/nazevFondu.ts): v názvu jen měna třídy, výplatu (akumulační/
+ *  distribuční) a měnové zajištění ukazuje druhý řádek; kód třídy se neukazuje. Revize kola 2: řádky nešly odlišit. */
 function kratkeNazvy(nazvy: string[]): string[] {
   const kratke = nazvy.map(nazevFondu);
   const pocet = new Map<string, number>();
   kratke.forEach((k) => pocet.set(k, (pocet.get(k) ?? 0) + 1));
   return kratke.map((k, i) => {
     if ((pocet.get(k) ?? 0) < 2) return k;
-    const t = tridaFondu(nazvy[i]);
-    return t ? `${k} · ${t}` : k;
+    const mena = tridaFondu(nazvy[i]).mena;
+    return mena ? `${k} · ${mena}` : k;
   });
 }
 
@@ -268,7 +267,7 @@ export default async function CategoryDetailPreview(
     return {
       isin: e.isin,
       nazev: nazvy[i],
-      ticker: platnyTicker(e.primary_ticker),
+      ticker: zobrazovanyTicker(e as unknown as Record<string, unknown>), // jeden ticker webu (src/lib/ticker.ts)
       emitent: e.fund_provider ?? null,
       rok: inceptionYear(e.inception_date),
       ter: num(e.ter_numeric),
@@ -375,9 +374,10 @@ export default async function CategoryDetailPreview(
         {recos.length > 0 && (
           <section data-sekce="vybrane" className="pb-8" aria-labelledby="vybrane-h">
             <h2 id="vybrane-h" className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Vybrané podle dat</h2>
-            <div className="grid gap-3 md:grid-cols-3">
+            {/* Kolo 5: karty se neroztahují na výšku nejvyšší karty v řadě (u S&P 500 měla „Největší fond“ velkou prázdnou spodní část). */}
+            <div className="grid gap-3 md:grid-cols-3 md:items-start">
               {recos.map(({ tag, icon: Icon, etf, hodnota, popis, pravidlo }) => {
-                const tk = platnyTicker(etf.primary_ticker);
+                const tk = zobrazovanyTicker(etf as unknown as Record<string, unknown>);
                 return (
                   <div key={etf.isin} className="group relative min-w-0 rounded-xl border border-slate-200 bg-white px-3.5 py-3 md:p-5 hover:border-teal-300 hover:shadow-sm transition-all">
                     <div className="absolute right-3 top-3 z-10 hidden md:block">
