@@ -455,7 +455,7 @@ const main = async () => {
     const vSeznamu = new Set(vse);
     const TRH_RE = [['svet', /(FTSE All-World|MSCI ACWI|MSCI AC World|All Country World|All-Country World|Global All[- ]Cap)/i], ['world', /(MSCI World|Developed World)/i], ['sp500', /S&P 500/i],
       ['nasdaq', /Nasdaq[- ]?100/i], ['evropa', /(STOXX Europe 600|MSCI Europe)/i], ['em', /MSCI (Emerging Markets|EM)\b/i]];
-    const UZKE = /(esg|sri|screened|climate|paris|\bpab\b|\bctb\b|islamic|shariah|ex[ -]|small|mid ?cap|\bmc\b|value|momentum|quality|dividend|min(imum)? vol|low vol|leaders|select|focus|transition|sustainab|equal|factor|enhanced|universal|socially|buffer|covered|income|daily|sector|growth|information tech|energy|health|financ|consumer|industr|utilit|real estate|communic|material|optimi|catholic|fossil|investable market|top \d|filtered|capped|banks|insurance|oil|basic resources|food|automobile|chemical|travel|personal|telecom|media|construction|retail|technology|asia|latin|china|india|korea|taiwan|buyback|qvm|min te|action|pea|\b2x\b|\b3x\b|short|vix|future)/i;
+    const UZKE = /(esg|sri|screened|climate|paris|\bpab\b|\bctb\b|islamic|shariah|ex[ -]|small|mid ?cap|\bmc\b|value|momentum|quality|dividend|min(imum)? vol|low vol|leaders|select|focus|transition|sustainab|equal|factor|enhanced|universal|socially|buffer|covered|income|daily|sector|growth|information tech|energy|health|financ|consumer|industr|utilit|real estate|communic|material|optimi|catholic|fossil|top \d|filtered|capped|banks|insurance|oil|basic resources|food|automobile|chemical|travel|personal|telecom|media|construction|retail|technology|asia|latin|china|india|korea|taiwan|buyback|qvm|min te|action|pea|\b2x\b|\b3x\b|short|vix|future)/i;
     const ZAJ = /(hedged|hdg|\bh(EUR|USD|GBP|CHF|JPY)\b|pfhdg)/i;
     const kandidati = await fetch(`${URL_DB}?select=isin,name,fund_size_numeric,scraping_date&category=eq.Akcie&fund_size_numeric=gte.500&is_leveraged=not.is.true`, {
       headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
@@ -682,6 +682,208 @@ const main = async () => {
   } catch (e) {
     varovani.push({ co: `Kontrolu vkladů backtestu se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
+
+  // --- kolo5 B --- (revize 19. 10. 2026: homepage/srovnávač/porovnání/detail/žebříčky/hledání)
+  // Každá opravená chyba v datech z kola 5 B má tu kontrolu, která by ji příště chytila sama.
+  {
+    const hlav = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    // Bez komentářů <!-- --> (React jimi odděluje text a výrazy – „o <!-- -->6<!-- --> méně“).
+    const html = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return r.ok ? (await r.text()).replace(/<!-- -->/g, '') : ''; } catch { return ''; } };
+    const isinyZPayloadu = (t) => new Set([...t.matchAll(/isin\\":\\"([A-Z]{2}[A-Z0-9]{10})/g)].map((m) => m[1]));
+    const ZAJ_NAZEV = /[Hh]edg|[Hh]dg|(^|[\s-])h(EUR|USD|GBP|CHF|JPY|SEK|SGD)\b|\bEAH [A-Z]{3}\b|\bH[- ][A-Z]{3}\b|\b[A-Z]{3} \(H\)|\b[A-Z]{3}-H\b/;
+    const NEZAJ = /unhedged|not hedged|interest rate hedged|tail hedge|hedged equity|dynamically hedged/i;
+    const zajistena = (n) => ZAJ_NAZEV.test(n || '') && !NEZAJ.test(n || '');
+
+    // 1) HOMEPAGE TRHY = VÝBĚR ŽEBŘÍČKU. „Celý svět“ na homepage vyřazoval SPDR MSCI ACWI IMI (SPYI, SPSA), žebříček
+    //    i srovnávač ho měly → homepage a žebříček ukazovaly jiného vítěze/jiné rozpětí. Pro 4 trhy srovnávače
+    //    (svet, world, sp500, nasdaq) PŘESNÁ shoda: nezajištěné fondy žebříčku = fondy homepage nad 100 mil. € (čerstvé).
+    //    Evropa a EM: žebříček je záměrně širší (DAX, CAC, FTSE EM…), proto jen „každý fond homepage nad 100 mil. € je
+    //    v žebříčku“. V žebříčku bez homepage smí být jen to, co homepage vyřazuje podle svých pravidel (trhyDvojcata.ts):
+    //    měnově zajištěné třídy, francouzské PEA verze, „Min TE“ (optimalizované) a VYJIMKY.
+    try {
+      const zdroj = readFileSync('src/data/trhyDvojcata.ts', 'utf8');
+      const trhy = [...zdroj.matchAll(/id: '([a-z0-9]+)'[\s\S]*?href: '\/nejlepsi-etf\/([a-z0-9-]+)'[\s\S]*?isins: \[([\s\S]*?)\]/g)]
+        .map((m) => ({ id: m[1], slug: m[2], isins: [...m[3].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
+      if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
+      const vyjimky = new Set([...(zdroj.match(/VYJIMKY[\s\S]*?\};/)?.[0] ?? '').matchAll(/([A-Z]{2}[A-Z0-9]{10}):/g)].map((m) => m[1]));
+      const PRESNE = new Set(['svet', 'world', 'sp500', 'nasdaq']);
+      const nesedi = [];
+      for (const t of trhy) {
+        const stranka = await html(`/nejlepsi-etf/${t.slug}`);
+        const zeb = isinyZPayloadu(stranka);
+        if (!zeb.size) { nesedi.push(`${t.id}: žebříček /nejlepsi-etf/${t.slug} se nenačetl`); continue; }
+        const vse = [...new Set([...t.isins, ...zeb])];
+        const db = await fetch(`${URL_DB}?select=isin,name,fund_size_numeric,scraping_date&isin=in.(${vse.join(',')})`, hlav).then((x) => x.json());
+        const podle = new Map(db.map((x) => [x.isin, x]));
+        const homeVelke = t.isins.filter((i) => { const f = podle.get(i); return f && f.fund_size_numeric >= 100 && dni(f) <= 14; });
+        const chybiVZeb = homeVelke.filter((i) => !zeb.has(i));
+        const pravidloHome = (n) => zajistena(n) || /\bPEA\b|\bMin TE\b/i.test(n || '');
+        const chybiNaHome = PRESNE.has(t.id) ? [...zeb].filter((i) => !t.isins.includes(i) && !vyjimky.has(i) && !pravidloHome(podle.get(i)?.name)) : [];
+        for (const i of chybiVZeb) nesedi.push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} je na homepage, v žebříčku ne`);
+        for (const i of chybiNaHome) nesedi.push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} je v žebříčku, na homepage ne`);
+      }
+      if (nesedi.length) poplach.push({ co: `Trhy na homepage nesouhlasí s výběrem žebříčku/srovnávače (${nesedi.length}) – src/data/trhyDvojcata.ts`, ukazka: nesedi.slice(0, 8) });
+      // Evropský žebříček: kontrola výše našla mimoevropské (MSCI World ex Europe, STOXX World), peněžní trh, sektory
+      // STOXX 600 a 2× pákový LevDAX. Nic z toho tam nepatří (nameExcludes v etf-data.ts).
+      const evr = isinyZPayloadu(await html('/nejlepsi-etf/nejlepsi-evropske-etf'));
+      if (evr.size) {
+        const NESMI = /ex[- ]Europe|\bWorld\b|\bCash\b|Court Terme|Overnight|Money Market|LevDAX|Oil & Gas|Basic Resources|Food|Automobiles|Chemicals|Travel|Personal & Household|Covered Call|Put Write/i;
+        const jm = await fetch(`${URL_DB}?select=isin,name&isin=in.(${[...evr].join(',')})`, hlav).then((x) => x.json());
+        const cizi = jm.filter((x) => NESMI.test(x.name || '')).map((x) => `${x.isin} ${String(x.name).slice(0, 50)}`);
+        if (cizi.length) poplach.push({ co: `Žebříček evropských ETF obsahuje fondy, které tam nepatří (${cizi.length})`, ukazka: cizi.slice(0, 6) });
+      }
+      // Pákové podle názvu, které zdroj jako pákové nevede (LevDAX 2×) – skryjí se jen díky pojistce v etf-data.ts.
+      const lev = await fetch(`${URL_DB}?select=isin,name&is_leveraged=not.is.true&or=(name.ilike.*LevDAX*,name.ilike.*Leveraged*,name.ilike.*%202x%20*,name.ilike.*%203x%20*)`, hlav).then((x) => x.json());
+      if (Array.isArray(lev) && lev.length) varovani.push({ co: `${lev.length} fondů má v názvu páku, ale zdroj je nevede jako pákové (opravit příznak ve scraperu; web je skrývá podle názvu jen u LevDAX)`, ukazka: ukazka(lev) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu homepage trhy × žebříček se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 2) STRÁNKY S DATEM NESMÍ MÍT NATVRDO VELIKOSTI A VÝNOSY FONDŮ. /jaky-sp500-etf hlásila „Aktualizováno dnes“,
+    //    ale měla natvrdo 131 mld. € u CSPX (DB 139,4) a „+78 % za 5 let“. Kód: velikost v mld./mil. € a „+X % za N let“
+    //    v page.tsx, které ukazuje „Aktualizováno“/„Data k“. Živě: velikost CSPX na stránce vs. DB (> 10 % = poplach).
+    try {
+      const strankyKod = [];
+      const projdi = (d) => { for (const f of readdirSync(d)) { const p = `${d}/${f}`; if (statSync(p).isDirectory()) projdi(p); else if (f === 'page.tsx') strankyKod.push(p); } };
+      projdi('src/app');
+      const natvrdo = [];
+      for (const p of strankyKod) {
+        const kod = readFileSync(p, 'utf8');
+        if (!/Aktualizováno|Data k |data k /.test(kod)) continue;
+        const kodBezKomentaru = kod.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+        // Prahy („fondy nad 500 mil. €“) nejsou velikost fondu – ty se nehlásí.
+        const m = kodBezKomentaru.match(/(?<![\d,.])(?<!(?:nad|od|pod|aspoň|min\.)\s)[~≈]?\d+(?:[,.]\d+)?\s?(?:mld|mil)\.?\s?€|[+−-]\d+(?:[,.]\d+)?\s?%\s?za\s(?:posledních\s)?\d+\s(?:let|roky|rok)/);
+        if (m) natvrdo.push(`${p}: „${m[0]}“`);
+      }
+      if (natvrdo.length) poplach.push({ co: `${natvrdo.length} stránek s datem aktualizace má natvrdo velikost/výnos fondu – načítat z DB`, ukazka: natvrdo.slice(0, 6) });
+      const sp = await html('/jaky-sp500-etf');
+      const m = sp.match(/CSPX \/ SXR8[\s\S]{0,1500}?(\d+(?:,\d)?)\s?mld\.\s?€/);
+      const cspx = await fetch(`${URL_DB}?select=fund_size_numeric,ter_numeric&isin=eq.IE00B5BMR087`, hlav).then((x) => x.json());
+      if (!m) poplach.push({ co: '/jaky-sp500-etf: velikost CSPX na stránce chybí (nebo se nenačetla)', ukazka: [] });
+      else if (cspx[0]?.fund_size_numeric && Math.abs(Number(m[1].replace(',', '.')) * 1000 / cspx[0].fund_size_numeric - 1) > 0.10)
+        poplach.push({ co: '/jaky-sp500-etf: velikost CSPX se liší od DB o víc než 10 %', ukazka: [`stránka ${m[1]} mld. €, DB ${(cspx[0].fund_size_numeric / 1000).toFixed(1)} mld. €`] });
+      // Poplatky uvedené v textu stránky (SPDR 0,03 %, Invesco 0,05 %, iShares/Vanguard 0,07 %) vs. DB.
+      const TER_TEXT = { IE00B5BMR087: 0.07, IE00BFMXXD54: 0.07, IE00B3XXRP09: 0.07, IE0031442068: 0.07, IE000XZSV718: 0.03, IE00B6YX5C33: 0.03, IE00B3YCGJ38: 0.05 };
+      const ters = await fetch(`${URL_DB}?select=isin,ter_numeric&isin=in.(${Object.keys(TER_TEXT).join(',')})`, hlav).then((x) => x.json());
+      const jinyTer = ters.filter((x) => Number(x.ter_numeric) !== TER_TEXT[x.isin]).map((x) => `${x.isin}: DB ${x.ter_numeric} %, text ${TER_TEXT[x.isin]} %`);
+      if (jinyTer.length) varovani.push({ co: '/jaky-sp500-etf: poplatek v textu (FAQ, vodítko) už nesedí s DB – upravit text', ukazka: jinyTer });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu natvrdo zapsaných čísel se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 3) INDEX NA STRÁNKÁCH DVOJIC: index_name bývá prázdný řetězec (SPYI) → prázdná buňka „Sledovaný index“.
+    try {
+      const prazdne = [];
+      for (const par of ['vwce-vs-spyi', 'iusq-vs-spyi', 'vwce-vs-cspx', 'vwce-vs-iwda']) {
+        const t = await html(`/srovnani/${par}`);
+        if (!t) { prazdne.push(`${par}: stránka se nenačetla`); continue; }
+        const m = t.match(/Sledovaný index<\/span><\/td><td[^>]*>([^<]*)<\/td><td[^>]*>([^<]*)<\/td>/) || t.match(/>Index<\/td><td[^>]*>([^<]*)<\/td><td[^>]*>([^<]*)<\/td>/);
+        if (m && (!m[1].trim() || !m[2].trim())) prazdne.push(`${par}: „${m[1]}“ / „${m[2]}“`);
+      }
+      const detail = await html('/etf/IE00B3YLTY66');
+      if (detail && !/Sledovaný index[\s\S]{0,400}?MSCI ACWI IMI/.test(detail)) prazdne.push('detail SPYI: index není „MSCI ACWI IMI“');
+      if (prazdne.length) poplach.push({ co: 'Prázdný / chybný sledovaný index na stránce dvojice nebo detailu (indexFonduLabel)', ukazka: prazdne });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu indexu na dvojicích se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 4) HLEDÁNÍ PODLE INDEXU A TŘÍDY: „ACWI“ nenašel IUSQ ani SPYI, „ACWI IMI“ jen sektorový fond; výsledky
+    //    nešlo rozlišit (8× „iShares Core S&P 500 UCITS …“) → API vrací třídu (výplata/měna/zajištění).
+    try {
+      const OCEK = [{ q: 'ACWI', musi: ['IE00B6R52259', 'IE00B3YLTY66'] }, { q: 'ACWI IMI', musi: ['IE00B3YLTY66'] }, { q: 'VWCE', prvni: 'IE00BK5BQT80' }];
+      const chyby = [];
+      for (const o of OCEK) {
+        const r = await fetch(`${WEB_URL}/api/etf/search?q=${encodeURIComponent(o.q)}`).then((x) => x.json());
+        const isiny = (r.results ?? []).map((x) => x.isin);
+        if (!('kategorie' in r)) continue; // produkce před nasazením
+        for (const i of o.musi ?? []) if (!isiny.includes(i)) chyby.push(`${o.q}: chybí ${i}`);
+        if (o.prvni && isiny[0] !== o.prvni) chyby.push(`${o.q}: první ${isiny[0] ?? 'nic'} místo ${o.prvni}`);
+        if (r.results?.length && !r.results.some((x) => x.trida)) chyby.push(`${o.q}: výsledky nemají třídu (Acc/Dist) – nejdou rozlišit`);
+      }
+      if (chyby.length) poplach.push({ co: 'Hledání podle indexu (ACWI) nevrací očekávané fondy', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu hledání podle indexu se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 5) SEKTORY: každý název sektoru v DB musí mít český překlad (src/lib/preklady.ts, SEKTORY). Zdroj má vlastní
+    //    klasifikaci (ne GICS, ne TRBC) – nový název = neznámý sektor anglicky na webu.
+    try {
+      const prekl = readFileSync('src/lib/preklady.ts', 'utf8').match(/export const SEKTORY[\s\S]*?\n\};/)?.[0] ?? '';
+      const zname = new Set([...prekl.matchAll(/(?:'([^']+)'|([A-Za-z]+)):\s*'/g)].map((m) => m[1] ?? m[2]));
+      const nazvy = new Map();
+      for (let off = 0; ; off += 1000) {
+        const b = await fetch(`${URL_DB}?select=sector_1_name,sector_2_name,sector_3_name,sector_4_name,sector_5_name&order=isin&limit=1000&offset=${off}`, hlav).then((x) => x.json());
+        for (const x of b) for (const v of Object.values(x)) if (v && String(v).trim()) nazvy.set(String(v).trim(), (nazvy.get(String(v).trim()) ?? 0) + 1);
+        if (b.length < 1000) break;
+      }
+      const bez = [...nazvy].filter(([n]) => !zname.has(n));
+      if (!zname.size) throw new Error('slovník SEKTORY v preklady.ts nenalezen');
+      if (bez.length) varovani.push({ co: `${bez.length} názvů sektorů v DB nemá český překlad (src/lib/preklady.ts) – na webu by byly anglicky`, ukazka: bez.slice(0, 6).map(([n, c]) => `${n} (${c}×)`) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu překladu sektorů se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 6) JEDEN TICKER: detail zlata ukazoval PPFB (XETRA), zbytek webu SGLN. Top 50 fondů podle velikosti:
+    //    ticker v hlavičce detailu (data-ticker) = ticker ve srovnávači (/api/etf/screener).
+    try {
+      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json());
+      if (!Array.isArray(rows)) throw new Error('API srovnávače nevrátilo data');
+      const top = rows.filter((r) => !r.is_leveraged).sort((a, b) => (b.fund_size_numeric ?? 0) - (a.fund_size_numeric ?? 0)).slice(0, 50);
+      const jine = [];
+      let bezAtributu = 0;
+      for (let i = 0; i < top.length; i += 5) {
+        await Promise.all(top.slice(i, i + 5).map(async (r) => {
+          const t = await html(`/etf/${r.isin}`);
+          const m = t.match(/data-ticker="true"[^>]*>([^<]+)</);
+          if (!m) { bezAtributu++; return; }
+          if (r.primary_ticker && m[1].trim().toUpperCase() !== String(r.primary_ticker).trim().toUpperCase()) jine.push(`${r.isin}: detail ${m[1]}, srovnávač ${r.primary_ticker}`);
+        }));
+      }
+      if (bezAtributu === top.length) varovani.push({ co: 'Detail fondu ještě nemá data-ticker (před nasazením) – kontrola jednoho tickeru vynechána', ukazka: [] });
+      else if (jine.length) poplach.push({ co: `${jine.length} z top 50 fondů má na detailu jiný ticker než ve srovnávači (src/lib/ticker.ts → zobrazovanyTicker)`, ukazka: jine.slice(0, 6) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu jednoho tickeru se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 8) JEDNOTNÉ NÁZVY VÝPLATY A TŘÍD: dřív „reinv.“, „Reinvestuje (ACC)“, „Akumulační (reinvestuje)“ a u akumulačního
+    //    fondu v řádku Dividendový výnos „nevyplácí“ (zavádějící). Třídy v žebříčcích syrově („· 1C“, „· USD acc“, „Ukdis“).
+    try {
+      const SOUBORY = ['src/components/design-preview/ScreenerUI.tsx', 'src/components/design-preview/PorovnaniTable.tsx',
+        'src/components/design-preview/SrovnaniCompareUI.tsx', 'src/app/etf/[isin]/page.tsx'];
+      const ZAKAZANE = [/>reinv\.</, /Reinvestuje \(ACC\)/, /Vyplácí \(DIST\)/, /' \(reinvestuje\)'/, /kind === 'acc'\) return <span[^>]*>nevyplácí/];
+      const kod = SOUBORY.flatMap((p) => { const t = readFileSync(p, 'utf8'); return ZAKAZANE.filter((re) => re.test(t)).map((re) => `${p}: ${re}`); });
+      if (kod.length) poplach.push({ co: 'Starý název výplaty dividend v kódu (jednotně: Reinvestuje / Vyplácí, výnos u Acc „— (reinvestuje)“)', ukazka: kod });
+      const par = await html('/srovnani/vwce-vs-cspx');
+      const radek = par.match(/Dividendový výnos[\s\S]{0,700}?<\/tr>/)?.[0] ?? '';
+      if (/>nevyplácí</.test(radek)) poplach.push({ co: 'VWCE vs CSPX: u akumulačního fondu „nevyplácí“ v řádku Dividendový výnos', ukazka: [] });
+      const syrove = [];
+      for (const slug of ['nejlepsi-celosvetove-etf', 'nejlepsi-sp500-etf', 'nejlepsi-msci-world-etf']) {
+        const t = await html(`/nejlepsi-etf/${slug}`);
+        const m = t.match(/nazev\\":\\"[^"\\]*· (?:\d[A-Z]|[A-Z]{3} (?:acc|dis|Ukdis|Acc|Dist))\\"/);
+        if (m) syrove.push(`${slug}: ${m[0].slice(10, 80)}`);
+      }
+      if (syrove.length) varovani.push({ co: 'Žebříček ukazuje syrový kód třídy fondu (· 1C, · USD acc) – zobrazovat přes src/lib/nazevFondu.ts', ukazka: syrove });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu jednotných názvů se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 12) /zebricky: „Největší fondy 2 259“ × „Nejlevnější fondy 2 253“ bez vysvětlení. Rozdíl musí být vysvětlený
+    //     (produkty s TER 0 % – fyzické zlato, krypto se stakingem) a sedět s počty.
+    try {
+      const t = await html('/zebricky');
+      const pocet = (slug) => Number(t.match(new RegExp(`data-pocet="(\\d+)" data-slug="${slug}"`))?.[1] ?? NaN);
+      const a = pocet('nejlepsi-etf-2026'), b = pocet('nejlevnejsi-etf');
+      if (Number.isFinite(a) && Number.isFinite(b) && a !== b) {
+        const m = t.match(/Nejlevnějších je o (\d[\d\s ]*) méně/);
+        if (!m) varovani.push({ co: `/zebricky: Největší fondy ${a} × Nejlevnější ${b} bez vysvětlení rozdílu`, ukazka: [] });
+        else if (Number(m[1].replace(/\D/g, '')) !== a - b) poplach.push({ co: '/zebricky: vysvětlený rozdíl počtů nesedí', ukazka: [`text ${m[1]}, skutečně ${a - b}`] });
+        if (a - b > 20) varovani.push({ co: `/zebricky: nejlevnějších je o ${a - b} méně – víc než jen produkty s TER 0 %? Prověřit`, ukazka: [] });
+      }
+    } catch (e) {
+      varovani.push({ co: `Kontrolu počtů na /zebricky se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+  }
+  // --- konec kolo5 B ---
 
   // ── CHYBY Z PROHLÍŽEČŮ za 24 h (tabulka client_errors, plní /api/client-error) ──
   // Zatím jen VAROVÁNÍ: běžnou úroveň ještě neznáme. Poplach doplnit, až bude pár týdnů dat.
