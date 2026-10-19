@@ -47,7 +47,8 @@ export async function simulateAndSerialize(body: SimulateRequestBody) {
   const endDate = new Date(body.endDate)
 
   const input: BacktestInput = {
-    portfolio: body.portfolio.map((item) => ({
+    // Složky s vahou 0 se nepočítají (engine je vynechá taky) – výsledek musí být stejný jako bez nich.
+    portfolio: body.portfolio.filter((item) => item.weight > 0).map((item) => ({
       isin: item.isin,
       name: item.name,
       weight: item.weight,

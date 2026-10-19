@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   Plus, Trash2, AlertTriangle, Zap, TrendingDown, Activity, Coins, Loader2, Info, Pencil, ArrowRight,
-  Search, ChevronDown,
+  Search, ChevronDown, CalendarDays,
 } from 'lucide-react';
 import Link from 'next/link';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -28,7 +28,7 @@ import { INDEX_BY_CODE, type IndexDef } from '@/lib/backtest/indexes';
 import type { RebalancingStrategy } from '@/lib/backtest/types';
 import { STRESS_WINDOWS } from '@/lib/backtest/calculations';
 import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
-import { kulateKroky, fmtOsa } from '@/lib/osyGrafu';
+import { kulateKroky, fmtOsa, fmtOsaPct } from '@/lib/osyGrafu';
 import { vkladyVCase, zhodnoceniVkladu } from '@/lib/backtest/zhodnoceniVkladu';
 
 type Currency = 'EUR' | 'CZK' | 'USD';
@@ -235,11 +235,14 @@ const CURRENCIES: { code: Currency; label: string }[] = [
 const SERIES_COLORS = ['#0d9488', '#6366f1', '#f59e0b'];
 
 // Záporná čísla znaménkem minus „−“ (U+2212), procento s nezlomitelnou mezerou (jednotné formáty kola 5).
-const fmtMoney = (v: number, currency: Currency) =>
-  new Intl.NumberFormat('cs-CZ', { style: 'currency', currency, maximumFractionDigits: 0 }).format(v).replace('-', '−');
+// Chybějící hodnota (null/NaN z API) = „—“, nikdy „0 Kč“ (revize 19. 10. 2026: složka s 0 % ukázala „0 Kč, ztráta −100 %“).
+const fmtMoney = (v: number | null | undefined, currency: Currency) =>
+  v == null || !Number.isFinite(v) ? '—'
+    : new Intl.NumberFormat('cs-CZ', { style: 'currency', currency, maximumFractionDigits: 0 }).format(v).replace('-', '−');
 
-const fmtPct = (v: number, digits = 1) =>
-  `${v.toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits }).replace('-', '−')}\u00a0%`;
+const fmtPct = (v: number | null | undefined, digits = 1) =>
+  v == null || !Number.isFinite(v) ? '—'
+    : `${v.toLocaleString('cs-CZ', { minimumFractionDigits: digits, maximumFractionDigits: digits }).replace('-', '−')}\u00a0%`;
 
 
 /** „16. 10. 2026“ – datum posledního bodu dat (každé číslo má datum). */
@@ -265,6 +268,17 @@ const rokyOsy = (t0: number, t1: number) => {
 const fmtRok = (t: number) => String(new Date(t).getUTCFullYear());
 const jednotka = (c: Currency) => (c === 'CZK' ? 'v Kč' : c === 'EUR' ? 'v eurech' : 'v dolarech');
 const OSA_TICK = { fontSize: 11, fill: '#64748b' } as const;
+
+/* Pole s datem stejně vysoké a se stejně svisle vycentrovaným textem v Chromu i Safari (revize 19. 10. 2026: WebKit
+   měl text u horní hrany a žádnou ikonu). Vlastní ikona kalendáře vpravo; v Chromu je pod ní průhledný nativní
+   výběr data (klik na ikonu otevře kalendář), v Safari otevře výběr klik kamkoli do pole. */
+const DATUM_POLE = [
+  'block w-full h-11 rounded-lg border border-slate-200 bg-white pl-3 pr-10 text-base sm:text-sm text-slate-900 appearance-none',
+  'focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none',
+  '[&::-webkit-date-and-time-value]:text-left [&::-webkit-date-and-time-value]:leading-[2.625rem] [&::-webkit-date-and-time-value]:min-h-[2.625rem] [&::-webkit-date-and-time-value]:m-0',
+  '[&::-webkit-datetime-edit]:p-0 [&::-webkit-datetime-edit]:leading-[2.625rem]',
+  '[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0',
+].join(' ');
 
 /** Okno krize „1/2022–10/2022“ – z STRESS_WINDOWS (calculations.ts importuje jen typy, do prohlížeče smí). */
 const oknoKrize = (key: string) => {
@@ -321,14 +335,16 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   // Serverový výsledek platí pro výchozí nastavení → hned „aktuální“ (konfig prvního renderu).
   const [vysledekPro, setVysledekPro] = useState<string | null>(initialResult ? konfig : null);
   // Popis toho, co výsledek počítal (složení, vklady) – ukazuje se nad velkým číslem.
-  const popisNastaveni = () => {
-    const casti = selectedETFs.map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')} %`).join(' + ');
+  // Měna jako parametr: po přepnutí měny se výpočet spouští dřív, než se stav `currency` propíše
+  // (revize 19. 10. 2026: v USD podtitulek dál psal „100 000 Kč + 5 000 Kč měsíčně“).
+  const popisNastaveni = (mena: Currency = currency) => {
+    const casti = selectedETFs.filter((e) => e.weight > 0).map((e) => `${e.fond ? (e.fond.ticker ?? e.name) : e.indexName} ${e.weight.toLocaleString('cs-CZ')} %`).join(' + ');
     const nazev = !activeStyle && activePreset && activePreset !== 'sp500-100' ? (PRESET_SHORT[activePreset] ?? null) : null;
     const slozeni = nazev && !casti.startsWith(nazev) ? `${nazev}: ${casti}` : casti;
-    const cur = CURRENCIES.find((c) => c.code === currency)?.label ?? '';
+    const cur = CURRENCIES.find((c) => c.code === mena)?.label ?? '';
     const freq = { monthly: 'měsíčně', quarterly: 'čtvrtletně', yearly: 'ročně', none: '' }[contributionFrequency];
     const vklady = `${initialAmount.toLocaleString('cs-CZ')} ${cur}${contributionFrequency !== 'none' && contributionAmount > 0 ? ` + ${contributionAmount.toLocaleString('cs-CZ')} ${cur} ${freq}` : ''}`;
-    return { slozeni, vklady, start: startDate, startZadal, kody: selectedETFs.map((e) => e.indexCode), mena: currency, pocatecni: initialAmount, vklad: contributionFrequency !== 'none' ? contributionAmount : 0, frekvence: contributionFrequency };
+    return { slozeni, vklady, start: startDate, startZadal, kody: selectedETFs.filter((e) => e.weight > 0).map((e) => e.indexCode), mena, pocatecni: initialAmount, vklad: contributionFrequency !== 'none' ? contributionAmount : 0, frekvence: contributionFrequency };
   };
   const [popisVysledku, setPopisVysledku] = useState<ReturnType<typeof popisNastaveni> | null>(() => (initialResult ? popisNastaveni() : null));
   // Odkaz s nastavením v URL: serverový (výchozí) výsledek schovat, dokud se nespočítá ten z odkazu.
@@ -433,7 +449,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       setCekamNaUrl(false);
       return;
     }
-    if (selectedETFs.length === 0) {
+    if (!selectedETFs.some((e) => e.weight > 0)) {
       setError('Vyberte alespoň jeden fond.');
       setCekamNaUrl(false);
       return;
@@ -447,7 +463,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     setLoading(true);
     setError(null);
     const konfigBehu = konfig;
-    const popisBehu = popisNastaveni();
+    const popisBehu = popisNastaveni(cur);
     try {
       const contributions = contributionFrequency !== 'none' && contributionAmount > 0
         ? { amount: contributionAmount, frequency: contributionFrequency as 'monthly' | 'quarterly' | 'yearly' }
@@ -473,7 +489,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
         return response.json() as Promise<BacktestResult>;
       };
 
-      const mainPortfolio = selectedETFs.map((etf) => ({
+      // Složky s vahou 0 % se neposílají (přidaná třída aktiv začíná na 0 %) – výsledek = portfolio bez nich.
+      const mainPortfolio = selectedETFs.filter((etf) => etf.weight > 0).map((etf) => ({
         isin: etf.isin, name: etf.name, weight: etf.weight / 100, ter: etf.ter, indexCode: etf.indexCode,
         // Konkrétní fond: data zdrojového fondu přepočtená na poplatek vybraného fondu.
         ...(etf.fond?.prepocet ? { feeOverride: etf.fond.ter } : {}),
@@ -743,7 +760,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const zastaraly = !!result && vysledekPro !== konfig;
   /* AUTOMATICKÝ PŘEPOČET (revize kola 4): změna vkladu, období, porovnání… → po 0,8 s se spočítá sám, starý výsledek
      je mezitím zašedlý. Neplatné nastavení (součet vah ≠ 100 %, nulové vklady) nepočítá a říká proč. */
-  const lzePocitat = totalWeight === 100 && selectedETFs.length > 0 && !bezVkladu;
+  const lzePocitat = totalWeight === 100 && selectedETFs.some((e) => e.weight > 0) && !bezVkladu;
   // Chyba platí pro nastavení, se kterým vznikla – po změně se zkusí znovu (jinak by auto-přepočet stál).
   const prvniKonfig = useRef(konfig);
   useEffect(() => { if (konfig !== prvniKonfig.current) setError(null); }, [konfig]);
@@ -779,14 +796,17 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
      Když karta výsledku není vidět, drží se dole lišta s číslem (jako v kalkulačce) – při výpočtu „Počítám…“,
      u zastaralého výsledku tlačítko „Přepočítat“. */
   const vysledekRef = useRef<HTMLDivElement>(null);
+  /* Lišta jen když HLAVNÍ ČÍSLO (konečná hodnota) není vidět – revize 19. 10. 2026: lišta se ukazovala, i když
+     velké číslo bylo na obrazovce, a prosvítalo pod ní („duch“). Bez čísla (počítá se) se hlídá celá karta. */
+  const [cisloEl, setCisloEl] = useState<HTMLParagraphElement | null>(null);
   const [vysledekVidet, setVysledekVidet] = useState(true);
   useEffect(() => {
-    const el = vysledekRef.current;
+    const el = cisloEl ?? vysledekRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([z]) => setVysledekVidet(z.isIntersecting), { threshold: 0.15 });
+    const io = new IntersectionObserver(([z]) => setVysledekVidet(z.isIntersecting), { threshold: cisloEl ? 0.5 : 0.15 });
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [cisloEl]);
   // Nad patičkou se lišta schová (revize kola 4: zakrývala odkazy patičky).
   const [paticka, setPaticka] = useState(false);
   useEffect(() => {
@@ -843,6 +863,13 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <div className="mt-4 h-3 rounded-full bg-slate-100 animate-pulse" />
               <div className="mt-6 h-56 rounded-lg bg-slate-50 animate-pulse" />
             </div>
+          ) : result && prvni && posledni && !(Number.isFinite(result.summary.netAssetValue) && Number.isFinite(result.summary.amountInvested)) ? (
+            /* Pravidlo č. 1: chybějící výsledek NIKDY jako „0 Kč, ztráta −100 %“. */
+            <div role="alert" className="rounded-xl border border-slate-200 bg-white p-5 md:p-6">
+              <p className="text-sm text-slate-600">Výsledek pro toto nastavení se nepodařilo spočítat.</p>
+              <p className="mt-1 text-4xl font-bold tabular-nums text-slate-400">—</p>
+              <p className="mt-2 text-sm text-slate-500">Zkuste jiné období nebo složení.</p>
+            </div>
           ) : result && prvni && posledni ? (() => {
             const invested = result.summary.amountInvested;
             const final = result.summary.netAssetValue;
@@ -886,7 +913,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 <p className="mt-4 text-sm text-slate-600">
                   Z vložených <span className="font-semibold text-slate-800 tabular-nums">{fmtMoney(invested, resultCurrency)}</span> by k {fmtDen(posledni)} bylo
                 </p>
-                <p className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1">{fmtMoney(final, resultCurrency)}</p>
+                <p ref={setCisloEl} className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1">{fmtMoney(final, resultCurrency)}</p>
                 <div className="mt-4 flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
                   {seg.map((s) => (
                     <div key={s.label} className={s.color} style={{ width: `${(s.v / total) * 100}%` }} />
@@ -1279,7 +1306,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               )}
               {compareIds.length < 2 && (
                 <div className="flex items-center gap-2">
-                  <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-indigo-50 text-indigo-600">
+                  <span className="flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-teal-50 text-teal-700">
                     <Plus className="w-4 h-4" />
                   </span>
                   <select
@@ -1312,14 +1339,20 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="bt-start" className="block text-sm text-slate-600 mb-1">Počáteční datum</label>
-                  <input id="bt-start" type="date" min="1993-01-01" value={startZobrazeny} onChange={(e) => { setStartDate(e.target.value); setStartZadal(true); }}
-                    className="block w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white px-3 text-slate-900 appearance-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
+                  <div className="relative">
+                    <input id="bt-start" type="date" min="1993-01-01" value={startZobrazeny} onChange={(e) => { setStartDate(e.target.value); setStartZadal(true); }}
+                      className={DATUM_POLE} />
+                    <CalendarDays aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  </div>
                   <p className="text-xs text-slate-500 mt-1">Výpočet začne, až mají data všechny složky. V Kč a eurech nejdřív od ledna 2000 (od té doby máme kurzy), v dolarech S&amp;P&nbsp;500 od roku 1993.</p>
                 </div>
                 <div>
                   <label htmlFor="bt-end" className="block text-sm text-slate-600 mb-1">Koncové datum</label>
-                  <input id="bt-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-                    className="block w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white px-3 text-slate-900 appearance-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none" />
+                  <div className="relative">
+                    <input id="bt-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+                      className={DATUM_POLE} />
+                    <CalendarDays aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  </div>
                 </div>
               </div>
 
@@ -1358,7 +1391,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   {CURRENCIES.map((c) => (
                     <button key={c.code} disabled={loading}
                       onClick={() => { setCurrency(c.code); if (result) runBacktest(c.code); }}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors min-h-[40px] disabled:opacity-60 ${currency === c.code ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'}`}>
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors min-h-[44px] disabled:opacity-60 ${currency === c.code ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'}`}>
                       {c.label} {c.code}
                     </button>
                   ))}
@@ -1428,7 +1461,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 nevypadá jako rozpor (revize 18. 10. 2026). */}
             {result.risk.maxDrawdown.depth < 0 && (
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl border border-red-100 bg-red-50/50 px-4 py-3">
-                <span className="text-sm text-slate-700">Největší propad od vrcholu kdykoli (max. pokles)</span>
+                <span className="text-sm text-slate-700">Největší propad od vrcholu od {fmtMes(prvni ?? result.evolution[0].date)} (max. pokles)</span>
                 <span className="text-xl font-bold tabular-nums text-red-600">{fmtPct(result.risk.maxDrawdown.depth * 100)}</span>
                 <span className="text-xs text-slate-500">
                   vrchol {fmtMes(result.risk.maxDrawdown.startDate)} → dno {fmtMes(result.risk.maxDrawdown.troughDate)} · {navratPoPropadu(result.risk.maxDrawdown)}
@@ -1507,7 +1540,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                       <XAxis dataKey="t" type="number" domain={[ddData[0].t, ddData[ddData.length - 1].t]} ticks={rokyOsy(ddData[0].t, ddData[ddData.length - 1].t)} tickFormatter={fmtRok}
                         tick={OSA_TICK} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
                       <YAxis width={52} ticks={ddOsa} domain={[ddOsa[0], 0]} tick={OSA_TICK} axisLine={false} tickLine={false}
-                        tickFormatter={(v: number) => `${Math.round(v)}\u00a0%`} />
+                        tickFormatter={fmtOsaPct} />
                       <ReferenceLine y={0} stroke="#cbd5e1" />
                       <Tooltip
                         content={({ active, payload }) => {
@@ -1717,7 +1750,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       )}
 
       {listaDole && (
-        <div className="lg:hidden fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white px-4 py-2.5 shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
           {loading ? (
             <p className="flex min-h-[40px] items-center gap-2 text-sm text-slate-600"><Loader2 className="w-4 h-4 animate-spin text-teal-700" /> Počítám historický vývoj…</p>
           ) : zastaraly || bezVkladu ? (
@@ -1815,16 +1848,25 @@ function ComparisonBlock({
 }) {
   // Překryvný graf: hodnoty všech portfolií sloučené podle data (osy zarovnané na společné období).
   // Podvzorkujeme na ~400 bodů – jinak jsou to 2–3 denní řady po ~5000 bodech = na mobilu pomalé.
+  /* Společná osa = sjednocení dnů všech řad. Řady mají různé obchodní dny (dluhopisy eurozóny obchodují v jiné
+     dny než americké akcie) → dřív měl řádek osy hodnotu jen u části řad a čára vlastního portfolia měla díry
+     (revize 19. 10. 2026: 2014, 2016, 2018, 2022, 2023). Teď forward-fill: den bez obchodu nese poslední známou
+     hodnotu té řady. Jen UVNITŘ řady – před jejím prvním a za posledním bodem zůstává prázdno (skutečná mezera). */
   const chartData = useMemo(() => {
-    const byDate = new Map<string, Record<string, number | string>>();
+    const dny = [...new Set(portfolios.flatMap((p) => p.result.evolution.map((pt) => pt.date)))].sort();
+    const all: Record<string, number | string>[] = dny.map((d) => ({ date: d, t: Date.parse(d) }));
     portfolios.forEach((p, si) => {
-      p.result.evolution.forEach((pt) => {
-        const row = byDate.get(pt.date) ?? { date: pt.date, t: Date.parse(pt.date) };
-        row[`s${si}`] = Math.round(pt.value);
-        byDate.set(pt.date, row);
-      });
+      const ev = p.result.evolution;
+      if (!ev.length) return;
+      const prvniDen = ev[0].date, posledniDen = ev[ev.length - 1].date;
+      let j = 0;
+      let posledni: number | null = null;
+      for (const row of all) {
+        const d = row.date as string;
+        while (j < ev.length && ev[j].date <= d) { posledni = Math.round(ev[j].value); j++; }
+        if (d >= prvniDen && d <= posledniDen && posledni != null) row[`s${si}`] = posledni;
+      }
     });
-    const all = [...byDate.values()].sort((a, b) => ((a.date as string) < (b.date as string) ? -1 : 1));
     const MAX = 400;
     if (all.length <= MAX) return all;
     const step = Math.ceil(all.length / MAX);

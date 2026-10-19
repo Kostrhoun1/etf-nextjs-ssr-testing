@@ -14,6 +14,8 @@ export interface PortfolioVysledek {
   risk: { maxDrawdown: { depth: number; lengthMonths: number; recovered: boolean; troughDate: string; startDate: string; endDate: string | null } }
   evolution: { date: string; value: number }[]
   stressPeriods?: { key: string; name: string; drop: number; recoveryMonths: number | null; troughDate: string }[]
+  /** Datum kurzu, kterým se přepočetl poslední bod (YYYY-MM-DD). Kontrola dat: má být = konec simulace. */
+  kurzyDo?: string
 }
 
 export const POCATECNI_VKLAD: Record<Currency, number> = { CZK: 100000, EUR: 4000, USD: 4500 }
@@ -47,6 +49,7 @@ export async function predpocitejPortfolio(items: Polozka[], start: string, cur:
       risk: { maxDrawdown: r.risk.maxDrawdown },
       evolution: mesicni,
       stressPeriods: (r as unknown as { stressPeriods?: PortfolioVysledek['stressPeriods'] }).stressPeriods ?? [],
+      ...(r.kurzyDo ? { kurzyDo: r.kurzyDo } : {}),
     }
   } catch (e) {
     console.error('[predpocet] backtest portfolia selhal:', e)

@@ -189,7 +189,7 @@ export default async function BacktestPreview() {
 
         {/* FAQ (sem se přesunulo i „Jak výsledky správně číst“) */}
         <section data-sekce="faq" className="pb-10">
-          <SectionHead title="Časté dotazy" />
+          <SectionHead title="Časté otázky" />
           <FaqSeznam items={faqs} />
         </section>
 

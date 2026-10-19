@@ -145,7 +145,7 @@ export default async function InvesticniKalkulackaPreview() {
 
         {/* FAQ */}
         <section data-sekce="faq" className="pb-10">
-          <SectionHead title="Časté dotazy" />
+          <SectionHead title="Časté otázky" />
           <FaqSeznam items={faqs} />
         </section>
 

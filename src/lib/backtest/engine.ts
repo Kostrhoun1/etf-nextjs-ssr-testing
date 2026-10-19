@@ -4,7 +4,9 @@
  * Main engine that orchestrates portfolio simulation using index data.
  */
 
+import { createClient } from '@supabase/supabase-js'
 import { supabaseAdmin } from '@/lib/supabase'
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config'
 import type {
   BacktestInput,
   BacktestResult,
@@ -26,6 +28,42 @@ import {
   standardDeviation,
   yearsBetween,
 } from './calculations'
+
+// ============================================================
+// ČTENÍ HISTORIE MIMO DATOVOU CACHE NEXTU
+// ============================================================
+
+/**
+ * Historie indexů a kurzů se čte PŘÍMO z databáze, mimo datovou cache Nextu (fetch cache).
+ *
+ * PROČ (revize 19. 10. 2026, pravidlo č. 1): Next ukládal každý dotaz Supabase do své datové cache
+ * s revalidate stránky (86 400 s) a na Vercelu ta cache přežívá i nové nasazení. Stránka modelového
+ * portfolia/kvízu se pak při ISR přegenerování počítala z dat staženích v JINOU dobu: kurzy z cache
+ * 18. 10. 13:56 UTC (ještě bez 14.–16. 10.), indexy novější → čísla 387 tis./7,7 % proti živému API
+ * 385 tis./7,6 %. Dva nezávisle stárnoucí cache záznamy = nekonzistentní data.
+ *
+ * PROČ TAKHLE (a ne jinak):
+ *  – `cache: 'no-store'` / `noStore()` by z ISR stránek udělaly dynamické (render při každém zobrazení,
+ *    CPU a zápisy na free tieru Vercelu) – zakázáno.
+ *  – kratší `revalidate` u fetch nebo `unstable_cache` s kratším revalidate zkrátí ISR interval CELÉ
+ *    stránky (Next bere minimum) → víc ISR zápisů a stejně by data mohla být až 2× interval stará.
+ *  – Původní (nezáplatovaný) fetch, který Next sám vystavuje jako `fetch._nextOriginalFetch`, Next
+ *    nevidí: nic neukládá ani nepřepíná stránku na dynamickou. Stránka zůstává ISR (revalidate 1 den)
+ *    a KAŽDÉ přegenerování spočítá čísla z aktuální databáze. Paměťová mezipaměť níže (6 h) zůstává.
+ *  – Kdyby budoucí Next vlastnost neměl, spadne to zpět na běžný fetch (dnešní chování) a zastaralost
+ *    chytí denní kontrola (check-fund-data.mjs, kolo5 A: konec předpočtu vs. data v DB).
+ * Správnost navíc nezávisle hlídá limit stáří kurzu (MAX_STARI_KURZU_DNI) – i se starými daty by
+ * stránka ukázala starší, ale správné číslo se správným datem.
+ */
+// Zjišťuje se až při volání: Next záplatuje globální fetch při startu renderu, ne nutně před načtením modulu.
+const fetchMimoCache = (...a: Parameters<typeof fetch>): ReturnType<typeof fetch> => {
+  const puvodni = (globalThis.fetch as unknown as { _nextOriginalFetch?: typeof fetch })._nextOriginalFetch
+  return (puvodni ?? globalThis.fetch)(...a)
+}
+const dbHistorie = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  global: { fetch: (...a: Parameters<typeof fetch>) => fetchMimoCache(...a) },
+  auth: { persistSession: false, autoRefreshToken: false },
+})
 
 // ============================================================
 // EXCHANGE RATES
@@ -56,7 +94,7 @@ export async function loadExchangeRates(
 async function nactiVsechnyKurzy(): Promise<ExchangeRate[]> {
   const rows = await nactiVseStrankovane<{ date: string; eur_usd: string; eur_czk: string; usd_czk: string }>(
     'kurzy',
-    (from, to) => supabaseAdmin
+    (from, to) => dbHistorie
       .from('exchange_rates_historical')
       .select('date, eur_usd, eur_czk, usd_czk')
       .order('date', { ascending: true })
@@ -71,33 +109,36 @@ async function nactiVsechnyKurzy(): Promise<ExchangeRate[]> {
 }
 
 /**
- * Get exchange rate for a specific date (finds closest available)
+ * Nejstarší kurz, který se smí použít pro daný den: kurz platný nejvýš 4 KALENDÁŘNÍ dny před dnem bodu.
+ *
+ * PROČ (revize 19. 10. 2026, pravidlo č. 1): forward-fill kurzu dřív neměl žádný limit. Předpočty stránek
+ * se 18. 10. počítaly z dat, kde kurzy končily 9. 10. a indexy 16. 10. → poslední týden se přepočítal
+ * týden starým kurzem a stránky ukazovaly jiná čísla než živé API (60/40 387 tis. × 385 tis.). Tichý fallback.
+ * PROČ 4 DNY: ověřeno na celé historii kurzů od 30. 12. 1999 (6 858 dnů) proti všem indexům – nejdelší běžná
+ * mezera mezi dnem indexu a posledním kurzem jsou přesně 4 dny (Velikonoční pondělí: kurz z čtvrtka;
+ * 26. 12. po víkendu). Víkendy (2–3 dny) a svátky tedy projdou, týden starý kurz ne.
+ */
+export const MAX_STARI_KURZU_DNI = 4
+const MAX_STARI_KURZU_MS = MAX_STARI_KURZU_DNI * 864e5
+
+/**
+ * Kurz pro daný den = POSLEDNÍ kurz s datem ≤ den, nejvýš MAX_STARI_KURZU_DNI starý.
+ * Jinak null (volající bod vynechá – žádný starý ani „nejbližší budoucí“ kurz).
+ * Dřív vracela „nejbližší“ kurz bez limitu stáří, klidně i z budoucnosti nebo měsíc starý.
  */
 export function getExchangeRateForDate(
   rates: ExchangeRate[],
   targetDate: Date
 ): ExchangeRate | null {
-  if (rates.length === 0) return null
-
-  const targetTime = targetDate.getTime()
-
-  // Find closest rate (prefer earlier date if exact match not found)
-  let closest = rates[0]
-  let closestDiff = Math.abs(rates[0].date.getTime() - targetTime)
-
-  for (const rate of rates) {
-    const diff = Math.abs(rate.date.getTime() - targetTime)
-    if (diff < closestDiff) {
-      closest = rate
-      closestDiff = diff
-    }
-    // Stop early if we've passed the target date
-    if (rate.date.getTime() > targetTime && closestDiff < 7 * 24 * 60 * 60 * 1000) {
-      break
-    }
+  const t = targetDate.getTime()
+  // rates jsou seřazené vzestupně → binární hledání posledního kurzu ≤ t
+  let lo = 0, hi = rates.length - 1, idx = -1
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1
+    if (rates[mid].date.getTime() <= t) { idx = mid; lo = mid + 1 } else hi = mid - 1
   }
-
-  return closest
+  if (idx < 0) return null
+  return t - rates[idx].date.getTime() <= MAX_STARI_KURZU_MS ? rates[idx] : null
 }
 
 /**
@@ -122,6 +163,10 @@ export { INDEX_SOURCE_CURRENCY }
  * ECB business-day, indexy US/EU obchodní dny, takže se kalendáře nekryjí 1:1.
  * Body PŘED prvním dostupným kurzem se ZAHAZUJÍ (kurzy začínají 30.12.1999 – vznik eura);
  * to je poctivá podlaha: bez kurzu nelze hodnotu v cílové měně tvrdit.
+ * Body, ke kterým je poslední kurz starší než MAX_STARI_KURZU_DNI, se ZAHAZUJÍ taky (19. 10. 2026) –
+ * typicky konec řady, když noční doplnění kurzů ještě neproběhlo. Simulace pak poctivě končí
+ * posledním dnem s kurzem (stránky ukazují „Data k …“ z posledního bodu), místo aby poslední dny
+ * přepočítala starým kurzem.
  * Obě řady jsou seřazené podle data → dvouukazatelový průchod O(n).
  */
 export function convertIndexSeriesToCurrency(
@@ -139,6 +184,7 @@ export function convertIndexSeriesToCurrency(
     const t = point.date.getTime()
     while (ri + 1 < rates.length && rates[ri + 1].date.getTime() <= t) ri++
     if (rates[ri].date.getTime() > t) continue // před začátkem FX dat → bez kurzu, zahodit
+    if (t - rates[ri].date.getTime() > MAX_STARI_KURZU_MS) continue // kurz chybí (starší než limit) → bez kurzu, zahodit
     const r = rates[ri]
     const factor =
       sourceCurrency === 'USD'
@@ -161,11 +207,10 @@ export function convertTimeSeriesToCurrency(
     return series // No conversion needed
   }
 
-  return series.map((point) => {
+  // Bez kurzu bod VYNECHAT – dřív se vrátil nepřevedený (USD hodnota vydávaná za Kč, pravidlo č. 1).
+  return series.flatMap((point) => {
     const rate = getExchangeRateForDate(rates, point.date)
-    if (!rate) {
-      return point // No rate found, return as-is
-    }
+    if (!rate) return []
 
     let convertedValue: number
     if (targetCurrency === 'EUR') {
@@ -195,11 +240,10 @@ export function convertTimeSeriesFromEur(
     return series // No conversion needed
   }
 
-  return series.map((point) => {
+  // Bez kurzu bod VYNECHAT – dřív se vrátil nepřevedený (EUR hodnota vydávaná za Kč, pravidlo č. 1).
+  return series.flatMap((point) => {
     const rate = getExchangeRateForDate(rates, point.date)
-    if (!rate) {
-      return point // No rate found, return as-is
-    }
+    if (!rate) return []
 
     let convertedValue: number
     if (targetCurrency === 'CZK') {
@@ -301,7 +345,7 @@ export async function loadIndexData(
   const vse = await zMezipameti(`index:${indexCode}`, async () => {
     const rows = await nactiVseStrankovane<{ date: string; close_price: string }>(
       `index ${indexCode}`,
-      (from, to) => supabaseAdmin
+      (from, to) => dbHistorie
         .from('index_historical_data')
         .select('date, close_price')
         .eq('index_code', indexCode)
@@ -492,7 +536,10 @@ function combinePortfolio(
   etfSeries: Array<{ weight: number; evolution: TimeSeriesPoint[] }>,
   initialAmount: number,
   rebalancing: RebalancingStrategy = 'yearly',
-  contributions?: { amount: number; frequency: 'monthly' | 'quarterly' | 'yearly' }
+  contributions?: { amount: number; frequency: 'monthly' | 'quarterly' | 'yearly' },
+  /** Poslední den osy (ms) = konec NEJKRATŠÍ denní řady. Forward-fill smí nést jen měsíční řady (záměr),
+   *  ne useknutý konec denní řady (např. bez kurzu za poslední dny) – to by byla stará hodnota vydávaná za dnešní. */
+  konecOsy?: number
 ): { evolution: TimeSeriesPoint[]; totalContributed: number; marketNav: TimeSeriesPoint[] } {
   if (etfSeries.length === 0) return { evolution: [], totalContributed: 0, marketNav: [] }
 
@@ -500,6 +547,7 @@ function combinePortfolio(
   const allDates = new Set<string>()
   for (const { evolution } of etfSeries) {
     for (const point of evolution) {
+      if (konecOsy != null && point.date.getTime() > konecOsy) continue
       allDates.add(point.date.toISOString())
     }
   }
@@ -683,8 +731,12 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
 
   // Load index data for each ETF
   const etfSeries: Array<{ weight: number; evolution: TimeSeriesPoint[] }> = []
+  // Konec každé DENNÍ řady po převodu měny – osa portfolia nesmí běžet za nejkratší z nich (viz níže).
+  const konceDennich: number[] = []
 
-  for (const item of portfolio) {
+  // Složky s nulovou (nebo zápornou) vahou se vůbec nepočítají (revize 19. 10. 2026: složka s 0 % dřív
+  // shodila výsledek na null a UI ukázalo „0 Kč, ztráta −100 %“). Výsledek = portfolio bez nich.
+  for (const item of portfolio.filter((p) => p.weight > 0)) {
     const indexData = await loadIndexData(item.indexCode, startDate, endDate)
 
     // Převod do cílové měny PŘED složením portfolia – od tohoto bodu je celá simulace
@@ -697,6 +749,7 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
           rates
         )
       : indexData.data
+    if (priceSeries.length > 0 && !INDEX_BY_CODE[item.indexCode]?.monthly) konceDennich.push(priceSeries[priceSeries.length - 1].date.getTime())
 
     if (priceSeries.length === 0) {
       console.warn(`No data for index ${item.indexCode}`)
@@ -732,12 +785,16 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
     etfSeries,
     initialAmount,
     rebalancingStrategy || 'yearly',
-    contributions
+    contributions,
+    konceDennich.length ? Math.min(...konceDennich) : undefined
   )
 
   if (evolution.length === 0) {
     throw new Error('No overlapping data for portfolio ETFs')
   }
+
+  // Kurz, kterým se přepočetl POSLEDNÍ bod simulace (pro kontrolu „poslední kurz = datum dat“).
+  const kurzPoslednihoBodu = rates.length ? getExchangeRateForDate(rates, evolution[evolution.length - 1].date) : null
 
   // Výnos a riziko počítáme z market-only NAV (bez vkladů) – time-weighted, jako PortfolioVisualizer.
   // Reálná hodnota s vklady zůstává v `evolution` (graf) + v netAssetValue/amountInvested.
@@ -760,6 +817,7 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
     risk,
     horizons,
     ...(inflation ? { inflation } : {}),
+    ...(kurzPoslednihoBodu ? { kurzyDo: kurzPoslednihoBodu.date.toISOString().slice(0, 10) } : {}),
   }
 }
 

@@ -161,6 +161,13 @@ export interface BacktestResult {
   // Investment horizon analysis
   horizons: HorizonAnalysis[]
 
+  /**
+   * Datum NEJNOVĚJŠÍHO kurzu, který simulace použila (YYYY-MM-DD), nebo undefined bez přepočtu měny.
+   * Kontrola dat (check-fund-data.mjs, kolo5 A) hlídá, že sedí s koncem simulace – předpočet stránky
+   * nesmí počítat poslední dny se starým kurzem (revize 19. 10. 2026).
+   */
+  kurzyDo?: string
+
   // Monte Carlo forecasts (optional, computed on demand)
   monteCarlo?: MonteCarloResult[]
 
