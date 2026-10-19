@@ -607,7 +607,8 @@ const main = async () => {
         // value) musí být u čísla VIDITELNĚ napsaný („Historie počítá …“), ne jen v tooltipu. Americký AGG v USD za fond
         // zajištěný do eur se nesmí vrátit (kolo 5: v Kč se chová úplně jinak).
         const slozeni = q.get('slozeni') || '';
-        if (cesta !== '/portfolio-strategie' && /ftse_europe|eur_govt_bond|us_small_cap/.test(slozeni) && !html.includes('Historie počítá'))
+        // kolo5 A (19. 10. 2026): eur_govt_bond už NENÍ náhrada – 60/40 a Nobelovo mají ve složení přímo zdrojový fond dat (XGLE).
+        if (cesta !== '/portfolio-strategie' && /ftse_europe|us_small_cap/.test(slozeni) && !html.includes('Historie počítá'))
           nesedi.push(`${cesta}: složení přes náhradní index (${slozeni}) bez viditelné věty „Historie počítá…“`);
         if (/us_aggregate_bond/.test(slozeni)) nesedi.push(`${cesta}: modelové portfolio počítá dluhopisy přes AGG v USD (fond ve složení je zajištěný do eur)`);
         if (!(Number.isFinite(api) && Number.isFinite(web))) nesedi.push(`${cesta}: nešlo spočítat (${q.get('slozeni')})`);
@@ -620,6 +621,74 @@ const main = async () => {
   } catch (e) {
     varovani.push({ co: `Kontrolu modelových portfolií se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
+
+  // --- kolo5 A --- (revize 19. 10. 2026; pravidlo č. 1, bod 4)
+  // Předpočty modelových portfolií a kvízu se 18. 10. počítaly z datové cache Nextu s kurzy do 9. 10. a indexy do 16. 10.
+  // (60/40 ~387 tis./7,7 % × živé API 385 346 Kč/7,6 %) a kontrola výš to nechytla – porovnávala jen CAGR s tolerancí
+  // 0,1 p. b. Tady navíc:
+  //  a) KONEČNÁ HODNOTA (ze 100 000 Kč) na stránce = živé API se stejnými vstupy (tolerance 0,1 %) – portfolia I kvíz,
+  //  b) poslední kurz použitý v předpočtu = konec simulace („Data k …“), má-li DB kurz k tomu dni; jinak nejvýš 4 dny,
+  //  c) konec předpočtu nesmí být víc než 4 dny za nejnovějšími daty v DB (kurzy i VT) – zastaralá cache,
+  //  d) složka s vahou 0 % = stejný výsledek jako bez ní (dřív null → „0 Kč, ztráta −100 %“).
+  try {
+    const hlavicky = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const fxPosl = await fetch(`${URL_DB.replace('etf_funds', 'exchange_rates_historical')}?select=date&order=date.desc&limit=20`, hlavicky).then((r) => r.json());
+    const fxDny = new Set((fxPosl ?? []).map((x) => x.date));
+    const vtPosl = await fetch(`${URL_DB.replace('etf_funds', 'index_historical_data')}?select=date&index_code=eq.ftse_all_world&order=date.desc&limit=1`, hlavicky).then((r) => r.json());
+    const dataDo = [fxPosl?.[0]?.date, vtPosl?.[0]?.date].filter(Boolean).sort()[0];
+    const den = (a, b) => (Date.parse(a) - Date.parse(b)) / 864e5;
+    const stranky = ['/portfolio-strategie', '/vyber-etf'];
+    const hub = await fetch(`${WEB_URL}/portfolio-strategie`).then((r) => (r.ok ? r.text() : ''));
+    for (const m of hub.matchAll(/href="\/portfolio-strategie\/([a-z0-9-]+)"/g)) if (!stranky.includes(`/portfolio-strategie/${m[1]}`)) stranky.push(`/portfolio-strategie/${m[1]}`);
+    const nesedi = [], stare = [], varuj = [];
+    let overeno = 0, kvizOvereno = 0;
+    for (const cesta of stranky) {
+      const html = cesta === '/portfolio-strategie' ? hub : await fetch(`${WEB_URL}${cesta}`).then((r) => (r.ok ? r.text() : ''));
+      for (const m of html.matchAll(/data-kontrola-backtest="([^"]+)"/g)) {
+        const [odkaz, , navStr, kurzyDo] = m[1].replace(/&amp;/g, '&').split('|');
+        if (!navStr) { nesedi.push(`${cesta}: kontrolní údaj bez konečné hodnoty (${odkaz.slice(0, 60)}…)`); continue; }
+        const q = new URL(odkaz, WEB_URL).searchParams;
+        const doDen = q.get('do');
+        const portfolio = (q.get('slozeni') || '').split(',').map((x) => x.split(':')).filter(([c, w]) => c && Number(w) > 0)
+          .map(([c, w]) => ({ isin: c, name: c, indexCode: c, weight: Number(w) / 100, ter: 0 }));
+        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ portfolio, startDate: q.get('start'), endDate: doDen, initialAmount: Number(q.get('amount') || 100000), currency: 'CZK', rebalancingStrategy: q.get('vyvazovani') || 'yearly' }),
+        }).then((r) => r.json()).catch(() => null);
+        const api = bt?.summary?.netAssetValue, web = Number(navStr);
+        overeno++; if (cesta === '/vyber-etf') kvizOvereno++;
+        if (!(Number.isFinite(api) && Number.isFinite(web))) nesedi.push(`${cesta}: konečnou hodnotu nešlo ověřit (${q.get('slozeni')})`);
+        else if (Math.abs(api / web - 1) > 0.001) nesedi.push(`${cesta} ${q.get('slozeni')}: stránka ${Math.round(web).toLocaleString('cs-CZ')} Kč vs. backtest ${Math.round(api).toLocaleString('cs-CZ')} Kč (do ${doDen})`);
+        // b) kurz posledního bodu
+        if (!kurzyDo) nesedi.push(`${cesta} ${q.get('slozeni')}: předpočet neuvádí kurz posledního bodu`);
+        else if (fxDny.has(doDen) && kurzyDo !== doDen) nesedi.push(`${cesta} ${q.get('slozeni')}: poslední bod ${doDen} přepočten kurzem z ${kurzyDo}, ačkoli v DB kurz k ${doDen} je (zastaralá data předpočtu)`);
+        else if (den(doDen, kurzyDo) > 4) nesedi.push(`${cesta} ${q.get('slozeni')}: poslední bod ${doDen} přepočten ${den(doDen, kurzyDo)} dní starým kurzem (${kurzyDo})`);
+        else if (kurzyDo !== doDen) varuj.push(`${cesta}: poslední bod ${doDen} s kurzem z ${kurzyDo} (svátek ECB?)`);
+        // c) zastaralý předpočet
+        if (dataDo && doDen && den(dataDo, doDen) > 4) stare.push(`${cesta}: předpočet končí ${doDen}, data v DB jsou do ${dataDo}`);
+      }
+    }
+    if (nesedi.length) poplach.push({ co: 'Modelová portfolia / kvíz: konečná hodnota nebo kurz předpočtu nesedí s živým backtestem', ukazka: nesedi.slice(0, 10) });
+    if (stare.length) poplach.push({ co: 'Modelová portfolia / kvíz počítají ze zastaralých dat (předpočet o víc než 4 dny za daty v DB)', ukazka: [...new Set(stare)].slice(0, 10) });
+    if (varuj.length) varovani.push({ co: 'Předpočet: poslední bod bez kurzu téhož dne', ukazka: [...new Set(varuj)].slice(0, 5) });
+    if (!overeno) varovani.push({ co: 'Kontrola konečných hodnot (kolo5 A) nenašla na stránkách nic k ověření', ukazka: [] });
+    else if (!kvizOvereno) poplach.push({ co: 'Kvíz /vyber-etf nemá kontrolní údaje data-kontrola-backtest (čísla kvízu nejde ověřit)', ukazka: [] });
+
+    // d) složka s vahou 0 % nesmí změnit výsledek
+    const sim = (portfolio) => fetch(`${WEB_URL}/api/backtest/simulate`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ portfolio, startDate: '2010-01-04', endDate: '2020-12-31', initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly' }),
+    }).then((r) => r.json()).catch(() => null);
+    const p = (c, w) => ({ isin: c, name: c, indexCode: c, weight: w, ter: 0 });
+    const [bez, s0] = await Promise.all([sim([p('ftse_all_world', 1)]), sim([p('ftse_all_world', 1), p('ftse_europe', 0)])]);
+    const a0 = bez?.summary?.netAssetValue, b0 = s0?.summary?.netAssetValue;
+    if (!(Number.isFinite(a0) && Number.isFinite(b0)) || Math.abs(a0 - b0) > 0.01) {
+      poplach.push({ co: 'Backtest: složka s vahou 0 % mění výsledek (má být stejný jako bez ní)', ukazka: [`bez ${a0} · se složkou 0 % ${b0}`] });
+    }
+  } catch (e) {
+    varovani.push({ co: `Kontrolu kolo5 A (konečné hodnoty, kurzy předpočtu) se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+  // --- konec kolo5 A ---
 
   // ── DVOJICE PODLE TICKERU: stejný ticker má víc fondů (SPYI = SPDR ACWI IMI na XETRA i opční fond HANetf na LSE).
   // 18. 10. 2026 /srovnani/vwce-vs-spyi ukazoval 1milionový opční fond. Stránka musí vybrat ten správný.

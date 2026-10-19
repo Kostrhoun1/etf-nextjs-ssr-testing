@@ -352,8 +352,8 @@ viditelná věta u náhrad, žádný `us_aggregate_bond`, Dividendové bez backt
 | Portfolio | Náhrada v historii | Proč |
 |---|---|---|
 | Permanentní, All Weather | žádná (US státní dluhopisy, zlato, komodity = fondy ve složení jsou také USD) | – |
-| 60/40 | dluhopisy = `eur_govt_bond` (Xtrackers Eurozone Govt, XGLE.DE, EUR) | fond ve složení (iShares Core Global Aggregate EUR Hedged) je od 2017 a zajištěný do eur; dřív AGG v USD → v Kč úplně jiné chování (USD/CZK 2008 +35 %) |
-| Nobelovo | dluhopisy = `eur_govt_bond`, nemovitosti = `ftse_europe` (evropské akcie) | dlouhá řada nemovitostních fondů v datech není |
+| 60/40 | **žádná** (od 19. 10. 2026) – dluhopisy ve složení = Xtrackers II Eurozone Government Bond 1C (LU0290355717, XGLE) = přímo zdroj dat `eur_govt_bond` | dřív složení iShares Core Global Aggregate EUR Hedged (IE00BDBRDM35, od 2017) a historie jiný fond; ještě dřív AGG v USD |
+| Nobelovo | nemovitosti = `ftse_europe` (evropské akcie); dluhopisy = přímo fond ve složení (LU0290355717) | dlouhá řada nemovitostních fondů v datech není |
 | Akciové | nemovitosti = `ftse_europe` | totéž |
 | Svět + malé firmy | malé hodnotové firmy = `us_small_cap` (Russell 2000), vyspělé mimo USA = `msci_eafe` | globální small-cap value řada v datech není |
 | Dividendové | **bez historie („—“)** | dřív 95 % celý svět = historie celosvětových akcií, ne dividendového portfolia; S&P Global Dividend Aristocrats v manifestu není (`us_dividend` = VYM, jiný index) |
@@ -373,3 +373,24 @@ odkaz do backtestu proto nese explicitní `slozeni=`, ne preset „60/40“ (ten
 **Backtest – „Největší propady“ se dvěma stejnými čísly NEJSOU duplicita.** 70 % celý svět + 30 % EUR dluhopisy od 2008:
 −19,93 % (9/2008 → 11/2008) a −19,93 % (11/2021 → 4/2023), resp. bez vkladů −19,93/−19,82 a −18,73/−18,70 (2015–16 × 2020) –
 různé epizody (ověřeno z API na plnou přesnost 19. 10. 2026). Tabulka při shodě na 1 desetinné místo ukazuje setiny a pod ní větu.
+
+## Backtest, předpočty a kvíz – kolo 5 A (19. 10. 2026)
+
+- **Kurz pro přepočet smí být nejvýš 4 kalendářní dny starý** (`MAX_STARI_KURZU_DNI`, `src/lib/backtest/engine.ts`). Bod indexu
+  bez takového kurzu se vynechá – simulace pak poctivě končí posledním dnem s kurzem a stránky ukazují „Data k …“ z posledního
+  bodu. 4 dny = nejdelší běžná mezera v celé historii od 2000 (Velikonoční pondělí, 26. 12. po víkendu), ověřeno proti všem
+  indexům. **Nezvyšovat „aby to prošlo“** – dřív se poslední týden přepočítával 9 dní starým kurzem. Osa portfolia končí koncem
+  NEJKRATŠÍ denní řady (forward-fill nese jen měsíční řady, ne useknutý konec denní).
+- **Historie indexů a kurzů se čte mimo datovou cache Nextu** (`fetch._nextOriginalFetch` v engine.ts). Záměr: datová cache
+  přežívá nasazení a kurzy s indexy v ní stárly nezávisle (předpočet 18. 10. = kurzy do 9. 10., indexy do 16. 10.). Stránky
+  zůstávají ISR (revalidate 1 den) – `no-store` ani kratší revalidate NEPOUŽÍVAT (dynamické stránky / víc ISR zápisů na free
+  tieru). Zastaralost hlídá `check-fund-data.mjs` (kolo5 A).
+- **Složky s vahou 0 % se do výpočtu neposílají a engine je vynechá** – výsledek = portfolio bez nich (dřív „0 Kč, −100 %“).
+- **60/40 a Nobelovo: dluhopisy = Xtrackers II Eurozone Government Bond 1C (LU0290355717)**, ne iShares Core € Govt Bond
+  (IE00B4WXJJ64), přestože ho navrhovala revize: LU0290355717 je PŘESNĚ zdroj dat `eur_govt_bond` (XGLE.DE, `sourceIsin`), je
+  akumulační, TER 0,07 % (ověřeno v `etf_funds` 19. 10. 2026). IE00B4WXJJ64 je jiný (distribuční) fond na podobný index.
+  Backtest u třídy „EUR vládní dluhopisy“ nabízí ke koupi tentýž fond (`proxyEtf` v manifestu). Homepage, detail i backtest
+  tak počítají totéž. Akcie zůstávají VWCE ve složení × VT v historii (jako u všech portfolií – „celý svět“ = VT).
+- **Kvíz /vyber-etf: max. propad u každého výsledku je z indexu manifestu, ne z ukázkového fondu.** Technologie a ESG řadu
+  v datech nemají → propad neuvádíme a viditelně ukazujeme „pro srovnání“ S&P 500 / celý svět. Dividendové = americké
+  dividendové akcie (VYM), pojmenované v textu. Příklad fondu se vybírá podle odpovědi Acc/Dist („Nevím“ = Acc).

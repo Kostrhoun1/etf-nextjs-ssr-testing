@@ -89,6 +89,9 @@ export interface SkutecnostVysledek {
   irr: number | null;
   maxPokles: number;
   dnoPoklesu: string;
+  /** Vrchol před největším propadem a den návratu na něj (null = zatím bez návratu) – uklidňující kontext z dat. */
+  vrcholPoklesu?: string | null;
+  navratPoklesu?: string | null;
   prvniDen: string;
   posledniDen: string;
 }
@@ -96,7 +99,7 @@ export interface SkutecnostVysledek {
 /** Výsledek backtestu (tvar API /api/backtest/simulate) → údaje pro kartu. */
 export function shrnSkutecnost(
   s: SkutecnostScenar,
-  r: { evolution: { date: string; value: number }[]; summary: { netAssetValue: number; amountInvested: number }; risk: { maxDrawdown: { depth: number; troughDate: string } } },
+  r: { evolution: { date: string; value: number }[]; summary: { netAssetValue: number; amountInvested: number }; risk: { maxDrawdown: { depth: number; troughDate: string; startDate?: string; endDate?: string | null; recovered?: boolean } } },
 ): SkutecnostVysledek | null {
   const ev = r.evolution;
   if (!ev?.length) return null;
@@ -108,6 +111,8 @@ export function shrnSkutecnost(
     irr: zhodnoceniVkladu(ev, s.body.initialAmount, c?.amount ?? 0, c?.frequency ?? 'none', r.summary.amountInvested),
     maxPokles: r.risk.maxDrawdown.depth,
     dnoPoklesu: r.risk.maxDrawdown.troughDate,
+    vrcholPoklesu: r.risk.maxDrawdown.startDate ?? null,
+    navratPoklesu: r.risk.maxDrawdown.recovered && r.risk.maxDrawdown.endDate ? r.risk.maxDrawdown.endDate : null,
     prvniDen: ev[0].date,
     posledniDen: ev[ev.length - 1].date,
   };

@@ -251,6 +251,13 @@ const fmtMil = (v: number) => v >= 1e6
   : fmtCZK(Math.round(v / 1000) * 1000);
 const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace('-', '−')}\u00a0%`;
 const mesRok = (iso: string) => { const d = new Date(iso); return `${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
+/** „za 4 roky“ / „za 8 měsíců“ – od dna propadu zpět na předchozí vrchol. */
+const navratText = (dno: string, navrat: string) => {
+  const mes = Math.max(1, Math.round((Date.parse(navrat) - Date.parse(dno)) / (30.44 * 864e5)));
+  if (mes < 18) return `za ${mes} ${mes === 1 ? 'měsíc' : mes < 5 ? 'měsíce' : 'měsíců'}`;
+  const r = Math.round(mes / 12);
+  return `zhruba za ${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
+};
 
 export default function InvesticniKalkulackaWidget({ historicke = [], skutecnostVychozi = null }: {
   historicke?: HistorickyVynos[];
@@ -335,16 +342,18 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
   }, [scenar.klic]);
   const skutecnostAktualni = skutecnost && skutecnost.klic === scenar.klic ? skutecnost : null;
 
-  // Mobil: lišta s výsledkem dole jen když velké číslo není vidět.
+  /* Mobil: lišta s výsledkem dole jen když HLAVNÍ ČÍSLO není vidět (revize 19. 10. 2026: hlídala se celá karta
+     s prahem 20 % → lišta se ukázala, i když velké číslo bylo na obrazovce, a prosvítalo pod ní „duch“). */
   const vysledekRef = useRef<HTMLDivElement>(null);
+  const [cisloEl, setCisloEl] = useState<HTMLParagraphElement | null>(null);
   const [vysledekVidet, setVysledekVidet] = useState(true);
   useEffect(() => {
-    const el = vysledekRef.current;
+    const el = cisloEl;
     if (!el || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([z]) => setVysledekVidet(z.isIntersecting), { threshold: 0.2 });
+    const io = new IntersectionObserver(([z]) => setVysledekVidet(z.isIntersecting), { threshold: 0.5 });
     io.observe(el);
     return () => io.disconnect();
-  }, [hasData]);
+  }, [cisloEl]);
   // Nad patičkou se lišta schová (stejně jako v backtestu).
   const [paticka, setPaticka] = useState(false);
   useEffect(() => {
@@ -448,8 +457,8 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               {historicke.length > 0 && (
                 <div className="mt-2.5 rounded-lg bg-teal-50/70 border border-teal-100 p-2.5">
                   <p className="text-xs text-teal-900 flex items-center gap-1 flex-wrap">
-                    Průměrný roční výnos trhu v Kč, {fmtMesic(historicke[0].odMesic)} – {fmtDen(historicke[0].doDen)}
-                    <InfoTip label="Průměrné roční zhodnocení trhu (CAGR) v korunách z historických cen fondů – jako by se 1. 1. 2004 vložilo jednou a nechalo ležet. S&P 500 = fond SPY; celý svět = fond Vanguard Total World (VT), do 6/2008, kdy ještě nebyl, 60 % S&P 500 + 40 % svět mimo USA; 60/40 = 60 % akcie celého světa + 40 % americké dluhopisy v dolarech (AGG). Po poplatcích těchto fondů, před daní. Backtest od jiného dne vyjde jinak (např. S&P 500 od 1/2005). Minulost, ne předpověď.">
+                    Průměrný roční výnos trhu v Kč, {fmtMesic(historicke[0].odMesic)} – {fmtDen(historicke[0].doDen)} (společné období všech tří)
+                    <InfoTip label="Kolik trh v korunách průměrně vydělal za rok, kdyby se 1. 1. 2004 vložila jedna částka a nechala se ležet. Spočítáno ze skutečných cen fondů, po jejich poplatcích, před daní. Celý svět: do června 2008 (kdy fond na celý svět ještě nebyl) počítáme 60 % akcií USA a 40 % akcií mimo USA. 60/40 = 60 % akcie celého světa a 40 % americké dluhopisy v dolarech. Začátek v jiném roce vyjde jinak. Je to minulost, ne předpověď. (Fondy SPY, VT, VGTSX a AGG.)">
                       <span className="sr-only">odkud jsou čísla</span>
                     </InfoTip>
                   </p>
@@ -506,7 +515,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
             <p className="text-sm text-slate-600">
               Za {investmentPeriod} {let_(investmentPeriod)} byste měli{taxRate > 0 ? ' (po dani)' : ''}
             </p>
-            <p className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1">{fmtCZK(finalResult.netValue)}</p>
+            <p ref={setCisloEl} className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1">{fmtCZK(finalResult.netValue)}</p>
             {(() => {
               const seg = [
                 { label: 'Vloženo', v: finalResult.totalInvested, color: 'bg-slate-300' },
@@ -585,8 +594,9 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
         )}
       </div>
 
+      {/* lg:items-start: tmavá karta jen na výšku obsahu (revize 19. 10. 2026: natažená na výšku sousední karty = ~180 px prázdné tmavé plochy). */}
       {hasData && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
           {/* Co z toho plyne – vygenerované z TĚCH hodnot, které jsou zadané (dřív pevný text „za 30 let“) */}
           <div data-sekce="kalk-shrnuti" className="rounded-xl bg-teal-800 text-white p-5 md:p-6">
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
@@ -613,10 +623,10 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
             <p className="mt-1 text-sm text-slate-600 leading-relaxed">
               Stejné vklady {scenar.doCeho} od {fmtMesic(scenar.start)} na skutečných historických datech v Kč
               {scenar.priblizeni && (
-                <> <InfoTip label="Celosvětový fond Vanguard Total World (VT) má data až od 7/2008. Pro dřívější začátek proto počítáme přiblížení: 60 % S&P 500 + 40 % akcie mimo USA (stejně jako preset „USA + zbytek světa“ v backtestu).">
+                <> <InfoTip label="Fond na akcie celého světa existuje až od léta 2008. Pro dřívější začátek proto počítáme přiblížení: 60 % akcie USA a 40 % akcie mimo USA (v backtestu volba „USA + zbytek světa“).">
                   <span className="sr-only">proč</span></InfoTip></>
               )}
-              {scenar.zkraceno && ' – data v Kč máme až od tohoto měsíce, období je proto kratší než zadaných ' + investmentPeriod + ' ' + let_(investmentPeriod)}:
+              {scenar.zkraceno && ` – pro tuto volbu (${scenar.nazev}) máme data v korunách až od tohoto měsíce, období je proto kratší než zadaných ${investmentPeriod} ${let_(investmentPeriod)}`}:
             </p>
             {skutecnostStav === 'chyba' && !skutecnostAktualni ? (
               <p className="mt-3 text-sm text-slate-500">— <span className="text-xs">{!(scenar.body.initialAmount > 0) && !scenar.body.contributions ? 'Zadejte vklad.' : 'Historický výpočet se teď nepodařil.'}</span></p>
@@ -643,10 +653,17 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                     {v.irr != null && (
                       <li>
                         Vaše vklady by se zhodnocovaly <span className="font-semibold tabular-nums text-slate-800">{fmtPct1(v.irr * 100)} ročně</span>{' '}
-                        <InfoTip label="Zhodnocení vašich vkladů (XIRR): stálý roční výnos, který by ze stejných vkladů ve stejných dnech udělal stejnou částku – přímo srovnatelný s výnosem zadaným do kalkulačky. Je to JINÝ údaj než průměrný roční výnos trhu u rychlých voleb: ten počítá s jedním vkladem na začátku, kdežto pozdější pravidelné vklady byly investované kratší dobu a zažily jiné roky (např. nákupy levně po propadu 2008–09). Proto vychází jinak."><span className="text-xs text-slate-500">(jiný údaj než průměrný výnos trhu)</span></InfoTip>
+                        <InfoTip label="Jakým stálým ročním výnosem by se vaše vklady musely úročit, aby ze stejných vkladů ve stejných dnech vznikla stejná částka – lze ho přímo porovnat s výnosem zadaným do kalkulačky. Od průměrného výnosu trhu u rychlých voleb se liší: ten počítá s jedním vkladem na začátku, kdežto pozdější pravidelné vklady zažily jiné roky (třeba nákupy levně po propadu 2008–09). (Odborně XIRR.)"><span className="text-xs text-slate-500">(jiný údaj než průměrný výnos trhu)</span></InfoTip>
                       </li>
                     )}
-                    <li>Největší propad <span className="font-semibold tabular-nums text-red-600">{fmtPct1(v.maxPokles * 100)}</span> <span className="text-slate-500">(dno {mesRok(v.dnoPoklesu)})</span> – stálý výnos kalkulačky ho nevidí</li>
+                    <li>
+                      Největší propad <span className="font-semibold tabular-nums text-red-600">{fmtPct1(v.maxPokles * 100)}</span>{' '}
+                      <span className="text-slate-500">({v.vrcholPoklesu ? `${mesRok(v.vrcholPoklesu)} → ` : 'dno '}{mesRok(v.dnoPoklesu)})</span> – stálý výnos kalkulačky ho nevidí.
+                      {/* Uklidňující kontext hned u čísla – z dat, ne slib (revize 19. 10. 2026). */}
+                      <span className="block text-slate-600">{v.navratPoklesu
+                        ? <>Na předchozí vrchol se hodnota vrátila v {mesRok(v.navratPoklesu)} – {navratText(v.dnoPoklesu, v.navratPoklesu)} od dna.</>
+                        : v.navratPoklesu === null ? <>Na předchozí vrchol se hodnota zatím nevrátila.</> : null}</span>
+                    </li>
                   </ul>
                 </div>
               );
@@ -745,7 +762,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
       })()}
 
       {listaDole && (
-        <a href="#vysledek" className="md:hidden fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
+        <a href="#vysledek" className="md:hidden fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-2.5 shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
           <span className="text-xs text-slate-500">Za {investmentPeriod} {let_(investmentPeriod)}</span>
           <span className="text-base font-bold text-slate-900 tabular-nums">{fmtCZK(finalResult.netValue)}</span>
         </a>
