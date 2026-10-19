@@ -20,7 +20,7 @@ export const brokers: Broker[] = [
     web: 'https://www.degiro.cz',
     regulation: 'BaFin (DE), DNB/AFM (NL)',
     protection: '100 000 EUR (DE), 20 000 EUR (investice)',
-    ochrana: { hotovost: '100 000 EUR (pojištění vkladů, flatexDEGIRO Bank)', cennePapiry: '20 000 EUR (německý kompenzační systém)' },
+    ochrana: { hotovost: '100 000 EUR (pojištění vkladů, flatexDEGIRO Bank)', cennePapiry: 'max. 20 000 EUR (německý kompenzační systém)' },
     // ETF Selection: 0 EUR provize + 1 EUR manipulační poplatek; ostatní ETF 3 EUR celkem. Směna CZK/EUR zdarma.
     // Připojení k burze: 2,50 EUR ročně za každou zahraniční burzu, nejvýš 0,25 % hodnoty účtu; NEúčtuje se u ETF
     // Selection a pražské burzy (Přehled poplatků degiro.cz/data/pdf/cs/Prehled_poplatku.pdf, str. 10, ověřeno
@@ -31,7 +31,9 @@ export const brokers: Broker[] = [
     managementFee: '0 EUR (u ETF mimo ETF Selection připojení k burze až 2,5 EUR ročně)',
     fxFee: 'CZK/EUR zdarma, ostatní 0,25 %',
     fractional: false,
-    czSupport: false, // ověřeno 18. 10. 2026 (degiro.cz/helpdesk/contact): podpora jen anglicky
+    // Ověřeno 18. a znovu 19. 10. 2026 (degiro.cz/helpdesk/contact): „our Service Desk is not available in Czech, but we're
+    // happy to help you out in English“ – web je česky, podpora jen anglicky (telefon +49 69 5060419 50, Po–Pá 8–22).
+    czSupport: false,
     czDividends: '35 % (možnost vratky 20 %)',
     minDeposit: '0 EUR',
     platforms: ['Web', 'Android', 'iOS'],
@@ -61,9 +63,14 @@ export const brokers: Broker[] = [
     rating: 94,
     web: 'https://www.xtb.com/cz',
     regulation: 'KNF (PL), v ČR organizační složka pod dohledem ČNB',
-    protection: '20 100 EUR (polský garanční systém)',
+    protection: 'max. 20 100 EUR (polský systém náhrad KDPW)',
     // Garanční (kompenzační) systémy dle směrnice 97/9/ES kryjí peníze i cenné papíry klienta společným limitem.
-    ochrana: { hotovost: 'Do 20 100 EUR – společný limit s cennými papíry', cennePapiry: '20 100 EUR (polský garanční systém)' },
+    // Ověřeno 19. 10. 2026: XTB „Informácie o systéme ochrany investícií“ (xas-new-cdn.xtb.com/file/0103/54/…f4a31e487a.pdf,
+    // čl. 2.2 a 2.4: náhrada peněz i nakoupených nástrojů, 100 % do 3 000 EUR, nad to 90 %, chráněná částka do 22 000 EUR
+    // → výplata max. 20 100 EUR) a xtb.com/pl/ochrona-srodkow-klientow-kb (KDPW). Cenné papíry vede XTB odděleně od svého
+    // majetku (CZ VOP čl. 4.36), při krachu se vracejí; náhrada nastupuje, jen kdyby chyběly. Části podílů (frakce) vlastní
+    // právně XTB ve svěřenské správě pro klienta (VOP čl. 7.70) – zda je kryje systém náhrad, dokumenty neuvádějí.
+    ochrana: { hotovost: 'max. 20 100 EUR – společný limit s cennými papíry', cennePapiry: 'max. 20 100 EUR (polský systém KDPW: 100 % do 3 000 EUR, nad to 90 %)' },
     // 0 % do 100 000 EUR objemu měsíčně (nad limit 0,2 %, min. 10 EUR); směna CZK→EUR 0,5 %.
     nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.5, minUsd: 0 }, pozn: 'do 100 000 EUR objemu měsíčně' },
     etfFee: 'Akcie a ETF 0 % do 100 000 EUR/měs., nad limit 0,2 % (min. 10 EUR)',
@@ -105,7 +112,7 @@ export const brokers: Broker[] = [
     web: 'https://www.fio.cz/investice',
     regulation: 'ČNB (CZ)',
     protection: '100 000 EUR (hotovost, FPV), 20 000 EUR (cenné papíry, GFOCP)',
-    ochrana: { hotovost: '100 000 EUR (Fond pojištění vkladů)', cennePapiry: '20 000 EUR (Garanční fond OCP)' },
+    ochrana: { hotovost: '100 000 EUR (Fond pojištění vkladů)', cennePapiry: 'max. 20 000 EUR (Garanční fond OCP)' },
     // Ceník od 1. 7. 2026, XETRA: 3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR, nad 0,15 % (min. 6,95 EUR).
     // Směna bez poplatku, náklad je v kurzu banky – výši spreadu neznáme → smena: null („—“).
     nakup: {
@@ -152,12 +159,14 @@ export const brokers: Broker[] = [
     web: 'https://www.trading212.com',
     regulation: 'CySEC (CY) pro CZ klienty, FCA (UK)',
     protection: '20 000 EUR (ICF, Kypr)',
-    ochrana: { hotovost: 'Do 20 000 EUR – společný limit s cennými papíry', cennePapiry: '20 000 EUR (kyperský fond ICF)' },
-    // 0 % provize; směna CZK→EUR 0,15 % (o víkendu 0,5 %).
-    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.15, minUsd: 0 }, smenaPozn: 'o víkendu 0,5 %' },
+    ochrana: { hotovost: 'max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: 'max. 20 000 EUR (kyperský fond ICF)' },
+    // 0 % provize; směna CZK→EUR 0,15 %. „O víkendu 0,5 %“ VYPUŠTĚNO 19. 10. 2026: oficiální zdroj se nepodařilo dohledat
+    // (trading212.com/multi-currency i /terms blokují stažení ochranou proti botům) a Wise (wise.com/gb/blog/trading-212-fx-fees,
+    // zdroje ověřeny 15. 7. 2026) uvádí, že se poplatek o víkendu nemění. 0,5 % platí u CFD účtu, ne u Invest.
+    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.15, minUsd: 0 } },
     etfFee: '0 %',
     managementFee: '0 EUR',
-    fxFee: '0,15 % (o víkendu 0,5 %)',
+    fxFee: '0,15 %',
     fractional: true,
     czSupport: false,
     czDividends: '—', // neověřeno, zda T212 české akcie vůbec nabízí (18. 10. 2026) → raději „—“
@@ -231,7 +240,7 @@ export const brokers: Broker[] = [
     web: 'https://www.portu.cz',
     regulation: 'ČNB (CZ)',
     protection: '20 000 EUR (Garanční fond OCP)',
-    ochrana: { hotovost: 'Do 20 000 EUR – společný limit s cennými papíry', cennePapiry: '20 000 EUR (Garanční fond OCP)' },
+    ochrana: { hotovost: 'max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: 'max. 20 000 EUR (Garanční fond OCP)' },
     etfFee: '0,24–1 % ročně (dle částky)',
     managementFee: '0,24–1 % ročně (dle objemu a fixace)',
     fxFee: 'Zahrnut v poplatku',
@@ -346,7 +355,13 @@ export function ochranaHotovosti(b: Broker) {
   const r = rozdelOchranu(b.ochrana?.hotovost);
   return spolecnyLimit(b) ? { v: r.v, pozn: 'společný limit pro hotovost i cenné papíry' } : r;
 }
-export const ochranaPapiru = (b: Broker) => rozdelOchranu(b.ochrana?.cennePapiry);
+/** Cenné papíry při krachu brokera: vedené odděleně → VRACEJÍ SE; garanční systém jen nahrazuje, co by chybělo.
+ *  Dřív „Cenné papíry při krachu: 20 100 EUR“ – četlo se jako „chráněné jen do 20 100 EUR“ (revize kola 5, 19. 10. 2026). */
+export function ochranaPapiru(b: Broker): { v: string; pozn?: string } {
+  const r = rozdelOchranu(b.ochrana?.cennePapiry);
+  if (r.v === '—') return r;
+  return { v: 'Vracejí se vám', pozn: nezlomit(`kdyby chyběly, náhrada ${r.v}${r.pozn ? ` (${r.pozn})` : ''}`) };
+}
 
 /* ---------- Roční náklad (12 nákupů) – JEDNOTNĚ s texty u brokerů ----------
    Revize kola 4: IBKR text říká „směnu stačí udělat jednou“, ale roční součet počítal směnu 12× → u vícměnového
@@ -421,6 +436,12 @@ export function popisVedeniUctu(b: Broker): { v: string; pozn?: string } {
   if (!/^0\s/.test(t)) return { v: nezlomit(t) };
   const pozn = t.match(/\((.*)\)/)?.[1];
   return { v: 'zdarma', pozn: pozn ? nezlomit(pozn) : undefined };
+}
+
+/** Česká podpora jednotně. „Ne“ u brokera s českým webem (DEGIRO) mátlo („degiro.cz je přece česky“) → upřesnění. */
+export function popisPodpory(b: Broker): { v: string; pozn?: string } {
+  if (b.czSupport) return { v: 'Ano', pozn: b.customerSupport };
+  return { v: 'Ne', pozn: b.languages.includes('čeština') ? 'web česky, podpora jen anglicky' : 'jen anglicky' };
 }
 
 /** Daň z českých dividend jednotně: „35 %“ + poznámka „možnost vratky 20 %“; „—“ = neověřeno. */

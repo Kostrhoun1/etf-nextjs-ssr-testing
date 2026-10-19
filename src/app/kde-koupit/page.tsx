@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Suspense } from 'react';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -14,7 +13,8 @@ import {
 import NakladyKalkulacka from '@/components/design-preview/NakladyKalkulacka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { brokers, brokeriPodleSkore, nejlevnejsiPodleCastky, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
-import FondZDetailu from './FondZDetailu';
+import { FondHero, BezFondu } from './FondZDetailu';
+import { FondProvider } from '@/components/design-preview/FondKontext';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
 
 /* /kde-koupit = PRŮVODCE „kde koupit ETF“: živě spočítané náklady pro zadanou částku + rozhodnutí podle profilu.
@@ -138,26 +138,29 @@ export default async function KdeKoupitPage() {
           <span className="text-slate-700">Kde koupit ETF</span>
         </nav>
 
-        {/* Přišel z detailu fondu (?isin=…) → „Kde koupit SXR8“. Klientské, ať stránka zůstane statická (ISR). */}
-        <Suspense fallback={null}><FondZDetailu /></Suspense>
-
+        {/* Přišel z detailu fondu (?isin=…) → hero „Kde koupit SXR8“ a kalkulačka s oběma sazbami DEGIRO.
+            Klientský kontext, ať stránka zůstane statická (ISR). Kolo 5: dřív samostatný box nad hero = dvě hlavičky. */}
+        <FondProvider>
         {/* HERO */}
         <section data-sekce="hero" className="pb-8">
           <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-8">
             <div className="md:flex md:items-end md:justify-between gap-10">
               <div className="max-w-xl">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Kde koupit ETF v Česku {year}</h1>
-                <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
-                  Zadejte, kolik investujete měsíčně, a uvidíte, kolik vás nákup ETF u každého brokera stojí – poplatek i směna korun na eura.
-                </p>
+                <FondHero>
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Kde koupit ETF v Česku {year}</h1>
+                  <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
+                    Zadejte, kolik investujete měsíčně, a uvidíte, kolik vás nákup ETF u každého brokera stojí – poplatek i směna korun na eura.
+                  </p>
+                </FondHero>
                 <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><AutorZnak tmavy /><Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link></span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /><span>Ceníky ověřeny {cenikyOverenyStr}</span></span>
                   <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /><span>Bez provizí a reklamy</span></span>
                 </p>
               </div>
-              {/* Tři fakta – jen desktop; na mobilu je hned pod hero živý přepočet (stejná čísla, bez duplicity). */}
-              <dl className="hidden md:block mt-6 md:mt-0 md:w-[24rem] shrink-0 divide-y divide-white/10 rounded-xl border border-white/10 bg-white/5 text-sm">
+              {/* Tři fakta – jen desktop; na mobilu je hned pod hero živý přepočet (stejná čísla, bez duplicity).
+                  S fondem skryté: „nejlevnější nad X Kč DEGIRO (ETF Selection)“ u fondu, o kterém nevíme, zda je ve výběru, mate. */}
+              <BezFondu><dl className="hidden md:block mt-6 md:mt-0 md:w-[24rem] shrink-0 divide-y divide-white/10 rounded-xl border border-white/10 bg-white/5 text-sm">
                 {nejlevnejsiRadky.map((r) => (
                   <div key={r.k} className="flex items-center justify-between gap-3 px-4 py-2.5">
                     <dt className="whitespace-nowrap text-slate-400 tabular-nums">{r.k}</dt>
@@ -172,7 +175,7 @@ export default async function KdeKoupitPage() {
                   <dt className="text-slate-400">Podpora v češtině</dt>
                   <dd className="text-right font-semibold">{cesky.map((b) => b.name.replace(' e-Broker', '')).join(', ')}</dd>
                 </div>
-              </dl>
+              </dl></BezFondu>
             </div>
           </div>
         </section>
@@ -185,6 +188,7 @@ export default async function KdeKoupitPage() {
           </p>
           <NakladyKalkulacka kurzy={kurzy} />
         </section>
+        </FondProvider>
 
         {/* 2. DOPORUČENÍ PODLE PROFILU */}
         <section id="verdikt" data-sekce="profily" className="pb-10 scroll-mt-20">

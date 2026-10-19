@@ -96,7 +96,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     "proKohoNe": [
       "Posíláte koruny a kupujete ETF v eurech – směna 0,5 % při každém nákupu",
       "Držíte české dividendové akcie – srážka 35 %",
-      "Chcete hotovost pojištěnou jako vklad v bance – kryje ji garanční systém (společný limit 20 100 EUR)"
+      "Chcete hotovost pojištěnou jako vklad v bance – kryje ji garanční systém (společný limit max. 20 100 EUR)"
     ],
     "zalozeni": [
       {
@@ -141,7 +141,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Jsou peníze a ETF u XTB v bezpečí?",
-        "a": "XTB je burzovně obchodovaná společnost kótovaná na varšavské burze (licence polského KNF, česká pobočka pod dohledem ČNB) a prostředky klientů drží na oddělených (segregovaných) účtech. Hotovost i cenné papíry kryje polský garanční systém společným limitem 20 100 EUR. U bankovních brokerů (Fio, DEGIRO) je hotovost pojištěná do 100 000 EUR, cenné papíry mají stejně jako u XTB limit kolem 20 000 EUR. Samotná ETF jsou vaším majetkem odděleným od majetku brokera."
+        "a": "XTB je burzovně obchodovaná společnost kótovaná na varšavské burze (licence polského KNF, česká pobočka pod dohledem ČNB) a peníze klientů drží na oddělených bankovních účtech. ETF a akcie vede odděleně od vlastního majetku, takže se vám při krachu brokera vracejí. Polský systém náhrad (KDPW) nastupuje, jen kdyby něco chybělo: peníze i cenné papíry dohromady nahradí ze 100 % do 3 000 EUR a z částky nad to 90 %, nejvýš 20 100 EUR. Části podílů (frakce) právně vlastní XTB a drží je pro vás ve svěřenské správě. U bankovních brokerů (Fio, DEGIRO) je hotovost navíc pojištěná jako vklad do 100 000 EUR."
       },
       {
         "q": "Lze u XTB pravidelně investovat do ETF (DCA)?",
@@ -221,8 +221,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     ],
     "proKohoNe": [
       "Potřebujete podporu v češtině nebo po telefonu – jen anglický chat",
-      "Nakupujete o víkendu – směna 0,5 % místo 0,15 %",
-      "Chcete hotovost pojištěnou jako vklad v bance – kryje ji kyperský fond ICF (společný limit 20 000 EUR)"
+      "Chcete hotovost pojištěnou jako vklad v bance – kryje ji kyperský fond ICF (společný limit max. 20 000 EUR)"
     ],
     "zalozeni": [
       {
@@ -244,7 +243,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Od klasických brokerů typu DEGIRO nebo Fio se odlišuje důrazem na mobilní aplikaci, frakční investování (část podílu od 1 EUR) a funkce AutoInvest a Pies pro automatizované DCA spoření s automatickým rebalancováním. Pokročilou analytiku pro aktivní obchodování nemá."
     ],
     "feesText": [
-      "Reálné náklady českého ETF investora u Trading 212 jsou velmi nízké. Za nákup i prodej akcií a ETF neplatíte žádnou provizi (0 %, bez limitu objemu), vklady i výběry jsou zdarma. Hlavním nákladem je měnová konverze: účet vedete typicky v EUR, takže při vkladu korun z české banky proběhne konverze CZK/EUR s přirážkou 0,15 % (o víkendu 0,5 %). Této konverzi se lze částečně vyhnout posíláním eur, případně vedením účtu přímo v EUR a nákupem ETF v původní měně.",
+      "Reálné náklady českého ETF investora u Trading 212 jsou velmi nízké. Za nákup i prodej akcií a ETF neplatíte žádnou provizi (0 %, bez limitu objemu), vklady i výběry jsou zdarma. Hlavním nákladem je měnová konverze: účet vedete typicky v EUR, takže při vkladu korun z české banky proběhne konverze CZK/EUR s přirážkou 0,15 %. Této konverzi se lze částečně vyhnout posíláním eur, případně vedením účtu přímo v EUR a nákupem ETF v původní měně.",
       "Z daňového hlediska je zásadní volba správného ETF. U akumulačních (accumulating) ETF s domicilem v Irsku se dividenda reinvestuje uvnitř fondu a řeší se pouze zdanění při prodeji (v ČR lze využít časový nebo hodnotový test na osvobození). U distribučních ETF Trading 212 dividendy nezdaňuje sám a nesráží žádný vlastní poplatek za výplatu, ale u amerických akcií bez vyplněného formuláře W-8BEN hrozí srážka 30 % místo 15 %. Proto českým investorům obvykle dává největší smysl irský akumulační ETF (např. na index S&P 500 nebo celý svět), kde odpadá řešení 15 vs. 35 % srážkové daně z dividend a náklady se blíží nule."
     ],
     "faqs": [
@@ -262,7 +261,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Kolik platím za měnovou konverzi z korun?",
-        "a": "Vkládáte-li koruny na EUR účet, Trading 212 účtuje konverzní přirážku 0,15 % (o víkendu 0,5 %). Nákup a prodej samotného ETF je bez provize. Konverzi lze minimalizovat posíláním eur nebo držením zůstatku v měně, ve které ETF nakupujete."
+        "a": "Vkládáte-li koruny na EUR účet, Trading 212 účtuje konverzní přirážku 0,15 %. Nákup a prodej samotného ETF je bez provize. Konverzi lze minimalizovat posíláním eur nebo držením zůstatku v měně, ve které ETF nakupujete."
       },
       {
         "q": "Co je lending program a je bezpečný?",

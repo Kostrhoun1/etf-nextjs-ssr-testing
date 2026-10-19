@@ -6,7 +6,7 @@ import { Check, X, ArrowRight } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { TipZaTextem } from '@/components/design-preview/brokerUI';
 import {
-  brokeriPodleSkore, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisDaneDividend, ochranaHotovosti, ochranaPapiru, nezlomit,
+  brokeriPodleSkore, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru, nezlomit,
 } from '@/data/brokerData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import type { Broker } from '@/types/broker/index';
@@ -40,7 +40,7 @@ const RADKY: Radek[] = [
   },
   {
     nazev: 'Cenné papíry při krachu',
-    tip: 'Vaše ETF jsou vedená odděleně od majetku brokera. Garanční systém nastupuje, kdyby při krachu brokera chyběla.',
+    // Bez vysvětlivky – hodnota sama říká „Vracejí se vám“ a kdy nastupuje náhrada (kolo 5: bublina na mobilu překrývala řádek).
     hodnota: (b) => ochranaPapiru(b),
   },
   {
@@ -55,7 +55,7 @@ const RADKY: Radek[] = [
   },
   {
     nazev: 'Česká podpora',
-    hodnota: (b) => ({ v: b.czSupport ? 'Ano' : 'Ne', ano: b.czSupport, pozn: b.czSupport ? b.customerSupport : 'jen anglicky' }),
+    hodnota: (b) => ({ ...popisPodpory(b), ano: b.czSupport }),
   },
   {
     nazev: 'Daň z CZ dividend',

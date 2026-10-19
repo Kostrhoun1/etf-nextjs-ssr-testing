@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import StickyKdyzSeVejde from './StickyKdyzSeVejde';
 import {
-  brokers, nakladNakupu, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisVedeniUctu, popisDaneDividend, ochranaHotovosti, ochranaPapiru,
+  brokers, nakladNakupu, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisVedeniUctu, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru,
   cenikyOverenyIso, cenikyOverenyStr,
 } from '@/data/brokerData';
 import { getBrokerContent } from '@/components/design-preview/brokerContent';
@@ -88,9 +88,11 @@ export default async function BrokerReview(
       ];
   fakta.push(
     { k: 'Hotovost na účtu', v: hot.v, pozn: hot.pozn },
-    { k: 'Cenné papíry při krachu', v: cp.v, pozn: cp.pozn, tip: 'ETF jsou vedená odděleně od majetku brokera. Garanční systém nastupuje, kdyby při krachu brokera chyběla.' },
+    // Bez vysvětlivky: vysvětlení je přímo v hodnotě („Vracejí se vám“ + kdy nastupuje náhrada); bublina na mobilu
+    // překrývala právě tento řádek (revize kola 5).
+    { k: 'Cenné papíry při krachu', v: cp.v, pozn: cp.pozn },
     { k: 'Regulace', ...popisRegulace(b) },
-    { k: 'Česká podpora', v: b.czSupport ? b.customerSupport : 'Ne, jen anglicky' },
+    { k: 'Česká podpora', ...(b.czSupport ? { v: b.customerSupport } : { v: `Ne, ${popisPodpory(b).pozn}` }) },
   );
 
   const faqSchema = c ? {
