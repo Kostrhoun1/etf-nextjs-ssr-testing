@@ -460,3 +460,34 @@ dvojice, žebříčky, srovnání brokerů, kalkulačka – 56 px), konzole bez 
 4. Po deployi ověřit na produkci: /srovnani (sticky, filtry), /etf/IE00B5BMR087, /srovnani/vwce-vs-spyi (SPDR),
    /portfolio-strategie (čísla = backtest – kontrola data-kontrola-backtest), /kde-koupit?isin=IE00B5BMR087.
 5. Nezávislá revize kola 5 (art director ×2 + Markéta + Martin) – doporučeno i v Safari (WebKit k instalaci se souhlasem).
+
+## 19. 10. 2026 – nezávislá revize kola 5 (i Safari) a opravy
+
+**Hodnocení (Chromium + WebKit, desktop 1440 + mobil 390):** art director A 7,5–8,5; art director B 7–8,5;
+Markéta (začátečnice, iPhone) 7; Martin (pokročilý, ověřoval na justETF/ČNB/Yahoo) 7,5. Safari bez rozdílů.
+
+**Datové chyby nalezené revizí → opraveno + kontrola (check-fund-data, bloky kolo5 A/B/C):**
+- ✅ **Výnosy za období (letos…5 let) posunuté u všech fondů** ve scrapu 18. 10. (neděle): zdroj měl jako poslední
+  bod předběžnou evropskou cenu, začátky období v NAV → SXR8 YTD +18,64 % místo +17,69 % (EUR). Kalendářní roky
+  nedotčené. Scrape 19. 10. (po finalizaci) sedí přesně. Kontrola: 7 kotevních fondů přepočet z denních cen zdroje
+  + nezávisle závěry Xetra (Yahoo). ⏳ **Oprava scraperu** – nejdřív změřit, kdy zdroj bod finalizuje
+  (hodinové měření scratchpad/mereni-justetf/log.txt do 20. 10. 12:00), pak posunout scrape / přepočet výnosů.
+- ✅ Předpočty portfolií a kvízu z datové cache se zastaralými kurzy (60/40 ≈ 387 tis. vs 385 346 Kč) + tichý
+  fallback na starý kurz (engine) → kurz max. 4 dny, historie mimo datovou cache, kontrola konečné hodnoty ±0,1 %.
+- ✅ Backtest: složka 0 % → „0 Kč, −100 %“; měna v podtitulku; díry v grafu porovnání.
+- ✅ 60/40 a Nobel: složení = fond, který počítá historie (LU0290355717 XGLE).
+- ✅ Homepage „Celý svět“ a EM ≠ žebříček (IMI vyřazené) → stejný výběr; /jaky-sp500-etf natvrdo zastaralé
+  velikosti → z DB s datem; prázdný index u SPYI na dvojici; hledání „ACWI“; dva tickery jednoho fondu (zlato
+  PPFB/SGLN); sektory „Spotřeba (základní)“ → „Necyklická spotřeba“ (klasifikace zdroje ≠ GICS).
+- ✅ Texty: daně v kvízu, ochrana XTB, T212 víkendová směna (nedoložená → odstraněno), DEGIRO podpora jen anglicky,
+  DEGIRO u konkrétního fondu obě sazby.
+- ✅ Rozhodnutí majitele 19. 10.: skóre brokerů zrušeno všude (abecedně); zdroj v patičce detailu/porovnání uvádět.
+- ⏳ Scraper: LevDAX (LU0411075376) má is_leveraged = false (web skrývá podle názvu); datum složení fondu
+  (holdings_as_of) neukládá; index_name u SPYI prázdný (část opravy v oprava-indexy).
+
+**Prověřeno, není chyba:** krátké US dluhopisy (1–3 r. +1,3 % USD – výnosy 2Y vzrostly 3,41 → 4,77 %), shodný
+max. propad −33,3 % dvou portfolií (náhoda, krize 2008), VALL bez 1 r. (vznik 18. 8. 2026), Nasdaq 12 m rozdíl
+(různá doba ocenění fondů – ZAMERNA).
+
+**Nasazení:** úloha `nasazeni-2026-10-20` (20. 10. 8:00) – vylepseni-stranek → main + scraper oprava-indexy.
+faze4 nasazena 19. 10. v 7:05 (viz výše).
