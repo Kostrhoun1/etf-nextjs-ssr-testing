@@ -84,7 +84,7 @@ const den = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleD
 
 function recommend(a: Answers): { key: string; klid: boolean; caution?: string } {
   if (a.horizon === 'short') {
-    return { key: 'bonds', klid: false, caution: 'Na horizont kratší než 3 roky jsou akciové ETF riskantní – trh může být zrovna dole, až budete peníze potřebovat. I dluhopisy kolísají (viz propad níže); jistotu dává spíš spořicí účet.' };
+    return { key: 'bonds', klid: false, caution: 'Na horizont kratší než 3 roky jsou akciové ETF riskantní – trh může být zrovna dole, až budete peníze potřebovat. I dluhopisy kolísají – v korunách i kvůli kurzu eura (viz propad výše); jistotu dává spíš spořicí účet.' };
   }
   const klid = a.risk === 'low';
   const key = a.focus && CATS[a.focus] ? a.focus : 'world';
