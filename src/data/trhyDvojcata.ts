@@ -27,10 +27,13 @@ export interface Trh {
 
 export const TRHY: Trh[] = [
   {
-    id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI, FTSE Global All Cap, Solactive GBS', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
+    id: 'svet', label: 'Celý svět', index: 'FTSE All-World, MSCI ACWI, MSCI ACWI IMI, FTSE Global All Cap, Solactive GBS', href: '/nejlepsi-etf/nejlepsi-celosvetove-etf',
     isins: ['IE00BK5BQT80', 'IE00B3RBWM25', 'IE00B6R52259', 'IE000716YHJ7', 'IE0000QLH0G6', 'IE00BYM11H29', 'IE00BJXFZ989',
       'LU1829220216', 'LU1829220133', 'IE000L6ZMMC4', 'IE000CYC2B65', 'IE00B44Z5B48', 'IE0009HF1MK9', 'IE0003XJA0J9',
-      'LU2903252349', 'IE000VAHT5T0'],
+      'LU2903252349', 'IE000VAHT5T0',
+      // MSCI ACWI IMI (i malé firmy) – stejně jako FTSE Global All Cap (VALL) patří k celému světu; žebříček
+      // i srovnávač ho mají (kolo 5, 19. 10. 2026: homepage je dřív vyřazovala a „Celý svět“ nesouhlasil).
+      'IE00B3YLTY66', 'IE000DD75KQ5'],
   },
   {
     id: 'world', label: 'MSCI World', index: 'vyspělé trhy', href: '/nejlepsi-etf/nejlepsi-msci-world-etf',
@@ -72,8 +75,6 @@ export const TRHY: Trh[] = [
 /** Fondy, které kontrola úplnosti najde, ale do trhu ZÁMĚRNĚ nepatří (s důvodem). */
 export const VYJIMKY: Record<string, string> = {
   XS2427355958: 'WisdomTree S&P 500 – ETP s ISIN XS, ne UCITS fond',
-  IE00B3YLTY66: 'SPDR MSCI ACWI IMI (Investable Market) – jiný index (i malé firmy)',
-  IE000DD75KQ5: 'SPDR MSCI ACWI IMI (Investable Market) Dist – jiný index',
   IE00BK5BQV03: 'Vanguard FTSE Developed World – jiný index než MSCI World (Korea mezi vyspělými)',
   IE00BKX55T58: 'Vanguard FTSE Developed World Dist – jiný index než MSCI World',
   IE00BFXR5S54: 'L&G Global Equity – vlastní index vyspělých trhů (Solactive), ne MSCI World',

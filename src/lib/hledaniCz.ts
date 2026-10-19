@@ -55,6 +55,11 @@ const SYNONYMA_KATEGORII: Record<string, string[]> = {
 const NAZVY: { kmeny: string[]; termy: string[] }[] = [
   // „Celý svět“ = vyspělé i rozvíjející se trhy (jako na homepage); MSCI World je „vyspělé trhy“, ne celý svět.
   { kmeny: ['svet', 'celosvet', 'globaln', 'all world', 'allworld', 'all-world'], termy: ['All-World', 'ACWI', 'All Country World'] },
+  // Kolo 5 (19. 10. 2026): „ACWI“ nenašel IUSQ (název „MSCI All Country World“) ani SPYI („All Country World
+  // Investable Market“), „ACWI IMI“ jen sektorový fond. Zkratka indexu ≠ text názvu fondu → aliasy. IMI napřed
+  // (přesnější; „acwi“ ho zahrne také – IMI je celý svět i s malými firmami, patří k výsledkům „ACWI“).
+  { kmeny: ['acwi imi', 'acwi investable', 'all country world investable', 'investable market'], termy: ['All Country World Investable Market', 'MSCI ACWI IMI', 'ACWI IMI', 'Investable Market'] },
+  { kmeny: ['acwi', 'ac world', 'all country'], termy: ['ACWI', 'All Country World', 'AC World', 'MSCI ACWI'] },
   { kmeny: ['zlat'], termy: ['Gold'] },
   { kmeny: ['stribr'], termy: ['Silver'] },
   { kmeny: ['dluhopis', 'obligac'], termy: ['Bond'] },
@@ -147,6 +152,9 @@ export function skoreHledani(
     else if (name.includes(term)) s = 0.6;
     else if (termyL.some((t) => name.includes(t))) s = 0.5;
   }
+  // Shoda jen v indexu (název fondu ho nemá – SPYI: index MSCI ACWI IMI, v názvu „Investable Market“).
+  const shodaIndexu = !!f.index && [term, ...termyL].some((v) => tvarIndexu(v) === tvarIndexu(f.index!));
+  if (s === 0 && shodaIndexu) s = 1;
   if (s === 0) return 0;
   if (f.index) {
     const idx = f.index.toLowerCase();

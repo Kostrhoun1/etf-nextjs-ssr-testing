@@ -17,23 +17,33 @@ const ZEME: Record<string, string> = {
   Other: 'Ostatní',
 };
 
-/* Sektory: data fondů (justETF) používají klasifikaci TRBC (Refinitiv), ne GICS – proto např. „Technology“
-   u S&P 500 obsahuje i Alphabet a Meta. JEDNA sada českých názvů pro celý web (kolo 3, 18. 10. 2026: žebříček
-   psal „Spotřeba (běžná)“, detail „Spotřební zboží (základní)“). Krátké tvary – vejdou se do sloupce s vahou. */
-const SEKTORY: Record<string, string> = {
-  Technology: 'Technologie', 'Information Technology': 'Technologie', IT: 'Technologie',
-  Finance: 'Finance', Financials: 'Finance', 'Financial Services': 'Finance',
-  Industrials: 'Průmysl', Healthcare: 'Zdravotnictví', 'Health Care': 'Zdravotnictví',
-  'Consumer Non-Cyclicals': 'Spotřeba (základní)', 'Consumer Staples': 'Spotřeba (základní)',
-  'Consumer Cyclicals': 'Spotřeba (cyklická)', 'Consumer Discretionary': 'Spotřeba (cyklická)',
-  'Consumer Services': 'Spotřebitelské služby', 'Business Services': 'Služby pro firmy',
-  'Non-Energy Materials': 'Materiály', 'Basic Materials': 'Materiály', Materials: 'Materiály',
-  Utilities: 'Veřejné služby', Energy: 'Energetika',
-  Telecommunication: 'Komunikace', Telecommunications: 'Komunikace', 'Telecommunications Services': 'Komunikace',
-  'Communication Services': 'Komunikace', Communications: 'Komunikace',
-  'Real Estate': 'Nemovitosti', Sovereign: 'Státní dluhopisy', 'Non-Corporate': 'Nadnárodní a agenturní',
-  Municipal: 'Obecní dluhopisy', 'Government Agencies': 'Vládní agentury', Other: 'Ostatní', Others: 'Ostatní',
+/* Sektory: zdroj dat fondů používá VLASTNÍ klasifikaci – ani GICS, ani TRBC (kolo 5, 19. 10. 2026). Má sektory
+   „Business Services“, „Non-Energy Materials“, „Consumer Services“, „Finance“, které TRBC nemá (TRBC: Financials,
+   Basic Materials); názvy odpovídají spíš FactSet RBICS (úroveň Economy). Čísla ze zdroje sedí (SXR8: Consumer
+   Non-Cyclicals 8,88 % = údaj zdroje), jen se NEDAJÍ srovnávat s GICS od emitenta indexu (S&P 500 Consumer Staples
+   ~5 %). Proto „Necyklická spotřeba“/„Cyklická spotřeba“ – ne „Spotřeba (základní)“, které svádělo ke srovnání
+   s GICS Staples. JEDNA sada českých názvů pro celý web (detail, porovnání, články). Kontrola: check-fund-data.mjs
+   (název sektoru v DB bez překladu = varování). Krátké tvary – vejdou se do sloupce s vahou. */
+export const SEKTORY: Record<string, string> = {
+  // 12 sektorů zdroje (+ Other)
+  Technology: 'Technologie', Finance: 'Finance', Healthcare: 'Zdravotnictví',
+  'Consumer Non-Cyclicals': 'Necyklická spotřeba', 'Consumer Cyclicals': 'Cyklická spotřeba',
+  Industrials: 'Průmysl', Energy: 'Energetika', 'Non-Energy Materials': 'Materiály',
+  'Consumer Services': 'Spotřebitelské služby', Utilities: 'Veřejné služby', 'Business Services': 'Služby pro firmy',
+  Telecommunication: 'Telekomunikace', Telecommunications: 'Telekomunikace',
+  // dluhopisy
+  Sovereign: 'Státní dluhopisy', 'Non-Corporate': 'Nadnárodní a agenturní', Municipal: 'Obecní dluhopisy',
+  'Government Agencies': 'Vládní agentury',
+  // ojedinělé řádky v jiné (GICS) klasifikaci – vlastní názvy, ať se nemíchají se sektory zdroje
+  'Information Technology': 'Technologie', IT: 'Technologie', Financials: 'Finance', 'Financial Services': 'Finance',
+  'Health Care': 'Zdravotnictví', 'Consumer Staples': 'Základní spotřeba', 'Consumer Discretionary': 'Zbytná spotřeba',
+  'Basic Materials': 'Materiály', Materials: 'Materiály', 'Telecommunications Services': 'Telekomunikace',
+  'Communication Services': 'Komunikační služby', Communications: 'Komunikační služby', 'Real Estate': 'Nemovitosti',
+  Other: 'Ostatní', Others: 'Ostatní',
 };
+
+/** Vysvětlivka u sekce sektorů (zdroj nejmenujeme). */
+export const SEKTORY_POZNAMKA = 'Rozdělení podle klasifikace zdroje dat, ne podle GICS, kterou používají emitenti indexů – podíly se proto mohou lišit (např. „necyklická spotřeba“ je širší než GICS Consumer Staples).';
 
 export const ceskaZeme = (n: string | null | undefined) => (n ? ZEME[n.trim()] ?? n : n ?? '');
 export const ceskySektor = (n: string | null | undefined) => (n ? SEKTORY[n.trim()] ?? n : n ?? '');

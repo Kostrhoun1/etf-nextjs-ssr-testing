@@ -8,6 +8,8 @@ import EmitentLogo from '@/components/home/EmitentLogo';
 import { jeDotazZacatecnika } from '@/lib/hledaniCz';
 import { mer } from '@/lib/mereni';
 import { platnyTicker } from '@/lib/ticker';
+import TridaStitky from '@/components/design-preview/TridaStitky';
+import type { TridaFondu } from '@/lib/nazevFondu';
 
 /* Živý našeptávač ETF v hero sekci na homepage – při psaní názvu, ISIN nebo
    tickeru rovnou nabízí fondy; klik/Enter otevře detail, „Zobrazit vše" pošle
@@ -18,6 +20,8 @@ interface Result {
   name: string;
   primary_ticker?: string | null;
   fund_provider?: string | null;
+  nazev?: string;
+  trida?: TridaFondu | null;
   ter?: number | null;
   r1_czk?: number | null;
 }
@@ -192,7 +196,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
                   >
                     <span className="flex items-center justify-center w-5 h-5 shrink-0"><EmitentLogo nazev={r.name} size={20} /></span>
                     <span className="min-w-0 flex-1">
-                      <span className="flex min-w-0 text-sm text-slate-900"><span className="truncate font-medium">{r.name}</span>{platnyTicker(r.primary_ticker) && <span className="shrink-0 text-slate-500">&nbsp;· {platnyTicker(r.primary_ticker)}</span>}</span>
+                      <span className="flex min-w-0 items-center text-sm text-slate-900" title={r.name}><span className="truncate font-medium">{r.nazev ?? r.name}</span>{platnyTicker(r.primary_ticker) && <span className="shrink-0 text-slate-500">&nbsp;· {platnyTicker(r.primary_ticker)}</span>}<span className="ml-1.5 inline-flex"><TridaStitky t={r.trida} /></span></span>
                       <span className="block text-xs text-slate-500 truncate">
                         {r.fund_provider ? `${r.fund_provider} · ` : ''}{r.isin}
                       </span>

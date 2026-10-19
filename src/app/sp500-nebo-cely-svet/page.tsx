@@ -8,6 +8,7 @@ import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { spoctiSp500NeboSvet } from '@/lib/clanky/sp500NeboSvet';
 import { spoctiSp500NeboSvetHloubka, type Krize, type Okna } from '@/lib/clanky/sp500NeboSvetHloubka';
 import { ogImage } from '@/lib/ogImage';
+import { ceskySektor } from '@/lib/preklady';
 
 /* Vlna 7 – obsah z dat v korunách. Česky hledaná otázka („s&p 500 nebo msci world", našeptávač
    17. 10. 2026). Čísla se počítají při ISR (1× denně) stejným enginem jako backtest a jsou ověřená
@@ -48,7 +49,7 @@ const dobaMes = (m: number | null) => {
   const r = Math.floor(m / 12), mm = m % 12;
   return [r ? `${r} ${tvar(r, 'rok', 'roky', 'let')}` : '', mm ? `${mm} ${tvar(mm, 'měsíc', 'měsíce', 'měsíců')}` : ''].filter(Boolean).join(' ');
 };
-const SEKTORY_CS: Record<string, string> = { Technology: 'Technologie', Finance: 'Finance', Financials: 'Finance', 'Health Care': 'Zdravotnictví', Healthcare: 'Zdravotnictví', 'Consumer Discretionary': 'Zbytné spotřební zboží', 'Consumer Staples': 'Základní spotřeba', Industrials: 'Průmysl', Industry: 'Průmysl', Telecommunication: 'Telekomunikace', 'Communication Services': 'Komunikace', Energy: 'Energie', 'Basic Materials': 'Materiály', 'Consumer Non-Cyclicals': 'Základní spotřeba', 'Consumer Cyclicals': 'Zbytné spotřební zboží', Telecommunications: 'Telekomunikace', Materials: 'Materiály', Utilities: 'Utility', 'Real Estate': 'Nemovitosti' };
+// Sektory: sdílený slovník webu (src/lib/preklady.ts) – dřív vlastní kopie s jinými názvy než detail fondu.
 const ZEME_CS: Record<string, string> = { 'United States': 'USA', Japan: 'Japonsko', 'United Kingdom': 'Velká Británie', China: 'Čína', Taiwan: 'Tchaj-wan', Canada: 'Kanada', France: 'Francie', Germany: 'Německo', Switzerland: 'Švýcarsko', India: 'Indie', Ireland: 'Irsko' };
 
 function KrizeRadek({ k }: { k: Krize }) {
@@ -262,11 +263,11 @@ export default async function Sp500NeboSvet() {
                       <p className="mt-2 text-xs uppercase tracking-wide text-slate-500">Země</p>
                       <ul className="mt-1 space-y-0.5 tabular-nums">{f.zeme.slice(0, 4).map(([n, w]) => <li key={n} className="flex justify-between"><span>{ZEME_CS[n] ?? n}</span><span>{w.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span></li>)}</ul>
                       <p className="mt-2 text-xs uppercase tracking-wide text-slate-500">Odvětví</p>
-                      <ul className="mt-1 space-y-0.5 tabular-nums">{f.sektory.slice(0, 4).map(([n, w]) => <li key={n} className="flex justify-between"><span>{SEKTORY_CS[n] ?? n}</span><span>{w.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span></li>)}</ul>
+                      <ul className="mt-1 space-y-0.5 tabular-nums">{f.sektory.slice(0, 4).map(([n, w]) => <li key={n} className="flex justify-between"><span>{ceskySektor(n)}</span><span>{w.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %</span></li>)}</ul>
                     </div>
                   ))}
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Zdroj složení: justETF, data k {new Date(h.slozeni[0].datum).toLocaleDateString('cs-CZ', { timeZone: 'UTC' })}. Odvětví podle klasifikace justETF.</p>
+                <p className="mt-2 text-xs text-slate-500">Složení fondů k {new Date(h.slozeni[0].datum).toLocaleDateString('cs-CZ', { timeZone: 'UTC' })}. Odvětví podle klasifikace zdroje dat, ne GICS – podíly se proto mohou lišit od údajů emitentů indexů.</p>
                 <p className="mt-3 text-[15px] text-slate-700 leading-relaxed">
                   Volba tedy není „USA, nebo ne“. Kdo kupuje celý svět, má v USA zhruba {h.slozeni[1].zeme.find(([n]) => n === 'United States')?.[1].toLocaleString('cs-CZ', { maximumFractionDigits: 0 }) ?? '60'} % peněz.
                   Rozhoduje, jestli zbytek – Japonsko, Evropa, Tchaj-wan, Indie a další – chcete mít, nebo ne.

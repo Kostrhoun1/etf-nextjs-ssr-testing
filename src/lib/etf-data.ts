@@ -4,7 +4,7 @@
  */
 import { cache as reactCache } from 'react';
 import { datumCen } from '@/lib/datumCen';
-import { platnyTicker } from '@/lib/ticker';
+import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
@@ -80,6 +80,10 @@ const ETF_SELECT_FIELDS = `
   name,
   fund_provider,
   primary_ticker,
+  exchange_1_ticker, exchange_2_ticker, exchange_3_ticker, exchange_4_ticker, exchange_5_ticker,
+  exchange_6_ticker, exchange_7_ticker, exchange_8_ticker, exchange_9_ticker, exchange_10_ticker,
+  exchange_1_name, exchange_2_name, exchange_3_name, exchange_4_name, exchange_5_name,
+  exchange_6_name, exchange_7_name, exchange_8_name, exchange_9_name, exchange_10_name,
   ter_numeric,
   fund_size_numeric,
   rating,
@@ -169,6 +173,8 @@ export function filtrKategorie(q: any, config: CategoryConfig): any {
     //   jako dnešní (VUAA: YTD +5 % místo +18,5 %). Měří se scraping_date, NE updated_at –
     //   ten přepisoval i upsert starých dat.
     query = query.not('is_leveraged', 'is', true);
+    // Zdroj nemá jako pákový 2× LevDAX (LU0411075376, kolo 5) – pojistka podle názvu, oprava příznaku patří do scraperu.
+    query = query.not('name', 'ilike', '%LevDAX%');
     query = query.not('name', 'is', null);
     query = query.gte('scraping_date', cerstveOd());
     // Žebříček řazený podle hodnocení vynechává fondy bez hodnocení (dřív jen ve výpisu – počet pak nesouhlasil).
@@ -743,6 +749,8 @@ export interface ComparisonETF {
   distribution_frequency?: string | null;
   replication: string | null;
   index_name: string | null;
+  /** Zaměření fondu – pro indexFonduLabel (americké indexy jen u fondů na USA). */
+  investment_focus?: string | null;
   region: string | null;
   fund_currency: string | null;
   fund_domicile: string | null;
@@ -791,7 +799,7 @@ export async function getComparisonETFData(
         return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
         volatility_1y, max_drawdown_1y,
         current_dividend_yield_numeric,
-        distribution_policy, distribution_frequency, replication, index_name, region,
+        distribution_policy, distribution_frequency, replication, index_name, investment_focus, region,
         fund_currency, fund_domicile, total_holdings, inception_date,
         is_leveraged, category,
         ${COMPARISON_TICKER_FIELDS.join(', ')},
@@ -944,6 +952,8 @@ const SCREENER_COLUMNS = `
   isin, name, fund_provider, primary_ticker,
   exchange_1_ticker, exchange_2_ticker, exchange_3_ticker, exchange_4_ticker, exchange_5_ticker,
   exchange_6_ticker, exchange_7_ticker, exchange_8_ticker, exchange_9_ticker, exchange_10_ticker,
+  exchange_1_name, exchange_2_name, exchange_3_name, exchange_4_name, exchange_5_name,
+  exchange_6_name, exchange_7_name, exchange_8_name, exchange_9_name, exchange_10_name,
   ter_numeric, fund_size_numeric,
   return_ytd, return_1y, return_3y, return_5y,
   return_1y_czk, return_3y_czk, return_5y_czk, return_ytd_czk,
@@ -1155,13 +1165,14 @@ export const getScreenerRows = reactCache(async (): Promise<{
     return {
       isin: e.isin,
       name: e.name,
-      primary_ticker: e.primary_ticker,
+      // Zobrazovaný ticker – jeden pro celý web (src/lib/ticker.ts): hlavní, jinak XETRA, jinak první burza.
+      primary_ticker: zobrazovanyTicker(e as unknown as Record<string, unknown>),
       // TER 0 % je skutečnost jen u zlatých ETC a krypto ETP (poplatek je v ceně/stakingu). U akcií
       // a dluhopisů je to chyba v datech (18. 10. 2026: T. Rowe Price 0,00 % → nahoře řazení podle TER).
       ter_numeric: Number(e.ter_numeric) === 0 && (e.category === 'Akcie' || e.category === 'Dluhopisy') ? null : e.ter_numeric,
       fund_size_numeric: r1(e.fund_size_numeric),
       fund_currency: e.fund_currency,
-      is_leveraged: e.is_leveraged,
+      is_leveraged: e.is_leveraged || /\bLevDAX\b/i.test(e.name ?? ''), // LevDAX zdroj jako pákový nevede (kolo 5)
       category: kategorieSrovnavace(e),
       // Zaokrouhleno na přesnost, jakou srovnávač zobrazuje (dřív 4 desetinná místa → 4,3 MB
       // nezkomprimovaného JSONu, LCP /srovnani na mobilu 6,8 s; audit 17. 10. 2026).
@@ -1456,7 +1467,12 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Europe', 'Euro', 'STOXX', 'DAX', 'CAC', 'European'],
-      nameExcludes: BROAD_MARKET_EXCLUDES,
+      // Kolo 5 (19. 10. 2026): kontrola homepage × žebříček našla v „evropských“ i MSCI World ex Europe, STOXX World,
+      // peněžní trh (Euro Cash 3 Months, PEA Euro Court Terme), 2× pákový LevDAX (zdroj ho nemá jako pákový),
+      // sektorové STOXX 600 (Oil & Gas, Basic Resources, Food…) a opční strategie. Hlídá check-fund-data.mjs (kolo5 B).
+      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'ex Europe', 'World', 'Cash', 'Court Terme', 'Overnight', 'Money Market',
+        'LevDAX', 'Oil & Gas', 'Basic Resources', 'Food', 'Automobiles', 'Chemicals', 'Travel', 'Personal & Household',
+        'Covered Call', 'Put Write', 'Premium Income', 'Sector'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',

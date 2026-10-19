@@ -21,3 +21,13 @@ export function druhKomodity(category: string | null | undefined, name: string |
 export function nevyplaciKomodita(category: string | null | undefined, name: string | null | undefined, kind: 'acc' | 'dist' | 'unknown'): Komodita | null {
   return kind === 'acc' ? druhKomodity(category, name) : null;
 }
+
+/* JEDNOTNÉ NÁZVY VÝPLATY DIVIDEND (kolo 5, 19. 10. 2026). Revize: čtyři různé tvary – srovnávač „reinv.“, detail
+   „Reinvestuje“ i „Akumulační (reinvestuje)“, porovnání „Reinvestuje (ACC)“, dvojice „nevyplácí“ u akumulačního fondu
+   v řádku Dividendový výnos (zavádějící – fond dividendy má, jen je nevyplácí). Teď všude:
+   výplata = „Reinvestuje“ / „Vyplácí“; dividendový výnos akumulačního fondu = „— (reinvestuje)“.
+   Komodita/krypto = „Nevyplácí“ (dividendy opravdu nemá). Kontrola: check-fund-data.mjs (blok kolo5 B). */
+export const VYPLATA_ACC = 'Reinvestuje';
+export const VYPLATA_DIST = 'Vyplácí';
+export const DIV_VYNOS_ACC = '— (reinvestuje)';
+export const DIV_VYNOS_ACC_TIP = 'Akumulační fond dividendy nevyplácí na účet, reinvestuje je uvnitř fondu – výnos z nich je v ceně fondu.';

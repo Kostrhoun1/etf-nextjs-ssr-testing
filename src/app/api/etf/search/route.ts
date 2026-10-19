@@ -4,6 +4,8 @@ import { categoryConfigs } from '@/lib/etf-data';
 import { anglickeTermy, navrhniKategorie, skoreHledani } from '@/lib/hledaniCz';
 import { indexFonduLabel } from '@/utils/indexNormalization';
 import { detectHedging } from '@/utils/hedgingDetection';
+import { tridaFondu, kratkyNazevFondu } from '@/lib/nazevFondu';
+import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 
 // slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší zlato ETF).
 const KATEGORIE: Record<string, string> = Object.fromEntries(Object.entries(categoryConfigs).map(([slug, c]) => [slug, c.title]));
@@ -29,19 +31,22 @@ export async function GET(request: NextRequest) {
     // České výrazy → anglické části názvů fondů („zlato“ → Gold, „svět“ → All-World/MSCI World/ACWI).
     const termy = anglickeTermy(q);
 
-    // Hledá v ISIN, názvu, poskytovateli a VŠECH tickerech (primární + 10 burz).
+    // Hledá v ISIN, názvu, poskytovateli, indexu a VŠECH tickerech (primární + 10 burz).
     const orFilter = [
       `isin.ilike.${like}`,
       `name.ilike.${like}`,
       `fund_provider.ilike.${like}`,
       ...TICKER_FIELDS.map((f) => `${f}.ilike.${like}`),
       ...termy.map((t) => `name.ilike.%${t.replace(/[%,()*"\\]/g, ' ')}%`),
+      // Index fondu (kolo 5): „ACWI“ → MSCI All Country World i u fondů, které zkratku v názvu nemají.
+      `index_name.ilike.${like}`,
+      ...termy.map((t) => `index_name.ilike.%${t.replace(/[%,()*"\\]/g, ' ')}%`),
     ].join(',');
     const kategorie = navrhniKategorie(q, KATEGORIE);
 
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select(`isin, name, fund_provider, fund_size_numeric, rating, ter_numeric, return_1y_czk, category, index_name, investment_focus, ${TICKER_FIELDS.join(', ')}`)
+      .select(`isin, name, fund_provider, fund_size_numeric, rating, ter_numeric, return_1y_czk, category, index_name, investment_focus, distribution_policy, distribution_frequency, ${SLOUPCE_TICKERU.join(", ")}`)
       .or(orFilter)
       .order('fund_size_numeric', { ascending: false, nullsFirst: false })
       // Kandidáti podle velikosti, pořadí pak dělá relevance. Širší vzorek (dřív 30/60): u „gold“ se jinak do
@@ -74,10 +79,13 @@ export async function GET(request: NextRequest) {
       .map(({ row }) => ({
         isin: row.isin,
         name: row.name,
+        // Kolo 5: krátký název + třída zvlášť (oříznutý dlouhý název schoval Acc/Dist – 8 stejných řádků).
+        nazev: kratkyNazevFondu(String(row.name)),
+        trida: tridaFondu(String(row.name), row.distribution_policy as string | null, row.distribution_frequency as string | null),
         // Ticker: hlavní, jinak z první burzy, kde je (988 fondů nemá hlavní ticker) – nikdy kus ISINu.
         // Hledaný ticker z jiné burzy („CSPX“) ukázat tak, jak ho uživatel zná; jinak hlavní/první dostupný.
         primary_ticker: TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim()).find((t) => t && t.toLowerCase() === term)
-          ?? TICKER_FIELDS.map((f) => (row[f] as string | null)?.trim()).find((t) => t && t !== '-') ?? null,
+          ?? zobrazovanyTicker(row), // jinak jeden ticker webu (src/lib/ticker.ts) – stejný jako detail a srovnávač
         fund_provider: row.fund_provider,
         fund_size_numeric: row.fund_size_numeric,
         // TER 0 u akcií/dluhopisů je chyba zdroje → null (stejně jako srovnávač).

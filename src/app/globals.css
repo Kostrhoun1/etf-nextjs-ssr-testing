@@ -293,3 +293,25 @@ html {
 body {
   padding-bottom: var(--lista-porovnani, 0px);
 }
+
+/* FOKUS KLÁVESNICÍ (kolo 5, 19. 10. 2026): dřív výchozí modrý obrys prohlížeče (jinak v Chrome, jinak v Safari).
+   Teď jednotný značkový tyrkysový prstenec jen při ovládání klávesnicí (:focus-visible – myš/dotyk ho nekreslí).
+   Prvky s vlastním fokusem (Tailwind focus:outline-none + ring) si ho nechávají – jejich selektor je silnější.
+   Na tmavém pozadí (hero detailu, tmavé karty) světlejší odstín, aby byl vidět. */
+:focus-visible {
+  outline: 2px solid #0f766e; /* teal-700 */
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.bg-slate-900 :focus-visible,
+.bg-slate-800 :focus-visible,
+.bg-teal-700:focus-visible,
+.bg-teal-700 :focus-visible {
+  outline-color: #5eead4; /* teal-300 */
+}
+/* Grafy: klik myší do SVG grafu nesmí nechat obdélníkový obrys (fokus myší), klávesnice ho dostane. */
+svg:focus:not(:focus-visible),
+.recharts-wrapper :focus:not(:focus-visible),
+.recharts-surface:focus:not(:focus-visible) {
+  outline: none;
+}

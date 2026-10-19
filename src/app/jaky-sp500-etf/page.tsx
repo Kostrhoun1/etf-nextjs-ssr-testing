@@ -11,7 +11,9 @@ import {
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { getETFsByIsins, CERSTVOST_DNI } from '@/lib/etf-data';
+import { datumCen } from '@/lib/datumCen';
+import { procenta, terFmt, velikostFondu } from '@/lib/formatyCisel';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -29,26 +31,75 @@ export const metadata: Metadata = {
   },
 };
 
-/* Data z naší databáze (velikost/výnosy orientační – aktuální ve srovnávači).
-   TER, typ výplaty a replikace jsou stabilní. Jen fondy sledující ČISTÝ
-   S&P 500 (market-cap), bez sektorových/equal-weight variant. */
-type Fund = {
-  tickers: string; name: string; ter: number; aumMld: number;
-  dist: 'Acc' | 'Dist'; repl: 'Fyzická' | 'Syntetická'; note: string;
-};
+/* Kolo 5 (19. 10. 2026, pravidlo č. 1): velikost, poplatek, typ výplaty, replikace a výnos se NAČÍTAJÍ z DB
+   (dřív natvrdo zastaralé velikosti fondů a výnos za 5 let pod hlavičkou „Aktualizováno“ s dnešním datem).
+   Poplatky zmíněné v textu (SPDR 0,03 %, Invesco 0,05 %, iShares/Vanguard 0,07 %) hlídá kontrola proti DB.
+   Natvrdo zůstávají jen tickery (pro čtení), název a poznámka. Fond se zastaralými daty (CERSTVOST_DNI) = „—“.
+   Kontrola: scripts/check-fund-data.mjs (blok kolo5 B) – stránka nesmí mít natvrdo velikost ani výnos.
+   Jen fondy na ČISTÝ S&P 500 (market-cap), bez sektorových/equal-weight variant. */
+type Fund = { isin: string; tickers: string; name: string; note: string };
 const FUNDS: Fund[] = [
-  { tickers: 'CSPX / SXR8', name: 'iShares Core S&P 500', ter: 0.07, aumMld: 131, dist: 'Acc', repl: 'Fyzická', note: 'Největší a nejlikvidnější – bezpečná výchozí volba' },
-  { tickers: 'VUAA', name: 'Vanguard S&P 500', ter: 0.07, aumMld: 27, dist: 'Acc', repl: 'Fyzická', note: 'Vanguard, nižší cena jednoho podílu' },
-  { tickers: 'SPYL', name: 'SPDR S&P 500', ter: 0.03, aumMld: 15, dist: 'Acc', repl: 'Fyzická', note: 'Nejnižší TER (ale širší spread)' },
-  { tickers: 'SPXP / SPXS', name: 'Invesco S&P 500', ter: 0.05, aumMld: 36, dist: 'Acc', repl: 'Syntetická', note: 'Swap – historicky mírně lepší tracking' },
-  { tickers: 'VUSA', name: 'Vanguard S&P 500', ter: 0.07, aumMld: 46, dist: 'Dist', repl: 'Fyzická', note: 'Vyplácí dividendy (čtvrtletně)' },
-  { tickers: 'IUSA', name: 'iShares Core S&P 500', ter: 0.07, aumMld: 19, dist: 'Dist', repl: 'Fyzická', note: 'iShares distribuční' },
-  { tickers: 'SPY5', name: 'SPDR S&P 500', ter: 0.03, aumMld: 18, dist: 'Dist', repl: 'Fyzická', note: 'Nejnižší TER, distribuční' },
+  { isin: 'IE00B5BMR087', tickers: 'CSPX / SXR8', name: 'iShares Core S&P 500', note: 'Největší a nejlikvidnější – bezpečná výchozí volba' },
+  { isin: 'IE00BFMXXD54', tickers: 'VUAA', name: 'Vanguard S&P 500', note: 'Vanguard, nižší cena jednoho podílu' },
+  { isin: 'IE000XZSV718', tickers: 'SPYL', name: 'SPDR S&P 500', note: 'Nejnižší TER (ale širší spread)' },
+  // Xetra P500 (EUR), LSE SPXS (USD) – ověřeno 19. 10. 2026 (dřív chybně „SPXP“).
+  { isin: 'IE00B3YCGJ38', tickers: 'P500 / SPXS', name: 'Invesco S&P 500', note: 'Swap – historicky mírně lepší tracking' },
+  { isin: 'IE00B3XXRP09', tickers: 'VUSA', name: 'Vanguard S&P 500', note: 'Vyplácí dividendy (čtvrtletně)' },
+  { isin: 'IE0031442068', tickers: 'IUSA', name: 'iShares Core S&P 500', note: 'iShares distribuční' },
+  { isin: 'IE00B6YX5C33', tickers: 'SPY5', name: 'SPDR S&P 500', note: 'Nejnižší TER, distribuční' },
 ];
 
+type FundData = Fund & {
+  ter: number | null; aum: number | null; r5: number | null;
+  dist: 'Acc' | 'Dist' | null; repl: 'Fyzická' | 'Syntetická' | null;
+};
+
+/** Údaje fondů z DB; zastaralý fond (scraper ho 14+ dní neaktualizoval) → null, ne stará čísla. */
+async function nactiFondy(): Promise<{ fondy: FundData[]; datum: Date | null }> {
+  const data = await getETFsByIsins(FUNDS.map((f) => f.isin));
+  const podle = new Map(data.map((e) => [e.isin, e]));
+  const hranice = Date.now() - CERSTVOST_DNI * 864e5;
+  let nejstarsi: Date | null = null;
+  const fondy = FUNDS.map((f) => {
+    const e = podle.get(f.isin);
+    const sd = e?.scraping_date ? new Date(e.scraping_date) : null;
+    const ok = !!e && !!sd && sd.getTime() >= hranice;
+    if (ok && sd && (!nejstarsi || sd < nejstarsi)) nejstarsi = sd;
+    const num = (v: unknown) => (ok && v != null && Number.isFinite(Number(v)) ? Number(v) : null);
+    const dp = String(e?.distribution_policy ?? '').toLowerCase();
+    const rp = String(e?.replication ?? '').toLowerCase();
+    return {
+      ...f,
+      ter: num(e?.ter_numeric), aum: num(e?.fund_size_numeric), r5: num(e?.return_5y_czk),
+      dist: !ok ? null : dp.startsWith('accum') ? 'Acc' as const : dp.startsWith('distrib') ? 'Dist' as const : null,
+      repl: !ok ? null : /synth|swap/.test(rp) ? 'Syntetická' as const : /phys|full|sampl|optim/.test(rp) ? 'Fyzická' as const : null,
+    };
+  });
+  return { fondy, datum: nejstarsi ? datumCen(nejstarsi) : null };
+}
+
+const datumText = (d: Date) => d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+
+/** Výplata dividend – stejná slova jako srovnávač a detail fondu (Reinvestuje / Vyplácí). */
+function VyplataStitek({ dist }: { dist: 'Acc' | 'Dist' }) {
+  return (
+    <span className={`inline-block whitespace-nowrap text-[11px] px-2 py-0.5 rounded-full ${dist === 'Acc' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
+      {dist === 'Acc' ? 'Reinvestuje' : 'Vyplácí'}
+    </span>
+  );
+}
+
 export default async function JakySp500Etf() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const { fondy, datum } = await nactiFondy();
+  const dateStr = datum ? datumText(datum) : null;
+  const podle = (isin: string) => fondy.find((f) => f.isin === isin)!;
+  const cspx = podle('IE00B5BMR087');
+  const vuaa = podle('IE00BFMXXD54');
+  // Výnos za 5 let v Kč: rozpětí přes fondy, které ho mají (SPYL je mladší než 5 let).
+  const r5 = fondy.map((f) => f.r5).filter((v): v is number => v != null);
+  const r5Text = r5.length >= 2
+    ? `${procenta(Math.min(...r5))} až ${procenta(Math.max(...r5))}`
+    : null;
 
   const faqs = [
     {
@@ -57,7 +108,7 @@ export default async function JakySp500Etf() {
     },
     {
       q: 'Jaký je rozdíl mezi CSPX a VUAA?',
-      a: 'Oba jsou akumulační S&P 500 ETF s TER 0,07 %, fyzickou replikací a irským domicilem – v podstatě zaměnitelné. CSPX (iShares) je mnohem větší (~131 mld. € vs ~27 mld.), takže má lepší likviditu a o chlup lepší tracking. VUAA (Vanguard) má nižší cenu jednoho podílu, což se hodí při malých pravidelných nákupech.',
+      a: `Oba jsou akumulační S&P 500 ETF s TER 0,07 %, fyzickou replikací a irským domicilem – v podstatě zaměnitelné. CSPX (iShares) je mnohem větší (${cspx.aum != null && vuaa.aum != null ? `${velikostFondu(cspx.aum)} vs ${velikostFondu(vuaa.aum)}${dateStr ? ` k ${dateStr}` : ''}` : 'několikanásobně'}), takže má lepší likviditu a o chlup lepší tracking. VUAA (Vanguard) má nižší cenu jednoho podílu, což se hodí při malých pravidelných nákupech.`,
     },
     {
       q: 'Akumulační, nebo distribuční S&P 500 ETF?',
@@ -141,7 +192,7 @@ export default async function JakySp500Etf() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Data z naší databáze</span>
-              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              {dateStr && <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Data k {dateStr}</span>}
             </div>
           </div>
         </section>
@@ -150,12 +201,12 @@ export default async function JakySp500Etf() {
         <section className="pb-9">
           <div className="max-w-3xl text-[15px] text-slate-600 leading-relaxed space-y-3">
             <p>
-              „Nejlepší S&amp;P 500 ETF" je trochu chyták. <strong className="text-slate-900">Všechny sledují úplně
-              stejných 500 amerických firem</strong>, takže jejich výnos se za 5 let liší jen o setiny procenta – v
-              korunách všechny udělaly zhruba <strong className="text-slate-900">+78 % za posledních 5 let</strong>.
+              „Nejlepší S&amp;P 500 ETF“ je trochu chyták. <strong className="text-slate-900">Všechny sledují úplně
+              stejných 500 amerických firem</strong>, takže se jejich výnos za 5 let liší jen o jednotky procentních bodů
+              {r5Text ? <> – v korunách udělaly za posledních 5 let <strong className="text-slate-900">{r5Text}</strong>{dateStr ? ` (data k ${dateStr})` : ''}</> : null}.
             </p>
             <p>
-              Nevybíráte tedy „lepší výnos", ale <strong className="text-slate-900">nejnižší náklady a správný typ fondu</strong>.
+              Nevybíráte tedy „lepší výnos“, ale <strong className="text-slate-900">nejnižší náklady a správný typ fondu</strong>.
               Rozhodují čtyři věci: poplatek (TER), akumulace vs. distribuce, replikace a likvidita.
             </p>
           </div>
@@ -163,31 +214,51 @@ export default async function JakySp500Etf() {
 
         {/* SROVNÁVACÍ TABULKA */}
         <section className="pb-10">
-          <SectionHead title="Srovnání hlavních S&P 500 ETF" desc="Nejznámější fondy na čistý S&P 500 dostupné českým investorům. Velikost je orientační; aktuální čísla a výnosy v Kč najdete ve srovnávači." />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[44rem] text-sm">
+          <SectionHead title="Srovnání hlavních S&P 500 ETF" desc={`Nejznámější fondy na čistý S&P 500 dostupné českým investorům.${dateStr ? ` Velikost, poplatek a výnos v Kč k ${dateStr}.` : ''}`} />
+          {/* Mobil a tablet: karty (tabulka s 8 sloupci byla uříznutá bez náznaku posunu – revize 19. 10. 2026). */}
+          <ul className="lg:hidden space-y-2">
+            {fondy.map((f) => (
+              <li key={f.isin} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <Link href={`/etf/${f.isin}`} className="min-w-0 hover:text-teal-800">
+                    <span className="block font-semibold text-slate-900">{f.tickers}</span>
+                    <span className="block text-sm text-slate-600">{f.name}</span>
+                  </Link>
+                  {f.dist && <VyplataStitek dist={f.dist} />}
+                </div>
+                <dl className="mt-3 grid grid-cols-3 gap-2 text-xs text-slate-500">
+                  <div><dt>Poplatek</dt><dd className={`mt-0.5 text-sm font-semibold tabular-nums ${f.ter != null && f.ter <= 0.03 ? 'text-emerald-700' : 'text-slate-900'}`}>{terFmt(f.ter)}</dd></div>
+                  <div><dt>Velikost</dt><dd className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900">{velikostFondu(f.aum)}</dd></div>
+                  <div><dt>5 let v Kč</dt><dd className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900">{procenta(f.r5)}</dd></div>
+                </dl>
+                <p className="mt-2 text-xs text-slate-500">{f.repl ? `${f.repl} replikace · ` : ''}{f.note}</p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden lg:block rounded-xl border border-slate-200 bg-white">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
                   <th className="py-3 px-4 text-left font-medium">Tickery</th>
                   <th className="py-3 px-4 text-left font-medium">Fond</th>
                   <th className="py-3 px-4 text-right font-medium">TER</th>
                   <th className="py-3 px-4 text-right font-medium">Velikost</th>
-                  <th className="py-3 px-4 text-center font-medium">Výplata</th>
+                  <th className="py-3 px-4 text-right font-medium">5 let v Kč</th>
+                  <th className="py-3 px-4 text-center font-medium">Dividendy</th>
                   <th className="py-3 px-4 text-center font-medium">Replikace</th>
                   <th className="py-3 px-4 text-left font-medium">Poznámka</th>
                 </tr>
               </thead>
               <tbody>
-                {FUNDS.map((f) => (
-                  <tr key={f.tickers} className="border-b border-slate-100 last:border-0 align-top">
-                    <td className="py-3 px-4 font-semibold text-slate-900">{f.tickers}</td>
+                {fondy.map((f) => (
+                  <tr key={f.isin} className="border-b border-slate-100 last:border-0 align-top">
+                    <td className="py-3 px-4 font-semibold text-slate-900"><Link href={`/etf/${f.isin}`} className="hover:text-teal-800 hover:underline">{f.tickers}</Link></td>
                     <td className="py-3 px-4 text-slate-600">{f.name}</td>
-                    <td className={`py-3 px-4 text-right tabular-nums font-medium ${f.ter <= 0.03 ? 'text-emerald-700' : 'text-slate-700'}`}>{f.ter.toLocaleString('cs-CZ', { minimumFractionDigits: 2 })} %</td>
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-600">~{f.aumMld} mld. €</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className={`inline-block text-[11px] px-2 py-0.5 rounded-full ${f.dist === 'Acc' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{f.dist === 'Acc' ? 'ACC' : 'DIST'}</span>
-                    </td>
-                    <td className="py-3 px-4 text-center text-xs text-slate-500">{f.repl}</td>
+                    <td className={`py-3 px-4 text-right tabular-nums font-medium whitespace-nowrap ${f.ter != null && f.ter <= 0.03 ? 'text-emerald-700' : 'text-slate-700'}`}>{terFmt(f.ter)}</td>
+                    <td className="py-3 px-4 text-right tabular-nums text-slate-600 whitespace-nowrap">{velikostFondu(f.aum)}</td>
+                    <td className="py-3 px-4 text-right tabular-nums text-slate-600 whitespace-nowrap">{procenta(f.r5)}</td>
+                    <td className="py-3 px-4 text-center">{f.dist ? <VyplataStitek dist={f.dist} /> : <span className="text-slate-500">—</span>}</td>
+                    <td className="py-3 px-4 text-center text-xs text-slate-500">{f.repl ?? '—'}</td>
                     <td className="py-3 px-4 text-xs text-slate-500">{f.note}</td>
                   </tr>
                 ))}
@@ -196,7 +267,8 @@ export default async function JakySp500Etf() {
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            iShares CSPX/SXR8/CSSPX i SPDR SPYL/SPY5 jsou stejné fondy na různých burzách (jeden ISIN). Výnosy v Kč
+            iShares CSPX/SXR8/CSSPX je jeden fond na různých burzách (jeden ISIN); SPYL a SPY5 jsou dvě různé třídy SPDR
+            (akumulační a distribuční, každá s vlastním ISIN). SPYL je mladší než 5 let, proto u něj výnos za 5 let chybí. Výnosy v Kč
             a aktuální velikost porovnáte v <Link href={`/srovnani?index=${encodeURIComponent('S&P 500')}`} className="text-teal-700 hover:underline">srovnávači (filtr S&amp;P 500)</Link>.
           </p>
         </section>
@@ -309,7 +381,7 @@ export default async function JakySp500Etf() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroj: vlastní databáze ETF (justETF). TER/typ/replikace jsou stabilní, velikost a výnosy orientační. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroj: vlastní databáze ETF. Poplatek, velikost, typ výplaty, replikace a výnos v Kč{dateStr ? ` k ${dateStr}` : ' – data nejsou aktuální, proto „—“'}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací obsah, není investičním doporučením.</p>
             </div>
           </div>

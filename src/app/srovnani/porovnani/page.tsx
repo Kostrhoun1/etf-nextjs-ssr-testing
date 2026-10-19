@@ -3,14 +3,16 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { TrendingUp, ArrowLeft, Search, Scale } from 'lucide-react';
-import { getComparisonETFsByIsins } from '@/lib/etf-data';
+import { TrendingUp, ArrowLeft, ArrowRight, Search, Scale, Plus, Check } from 'lucide-react';
+import { getComparisonETFsByIsins, getETFsByIsins } from '@/lib/etf-data';
+import { POPULAR_PAIRS } from '@/lib/pairs';
+import { kratkyNazevFondu } from '@/lib/nazevFondu';
 import PorovnaniTable from '@/components/design-preview/PorovnaniTable';
 import PorovnaniGraf from '@/components/design-preview/PorovnaniGraf';
 import UpravitVyber from '@/components/design-preview/UpravitVyber';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
-import { platnyTicker } from '@/lib/ticker';
+import { zobrazovanyTicker } from '@/lib/ticker';
 import { datumCen } from '@/lib/datumCen';
 
 export const revalidate = 3600;
@@ -36,6 +38,84 @@ function Head() {
   );
 }
 
+/* Prázdné porovnání (kolo 5, 19. 10. 2026): 80 % plochy bylo prázdných. Hotové dvojice = jen stránky, které
+   existují (POPULAR_PAIRS + kurátorská vwce-vs-cspx); nejčastější fondy se přidají jedním klikem do URL. */
+const HOTOVE_DVOJICE: { slug: string; otazka: string }[] = [
+  { slug: 'vwce-vs-cspx', otazka: 'Celý svět, nebo jen USA?' },
+  { slug: 'vwce-vs-iwda', otazka: 'Celý svět, nebo jen vyspělé trhy?' },
+  { slug: 'iwda-vs-cspx', otazka: 'Vyspělé trhy, nebo jen USA?' },
+  { slug: 'cspx-vs-vuaa', otazka: 'Dva S&P 500 fondy – iShares, nebo Vanguard?' },
+  { slug: 'cspx-vs-spyl', otazka: 'S&P 500 – největší, nebo nejlevnější?' },
+  { slug: 'vwce-vs-vwrl', otazka: 'Stejný fond – reinvestuje, nebo vyplácí?' },
+].filter((d) => d.slug === 'vwce-vs-cspx' || POPULAR_PAIRS.includes(d.slug));
+/** Nejčastěji porovnávané fondy (VWCE, SXR8, EUNL, VUAA, SPYL, EIMI). */
+const CASTE_FONDY = ['IE00BK5BQT80', 'IE00B5BMR087', 'IE00B4L5Y983', 'IE00BFMXXD54', 'IE000XZSV718', 'IE00BKM4GZ66'];
+
+async function PrazdnePorovnani({ vybrane }: { vybrane: string[] }) {
+  const fondy = await getETFsByIsins([...new Set([...vybrane, ...CASTE_FONDY])]);
+  const tk = (isin: string) => {
+    const e = fondy.find((f) => f.isin === isin);
+    return e ? zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? isin : isin;
+  };
+  const nabidka = fondy.filter((f) => CASTE_FONDY.includes(f.isin));
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="text-center">
+        <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-teal-50 text-teal-700 mb-4"><Scale className="w-6 h-6" /></span>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Vyberte fondy k porovnání</h1>
+        <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">
+          {vybrane.length === 1 ? <>Máte vybraný <strong className="text-slate-700">{tk(vybrane[0])}</strong> – přidejte aspoň jeden další fond (nejvýš 4).</> : 'Porovnat jde 2 až 4 fondy vedle sebe. Začněte hotovou dvojicí, nebo fondy přidejte jedním klikem.'}
+        </p>
+      </div>
+
+      <section className="mt-8" aria-labelledby="h-dvojice">
+        <h2 id="h-dvojice" className="text-sm font-semibold text-slate-900">Nejčastější srovnání</h2>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+          {HOTOVE_DVOJICE.map((d) => (
+            <li key={d.slug}>
+              <Link href={`/srovnani/${d.slug}`} className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:border-teal-300">
+                <span className="min-w-0">
+                  <span className="block font-semibold text-slate-900 group-hover:text-teal-800">{d.slug.split('-vs-').map((t) => t.toUpperCase()).join(' vs ')}</span>
+                  <span className="block text-xs text-slate-500">{d.otazka}</span>
+                </span>
+                <ArrowRight className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-teal-700" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {nabidka.length > 0 && (
+        <section className="mt-8" aria-labelledby="h-caste">
+          <h2 id="h-caste" className="text-sm font-semibold text-slate-900">Přidat fond jedním klikem</h2>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {nabidka.map((f) => {
+              const uz = vybrane.includes(f.isin);
+              const dalsi = [...vybrane, f.isin].slice(0, 4).join(',');
+              return (
+                <li key={f.isin}>
+                  {uz ? (
+                    <span className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 text-sm font-medium text-teal-800"><Check className="w-4 h-4" /> {tk(f.isin)}</span>
+                  ) : (
+                    <Link href={`/srovnani/porovnani?isins=${dalsi}`} title={f.name} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 hover:border-teal-400 hover:text-teal-800">
+                      <Plus className="w-4 h-4 text-teal-700" /> <strong className="font-semibold">{tk(f.isin)}</strong> <span className="hidden sm:inline text-slate-500">{kratkyNazevFondu(f.name)}</span>
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      <div className="mt-8 text-center">
+        <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><Search className="w-4 h-4" /> Vybrat jiné fondy ve srovnávači</Link>
+        <p className="mt-2 text-xs text-slate-500">Ve srovnávači i na detailu fondu přidáte fond tlačítkem „Porovnat“.</p>
+      </div>
+    </div>
+  );
+}
+
 export default async function PorovnaniPreview(
   { searchParams }: { searchParams: Promise<{ isins?: string }> },
 ) {
@@ -49,17 +129,14 @@ export default async function PorovnaniPreview(
   const datumDat = nejstarsi ? datumCen(new Date(nejstarsi)) : null;
   // Rok dat: letošní (YTD) sloupec grafu a posledních 5 dokončených roků se počítají od data dat, ne od dneška.
   const rokDat = (datumDat ?? new Date()).getFullYear();
-  const fondy = etfs.map((e) => ({ isin: e.isin, label: platnyTicker(e.primary_ticker) ?? e.isin.slice(0, 8) }));
+  const fondy = etfs.map((e) => ({ isin: e.isin, label: zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? e.isin.slice(0, 8) }));
 
   if (etfs.length < 2) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
         <Head />
-        <main id="obsah" className="max-w-6xl mx-auto px-4 py-16 text-center">
-          <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-teal-50 text-teal-700 mb-4"><Scale className="w-6 h-6" /></span>
-          <h1 className="text-xl font-bold text-slate-900">Vyberte fondy k porovnání</h1>
-          <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">Přidejte aspoň dva fondy tlačítkem „Porovnat“ ve srovnávači nebo na detailu fondu (nejvýš 4). Vybrané fondy se pak zobrazí tady vedle sebe.</p>
-          <Link href="/srovnani" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><Search className="w-4 h-4" /> Otevřít srovnávač</Link>
+        <main id="obsah" className="max-w-6xl mx-auto px-4 py-12">
+          <PrazdnePorovnani vybrane={etfs.map((e) => e.isin)} />
         </main>
       </div>
     );

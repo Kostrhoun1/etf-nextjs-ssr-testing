@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2, ArrowRight } from 'lucide-react';
 import { platnyTicker } from '@/lib/ticker';
+import TridaStitky from '@/components/design-preview/TridaStitky';
+import type { TridaFondu } from '@/lib/nazevFondu';
 
 /* Živý našeptávač ETF v hlavičce – při psaní rovnou nabízí fondy (název/ISIN/ticker),
    klik nebo Enter otevře detail fondu; „Zobrazit vše" pošle dotaz do screeneru.
@@ -15,6 +17,8 @@ interface Result {
   name: string;
   primary_ticker?: string | null;
   fund_provider?: string | null;
+  nazev?: string;
+  trida?: TridaFondu | null;
 }
 
 export default function HeaderSearch() {
@@ -141,7 +145,7 @@ export default function HeaderSearch() {
                       {platnyTicker(r.primary_ticker) ?? '—'}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium text-slate-900 truncate">{r.name}</span>
+                      <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-slate-900" title={r.name}><span className="truncate">{r.nazev ?? r.name}</span><TridaStitky t={r.trida} /></span>
                       <span className="block text-xs text-slate-500 truncate">
                         {r.fund_provider ? `${r.fund_provider} · ` : ''}{r.isin}
                       </span>

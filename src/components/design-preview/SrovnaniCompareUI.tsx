@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import type { ComparisonETF } from '@/lib/etf-data';
 import { Check, Minus } from 'lucide-react';
-import { dist, repl, domicile } from '@/components/design-preview/CategoryUI';
+import { repl, domicile } from '@/components/design-preview/CategoryUI';
 import { terFmt, procenta, velikostFondu, celeCislo } from '@/lib/formatyCisel';
 import { distKind } from '@/utils/distribution';
-import { druhKomodity } from '@/lib/dividendyFondu';
+import { druhKomodity, VYPLATA_ACC, VYPLATA_DIST, DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
+import { indexFonduLabel } from '@/utils/indexNormalization';
 
 // Jednotné formáty (kolo 5): „0,07 %“, „+12,5 %“ / „−15,9 %“, „139,4 mld. €“ – src/lib/formatyCisel.ts.
 const ter = (v: number | null) => terFmt(v);
@@ -14,8 +15,10 @@ const money = (v: number | null, _cur?: string | null) => velikostFondu(v);
 /** Typ výplaty; komodita/krypto v akumulační třídě = „Nevyplácí (komodita)“ jako na detailu fondu. */
 function vyplata(e: ComparisonETF): string {
   const k = druhKomodity(e.category, e.name);
-  if (k && distKind(e.distribution_policy, e.distribution_frequency) === 'acc') return `Nevyplácí (${k})`;
-  return dist(e.distribution_policy);
+  const kind = distKind(e.distribution_policy, e.distribution_frequency);
+  if (k && kind === 'acc') return `Nevyplácí (${k})`;
+  // Jednotné názvy (kolo 5): Reinvestuje / Vyplácí – jako detail, porovnání a srovnávač.
+  return kind === 'acc' ? VYPLATA_ACC : kind === 'dist' ? VYPLATA_DIST : '—';
 }
 
 /* Dividendový výnos stejně jako porovnání (PorovnaniTable): „—“ = údaj chybí; akumulační fond a komodita
@@ -25,7 +28,7 @@ function dividendovyVynos(e: ComparisonETF): React.ReactNode {
   if (d != null && d > 0) return procenta(d, 2, false);
   const kind = distKind(e.distribution_policy, e.distribution_frequency);
   if (druhKomodity(e.category, e.name) && kind !== 'dist') return <span className="text-slate-500">nevyplácí</span>;
-  if (kind === 'acc') return <span className="text-slate-500">nevyplácí</span>;
+  if (kind === 'acc') return <span className="whitespace-nowrap text-slate-500" title={DIV_VYNOS_ACC_TIP}>{DIV_VYNOS_ACC}</span>;
   return '—';
 }
 import { pickReturn, curLabel, type Currency } from '@/components/design-preview/currency';
@@ -239,8 +242,9 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
     },
     {
       label: 'Sledovaný index',
-      v1: etf1.index_name ?? '—',
-      v2: etf2.index_name ?? '—',
+      // Stejná funkce jako porovnání (PorovnaniTable) a detail: index_name bývá prázdný řetězec (SPYI) → „—“ ne prázdno.
+      v1: indexFonduLabel(etf1) ?? '—',
+      v2: indexFonduLabel(etf2) ?? '—',
       winner: 0,
     },
     {

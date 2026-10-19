@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase';
+import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { CERSTVOST_DNI } from '@/lib/etf-data';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
 
@@ -13,6 +14,8 @@ export interface FondTrhu {
   isin: string;
   nazev: string;
   ticker: string | null;
+  /** Emitent (fund_provider) – zobrazí se místo tickeru, když fond ticker nemá. */
+  emitent: string | null;
   ter: number | null;
   velikost: number | null;
   r1: number | null;
@@ -55,7 +58,6 @@ export function porovnejNejlevnejsi(
 }
 
 const kratky = (n: string) => n.replace(/\s+UCITS\b.*$/i, '').replace(/\s+\(.*?\)\s*$/, '').trim();
-const platnyTicker = (t: unknown) => (typeof t === 'string' && t.trim() && t.trim() !== '-' ? t.trim() : null);
 export const median = (xs: number[]) => {
   if (!xs.length) return null;
   const s = [...xs].sort((a, b) => a - b);
@@ -101,14 +103,15 @@ export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
   const isiny = TRHY.flatMap((t) => t.isins);
   const { data, error } = await supabaseAdmin
     .from('etf_funds')
-    .select('isin, name, primary_ticker, exchange_1_ticker, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, distribution_policy')
+    .select(`isin, name, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, distribution_policy, ${SLOUPCE_TICKERU.join(', ')}`)
     .in('isin', isiny);
   if (error || !data) return null; // raději sekci neukázat než ukázat nesmysl
   const podleIsin = new Map<string, FondTrhu>(
-    (data as Record<string, unknown>[]).map((r) => [String(r.isin), {
+    (data as unknown as Record<string, unknown>[]).map((r) => [String(r.isin), {
       isin: String(r.isin),
       nazev: kratky(String(r.name ?? r.isin)),
-      ticker: platnyTicker(r.primary_ticker) ?? platnyTicker(r.exchange_1_ticker),
+      ticker: zobrazovanyTicker(r), // jeden ticker webu (src/lib/ticker.ts)
+      emitent: r.fund_provider == null ? null : String(r.fund_provider),
       ter: r.ter_numeric == null ? null : Number(r.ter_numeric),
       velikost: r.fund_size_numeric == null ? null : Number(r.fund_size_numeric),
       r1: r.return_1y_czk == null ? null : Number(r.return_1y_czk),

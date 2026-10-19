@@ -266,6 +266,8 @@ export function CompositionInfographic({
             <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
               Podle {fundLabel ?? shortName(comp.name)}
               {comp.totalHoldings ? ` · ${comp.totalHoldings.toLocaleString('cs-CZ')} pozic ve fondu` : ''}
+              {/* Kolo 5: sektory zdroje ≠ GICS (src/lib/preklady.ts). */}
+              {dim === 'sector' ? ' · klasifikace zdroje dat, ne GICS' : ''}
             </p>
           </div>
         </div>

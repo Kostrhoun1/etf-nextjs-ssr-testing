@@ -12,7 +12,8 @@ import {
 import { nactiTrhy } from '@/lib/trhy';
 import TriPohledyTrhu from '@/components/home/TriPohledyTrhu';
 import EmitentLogo, { emitentFondu } from '@/components/home/EmitentLogo';
-import { brokers, CENIKY_OVERENY } from '@/data/brokerData';
+import { brokers, CENIKY_OVERENY, nakladNakupu } from '@/data/brokerData';
+import { nactiKurzCnb, datumKurzu } from '@/lib/kurzCnb';
 import { nejstarsiDatum } from '@/components/design-preview/AktualnostDat';
 import { portfolioModels, RISK_PILL } from '@/components/design-preview/portfolioData';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
@@ -113,9 +114,9 @@ const PORADI_RIZIKA: Record<string, number> = { 'Konzervativní': 0, 'Umírněn�
 /* Na mobilu jen 4 nejklikanější portfolia z homepage (GA4 90 dní); ostatní za „Porovnat portfolia“. */
 const PORTFOLIA_MOBIL = new Set(['dividendove-portfolio', 'permanentni-portfolio', 'akciove-portfolio', 'globalni-jadro-small-cap-value']);
 
-/* Kde koupit ETF – kurátorský výběr brokerů pro homepage (parita se starým webem,
-   který na homepage jmenoval brokery a dával doporučení). Skóre a jména z brokerData;
-   krátká věta „pro koho" jen na homepage, plné srovnání je v sekci Kde koupit. */
+/* Kde koupit ETF – výběr brokerů pro homepage. Jména a ceníky z brokerData; krátká věta „pro koho“ jen na
+   homepage, plné srovnání je v sekci Kde koupit. Redakční skóre ZRUŠENO (rozhodnutí majitele 19. 10. 2026) –
+   řazení abecedně, místo skóre fakt z ceníků: kolik stojí nákup ETF za 2 000 Kč (poplatek + směna, kurz ČNB). */
 type Poplatek = { popisek: string; hodnota: string; smena: string };
 // Poplatek na kartě je ručně zkrácený a OVĚŘENÝ u ceníku brokera (18. 10. 2026; zdroje a datum v
 // brokerData.ts → CENIKY_OVERENY, denní kontrola hlídá stáří). Dřív se bral
@@ -134,7 +135,9 @@ const ROBO = new Set(['portu']);
 const HOME_BROKERS = BROKER_PICK
   .map((p) => ({ ...p, broker: brokers.find((b) => b.id === p.id), robo: ROBO.has(p.id) }))
   .filter((x) => x.broker)
-  .sort((a, b) => Number(a.robo) - Number(b.robo) || (b.broker!.rating ?? 0) - (a.broker!.rating ?? 0));
+  .sort((a, b) => Number(a.robo) - Number(b.robo) || a.broker!.name.localeCompare(b.broker!.name, 'cs'));
+/** Ukázkový nákup pro sloupec „Nákup za 2 000 Kč“ (běžná měsíční investice). */
+const UKAZKOVY_NAKUP_KC = 2000;
 
 const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
   {
@@ -194,13 +197,24 @@ export default async function DesignPreviewV2() {
   // (rozumí češtině) → tři pohledy na fondy podle trhu → startovní fondy → modelová portfolia →
   // odkud čísla bereme → brokeři → FAQ. Bez simulací „kolik by z toho bylo“.
   const allPortfolioIsins = Array.from(new Set(portfolioModels.flatMap((p) => p.allocations.map((a) => a.isin))));
-  const [totalCount, starters, posledniScrape, isinReturns, trhy] = await Promise.all([
+  const [totalCount, starters, posledniScrape, isinReturns, trhy, kurzy] = await Promise.all([
     getTotalETFCount(),
     getETFsByIsins(STARTER_ISINS),
     getLastModifiedDate(),
     getReturnsByIsins(allPortfolioIsins),
     nactiTrhy(),
+    nactiKurzCnb(),
   ]);
+  // Nákup ETF za 2 000 Kč v Kč (stejná funkce jako /kde-koupit). Bez kurzu ČNB „—“ (pravidlo č. 1).
+  // „od“ = část nákladu neznáme (Fio: směna v kurzu banky; IBKR: poplatky burzy) – stejně jako /kde-koupit.
+  const nakup2000 = (id: string): string => {
+    const b = brokers.find((x) => x.id === id);
+    const n = b && kurzy ? nakladNakupu(b, UKAZKOVY_NAKUP_KC, kurzy) : null;
+    if (!n) return '—';
+    const kc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')}\u00a0Kč`;
+    if (n.celkemKc == null) return `od ${kc(n.provizeKc)}`;
+    return n.plusBurza ? `od ${kc(n.celkemKc)}` : kc(n.celkemKc);
+  };
   const pocet = totalCount.toLocaleString('cs-CZ');
   // Pravidlo č. 1: datum dat BEZ fallbacku na dnešek – když ho nejde načíst, čísla s datem se neukážou.
   // Datum CEN (předchozí obchodní den před stažením), ne den stažení – src/lib/datumCen.ts.
@@ -378,7 +392,10 @@ export default async function DesignPreviewV2() {
             Modelová portfolia z ETF
           </Nadpis>
           <p className="-mt-2 mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500" aria-label="Legenda složení">
-            {Object.entries(BARVA_TRIDY).map(([c, b]) => <span key={c} className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b }} />{c}</span>)}
+            {/* Kolo 5: legenda jen pro barvy, které jsou vidět – na mobilu jen ze 4 zobrazených portfolií. */}
+            {Object.entries(BARVA_TRIDY).filter(([c]) => portfolia.some((p) => p.slozeni.some(([k]) => k === c))).map(([c, b]) => (
+              <span key={c} className={`${portfolia.some((p) => PORTFOLIA_MOBIL.has(p.slug) && p.slozeni.some(([k]) => k === c)) ? 'inline-flex' : 'hidden md:inline-flex'} items-center gap-1.5`}><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b }} />{c}</span>
+            ))}
           </p>
           {/* Řádkový přehled jako tabulka trhů (art director: mřížka 4+3 nechávala osiřelou kartu). */}
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
@@ -408,21 +425,28 @@ export default async function DesignPreviewV2() {
               </li>
             ))}
           </ul>
+          {/* Mobil ukazuje 4 ze 7 (záměr) – zbytek přiznat odkazem, jako u brokerů (kolo 5). */}
+          {portfolia.length > PORTFOLIA_MOBIL.size && (
+            <Link href="/portfolio-strategie" className="md:hidden mt-2 inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
+              Další {portfolia.length - portfolia.filter((p) => PORTFOLIA_MOBIL.has(p.slug)).length} portfolia a srovnání <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
         </section>
 
-        {/* S5 KDE ETF KOUPIT – loga, ověřené poplatky (CENIKY_OVERENY); robo-poradce bez srovnání skóre. */}
+        {/* S5 KDE ETF KOUPIT – loga, ověřené poplatky (CENIKY_OVERENY), abecedně, bez skóre (majitel 19. 10. 2026). */}
         <section id="brokeri" data-sekce="brokeri" className="pb-12 scroll-mt-20" aria-labelledby="h-brokeri">
-          <Nadpis id="h-brokeri" meta={`ceníky ověřeny ${new Date(CENIKY_OVERENY).toLocaleDateString('cs-CZ').replace(/ /g, ' ')}`} podnadpis="Seřazeno podle našeho skóre. Nebereme provize ani reklamu."
+          <Nadpis id="h-brokeri" meta={`ceníky ověřeny ${new Date(CENIKY_OVERENY).toLocaleDateString('cs-CZ').replace(/ /g, ' ')}`} podnadpis="Seřazeno abecedně. Nebereme provize ani reklamu."
             odkaz={{ href: '/kde-koupit', text: 'Srovnání brokerů' }}>
             Kde ETF koupit
           </Nadpis>
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
-            <li className="hidden sm:grid sm:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
-              <span>Broker</span><span>Pro koho</span><span>Poplatky (nákup ETF, směna)</span><span className="text-right">Skóre</span>
+            <li className="hidden sm:grid sm:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1fr)_9rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
+              <span>Broker</span><span>Pro koho</span><span>Poplatky (nákup ETF, směna)</span>
+              <span className="text-right"><InfoTip label={`Poplatek za nákup ETF na Xetře + směna korun na eura${kurzy ? ` (kurz ČNB k ${datumKurzu(kurzy)})` : ''}. „od“ = část nákladu ceník neuvádí.`}>Nákup za 2 000 Kč</InfoTip></span>
             </li>
             {HOME_BROKERS.map(({ id, forWhom, poplatek, broker, robo }, bi) => (
               <li key={id} className={bi >= 4 ? 'hidden sm:block' : undefined}>
-                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1fr)_5rem] gap-x-6 gap-y-1 px-4 sm:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
+                <Link href={reviewHref[id] ?? '/kde-koupit'} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1fr)_9rem] gap-x-6 gap-y-1 px-4 sm:px-5 py-3 items-center hover:bg-teal-50/40 transition-colors">
                   <span className="flex items-center gap-2 min-w-0">
                     {/* Wordmark brokera v jednotném rámečku (obsahuje jméno → bez duplicitního textu); Fio má
                         logo bez čitelného názvu a Portu jen provizorní → jméno textem. */}
@@ -442,16 +466,17 @@ export default async function DesignPreviewV2() {
                     {poplatek.hodnota}{poplatek.popisek === 'Vše v ceně' && <span className="text-slate-500"> (vše v ceně)</span>}
                     <span className="block text-xs text-slate-500">Směna měny: {poplatek.smena}</span>
                   </span>
-                  <span className="order-2 sm:order-none text-right text-base font-semibold tabular-nums text-slate-900" title={robo ? 'Robo-poradce hodnotíme jinou metodikou než brokery' : `Naše skóre ${broker!.rating} ze 100`}>
-                    {robo ? <span className="text-slate-400">—</span> : <>{broker!.rating}<span className="text-xs font-normal text-slate-500">/100</span></>}
+                  <span className="order-2 sm:order-none text-right text-base font-semibold tabular-nums text-slate-900 whitespace-nowrap" title={robo ? 'Robo-poradce účtuje roční poplatek ze spravované částky, ne poplatek za nákup' : undefined}>
+                    {robo ? <span className="text-slate-500">—</span> : nakup2000(id)}
+                    <span className="sm:hidden block text-[11px] font-normal text-slate-500">{robo ? 'roční poplatek' : 'nákup za 2 000 Kč'}</span>
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
           <div className="mt-2 flex flex-wrap gap-x-6">
-            <Link href="/kde-koupit" className="sm:hidden inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">Další 2 (Fio, Portu) a srovnání <ArrowRight className="w-4 h-4" /></Link>
-            <Link href="/kde-koupit#metodika" className="inline-flex items-center gap-1 min-h-11 text-sm font-medium text-teal-700 hover:text-teal-800">Jak skóre počítáme <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/kde-koupit" className="sm:hidden inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">Další {HOME_BROKERS.length - 4} ({HOME_BROKERS.slice(4).map((x) => x.broker!.name).join(', ')}) a srovnání <ArrowRight className="w-4 h-4" /></Link>
+            <Link href="/kde-koupit#metodika" className="inline-flex items-center gap-1 min-h-11 text-sm font-medium text-teal-700 hover:text-teal-800">Jak srovnáváme <ArrowRight className="w-4 h-4" /></Link>
           </div>
         </section>
 

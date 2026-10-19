@@ -15,12 +15,13 @@ import { mer } from '@/lib/mereni';
    Odkaz pod tabulkou vede tam, kde data odpovídají pohledu (ne na srovnávač s chybným TER 0 %). */
 
 type Pohled = 'ter' | 'size' | 'r1';
-const POHLEDY: { id: Pohled; label: string; kratce?: string; sloupec: string; dalsi: { href: string; text: string } }[] = [
+const POHLEDY: { id: Pohled; label: string; sloupec: string; dalsi: { href: string; text: string } }[] = [
   { id: 'ter', label: 'Nejlevnější', sloupec: 'Poplatek (TER)', dalsi: { href: '/nejlepsi-etf/nejlevnejsi-etf', text: 'Žebříček nejlevnějších ETF' } },
   { id: 'size', label: 'Největší', sloupec: 'Velikost fondu', dalsi: { href: '/srovnani?sort=size&smer=desc', text: 'Všechny fondy podle velikosti' } },
   // Revize kola 4: fondy na stejný index mají skoro stejný výnos (rozdíl desetiny p. b. = poplatek, třída, burza).
-  // Pohled zůstává (majitel chtěl tři), ale poctivě: „Nejvyšší výnos“ + rozdíl proti mediánu trhu.
-  { id: 'r1', label: 'Nejvyšší výnos', kratce: 'Výnos', sloupec: 'Výnos 12 měs. v Kč', dalsi: { href: '/srovnani?kat=Akcie&sort=r1&smer=desc', text: 'Všechny fondy podle výnosu' } },
+  // Pohled zůstává (majitel chtěl tři), ale poctivě: výnos + rozdíl proti mediánu trhu.
+  // Kolo 5: nadpis „…nejvýkonnější“, záložka „Nejvyšší výnos“ a na mobilu „Výnos“ → jedno slovo všude.
+  { id: 'r1', label: 'Nejvýnosnější', sloupec: 'Výnos 12 měs. v Kč', dalsi: { href: '/srovnani?kat=Akcie&sort=r1&smer=desc', text: 'Všechny fondy podle výnosu' } },
 ];
 
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -39,8 +40,8 @@ function Fond({ f }: { f: FondTrhu | null }) {
       <EmitentLogo nazev={f.nazev} size={28} />
       <span className="min-w-0 flex flex-col">
         <span className="text-[15px] font-medium leading-snug text-slate-900 group-hover/f:text-teal-800 group-hover/f:underline underline-offset-2 md:truncate">{f.nazev}</span>
-        {/* Bez tickeru (fondy na Nasdaq-100 ho v datech nemají) ISIN – skutečný identifikátor, stejný rytmus řádku. */}
-        <span className="text-xs text-slate-500">{f.ticker ?? <span className="text-xs text-slate-400" title={f.isin}>{`${f.isin.slice(0, 2)}…${f.isin.slice(-4)}`}</span>}</span>
+        {/* Bez tickeru (scraper ho u části fondů zatím nemá) emitent – ne zkrácený ISIN „IE…G4I4“ (kryptické, kolo 5). */}
+        <span className="text-xs text-slate-500" title={f.ticker ? undefined : `ISIN ${f.isin}`}>{f.ticker ?? f.emitent ?? f.isin}</span>
       </span>
     </Link>
   );
@@ -75,10 +76,9 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
             tabIndex={pohled === p.id ? 0 : -1}
             onClick={() => { setPohled(p.id); mer('zalozka', { s: 'trhy', c: p.id }); }}
             onKeyDown={(e) => onKey(e, i)}
-            className={`min-h-11 md:min-h-10 rounded-lg px-3 text-sm font-semibold transition-colors ${pohled === p.id ? 'bg-teal-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`min-h-11 md:min-h-10 rounded-lg px-1.5 sm:px-3 text-[13px] sm:text-sm font-semibold transition-colors ${pohled === p.id ? 'bg-teal-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
-            {/* Mobil (třetina z 390 px): „Nejvyšší výnos“ se lámalo na dva řádky → krátký popisek. */}
-            {p.kratce ? <><span className="sm:hidden">{p.kratce}</span><span className="hidden sm:inline">{p.label}</span></> : p.label}
+            {p.label}
           </button>
         ))}
       </div>
@@ -88,7 +88,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
           <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
             <li className="hidden md:grid md:grid-cols-[12rem_minmax(0,1fr)_11rem_7rem_7rem] gap-6 px-5 py-3 text-xs font-medium text-slate-500">
               <span>Trh</span>
-              <span>{p.id === 'ter' ? 'Nejlevnější fond' : p.id === 'size' ? 'Největší fond' : 'Fond s nejvyšším výnosem'}</span>
+              <span>{p.id === 'ter' ? 'Nejlevnější fond' : p.id === 'size' ? 'Největší fond' : 'Nejvýnosnější fond'}</span>
               <span className="text-right">
                 {p.id === 'ter'
                   ? <InfoTip label="TER = roční poplatek fondu, strhává se z jeho hodnoty. Syntetické (swapové) fondy mohou mít navíc swap poplatek – detail u fondu.">{p.sloupec}</InfoTip>
@@ -108,7 +108,8 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
               const vedlejsi = p.id === 'size' ? terF(f?.ter ?? null) : p.id === 'r1' ? pb(rozdil) : mld(f?.velikost ?? null);
               const barva = p.id === 'r1' && f?.r1 != null ? (f.r1 >= 0 ? 'text-emerald-700' : 'text-red-700') : 'text-slate-900';
               return (
-                <li key={r.trh.id} className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[12rem_minmax(0,1fr)_11rem_7rem_7rem] gap-x-6 gap-y-1 px-4 md:px-5 py-3 items-center">
+                <li key={r.trh.id} className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[12rem_minmax(0,1fr)_11rem_7rem_7rem] gap-x-6 gap-y-1 px-4 md:px-5 py-3 items-start md:items-center">
+                  {/* Kolo 5: na mobilu trh nahoře zarovnaný s horním okrajem čísla (dřív visel uprostřed proti 3řádkovému bloku TER). */}
                   <Link href={r.trh.href} className="min-w-0 min-h-6 inline-flex flex-col py-0.5 hover:text-teal-800">
                     {/* Mobil: trh jako malý nadpis nad fondem (dva stejně velké názvy splývaly). */}
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 md:text-[15px] md:normal-case md:tracking-normal md:text-slate-900 hover:underline underline-offset-2">{r.trh.label}</span>

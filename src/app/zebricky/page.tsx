@@ -29,7 +29,7 @@ const catHref = (slug: string) => `/nejlepsi-etf/${slug}`;
    18. 10. 2026) + nepovinné upřesnění. Titulek stránky žebříčku (SEO) zůstává beze změny. */
 const POPISKY: Record<string, [string, string?]> = {
   'nejlepsi-etf-2026': ['Největší fondy', 'napříč všemi třídami aktiv'],
-  'nejlevnejsi-etf': ['Nejlevnější fondy', 'podle poplatku TER'],
+  'nejlevnejsi-etf': ['Nejlevnější fondy', 'podle poplatku TER, bez produktů s TER 0 %'],
   'nejlepsi-akciove-etf': ['Akciové'],
   'nejlepsi-dluhopisove-etf': ['Dluhopisové'],
   'nejlepsi-komoditni-etf': ['Komoditní'],
@@ -175,6 +175,9 @@ export default async function ZebrickyPage() {
   if (ostatni.length) groups.push({ id: 'dalsi', title: 'Další žebříčky', chip: 'Další', icon: Layers, slugs: ostatni });
 
   const totalCategories = Object.keys(categoryConfigs).length;
+  // Rozdíl počtů „Největší fondy“ (nejlepsi-etf-2026) a „Nejlevnější fondy“ – oba práh 100 mil. €, nejlevnější navíc TER > 0.
+  const pocetNejvetsi = souhrn.get('nejlepsi-etf-2026')?.pocet, pocetNejlevnejsi = souhrn.get('nejlevnejsi-etf')?.pocet;
+  const rozdilNejlevnejsi = pocetNejvetsi != null && pocetNejlevnejsi != null ? pocetNejvetsi - pocetNejlevnejsi : 0;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -281,6 +284,13 @@ export default async function ZebrickyPage() {
                   {g.slugs.map((s) => <Radek key={s} slug={s} s={souhrn.get(s) ?? null} />)}
                 </ul>
               </div>
+              {/* Kolo 5 (19. 10. 2026): „Největší fondy 2 259“ vs „Nejlevnější fondy 2 253“ vypadalo jako chyba. Rozdíl = produkty
+                  s TER 0 % (fyzické zlato Xetra-Gold/EUWAX, krypto se stakingem), které žebříček nejlevnějších vynechává (minTer). */}
+              {g.id === 'vse' && rozdilNejlevnejsi > 0 && (
+                <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+                  Nejlevnějších je o {rozdilNejlevnejsi.toLocaleString('cs-CZ')} méně: produkty s poplatkem 0{NB}% (fyzické zlato typu Xetra-Gold, kryptoměny se stakingem) mezi nejlevnější nepočítáme – náklady mají v ceně nebo ve výnosu, ne v TER.
+                </p>
+              )}
             </section>
           ))}
         </div>
