@@ -117,6 +117,10 @@ async function nactiVsechnyKurzy(): Promise<ExchangeRate[]> {
  * PROČ 4 DNY: ověřeno na celé historii kurzů od 30. 12. 1999 (6 858 dnů) proti všem indexům – nejdelší běžná
  * mezera mezi dnem indexu a posledním kurzem jsou přesně 4 dny (Velikonoční pondělí: kurz z čtvrtka;
  * 26. 12. po víkendu). Víkendy (2–3 dny) a svátky tedy projdou, týden starý kurz ne.
+ * ZA POSLEDNÍM KURZEM V DATECH se nepřenáší vůbec (19. 10. 2026): v pondělí odpoledne byly indexy do pondělí,
+ * kurzy jen do pátku (noční doplnění 17:00 UTC) – pondělí by se přepočítalo pátečním kurzem, ač pondělní kurz
+ * existuje, jen ještě není načtený. Mezera uvnitř historie = svátek (kurz opravdu není), mezera na konci = zatím
+ * nenačteno. Volající proto musí předat kurzy i za koncem období (runBacktest načítá +7 dní).
  */
 export const MAX_STARI_KURZU_DNI = 4
 const MAX_STARI_KURZU_MS = MAX_STARI_KURZU_DNI * 864e5
@@ -138,6 +142,8 @@ export function getExchangeRateForDate(
     if (rates[mid].date.getTime() <= t) { idx = mid; lo = mid + 1 } else hi = mid - 1
   }
   if (idx < 0) return null
+  // Za posledním kurzem v datech žádný přenos (kurz k tomu dni jen ještě není načtený).
+  if (idx === rates.length - 1 && t > rates[idx].date.getTime()) return null
   return t - rates[idx].date.getTime() <= MAX_STARI_KURZU_MS ? rates[idx] : null
 }
 
@@ -185,6 +191,7 @@ export function convertIndexSeriesToCurrency(
     while (ri + 1 < rates.length && rates[ri + 1].date.getTime() <= t) ri++
     if (rates[ri].date.getTime() > t) continue // před začátkem FX dat → bez kurzu, zahodit
     if (t - rates[ri].date.getTime() > MAX_STARI_KURZU_MS) continue // kurz chybí (starší než limit) → bez kurzu, zahodit
+    if (ri === rates.length - 1 && t > rates[ri].date.getTime()) continue // za posledním kurzem v datech → zatím bez kurzu
     const r = rates[ri]
     const factor =
       sourceCurrency === 'USD'
@@ -726,7 +733,9 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
   let rates: ExchangeRate[] = []
   if (currency && portfolio.some((item) => (INDEX_SOURCE_CURRENCY[item.indexCode] ?? 'USD') !== currency)) {
     const ratesFrom = new Date(startDate.getTime() - 7 * 24 * 60 * 60 * 1000)
-    rates = await loadExchangeRates(ratesFrom, endDate)
+    // +7 dní za koncem: aby šlo poznat, jestli za posledním dnem období kurz v datech JE (svátek uvnitř historie
+    // → přenos povolen), nebo ještě není načtený (konec dat → bod se vynechá). Viz MAX_STARI_KURZU_DNI.
+    rates = await loadExchangeRates(ratesFrom, new Date(endDate.getTime() + 7 * 24 * 60 * 60 * 1000))
   }
 
   // Load index data for each ETF

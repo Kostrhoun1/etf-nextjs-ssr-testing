@@ -661,6 +661,8 @@ const main = async () => {
         else if (Math.abs(api / web - 1) > 0.001) nesedi.push(`${cesta} ${q.get('slozeni')}: stránka ${Math.round(web).toLocaleString('cs-CZ')} Kč vs. backtest ${Math.round(api).toLocaleString('cs-CZ')} Kč (do ${doDen})`);
         // b) kurz posledního bodu
         if (!kurzyDo) nesedi.push(`${cesta} ${q.get('slozeni')}: předpočet neuvádí kurz posledního bodu`);
+        // 19. 10. 2026: v pondělí odpoledne končil předpočet pondělím s pátečním kurzem (pondělní ještě nebyl načtený).
+        else if (fxPosl?.[0]?.date && doDen > fxPosl[0].date) nesedi.push(`${cesta} ${q.get('slozeni')}: poslední bod ${doDen} je za posledním kurzem v DB (${fxPosl[0].date}) – přepočten starým kurzem`);
         else if (fxDny.has(doDen) && kurzyDo !== doDen) nesedi.push(`${cesta} ${q.get('slozeni')}: poslední bod ${doDen} přepočten kurzem z ${kurzyDo}, ačkoli v DB kurz k ${doDen} je (zastaralá data předpočtu)`);
         else if (den(doDen, kurzyDo) > 4) nesedi.push(`${cesta} ${q.get('slozeni')}: poslední bod ${doDen} přepočten ${den(doDen, kurzyDo)} dní starým kurzem (${kurzyDo})`);
         else if (kurzyDo !== doDen) varuj.push(`${cesta}: poslední bod ${doDen} s kurzem z ${kurzyDo} (svátek ECB?)`);
