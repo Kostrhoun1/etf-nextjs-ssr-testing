@@ -429,3 +429,12 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Kvíz /vyber-etf: max. propad u každého výsledku je z indexu manifestu, ne z ukázkového fondu.** Technologie a ESG řadu
   v datech nemají → propad neuvádíme a viditelně ukazujeme „pro srovnání“ S&P 500 / celý svět. Dividendové = americké
   dividendové akcie (VYM), pojmenované v textu. Příklad fondu se vybírá podle odpovědi Acc/Dist („Nevím“ = Acc).
+
+## Poplach „výnos 12 m mimo svůj trh“ po velkém odpoledním pohybu v USA (19. 10. 2026)
+
+- **Fondy na stejný index se mohou dočasně lišit o 1–2 p. b. za 12 měsíců, i když jsou data správně.** Emitenti oceňují
+  fondy v různou denní dobu: iShares/Invesco (SXRV, EQQQ) mají v řadě zdroje hodnotu po zavření USA, Xtrackers/Amundi/UBS
+  (XNAS, LYMS, EQQX, BCFP) hodnotu blízko evropského zavření. 16. 10. 2026 Nasdaq odpoledne v USA padl → SXRV −2,9 %
+  za den, XNAS −1,75 % (ověřeno: justETF chart API a Xetra závěry z Yahoo 19. 10.). Rozdíl se srovná během dní.
+  Čísla na webu NEUPRAVOVAT; poplach je v tomto případě vysvětlený. Jiná situace je předběžný poslední bod u JEDNOHO
+  fondu (smíšená řada) – tu hlídá kontrola „Výnosy za období nesedí s burzovními cenami“ (kolo5 C).
