@@ -238,12 +238,17 @@ ZŮSTÁVÁ** – majitel 18. 10. 2026: „když jsi u modelových portfolií dal
 
 ## Detail fondu: sektory, složení, komodity (revize kola 4, 18. 10. 2026)
 
-- **Sektory jsou podle TRBC (Refinitiv), ne GICS – a „Spotřeba (základní)“ 8,9 % u S&P 500 je správně.** justETF
-  (profil SXR8, „as of 31/08/2026“) uvádí přesně Technology 45,23 %, Finance 13,62 %, Healthcare 9,09 %,
-  **Consumer Non-Cyclicals 8,88 %**, Other 23,18 % – shodné s DB i webem. TRBC „Consumer Non-Cyclicals“ = potraviny,
-  nápoje, drogerie, maloobchod s potravinami (≈ GICS Consumer Staples) → „Spotřeba (základní)“; „Consumer Cyclicals“
-  (auta, oděvy, cyklický maloobchod ≈ GICS Discretionary) → „Spotřeba (cyklická)“. Překlad v `src/lib/preklady.ts` NENÍ
-  prohozený. Čísla se od GICS (emitent indexu) liší, protože TRBC řadí firmy jinak (Alphabet, Meta = technologie).
+- **Sektory jsou v klasifikaci zdroje dat (pravděpodobně FactSet RBICS, úroveň Economy) – NE TRBC ani GICS. Čísla sedí,
+  jen se nedají srovnávat s GICS.** (Přepsáno v kole 5, 19. 10. 2026 – dřív tu stálo „TRBC“, to neplatí: zdroj má sektory
+  „Business Services“, „Non-Energy Materials“, „Consumer Services“, „Finance“, které TRBC nemá – TRBC má Financials,
+  Basic Materials.) Profil SXR8 u zdroje („as of 31/08/2026“) uvádí přesně Technology 45,23 %, Finance 13,62 %,
+  Healthcare 9,09 %, **Consumer Non-Cyclicals 8,88 %**, Other 23,18 % – shodné s DB i webem. GICS (emitent indexu) má
+  u S&P 500 Consumer Staples ~5 % – rozdíl je klasifikací, ne chybou. Proto překlad **„Necyklická spotřeba“ / „Cyklická
+  spotřeba“** (src/lib/preklady.ts), ne „Spotřeba (základní)“, které svádělo ke srovnání s GICS Staples. U sekce
+  sektorů (detail, porovnání, kategorie) je věta „podle klasifikace zdroje dat, ne GICS“ – zdroj nejmenujeme.
+  12 sektorů zdroje: Technology, Finance, Healthcare, Consumer Non-Cyclicals, Industrials, Energy, Consumer Cyclicals,
+  Non-Energy Materials, Consumer Services, Utilities, Business Services, Telecommunication(s). Kontrola: check-fund-data
+  (název sektoru v DB bez českého překladu = varování).
 - **Složení fondu nemá na webu konkrétní datum** – DB (`etf_funds`) žádný sloupec s datem složení nemá (justETF ho
   uvádí, scraper ho neukládá). Proto popisek „Podle posledního zveřejnění emitenta – obvykle 1–2 měsíce zpětně“. Až
   scraper (etf-astro) datum začne ukládat, nahradit „Složení k …“.
