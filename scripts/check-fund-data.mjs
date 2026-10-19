@@ -882,6 +882,24 @@ const main = async () => {
     } catch (e) {
       varovani.push({ co: `Kontrolu počtů na /zebricky se nepodařilo provést: ${e.message}`, ukazka: [] });
     }
+
+    // 13) HOMEPAGE BROKEŘI: redakční skóre zrušeno (majitel 19. 10. 2026) → žádné „Skóre“ ani „/100“, řazení abecedně.
+    try {
+      const t = await html('/');
+      const sekce = t.match(/data-sekce="brokeri"[\s\S]*?<\/section>/)?.[0] ?? '';
+      if (!sekce) varovani.push({ co: 'Homepage: sekce brokerů nenalezena (kontrola skóre vynechána)', ukazka: [] });
+      else {
+        const chyby = [];
+        if (/Skóre|\/100<|skóre/.test(sekce)) chyby.push('v sekci je skóre');
+        const jmena = [...sekce.matchAll(/text-sm font-semibold text-slate-900 truncate">([^<]+)</g)].map((m) => m[1]);
+        const brokeri = jmena.filter((j) => j !== 'Portu');
+        const serazene = [...brokeri].sort((a, b) => a.localeCompare(b, 'cs'));
+        if (brokeri.join('|') !== serazene.join('|')) chyby.push(`pořadí ${brokeri.join(', ')} není abecední`);
+        if (chyby.length) poplach.push({ co: 'Homepage – brokeři: skóre je zrušené, řazení má být abecední', ukazka: chyby });
+      }
+    } catch (e) {
+      varovani.push({ co: `Kontrolu brokerů na homepage se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
   }
   // --- konec kolo5 B ---
 
