@@ -13,6 +13,7 @@ import { distKind, type DistKind } from '@/utils/distribution';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { TRHY_SROVNAVACE, INDEXY_TRHU } from '@/lib/screenerTrhy';
 import { rizikoNesedi, type RizikoPole } from '@/lib/tridyFondu';
+import { indexDetailu, klicPodobnych, prefixIndexu, zajisteniFondu, type FondDetailu } from '@/lib/detailFondu';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
@@ -278,27 +279,40 @@ export const SPECIFICKY_FOND = /\b(sector|energy|financials?|information technol
 export interface PodobnyFond { isin: string; name: string; primary_ticker: string | null; ter_numeric: number | null; fund_size_numeric: number | null; return_1y_czk: number | null }
 
 /**
- * Podobné fondy pro „Kam dál" na detailu: STEJNÝ index (přesná shoda index_name), bez pákových,
- * bez fondů se zamrzlými daty, seřazené podle velikosti. Dřív detail radil napevno „postavte
- * tento fond proti VUAA" i zlatému ETC (deep dive 17. 10. 2026).
+ * Podobné fondy pro „Další fondy na index X" na detailu (kolo 6, 20. 10. 2026): STEJNÝ index jako nadpis
+ * (klíč z indexDetailu – src/lib/detailFondu.ts) a STEJNÉ měnové zajištění (zajištěná třída jen se zajištěnými
+ * do stejné měny, nezajištěná jen s nezajištěnými). Dřív holé `.eq('index_name')`: nadpis a seznam stály na
+ * jiném klíči, EMIM (IMI) by ukázal fondy na MSCI EM standard a VHYL nenašel akumulační VGWE (SPECIFICKY_FOND
+ * vracel prázdno). Jeden dotaz jako dřív (kandidáti podle začátku index_name), filtr v JS. Bez pákových, bez
+ * fondů se zamrzlými daty, seřazené podle velikosti. Specifické fondy (sektor, ESG…) se ke „obyčejnému" indexu
+ * nepřidávají ani při shodném index_name (chybná data zdroje, audit 17. 10. 2026).
+ * Kontrola: scripts/check-fund-data.mjs (blok kolo6 detail).
  */
-export async function getPodobneFondy(indexName: string | null, isin: string, nazev: string): Promise<PodobnyFond[]> {
-  if (!indexName || !indexName.trim() || SPECIFICKY_FOND.test(nazev)) return [];
+export async function getPodobneFondy(fond: FondDetailu & { isin: string }): Promise<PodobnyFond[]> {
+  const klic = klicPodobnych(indexDetailu(fond));
+  const prefix = prefixIndexu(fond.index_name);
+  if (!klic || !prefix) return [];
+  const zaj = zajisteniFondu(fond);
+  const specificky = SPECIFICKY_FOND.test(fond.name ?? '');
   try {
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk')
-      .eq('index_name', indexName)
-      .neq('isin', isin)
+      .select('isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, index_name, investment_focus, category')
+      .ilike('index_name', prefix)
+      .neq('isin', fond.isin)
       .not('is_leveraged', 'is', true)
       .not('name', 'is', null)
       .gte('scraping_date', cerstveOd())
       .not('fund_size_numeric', 'is', null)
       .order('fund_size_numeric', { ascending: false })
-      .limit(8);
+      .limit(120);
     if (error || !data) return [];
-    // Bez sektorových „S&P 500 Energy…" s chybně přiřazeným indexem.
-    return (data as PodobnyFond[]).filter((f) => !SPECIFICKY_FOND.test(f.name)).slice(0, 4);
+    return (data as (PodobnyFond & FondDetailu)[])
+      .filter((f) => klicPodobnych(indexDetailu(f)) === klic)
+      .filter((f) => { const h = zajisteniFondu(f); return h.isHedged === zaj.isHedged && h.hedgedCurrency === zaj.hedgedCurrency; })
+      .filter((f) => specificky || !SPECIFICKY_FOND.test(f.name))
+      .slice(0, 4)
+      .map(({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk }) => ({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk }));
   } catch {
     return [];
   }
