@@ -164,36 +164,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Create response and override Vary header to fix Google indexing issues
-  // Next.js App Router adds problematic Vary headers (rsc, next-router-state-tree, etc.)
-  // that can confuse Google's crawler
-  const response = NextResponse.next();
-
-  // Override the Vary header to only include Accept-Encoding (standard for compression)
-  // This helps Google see consistent content
-  response.headers.set('Vary', 'Accept-Encoding');
-
-  // CUTOVER: indexovat smí POUZE ostrá produkční doména (apex etfpruvodce.cz).
-  // Vše ostatní (vercel.app preview/staging, localhost, www před redirectem)
-  // dostane X-Robots-Tag: noindex – zabrání indexaci stagingu.
-  if (host !== 'etfpruvodce.cz') {
-    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
-  }
-
-  return response;
+  // Hlavička X-Robots-Tag (noindex mimo etfpruvodce.cz) je v next.config.ts – platí pro všechny cesty
+  // a nestojí výpočetní čas. Dřívější přepis hlavičky Vary byl zrušen 20. 10. 2026: na stránkách z cache
+  // se stejně neprojevil (produkce vracela výchozí Vary Nextu).
+  return NextResponse.next();
 }
 
-// Configure which routes should trigger the middleware
-// Include all routes for www redirect, but exclude static files
+/* Middleware běží JEN tam, kde má co dělat (20. 10. 2026). Dřív běžel na každém požadavku včetně
+   prefetchů odkazů a API (/api/ev, /api/etf/screener) a bral 58 % „Fluid Active CPU“ free tieru Vercelu
+   (1 h 49 min z 3 h 7 min za 30 dní). www → apex přesměrovává už Vercel (doména, 308) dřív, než
+   požadavek dojde sem. Přidáváte-li sem logiku pro další cestu, přidejte ji i do matcheru. */
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (robots.txt, sitemap.xml, etc.)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
-  ],
+  matcher: ['/etf/:path*', '/srovnani/:path*', '/srovnani-etf'],
 };

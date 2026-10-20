@@ -1119,6 +1119,29 @@ const main = async () => {
   }
   // --- /kolo5 C ---
 
+  // --- middleware a indexace (20. 10. 2026) ---
+  // Middleware běží jen na /etf/*, /srovnani/*, /srovnani-etf (šetří CPU free tieru); noindex pro jiné domény
+  // než etfpruvodce.cz je v next.config.ts (headers, missing host). Hlídáme obě strany: ostrá doména NESMÍ mít
+  // noindex (vypadla by z vyhledávačů) a nesmyslné adresy fondů/dvojic musí dál končit 404 bez dotazu do DB.
+  try {
+    const ostra = /^https:\/\/etfpruvodce\.cz\/?$/.test(WEB_URL);
+    const noindex = [];
+    for (const s of ['/', '/etf/IE00B5BMR087', '/srovnani', '/srovnani/vwce-vs-cspx']) {
+      const r = await fetch(`${WEB_URL}${s}`, { redirect: 'manual' });
+      const robots = r.headers.get('x-robots-tag') || '';
+      if (ostra && /noindex/i.test(robots)) noindex.push(`${s}: ${robots}`);
+    }
+    if (noindex.length) poplach.push({ co: 'Ostrá doména posílá X-Robots-Tag noindex – stránky vypadnou z vyhledávačů (next.config.ts headers)', ukazka: noindex });
+    const spatne = [];
+    for (const s of ['/etf/ZZ000000TEST', '/srovnani/nesmysl']) {
+      const r = await fetch(`${WEB_URL}${s}`, { redirect: 'manual' });
+      if (r.status !== 404) spatne.push(`${s}: HTTP ${r.status}`);
+    }
+    if (spatne.length) poplach.push({ co: 'Nesmyslná adresa fondu/dvojice nevrací 404 – middleware neběží? (matcher v src/middleware.ts)', ukazka: spatne });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu indexace a middleware se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
   const radky = [`# Kontrola dat fondů`, '', souhrn, ''];

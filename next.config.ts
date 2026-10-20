@@ -12,6 +12,17 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  async headers() {
+    return [
+      // Indexovat smí jen ostrá doména. Náhledy (*.vercel.app), localhost atd. = noindex.
+      // Dřív v middleware (běžel kvůli tomu na každém požadavku a pálil CPU free tieru), od 20. 10. 2026 tady.
+      {
+        source: '/:path*',
+        missing: [{ type: 'host', value: 'etfpruvodce.cz' }],
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+    ];
+  },
   async redirects() {
     return [
       // (Dřívější _rsc-strip redirect ODSTRANĚN – rozbíjel Next RSC prefetch → console
