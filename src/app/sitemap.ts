@@ -70,6 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { p: '/cisty-plat', pr: 0.5 },
     { p: '/infografiky', pr: 0.5 },
     { p: '/o-nas', pr: 0.3 },
+    { p: '/metodika', pr: 0.4 },
   ];
   for (const s of Object.keys(categoryConfigs)) paths.push({ p: `/nejlepsi-etf/${s}`, pr: 0.7 });
   for (const m of portfolioModels) paths.push({ p: `/portfolio-strategie/${m.slug}`, pr: 0.6 });

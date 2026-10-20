@@ -186,11 +186,12 @@ const FAQ: { q: string; a: ReactNode; plain: string; href: string }[] = [
     q: 'Proč ukazujete výnosy v korunách?',
     a: <>Protože jako český investor utrácíte koruny. Fondy sice kotují v dolarech nebo eurech, ale váš reálný výnos ovlivňuje i pohyb kurzu. Výnos přepočtený do Kč proto ukazuje, kolik byste reálně vydělali – ne jen kolik vydělal fond ve své měně.</>,
     plain: 'Protože jako český investor utrácíte koruny. Fond kotuje v cizí měně, ale váš reálný výnos ovlivňuje i pohyb kurzu. Výnos přepočtený do Kč ukazuje, kolik byste reálně vydělali, ne jen kolik vydělal fond ve své měně.',
-    href: '/srovnani',
+    // SEO audit 20. 10. 2026: datový článek měl málo interních odkazů – z homepage jen odkaz, bez dalšího textu.
+    href: '/kolik-vydelaly-etf',
   },
 ];
 
-const FAQ_ODKAZ: Record<string, string> = { '/pruvodce': 'Číst víc v průvodci', '/kde-koupit': 'Srovnání brokerů', '/srovnani': 'Otevřít srovnávač', '/jak-dlouho-v-minusu': 'Data o propadech' };
+const FAQ_ODKAZ: Record<string, string> = { '/pruvodce': 'Číst víc v průvodci', '/kde-koupit': 'Srovnání brokerů', '/srovnani': 'Otevřít srovnávač', '/jak-dlouho-v-minusu': 'Data o propadech', '/kolik-vydelaly-etf': 'Kolik vydělaly ETF v korunách' };
 
 export default async function DesignPreviewV2() {
   // Homepage = SROVNÁVAČ ETF (majitel 18. 10. 2026). Koncept 9/10 (nezávislý expert): hero s hledáním
