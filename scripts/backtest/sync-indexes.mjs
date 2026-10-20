@@ -121,6 +121,15 @@ async function fetchYahoo(ticker, range, interval = '1d') {
       return { date, price: adj[i] }
     })
     .filter((x) => Number.isFinite(x.price) && x.price > 0)
+  // ROZPRACOVANÝ DEN NEZAPISOVAT (20. 10. 2026). GitHub plánovaný běh (06:30 UTC) se zdržuje o hodiny – 19. 10.
+  // běžel 13:47 UTC, po otevření US burzy, a uložil pro 19. 10. průběžnou cenu jako „close“. Další běh ji sice
+  // přepsal (upsert), ale předpočty stránek (portfolia, kvíz) mezitím vznikly z rozpracovaného dne a nesouhlasily
+  // s backtestem (kontrola kolo5 A). Denní svíčku dnešní seance proto zahodíme, dokud seance neskončila.
+  const seance = r.meta?.currentTradingPeriod?.regular
+  if (interval === '1d' && seance?.start && seance?.end && Date.now() < seance.end * 1000) {
+    const dnesniSeance = denBurzy(seance.start)
+    if (rows.length && rows[rows.length - 1].date >= dnesniSeance) rows.pop()
+  }
   return { currency: r.meta?.currency, rows }
 }
 

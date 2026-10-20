@@ -147,7 +147,10 @@ export function skoreHledani(
   else if (celaSlova(name, term)) s = 1.6;
   else {
     const i = termyL.findIndex((t) => celaSlova(name, t));
-    if (i >= 0) s = 1.4 + (termy.length - i) / 100;
+    // Slovníkový výraz jako celé slovo = stejně silná shoda jako dotaz sám (21. 10. 2026): „ACWI“ ↔ „All Country
+    // World“ je totéž – dřív 1,4 < 1,6 a malé fondy se zkratkou v názvu (UBS, Invesco) vytlačily z 8 výsledků
+    // největší IUSQ (31 mld. €). Při shodě skóre rozhoduje velikost fondu.
+    if (i >= 0) s = 1.6 - i / 1000;
     else if (name.startsWith(term)) s = 0.8;
     else if (name.includes(term)) s = 0.6;
     else if (termyL.some((t) => name.includes(t))) s = 0.5;
