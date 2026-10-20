@@ -753,7 +753,8 @@ export default async function ETFDetailPreview(
         </nav>
 
         {/* HLAVIČKA FONDU – vlevo identita a výnos, vpravo klíčová fakta a akce */}
-        <section data-sekce="hlavicka" className="pb-8">
+        {/* data-detail="kolo6" = značka nasazení oprav kola 6 pro scripts/check-fund-data.mjs (před nasazením kontroly jen varují). */}
+        <section data-sekce="hlavicka" data-detail="kolo6" className="pb-8">
           <div className="rounded-2xl bg-slate-900 text-white p-4 md:p-7">
             <div className="md:grid md:grid-cols-[minmax(0,1fr)_19rem] md:gap-8">
               <div className="min-w-0 md:flex md:flex-col">

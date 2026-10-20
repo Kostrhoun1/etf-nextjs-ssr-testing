@@ -1152,6 +1152,131 @@ const main = async () => {
     varovani.push({ co: `Kontrolu indexace a middleware se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // --- kolo6 detail --- (revize kola 6, 20. 10. 2026: detail fondu /etf/[isin]; pravidlo č. 1, bod 4)
+  // Každá chyba detailu z kola 6 má tu kontrolu, která by ji příště chytila sama. Značka data-detail="kolo6" = produkce
+  // už má opravy; bez ní (před nasazením) se kontroly detailu jen ohlásí jako varování.
+  {
+    const hlav = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const stranka = async (isin) => { try { const r = await fetch(`${WEB_URL}/etf/${isin}`); return r.ok ? (await r.text()).replace(/<!-- -->/g, '') : ''; } catch { return ''; } };
+    const text = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ');
+    const sekce = (h, nazev) => h.match(new RegExp(`data-sekce="${nazev}"[\\s\\S]*?</section>`))?.[0] ?? '';
+    const ZAJ = /[Hh]edg|[Hh]dg|(^|[\s-])h(EUR|USD|GBP|CHF|JPY|SEK|SGD)\b|\bEAH [A-Z]{3}\b|\bH[- ][A-Z]{3}\b|\b[A-Z]{3} \(H\)|\b[A-Z]{3}-H\b/;
+    const NEZAJ = /unhedged|not hedged|interest rate hedged|tail hedge|hedged equity|dynamically hedged/i;
+    const MZ = '(EUR|USD|GBP|CHF|JPY|SEK|SGD)';
+    const VZ = [new RegExp(`(?:^|[\\s-])h${MZ}\\b`), new RegExp(`\\bEAH ${MZ}\\b`), new RegExp(`\\bH[- ]${MZ}\\b`), new RegExp(`\\b${MZ} \\(H\\)`), new RegExp(`\\b${MZ}-H\\b`),
+      new RegExp(`\\b${MZ}\\)?[\\s-]*(?:(?:daily|monthly)\\s+)?(?:hedged?|hdg|pfhdg)\\b`, 'i'), new RegExp(`\\b(?:hedged?|hdg)\\s*\\(?\\s*(?:to\\s+)?${MZ}\\b`, 'i')];
+    // Měna zajištění z názvu (nezávisle na src/utils/hedgingDetection.ts): null = nezajištěná třída, 'ano' = měnu nepoznáme.
+    const zajMena = (n) => { if (!ZAJ.test(n || '') || NEZAJ.test(n || '')) return null; for (const re of VZ) { const m = (n || '').match(re); if (m) return m[1].toUpperCase(); } return 'ano'; };
+    const klicIdx = (s) => String(s || '').replace(/[®™]/g, '').replace(/\s*\((EUR|USD|GBP|CHF|JPY) Hedged\)\s*$/i, '').replace(/investable market\s*\(imi\)/i, 'IMI').split(/\s{2,}/)[0].replace(/\s+/g, ' ').trim().toLowerCase();
+    try {
+      const sxr8 = await stranka('IE00B5BMR087');
+      if (!sxr8) throw new Error('detail SXR8 se nenačetl');
+      const nasazeno = /data-detail="kolo6"/.test(sxr8);
+      const chyby = [];   // → poplach (po nasazení), jinak varování
+      const T = { EUN5: 'IE00B3F81R35', IBC1: 'IE00BGSF1X88', IBCF: 'IE00B3ZW0K18', XEON: 'LU0290358497', BRNT: 'JE00B78CGV99', BITC: 'GB00BLD4ZL17',
+        SGLN: 'IE00B4ND3602', QDVE: 'IE00B3WJKG14', VWRL: 'IE00B3RBWM25', P500: 'IE00B3YCGJ38', VHYL: 'IE00B8GKDB10', EMIM: 'IE00BKM4GZ66', QUEJ: 'LU1753045845' };
+      const html = { SXR8: sxr8 };
+      for (const [tk, isin] of Object.entries(T)) html[tk] = await stranka(isin);
+      const nenacteno = Object.entries(html).filter(([, h]) => !h).map(([tk]) => tk);
+      if (nenacteno.length) varovani.push({ co: 'Kontrola detailu (kolo 6): některé detaily se nenačetly', ukazka: nenacteno });
+      const db = await fetch(`${URL_DB}?select=isin,name,index_name,investment_focus,category,${Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_name,exchange_${i + 1}_ticker,exchange_${i + 1}_currency`).join(',')}&isin=in.(${Object.values(T).join(',')},IE00B5BMR087)`, hlav).then((x) => x.json());
+      const dbIsin = new Map(db.map((x) => [x.isin, x]));
+
+      // 1) Hlavička: čísla se nesmí useknout (truncate na <dd> v hlavičce = „Vyplácí 3,4…“, „Lucembursk…“).
+      const kod = readFileSync('src/app/etf/[isin]/page.tsx', 'utf8');
+      if (/<dd className="[^"]*\btruncate\b[^"]*">\{v\}<\/dd>/.test(kod)) chyby.push('page.tsx: <dd> klíčových faktů v hlavičce má truncate (useknutá čísla na mobilu)');
+
+      // 2) Ticker v hlavičce vs. burzy: fond s XETRA listingem jiného tickeru ukazuje „u českých brokerů XETRA“; hlavní burza
+      //    v sekci burz je v EUR, pokud fond nějaký EUR listing má (VWRL/VHYL dřív „LSE VWRD · USD“).
+      for (const tk of ['VWRL', 'VHYL', 'EMIM', 'BRNT', 'SGLN', 'IBC1']) {
+        const h = html[tk]; const f = dbIsin.get(T[tk]); if (!h || !f) continue;
+        const listingy = Array.from({ length: 10 }, (_, i) => ({ n: f[`exchange_${i + 1}_name`], t: f[`exchange_${i + 1}_ticker`], c: f[`exchange_${i + 1}_currency`] })).filter((l) => l.n && l.t && l.t !== '-');
+        const xetra = listingy.find((l) => /xetra/i.test(l.n));
+        const hlavni = h.match(/data-ticker="true"[^>]*>([^<]+)</)?.[1]?.trim();
+        if (xetra && hlavni && xetra.t.toUpperCase() !== hlavni.toUpperCase() && !/data-xetra-ticker/.test(sekce(h, 'hlavicka'))) chyby.push(`${tk}: hlavička neukazuje ticker na XETRA (${xetra.t})`);
+        const prvni = h.match(/id="burzy"[\s\S]*?<strong[^>]*>([^<]+)<\/strong>\s*<span[^>]*>·\s*([A-Z]{3})/);
+        if (prvni && listingy.some((l) => l.c === 'EUR') && prvni[2] !== 'EUR') chyby.push(`${tk}: hlavní burza v sekci burz je ${prvni[1]} v ${prvni[2]}, přitom fond má listing v EUR`);
+        if (/Ticker na gettex/.test(h)) chyby.push(`${tk}: „Ticker na gettex“ bez vysvětlení (má být „německé burze gettex“)`);
+      }
+
+      // 3) Index „—“, přestože ho zdroj zná (QDVE, XEON, IBC1 – pravidlo „název končí indexem“). Fallback = index_name.
+      for (const tk of ['QDVE', 'XEON', 'IBC1', 'EUN5', 'EMIM', 'QUEJ']) {
+        const h = html[tk]; const f = dbIsin.get(T[tk]); if (!h || !f?.index_name) continue;
+        const m = text(sekce(h, 'fakta')).match(/Sledovaný index (\S+)/);
+        if (!m || m[1] === '—') chyby.push(`${tk}: „Sledovaný index —“, přitom zdroj uvádí „${f.index_name}“`);
+      }
+
+      // 4) Měnové zajištění vidět (IBCF): štítek v hlavičce a index „(zajištěno do EUR)“.
+      if (html.IBCF && (!/data-zajisteni/.test(html.IBCF) || !/zajištěno do EUR/.test(sekce(html.IBCF, 'hlavicka')))) chyby.push('IBCF: v hlavičce chybí štítek „Zajištěno do EUR“ / index „(zajištěno do EUR)“');
+
+      // 5) Texty podle typu produktu: W‑8BEN jen s americkými akciemi, „ne GICS“ jen u akcií, „dividendy reinvestuje“
+      //    ne u dluhopisů/peněžního trhu, irská smlouva s USA ne u Lucemburska, „Co je tento produkt“ u zvláštních typů.
+      for (const tk of ['XEON', 'IBC1', 'EUN5', 'SGLN', 'BITC', 'BRNT']) if (html[tk] && /W.8BEN/.test(text(html[tk]))) chyby.push(`${tk}: FAQ o W‑8BEN u fondu bez amerických akcií`);
+      if (html.SXR8 && !/W‑8BEN/.test(html.SXR8)) chyby.push('SXR8: chybí FAQ o W‑8BEN (s nedělitelným spojovníkem)');
+      for (const tk of ['EUN5', 'IBC1']) if (html[tk] && /ne GICS\./.test(text(html[tk]))) chyby.push(`${tk}: „Podle klasifikace zdroje dat, ne GICS“ u dluhopisového fondu`);
+      for (const tk of ['XEON', 'IBC1']) if (html[tk] && /dividendy reinvestuje/i.test(text(html[tk]))) chyby.push(`${tk}: „dividendy reinvestuje“ u fondu bez dividend`);
+      for (const tk of ['XEON', 'QUEJ']) if (html[tk] && /Irsko má s USA/.test(html[tk])) chyby.push(`${tk}: vysvětlivka o irské smlouvě s USA u lucemburského fondu`);
+      for (const tk of ['XEON', 'IBC1', 'BRNT', 'BITC', 'SGLN', 'P500']) if (html[tk] && !/data-sekce="co-je-produkt"/.test(html[tk])) chyby.push(`${tk}: chybí věta „Co je tento produkt“ nahoře`);
+      if (html.XEON && /text-red-600[^"]*">0,0/.test(html.XEON)) chyby.push('XEON: max. pokles 0,0 % červeně');
+      if (html.VWRL && !/Kč ročně ze 100/.test(html.VWRL)) chyby.push('VWRL: u distribučního fondu chybí přepočet výplat na Kč ze 100 000 Kč');
+      if (html.EMIM && /Co\., Ltd\./.test(sekce(html.EMIM, 'slozeni'))) chyby.push('EMIM: názvy pozic s „Co., Ltd.“ (cistyNazevPozice)');
+
+      // 6) Podobné fondy: pro 20 největších fondů má každý fond v „Další fondy na index X“ stejný index (index_name bez ®
+      //    a údaje o zajištění) a stejné zajištění. Dřív holé .eq(index_name) – EMIM (IMI) by ukázal MSCI EM standard.
+      const velke = await fetch(`${URL_DB}?select=isin,name,index_name&is_leveraged=not.is.true&fund_size_numeric=not.is.null&order=fund_size_numeric.desc&limit=20`, hlav).then((x) => x.json());
+      const spatnePodobne = [];
+      for (const f of [...velke, ...db.filter((x) => ['IE00B3ZW0K18', 'IE00BKM4GZ66', 'IE00B8GKDB10'].includes(x.isin))]) {
+        const h = html[Object.keys(T).find((k) => T[k] === f.isin)] || await stranka(f.isin);
+        const isiny = [...sekce(h, 'podobne-fondy').matchAll(/href="\/etf\/([A-Z]{2}[A-Z0-9]{10})"/g)].map((m) => m[1]);
+        if (!isiny.length) continue;
+        const p = await fetch(`${URL_DB}?select=isin,name,index_name&isin=in.(${isiny.join(',')})`, hlav).then((x) => x.json());
+        for (const x of p) {
+          if (klicIdx(x.index_name) !== klicIdx(f.index_name)) spatnePodobne.push(`${f.isin} [${f.index_name}] → ${x.isin} [${x.index_name}]`);
+          else if (zajMena(x.name) !== zajMena(f.name)) spatnePodobne.push(`${f.isin} (${zajMena(f.name) ?? 'nezajištěný'}) → ${x.isin} (${zajMena(x.name) ?? 'nezajištěný'})`);
+        }
+      }
+      if (spatnePodobne.length) chyby.push(`Podobné fondy s jiným indexem/zajištěním (${spatnePodobne.length}): ${spatnePodobne.slice(0, 4).join('; ')}`);
+      if (html.VHYL && !/IE00BK5BR626/.test(sekce(html.VHYL, 'podobne-fondy'))) chyby.push('VHYL: v podobných fondech chybí akumulační třída VGWE (IE00BK5BR626)');
+
+      // 7) Nový fond (< 1 rok, bez výnosu za rok): jedna věta „Fond vznikl …“ místo stěny pomlček.
+      const mlade = await fetch(`${URL_DB}?select=isin,name,inception_date,return_1y&return_1y=is.null&fund_size_numeric=gte.500&is_leveraged=not.is.true&scraping_date=gte.${new Date(Date.now() - 5 * 864e5).toISOString().slice(0, 10)}&order=fund_size_numeric.desc&limit=200`, hlav).then((x) => x.json());
+      const novy = mlade.find((x) => { const d = Date.parse(x.inception_date); return Number.isFinite(d) && Date.now() - d < 330 * 864e5 && Date.now() - d > 20 * 864e5; });
+      if (novy) {
+        const h = await stranka(novy.isin);
+        if (h && !/data-novy-fond/.test(h)) chyby.push(`${novy.isin} (vznik ${novy.inception_date}): nový fond bez věty „Fond vznikl …“`);
+      }
+
+      // 8) Součet sektorů/zemí mimo 95–100,5 % (IBC1 sektory 101,9 %) → na detailu viditelné upozornění.
+      const sk = await fetch(`${URL_DB}?select=isin,sector_1_weight,sector_2_weight,sector_3_weight,sector_4_weight,sector_5_weight&isin=eq.IE00BGSF1X88`, hlav).then((x) => x.json());
+      const soucet = sk[0] ? [1, 2, 3, 4, 5].reduce((s, i) => s + (Number(sk[0][`sector_${i}_weight`]) || 0), 0) : null;
+      if (soucet != null && (soucet > 100.5 || soucet < 95) && html.IBC1 && !/data-soucet-nesedi/.test(html.IBC1)) chyby.push(`IBC1: součet sektorů ${soucet.toFixed(1)} % bez upozornění`);
+
+      if (chyby.length) (nasazeno ? poplach : varovani).push({ co: `Detail fondu (kolo 6)${nasazeno ? '' : ' – produkce ještě bez oprav (před nasazením)'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 10) });
+
+      // 9) Zaměření fondu: každá část investment_focus v DB musí mít český překlad (src/lib/preklady.ts – TRIDY, ZEME,
+      //    SEKTORY; „X (EUR Hedged)“ podle základu). Detail nepřeložené části vynechává, ale chybějící slovo = chybějící info.
+      const prekl = readFileSync('src/lib/preklady.ts', 'utf8');
+      const klice = new Set();
+      for (const blok of ['const ZEME', 'export const SEKTORY', 'const TRIDY']) {
+        const t = prekl.slice(prekl.indexOf(blok)).match(/\{[\s\S]*?\n\};/)?.[0] ?? '';
+        for (const m of t.matchAll(/(?:'([^']+)'|([A-Za-z]+)):\s*'/g)) klice.add(m[1] ?? m[2]);
+      }
+      if (klice.size < 100) throw new Error(`slovníky v preklady.ts nenalezeny (${klice.size} klíčů)`);
+      const casti = new Map();
+      for (let off = 0; ; off += 1000) {
+        const b = await fetch(`${URL_DB}?select=investment_focus&order=isin&limit=1000&offset=${off}`, hlav).then((x) => x.json());
+        for (const x of b) for (const c of String(x.investment_focus || '').split(/\s*,\s*/)) if (c) casti.set(c, (casti.get(c) ?? 0) + 1);
+        if (b.length < 1000) break;
+      }
+      const prelozitelne = (c) => /^[A-Z]{3}$/.test(c) || /^\d+(-\d+|\+)$/.test(c) || klice.has(c) || klice.has(c.replace(/\s+\((EUR|USD|GBP|CHF|JPY) Hedged\)$/, ''));
+      const bez = [...casti].filter(([c]) => !prelozitelne(c));
+      if (bez.length) varovani.push({ co: `${bez.length} částí zaměření fondů (investment_focus) nemá český překlad – na detailu chybí (src/lib/preklady.ts, TRIDY)`, ukazka: bez.sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `${c} (${n}×)`) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu detailu fondu (kolo 6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+  }
+  // --- konec kolo6 detail ---
+
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
   const radky = [`# Kontrola dat fondů`, '', souhrn, ''];
