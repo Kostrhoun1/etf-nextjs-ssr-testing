@@ -41,7 +41,15 @@ export function normalizeIndexName(raw?: string | null): string {
   let s = raw.split(/\s{2,}/)[0];
   // 2) odřízni i variantu s pomlčkou: "MSCI ACWI - EUR Hedged"
   s = s.replace(/\s+[-–]\s+(USD|EUR|GBP|CHF|JPY|hedged|unhedged|acc|dist).*$/i, '');
-  // 3) sjednoť bílé znaky
+  // 3) Plné tvary ze zdroje (scraper od 20. 10. 2026 čte řádek „Index“ doslova): „S&P 500® (EUR Hedged)“,
+  //    „MSCI All Country World (ACWI)“, „MSCI Emerging Markets Investable Market (IMI)“. Bez sjednocení je web
+  //    nepoznal (žebříčky S&P 500/World/svět poznaly index jen u části fondů, SPYI ztratil „MSCI ACWI IMI“).
+  //    Zajištění třídy se určuje z názvu fondu (detectHedging), ne z indexu → „(EUR Hedged)“ pryč.
+  s = s.replace(/[®™]/g, '')
+    .replace(/\s*\((?:[A-Z]{3}\s+)?hedged\)\s*$/i, '')
+    .replace(/\s+Investable Market\s*\((?:ACWI\s+)?IMI\)\s*$/i, ' IMI')
+    .replace(/\s*\([A-Z]{2,6}(?:\s+[A-Z]{2,6})?\)\s*$/, '');
+  // 4) sjednoť bílé znaky
   return s.replace(/\s+/g, ' ').trim();
 }
 
