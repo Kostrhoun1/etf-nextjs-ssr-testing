@@ -58,7 +58,7 @@ const ZLATA_SADA = [
 ];
 
 async function nactiFondy() {
-  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name,primary_ticker,total_exchanges,index_name,investment_focus,volatility_1y,volatility_3y,volatility_5y';
+  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name,primary_ticker,total_exchanges,index_name,investment_focus,volatility_1y,volatility_3y,volatility_5y,return_1m,return_3y,max_drawdown_1y,max_drawdown_3y,max_drawdown_5y'; // kolo6: výnosy zlata, poklesy tříd
   let all = [];
   for (let off = 0; ; off += 1000) {
     const r = await fetch(`${URL_DB}?select=${cols}&order=isin&limit=1000&offset=${off}`,
@@ -171,6 +171,7 @@ const main = async () => {
     varovani.push({ co: `${mmSpatne.length} fondů peněžního trhu (investment_focus „Money Market“) nemá kategorii „Peněžní trh“ (${Object.entries(podle).map(([k, v]) => `${k}: ${v}`).join(', ')})`, ukazka: ukazka(mmSpatne, (x) => `${x.isin} ${String(x.name).slice(0, 40)} → ${x.category}`) });
   }
 
+  let tridySkupiny = new Map(); // kolo6: skupiny tříd sdílí kontrola max. poklesu (blok kolo6 data)
   // ── VOLATILITA TŘÍD TÉHOŽ FONDU (revize kola 4, 18. 10. 2026) ──
   // Zdroj měl u tříd téhož fondu volatilitu lišící se až 2× (SPDR MSCI ACWI IMI: SPYI 10,4 % vs SPSA 21,1 %;
   // Vanguard All-World High Dividend: VHYL 8,1 % vs VGWE 10,8 %, 3 roky 10,0 vs 17,0 %). Stejné portfolio musí
@@ -201,6 +202,7 @@ const main = async () => {
       const k = tridaKlic(x);
       if (k) skupiny.set(k, [...(skupiny.get(k) ?? []), x]);
     }
+    tridySkupiny = skupiny;
     const lisi = (a, b) => Math.abs(a - b) >= 1 && Math.max(a, b) / Math.min(a, b) > 1.3;
     const nalezy = [];
     for (const g of skupiny.values()) {
@@ -1151,6 +1153,206 @@ const main = async () => {
   } catch (e) {
     varovani.push({ co: `Kontrolu indexace a middleware se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
+
+  // --- kolo6 data --- (revize kola 6, 20. 10. 2026; pravidlo č. 1, bod 4)
+  {
+    const H = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const UA6 = { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; etfpruvodce.cz kontrola dat)' } };
+    const f2 = (x) => x.toFixed(2).replace('.', ',');
+
+    // ── F1: VÝNOSY V Kč a USD = výnos v EUR × změna kurzu ke STEJNÝM dnům ──
+    // Scraper (etf-astro performance_converter.py) do 20. 10. 2026 bral začátek období „dnes − 365×N dní“ a konec
+    // „dnešní“ kurz → 5 let v Kč o 0,4–1,0 p. b. vedle (EUN5 −5,40 místo −4,99 %; SXR8 78,78 místo 79,56 %). Tady se
+    // to přepočítá NEZÁVISLE na scraperu i webu: z ročních souborů kurzů ČNB (rok.txt) a z ECB (data-api.ecb.europa.eu,
+    // ne Frankfurter, který používá scraper). Den dat = poslední pracovní den před stažením (datumCen.ts), začátek =
+    // den dat − N kalendářních měsíců (YTD 31. 12., kalendářní rok 31. 12. → 31. 12.), kurz = poslední vyhlášený ≤ den.
+    // Ověřeno 20. 10. 2026: opravený přepočet sedí na 0,0000 p. b., starý se lišil až o 0,99 p. b.
+    // Poplach: rozdíl > 0,15 p. b. u ≥ 2 kotevních fondů (kurz je společný všem → chyba je vždy hromadná).
+    try {
+      const KOTVY_FX = ['IE00B5BMR087', 'IE00BK5BQT80', 'IE00B4L5Y983', 'IE00BKM4GZ66', 'IE00B4ND3602', 'IE00B3F81R35',
+        'IE00B3ZW0K18', 'LU0290358497', 'IE00B8GKDB10']; // SXR8 VWCE EUNL EMIM SGLN EUN5 IBCF XEON VHYL
+      const PRAH_FX = 0.15;
+      const OBD = ['1m', '3m', '6m', 'ytd', '1y', '3y', '5y', '2021', '2022', '2023', '2024', '2025'];
+      const MES = { '1m': 1, '3m': 3, '6m': 6, '1y': 12, '3y': 36, '5y': 60 };
+      const denDat = (stazeno) => { // kopie src/lib/datumCen.ts
+        const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false }).formatToParts(stazeno);
+        const v = (t) => Number(p.find((x) => x.type === t)?.value);
+        const d = new Date(Date.UTC(v('year'), v('month') - 1, v('day'), 12));
+        const prac = (x) => x.getUTCDay() !== 0 && x.getUTCDay() !== 6;
+        if (v('hour') < 18 || !prac(d)) { do d.setUTCDate(d.getUTCDate() - 1); while (!prac(d)); }
+        return d.toISOString().slice(0, 10);
+      };
+      const mesZpet = (d, m) => {
+        const [r, mm, dd] = d.split('-').map(Number);
+        const t = r * 12 + (mm - 1) - m, nr = Math.floor(t / 12), nm = t - nr * 12;
+        return `${nr}-${String(nm + 1).padStart(2, '0')}-${String(Math.min(dd, new Date(Date.UTC(nr, nm + 1, 0)).getUTCDate())).padStart(2, '0')}`;
+      };
+      const obdobi = (o, D) => {
+        if (MES[o]) return [mesZpet(D, MES[o]), D];
+        if (o === 'ytd') return [`${Number(D.slice(0, 4)) - 1}-12-31`, D];
+        const r = Number(o);
+        return r > Number(D.slice(0, 4)) ? null : [`${r - 1}-12-31`, r < Number(D.slice(0, 4)) ? `${r}-12-31` : D];
+      };
+      const kurz = (rada, d) => { let r = null; for (const [k, v] of rada) { if (k <= d) r = [k, v]; else break; } return r && (new Date(d) - new Date(r[0])) / 864e5 <= 7 ? r[1] : null; };
+      const db = await fetch(`${URL_DB}?select=isin,primary_ticker,scraping_date,${OBD.flatMap((o) => [`return_${o}`, `return_${o}_czk`, `return_${o}_usd`]).join(',')}&isin=in.(${KOTVY_FX.join(',')})`, H).then((r) => r.json());
+      if (!Array.isArray(db) || !db.length) throw new Error('DB nevrátila kotevní fondy');
+      // ČNB: Kč za 1 EUR po dnech (rok.txt; záhlaví „Datum|1 AUD|…|1 EUR|…“ se může v roce opakovat).
+      const roky = [...new Set(db.map((f) => Number(String(f.scraping_date).slice(0, 4))))];
+      const odRoku = Math.min(...roky) - 6, doRoku = Math.max(...roky);
+      const czk = [];
+      for (let r = odRoku; r <= doRoku; r++) {
+        const t = await fetch(`https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/rok.txt?rok=${r}`).then((x) => (x.ok ? x.text() : Promise.reject(new Error(`ČNB rok ${r}: HTTP ${x.status}`))));
+        let sl = -1, mn = 1;
+        for (const radek of t.split(/\r?\n/)) {
+          const c = radek.split('|');
+          if (c[0] === 'Datum') { sl = c.findIndex((h) => / EUR$/.test(h.trim())); mn = Number(c[sl]?.split(' ')[0]) || 1; continue; }
+          const m = c[0].match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+          if (m && sl > 0 && c[sl]) czk.push([`${m[3]}-${m[2]}-${m[1]}`, Number(c[sl].replace(',', '.')) / mn]);
+        }
+      }
+      czk.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+      // ECB: USD za 1 EUR (referenční kurz 14:15 SEČ).
+      const ecbCsv = await fetch(`https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A?startPeriod=${odRoku}-01-01&format=csvdata`).then((x) => (x.ok ? x.text() : Promise.reject(new Error(`ECB HTTP ${x.status}`))));
+      const [hl, ...ecbRadky] = ecbCsv.trim().split(/\r?\n/);
+      const ci = hl.split(','), iT = ci.indexOf('TIME_PERIOD'), iV = ci.indexOf('OBS_VALUE');
+      const usd = ecbRadky.map((l) => l.split(',')).filter((c) => c[iV]).map((c) => [c[iT], Number(c[iV])]).sort((a, b) => (a[0] < b[0] ? -1 : 1));
+      if (czk.length < 1000 || usd.length < 1000) throw new Error(`málo kurzů (ČNB ${czk.length}, ECB ${usd.length})`);
+      const vadne = [], porovnano = [];
+      for (const f of db) {
+        const D = denDat(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
+        const chyby = [];
+        let n = 0;
+        for (const o of OBD) {
+          const eur = f[`return_${o}`], dny = obdobi(o, D);
+          if (eur == null || !dny) continue;
+          for (const [mena, rada] of [['czk', czk], ['usd', usd]]) {
+            const v = f[`return_${o}_${mena}`], k0 = kurz(rada, dny[0]), k1 = kurz(rada, dny[1]);
+            if (v == null || !k0 || !k1) continue;
+            const ocek = ((1 + Number(eur) / 100) * k1 / k0 - 1) * 100;
+            n++;
+            if (Math.abs(Number(v) - ocek) > PRAH_FX) chyby.push(`${o} ${mena.toUpperCase()} DB ${f2(Number(v))} vs ${f2(ocek)} %`);
+          }
+        }
+        porovnano.push(n);
+        if (chyby.length) vadne.push(`${f.primary_ticker || f.isin} k ${D}: ${chyby.slice(0, 5).join('; ')}${chyby.length > 5 ? ` (+${chyby.length - 5})` : ''}`);
+      }
+      const co = `Výnosy v Kč/USD nesedí s výnosem v EUR přepočteným kurzy ČNB/ECB ke stejným dnům (o víc než ${f2(PRAH_FX)} p. b.) – přepočet měn ve scraperu (etf-astro performance_converter.py)`;
+      if (vadne.length >= 2) poplach.push({ co: `${co}: ${vadne.length} z ${db.length} kotevních fondů`, ukazka: vadne.slice(0, 6) });
+      else if (vadne.length === 1) varovani.push({ co, ukazka: vadne });
+      if (porovnano.reduce((a, b) => a + b, 0) < 20) varovani.push({ co: 'Kontrola přepočtu výnosů do Kč/USD porovnala málo hodnot – chybí výnosy v DB?', ukazka: [] });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu přepočtu výnosů do Kč/USD (kurzy ČNB/ECB) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // ── F5: MAX. POKLES TŘÍD TÉHOŽ FONDU ──
+    // VGWE (Acc) −19,6 % vs VHYL (Dist) −14,8 % za 3 i 5 let: zdroj má u VGWE vadný bod 25. 12. 2024 (79,05 místo ~70,3;
+    // burzy zavřené; podobně 25. 12. 2025). Nezávisle Yahoo Xetra: VGWE.DE −16,4 %, VHYL.AS −16,8 %. Web (tridyFondu.ts)
+    // takový pokles ukazuje jako „—“ (od kola 6 i 5 let); tady se sleduje rozdíl > 3 p. b. (skupiny tříd z kontroly volatility).
+    {
+      const nalezy = [];
+      for (const g of tridySkupiny.values()) {
+        if (g.length < 2) continue;
+        for (const o of ['1y', '3y', '5y']) {
+          const h = g.filter((x) => x[`max_drawdown_${o}`] != null && Number(x[`max_drawdown_${o}`]) < 0).map((x) => ({ x, v: Math.abs(Number(x[`max_drawdown_${o}`])) }));
+          if (h.length < 2) continue;
+          const v = h.map((y) => y.v);
+          if (Math.max(...v) - Math.min(...v) > 3) nalezy.push(`${o}: ${h.map((y) => `${y.x.primary_ticker || y.x.isin} −${f2(y.v)} %`).join(' / ')} – ${String(g[0].name).slice(0, 48)}`);
+        }
+      }
+      if (nalezy.length) varovani.push({ co: `${nalezy.length}× max. pokles tříd téhož fondu se liší o víc než 3 p. b. (vadný bod zdroje; web ukazuje „—“, když nesedí i relativně o 30 %)`, ukazka: nalezy.slice(0, 8) });
+    }
+
+    // ── F6: FYZICKÉ ZLATO – výnosy se nesmí rozcházet ──
+    // EUWAX Gold II (EWG2) a boerse.de Gold (TMGD): řada zdroje přeskakuje mezi dvěma cenami ~2,3 % od sebe (19. 10. 2026
+    // EWG2 121,62 vs Xetra-Gold 118,89; zlato podle futures ≈ 119,1 €/g) → 1 měsíc −0,4 % místo −2,6 %. Fondy na index
+    // „Gold“ (bez zajištění, bez páky) drží totéž zlato; liší se jen poplatkem (≤ 0,4 % ročně) a časem ocenění.
+    // Varování: růstový faktor (1 + výnos) se od mediánu skupiny liší o víc než 2 % (1 m, 1 r, 3 r).
+    // Švýcarské fondy (ISIN CH…) vynecháváme: zdroj má jejich NAV o dny pozadu (20. 10. 2026 řada CSGOLD končila
+    // 16. 10.) → 1 m ≈ −0,8 % proti −2,6 % u ostatních; s nimi by medián ujel a EWG2 by prošel.
+    {
+      const zlato = fondy.filter((x) => x.index_name === 'Gold' && !x.is_leveraged && dni(x) <= 3 && !x.isin.startsWith('CH'));
+      const nalezy = [];
+      for (const o of ['1m', '1y', '3y']) {
+        const h = zlato.filter((x) => x[`return_${o}`] != null).map((x) => ({ x, f: 1 + Number(x[`return_${o}`]) / 100 }));
+        if (h.length < 6) continue;
+        const s = h.map((y) => y.f).sort((a, b) => a - b), med = s[Math.floor(s.length / 2)];
+        for (const y of h) if (Math.abs(y.f / med - 1) > 0.02) nalezy.push(`${o}: ${y.x.primary_ticker || y.x.isin} ${f2((y.f - 1) * 100)} % vs medián ${f2((med - 1) * 100)} % (${String(y.x.name).slice(0, 30)})`);
+      }
+      if (nalezy.length) varovani.push({ co: `${nalezy.length}× výnos fyzického zlata se liší od ostatních zlatých ETC o víc než 2 % (vadná cenová řada zdroje?)`, ukazka: nalezy.slice(0, 8) });
+    }
+
+    // ── IBC1: SOUČET SEKTORŮ / ZEMÍ ──
+    // iShares USD Treasury 0-1yr: sektory 87,57 + 9,88 + 4,44 = 101,89 % – tak to má i zdroj (ověřeno 20. 10. 2026, Irsko
+    // 9,88 % = „INSL CASH“, irský fond peněžního trhu iShares; scraper nic nezdvojuje). Podobně iShares dluhopisové fondy
+    // s hotovostí/deriváty (až 107 %). Sledujeme jako varování: součet mimo 95–100,5 % (ukládá se top 5 + „Other“).
+    try {
+      const sl = [1, 2, 3, 4, 5].flatMap((i) => [`sector_${i}_weight`, `country_${i}_weight`]).join(',');
+      let rows = [];
+      for (let off = 0; ; off += 1000) {
+        const b = await fetch(`${URL_DB}?select=isin,name,scraping_date,${sl}&order=isin&limit=1000&offset=${off}`, H).then((r) => r.json());
+        rows = rows.concat(b);
+        if (b.length < 1000) break;
+      }
+      for (const [druh, jm] of [['sector', 'sektorů'], ['country', 'zemí']]) {
+        const mimo = rows.filter((x) => dni(x) <= 30).map((x) => ({ x, s: [1, 2, 3, 4, 5].reduce((a, i) => a + (Number(x[`${druh}_${i}_weight`]) || 0), 0) }))
+          .filter((y) => y.s > 0 && (y.s > 100.5 || y.s < 95)).sort((a, b) => b.s - a.s);
+        if (mimo.length) varovani.push({ co: `${mimo.length} fondů má součet ${jm} mimo 95–100,5 % (většinou tak u zdroje – hotovost, deriváty, neúplné údaje)`, ukazka: mimo.slice(0, 5).map((y) => `${y.x.isin} ${f2(y.s)} % ${String(y.x.name).slice(0, 36)}`) });
+      }
+    } catch (e) {
+      varovani.push({ co: `Kontrolu součtu sektorů/zemí se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // ── BURZY: XETRA se musí vejít mezi 10 uložených ──
+    // justETF řadí XETRA na konec; do 20. 10. 2026 ji fondy s 11–12 burzami (VWRL, VHYL…) v DB neměly – místa zabíralo
+    // 2× Bolsa Mexicana. Vzorek ověřený u zdroje 20. 10. 2026 (XETRA je tam #10–#12) + obecně: fond s > 10 burzami,
+    // který má uloženou mimoevropskou burzu, ale ne XETRA. (Pravidlo „velký fond bez XETRA“ je nepoužitelné: 131 fondů
+    // nad 1 mld. € XETRA opravdu nemá – švýcarské fondy, část iShares dluhopisů.)
+    try {
+      const SE_XETROU = ['IE00B3RBWM25', 'IE00B8GKDB10', 'IE00B3XXRP09', 'IE00B6R52259', 'IE00B0M63177', 'IE00B53L3W79',
+        'IE00B945VV12', 'IE00BKX55T58', 'IE0005042456', 'LU0274210672', 'IE00B5BMR087'];
+      const ex = Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_name`);
+      const rows = await fetch(`${URL_DB}?select=isin,name,primary_ticker,total_exchanges,${ex.join(',')}&or=(total_exchanges.gt.10,isin.in.(${SE_XETROU.join(',')}))`, H).then((r) => r.json());
+      if (!Array.isArray(rows)) throw new Error('neplatná odpověď DB');
+      const maXetru = (x) => ex.some((k) => String(x[k] || '').trim().toUpperCase() === 'XETRA');
+      const mimoEvropu = (x) => ex.some((k) => /mexic|hong kong|singapore|tokyo|toronto|nyse|nasdaq/i.test(String(x[k] || '')));
+      const chybi = rows.filter((x) => !maXetru(x) && (SE_XETROU.includes(x.isin) || ((x.total_exchanges ?? 0) > 10 && mimoEvropu(x))));
+      if (chybi.length) varovani.push({ co: `${chybi.length} fondů nemá v DB burzu XETRA, ač ji zdroj uvádí / místo ní je uložená mimoevropská burza (scraper burzy_k_ulozeni)`, ukazka: ukazka(chybi, (x) => `${x.isin} ${x.primary_ticker || ''} (${x.total_exchanges} burz) ${String(x.name).slice(0, 34)}`) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu burzy XETRA se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // ── PÁKA PODLE INDEXU ──
+    // Xtrackers LevDAX Daily Swap (index „LevDAX® (2x)“) neměl is_leveraged. NEZÁVISLÝ vzor (ne kód scraperu); krátkou
+    // duraci („Euro Short Treasury“, „Ultrashort“), „Daily Capped“ ani „Inverse Volatility“ nechytá.
+    {
+      const PAKA = /\blev[a-z]*dax|\(\s*[-–]?\s*\d+(?:[.,]\d+)?\s*x\s*\)|(?<![\w.,])[-–]?(?:[2-9]|1[05])x\b|\bleveraged?\b|\bdaily\s+(?:short|inverse)\b|\b(?:short|inverse)\s+daily\b|\bshortdax\b|\bbear\b/i;
+      const lev = fondy.filter((x) => !x.is_leveraged && PAKA.test(String(x.index_name || '')) && dni(x) <= 30);
+      if (lev.length) varovani.push({ co: `${lev.length} fondů sleduje pákový/inverzní index, ale nemá příznak páky (is_leveraged) – srovnávač je ukazuje mezi běžnými`, ukazka: ukazka(lev, (x) => `${x.isin} ${String(x.index_name).slice(0, 30)} | ${String(x.name).slice(0, 30)}`) });
+    }
+
+    // ── DATUM SLOŽENÍ (holdings_as_of, sloupec od 20. 10. 2026) ──
+    try {
+      let rows = [];
+      for (let off = 0; ; off += 1000) {
+        const b = await fetch(`${URL_DB}?select=isin,name,holdings_as_of,scraping_date&holding_1_weight=gt.0&order=isin&limit=1000&offset=${off}`, H).then((r) => r.json());
+        if (!Array.isArray(b)) throw new Error('neplatná odpověď DB (chybí sloupec holdings_as_of?)');
+        rows = rows.concat(b);
+        if (b.length < 1000) break;
+      }
+      const cerstve = rows.filter((x) => dni(x) <= 3);
+      const sDatem = cerstve.filter((x) => x.holdings_as_of);
+      const dnes = new Date().toISOString().slice(0, 10);
+      const budouci = sDatem.filter((x) => x.holdings_as_of > dnes);
+      const stare = sDatem.filter((x) => (Date.now() - new Date(x.holdings_as_of)) / 864e5 > 400);
+      if (budouci.length) poplach.push({ co: `${budouci.length} fondů má datum složení v budoucnosti (parsování „As of DD/MM/YYYY“ ve scraperu)`, ukazka: ukazka(budouci, (x) => `${x.isin} ${x.holdings_as_of}`) });
+      if (!sDatem.length) varovani.push({ co: 'Žádný čerstvý fond nemá datum složení (holdings_as_of) – scraper z větve oprava-kolo6 ještě neběžel?', ukazka: [] });
+      else if (sDatem.length / cerstve.length < 0.8) varovani.push({ co: `Datum složení má jen ${sDatem.length} z ${cerstve.length} čerstvých fondů se složením`, ukazka: ukazka(cerstve.filter((x) => !x.holdings_as_of)) });
+      if (stare.length) varovani.push({ co: `${stare.length} fondů má složení starší než 400 dní (zdroj ho neaktualizuje)`, ukazka: ukazka(stare, (x) => `${x.isin} složení k ${x.holdings_as_of} ${String(x.name).slice(0, 30)}`) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu data složení se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+  }
+  // --- /kolo6 data ---
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;

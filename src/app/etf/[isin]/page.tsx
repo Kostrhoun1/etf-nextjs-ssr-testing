@@ -360,7 +360,7 @@ export default async function ETFDetailPreview(
   const vol5 = skryj('volatility_5y', num(etf.volatility_5y));
   const dd1 = skryj('max_drawdown_1y', num(etf.max_drawdown_1y));
   const dd3 = skryj('max_drawdown_3y', num(etf.max_drawdown_3y));
-  const dd5 = num(etf.max_drawdown_5y);
+  const dd5 = skryj('max_drawdown_5y', num(etf.max_drawdown_5y));
   const sharpe = vol1 == null ? null : num(r.return_per_risk_1y as number);
 
   // roční (kalendářní) výnosy – měnově citlivé (return_<rok>_czk/_usd v DB jsou)

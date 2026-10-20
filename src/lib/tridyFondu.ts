@@ -14,12 +14,15 @@
  * odečtení označení třídy (měna, Acc/Dist, 1C/1D…) + stejné měnové zajištění. Údaj „nesedí“, když se od
  * ostatních liší o víc než 30 % (relativně) A zároveň aspoň o 1 p. b. (u fondů peněžního trhu s kolísavostí
  * pod 1 % je relativní rozdíl šum). Dvě třídy, které nesedí → „—“ u obou (nevíme, která je správně).
- * Tři a víc → „—“ u těch, které se liší od mediánu. Pokles od založení se NEporovnává (třídy mají různé stáří).
+ * Tři a víc → „—“ u těch, které se liší od mediánu. Pokles od založení se NEporovnává (třídy mají různé stáří);
+ * pokles za 5 let ano (zdroj ho u třídy mladší 5 let neuvádí).
  * Kontrola: scripts/check-fund-data.mjs (VAROVÁNÍ „volatilita tříd téhož fondu se liší“).
  */
 import { detectHedging } from '@/utils/hedgingDetection';
 
-export const RIZIKO_POLE = ['volatility_1y', 'volatility_3y', 'volatility_5y', 'max_drawdown_1y', 'max_drawdown_3y'] as const;
+// max_drawdown_5y od kola 6 (20. 10. 2026): VGWE −19,6 % vs VHYL −14,8 % (tentýž fond) kvůli vadnému bodu zdroje
+// 25. 12. 2024 (79,05 místo ~70,3; burzy zavřené). Nezávisle Yahoo Xetra: VGWE.DE −16,4 %, VHYL.AS −16,8 %.
+export const RIZIKO_POLE = ['volatility_1y', 'volatility_3y', 'volatility_5y', 'max_drawdown_1y', 'max_drawdown_3y', 'max_drawdown_5y'] as const;
 export type RizikoPole = (typeof RIZIKO_POLE)[number];
 
 /** Slova, která označují jen třídu fondu (ne jiný fond). Po odečtení musí zbytek názvu sedět. */

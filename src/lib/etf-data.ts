@@ -855,7 +855,7 @@ async function tridyTehozFondu(e: { name?: string | null; fund_provider?: string
   const zaklad = String(e.name ?? '').match(/^(.*)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b/i)?.[1]?.trim();
   if (!zaklad || !e.fund_provider) return [];
   const { data: d } = await supabaseAdmin.from('etf_funds')
-    .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y, max_drawdown_1y, max_drawdown_3y')
+    .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y, max_drawdown_1y, max_drawdown_3y, max_drawdown_5y')
     .eq('fund_provider', e.fund_provider).ilike('name', `${zaklad.replace(/[%_]/g, '')}%`)
     .gte('scraping_date', nabidkaOd()).limit(60);
   return (d ?? []) as TridaRiziko[];
