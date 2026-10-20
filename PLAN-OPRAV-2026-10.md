@@ -491,3 +491,22 @@ max. propad −33,3 % dvou portfolií (náhoda, krize 2008), VALL bez 1 r. (vzni
 
 **Nasazení:** úloha `nasazeni-2026-10-20` (20. 10. 8:00) – vylepseni-stranek → main + scraper oprava-indexy.
 faze4 nasazena 19. 10. v 7:05 (viz výše).
+
+## 20. 10. 2026 ráno – NASAZENO: vylepšené stránky (kolo 5) + úspora CPU; scraper oprava-indexy v main
+
+- ✅ **Web:** `vylepseni-stranek` (39d56e6) → main v 6:55, Vercel success. Ověřeno na produkci: 17 klíčových stránek
+  200; Playwright Chromium + WebKit, desktop 1440 i mobil 390 – 104/104 OK (bez přetečení, bez chyb konzole);
+  skóre brokerů nikde; hledání „ACWI“ vrací IUSQ i SPYI; /srovnani/vwce-vs-spyi = IE00B3YLTY66; 60/40 s LU0290355717;
+  backtest se složkou 0 % počítá (ne 0 Kč); /etf/ZZ000000TEST a /srovnani/nesmysl → 404; www → 308; ostrá doména
+  bez noindex. check-fund-data proti produkci: jen vysvětlený poplach Nasdaq 12 m (ZAMERNA). client_errors 0 za 2 h.
+- ✅ **Vercel free tier (klouzavých 30 dní) 20. 10. ráno: Fluid Active CPU 3 h 7 min / 4 h, ISR Writes 157 685 / 200 000.**
+  Middleware bral 58 % CPU (běžel na každém požadavku vč. prefetchů a /api/ev) → matcher jen /etf, /srovnani,
+  /srovnani-etf; noindex mimo ostrou doménu přesunut do next.config headers (+ kontrola). Deploy = 12–22 tis. ISR
+  zápisů za den → další deploy nejdřív až se zápisy vrátí pod ~170 tis. Majitel rozhodl nasadit dnes (odhad vrcholu
+  176–187 tis.).
+- ✅ **Scraper:** etf-astro `oprava-indexy` (9b7d16f) → main 20. 10. před dnešním scrapem.
+- ⏳ **21. 10.:** po scrapu ověřit podíl čerstvých fondů s prázdným index_name (z ~60 % na jednotky %), Money Market →
+  kategorie „Peněžní trh“, zmizení varování v check-fund-data; Vercel spotřebu (ISR writes pod 190 tis.?).
+- ⏳ Měření finalizace posledního bodu u zdroje (scratchpad/mereni-justetf/log.txt; noční mezery – počítač spal):
+  bod 19. 10. SXR8 = 743,07 beze změny od 19. 10. 18:41 do 20. 10. 6:25 SELČ → ve všední dny se zřejmě nemíchá;
+  podezření na víkend/pondělí. Ověřit dál přes novou kontrolu (kolo5 C) a navrhnout úpravu scraperu.
