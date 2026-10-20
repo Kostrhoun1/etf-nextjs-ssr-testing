@@ -6,10 +6,12 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import {
   getFeaturedETFs,
   getTotalETFCount,
+  getDataDate,
   getTopETFsForCategory,
   categoryConfigs,
 } from '@/lib/etf-data';
 import InfoTip from '@/components/design-preview/InfoTip';
+import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import {
   InfografikyCard,
   InfografikyMiniPerf,
@@ -74,10 +76,11 @@ async function getHeatmapTiles(): Promise<InfografikyHeatTile[]> {
 }
 
 export default async function InfografikyRozcestnik() {
-  const [featured, totalCount, heatTiles] = await Promise.all([
+  const [featured, totalCount, heatTiles, dataDate] = await Promise.all([
     getFeaturedETFs(),
     getTotalETFCount(),
     getHeatmapTiles(),
+    getDataDate(new Date()),
   ]);
 
   const count = totalCount > 0 ? totalCount : TOTAL_FALLBACK;
@@ -94,7 +97,7 @@ export default async function InfografikyRozcestnik() {
         position: 1,
         name: 'Nejvýkonnější ETF',
         description: 'Žebříček ETF podle výnosu za posledních 12 měsíců, přepočteno do korun.',
-        url: 'https://etfpruvodce.cz/nejlepsi-etf',
+        url: 'https://etfpruvodce.cz/zebricky',
       },
       {
         '@type': 'ListItem',
@@ -160,6 +163,8 @@ export default async function InfografikyRozcestnik() {
             Vizuální přehledy z dat {count.toLocaleString('cs-CZ')} fondů — výnosy přepočtené do
             korun, poplatky a výkonnost. Vyberte si přehled a proklikněte se k celému žebříčku.
           </p>
+          {/* Pravidlo č. 1: čísla na stránce bez data nebyla (SEO audit 20. 10. 2026). */}
+          <AktualnostDat datum={dataDate} className="mt-3" />
         </section>
 
         {/* Rozcestník karet infografik – jádro stránky */}
@@ -169,7 +174,7 @@ export default async function InfografikyRozcestnik() {
             <InfografikyCard
               icon={TrendingUp}
               title="Nejvýkonnější ETF"
-              desc="Fondy s nejvyšším výnosem za posledních 12 měsíců, přepočteno do korun."
+              desc="Fondy s nejvyšším výnosem za posledních 12 měsíců v korunách, bez pákových produktů. Ukáže, které trhy a témata za rok rostly nejvíc – minulý výnos nezaručuje budoucí."
               href="/zebricky"
               hrefLabel="Otevřít přehled výkonnosti"
             >
@@ -179,7 +184,7 @@ export default async function InfografikyRozcestnik() {
             <InfografikyCard
               icon={Wallet}
               title="Nejlevnější ETF (TER)"
-              desc="Fondy s nejnižším ročním poplatkem za správu. Nižší TER znamená méně nákladů."
+              desc="Fondy s nejnižším ročním poplatkem za správu (TER). Pomůže najít levnější variantu fondu na trh, který už znáte – nižší TER znamená méně nákladů každý rok."
               href="/nejlepsi-etf/nejlevnejsi-etf"
               hrefLabel="Otevřít přehled poplatků"
             >
@@ -189,7 +194,7 @@ export default async function InfografikyRozcestnik() {
             <InfografikyCard
               icon={Grid3x3}
               title="Tržní heatmapa"
-              desc="Barevná mapa regionů a sektorů — zelená je růst, červená pokles za 12 měsíců."
+              desc="Barevná mapa regionů a sektorů — zelená je růst, červená pokles za 12 měsíců v korunách. Hodnota je výnos největšího fondu v kategorii, takže na první pohled vidíte, kde se za rok dařilo."
               href="#trzni-heatmapa"
               hrefLabel="Otevřít tržní heatmapu"
             >

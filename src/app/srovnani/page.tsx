@@ -64,7 +64,13 @@ export default async function SrovnaniScreenerPreview() {
     description:
       'Databáze ETF fondů dostupných českým investorům s aktuálními daty o poplatcích (TER), velikosti, replikaci a výkonnosti přepočtené do korun.',
     keywords: ['ETF', 'srovnání ETF', 'TER', 'výkonnost', 'investice', 'koruna'],
-    creator: { '@type': 'Organization', name: 'ETF průvodce.cz' },
+    // SEO audit 20. 10. 2026 (GEO): url, dateModified = den dat (stejný jako „Data k …“), volně dostupné, tvůrce s @id.
+    // license záměrně chybí – jasnou licenci na data nemáme (raději nic než vymyšlené).
+    url: 'https://etfpruvodce.cz/srovnani',
+    dateModified: dataDate.toISOString().slice(0, 10),
+    isAccessibleForFree: true,
+    inLanguage: 'cs-CZ',
+    creator: { '@type': 'Organization', '@id': 'https://etfpruvodce.cz/#organization', name: 'ETF průvodce.cz', url: 'https://etfpruvodce.cz' },
     temporalCoverage: `${currentYear}`,
     spatialCoverage: 'Globální ETF trhy',
     variableMeasured: ['TER poplatky', 'Historická výkonnost v Kč', 'Velikost fondu', 'Dividendový výnos', 'Replikace'],

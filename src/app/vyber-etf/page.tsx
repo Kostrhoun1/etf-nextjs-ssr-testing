@@ -5,6 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, Compass, ShieldCheck, Wallet, Sparkles } from 'lucide-react';
 import EtfSelector, { type UkazkaFondu, type PortfolioKlid, type PropadKategorie } from '@/components/design-preview/EtfSelector';
+import { QUESTIONS, CATS } from '@/components/design-preview/vyberEtfData';
 import { portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, backtestOdkaz } from '@/components/design-preview/portfolioData';
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
@@ -150,6 +151,46 @@ export default async function VyberEtfPage() {
         </section>
 
         <EtfSelector fondy={fondy} portfoliaKlid={portfoliaKlid} akcie={akcie} propady={propady} />
+
+        {/* Serverem vykreslený popis průvodce (SEO audit 20. 10. 2026: v HTML bylo 77 slov, kvíz se vykreslí až v prohlížeči).
+            Otázky a kategorie ze stejných dat jako kvíz (vyberEtfData.ts). Popis faktů, ne doporučení. */}
+        <section data-sekce="jak-pruvodce-funguje" className="mt-12 space-y-4 text-[15px] text-slate-700 leading-relaxed">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Jak průvodce funguje</h2>
+          <p>
+            Průvodce nevybírá konkrétní fond za vás. Podle čtyř odpovědí ukáže, který <strong>typ</strong> ETF jim odpovídá,
+            a k němu skutečná čísla z našich dat: výnos ukázkového fondu za 5 let v korunách (s datem, ke kterému platí),
+            největší historický propad podobného trhu z backtestu v korunách a odkaz na žebříček, kde fondy daného typu
+            porovnáte podle poplatku, velikosti a výnosu. Pravidla jsou pevná – stejné odpovědi dají vždy stejný výsledek.
+          </p>
+          <h3 className="pt-2 text-base font-semibold text-slate-900">Na co se průvodce ptá</h3>
+          <ol className="list-decimal pl-5 space-y-2">
+            {QUESTIONS.map((q) => (
+              <li key={q.key}>
+                <strong>{q.q}</strong> – {q.options.map((o) => o.label).join(' / ')}.
+                {q.help && <span className="block text-sm text-slate-500">{q.help}</span>}
+              </li>
+            ))}
+          </ol>
+          <h3 className="pt-2 text-base font-semibold text-slate-900">Jaké výsledky může ukázat</h3>
+          <ul className="list-disc pl-5 space-y-1.5">
+            {Object.values(CATS).map((c) => (
+              <li key={c.slug}>
+                <Link href={`/nejlepsi-etf/${c.slug}`} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">{c.label}</Link> – {c.why}.
+              </li>
+            ))}
+          </ul>
+          <p>
+            Při horizontu kratším než 3 roky ukáže průvodce dluhopisové ETF s upozorněním, že i ty v korunách kolísají.
+            Když nechcete velké propady, uvidíte nejdřív modelová portfolia s dluhopisy s jejich historií z backtestu
+            a akciové ETF až jako druhou možnost. U každého výsledku je vysvětlený rozdíl mezi akumulační a distribuční třídou
+            a jak se v Česku daní.
+          </p>
+          <p className="text-sm text-slate-500">
+            Jde o vzdělávací nástroj, ne investiční poradenství. Odkud čísla pocházejí, popisuje{' '}
+            <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-700">metodika</Link>; všechna portfolia
+            najdete v <Link href="/portfolio-strategie" className="underline underline-offset-2 hover:text-slate-700">modelových portfoliích</Link>.
+          </p>
+        </section>
       </main>
     </div>
   );
