@@ -30,6 +30,7 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   '/portfolio-strategie': { publikovano: '2025-10-01', upraveno: '2026-10-19' },
   '/portfolio-strategie/*': { publikovano: '2026-07-03', upraveno: '2026-10-19' },
   '/kde-koupit': { publikovano: '2026-07-03', upraveno: '2026-10-19' },
+  '/srovnani/vwce-vs-cspx': { publikovano: '2026-07-03', upraveno: '2026-10-20' },
   '/metodika': { publikovano: '2026-10-20', upraveno: '2026-10-20' },
 };
 

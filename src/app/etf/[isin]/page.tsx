@@ -69,6 +69,15 @@ function uniqueTickers(row: Record<string, unknown> | null | undefined): string[
   return out;
 }
 
+/** Druhý ticker do titulku: londýnský listing v USD (CSPX, IWDA, VWRA – tak je lidé hledají), jinak londýnský, jinak nic.
+ *  Dřív první burzovní ticker v pořadí zdroje (u SXR8 švýcarský „CSSPX“). */
+function druhyTicker(row: Record<string, unknown> | null, hlavni: string | null): string | null {
+  if (!row) return null;
+  const listingy = Array.from({ length: 10 }, (_, i) => ({ n: String(row[`exchange_${i + 1}_name`] ?? ''), t: platnyTicker(row[`exchange_${i + 1}_ticker`]), c: String(row[`exchange_${i + 1}_currency`] ?? '') }))
+    .filter((l) => l.t && l.t.toUpperCase() !== (hlavni ?? '').toUpperCase() && /^[A-Z0-9]{2,8}$/i.test(l.t));
+  return (listingy.find((l) => /london/i.test(l.n) && l.c === 'USD') ?? listingy.find((l) => /london/i.test(l.n)))?.t ?? null;
+}
+
 /* Předgenerujeme jen pár nejznámějších fondů; zbytek se dogeneruje on-demand. */
 export async function generateStaticParams() {
   return ['IE00B5BMR087', 'IE00BK5BQT80', 'IE00B4L5Y983'].map((isin) => ({ isin }));
@@ -80,7 +89,7 @@ export async function generateMetadata(
   const { isin } = await params;
   const { data } = await supabaseAdmin
     .from('etf_funds')
-    .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', '))
+    .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', ') + ', ' + Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_currency`).join(', '))
     .eq('isin', isin).single();
   const fund = data as Record<string, unknown> | null;
   const name = (fund?.name as string) || 'ETF fond';
@@ -106,7 +115,7 @@ export async function generateMetadata(
   const r1 = fund?.return_1y_czk == null ? null : Number(fund.return_1y_czk);
   return {
     // Bez brandu z layoutu (title.absolute): titulek do 65 znaků s tickerem dopředu (SEO audit 20. 10. 2026).
-    title: { absolute: titulekDetailu({ name, ticker: zt, dalsiTicker: tickers[1] ?? null, ter: terN, distribution_policy: fund?.distribution_policy as string | null, distribution_frequency: fund?.distribution_frequency as string | null }) },
+    title: { absolute: titulekDetailu({ name, ticker: zt, dalsiTicker: druhyTicker(fund, zt) ?? tickers[1] ?? null, ter: terN, distribution_policy: fund?.distribution_policy as string | null, distribution_frequency: fund?.distribution_frequency as string | null }) },
     description: popisekDetailu({ name, isin, tickery: tickers, ter: terN, vynos1rCzk: r1, datumDat, staleDni, vynosNeovereny }),
     // Kanonická adresa = ISIN velkými písmeny (malá písmena přesměruje middleware 301). Dřív canonical chyběl.
     alternates: { canonical: `/etf/${isin.toUpperCase()}` },
