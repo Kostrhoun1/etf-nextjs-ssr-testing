@@ -454,3 +454,14 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   (19. 10. stejná od 18:41 do rána); kdyby kontrola výnosů za období (kolo5 C) začala hlásit odchylky, start posunout později.
 - Hlídá `check-fund-data.mjs` (v pracovní den po 13:00 UTC musí být ≥ 80 % fondů stažených za 16 h) a kontrola výnosů
   za období proti denním cenám (kolo5 C).
+
+## Žebříčky: „Nejvýkonnější“ na širokých smíšených stránkách a čistá energie (kolo 6, 20. 10. 2026)
+
+- **Na širokých smíšených žebříčcích (Nejlepší ETF 2026, akciové, dluhopisové) karta „Nejvýkonnější“ ZÁMĚRNĚ CHYBÍ.**
+  Vyhrávaly úzké sektorové/specializované sázky (polovodiče +228 %, konvertibilní dluhopisy +45 %) – čísla jsou podle
+  zdroje skutečná, ale první velké zelené číslo pro začátečníka působilo jako tip (jsme srovnávač, ne poradce). Stejný
+  princip jako `INDEXOVE`. Místo karty neutrální výběr podle faktů (největší, nejlevnější). Rozhodnutí CEO z pověření
+  majitele („jeď autonomně“).
+- **Energetický žebříček = tradiční energetický sektor (ropa, plyn, energetické firmy). Čistá/obnovitelná energie
+  (IQQH, Q8Y0, LYM9, NRJC, RENW, S0LR, G1CE, STOR, WDNR …) patří do žebříčku obnovitelných zdrojů**, ne sem – dřív se
+  míchaly dva různé světy v mediánu i kartách.
