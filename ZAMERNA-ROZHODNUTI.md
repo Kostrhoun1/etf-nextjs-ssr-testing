@@ -465,3 +465,11 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Energetický žebříček = tradiční energetický sektor (ropa, plyn, energetické firmy). Čistá/obnovitelná energie
   (IQQH, Q8Y0, LYM9, NRJC, RENW, S0LR, G1CE, STOR, WDNR …) patří do žebříčku obnovitelných zdrojů**, ne sem – dřív se
   míchaly dva různé světy v mediánu i kartách.
+
+## Složení fondů: součet sektorů/zemí přes 100 % je u zdroje (kolo 6, 20. 10. 2026)
+
+- **iShares USD Treasury Bond 0-1yr (IBC1, IE00BGSF1X88): sektory 87,57 + 9,88 + 4,44 = 101,89 % a „Irsko 9,88 %“
+  NEJSOU chyba scraperu.** Přesně tak to uvádí justETF (ověřeno na profilu 20. 10. 2026, „As of 31/08/2026“); Irsko =
+  pozice „INSL CASH“ (irský fond peněžního trhu iShares, kam fond parkuje hotovost). Podobně ~50 dalších dluhopisových
+  fondů iShares (hotovost/deriváty, až 107 %). Neopravovat ručně; `check-fund-data.mjs` (kolo6) je jen počítá jako varování.
+- Platí, dokud zdroj nezačne součty normovat; když scraper začne ukládat víc než top 5, přehodnotit spodní hranici 95 %.
