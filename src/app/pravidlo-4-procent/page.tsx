@@ -5,6 +5,8 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { clanekSchema } from '@/lib/redakce';
 import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
 import { ogImage } from '@/lib/ogImage';
 import { spoctiCtyriProcenta, type CtyriProcentaPreset, type VysledekVyberu } from '@/lib/clanky/ctyriProcenta';
@@ -145,6 +147,7 @@ export default async function PravidloCtyriProcenta() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/pravidlo-4-procent', nadpis: 'Pravidlo 4 % v korunách: vydrželo by od roku 2000?', denDat: d?.posledniDen ?? null })) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
@@ -455,6 +458,7 @@ export default async function PravidloCtyriProcenta() {
                 a míry inflace ČSÚ – roky vyčerpání sedí. Minulé výnosy nezaručují budoucí.
               </p>
             </section>
+            <div className="mt-10"><AutorBox cesta="/pravidlo-4-procent" denDat={d.posledniDen} /></div>
           </>
         )}
       </main>

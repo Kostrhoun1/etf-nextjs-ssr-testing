@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { FAKTORY } from '@/components/design-preview/FactorDetail';
+import { clanekSchema } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -121,6 +124,7 @@ export default async function FaktoroveEtf() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/faktorove-etf', nadpis: 'Faktorové ETF: co skutečně říkají data' })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -395,6 +399,17 @@ export default async function FaktoroveEtf() {
               <Calculator className="w-4 h-4" /> Spustit backtest
             </Link>
           </div>
+          <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">Podrobné rozbory jednotlivých faktorů</h2>
+          <ul data-sekce="rozbory-faktoru" className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+            {FAKTORY.map((f) => (
+              <li key={f.slug}>
+                <Link href={`/faktorove-etf/${f.slug}`} className="block h-full rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors">
+                  <span className="block font-semibold text-slate-900">{f.nazev}</span>
+                  <span className="mt-0.5 block text-xs text-slate-500">{f.popis}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
           <div className="mt-6 grid gap-3 sm:grid-cols-3 text-sm">
             {([
               ['/backtest?portfolio=buffett-90-10&start=2002-07-01&amount=100000&contrib=none&run=1', 'Buffettovo 90/10 v backtestu: kolik vydělalo'],
@@ -409,6 +424,7 @@ export default async function FaktoroveEtf() {
           </div>
         </section>
 
+        <AutorBox cesta="/faktorove-etf" />
         <div className="pb-10">
           <InvestmentDisclaimer />
         </div>

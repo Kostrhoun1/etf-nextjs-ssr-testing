@@ -1,11 +1,13 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { clanekSchema } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import {
-  TrendingUp, ArrowRight, User, Database, Calculator, Wallet, ShieldCheck,
+  TrendingUp, ArrowRight, Database, Calculator, Wallet, ShieldCheck,
   Clock, AlertTriangle, TrendingDown, LineChart, CheckCircle2, Flame,
   Sprout, Timer, Receipt, Target, Repeat, Percent,
 } from 'lucide-react';
@@ -32,7 +34,8 @@ export const metadata: Metadata = {
 
 export default async function KolikVydelalyEtf() {
   const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const denDat = await getDataDate(today);
+  const dateStr = denDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Equity křivka (serverové SVG). Null → graf se nevykreslí, stránka nespadne.
   const equity = await getEquityCurve();
@@ -152,6 +155,7 @@ export default async function KolikVydelalyEtf() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/kolik-vydelaly-etf', nadpis: 'Kolik reálně vydělaly ETF a světové akcie v korunách', denDat })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -641,22 +645,10 @@ export default async function KolikVydelalyEtf() {
           </div>
         </section>
 
-        {/* AUTOR / E-E-A-T */}
-        <section className="pb-8">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 flex items-start gap-4">
-            <span className="flex items-center justify-center w-11 h-11 rounded-full bg-slate-100 text-slate-500 border border-slate-200 shrink-0"><User className="w-5 h-5" /></span>
-            <div className="text-sm text-slate-600 leading-relaxed">
-              <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
-              <p className="mt-1">
-                Autor ETF průvodce.cz s 12 lety praxe ve financích. Čísla vycházejí z historických dat širokého indexu
-                světových akcií přepočtených do korun – jde o orientační vzdělávací materiál, nikoli investiční
-                doporučení. Pro výpočet na vlastních číslech použijte{' '}
-                <Link href="/backtest" className="text-teal-700 hover:underline">backtest</Link>.
-                <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* AUTOR / E-E-A-T – sdílená AutorBox s daty zveřejnění a úpravy (SEO audit 20. 10. 2026) */}
+        <AutorBox cesta="/kolik-vydelaly-etf" denDat={denDat} text={<>Autor ETF průvodce.cz s 12 lety praxe ve financích. Čísla vycházejí z historických dat širokého indexu
+          světových akcií přepočtených do korun – jde o orientační vzdělávací materiál, nikoli investiční doporučení. Pro výpočet
+          na vlastních číslech použijte <Link href="/backtest" className="text-teal-700 hover:underline">backtest</Link>.</>} />
 
         <div className="pb-10"><InvestmentDisclaimer /></div>
       </main>
