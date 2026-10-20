@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { clanekSchema } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -202,8 +204,21 @@ export default async function PortfolioDetailPreview(
     { icon: Layers, label: 'Podíl akcií', value: fmtPct(model.stocksPct) },
   ];
 
+  // Den dat = konec předpočtu backtestu, jinak den dat fondů (stejné jako „Data k …“ v hlavičce).
+  const denDat = btDo ?? datumyFondu[0] ?? null;
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Modelová portfolia', item: 'https://etfpruvodce.cz/portfolio-strategie' },
+      { '@type': 'ListItem', position: 3, name: model.name, item: `https://etfpruvodce.cz/portfolio-strategie/${slug}` },
+    ],
+  };
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: `/portfolio-strategie/${slug}`, nadpis: model.name, popis: model.tagline, denDat })) }} />
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -439,6 +454,7 @@ export default async function PortfolioDetailPreview(
           </div>
         </section>
 
+        <AutorBox cesta={`/portfolio-strategie/${slug}`} denDat={denDat} />
         <InvestmentDisclaimer variant="inline" />
       </main>
     </div>

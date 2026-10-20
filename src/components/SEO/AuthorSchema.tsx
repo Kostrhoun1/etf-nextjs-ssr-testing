@@ -10,7 +10,12 @@
  * - Trust signals for YMYL (Your Money Your Life) content
  */
 
-export default function AuthorSchema() {
+import { getETFCountLabel } from '@/lib/etf-data';
+
+export default async function AuthorSchema() {
+  // Počet fondů = STEJNÁ definice jako homepage, srovnávač, /o-nas a llms.txt (getTotalETFCount → getETFCountLabel,
+  // „4 900+“). Dřív napevno „přibližně 5 000“ (SEO audit 20. 10. 2026: čtyři různá čísla napříč webem).
+  const pocet = (await getETFCountLabel()).replace('+', '');
   // Person schema - Tomáš Kostrhoun
   const authorSchema = {
     "@context": "https://schema.org",
@@ -40,7 +45,7 @@ export default function AuthorSchema() {
 
     "worksFor": {
       "@type": "Organization",
-      "@id": "https://etfpruvodce.cz#organization",
+      "@id": "https://etfpruvodce.cz/#organization",
       "name": "ETF průvodce.cz",
       "url": "https://etfpruvodce.cz"
     },
@@ -114,7 +119,7 @@ export default function AuthorSchema() {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": ["Organization", "WebSite"],
-    "@id": "https://etfpruvodce.cz#organization",
+    "@id": "https://etfpruvodce.cz/#organization",
     "name": "ETF průvodce.cz",
     "legalName": "ETF průvodce.cz",
     "url": "https://etfpruvodce.cz",
@@ -125,7 +130,7 @@ export default function AuthorSchema() {
       "height": 60,
       "caption": "ETF průvodce.cz logo"
     },
-    "description": "Největší český průvodce ETF fondy. Srovnání přibližně 5 000 ETF fondů, aktuální výkonnost přepočítaná do českých korun, nezávislé recenze brokerů. Jedinečná databáze ETF pro české investory.",
+    "description": `Největší český průvodce ETF fondy. Srovnání více než ${pocet} ETF fondů, aktuální výkonnost přepočítaná do českých korun, nezávislé recenze brokerů. Jedinečná databáze ETF pro české investory.`,
     "foundingDate": "2024",
     "founder": {
       "@id": "https://etfpruvodce.cz/o-nas#tomas-kostrhoun"

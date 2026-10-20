@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { indexFonduLabel } from '@/utils/indexNormalization';
 import Link from 'next/link';
+import { HLAVNI_DVOJICE, POPISKY_DVOJIC } from '@/lib/pairs';
+import { autorSchema, vydavatelSchema, dataClanku, datumUpravy } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -67,7 +69,8 @@ export default async function SrovnaniPreview() {
   const dp1 = doplnky[etf1.isin], dp2 = doplnky[etf2.isin];
   // Datum = den cen staršího ze dvou fondů (datumCen ze scraping_date), ne den stažení ani globální datum.
   const stazeno = [dp1?.scrapingDate, dp2?.scrapingDate].filter(Boolean).map((d) => new Date(String(d))).sort((a, b) => a.getTime() - b.getTime())[0];
-  const datumK = (stazeno ? datumCen(stazeno) : await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const denDat = stazeno ? datumCen(stazeno) : await getDataDate(today);
+  const datumK = denDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const odl1 = !!dp1?.odlehly, odl2 = !!dp2?.odlehly;
 
   const terNizsi = etf1.ter_numeric != null && etf2.ter_numeric != null && ter(etf1.ter_numeric) !== ter(etf2.ter_numeric)
@@ -134,9 +137,11 @@ export default async function SrovnaniPreview() {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: `${TICKER1} vs ${TICKER2} (${t2}): srovnání ETF v korunách ${year}`,
-    author: { '@type': 'Person', name: 'Tomáš Kostrhoun' },
-    publisher: { '@type': 'Organization', name: 'ETF průvodce.cz' },
-    dateModified: today.toISOString().slice(0, 10),
+    // Autor, vydavatel a data ze src/lib/redakce.ts (SEO audit 20. 10. 2026: dřív dateModified = „dnes“, bez datePublished).
+    author: autorSchema,
+    publisher: vydavatelSchema,
+    datePublished: dataClanku('/srovnani/vwce-vs-cspx')?.publikovano,
+    dateModified: datumUpravy('/srovnani/vwce-vs-cspx', denDat),
     about: [financialProduct(etf1), financialProduct(etf2)],
     mainEntityOfPage: CANONICAL,
   };
@@ -339,14 +344,9 @@ export default async function SrovnaniPreview() {
         <section data-sekce="dalsi" className="pb-8">
           <h2 className="mb-3 text-xl md:text-2xl font-bold tracking-tight text-slate-900">Další srovnání</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {[
-              { slug: 'iwda-vs-cspx', label: 'IWDA vs CSPX', popis: 'Vyspělý svět vs jen USA' },
-              { slug: 'vwce-vs-iwda', label: 'VWCE vs IWDA', popis: 'All-World (i rozvíjející se trhy) vs MSCI World' },
-              { slug: 'cspx-vs-vuaa', label: 'CSPX vs VUAA', popis: 'Dva akumulační fondy na S&P 500' },
-              { slug: 'cspx-vs-eunl', label: 'CSPX vs EUNL', popis: 'USA vs vyspělý svět' },
-              { slug: 'vwce-vs-vwrl', label: 'VWCE vs VWRL', popis: 'Stejný index: akumulační vs distribuční' },
-            ].map((d) => (
-              <Link key={d.slug} href={`/srovnani/${d.slug}`} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 hover:border-teal-300 transition-colors">
+            {/* Všechny hlavní kurátorské dvojice (src/lib/pairs.ts) – dřív 5 ručně, z toho alias cspx-vs-eunl (SEO audit 20. 10. 2026). */}
+            {HLAVNI_DVOJICE.filter((slug) => slug !== 'vwce-vs-cspx').map((slug) => ({ slug, label: slug.toUpperCase().replace('-VS-', ' vs '), popis: POPISKY_DVOJIC[slug] ?? '' })).map((d) => (
+              <Link key={d.slug} href={`/srovnani/${d.slug}`} prefetch={false} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 hover:border-teal-300 transition-colors">
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold text-slate-900">{d.label}</span>
                   <span className="block truncate text-xs text-slate-500">{d.popis}</span>
@@ -368,7 +368,7 @@ export default async function SrovnaniPreview() {
         <div className="pb-12 space-y-2">
           <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
             <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-            <span>Data fondů: justETF · kurzy ČNB · data k {datumK}. Píše <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">Tomáš Kostrhoun</Link>, bez placeného pořadí.</span>
+            <span>Data fondů: justETF · kurzy ČNB · data k {datumK} (<Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">metodika</Link>). Píše <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">Tomáš Kostrhoun</Link>, bez placeného pořadí.</span>
           </p>
           <InvestmentDisclaimer variant="inline" className="!text-slate-400" />
         </div>

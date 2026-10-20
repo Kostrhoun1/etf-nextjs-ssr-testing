@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
+import { obracenaKuratorska } from '@/lib/pairs';
 
 // Helper to detect if string is ISIN format (2 letters + 10 alphanumeric)
 function isISIN(str: string): boolean {
@@ -57,12 +58,34 @@ export async function middleware(request: NextRequest) {
 
   // /etf/<ISIN>: neplatný ISIN = stránka nemůže existovat
   const etfDetail = pathname.match(/^\/etf\/([^/]+)\/?$/);
-  if (etfDetail && !isinPlatny(dekoduj(etfDetail[1]))) return nesmysl(request);
+  if (etfDetail) {
+    const isin = dekoduj(etfDetail[1]);
+    // ISIN malými písmeny (/etf/ie00b5bmr087 – tak ho lidé píšou i kopírují) → 301 na velká písmena.
+    // Dřív 404. Kanonická adresa detailu je /etf/<ISIN velkými> (canonical v generateMetadata).
+    // Bez dotazu do DB: platnost se ověří kontrolní číslicí, existence fondu až na cílové adrese.
+    if (isin !== isin.toUpperCase() && isinPlatny(isin.toUpperCase())) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/etf/${isin.toUpperCase()}`;
+      return NextResponse.redirect(url, 301);
+    }
+    if (!isinPlatny(isin)) return nesmysl(request);
+  }
 
   // /srovnani/<a>-vs-<b>: jen tvar dvojice tickerů. Výjimka: statická podstránka /srovnani/porovnani
   // (kurátorská /srovnani/vwce-vs-cspx tvar dvojice splňuje).
   const dvojice = pathname.match(/^\/srovnani\/([^/]+)\/?$/);
   if (dvojice && dvojice[1] !== 'porovnani' && !PAR_SROVNANI.test(dekoduj(dvojice[1]))) return nesmysl(request);
+  // Kanonická adresa dvojice (SEO audit 20. 10. 2026): velká písmena → malá a obrácené pořadí kurátorské dvojice
+  // → hlavní kurátorská dvojice. Bez DB (seznam v src/lib/pairs.ts); ostatní tvary přesměruje stránka sama.
+  if (dvojice && dvojice[1] !== 'porovnani') {
+    const slug = dekoduj(dvojice[1]);
+    const cil = obracenaKuratorska(slug) ?? (slug !== slug.toLowerCase() ? slug.toLowerCase() : null);
+    if (cil) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/srovnani/${cil}`;
+      return NextResponse.redirect(url, 301);
+    }
+  }
 
   // Handle /etf/ticker/[ticker] - redirect to ISIN page (prevent duplicate content)
   if (pathname.startsWith('/etf/ticker/')) {
@@ -143,7 +166,7 @@ export async function middleware(request: NextRequest) {
                   const ticker2 = etfs.find((e: any) => e.isin === id2)?.primary_ticker;
 
                   if (ticker1 && ticker2 && ticker1 !== '-' && ticker2 !== '-') {
-                    const staticUrl = `/srovnani-etf/${ticker1.toLowerCase()}-vs-${ticker2.toLowerCase()}`;
+                    const staticUrl = `/srovnani/${ticker1.toLowerCase()}-vs-${ticker2.toLowerCase()}`;
                     return NextResponse.redirect(new URL(staticUrl, request.url), 301);
                   }
                 }
@@ -157,7 +180,7 @@ export async function middleware(request: NextRequest) {
 
         // If they're tickers (or we failed to fetch), redirect directly
         if (!isId1ISIN && !isId2ISIN) {
-          const staticUrl = `/srovnani-etf/${id1.toLowerCase()}-vs-${id2.toLowerCase()}`;
+          const staticUrl = `/srovnani/${id1.toLowerCase()}-vs-${id2.toLowerCase()}`;
           return NextResponse.redirect(new URL(staticUrl, request.url), 301);
         }
       }

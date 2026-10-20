@@ -219,7 +219,7 @@ naopak jen skryje, když jsou data starší 7 dní.
 
 Ve strukturovaných datech (src/components/SEO/AuthorSchema.tsx – description a slogan) je tvrzení
 „Největší český průvodce ETF fondy“. Expertní posudek ho označil za nedoložitelné; majitel rozhodl,
-že **zůstává**. Neodstraňovat. Počet fondů v textu musí odpovídat realitě (dřív „4300+“, pak „více než 5 000“; od 18. 10. 2026 „přibližně 5 000“ – počet fondů v nabídce bez pákových produktů je 4 981, viz getTotalETFCount).
+že **zůstává**. Neodstraňovat. Počet fondů v textu musí odpovídat realitě (dřív „4300+“, pak „více než 5 000“, „přibližně 5 000“; od 20. 10. 2026 dynamicky „více než N“ z getETFCountLabel – stejná funkce jako titulek homepage, /o-nas a /llms.txt, viz getTotalETFCount).
 
 ## Homepage = srovnávač, ne investiční web (rozhodnutí majitele 18. 10. 2026)
 
@@ -520,3 +520,22 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   Titulky se nesmí překrývat (kanibalizace), stránky na sebe odkazují obousměrně; dvojice jen ze `SITEMAP_PAIRS`.
 - Hlídá `scripts/check-fund-data.mjs`, blok `kolo6 seo zebricky` (čísla popisků proti surové DB a rozcestníku, /kde-koupit
   proti kurzovnímu lístku ČNB a cenikům na stránce, /dane-z-etf bez platného stropu 40 mil.).
+
+## SEO kolo 6 (nezávislý audit 20. 10. 2026)
+
+- **Dvojice srovnání mají JEDNU kanonickou adresu** (src/lib/pairs.ts): kurátorské dvojice (`KURATORSKE`) jsou kanonické samy
+  a nikdy se nepřesměrovávají; kurátorské **aliasy** (sxr8-vs-vuaa, vwce-vs-eunl, iwda-vs-vwra, cspx-vs-eunl, cspx-vs-vwra,
+  iwda-vs-swda) zůstávají dostupné, ale mají canonical na hlavní dvojici a NEJSOU v sitemapě – záměr, ne chyba.
+  Ostatní tvary (obrácené pořadí, jiné tickery týchž fondů, ISINy) → trvalé přesměrování; dvojice mimo kurátorský seznam mají
+  `googlebot: noindex, follow` (Bing/Seznam indexují) – stejný princip jako ocas detailů. Stránky „stejný fond“ (cspx-vs-sxr8…)
+  mají canonical na sebe, ne na detail fondu (jiný záměr hledání: „je X totéž co Y?“).
+- **Titulek detailu fondu je bez „| ETF průvodce.cz“** (`title.absolute`, ≤ 65 znaků, ticker dopředu) a popisek nese výnos
+  za 1 rok v Kč JEN s datem dat („data k 19. 10. 2026“) – detail se cachuje 30 dní. Výnos v popisku chybí u fondů s daty
+  staršími 7 dní a s výnosem mimo trh (src/lib/seoDetailu.ts).
+- **robots.txt zakazuje /api/, ale povoluje /api/og** (náhledy pro sociální sítě; X/Twitterbot robots respektuje). /api/og má
+  `X-Robots-Tag: noindex`, aby se obrázky neindexovaly jako stránky.
+- **Datum úpravy redakčních stránek je ze src/lib/redakce.ts** (historie souboru, u stránek z dat pozdější z ní a dne dat),
+  ne „dnes“. Při věcné úpravě textu posuňte `upraveno`.
+- **/llms.txt je route (src/app/llms.txt/route.ts), ne soubor v public/** – počet fondů a seznamy se generují.
+- **next.config.ts nemá vlastní `splitChunks`** – dřív jeden „vendors“ (326 KB gzip i s recharts) na každé stránce. Nevracet.
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo6 seo`.

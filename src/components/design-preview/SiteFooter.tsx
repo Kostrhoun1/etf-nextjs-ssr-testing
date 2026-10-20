@@ -28,13 +28,16 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
     ],
   },
   {
-    heading: 'Plánování',
+    // SEO audit 20. 10. 2026: datové články (Kolik vydělaly ETF, Stroj času) měly málo interních odkazů → patička;
+    // „O nás“ a „Metodika“ jsou ve spodní liště.
+    heading: 'Data a plánování',
     links: [
       { href: '/co-rikaji-data', label: 'Co říkají data' },
+      { href: '/kolik-vydelaly-etf', label: 'Kolik vydělaly ETF' },
+      { href: '/stroj-casu', label: 'Korunový stroj času' },
       { href: '/fire', label: 'FIRE a nezávislost' },
       { href: '/kolik-investovat-mesicne', label: 'Kolik investovat měsíčně' },
       { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka' },
-      { href: '/o-nas', label: 'O nás' },
     ],
   },
 ];
@@ -77,7 +80,11 @@ export default function SiteFooter() {
 
         {/* Spodní lišta: copyright + disclaimer */}
         <div className="mt-8 md:mt-10 pt-5 md:pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© {year} ETF průvodce.cz</p>
+          <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <span>© {year} ETF průvodce.cz</span>
+            <Link href="/o-nas" className="hover:text-teal-700">O nás</Link>
+            <Link href="/metodika" className="hover:text-teal-700">Metodika a zdroje dat</Link>
+          </p>
           <p className="max-w-xl text-center sm:text-right leading-relaxed">
             Obsah má vzdělávací charakter a nepředstavuje investiční ani daňové doporučení. Minulá výkonnost nezaručuje budoucí výnosy.
           </p>

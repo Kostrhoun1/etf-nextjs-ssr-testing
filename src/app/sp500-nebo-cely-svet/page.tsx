@@ -5,6 +5,8 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { clanekSchema } from '@/lib/redakce';
 import { spoctiSp500NeboSvet } from '@/lib/clanky/sp500NeboSvet';
 import { spoctiSp500NeboSvetHloubka, type Krize, type Okna } from '@/lib/clanky/sp500NeboSvetHloubka';
 import { ogImage } from '@/lib/ogImage';
@@ -136,6 +138,7 @@ export default async function Sp500NeboSvet() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/sp500-nebo-cely-svet', nadpis: 'S&P 500, nebo celý svět? Co vydělalo víc v korunách', denDat: d?.posledniDen ?? null })) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
@@ -474,6 +477,7 @@ export default async function Sp500NeboSvet() {
                 Složení a poplatky fondů: justETF (náš denní scraper). Minulé výnosy nezaručují budoucí.
               </p>
             </section>
+            <div className="mt-10"><AutorBox cesta="/sp500-nebo-cely-svet" denDat={d.posledniDen} /></div>
           </>
         )}
       </main>

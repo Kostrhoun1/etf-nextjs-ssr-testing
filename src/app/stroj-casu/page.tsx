@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { TrendingUp } from 'lucide-react';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { clanekSchema } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -39,8 +41,21 @@ export default async function StrojCasuStranka() {
   // Chybějící data = výjimka: Next pak při ISR ponechá poslední dobrou verzi stránky (místo
   // „nepodařilo se načíst“ na celý den). Při buildu selže build – raději než nasadit prázdnou stránku.
   if (rady.length < STROJ_PRESETY.length) throw new Error(`stroj času: načteno ${rady.length} z ${STROJ_PRESETY.length} presetů`);
+  // Den dat = poslední den řad (stejný jako „Data k …“ ve widgetu) – datum úpravy článku (src/lib/redakce.ts).
+  const denDat = rady.map((r) => r.posledniDen).filter(Boolean).sort().at(-1) ?? null;
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Co říkají data', item: 'https://etfpruvodce.cz/co-rikaji-data' },
+      { '@type': 'ListItem', position: 3, name: 'Korunový stroj času', item: 'https://etfpruvodce.cz/stroj-casu' },
+    ],
+  };
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/stroj-casu', nadpis: 'Korunový stroj času', denDat })) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
@@ -95,8 +110,9 @@ export default async function StrojCasuStranka() {
 
         <section className="mt-6 max-w-4xl">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Co říkají data dál</h2>
-          <div className="mt-2 grid gap-3 sm:grid-cols-3">
+          <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
+              ['/kolik-vydelaly-etf', 'Kolik vydělaly ETF a akcie', 'Výnosy hlavních trhů v korunách za ~18 let.'],
               ['/jak-dlouho-v-minusu', 'Jak dlouho můžete být v minusu?', 'Návrat po propadech – v Kč i po inflaci.'],
               ['/sp500-nebo-cely-svet', 'S&P 500, nebo celý svět?', 'Co vydělalo víc v korunách.'],
               ['/pravidlo-4-procent', 'Pravidlo 4 % v korunách', 'Vydržel by výběr 4 % ročně od roku 2000?'],
@@ -108,6 +124,7 @@ export default async function StrojCasuStranka() {
             ))}
           </div>
         </section>
+        <div className="mt-10 max-w-4xl"><AutorBox cesta="/stroj-casu" denDat={denDat} /></div>
       </main>
     </div>
   );

@@ -204,6 +204,9 @@ export default async function AboutPage() {
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <Link href="/metodika" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
+              Podrobná metodika a zdroje dat <ArrowRight className="w-4 h-4" />
+            </Link>
             <Link href="/pruvodce" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
               Jak fungují ETF <ArrowRight className="w-4 h-4" />
             </Link>

@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
         missing: [{ type: 'host', value: 'etfpruvodce.cz' }],
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
+      // OG obrázky (/api/og?…) smí sociální sítě stáhnout (robots.ts je povoluje), ale vyhledávač je nemá
+      // vést jako samostatné výsledky – Seznam je měl v indexu (SEO audit 20. 10. 2026). Hlavička nestojí CPU.
+      {
+        source: '/api/og',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+      },
     ];
   },
   async redirects() {
@@ -96,21 +102,8 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    if (!dev && !isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-          },
-        },
-      };
-    }
-    return config;
-  },
+  // Vlastní splitChunks (celé node_modules do jednoho „vendors“, 1,07 MB / 326 KB gzip i s recharts na KAŽDÉ stránce)
+  // ODSTRANĚN 20. 10. 2026 (SEO audit, výkon) – Next chunkuje sám po stránkách. Změřeno před/po v kolo6-opravy/seo.
 };
 
 export default nextConfig;

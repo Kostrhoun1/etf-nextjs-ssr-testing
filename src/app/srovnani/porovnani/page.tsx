@@ -5,7 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowLeft, ArrowRight, Search, Scale, Plus, Check } from 'lucide-react';
 import { getComparisonETFsByIsins, getETFsByIsins } from '@/lib/etf-data';
-import { POPULAR_PAIRS } from '@/lib/pairs';
+import { HLAVNI_DVOJICE, POPISKY_DVOJIC } from '@/lib/pairs';
 import { kratkyNazevFondu } from '@/lib/nazevFondu';
 import PorovnaniTable from '@/components/design-preview/PorovnaniTable';
 import PorovnaniGraf from '@/components/design-preview/PorovnaniGraf';
@@ -38,16 +38,9 @@ function Head() {
   );
 }
 
-/* Prázdné porovnání (kolo 5, 19. 10. 2026): 80 % plochy bylo prázdných. Hotové dvojice = jen stránky, které
-   existují (POPULAR_PAIRS + kurátorská vwce-vs-cspx); nejčastější fondy se přidají jedním klikem do URL. */
-const HOTOVE_DVOJICE: { slug: string; otazka: string }[] = [
-  { slug: 'vwce-vs-cspx', otazka: 'Celý svět, nebo jen USA?' },
-  { slug: 'vwce-vs-iwda', otazka: 'Celý svět, nebo jen vyspělé trhy?' },
-  { slug: 'iwda-vs-cspx', otazka: 'Vyspělé trhy, nebo jen USA?' },
-  { slug: 'cspx-vs-vuaa', otazka: 'Dva S&P 500 fondy – iShares, nebo Vanguard?' },
-  { slug: 'cspx-vs-spyl', otazka: 'S&P 500 – největší, nebo nejlevnější?' },
-  { slug: 'vwce-vs-vwrl', otazka: 'Stejný fond – reinvestuje, nebo vyplácí?' },
-].filter((d) => d.slug === 'vwce-vs-cspx' || POPULAR_PAIRS.includes(d.slug));
+/* Prázdné porovnání (kolo 5, 19. 10. 2026): 80 % plochy bylo prázdných. Hotové dvojice = VŠECHNY hlavní kurátorské
+   dvojice ze sitemapy (src/lib/pairs.ts, SEO audit 20. 10. 2026 – dřív 6 ze 14 a zbytek bez interního odkazu). */
+const HOTOVE_DVOJICE: { slug: string; otazka: string }[] = HLAVNI_DVOJICE.map((slug) => ({ slug, otazka: POPISKY_DVOJIC[slug] ?? '' }));
 /** Nejčastěji porovnávané fondy (VWCE, SXR8, EUNL, VUAA, SPYL, EIMI). */
 const CASTE_FONDY = ['IE00BK5BQT80', 'IE00B5BMR087', 'IE00B4L5Y983', 'IE00BFMXXD54', 'IE000XZSV718', 'IE00BKM4GZ66'];
 
@@ -73,7 +66,7 @@ async function PrazdnePorovnani({ vybrane }: { vybrane: string[] }) {
         <ul className="mt-2 grid gap-2 sm:grid-cols-2">
           {HOTOVE_DVOJICE.map((d) => (
             <li key={d.slug}>
-              <Link href={`/srovnani/${d.slug}`} className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:border-teal-300">
+              <Link href={`/srovnani/${d.slug}`} prefetch={false} className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 hover:border-teal-300">
                 <span className="min-w-0">
                   <span className="block font-semibold text-slate-900 group-hover:text-teal-800">{d.slug.split('-vs-').map((t) => t.toUpperCase()).join(' vs ')}</span>
                   <span className="block text-xs text-slate-500">{d.otazka}</span>

@@ -7,6 +7,8 @@
  * psaná stránka série).
  */
 import Link from 'next/link';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { clanekSchema } from '@/lib/redakce';
 import {
   TrendingUp, Database, Calculator, Wallet, Scale, ShieldCheck,
   AlertTriangle, BookOpen, History, LineChart, Zap,
@@ -19,6 +21,17 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import { getDataDate } from '@/lib/etf-data';
 import { runBacktest } from '@/lib/backtest/engine';
 import type { BacktestInput, TimeSeriesPoint } from '@/lib/backtest/types';
+
+/** Všechny rozbory faktorů – pro vzájemné odkazy a rozcestník /faktorove-etf (dřív small-cap, quality a min. volatilita
+ *  měly po jednom interním odkazu; SEO audit 20. 10. 2026). */
+export const FAKTORY: { slug: string; nazev: string; popis: string }[] = [
+  { slug: 'value', nazev: 'Value', popis: 'Levné firmy vůči ziskům a účetní hodnotě' },
+  { slug: 'small-cap', nazev: 'Malé firmy (small cap)', popis: 'Menší firmy – vyšší potenciál i riziko' },
+  { slug: 'quality', nazev: 'Kvalita (quality)', popis: 'Ziskové firmy s nízkým dluhem' },
+  { slug: 'momentum', nazev: 'Momentum', popis: 'Akcie, kterým se v posledním roce dařilo' },
+  { slug: 'minimalni-volatilita', nazev: 'Minimální volatilita', popis: 'Akcie s nejmenším kolísáním' },
+  { slug: 'dividendove-akcie', nazev: 'Dividendové akcie', popis: 'Firmy s vysokou dividendou' },
+];
 
 export interface FactorConfig {
   slug: string;            // např. 'value'
@@ -191,6 +204,7 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: `/faktorove-etf/${cfg.slug}`, nadpis: cfg.h1 })) }} />
 
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -451,6 +465,17 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
             <span className="font-semibold text-teal-900">Jak faktor reálně zapojit do portfolia?</span>{' '}
             <span className="text-teal-800">Podívejte se na <b>ETF průvodce portfolio</b> — světové jádro plus jediný faktor, který přežije náklady (small-cap value).</span>
           </Link>
+          <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">Rozbory dalších faktorů</h2>
+          <ul data-sekce="dalsi-faktory" className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-5 text-sm">
+            {FAKTORY.filter((f) => f.slug !== cfg.slug).map((f) => (
+              <li key={f.slug}>
+                <Link href={`/faktorove-etf/${f.slug}`} className="block h-full rounded-lg border border-slate-200 bg-white p-3 hover:border-teal-300 transition-colors">
+                  <span className="block font-semibold text-slate-900">{f.nazev}</span>
+                  <span className="mt-0.5 block text-xs text-slate-500">{f.popis}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
           <div className="mt-6 grid gap-3 sm:grid-cols-3 text-sm">
             {cfg.related.map(([href, label]) => (
               <Link key={href} href={href} className="rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors flex items-center justify-between gap-2">
@@ -461,6 +486,7 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
           </div>
         </section>
 
+        <AutorBox cesta={`/faktorove-etf/${cfg.slug}`} />
         <div className="pb-10">
           <InvestmentDisclaimer />
         </div>

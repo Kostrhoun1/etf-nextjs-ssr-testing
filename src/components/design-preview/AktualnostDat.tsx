@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { RefreshCw } from 'lucide-react';
 import { datumCen } from '@/lib/datumCen';
 
@@ -33,7 +34,8 @@ export default function AktualnostDat({
     <p className={`inline-flex items-start gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs leading-5 ${barvy} ${className}`}>
       <RefreshCw className="w-3.5 h-3.5 mt-[3px] shrink-0" aria-hidden="true" />
       <span>
-        <span className="whitespace-nowrap">Data k <strong className="font-semibold">{fmt(datum)}</strong></span>
+        {/* Odkaz na metodiku (SEO audit 20. 10. 2026): co „Data k …“ znamená a jak často se obnovují. Vzhled beze změny. */}
+        <Link href="/metodika#datum" prefetch={false} title="Co znamená „Data k …“ – metodika" className="whitespace-nowrap hover:underline underline-offset-2">Data k <strong className="font-semibold">{fmt(datum)}</strong></Link>
         {starsi && <> · u některých fondů starší (nejstarší {fmt(starsi)})</>}
       </span>
     </p>

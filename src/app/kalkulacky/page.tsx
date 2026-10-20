@@ -23,7 +23,8 @@ export const metadata: Metadata = {
 };
 
 /* Cílové routy v náhledové větvi (na ostrém webu se přemapují 1:1). */
-type Tool = { href: string; title: string; desc: string; icon: typeof Calculator };
+/** `detail` = co nástroj spočítá a z čeho (SEO audit 20. 10. 2026: rozcestník byl tenký – jen jedna věta u položky). */
+type Tool = { href: string; title: string; desc: string; detail?: string; icon: typeof Calculator };
 type Group = { title: string; intro: string; icon: typeof Calculator; tools: Tool[] };
 
 const GROUPS: Group[] = [
@@ -36,30 +37,35 @@ const GROUPS: Group[] = [
         href: '/investicni-kalkulacka',
         title: 'Investiční kalkulačka',
         desc: 'Kolik naspoříte pravidelným vkladem díky složenému úročení.',
+        detail: 'Zadáte jednorázový a pravidelný vklad, jeho frekvenci, dobu a očekávaný roční výnos. Ukáže hodnotu na konci, kolik jste vložili a kolik tvoří výnos.',
         icon: Calculator,
       },
       {
         href: '/kalkulacka',
         title: 'Kalkulačka poplatků ETF',
         desc: 'Dopad ročního poplatku (TER) na váš výnos za desítky let.',
+        detail: 'Zadáte investici, měsíční vklad, dobu, očekávaný výnos a roční poplatky (TER) k porovnání. Ukáže, kolik korun vás rozdíl v poplatku za celou dobu stojí.',
         icon: Percent,
       },
       {
         href: '/kurzovy-dopad',
         title: 'Kurzový dopad ETF',
         desc: 'Jak pohyb kurzu USD/CZK mění výnos přepočtený do korun.',
+        detail: 'Zadáte hodnotu portfolia a podíl v dolarech, eurech a korunách. Ukáže, jak se hodnota v korunách mění při posílení nebo oslabení koruny, i na historických scénářích.',
         icon: Coins,
       },
       {
         href: '/monte-carlo',
         title: 'Monte Carlo simulátor',
         desc: 'Pravděpodobnostní scénáře vývoje portfolia, ne jediné číslo.',
+        detail: 'Složíte portfolio z tříd aktiv (akcie, dluhopisy, zlato…) a zadáte vklady. Simulace mnoha možných průběhů ukáže rozpětí výsledků a pravděpodobnost dosažení cíle.',
         icon: Dice5,
       },
       {
         href: '/backtest',
         title: 'Backtest portfolia',
         desc: 'Otestujte složení portfolia na historických datech trhu.',
+        detail: 'Složíte portfolio z indexů a nastavíte vklady a vyvažování. Spočítá vývoj v korunách na skutečných historických datech – roční zhodnocení, největší propady a kolísavost.',
         icon: History,
       },
     ],
@@ -73,18 +79,21 @@ const GROUPS: Group[] = [
         href: '/fire',
         title: 'Průvodce FIRE',
         desc: 'Kompletní český pilíř: kolik potřebujete, míra úspor, role ETF a daně.',
+        detail: 'Rozbor finanční nezávislosti v českých podmínkách: kolik majetku je potřeba, jakou roli hraje míra úspor, ETF a daně.',
         icon: BookOpen,
       },
       {
         href: '/fire-kalkulacka',
         title: 'FIRE kalkulačka',
         desc: 'Kdy a s jakým majetkem dosáhnete finanční nezávislosti.',
+        detail: 'Zadáte věk, úspory, měsíční investice, inflaci a strategii. Spočítá, kdy a s jakým majetkem byste mohli žít z výnosů, i s jednorázovými výdaji nebo příjmy.',
         icon: Flame,
       },
       {
         href: '/nouzova-rezerva',
         title: 'Nouzová rezerva',
         desc: 'Kolik peněz si držet stranou pro nečekané výdaje.',
+        detail: 'Zadáte měsíční výdaje, úspory, spoření, počet osob a stabilitu příjmu. Spočítá velikost rezervy v korunách i v měsících výdajů.',
         icon: ShieldAlert,
       },
     ],
@@ -98,18 +107,21 @@ const GROUPS: Group[] = [
         href: '/cisty-plat',
         title: `Čistá mzda ${DAN_ROK}`,
         desc: 'Kolik vám z hrubé mzdy zbude po dani a odvodech.',
+        detail: 'Zadáte hrubou mzdu a počet dětí. Spočítá čistou mzdu, pojistné a daň po slevách podle pravidel pro daný rok.',
         icon: Receipt,
       },
       {
         href: '/hypotecni-kalkulacka',
         title: 'Hypoteční kalkulačka',
         desc: 'Měsíční splátka hypotéky podle výše úvěru a sazby.',
+        detail: 'Zadáte cenu nemovitosti, výši úvěru, sazbu a dobu splatnosti. Spočítá měsíční splátku a kolik celkem zaplatíte na úrocích.',
         icon: Home,
       },
       {
         href: '/uverova-kalkulacka',
         title: 'Úvěrová kalkulačka',
         desc: 'Splátka a celkové náklady spotřebitelského úvěru.',
+        detail: 'Zadáte výši úvěru, sazbu a dobu splácení. Spočítá měsíční splátku a celkové náklady úvěru.',
         icon: Landmark,
       },
     ],
@@ -226,6 +238,7 @@ export default async function KalkulackyPage() {
                     <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 transition-all group-hover:text-teal-700 group-hover:translate-x-0.5" />
                   </span>
                   <span className="block text-xs text-slate-500 mt-1 leading-snug">{t.desc}</span>
+                  {t.detail && <span className="block text-xs text-slate-600 mt-2 leading-relaxed">{t.detail}</span>}
                 </Link>
               ))}
             </div>

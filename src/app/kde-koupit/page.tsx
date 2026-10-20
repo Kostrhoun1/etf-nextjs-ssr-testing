@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { clanekSchema } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -130,13 +131,9 @@ export default async function KdeKoupitPage() {
     '@type': 'FAQPage',
     mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   };
-  const articleSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: `Kde koupit ETF v Česku ${year}`,
-    author: { '@type': 'Person', name: 'Tomáš Kostrhoun' },
-    dateModified: cenikyOverenyIso,
-  };
+  // Article: autor + vydavatel + datum zveřejnění (src/lib/redakce.ts); datum úpravy = pozdější z poslední úpravy
+  // stránky a dne ověření ceníků (SEO audit 20. 10. 2026 – dřív bez datePublished a publisher).
+  const articleSchema = clanekSchema({ cesta: '/kde-koupit', nadpis: `Kde koupit ETF v Česku ${year}`, denDat: cenikyOverenyIso });
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">

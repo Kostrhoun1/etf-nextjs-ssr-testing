@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { TrendingUp, ArrowUpRight } from 'lucide-react';
+import AutorBox from '@/components/design-preview/AutorBox';
+import { clanekSchema } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -58,6 +60,7 @@ const SKUPINY: { nadpis: string; popis: string; polozky: { href: string; titulek
 export default function CoRikajiData() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/co-rikaji-data', nadpis: 'Co říkají data: výnosy ETF v korunách a odpovědi pro české investory' })) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
@@ -105,6 +108,7 @@ export default function CoRikajiData() {
             </section>
           ))}
         </div>
+        <div className="mt-10"><AutorBox cesta="/co-rikaji-data" /></div>
       </main>
     </div>
   );
