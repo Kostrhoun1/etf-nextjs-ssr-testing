@@ -31,9 +31,12 @@ export default function EtfReturns({
   byCur,
   fundCurrency,
   short,
+  letos,
   children,
 }: {
   byCur: ByCur;
+  /** Období letošního výnosu, např. „od 1. 1. 2026 do 17. 10. 2026“ (kolo 6: dřív jen „od 1. ledna“, bez data konce). */
+  letos?: string;
   fundCurrency: string | null;
   short?: ShortPeriods;
   /** Odkazy pod čísly (backtest, stroj času). */
@@ -42,7 +45,7 @@ export default function EtfReturns({
   const [cur] = useCurrency();
   const v = byCur[cur];
   const tiles = [
-    { label: 'Letos', sub: 'od 1. ledna', value: v.ytd },
+    { label: 'Letos', sub: letos ?? 'od 1. ledna', value: v.ytd },
     { label: '3 roky', sub: 'průměrně ročně', value: annualize(v.y3, 3) },
     { label: '5 let', sub: 'průměrně ročně', value: annualize(v.y5, 5) },
   ];

@@ -16,7 +16,8 @@ export default function OdkazBurzy({ title, children }: { title: string; childre
         sekce.scrollIntoView({ behavior: 'smooth', block: 'start' });
         history.replaceState(null, '', '#burzy');
       }}
-      className="ml-1.5 text-xs text-slate-300 underline decoration-dotted underline-offset-2 hover:text-white"
+      // Kolo 6: plocha pro dotyk min. 44 px (svislý padding se zápornými okraji – řádek se nezvětší).
+      className="ml-1.5 inline-block py-[14px] -my-[14px] text-xs text-slate-300 underline decoration-dotted underline-offset-2 hover:text-white"
     >
       {children}
     </a>

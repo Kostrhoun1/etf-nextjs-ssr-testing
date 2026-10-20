@@ -473,3 +473,18 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   pozice „INSL CASH“ (irský fond peněžního trhu iShares, kam fond parkuje hotovost). Podobně ~50 dalších dluhopisových
   fondů iShares (hotovost/deriváty, až 107 %). Neopravovat ručně; `check-fund-data.mjs` (kolo6) je jen počítá jako varování.
 - Platí, dokud zdroj nezačne součty normovat; když scraper začne ukládat víc než top 5, přehodnotit spodní hranici 95 %.
+
+## Detail fondu – kolo 6 (20. 10. 2026)
+
+- **Index na detailu má fallback na `index_name`** (`indexDetailu`, `src/lib/detailFondu.ts`): od 20. 10. je `index_name` čistý z řádku
+  „Index“ u zdroje. Fallback se NEpoužije u aktivních fondů (v řádku „Index“ mají název vlastní strategie → „žádný (aktivně řízený fond)“)
+  a když název fondu index obsahuje a pokračuje dál („S&P 500 Energy“ s index_name „S&P 500“). Srovnávač a žebříčky dál používají
+  přísnější `indexFonduLabel` – rozdíl je záměr (detail ukazuje jeden fond, nabídka indexů musí být čistá).
+- **„Další fondy na index X“ = stejný klíč indexu jako nadpis + stejné měnové zajištění** – zajištěná třída nikdy vedle nezajištěné.
+  Sektorový/ESG fond se k „obyčejnému“ indexu nepřidá ani při shodném index_name.
+- **Dvě třídy akcií jedné firmy v top 10 (EMIM: Samsung kmenové + prioritní) = jeden řádek se součtem „(2 druhy akcií)“** – zdroj nerozlišuje,
+  která je prioritní, proto je nepojmenováváme. Text pod tím: „10 největších pozic (9 firem)“.
+- **Nový fond (< 1 rok bez výnosu za rok): „od vzniku“ = `return_inception` v EUR.** Ověřeno: u fondů starých ~1 rok se rovná výnosu za 1 rok
+  (BPUE, WLSC, SAAI…), u VALL sedí s Xetra VGLA.DE (20. 8. → 16. 10. +2,4 %, zdroj +2,1 % od 18. 8.).
+- **W‑8BEN FAQ a věta o irské smlouvě s USA (15 % místo 30 %) jen u akciových fondů s americkými akciemi** (USA ≥ 5 % ve složení).
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo6 detail`.
