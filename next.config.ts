@@ -102,21 +102,8 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    if (!dev && !isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-          },
-        },
-      };
-    }
-    return config;
-  },
+  // Vlastní splitChunks (celé node_modules do jednoho „vendors“, 1,07 MB / 326 KB gzip i s recharts na KAŽDÉ stránce)
+  // ODSTRANĚN 20. 10. 2026 (SEO audit, výkon) – Next chunkuje sám po stránkách. Změřeno před/po v kolo6-opravy/seo.
 };
 
 export default nextConfig;
