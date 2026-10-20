@@ -17,10 +17,11 @@ export default function HeroVynosy({ byCur, datum }: { byCur: Record<Currency, V
   const tip = cur === 'CZK'
     ? 'Kumulativní výnos fondu za celé období přepočtený do korun – zahrnuje pohyb kurzu. Po poplatcích fondu, bez daní a poplatků brokera.'
     : `Kumulativní výnos fondu v ${cur === 'USD' ? 'dolarech' : 'eurech'} – bez pohybu kurzu vůči koruně. Měnu přepnete v sekci Výkonnost.`;
+  // Kolo 6: „celkem“ – v sekci Výkonnost jsou 3 a 5 let „průměrně ročně“ a bez štítku se to četlo jako totéž.
   const tiles = [
     { label: '1 rok', v: v.y1 },
-    { label: '3 roky', v: v.y3 },
-    { label: '5 let', v: v.y5 },
+    { label: '3 roky celkem', v: v.y3 },
+    { label: '5 let celkem', v: v.y5 },
   ];
   return (
     <div>
