@@ -438,3 +438,16 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   za den, XNAS −1,75 % (ověřeno: justETF chart API a Xetra závěry z Yahoo 19. 10.). Rozdíl se srovná během dní.
   Čísla na webu NEUPRAVOVAT; poplach je v tomto případě vysvětlený. Jiná situace je předběžný poslední bod u JEDNOHO
   fondu (smíšená řada) – tu hlídá kontrola „Výnosy za období nesedí s burzovními cenami“ (kolo5 C).
+
+## Scraper: spouštění z Supabase pg_cron, jen pracovní dny ráno (20. 10. 2026)
+
+- **Hlavní spouštění = Supabase pg_cron job `scraper-spusteni` (`0 5 * * 1-5` UTC = 7:00 SELČ / 6:00 SEČ)**, který přes
+  GitHub API spustí workflow `scrape.yml` (workflow_dispatch). Token = fine-grained PAT jen pro etf-astro, Actions: write,
+  ve Vault jako `github_scraper_dispatch`, **platnost 1 rok (do ~20. 10. 2027) – včas obnovit**. GitHub plán v scrape.yml je
+  jen ZÁLOHA (`23 8 * * 1-5`, job `hlidac` ji přeskočí, když ten den už běh proběhl/běží).
+- **Proč ne GitHub cron:** plánované běhy zdržuje o 4–7 h (00:37 UTC startovalo ~05:10 UTC). **Proč ne večer (22:00):**
+  zdroj má za daný den večer předběžnou cenu – výnosy za období by byly ze smíšené řady. **Proč ne o víkendu:** ceny se
+  nemění a víkendový scrape 18. 10. stáhl předběžný bod pátku (SXR8 letos +18,64 % místo +17,69 %). Víkend bez scrapu
+  je záměr – data „k pátku“ s datem jsou správně.
+- Hlídá `check-fund-data.mjs` (v pracovní den po 13:00 UTC musí být ≥ 80 % fondů stažených za 14 h) a kontrola výnosů
+  za období proti denním cenám (kolo5 C).
