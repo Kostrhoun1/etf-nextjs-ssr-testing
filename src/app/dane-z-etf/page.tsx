@@ -16,13 +16,15 @@ import { getDataDate } from '@/lib/etf-data';
 export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'Daně z ETF v Česku: kdy platíte a kdy ne (2026)',
+  // SEO audit kola 6: popisek ≤ 160 znaků s ověřenými fakty ze stránky (časový test, hodnotový test, dividendy 15 %,
+  // oznámení nad 5 mil. Kč). Zrušený strop 40 mil. Kč v popisku NENÍ – platí jen jako změna od 2026 (sekce „Další pravidla“).
   description:
-    'Přehledný český průvodce zdaněním ETF: časový test (3 roky), hodnotový test do 100 000 Kč, sazba 15 % při prodeji do 3 let, daň z dividend, oznámení příjmů nad 5 mil. Kč a odečet přes DIP. Příklad v korunách.',
+    'Daně z ETF 2026: zisk po 3 letech držby bez daně (časový test), prodeje do 100 000 Kč ročně osvobozené, dividendy 15 %, oznámení příjmů nad 5 mil. Kč.',
   alternates: { canonical: '/dane-z-etf' },
   openGraph: {
     title: 'Daně z ETF v Česku: kdy platíte a kdy ne (2026)',
     description:
-      'Časový test, hodnotový test, prodej do 3 let, dividendy 15 % a DIP – přehledně a s příkladem v korunách. Vzdělávací, nezávislé.',
+      'Časový test 3 roky, hodnotový test 100 000 Kč, zisk při prodeji do 3 let 15 %, dividendy 15 % a oznámení nad 5 mil. Kč – s příkladem v korunách.',
     url: 'https://etfpruvodce.cz/dane-z-etf',
     images: [ogImage({ title: 'Daně z ETF v Česku: kdy platíte a kdy ne (2026)', eyebrow: 'Daně · 2026', stat: '0 Kč', statLabel: 'daň při prodeji po 3 letech' })],
     type: 'article',
@@ -128,9 +130,12 @@ export default async function DaneZEtf() {
             <h1 className="mt-3 text-2xl md:text-4xl font-bold tracking-tight leading-tight max-w-3xl">
               Daně z ETF v Česku: kdy platíte a kdy ne
             </h1>
-            <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
-              Kolik vám z výnosu <strong className="text-white">reálně zůstane po zdanění</strong>. Časový test,
-              hodnotový test, prodej do 3 let, dividendy i odečet přes DIP – přehledně, s příkladem v korunách.
+            {/* Odpověď nahoře (SEO/GEO, kolo 6) – stejná fakta jako FAQ a karty níž (ověřeno, dane-etf-fakta-2026). */}
+            <p data-odpoved="dane" className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
+              Zisk z prodeje ETF je <strong className="text-white">bez daně</strong>, když podíly držíte déle než 3{'\u00a0'}roky
+              (časový test), nebo když příjem z prodeje cenných papírů za rok nepřesáhne 100{'\u00a0'}000{'\u00a0'}Kč (hodnotový test).
+              Jinak se zisk daní 15{'\u00a0'}% (část základu daně nad 36násobek průměrné mzdy 23{'\u00a0'}%), vyplacené dividendy 15{'\u00a0'}%. Osvobozený příjem nad 5{'\u00a0'}mil.{'\u00a0'}Kč
+              za rok se oznamuje finančnímu úřadu. Níže příklad v korunách a odečet přes DIP.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href="#priklad" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">

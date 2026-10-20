@@ -9,18 +9,41 @@ import {
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { categoryConfigs, getTotalETFCount, getDataDate } from '@/lib/etf-data';
+import { categoryConfigs, getTotalETFCount, getDataDate, getDataDatum } from '@/lib/etf-data';
 import { nactiSouhrnyZebricku, type SouhrnZebricku } from '@/lib/zebricky';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: 'Žebříčky ETF – nejlepší fondy podle třídy, indexu i tématu',
-  description:
-    'Rozcestník všech žebříčků ETF: S&P 500, celý svět, dluhopisy, zlato i tematické fondy. U každého počet fondů, nejnižší poplatek a výnos největšího fondu v korunách.',
-  alternates: { canonical: '/zebricky' },
-};
+/* Titulek a popisek z dat stránky (SEO audit kola 6): rok a datum dat, příklad S&P 500 z rozcestníku. Stejná cache
+   jako stránka (nactiSouhrnyZebricku = React cache) → žádný dotaz navíc. Chybějící číslo se vypustí, nikdy „—“.
+   Hlídá scripts/check-fund-data.mjs (kolo6 seo zebricky). */
+export async function generateMetadata(): Promise<Metadata> {
+  const [souhrn, datum] = await Promise.all([nactiSouhrnyZebricku(), getDataDatum()]);
+  const n = Object.keys(categoryConfigs).length;
+  const rok = datum ? ` ${datum.getUTCFullYear()}` : '';
+  const sp = souhrn.get('nejlepsi-sp500-etf');
+  const spNv = sp?.nejvetsi;
+  const priklad = spNv && spNv.ticker && spNv.r1 != null ? ` (S&P${NB}500: ${spNv.ticker} za rok ${pct(spNv.r1)})` : '';
+  const zaklad = `${n} žebříčků ETF podle indexu, regionu i tématu: počet fondů, nejnižší TER a výnos největšího fondu v Kč`;
+  const description = datum
+    ? [`${zaklad}${priklad}. Data k ${fmtDatum(datum)}.`, `${zaklad}. Data k ${fmtDatum(datum)}. Pořadí není placené.`, `${zaklad}. Data k ${fmtDatum(datum)}.`]
+      .find((t) => t.length <= 160) ?? `${zaklad}.`
+    : `${zaklad}.`;
+  return {
+    title: { absolute: `Žebříčky ETF${rok}: ${n} přehledů podle indexu, regionu i tématu` },
+    description,
+    alternates: { canonical: '/zebricky' },
+  };
+}
+
+/* Faktorové analýzy (/faktorove-etf/*) – u skupiny „Podle stylu“. Měly jen po jednom interním odkazu (z rozcestníku
+   /faktorove-etf); quality a minimální volatilita vlastní žebříček nemají. */
+const FAKTORY: [string, string][] = [
+  ['/faktorove-etf/value', 'Value'], ['/faktorove-etf/small-cap', 'Malé firmy'], ['/faktorove-etf/momentum', 'Momentum'],
+  ['/faktorove-etf/quality', 'Quality'], ['/faktorove-etf/minimalni-volatilita', 'Minimální volatilita'],
+  ['/faktorove-etf/dividendove-akcie', 'Dividendové akcie'],
+];
 
 /* Cílová routa žebříčku. */
 const catHref = (slug: string) => `/nejlepsi-etf/${slug}`;
@@ -132,7 +155,7 @@ function Radek({ slug, s }: { slug: string; s: SouhrnZebricku | null }) {
   const r1 = s?.nejvetsi?.r1 ?? null;
   const nv = s?.nejvetsi;
   return (
-    <li data-pocet={s?.pocet ?? ''} data-slug={slug}>
+    <li data-pocet={s?.pocet ?? ''} data-slug={slug} data-ter-od={s?.nejlevnejsi?.ter ?? ''} data-r1={r1 ?? ''}>
       <Link
         href={catHref(slug)}
         className="group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_6.5rem_1rem] items-center gap-x-3 px-4 py-2.5 min-h-[3.25rem] hover:bg-teal-50/50 transition-colors"
@@ -286,6 +309,15 @@ export default async function ZebrickyPage() {
               </div>
               {/* Kolo 5 (19. 10. 2026): „Největší fondy 2 259“ vs „Nejlevnější fondy 2 253“ vypadalo jako chyba. Rozdíl = produkty
                   s TER 0 % (fyzické zlato Xetra-Gold/EUWAX, krypto se stakingem), které žebříček nejlevnějších vynechává (minTer). */}
+              {g.id === 'styl' && (
+                <p data-faktory className="mt-2 text-xs text-slate-500 leading-relaxed">
+                  Analýzy faktorů v korunách:{' '}
+                  {FAKTORY.map(([href, t], i) => (
+                    <span key={href}>{i > 0 && ' · '}<Link href={href} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">{t}</Link></span>
+                  ))}
+                  {' '}(<Link href="/faktorove-etf" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">přehled</Link>)
+                </p>
+              )}
               {g.id === 'vse' && rozdilNejlevnejsi > 0 && (
                 <p className="mt-2 text-xs text-slate-500 leading-relaxed">
                   Nejlevnějších je o {rozdilNejlevnejsi.toLocaleString('cs-CZ')} méně: produkty s poplatkem 0{NB}% (fyzické zlato typu Xetra-Gold, kryptoměny se stakingem) mezi nejlevnější nepočítáme – náklady mají v ceně nebo ve výnosu, ne v TER.

@@ -6,6 +6,7 @@
  * (getCategorySouhrn) = stejný filtr jako žebříček i srovnávač. Cena: 2 malé dotazy na žebříček
  * (~100 dotazů jednou denně při ISR renderu), pouštěné po dávkách, ať nezahltíme DB.
  */
+import { cache as reactCache } from 'react';
 import { categoryConfigs, getCategorySouhrn, type SouhrnKategorie } from '@/lib/etf-data';
 
 export type SouhrnZebricku = SouhrnKategorie;
@@ -13,7 +14,7 @@ export type SouhrnZebricku = SouhrnKategorie;
 const DAVKA = 8;
 
 /** Souhrny všech žebříčků (slug → souhrn; null = dotaz selhal → na stránce „—“, nikdy vymyšlené číslo). */
-export async function nactiSouhrnyZebricku(slugs: string[] = Object.keys(categoryConfigs)): Promise<Map<string, SouhrnZebricku | null>> {
+async function nactiSouhrny(slugs: string[] = Object.keys(categoryConfigs)): Promise<Map<string, SouhrnZebricku | null>> {
   const out = new Map<string, SouhrnZebricku | null>();
   for (let i = 0; i < slugs.length; i += DAVKA) {
     const cast = slugs.slice(i, i + DAVKA);
@@ -22,3 +23,7 @@ export async function nactiSouhrnyZebricku(slugs: string[] = Object.keys(categor
   }
   return out;
 }
+
+/** Souhrny všech žebříčků, JEDNOU za render (React cache): generateMetadata i stránka /zebricky sdílí stejné
+ *  dotazy – popisek s čísly nepřidá ~100 dotazů navíc (free tier, kolo 6). */
+export const nactiSouhrnyZebricku = reactCache((): Promise<Map<string, SouhrnZebricku | null>> => nactiSouhrny());

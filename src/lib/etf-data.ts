@@ -587,6 +587,12 @@ export async function getDataDate(fallback: Date): Promise<Date> {
   return (await _dataDate()) ?? fallback;
 }
 
+/** Datum posledních dat BEZ fallbacku (null = nepodařilo se načíst) – pro titulky a popisky, kde by
+ *  dnešní datum místo skutečného bylo tichým fallbackem (pravidlo č. 1). Sdílí cache s getDataDate. */
+export async function getDataDatum(): Promise<Date | null> {
+  return _dataDate();
+}
+
 /**
  * Get last modified date from database
  */

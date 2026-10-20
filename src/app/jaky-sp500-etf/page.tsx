@@ -14,22 +14,34 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getETFsByIsins, CERSTVOST_DNI } from '@/lib/etf-data';
 import { datumCen } from '@/lib/datumCen';
 import { procenta, terFmt, velikostFondu } from '@/lib/formatyCisel';
+import { SITEMAP_PAIRS } from '@/lib/pairs';
+import { cache as reactCache } from 'react';
 
 export const revalidate = 86400;
-export const metadata: Metadata = {
-  title: 'Který S&P 500 ETF koupit? CSPX vs VUAA vs VUSA vs SPYL (v Kč)',
-  description:
-    'Srovnání nejlepších S&P 500 ETF pro české investory: CSPX, VUAA, SPYL, VUSA, SPY5, Invesco. TER, akumulační vs distribuční, replikace a výnos v korunách – a který si vybrat.',
-  alternates: { canonical: '/jaky-sp500-etf' },
-  openGraph: {
-    title: 'Který S&P 500 ETF koupit? CSPX vs VUAA vs VUSA vs SPYL',
-    description:
-      'Srovnání S&P 500 ETF v korunách: TER, akumulace vs distribuce, replikace, likvidita – a jasné doporučení, který vybrat.',
-    url: 'https://etfpruvodce.cz/jaky-sp500-etf',
-    images: [ogImage({ title: 'Který S&P 500 ETF koupit? CSPX vs VUAA vs VUSA vs SPYL', eyebrow: 'Srovnání ETF' })],
-    type: 'article',
-  },
-};
+/* SEO audit kola 6 – kanibalizace s /nejlepsi-etf/nejlepsi-sp500-etf: žebříček = srovnání VŠECH S&P 500 ETF
+   („nejlepší S&P 500 ETF“), tahle stránka = průvodce výběrem mezi hlavními fondy („jaký S&P 500 ETF vybrat“).
+   Titulek, H1 a popisek se proto nepřekrývají a stránky na sebe odkazují obousměrně. Bez doporučení (jsme srovnávač). */
+const TITULEK = 'Jaký S&P 500 ETF vybrat? CSPX, VUAA, SPYL, nebo VUSA';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { datum } = await nactiFondy(); // stejná cache jako stránka – žádný dotaz navíc
+  const zaklad = `Jak vybrat mezi ${FUNDS.length} hlavními S&P 500 ETF (CSPX, VUAA, SPYL, VUSA…): poplatek, akumulace, nebo výplata dividend, replikace a výnos v Kč.`;
+  return {
+    title: { absolute: TITULEK },
+    description: datum ? `${zaklad} Data k ${datumText(datum)}.` : zaklad,
+    alternates: { canonical: '/jaky-sp500-etf' },
+    openGraph: {
+      title: TITULEK,
+      description: 'Jak vybrat mezi S&P 500 ETF: poplatek, akumulace vs. distribuce, replikace a likvidita, výnos v korunách. Srovnání všech fondů je v žebříčku.',
+      url: 'https://etfpruvodce.cz/jaky-sp500-etf',
+      images: [ogImage({ title: TITULEK, eyebrow: 'Průvodce výběrem' })],
+      type: 'article',
+    },
+  };
+}
+
+/* Kurátorské dvojice S&P 500 – jen ty, které existují v SITEMAP_PAIRS (předgenerované, v sitemapě). */
+const DVOJICE = ['cspx-vs-vuaa', 'cspx-vs-spyl', 'cspx-vs-vusa', 'vusa-vs-vuaa', 'cspx-vs-spy5'].filter((p) => SITEMAP_PAIRS.includes(p));
 
 /* Kolo 5 (19. 10. 2026, pravidlo č. 1): velikost, poplatek, typ výplaty, replikace a výnos se NAČÍTAJÍ z DB
    (dřív natvrdo zastaralé velikosti fondů a výnos za 5 let pod hlavičkou „Aktualizováno“ s dnešním datem).
@@ -55,7 +67,7 @@ type FundData = Fund & {
 };
 
 /** Údaje fondů z DB; zastaralý fond (scraper ho 14+ dní neaktualizoval) → null, ne stará čísla. */
-async function nactiFondy(): Promise<{ fondy: FundData[]; datum: Date | null }> {
+const nactiFondy = reactCache(async (): Promise<{ fondy: FundData[]; datum: Date | null }> => {
   const data = await getETFsByIsins(FUNDS.map((f) => f.isin));
   const podle = new Map(data.map((e) => [e.isin, e]));
   const hranice = Date.now() - CERSTVOST_DNI * 864e5;
@@ -76,7 +88,7 @@ async function nactiFondy(): Promise<{ fondy: FundData[]; datum: Date | null }> 
     };
   });
   return { fondy, datum: nejstarsi ? datumCen(nejstarsi) : null };
-}
+});
 
 const datumText = (d: Date) => d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
@@ -137,7 +149,7 @@ export default async function JakySp500Etf() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Který S&P 500 ETF', item: 'https://etfpruvodce.cz/jaky-sp500-etf' },
+      { '@type': 'ListItem', position: 2, name: 'Jaký S&P 500 ETF vybrat', item: 'https://etfpruvodce.cz/jaky-sp500-etf' },
     ],
   };
 
@@ -174,12 +186,13 @@ export default async function JakySp500Etf() {
               <Landmark className="w-3.5 h-3.5" /> Vzdělávací pilíř · výnosy v Kč
             </span>
             <h1 className="mt-3 text-2xl md:text-4xl font-bold tracking-tight leading-tight max-w-3xl">
-              Který S&amp;P 500 ETF koupit? CSPX vs VUAA vs VUSA vs SPYL
+              Jaký S&amp;P 500 ETF vybrat: CSPX, VUAA, SPYL, nebo VUSA?
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
               Všechny sledují stejný index, takže výnosy jsou <strong className="text-white">prakticky totožné</strong>.
-              Rozdíl je v poplatku, typu výplaty, replikaci a likviditě. Srovnáme je v korunách a řekneme,{' '}
-              <strong className="text-white">který si vybrat</strong>.
+              Rozdíl je v poplatku, typu výplaty, replikaci a likviditě. Srovnáme je v korunách a ukážeme,{' '}
+              <strong className="text-white">podle čeho vybrat</strong>. Všechny fondy na S&amp;P{'\u00a0'}500 seřazené podle dat najdete
+              v <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="text-white underline underline-offset-2 hover:text-teal-200">žebříčku S&amp;P{'\u00a0'}500 ETF</Link>.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href={`/srovnani?index=${encodeURIComponent('S&P 500')}`} className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
@@ -269,8 +282,23 @@ export default async function JakySp500Etf() {
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             iShares CSPX/SXR8/CSSPX je jeden fond na různých burzách (jeden ISIN); SPYL a SPY5 jsou dvě různé třídy SPDR
             (akumulační a distribuční, každá s vlastním ISIN). SPYL je mladší než 5 let, proto u něj výnos za 5 let chybí. Výnosy v Kč
-            a aktuální velikost porovnáte v <Link href={`/srovnani?index=${encodeURIComponent('S&P 500')}`} className="text-teal-700 hover:underline">srovnávači (filtr S&amp;P 500)</Link>.
+            a aktuální velikost porovnáte v <Link href={`/srovnani?index=${encodeURIComponent('S&P 500')}`} className="text-teal-700 hover:underline">srovnávači (filtr S&amp;P 500)</Link>,
+            všechny fondy na index v <Link href="/nejlepsi-etf/nejlepsi-sp500-etf" className="text-teal-700 hover:underline">žebříčku S&amp;P 500 ETF</Link>.
           </p>
+          {DVOJICE.length > 0 && (
+            <div data-dvojice className="mt-4">
+              <p className="text-sm font-medium text-slate-700">Dva fondy vedle sebe:</p>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {DVOJICE.map((p) => (
+                  <li key={p}>
+                    <Link href={`/srovnani/${p}`} className="inline-flex items-center min-h-9 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-800">
+                      {p.toUpperCase().replace('-VS-', ' vs ')}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
 
         {/* ROZHODOVACÍ VODÍTKO */}
@@ -330,7 +358,7 @@ export default async function JakySp500Etf() {
           <SectionHead title="Pokračujte dál" desc="Ověřte si konkrétní čísla a zasaďte fond do plánu." />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {([
-              ['/srovnani?index=' + encodeURIComponent('S&P 500'), 'Všechny S&P 500 ETF', 'Filtr S&P 500, výnos v Kč', Scale],
+              ['/nejlepsi-etf/nejlepsi-sp500-etf', 'Žebříček S&P 500 ETF', 'Všechny fondy na index: TER, velikost, výnos v Kč', Trophy],
               ['/dane-z-etf', 'Daně z ETF', 'Acc vs Dist a časový test', Coins],
               ['/kalkulacka', 'Kalkulačka poplatků', 'Kolik ukrojí TER za 30 let', Percent],
               ['/svetove-etf-indexy', 'Který světový index', 'S&P 500 vs MSCI World vs All-World', TrendingUp],

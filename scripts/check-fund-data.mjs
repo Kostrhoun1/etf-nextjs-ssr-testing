@@ -836,8 +836,8 @@ const main = async () => {
         const kod = readFileSync(p, 'utf8');
         if (!/Aktualizováno|Data k |data k /.test(kod)) continue;
         const kodBezKomentaru = kod.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-        // Prahy („fondy nad 500 mil. €“) nejsou velikost fondu – ty se nehlásí.
-        const m = kodBezKomentaru.match(/(?<![\d,.])(?<!(?:nad|od|pod|aspoň|min\.)\s)[~≈]?\d+(?:[,.]\d+)?\s?(?:mld|mil)\.?\s?€|[+−-]\d+(?:[,.]\d+)?\s?%\s?za\s(?:posledních\s)?\d+\s(?:let|roky|rok)/);
+        // Prahy („fondy nad 500 mil. €“, výčet „10, 50 nebo 100 mil. €“ na /zebricky) nejsou velikost fondu – ty se nehlásí.
+        const m = kodBezKomentaru.match(/(?<![\d,.])(?<!(?:nad|od|pod|aspoň|min\.|nebo)\s)[~≈]?\d+(?:[,.]\d+)?\s?(?:mld|mil)\.?\s?€|[+−-]\d+(?:[,.]\d+)?\s?%\s?za\s(?:posledních\s)?\d+\s(?:let|roky|rok)/);
         if (m) natvrdo.push(`${p}: „${m[0]}“`);
       }
       if (natvrdo.length) poplach.push({ co: `${natvrdo.length} stránek s datem aktualizace má natvrdo velikost/výnos fondu – načítat z DB`, ukazka: natvrdo.slice(0, 6) });
@@ -1305,6 +1305,215 @@ const main = async () => {
     }
   }
   // --- konec kolo6 zebricky ---
+
+  // --- kolo6 seo zebricky --- (SEO audit kola 6, 20. 10. 2026; pravidlo č. 1, bod 4)
+  // Titulky, popisky a „odpověď nahoře“ žebříčků se skládají z dat stránky (src/lib/zebrickySeo.ts). Hlídáme, aby
+  // nikdy neukázaly „—“/„undefined“/„NaN“, aby nesly datum dat, byly unikátní a aby čísla seděla s NEZÁVISLÝM zdrojem:
+  // surová DB (REST, mimo kód webu) a rozcestník /zebricky (jiný dotaz – getCategorySouhrn). Dále /kde-koupit (přepočet
+  // z kurzovního lístku ČNB a ceníků na stránce), /dane-z-etf (popisek bez platného stropu 40 mil.) a kanibalizace
+  // /jaky-sp500-etf × žebříček S&P 500 (různý záměr titulků, obousměrné odkazy, dvojice jen ze SITEMAP_PAIRS).
+  {
+    const hlav = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const html = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return r.ok ? (await r.text()).replace(/<!-- -->/g, '') : ''; } catch { return ''; } };
+    const dec = (t) => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&nbsp;|&#160;| /g, ' ');
+    const meta = (t) => ({
+      titulek: dec(t.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''),
+      popisek: dec(t.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? ''),
+      og: dec(t.match(/<meta property="og:description" content="([^"]*)"/)?.[1] ?? ''),
+    });
+    const text = (t) => dec(t.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+    const cislo = (s) => Number(String(s).replace(/\s/g, '').replace('−', '-').replace(',', '.'));
+    const SPATNE = /—|undefined|NaN|\bnull\b|Infinity/;
+
+    // 1) ŽEBŘÍČKY: všechny z rozcestníku.
+    try {
+      const rozc = await html('/zebricky');
+      const radky = new Map([...rozc.matchAll(/<li data-pocet="(\d*)" data-slug="([a-z0-9-]+)" data-ter-od="([\d.]*)" data-r1="([-\d.]*)"/g)]
+        .map((m) => [m[2], { pocet: m[1] ? Number(m[1]) : null, terOd: m[3] ? Number(m[3]) : null, r1: m[4] ? Number(m[4]) : null }]));
+      const nasazeno = radky.size > 0; // před nasazením kola 6 rozcestník atributy data-ter-od/data-r1 nemá
+      const slugy = nasazeno ? [...radky.keys()] : [...new Set([...rozc.matchAll(/href="\/nejlepsi-etf\/([a-z0-9-]+)"/g)].map((m) => m[1]))];
+      const chyby = [], varuj = [], titulky = new Map(), popisky = new Map(), kOvereni = [];
+      for (const slug of slugy) {
+        const t = await html(`/nejlepsi-etf/${slug}`);
+        if (!t) { chyby.push(`${slug}: stránka se nenačetla`); continue; }
+        const { titulek, popisek } = meta(t);
+        if (!/data-odpoved="zebricek"/.test(t)) { if (nasazeno) chyby.push(`${slug}: chybí odpověď nahoře (data-odpoved)`); continue; }
+        titulky.set(titulek, [...(titulky.get(titulek) ?? []), slug]);
+        popisky.set(popisek, [...(popisky.get(popisek) ?? []), slug]);
+        if (SPATNE.test(titulek) || SPATNE.test(popisek)) chyby.push(`${slug}: titulek/popisek „${titulek}“ / „${popisek}“`);
+        if (titulek.length > 70) varuj.push(`${slug}: titulek ${titulek.length} znaků`);
+        if (popisek.length < 120 || popisek.length > 170) varuj.push(`${slug}: popisek ${popisek.length} znaků`);
+        const datStranky = text(t).match(/Data k (\d{1,2}\. \d{1,2}\. \d{4})/)?.[1];
+        const datPopisku = popisek.match(/Data k (\d{1,2}\. \d{1,2}\. \d{4})/)?.[1];
+        if (!datPopisku) chyby.push(`${slug}: popisek bez „Data k …“`);
+        else if (datStranky && datPopisku !== datStranky) chyby.push(`${slug}: popisek „Data k ${datPopisku}“, stránka „Data k ${datStranky}“`);
+        if (datPopisku && !titulek.includes(datPopisku.slice(-4))) varuj.push(`${slug}: titulek bez roku dat (${datPopisku.slice(-4)})`);
+        const odp = text(t.match(/data-odpoved="zebricek"[^>]*>([\s\S]*?)<\/p>/)?.[1] ?? '');
+        if (SPATNE.test(odp)) chyby.push(`${slug}: odpověď nahoře „${odp.slice(0, 80)}…“`);
+        if (datStranky && !odp.startsWith(`K ${datStranky}`)) chyby.push(`${slug}: odpověď nahoře nezačíná datem dat stránky (${datStranky})`);
+        const pocetOdp = cislo(odp.match(/v žebříčku ([\d\s]+) fond/)?.[1] ?? NaN);
+        const pocetStr = Number(t.match(/data-pocet-fondu="(\d+)"/)?.[1] ?? NaN);
+        if (Number.isFinite(pocetStr) && pocetOdp !== pocetStr) chyby.push(`${slug}: odpověď ${pocetOdp} fondů, stránka ${pocetStr}`);
+        // „TER od X“ = nejnižší TER > 0 v kategorii: nesmí být vyšší než TER kteréhokoli fondu v tabulce a musí sedět
+        // s rozcestníkem (jiný dotaz – getCategorySouhrn).
+        const terOd = titulek.match(/TER od ([\d,]+) %/)?.[1];
+        const terTabulky = [...t.matchAll(/\\"ter\\":([\d.]+)/g)].map((m) => Number(m[1])).filter((x) => x > 0);
+        if (terOd) {
+          const x = cislo(terOd);
+          if (terTabulky.length && x > Math.min(...terTabulky) + 1e-9) chyby.push(`${slug}: titulek „TER od ${terOd} %“, v tabulce fond s TER ${Math.min(...terTabulky)} %`);
+          const r = radky.get(slug);
+          if (r?.terOd != null && Math.abs(r.terOd - x) > 0.0051) chyby.push(`${slug}: titulek „TER od ${terOd} %“, rozcestník ${r.terOd} %`);
+        }
+        // Fondy z karet → nezávislé ověření čísel v popisku proti surové DB.
+        const v = t.match(/data-sekce="vybrane"[\s\S]*?<\/section>/)?.[0] ?? '';
+        const karty = v.split(/href="\/etf\//).slice(1).map((k) => ({ isin: k.slice(0, 12), text: dec(k) }));
+        const velky = karty.find((k) => /Největší/.test(k.text));
+        const levny = karty.find((k) => /Nejnižší poplatek|Nejlevnější/.test(k.text));
+        kOvereni.push({ slug, popisek, velky: velky?.isin, levny: levny?.isin, r1Rozc: radky.get(slug)?.r1 ?? null });
+      }
+      const dupT = [...titulky].filter(([, s]) => s.length > 1).map(([k, s]) => `„${k}“: ${s.join(', ')}`);
+      const dupP = [...popisky].filter(([, s]) => s.length > 1).map(([k, s]) => `„${k.slice(0, 60)}…“: ${s.join(', ')}`);
+      if (dupT.length || dupP.length) chyby.push(...dupT.map((x) => `stejný titulek ${x}`), ...dupP.map((x) => `stejný popisek ${x}`));
+
+      const isiny = [...new Set(kOvereni.flatMap((k) => [k.velky, k.levny]).filter(Boolean))];
+      const db = new Map();
+      for (let i = 0; i < isiny.length; i += 100) {
+        const r = await fetch(`${URL_DB}?select=isin,ter_numeric,fund_size_numeric,return_1y_czk&isin=in.(${isiny.slice(i, i + 100).join(',')})`, hlav);
+        if (!r.ok) throw new Error(`Supabase HTTP ${r.status}`);
+        for (const f of await r.json()) db.set(f.isin, f);
+      }
+      let overeno = 0;
+      for (const k of kOvereni) {
+        const L = db.get(k.levny), V = db.get(k.velky);
+        const ter = k.popisek.match(/Nejnižší TER(?: nad \d+ mil\. €)? má \S+ \(([\d,]+) %\)/)?.[1] ?? k.popisek.match(/nejlevnější(?: nad \d+ mil\. €)? je \S+(?: \([^)]*\))?, TER ([\d,]+) %/)?.[1];
+        if (ter && L) { overeno++; if (Math.abs(cislo(ter) - Number(L.ter_numeric)) > 0.0051) chyby.push(`${k.slug}: popisek TER ${ter} %, DB ${L.ter_numeric} % (${k.levny})`); }
+        const vel = k.popisek.match(/Největší(?: a nejlevnější(?: nad \d+ mil\. €)?)? je \S+ \(([\d,]+) (mld|mil)\. €\)/);
+        if (vel && V) {
+          overeno++;
+          const mil = cislo(vel[1]) * (vel[2] === 'mld' ? 1000 : 1);
+          if (Math.abs(mil - Number(V.fund_size_numeric)) > (vel[2] === 'mld' ? 51 : 1)) chyby.push(`${k.slug}: popisek velikost ${vel[1]} ${vel[2]}. €, DB ${V.fund_size_numeric} mil. € (${k.velky})`);
+        }
+        const r1 = k.popisek.match(/za 12 měsíců v Kč ([+−-][\d,]+) %/)?.[1];
+        if (r1 && V) {
+          overeno++;
+          if (Math.abs(cislo(r1) - Number(V.return_1y_czk)) > 0.051) chyby.push(`${k.slug}: popisek výnos ${r1} %, DB ${V.return_1y_czk} % (${k.velky})`);
+          if (k.r1Rozc != null && Math.abs(cislo(r1) - k.r1Rozc) > 0.051) varuj.push(`${k.slug}: popisek výnos ${r1} %, rozcestník ${k.r1Rozc} %`);
+        }
+      }
+      if (nasazeno && kOvereni.length && overeno < kOvereni.length) varuj.push(`čísla v popiscích ověřena jen ${overeno}× u ${kOvereni.length} žebříčků (změnil se tvar popisku?)`);
+      if (chyby.length) poplach.push({ co: `Titulky/popisky/odpověď nahoře žebříčků nesedí s daty (${chyby.length}) – src/lib/zebrickySeo.ts`, ukazka: chyby.slice(0, 10) });
+      if (varuj.length) varovani.push({ co: `Titulky/popisky žebříčků: délka nebo rozdíl proti rozcestníku (${varuj.length})`, ukazka: varuj.slice(0, 8) });
+      if (!nasazeno) varovani.push({ co: 'SEO žebříčků (kolo 6) zatím není nasazené – rozcestník nemá data-ter-od/data-r1', ukazka: [] });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu titulků a popisků žebříčků (kolo6 seo) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 2) /zebricky: titulek a popisek z dat (rok, datum), odkazy na faktorové analýzy.
+    try {
+      const t = await html('/zebricky');
+      const { titulek, popisek } = meta(t);
+      const chyby = [];
+      if (SPATNE.test(titulek + popisek)) chyby.push(`„${titulek}“ / „${popisek}“`);
+      if (/data-faktory/.test(t)) {
+        if (!/Data k \d/.test(popisek)) chyby.push('popisek bez „Data k …“');
+        for (const f of ['quality', 'minimalni-volatilita', 'small-cap', 'momentum']) if (!t.includes(`href="/faktorove-etf/${f}"`)) chyby.push(`chybí odkaz /faktorove-etf/${f}`);
+      }
+      if (chyby.length) poplach.push({ co: '/zebricky: titulek/popisek nebo odkazy na faktory', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu /zebricky (kolo6 seo) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 3) /kde-koupit: „za 2 000 Kč vychází nejlevněji u …“ – nezávislý přepočet z kurzovního lístku ČNB a ceníků
+    //    vykreslených na stránce (data-poplatek / data-smena), ne z kódu webu.
+    try {
+      const t = await html('/kde-koupit');
+      const m = t.match(/data-odpoved="kde-koupit" data-broker-odpoved="([a-z0-9]+)" data-kc-odpoved="([\d.]+)"/);
+      const { popisek } = meta(t);
+      const chyby = [];
+      if (SPATNE.test(popisek)) chyby.push(`popisek „${popisek}“`);
+      if (m) {
+        const listek = await fetch('https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt').then((r) => r.text());
+        const kurz = (kod) => { const r = listek.split('\n').find((x) => x.split('|')[3] === kod); if (!r) return NaN; const p = r.split('|'); return cislo(p[4]) / cislo(p[2]); };
+        const eur = kurz('EUR'), usd = kurz('USD'), C = 2000;
+        const ceniky = new Map();
+        let broker = null;
+        for (const x of t.matchAll(/data-(broker|poplatek|smena)="([^"]*)"/g)) {
+          if (x[1] === 'broker') { broker = x[2]; continue; }
+          if (broker && !(ceniky.get(broker)?.[x[1]])) ceniky.set(broker, { ...(ceniky.get(broker) ?? {}), [x[1]]: dec(x[2]) });
+        }
+        // Spodní hranice nákladu z ceníku; presne = false, když část neznáme („od“, „—“).
+        const naklad = (c) => {
+          let presne = true, kc = 0, q;
+          const p = c.poplatek ?? '';
+          if ((q = p.match(/^od ([\d,]+) EUR/))) { kc += cislo(q[1]) * eur; presne = false; }
+          else if ((q = p.match(/^([\d,]+) %, min\. ([\d,]+) EUR/))) kc += Math.max(cislo(q[1]) / 100 * C, cislo(q[2]) * eur);
+          else if ((q = p.match(/^([\d,]+) EUR/))) kc += cislo(q[1]) * eur;
+          else presne = false;
+          const s = c.smena ?? '';
+          if ((q = s.match(/^([\d,]+) %, min\. ([\d,]+) USD/))) kc += Math.max(cislo(q[1]) / 100 * C, cislo(q[2]) * usd);
+          else if ((q = s.match(/^([\d,]+) %/))) kc += cislo(q[1]) / 100 * C;
+          else presne = false;
+          return { kc, presne };
+        };
+        const n = [...ceniky].map(([id, c]) => ({ id, ...naklad(c) }));
+        const vitez = n.find((x) => x.id === m[1]);
+        if (!Number.isFinite(eur) || !Number.isFinite(usd)) chyby.push('kurzovní lístek ČNB se nepodařilo přečíst');
+        else if (!vitez) chyby.push(`broker ${m[1]} nemá na stránce ceník (data-poplatek/data-smena)`);
+        else {
+          // Kurz stránky (cache 1 den) může být o den starší než dnešní lístek → tolerance 2 %.
+          if (Math.abs(vitez.kc - Number(m[2])) > Math.max(0.5, 0.02 * vitez.kc)) chyby.push(`${m[1]}: věta ${m[2]} Kč, přepočet z ceníku a kurzu ČNB ${vitez.kc.toFixed(2)} Kč`);
+          const levnejsi = n.filter((x) => x.id !== m[1] && x.kc < vitez.kc - 0.01);
+          if (levnejsi.length) chyby.push(`${m[1]} (${vitez.kc.toFixed(2)} Kč) není nejlevnější: ${levnejsi.map((x) => `${x.id} ${x.presne ? '' : 'od '}${x.kc.toFixed(2)} Kč`).join(', ')}`);
+        }
+      } else if (/data-odpoved="kde-koupit"/.test(t)) chyby.push('odpověď nahoře bez data-broker-odpoved/data-kc-odpoved');
+      if (chyby.length) poplach.push({ co: '/kde-koupit: věta „nejlevněji za 2 000 Kč“ nesedí s nezávislým přepočtem (ČNB + ceníky)', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu odpovědi nahoře na /kde-koupit (kolo6 seo) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 4) /dane-z-etf: popisek ani OG nesmí uvádět strop 40 mil. jako platný; popisek nese ověřená fakta.
+    try {
+      const t = await html('/dane-z-etf');
+      const { popisek, og } = meta(t);
+      const chyby = [];
+      for (const [co, x] of [['popisek', popisek], ['OG popisek', og]]) {
+        if (/40\s*mil/i.test(x) && !/zruš/i.test(x)) chyby.push(`${co} uvádí strop 40 mil. jako platný: „${x}“`);
+        if (x.length > 165) chyby.push(`${co} ${x.length} znaků`);
+      }
+      if (/data-odpoved="dane"/.test(t)) for (const f of [/3 (let|roky|letech)/, /100 000 Kč/, /dividendy 15 %/, /5 mil\. Kč/]) if (!f.test(popisek)) chyby.push(`popisek bez ${f}`);
+      if (chyby.length) poplach.push({ co: '/dane-z-etf: popisek/OG neodpovídá ověřeným daňovým faktům', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu popisku /dane-z-etf (kolo6 seo) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 5) KANIBALIZACE: /jaky-sp500-etf = „jaký vybrat“ (průvodce), žebříček = „nejlepší“ (všechny fondy). Obousměrné
+    //    odkazy, dvojice jen z SITEMAP_PAIRS (src/lib/pairs.ts) a každá odpovídá 200.
+    try {
+      const jaky = await html('/jaky-sp500-etf');
+      const zeb = await html('/nejlepsi-etf/nejlepsi-sp500-etf');
+      const chyby = [];
+      if (/data-dvojice/.test(jaky)) {
+        const tj = meta(jaky).titulek, tz = meta(zeb).titulek;
+        if (/Nejlepší/i.test(tj)) chyby.push(`/jaky-sp500-etf: titulek cílí na „nejlepší“: „${tj}“`);
+        if (/Jaký|Který/i.test(tz)) chyby.push(`žebříček S&P 500: titulek cílí na „jaký/který“: „${tz}“`);
+        if (!jaky.includes('href="/nejlepsi-etf/nejlepsi-sp500-etf"')) chyby.push('/jaky-sp500-etf neodkazuje na žebříček S&P 500');
+        if (!zeb.includes('href="/jaky-sp500-etf"')) chyby.push('žebříček S&P 500 neodkazuje na /jaky-sp500-etf');
+        const zdroj = readFileSync('src/lib/pairs.ts', 'utf8');
+        const povolene = new Set([...zdroj.matchAll(/'([a-z0-9]+-vs-[a-z0-9]+)'/g)].map((m) => m[1]));
+        const dvojice = [...new Set([...jaky.matchAll(/href="\/srovnani\/([a-z0-9]+-vs-[a-z0-9]+)"/g)].map((m) => m[1]))];
+        if (!dvojice.length) chyby.push('/jaky-sp500-etf: žádný odkaz na kurátorské dvojice');
+        for (const p of dvojice) {
+          if (!povolene.has(p)) chyby.push(`/jaky-sp500-etf: dvojice ${p} není v SITEMAP_PAIRS`);
+          const r = await fetch(`${WEB_URL}/srovnani/${p}`, { redirect: 'manual' });
+          if (r.status !== 200) chyby.push(`/srovnani/${p}: HTTP ${r.status}`);
+        }
+      }
+      if (chyby.length) poplach.push({ co: 'Kanibalizace S&P 500: /jaky-sp500-etf × žebříček (titulky, odkazy, dvojice)', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu /jaky-sp500-etf × žebříček (kolo6 seo) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+  }
+  // --- konec kolo6 seo zebricky ---
 
   // --- middleware a indexace (20. 10. 2026) ---
   // Middleware běží jen na /etf/*, /srovnani/*, /srovnani-etf (šetří CPU free tieru); noindex pro jiné domény

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { cache as reactCache } from 'react';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import { notFound } from 'next/navigation';
@@ -10,8 +11,10 @@ import {
 } from 'lucide-react';
 import {
   getTopETFsForCategory, getCategoryCount, getFlagshipComposition, categoryConfigs, getVyberKarty,
-  type ETFBasicInfo, getDataDate, inceptionYear,
+  type ETFBasicInfo, getDataDatum, inceptionYear,
 } from '@/lib/etf-data';
+import { datumCen } from '@/lib/datumCen';
+import { titulekZebricku, popisekZebricku, odpovedZebricku, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
 import { porovnejNejlevnejsi } from '@/lib/trhy';
 import { ter, money, shortName, nbsp, SectionHead, CompositionInfographic, CategoryIndexes, slozeniPouzitelne } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent, categoryLead } from '@/components/design-preview/categoryContent';
@@ -70,6 +73,16 @@ const SROVNAVAC: Record<string, { q: string; text: string }> = {
   'nejlepsi-akciove-etf': { q: 'kat=Akcie', text: 'Všechny akciové fondy ve srovnávači' },
   'nejlepsi-dluhopisove-etf': { q: 'kat=Dluhopisy', text: 'Všechny dluhopisové fondy ve srovnávači' },
   'nejlepsi-komoditni-etf': { q: 'kat=Komodity', text: 'Všechny komoditní fondy ve srovnávači' },
+};
+
+/* Související průvodce a analýzy (SEO audit kola 6): žebříček = srovnání VŠECH fondů („nejlepší S&P 500 ETF“),
+   /jaky-sp500-etf = průvodce výběrem mezi hlavními fondy („jaký S&P 500 ETF vybrat“) – prolinkované obousměrně,
+   ať si stránky nekonkurují. Faktorové analýzy (/faktorove-etf/*) měly jen po jednom interním odkazu. */
+const SOUVISI: Record<string, { href: string; text: string }[]> = {
+  'nejlepsi-sp500-etf': [{ href: '/jaky-sp500-etf', text: 'Jaký S&P 500 ETF vybrat: CSPX, VUAA, SPYL, nebo VUSA?' }],
+  'nejlepsi-value-etf': [{ href: '/faktorove-etf/value', text: 'Value faktor v datech: jak si vedl v korunách' }],
+  'nejlepsi-small-cap-etf': [{ href: '/faktorove-etf/small-cap', text: 'Malé firmy (small cap) v datech: výnos a propady v korunách' }],
+  'nejlepsi-dividendove-etf': [{ href: '/faktorove-etf/dividendove-akcie', text: 'Dividendové akcie v datech: výnos v korunách' }],
 };
 
 /** Varianty indexu s jinou metodikou – nevyhrávají „nejvyšší výnos“ (liší se metodikou, ne kvalitou fondu;
@@ -219,37 +232,19 @@ export function generateStaticParams() {
   return Object.keys(categoryConfigs).map((slug) => ({ slug }));
 }
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ slug: string }> },
-): Promise<Metadata> {
-  const { slug } = await params;
+/** Data žebříčku – JEDNOU za render (React cache): generateMetadata i stránka čtou stejné dotazy a stejný výpočet karet,
+ *  takže titulek/popisek nemůžou ukázat jiné číslo než stránka a metadata nepřidávají žádný dotaz (free tier). */
+const nactiZebricek = reactCache(async (slug: string) => {
   const cfg = categoryConfigs[slug];
-  if (!cfg) return { title: 'Žebříček ETF', robots: { index: false, follow: false } };
-  return {
-    title: `${cfg.title} – srovnání a výnosy v Kč`,
-    description: cfg.metaDescription || cfg.description,
-    alternates: { canonical: `/nejlepsi-etf/${slug}` },
-  };
-}
-
-export default async function CategoryDetailPreview(
-  { params }: { params: Promise<{ slug: string }> },
-) {
-  const { slug } = await params;
-  const cfg = categoryConfigs[slug];
-  if (!cfg) notFound();
-
-  const [all, pocetDb, dataDate] = await Promise.all([
+  const [all, pocetDb, dataDatum] = await Promise.all([
     getTopETFsForCategory({ ...cfg, limit: MAX_V_TABULCE }),
     getCategoryCount(cfg),
-    getDataDate(new Date()),
+    getDataDatum(),
   ]);
   const etfs = all.filter((e) => e.ter_numeric != null || e.fund_size_numeric != null);
   // Počet fondů v kategorii: z DB (count), jinak aspoň kolik jsme načetli – nikdy nevymyšlený.
   const celkem = Math.max(pocetDb ?? 0, etfs.length);
-  const content = getCategoryContent(slug);
-  const nejstarsi = nejstarsiDatum(etfs);
-  const datumText = fmtDatum(dataDate);
+  const prah = cfg.filters.minFundSize ?? 10;
 
   // Výběr podle dat: největší, nejlevnější, nejvýkonnější za 3 roky (při nedostatku 3R dat za 1 rok).
   const bySize = [...etfs].filter((e) => e.fund_size_numeric != null).sort((a, b) => (b.fund_size_numeric! - a.fund_size_numeric!));
@@ -267,7 +262,6 @@ export default async function CategoryDetailPreview(
   // měnou, ne kvalitou fondu) a fondy ≥ 100 mil. €. Momentum za 12 měsíců je u indexových kategorií spíš
   // šum (revize 18. 10. 2026) → primárně 3 roky v Kč, když je má aspoň 3 fondy.
   const jeEsgKategorie = /esg|udrzitel|klima|zajist|hedg|equal|stejne-vah/i.test(slug);
-  const prahText = `${PRAH_KARET} mil. €`;
   const kandidati = zdrojVykon.filter((e) => (e.fund_size_numeric ?? 0) >= PRAH_KARET && (jeEsgKategorie || (!VARIANTA.test(e.name) && !zajisteni(e.name))));
   // Nejnižší poplatek = PRAVIDLO HOMEPAGE (porovnejNejlevnejsi v src/lib/trhy.ts): nejnižší TER > 0, při shodě
   // akumulační třída, pak větší fond; jen fondy nad 100 mil. € a bez měnového zajištění.
@@ -277,11 +271,91 @@ export default async function CategoryDetailPreview(
     .filter((e) => e.ter_numeric != null && e.ter_numeric > 0 && (e.fund_size_numeric ?? 0) >= PRAH_KARET && (jeZajistKategorie || !zajisteni(e.name)))
     .sort((a, b) => porovnejNejlevnejsi(proPravidlo(a), proPravidlo(b)));
   const stejnyTer = byTer[0] ? byTer.filter((e) => e !== byTer[0] && e.ter_numeric === byTer[0].ter_numeric).length : 0;
-  const dalsiFondy = (n: number) => (n === 1 ? 'další fond' : n <= 4 ? 'další fondy' : 'dalších fondů');
   const s3 = kandidati.filter((e) => e.return_3y_czk != null);
   const vykonObdobi: '3y' | '1y' = s3.length >= 3 ? '3y' : '1y';
   const byPerf = (vykonObdobi === '3y' ? s3 : kandidati.filter((e) => e.return_1y_czk != null))
     .sort((a, b) => vykonObdobi === '3y' ? (b.return_3y_czk! - a.return_3y_czk!) : (b.return_1y_czk! - a.return_1y_czk!));
+  const hodnotaVykonu = (e: ETFBasicInfo) => (vykonObdobi === '3y' ? e.return_3y_czk : e.return_1y_czk)!;
+  const medianVykonu = sVykonem && byPerf[0] ? median(byPerf.map(hodnotaVykonu)) : null;
+
+  // „TER od“ (titulek) = nejnižší TER > 0 v CELÉ kategorii – jen když ho z načtených dat umíme ověřit:
+  // celá kategorie v tabulce, žebříček řazený podle TER (první řádek), nebo práh žebříčku ≥ 100 mil. €
+  // (pak lehký dotaz karet nese nejlevnější fondy celé kategorie). Jinak null → v titulku chybí.
+  const terKladne = (xs: ETFBasicInfo[]) => xs.map((e) => e.ter_numeric).filter((t): t is number => t != null && t > 0);
+  const terOd = !castecneNacteno ? (terKladne(etfs).length ? Math.min(...terKladne(etfs)) : null)
+    : cfg.sortBy === 'ter_numeric' && cfg.sortOrder === 'asc' && cfg.filters.minTer === 0 ? (terKladne(etfs.slice(0, 1))[0] ?? null)
+    : prah >= PRAH_KARET && vyberDb ? (terKladne(vyberDb.levne).length ? Math.min(...terKladne(vyberDb.levne)) : null)
+    : null;
+
+  return {
+    cfg, etfs, pocetDb, celkem, prah, dataDatum, bySize, indexova, sVykonem, nejvetsi, jeEsgKategorie,
+    byTer, stejnyTer, vykonObdobi, byPerf, hodnotaVykonu, medianVykonu, terOd,
+  };
+});
+
+type Zebricek = Awaited<ReturnType<typeof nactiZebricek>>;
+
+/** Fond pro titulek/popisek/odpověď: krátký název, ticker a den, ke kterému platí jeho data. */
+const fondSeo = (e: ETFBasicInfo): FondSeo => ({
+  nazev: nazevFondu(e.name),
+  ticker: zobrazovanyTicker(e as unknown as Record<string, unknown>),
+  datum: e.scraping_date ? datumCen(new Date(e.scraping_date)) : null,
+});
+
+/** Vstup pro src/lib/zebrickySeo.ts – jen čísla, která stránka sama ukazuje. */
+function dataSeo(z: Zebricek): DataZebricku {
+  const L = z.byTer[0];
+  const V = z.nejvetsi;
+  return {
+    nazev: z.cfg.title,
+    datum: z.dataDatum,
+    celkem: z.celkem,
+    prah: z.prah,
+    terOd: z.terOd,
+    nejlevnejsi: L && L.ter_numeric != null ? { ...fondSeo(L), ter: L.ter_numeric, stejnyTer: z.stejnyTer } : null,
+    nejvetsi: V ? { ...fondSeo(V), velikost: num(V.fund_size_numeric), r1Kc: num(V.return_1y_czk) } : null,
+    median: z.medianVykonu != null ? { hodnota: z.medianVykonu, obdobi: z.vykonObdobi, pocet: z.byPerf.length, bezVariant: !z.jeEsgKategorie } : null,
+    prahKaret: PRAH_KARET,
+  };
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> },
+): Promise<Metadata> {
+  const { slug } = await params;
+  const cfg = categoryConfigs[slug];
+  if (!cfg) return { title: 'Žebříček ETF', robots: { index: false, follow: false } };
+  const d = dataSeo(await nactiZebricek(slug));
+  return {
+    // Absolutní titulek: značku webu přidává titulekZebricku jen tam, kde se vejde do ~65 znaků.
+    title: { absolute: titulekZebricku(d) },
+    description: popisekZebricku(d) ?? (cfg.metaDescription || cfg.description),
+    alternates: { canonical: `/nejlepsi-etf/${slug}` },
+  };
+}
+
+export default async function CategoryDetailPreview(
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  const { slug } = await params;
+  const cfg = categoryConfigs[slug];
+  if (!cfg) notFound();
+
+  const z = await nactiZebricek(slug);
+  const {
+    etfs, pocetDb, celkem, prah, bySize, indexova, sVykonem, nejvetsi, jeEsgKategorie,
+    byTer, stejnyTer, vykonObdobi, byPerf, hodnotaVykonu, medianVykonu,
+  } = z;
+  // Datum dat: bez tichého fallbacku na dnešek (pravidlo č. 1) – když se nenačte, štítek „Data k“ chybí.
+  const dataDate = z.dataDatum;
+  const content = getCategoryContent(slug);
+  const nejstarsi = nejstarsiDatum(etfs);
+  const datumText = dataDate ? fmtDatum(dataDate) : '—';
+  const prahText = `${PRAH_KARET} mil. €`;
+  const dalsiFondy = (n: number) => (n === 1 ? 'další fond' : n <= 4 ? 'další fondy' : 'dalších fondů');
+  // GEO „odpověď nahoře“: 2–3 věty z dat stránky s datem (src/lib/zebrickySeo.ts).
+  const odpoved = odpovedZebricku(dataSeo(z));
+  const souvisi = SOUVISI[slug] ?? [];
 
   const recos: { tag: string; icon: typeof Trophy; etf: ETFBasicInfo; hodnota: string; popis: string; pravidlo?: string }[] = [];
   const KRATCE: Record<string, string> = { 'Největší fond': 'Největší', 'Nejnižší poplatek': 'Nejlevnější' };
@@ -302,9 +376,8 @@ export default async function CategoryDetailPreview(
       ? `Stejný poplatek ${ter(byTer[0].ter_numeric)} má ${stejnyTer} ${dalsiFondy(stejnyTer)} – při shodě ukazujeme akumulační, pak větší fond. Jen fondy nad ${prahText} bez měnového zajištění.`
       : `Jen fondy nad ${prahText} bez měnového zajištění.`);
   if (sVykonem && byPerf[0]) {
-    const hodnotaVykonu = (e: ETFBasicInfo) => (vykonObdobi === '3y' ? e.return_3y_czk : e.return_1y_czk)!;
     const v = hodnotaVykonu(byPerf[0]);
-    const med = median(byPerf.map(hodnotaVykonu));
+    const med = medianVykonu;
     const obdobi = vykonObdobi === '3y' ? 'za 3 roky' : 'za 12 měsíců';
     pushReco('Nejvýkonnější', TrendingUp, byPerf[0], pctKc(v),
       med != null ? `${obdobi} v Kč · medián ${pctKc(med)}` : `${obdobi} v Kč`,
@@ -336,7 +409,6 @@ export default async function CategoryDetailPreview(
     };
   });
   const sr = SROVNAVAC[slug];
-  const prah = cfg.filters.minFundSize ?? 10;
   // Odkaz „všechny … fondy“ nese i práh velikosti žebříčku – jinak srovnávač ukáže tisíce fondů místo počtu
   // ze žebříčku (kolo 6: „1 782 akciových“ vs. srovnávač bez prahu).
   const srovnavac = !sr ? { href: '/srovnani', text: 'Všechny fondy ve srovnávači' }
@@ -421,7 +493,19 @@ export default async function CategoryDetailPreview(
         {/* ÚVOD – krátký: název, jedna věta, počet fondů a datum. Žádná půlobrazovková infografika. */}
         <section data-sekce="uvod" className="pt-2 pb-6">
           <h1 className="text-[28px] md:text-4xl font-bold tracking-tight leading-tight text-slate-900">{cfg.title}</h1>
-          <p className="mt-2 max-w-2xl text-[15px] md:text-base text-slate-600 leading-relaxed">{nbsp(lead)}</p>
+          {/* Odpověď nahoře (SEO/GEO, kolo 6): fakta z dat stránky s datem – počet, nejnižší poplatek, největší fond, výnos v Kč. */}
+          {odpoved.length > 0 && (
+            <p data-odpoved="zebricek" className="mt-2 max-w-3xl text-sm md:text-base text-slate-800 leading-relaxed">{odpoved.join(' ')}</p>
+          )}
+          {/* Mobil: s odpovědí nahoře se popis kategorie neukazuje (zůstává v HTML) – ať tabulka nezačíná až pod ohybem (kolo 6). */}
+          <p className={`mt-2 max-w-2xl text-sm md:text-[15px] text-slate-600 leading-relaxed ${odpoved.length > 0 ? 'hidden md:block' : ''}`}>{nbsp(lead)}</p>
+          {souvisi.length > 0 && (
+            <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {souvisi.map((l) => (
+                <Link key={l.href} href={l.href} className="inline-flex items-center gap-1 font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">{l.text} <ArrowRight className="w-3.5 h-3.5 shrink-0" /></Link>
+              ))}
+            </p>
+          )}
           {/* Co znamená „nejlepší“ (Markéta, kolo 4: nadpis „Nejlepší…“ a pak jen „největší a nejlevnější“) */}
           {/* Kolo 6: mobil – jedna krátká věta + vysvětlivka (tabulka začínala až na 770–970 px). */}
           <p className="hidden md:block mt-1.5 max-w-2xl text-sm text-slate-500 leading-relaxed">
@@ -436,7 +520,7 @@ export default async function CategoryDetailPreview(
               <span><strong className="font-semibold text-slate-900 tabular-nums">{celkem.toLocaleString('cs-CZ')}</strong> {fondu(celkem)} nad {prah}{'\u00a0'}mil.{'\u00a0'}€</span>
               <InfoTip label={`V žebříčku jsou fondy se spravovaným majetkem aspoň ${prah} mil. €. Vynecháváme pákové a inverzní produkty a fondy, jejichž data nebyla 14 dní aktualizována.`}>{null}</InfoTip>
             </span>
-            <AktualnostDat datum={dataDate} nejstarsi={nejstarsi} />
+            {dataDate && <AktualnostDat datum={dataDate} nejstarsi={nejstarsi} />}
           </div>
         </section>
 

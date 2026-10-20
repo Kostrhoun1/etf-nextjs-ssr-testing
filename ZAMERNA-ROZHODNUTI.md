@@ -501,3 +501,22 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   poskytovatele („Euro Government 2 z 259“). „Patří sem X z 300 největších fondů“ je správně.
 - **Monogram „21“ u 21Shares** (ne „2“) a ticker s burzou („GOLD (Amsterdam)“ / „GOLD (Stuttgart)“), když stejný
   ticker mají v jednom žebříčku dva různé fondy – záměr.
+
+## Žebříčky: titulky, popisky a „odpověď nahoře“ z dat stránky (SEO audit kola 6, 20. 10. 2026)
+
+- **„TER od X“ v titulku ≠ číslo na kartě „Nejnižší poplatek“ – a je to správně.** Titulek = nejnižší TER > 0 v CELÉ
+  kategorii (stejně jako sloupec „TER od“ na /zebricky); karta = pravidlo homepage (`porovnejNejlevnejsi`: fondy nad 100 mil. €
+  bez měnového zajištění). U Asie a Pacifiku je tak titulek „TER od 0,09 %“ a karta ETLK 0,10 %. Popisek i odpověď pak píšou
+  „Nejnižší TER nad 100 mil. € má …“. Kde „od“ nejde z načtených dat ověřit (velké kategorie s prahem pod 100 mil. € –
+  akciové, dluhopisové, korporátní, ESG), titulek TER ZÁMĚRNĚ nemá („1 754 fondů v žebříčku“). Nedoplňovat odhadem.
+- **Titulek žebříčku je absolutní; „| ETF průvodce.cz“ jen tam, kde se celý vejde do 65 znaků.** Data (rok, počet, TER)
+  mají přednost před značkou webu. Totéž /zebricky, /kde-koupit, /jaky-sp500-etf.
+- **Na mobilu žebříčku se pod odpovědí nahoře neukazuje popis kategorie** (zůstává v HTML) – jinak by tabulka začínala
+  ještě níž (kolo 6). Desktop ukazuje obojí.
+- **Titulky/popisky se počítají ze STEJNÉ React cache jako stránka** (`nactiZebricek` v nejlepsi-etf/[slug]/page.tsx,
+  `nactiSouhrnyZebricku` v src/lib/zebricky.ts, `nactiFondy` na /jaky-sp500-etf) – žádný dotaz navíc (free tier). Nevracet
+  na samostatný dotaz v generateMetadata.
+- **/jaky-sp500-etf = „jaký S&P 500 ETF vybrat“ (průvodce 7 fondy), žebříček = „nejlepší S&P 500 ETF“ (všechny fondy).**
+  Titulky se nesmí překrývat (kanibalizace), stránky na sebe odkazují obousměrně; dvojice jen ze `SITEMAP_PAIRS`.
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo6 seo zebricky` (čísla popisků proti surové DB a rozcestníku, /kde-koupit
+  proti kurzovnímu lístku ČNB a cenikům na stránce, /dane-z-etf bez platného stropu 40 mil.).

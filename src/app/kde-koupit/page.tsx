@@ -12,30 +12,57 @@ import {
 } from '@/components/design-preview/brokerUI';
 import NakladyKalkulacka from '@/components/design-preview/NakladyKalkulacka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { brokers, brokeriAbecedne, nejlevnejsiPodleCastky, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
+import { brokers, brokeriAbecedne, nejlevnejsiPodleCastky, nakladNakupu, cenikyOverenyIso, cenikyOverenyStr, type Kurzy } from '@/data/brokerData';
 import { FondHero, BezFondu } from './FondZDetailu';
 import { FondProvider } from '@/components/design-preview/FondKontext';
-import { nactiKurzCnb } from '@/lib/kurzCnb';
+import { nactiKurzCnb, datumKurzu } from '@/lib/kurzCnb';
 
 /* /kde-koupit = PRŮVODCE „kde koupit ETF“: živě spočítané náklady pro zadanou částku + rozhodnutí podle profilu.
    Detailní tabulka parametrů je jen na /srovnani-brokeru (dřív se stránky překrývaly – dvě tabulky,
    dvojí doporučení, revize 18. 10. 2026). Doporučení i náklady jsou ze sdíleného brokerUI. */
 
 export const revalidate = 86400;
-export const metadata: Metadata = {
-  // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
-  // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
-  alternates: { canonical: '/kde-koupit' },
-  title: 'Kde koupit ETF v Česku 2026: který broker a kolik stojí nákup',
-  description:
-    'Kde koupit ETF? Kolik stojí nákup pro vaši měsíční částku u XTB, Trading 212, DEGIRO, IBKR a Fio – poplatek i směna měny podle kurzu ČNB – a který broker sedí na vaši situaci.',
-};
+/* Odpověď nahoře (SEO/GEO, kolo 6): „za 2 000 Kč měsíčně vychází podle ceníků k … nejlevněji …“ – STEJNÝ výpočet jako hero
+   a kalkulačka (nejlevnejsiPodleCastky / nakladNakupu z brokerData + kurz ČNB s datem). Fakt z ceníků, ne doporučení.
+   Bez kurzu ČNB žádná korunová částka (pravidlo č. 1). Hlídá scripts/check-fund-data.mjs (kolo6 seo zebricky). */
+const UKAZKOVA_CASTKA = 2000;
+function nejlevnejsiUkazka(kurzy: Kurzy | null) {
+  if (!kurzy) return null;
+  const b = nejlevnejsiPodleCastky(kurzy, UKAZKOVA_CASTKA, UKAZKOVA_CASTKA)[0]?.b ?? null;
+  const n = b ? nakladNakupu(b, UKAZKOVA_CASTKA, kurzy) : null;
+  if (!b || !n || n.celkemKc == null) return null;
+  return { b, kc: n.celkemKc, jmeno: `${b.name}${b.nakup?.ostatniEtfEur != null ? ' (ETF Selection)' : ''}` };
+}
+const kcPresne = (v: number) => `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')}\u00a0Kč`;
+const cenikyCisla = new Date(`${cenikyOverenyIso}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+
+export async function generateMetadata(): Promise<Metadata> {
+  const kurzy = await nactiKurzCnb(); // stejný fetch jako stránka (cache 1 den) – žádný dotaz navíc
+  const u = nejlevnejsiUkazka(kurzy);
+  const s = brokeriAbecedne.filter((b) => b.nakup);
+  const jmena = s.map((b) => b.name.replace(' e-Broker', '').replace('Interactive Brokers', 'IBKR'));
+  const seznam = `${jmena.slice(0, -1).join(', ')} a ${jmena[jmena.length - 1]}`;
+  const zaklad = `Nákup ETF u ${seznam}: poplatek i směna v Kč podle kurzu ČNB.`;
+  const varianty = u ? [
+    `${zaklad} Za 2\u00a0000\u00a0Kč vychází podle ceníků k ${cenikyCisla} nejlevněji u ${u.jmeno} (${kcPresne(u.kc)}).`,
+    `${zaklad} Za 2\u00a0000\u00a0Kč je podle ceníků k ${cenikyCisla} nejlevnější ${u.jmeno}.`,
+  ] : [];
+  const description = varianty.find((t) => t.length <= 160) ?? `${zaklad} Ceníky ověřeny ${cenikyCisla}, náklady pro vaši měsíční částku.`;
+  return {
+    // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
+    // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
+    alternates: { canonical: '/kde-koupit' },
+    title: { absolute: `Kde koupit ETF v Česku ${new Date().getFullYear()}: náklady nákupu u ${s.length} brokerů` },
+    description,
+  };
+}
 
 const kcText = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')}\u00a0Kč`;
 
 export default async function KdeKoupitPage() {
   const year = new Date().getFullYear();
   const kurzy = await nactiKurzCnb();
+  const ukazka = nejlevnejsiUkazka(kurzy);
 
   // Hero: nejlevnější nákup PODLE ČÁSTKY („do 16 200 Kč Trading 212, nad DEGIRO“) – spočítané z ceníků, ne natvrdo.
   // Kolo 4: dřív pevně „za 2 000 Kč“, takže při zadání 50 000 Kč hero tvrdil něco jiného než tabulka pod ním.
@@ -152,6 +179,12 @@ export default async function KdeKoupitPage() {
                   <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
                     Zadejte, kolik investujete měsíčně, a uvidíte, kolik vás nákup ETF u každého brokera stojí – poplatek i směna korun na eura.
                   </p>
+                  {ukazka && kurzy && (
+                    <p data-odpoved="kde-koupit" data-broker-odpoved={ukazka.b.id} data-kc-odpoved={ukazka.kc.toFixed(2)} className="mt-2 text-slate-200 text-sm md:text-base leading-relaxed">
+                      Podle ceníků ověřených {cenikyOverenyStr} a kurzu ČNB k{'\u00a0'}{datumKurzu(kurzy)} vychází nákup ETF za 2{'\u00a0'}000{'\u00a0'}Kč nejlevněji
+                      u <strong className="text-white">{ukazka.jmeno}</strong>: {kcPresne(ukazka.kc)} včetně směny korun na eura. U jiných částek se pořadí mění.
+                    </p>
+                  )}
                 </FondHero>
                 <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><AutorZnak tmavy /><Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link></span>
