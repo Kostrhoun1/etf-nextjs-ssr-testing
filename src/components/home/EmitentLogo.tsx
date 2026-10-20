@@ -18,10 +18,11 @@ export function emitentFondu(nazev: string | null | undefined): string | null {
 /** Neutrální monogram (první písmeno emitenta v kroužku) – jen kde bez loga rozpadá zarovnání řádků
  *  (srovnávač, porovnání; art director 18. 10. 2026: řádky Xetra-Gold, Ossiam „vypadly“ z mřížky). */
 function Monogram({ text, size, className }: { text: string; size: number; className: string }) {
-  const p = (text.trim().match(/[A-Za-zÀ-ž0-9]/)?.[0] ?? '·').toUpperCase();
+  // „21Shares“ → „21“ (kolo 6: samotná „2“ vypadala jako číslo pořadí), jinak první písmeno.
+  const p = (text.trim().match(/^\d{1,2}/)?.[0] ?? text.trim().match(/[A-Za-zÀ-ž0-9]/)?.[0] ?? '·').toUpperCase();
   return (
     <span aria-hidden="true" className={`shrink-0 inline-flex items-center justify-center rounded-full bg-slate-100 ring-1 ring-slate-200 font-semibold text-slate-500 ${className}`}
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}>
+      style={{ width: size, height: size, fontSize: Math.round(size * (p.length > 1 ? 0.38 : 0.45)) }}>
       {p}
     </span>
   );

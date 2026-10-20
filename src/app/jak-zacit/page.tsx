@@ -7,7 +7,7 @@ import { getTotalETFCount , getDataDate } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, User, CalendarDays, BookOpen,
   Wallet, ShieldCheck, Target, ListChecks, Search, Building2, CalendarClock,
-  HeartPulse, PiggyBank, CreditCard, Hourglass, Globe, Percent, Layers,
+  HeartPulse, PiggyBank, Hourglass, Globe, Percent, Layers,
   Banknote, Repeat, AlertTriangle, Clock, Boxes, RefreshCw, Calculator,
   Landmark, Check,
 } from 'lucide-react';
@@ -52,8 +52,8 @@ export default async function HowToStartPreview() {
       ),
       items: [
         { icon: HeartPulse, text: <>Mám <strong>finanční rezervu</strong> na 3–6 měsíců běžných výdajů (na horší časy, ne na investice).</> },
-        { icon: CreditCard, text: <>Nemám <strong>drahé dluhy</strong> – kreditka ani spotřebitelská půjčka neporazí žádný fond.</> },
         { icon: PiggyBank, text: <>Investuju jen peníze, které <strong>roky nebudu potřebovat</strong> – ne na auto za rok.</> },
+        { icon: AlertTriangle, text: <>Unesu, že hodnota <strong>může dočasně klesnout o desítky procent</strong> – a nebudu kvůli tomu prodávat.</> },
       ],
     },
     {
@@ -116,6 +116,9 @@ export default async function HowToStartPreview() {
           Fond koupíte přes{' '}
           <InfoTip label="Obchodník s cennými papíry, který vám zprostředkuje nákup ETF na burze.">brokera</InfoTip>.
           U začátečníka rozhodují hlavně náklady – ty umí výnos potichu ukrojit.
+          <Link href="/kde-koupit" className="mt-3 flex w-fit items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800">
+            <Calculator className="w-4 h-4 shrink-0" /> Kolik zaplatíte u brokerů při vaší částce <ArrowRight className="w-4 h-4 shrink-0" />
+          </Link>
         </>
       ),
       items: [
@@ -166,7 +169,7 @@ export default async function HowToStartPreview() {
   const mistakes: { icon: typeof Clock; title: string; desc: string }[] = [
     { icon: Clock, title: 'Časování trhu', desc: 'Čekání na „ideální okamžik“. Trefit dno se dlouhodobě skoro nikomu nedaří – pravidelnost vyhrává.' },
     { icon: Boxes, title: 'Příliš mnoho fondů', desc: 'Deset překrývajících se ETF nezvyšuje rozložení rizika, jen zamotá hlavu i daně. Pro start stačí jeden.' },
-    { icon: AlertTriangle, title: 'Prodej v panice', desc: 'Výprodej při propadu zafixuje ztrátu. Kdo vydržel, historicky se dočkal návratu nahoru.' },
+    { icon: AlertTriangle, title: 'Prodej v panice', desc: 'Výprodej při propadu zafixuje ztrátu. Široké světové indexy se z propadů zatím vždy zotavily, ale jednotlivé trhy ne vždy rychle – japonský Nikkei se na vrchol z roku 1989 vrátil až v roce 2024.' },
     { icon: Wallet, title: 'Ignorování poplatků', desc: 'Vysoký TER a poplatky za nákup i konverzi měn ukrajují výnos potichu, ale celé roky.' },
   ];
 
@@ -207,8 +210,10 @@ export default async function HowToStartPreview() {
       a: (
         <>
           Propady jsou normální a u dlouhého horizontu je dokonce výhoda: za stejnou částku nakoupíte víc
-          podílů. <strong>Klíč je neprodávat ve strachu</strong> a pokračovat v pravidelných nákupech. Historicky
-          se trhy z propadů vždy zotavily – jen to chtělo čas a klid.
+          podílů. <strong>Klíč je neprodávat ve strachu</strong> a pokračovat v pravidelných nákupech. Široké
+          světové indexy se z dosavadních propadů zotavily, někdy to ale trvalo roky – a jednotlivé trhy ne vždy
+          (japonský Nikkei se na vrchol z roku 1989 vrátil až v roce 2024). Jak dlouho byly vklady v minusu, ukazují{' '}
+          <Link href="/jak-dlouho-v-minusu" className="text-teal-700 hover:underline font-medium">Jak dlouho můžete být v minusu (data v korunách)</Link>.
         </>
       ),
     },
@@ -453,7 +458,7 @@ export default async function HowToStartPreview() {
               ['/portfolio-strategie', 'Modelová portfolia', Boxes],
               ['/srovnani', 'Srovnání ETF', Search],
               ['/zebricky', 'Nejlepší ETF', ListChecks],
-              ['/etf', 'Ukázka detailu fondu', Globe],
+              ['/etf/IE00BK5BQT80', 'Ukázka detailu fondu (VWCE)', Globe],
               ['/kde-koupit', 'Kde koupit ETF', Landmark],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
@@ -496,7 +501,7 @@ export default async function HowToStartPreview() {
 function stepPlainText(title: string): string {
   const map: Record<string, string> = {
     'Než vůbec začnete':
-      'Před investováním si zajistěte finanční rezervu na 3–6 měsíců výdajů, splaťte drahé dluhy a investujte jen peníze, které roky nebudete potřebovat.',
+      'Před investováním si zajistěte finanční rezervu na 3–6 měsíců výdajů a investujte jen peníze, které roky nebudete potřebovat. Počítejte s tím, že hodnota může dočasně klesnout o desítky procent.',
     'Určete si cíl a horizont':
       'Ujasněte si, proč a na jak dlouho investujete. Pro horizont kratší než 3–5 let se akciová ETF spíš nehodí, ideální jsou na 10 a více let.',
     'Vyberte strategii a portfolio':
@@ -523,7 +528,7 @@ function faqPlainText(q: string): string {
     'Stačí jeden fond, nebo jich mám mít víc?':
       'Pro úplný start bohatě stačí jeden široký globální ETF – už sám drží tisíce firem z celého světa. Víc fondů má smysl až při cíleném dolaďování portfolia.',
     'Co když hned po nákupu přijde krize?':
-      'Propady jsou normální a u dlouhého horizontu i výhoda: za stejnou částku nakoupíte víc podílů. Klíč je neprodávat ve strachu a pokračovat v pravidelných nákupech.',
+      'Propady jsou normální a u dlouhého horizontu i výhoda: za stejnou částku nakoupíte víc podílů. Klíč je neprodávat ve strachu a pokračovat v pravidelných nákupech. Široké světové indexy se z dosavadních propadů zotavily, jednotlivé trhy ne vždy rychle (Nikkei 1989–2024).',
     'Musím rozumět grafům a sledovat trh každý den?':
       'Ne. Smysl pasivního investování do ETF je v tom, že ho nemusíte denně hlídat. Nastavíte pravidelnou investici a necháte čas pracovat.',
   };

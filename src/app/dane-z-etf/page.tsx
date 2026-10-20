@@ -17,12 +17,12 @@ export const revalidate = 86400;
 export const metadata: Metadata = {
   title: 'Daně z ETF v Česku: kdy platíte a kdy ne (2026)',
   description:
-    'Přehledný český průvodce zdaněním ETF: časový test (3 roky), hodnotový test do 100 000 Kč, strop 40 milionů, daň z dividend 15 % a odečet přes DIP. Orientačně, v korunách, srozumitelně.',
+    'Přehledný český průvodce zdaněním ETF: časový test (3 roky), hodnotový test do 100 000 Kč, sazba 15 % při prodeji do 3 let, daň z dividend, oznámení příjmů nad 5 mil. Kč a odečet přes DIP. Příklad v korunách.',
   alternates: { canonical: '/dane-z-etf' },
   openGraph: {
     title: 'Daně z ETF v Česku: kdy platíte a kdy ne (2026)',
     description:
-      'Časový test, hodnotový test, strop 40 mil., dividendy 15 % a DIP – přehledně a v korunách. Vzdělávací, nezávislé.',
+      'Časový test, hodnotový test, prodej do 3 let, dividendy 15 % a DIP – přehledně a s příkladem v korunách. Vzdělávací, nezávislé.',
     url: 'https://etfpruvodce.cz/dane-z-etf',
     images: [ogImage({ title: 'Daně z ETF v Česku: kdy platíte a kdy ne (2026)', eyebrow: 'Daně · 2026', stat: '0 Kč', statLabel: 'daň při prodeji po 3 letech' })],
     type: 'article',
@@ -33,10 +33,18 @@ export default async function DaneZEtf() {
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
+  /* Modelový příklad v korunách (kolo 6: hero sliboval „v korunách“, příklad chyběl). Počítá se tady, ne natvrdo. */
+  const kc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')}\u00a0Kč`;
+  const PRIKLAD = { nakup: 200_000, prodej: 260_000, sazba: 0.15 };
+  const zisk = PRIKLAD.prodej - PRIKLAD.nakup;
+  const danDo3Let = zisk * PRIKLAD.sazba;
+  /** 23 % platí pro část základu daně nad 36násobek průměrné mzdy (pro rok 2026: 36 × 48 967 Kč, NV 365/2025 Sb.). */
+  const HRANICE_23 = 36 * 48_967;
+
   const faqs = [
     {
       q: 'Musím danit zisk z prodeje ETF?',
-      a: 'Záleží na době držby a objemu. Pokud podíly držíte déle než 3 roky (časový test), je zisk z prodeje za splnění zákonných podmínek osvobozen. Osvobozeny jsou také drobné prodeje do 100 000 Kč příjmu za rok (hodnotový test). V roce 2025 platil roční strop 40 milionů Kč na osvobozené příjmy, ten byl ale od roku 2026 pro prodej cenných papírů a podílů zrušen – u ETF tak žádný horní limit osvobození neplatí. Jde o obecné shrnutí – konkrétní situaci ověřte u daňového poradce.',
+      a: 'Záleží na době držby a objemu. Pokud podíly držíte déle než 3 roky (časový test), je zisk z prodeje za splnění zákonných podmínek osvobozen. Osvobozeny jsou také drobné prodeje do 100 000 Kč příjmu za rok (hodnotový test). Jinak se zisk daní 15 % (část základu daně nad 36násobek průměrné mzdy 23 %). Od roku 2026 osvobození po časovém testu neomezuje žádný horní limit (strop 40 mil. Kč z roku 2025 byl pro cenné papíry zrušen). Jde o obecné shrnutí – konkrétní situaci ověřte u daňového poradce.',
     },
     {
       q: 'Jak funguje časový test u ETF?',
@@ -52,7 +60,19 @@ export default async function DaneZEtf() {
     },
     {
       q: 'Co je DIP a jak snižuje daně?',
-      a: 'DIP (dlouhodobý investiční produkt) je od roku 2024 režim, ve kterém si příspěvky můžete odečíst od základu daně – až 48 000 Kč ročně (společný limit s penzijním a životním pojištěním). Podmínkou je držení produktu alespoň 10 let a zpravidla do 60 let věku; při předčasném ukončení se výhoda dodaňuje. Konkrétní podmínky a nabídku DIP ověřte u svého poskytovatele a daňového poradce.',
+      a: 'DIP (dlouhodobý investiční produkt) je od roku 2024 režim, ve kterém si příspěvky můžete odečíst od základu daně – až 48 000 Kč ročně (společný limit s penzijním a životním pojištěním). Podmínkou je, že DIP trvá nejméně 120 měsíců a peníze vyberete nejdříve v roce, kdy vám bude 60 let; při předčasném výběru se odečtené částky dodaňují. Konkrétní podmínky a nabídku DIP ověřte u svého poskytovatele a daňového poradce.',
+    },
+    {
+      q: 'Musím hlásit velký osvobozený příjem?',
+      a: 'Ano, pokud osvobozený příjem (například z prodeje ETF po 3 letech) přesáhne 5 000 000 Kč. Oznámení se podává finančnímu úřadu do konce lhůty pro podání daňového přiznání za daný rok (§ 38v zákona o daních z příjmů). Za neoznámení hrozí pokuta 0,1 až 15 % z neoznámené částky (§ 38w).',
+    },
+    {
+      q: 'Můžu si odečíst ztrátu z prodeje ETF?',
+      a: 'Jen částečně. Ztrátu z prodeje cenného papíru, u kterého neplatí osvobození, lze v tomtéž roce započíst proti zdanitelnému zisku z prodeje jiných cenných papírů. Do dalších let se nepřevádí a proti jiným příjmům (např. mzdě) ji uplatnit nejde. Ztráta z osvobozeného prodeje se nezapočítává.',
+    },
+    {
+      q: 'Jakým kurzem přepočítat nákup v eurech nebo dolarech?',
+      a: 'Buď denním kurzem ČNB ke dni nákupu a prodeje, nebo jednotným kurzem, který za celý rok vyhlašuje Finanční správa. Za jedno zdaňovací období se používá jeden způsob, metody se nekombinují.',
     },
     {
       q: 'Danit ETF je složité – kde si to ověřím?',
@@ -110,14 +130,14 @@ export default async function DaneZEtf() {
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
               Kolik vám z výnosu <strong className="text-white">reálně zůstane po zdanění</strong>. Časový test,
-              hodnotový test, strop 40 milionů, dividendy i odečet přes DIP – přehledně, v korunách a bez paniky.
+              hodnotový test, prodej do 3 let, dividendy i odečet přes DIP – přehledně, s příkladem v korunách.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href="/investicni-kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
-                <Calculator className="w-4 h-4" /> Spočítat výnos v Kč
+              <Link href="#priklad" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
+                <Calculator className="w-4 h-4" /> Příklad v korunách
               </Link>
-              <Link href="/fire" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                <TrendingUp className="w-4 h-4" /> Průvodce FIRE
+              <Link href="/kde-koupit" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                <Landmark className="w-4 h-4" /> Kde koupit ETF
               </Link>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
@@ -126,23 +146,23 @@ export default async function DaneZEtf() {
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
             </div>
 
-            {/* Klíčová čísla – tři pravidla, která rozhodují o dani */}
-            <div className="mt-6 grid grid-cols-3 gap-2.5 max-w-2xl">
-              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Clock className="w-3.5 h-3.5" /> Časový test</span>
-                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-emerald-400">3 roky</p>
-                <p className="text-xs text-slate-400 mt-0.5">pak je zisk z prodeje bez daně</p>
-              </div>
-              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Scale className="w-3.5 h-3.5" /> Hodnotový test</span>
-                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-white">100 000 Kč</p>
-                <p className="text-xs text-slate-400 mt-0.5">roční prodeje pod limit bez daně</p>
-              </div>
-              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Percent className="w-3.5 h-3.5" /> Daň z dividend</span>
-                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-white">15 %</p>
-                <p className="text-xs text-slate-400 mt-0.5">u distribučních ETF</p>
-              </div>
+            {/* Klíčová čísla – tři pravidla, která rozhodují o dani. Mobil: řádky (kolo 6: „100 000 Kč“ se ve třetině
+                šířky lámalo a ikona u „Hodnotový test“ se smrskla). */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 max-w-2xl">
+              {([
+                [Clock, 'Časový test', '3 roky', 'pak je zisk z prodeje bez daně', 'text-emerald-400'],
+                [Scale, 'Hodnotový test', '100\u00a0000\u00a0Kč', 'roční prodeje do limitu bez daně', 'text-white'],
+                [Percent, 'Daň z dividend', '15\u00a0%', 'u distribučních ETF', 'text-white'],
+              ] as [typeof Clock, string, string, string, string][]).map(([Icon, nazev, hodnota, popis, barva]) => (
+                <div key={nazev} className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:block">
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5 text-xs text-slate-400"><Icon className="w-3.5 h-3.5 shrink-0" /> {nazev}</span>
+                    <span className="block text-xs text-slate-400 mt-0.5 sm:hidden">{popis}</span>
+                  </span>
+                  <p className={`sm:mt-1 text-lg md:text-xl font-bold tabular-nums whitespace-nowrap ${barva}`}>{hodnota}</p>
+                  <p className="hidden sm:block text-xs text-slate-400 mt-0.5">{popis}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -197,29 +217,50 @@ export default async function DaneZEtf() {
           </div>
         </section>
 
-        {/* 3. HODNOTOVÝ TEST + 4. STROP – dvě karty vedle sebe */}
+        {/* 3. HODNOTOVÝ TEST + PRODEJ DO 3 LET */}
         <section className="pb-10">
-          <SectionHead title="Dvě věci navíc, které stojí za zapamatování" desc="Kromě časového testu existuje osvobození pro drobné prodeje. A dobrá zpráva pro rok 2026: dřívější strop 40 milionů byl u cenných papírů zrušen." />
+          <SectionHead title="Když prodáte dřív než za 3 roky" desc="Osvobození pro drobné prodeje – a kolik se platí, když neplatí ani jeden z testů." />
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-slate-200 bg-white p-5">
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 border border-slate-200 mb-3"><Scale className="w-5 h-5" /></span>
-              <p className="font-semibold text-slate-900">Hodnotový test: do 100 000 Kč / rok</p>
+              <p className="font-semibold text-slate-900">Hodnotový test: do 100{'\u00a0'}000{'\u00a0'}Kč za rok</p>
               <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                 Je-li váš celkový <strong className="text-slate-800">příjem</strong> (tržba, ne jen zisk) z prodeje
-                cenných papírů za kalendářní rok do <strong className="text-slate-800">100 000 Kč</strong>, je osvobozen
-                bez ohledu na dobu držby. Hodí se pro drobné prodeje.
+                všech cenných papírů za kalendářní rok nejvýše <strong className="text-slate-800">100{'\u00a0'}000{'\u00a0'}Kč</strong>,
+                je osvobozen bez ohledu na dobu držby. Hodí se pro drobné prodeje.
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-5">
-              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 mb-3"><CheckCircle2 className="w-5 h-5" /></span>
-              <p className="font-semibold text-slate-900">Strop 40 mil. Kč: od 2026 u ETF zrušen</p>
+              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 mb-3"><Percent className="w-5 h-5" /></span>
+              <p className="font-semibold text-slate-900">Prodej do 3 let nad limit: 15{'\u00a0'}% ze zisku</p>
               <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                V roce 2025 platil roční strop <strong className="text-slate-800">40 milionů Kč</strong> na osvobozené
-                příjmy z prodeje. Od <strong className="text-slate-800">1. 1. 2026</strong> byl pro prodej cenných papírů
-                a podílů zrušen – u ETF tak osvobození po splnění časového testu opět neomezuje žádný horní limit.
+                Nesplníte-li ani jeden test, zisk (příjem minus nákupní cena a poplatky) se daní jako ostatní příjem
+                sazbou <strong className="text-slate-800">15{'\u00a0'}%</strong>. Sazbou <strong className="text-slate-800">23{'\u00a0'}%</strong> se
+                daní jen část celkového základu daně nad 36násobek průměrné mzdy – pro rok 2026 nad {kc(HRANICE_23)}.
               </p>
             </div>
           </div>
+        </section>
+
+        {/* PŘÍKLAD V KORUNÁCH – čísla spočtená v kódu */}
+        <section id="priklad" className="pb-10 scroll-mt-20">
+          <SectionHead title="Příklad v korunách" desc={`ETF koupené za ${kc(PRIKLAD.nakup)} prodáte za ${kc(PRIKLAD.prodej)}. Zisk je ${kc(zisk)}. Kolik z něj zaplatíte na dani?`} />
+          <div className="grid gap-3 sm:grid-cols-3">
+            {([
+              ['Držíte déle než 3 roky', '0\u00a0Kč', `Časový test splněn – celý zisk ${kc(zisk)} je váš.`, 'text-emerald-700'],
+              ['Prodáte do 3 let', kc(danDo3Let), `15\u00a0% ze zisku ${kc(zisk)}. Příjem z prodeje ${kc(PRIKLAD.prodej)} je nad limitem hodnotového testu. Zůstane vám ${kc(zisk - danDo3Let)}.`, 'text-slate-900'],
+              ['Prodáte do 3 let jen část', '0\u00a0Kč', `Když za celý rok prodáte cenné papíry nejvýše za 100\u00a0000\u00a0Kč (příjem, ne zisk), platí hodnotový test.`, 'text-emerald-700'],
+            ] as [string, string, string, string][]).map(([t, v, d, barva]) => (
+              <div key={t} className="rounded-lg border border-slate-200 bg-white p-5">
+                <p className="text-sm font-medium text-slate-600">{t}</p>
+                <p className={`mt-1 text-2xl font-bold tabular-nums whitespace-nowrap ${barva}`}>{v}</p>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">daň · {d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+            Zjednodušeno: bez poplatků brokera, nákup i prodej v korunách, sazba 15{'\u00a0'}% (bez 23{'\u00a0'}% u vysokých příjmů). Nákupy v eurech či dolarech se přepočítávají kurzem – viz níže.
+          </p>
         </section>
 
         {/* 5. DIVIDENDY */}
@@ -255,8 +296,8 @@ export default async function DaneZEtf() {
                   limit s penzijním a životním pojištěním). Při 15% dani to znamená až 7 200 Kč zpět ročně.
                 </p>
                 <p>
-                  Podmínkou je držení zpravidla alespoň <strong className="text-slate-900">10 let</strong> a do 60 let
-                  věku; při předčasném ukončení se výhoda dodaňuje. Zda a jaké ETF lze v DIP držet, závisí na konkrétním
+                  Podmínkou je, že DIP trvá <strong className="text-slate-900">nejméně 120 měsíců</strong> a peníze vyberete
+                  <strong className="text-slate-900"> nejdříve v roce, kdy vám bude 60 let</strong>; při předčasném výběru se odečtené částky dodaňují. Zda a jaké ETF lze v DIP držet, závisí na konkrétním
                   poskytovateli – ověřte si nabídku i podmínky předem.
                 </p>
                 <p>
@@ -266,6 +307,25 @@ export default async function DaneZEtf() {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* DALŠÍ PRAVIDLA – kurz, ztráty, oznámení, strop 40 mil. jen jako změna */}
+        <section className="pb-10">
+          <SectionHead title="Další pravidla, která se hodí znát" desc="Přepočet měn, ztráty, povinné oznámení velkých příjmů a jedna změna od roku 2026." />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {([
+              [Coins, 'Přepočet z eur a dolarů', 'Příjmy i nákupní cenu v cizí měně přepočítáte na koruny buď denním kurzem ČNB ke dni obchodu, nebo jednotným (ročním) kurzem, který vyhlašuje Finanční správa. Za celý rok jedním způsobem – metody se nekombinují (§ 38 zákona o daních z příjmů).'],
+              [Scale, 'Ztráty a zisky v jednom roce', 'Ztrátu z prodeje cenného papíru, který nesplnil časový test, lze započíst proti zdanitelnému zisku z prodeje jiných cenných papírů v tomtéž roce. Do dalších let se nepřevádí a proti mzdě ji odečíst nejde.'],
+              [AlertTriangle, 'Osvobozený příjem nad 5 mil. Kč se musí oznámit', 'I osvobozený příjem (třeba z prodeje po 3 letech) nad 5\u00a0000\u00a0000\u00a0Kč musíte oznámit finančnímu úřadu do konce lhůty pro podání přiznání (§ 38v). Za neoznámení hrozí pokuta 0,1–15\u00a0% z částky (§ 38w); 15\u00a0% když nereagujete ani na výzvu.'],
+              [CheckCircle2, 'Změna od 2026: strop 40 mil. Kč zrušen', 'V roce 2025 platil roční strop 40 milionů Kč na osvobozené příjmy z prodeje cenných papírů. Od 1. 1. 2026 byl pro cenné papíry a podíly zrušen – osvobození po časovém testu u ETF opět neomezuje horní limit.'],
+            ] as [typeof Coins, string, string][]).map(([Icon, t, d]) => (
+              <div key={t} className="rounded-lg border border-slate-200 bg-white p-5">
+                <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 border border-slate-200 mb-3"><Icon className="w-5 h-5" /></span>
+                <p className="font-semibold text-slate-900">{t}</p>
+                <p className="text-sm text-slate-600 mt-1 leading-relaxed">{d}</p>
+              </div>
+            ))}
           </div>
         </section>
 

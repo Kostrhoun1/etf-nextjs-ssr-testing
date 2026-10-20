@@ -309,10 +309,12 @@ export function CompositionInfographic({
  * indexů (dle fondů v kategorii) s odborným popisem. Index fondu = indexFonduLabel (stejně jako srovnávač).
  * Počet slovy („Sledují ho všechny fondy v žebříčku (58)“, „14 z 24 fondů“) – „58 z 58“ bylo nesrozumitelné.
  */
-export function CategoryIndexes({ indexes, total, sloupce = 2, zCeho = 'fondů v žebříčku' }: {
+export function CategoryIndexes({ indexes, total, sloupce = 2, zCeho = 'fondů v žebříčku', rodiny = false }: {
   indexes: { info: IndexInfo; count: number }[]; total: number; sloupce?: 1 | 2;
   /** Doplněk za „z N …“ – u velkých kategorií „největších fondů“. */
   zCeho?: string;
+  /** Karty jsou skupiny indexů (dluhopisy po rodinách, kolo 6) – „Patří sem“ místo „Sleduje ho“. */
+  rodiny?: boolean;
 }) {
   if (!indexes.length) return null;
   return (
@@ -325,9 +327,11 @@ export function CategoryIndexes({ indexes, total, sloupce = 2, zCeho = 'fondů v
             {info.holdings && <span>{info.holdings}</span>}
           </div>
           <p className="mt-2 text-sm font-medium text-teal-800">
-            {count === total
-              ? `Sledují ho všechny fondy v žebříčku (${total.toLocaleString('cs-CZ')})`
-              : `Sleduje ho ${count.toLocaleString('cs-CZ')} z ${total.toLocaleString('cs-CZ')} ${zCeho}`}
+            {rodiny
+              ? `Patří sem ${count.toLocaleString('cs-CZ')} z ${total.toLocaleString('cs-CZ')} ${zCeho}`
+              : count === total
+                ? `Sledují ho všechny fondy v žebříčku (${total.toLocaleString('cs-CZ')})`
+                : `Sleduje ho ${count.toLocaleString('cs-CZ')} z ${total.toLocaleString('cs-CZ')} ${zCeho}`}
           </p>
           <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">{nbsp(info.what)}</p>
         </div>

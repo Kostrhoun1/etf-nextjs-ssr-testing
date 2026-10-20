@@ -373,8 +373,8 @@ export default async function InvestovaniProDeti() {
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-50 text-amber-700 border border-amber-100 mb-3"><Lock className="w-5 h-5" /></span>
               <p className="font-semibold text-slate-900">Pravidlo 120/60 jde proti cíli</p>
               <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                Aby daňová výhoda nepropadla, musí peníze zůstat ležet nejméně 10 let (120 měsíců) a zároveň
-                do 60 let věku majitele. U novorozence to znamená zamčeno na šest desetiletí – zatímco cílem
+                Aby daňová výhoda nepropadla, musí DIP trvat nejméně 120 měsíců a peníze lze vybrat nejdříve
+                v roce, kdy majiteli bude 60 let. U novorozence to znamená zamčeno na šest desetiletí – zatímco cílem
                 bývá mít peníze k dispozici v osmnácti.
               </p>
             </div>

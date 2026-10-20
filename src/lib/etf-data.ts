@@ -4,7 +4,7 @@
  */
 import { cache as reactCache } from 'react';
 import { datumCen } from '@/lib/datumCen';
-import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
+import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
@@ -63,6 +63,11 @@ export interface CategoryConfig {
      *  Bez toho spadne „MSCI World Semiconductors" do kategorie „Celý svět" jen proto,
      *  že má v názvu „World" – `nameContains` je totiž prostá shoda podřetězce. */
     nameExcludes?: string[];
+    /** Sektor/zaměření podle zdroje (`investment_focus`, OR) – fond musí mít aspoň jedno. Název nestačí:
+     *  „UmweltBank“ obsahuje „Bank“, „Clean Energy“ obsahuje „Energy“ (kolo 6, 20. 10. 2026). */
+    focusContains?: string[];
+    /** Zaměření, které se z výsledku vyřadí (AND, case-insensitive) – covered call / put write strategie apod. */
+    focusExcludes?: string[];
     indexContains?: string[];
     minFundSize?: number;
     distribution_policy?: string;
@@ -138,6 +143,24 @@ export function filtrKategorie(q: any, config: CategoryConfig): any {
       for (const term of config.filters.nameExcludes) {
         query = query.not('name', 'ilike', `%${term}%`);
       }
+    }
+
+    // Zaměření podle zdroje (investment_focus). NULL u akcií/komodit není, ale „not ilike“ by NULL tiše vyřadil –
+    // proto u vyřazení výslovně „je NULL, nebo neodpovídá“.
+    if (config.filters.focusContains && config.filters.focusContains.length > 0) {
+      query = query.or(config.filters.focusContains.map((t) => `investment_focus.ilike.%${t}%`).join(','));
+    }
+    if (config.filters.focusExcludes && config.filters.focusExcludes.length > 0) {
+      for (const t of config.filters.focusExcludes) {
+        query = query.or(`investment_focus.is.null,investment_focus.not.ilike.%${t}%`);
+      }
+    }
+    // Fondy peněžního trhu (overnight/€STR) vede zdroj někdy pod „Akcie“/„Dluhopisy“ – do akciových ani
+    // dluhopisových žebříčků nepatří (kolo 6: XEON a 4 další v „akciových“). Stejné pravidlo jako srovnávač
+    // (kategorieSrovnavace), aby počet žebříčku seděl s odkazem do srovnávače.
+    const tridy = [config.filters.category, ...(config.filters.categories ?? [])];
+    if (tridy.some((t) => t === 'Akcie' || t === 'Dluhopisy')) {
+      query = query.or('investment_focus.is.null,investment_focus.not.ilike.Money Market%');
     }
 
     // Apply index contains filter
@@ -268,6 +291,43 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
   } catch (error) {
     console.error(`Error in getTopETFsForCategory for ${config.slug}:`, error);
     return [];
+  }
+}
+
+/** Kandidáti na karty „Vybrané podle dat“ z CELÉ kategorie (kolo 6, 20. 10. 2026). Tabulka žebříčku nese jen
+ *  300 největších fondů; karty se dřív počítaly z nich a práh se zvedal na velikost nejmenšího načteného
+ *  („mezi fondy nad 2 289 mil. €“). Tady lehké dotazy přes stejný filtrKategorie, jen fondy ≥ `prah` mil. €:
+ *  - `levne`: 300 nejlevnějších (TER > 0) – výběr podle porovnejNejlevnejsi dělá stránka (zajištění, Acc, velikost);
+ *  - `nejvetsi`: největší fond kategorie (u žebříčku řazeného podle TER není v tabulce nahoře);
+ *  - `vsechny`: všechny fondy nad prahem (jen když stránka ukazuje „Nejvýkonnější“ – medián z celé kategorie).
+ *  Volá se jen u žebříčků, kde tabulka nenese celou kategorii; běží v ISR (revalidate), ne při každé návštěvě.
+ *  null = chyba dotazu → stránka karty raději vynechá, než by je spočítala z části dat. */
+export async function getVyberKarty(config: CategoryConfig, prah: number, sVykonem: boolean): Promise<{
+  levne: ETFBasicInfo[]; nejvetsi: ETFBasicInfo | null; vsechny: ETFBasicInfo[] | null;
+} | null> {
+  const sloupce = ['isin', 'name', 'fund_provider', 'ter_numeric', 'fund_size_numeric', 'distribution_policy',
+    'return_1y_czk', 'return_3y_czk', 'inception_date', 'scraping_date', ...SLOUPCE_TICKERU].join(',');
+  const zaklad = () => filtrKategorie(supabaseAdmin.from('etf_funds').select(sloupce), config).gte('fund_size_numeric', prah);
+  try {
+    const [lev, vel] = await Promise.all([
+      zaklad().gt('ter_numeric', 0).order('ter_numeric', { ascending: true }).order('fund_size_numeric', { ascending: false }).limit(300),
+      zaklad().order('fund_size_numeric', { ascending: false }).limit(1),
+    ]);
+    if (lev.error || vel.error) { console.error(`getVyberKarty ${config.slug}:`, lev.error ?? vel.error); return null; }
+    let vsechny: ETFBasicInfo[] | null = null;
+    if (sVykonem) {
+      vsechny = [];
+      for (let od = 0; od < 5000; od += 1000) {
+        const { data, error } = await zaklad().order('fund_size_numeric', { ascending: false }).order('isin').range(od, od + 999);
+        if (error) { console.error(`getVyberKarty ${config.slug} (výkon):`, error); return null; }
+        vsechny.push(...((data ?? []) as ETFBasicInfo[]));
+        if ((data ?? []).length < 1000) break;
+      }
+    }
+    return { levne: (lev.data ?? []) as ETFBasicInfo[], nejvetsi: ((vel.data ?? [])[0] as ETFBasicInfo) ?? null, vsechny };
+  } catch (error) {
+    console.error(`getVyberKarty ${config.slug}:`, error);
+    return null;
   }
 }
 
@@ -1333,12 +1393,19 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   'nejlepsi-dividendove-etf': {
     slug: 'nejlepsi-dividendove-etf',
     title: 'Nejlepší dividendové ETF',
-    description: 'Top dividendové ETF fondy s pravidelným výnosem',
-    metaDescription: 'Nejlepší dividendové ETF fondy - přehled ETF s nejvyššími dividendami a pravidelným výnosem.',
+    description: 'Distribuční akciové ETF, které vybírají firmy s vyšší dividendou',
+    metaDescription: 'Nejlepší dividendové ETF fondy - přehled akciových ETF zaměřených na firmy s vyšší dividendou, poplatky a výnosy v Kč.',
     filters: {
       category: 'Akcie',
       distribution_policy: 'Distributing',
       nameContains: ['Dividend', 'Income', 'High Yield'],
+      // Kolo 6 (20. 10. 2026): „Income“ v názvu nemusí znamenat dividendovou strategii. Pryč: opční strategie
+      // (covered call / put write – „Premium Income“, „High Income“, „Option Income“…), multi-asset portfolia a
+      // obyčejný FTSE 100, kde je „Income“ jen název třídy (XUKX). Hlídá check-fund-data.mjs (kolo6 zebricky).
+      nameExcludes: ['Premium Income', 'High Income', 'Option Income', 'Options', 'Covered Call', 'Put Write', 'Target Income',
+        'Enhanced Income', 'Enhanced Yield', 'Income Plus', 'Income Advantage', 'Income & Growth', 'Autocallable',
+        'Portfolio Income', 'Balanced Income', 'Preferred Income', 'Weekly', 'FTSE 100 UCITS ETF Income'],
+      focusExcludes: ['Covered Call', 'Put Write'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1487,6 +1554,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       categories: ['Krypto', 'Komodity'],
       nameContains: ['Bitcoin', 'BTC'],
+      // Koše (bitcoin + zlato, bitcoin + ether) nejsou produkty na bitcoin (kolo 6, 20. 10. 2026).
+      nameExcludes: ['Gold', 'Ethereum', 'Basket'],
       minFundSize: 10,
     },
     sortBy: 'fund_size_numeric',
@@ -1501,6 +1570,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Komodity',
       nameContains: ['Gold', 'Zlato'],
+      // 21shares Bitcoin Gold = koš bitcoinu a zlata (vedl řazení za 3 roky); Gold+ Yield = zlato + opční strategie.
+      // Zlatý žebříček je indexový (stejný podklad) – oboje sem nepatří (kolo 6, 20. 10. 2026).
+      nameExcludes: ['Bitcoin', 'Yield'],
+      focusContains: ['Precious Metals'],
       minFundSize: 10,
     },
     sortBy: 'fund_size_numeric',
@@ -1657,6 +1730,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Financial', 'Finance', 'Bank', 'Insurance'],
+      // Sektor podle zdroje: „UmweltBank Global SDG Focus“ má „Bank“ jen ve jménu správce (kolo 6, 20. 10. 2026).
+      focusContains: ['Financials', 'Insurance'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1671,6 +1746,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Energy', 'Oil', 'Gas', 'Energie'],
+      // Tradiční energetický sektor (ropa, plyn, energetické firmy). Čistá/obnovitelná energie má vlastní žebříček
+      // nejlepsi-obnovitelne-zdroje-etf (ZAMERNA-ROZHODNUTI.md, kolo 6). Sektor Energy podle zdroje + pojistka názvem.
+      nameExcludes: ['Clean Energy', 'New Energy', 'Renewable', 'Solar', 'Wind', 'Bioenergy', 'Energy Storage', 'Hydrogen', 'Energy Transition', 'Green'],
+      focusContains: ['Energy'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1726,7 +1805,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší ETF na obnovitelné zdroje - přehled ETF na solární, větrnou a čistou energii.',
     filters: {
       category: 'Akcie',
-      nameContains: ['Clean Energy', 'Solar', 'Wind', 'Renewable', 'Green Energy'],
+      // Kolo 6: i „New Energy“ (LYM9, NRJC), bioenergie (WDNR) a ukládání energie/vodík (STOR) – z energetického
+      // žebříčku jsou vyřazené, tady mají být.
+      nameContains: ['Clean Energy', 'Solar', 'Wind', 'Renewable', 'Green Energy', 'New Energy', 'Bioenergy', 'Energy Storage', 'Hydrogen', 'Energy Transition'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',

@@ -13,7 +13,12 @@ import {
 import { ter, pct, shortName, SectionHead } from '@/components/design-preview/CategoryUI';
 import { GuideSection, GuideCallout, GuideTermCard, GuideTOC, GuideFAQ } from '@/components/design-preview/GuideUI';
 import InfoTip from '@/components/design-preview/InfoTip';
-import { platnyTicker } from '@/lib/ticker';
+import { zobrazovanyTicker } from '@/lib/ticker';
+import { porovnejNejlevnejsi } from '@/lib/trhy';
+import { detectHedging } from '@/utils/hedgingDetection';
+import { distKind } from '@/utils/distribution';
+
+import { hodnotaVkladu, PRIKLAD_POPLATKU } from '@/lib/prikladPoplatku';
 
 export const revalidate = 86400;
 
@@ -30,19 +35,40 @@ export default async function GuidePreview() {
   const [featured, totalCount] = await Promise.all([getFeaturedETFs(), getTotalETFCount()]);
 
   const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const datumDat = await getDataDate(today);
+  const dateStr = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dataDen = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
   const year = today.getFullYear();
 
   /* ---------- Živé metriky do hero (vše z DB, nic ručně psaného) ---------- */
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
-  const lowestTerEtf = featured.lowCost[0] ?? null;
+  // Bez čísla raději „—“ než vymyšlený odhad (kolo 6: dřív tichý fallback „4 800“).
+  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '—';
+  // Nejnižší TER = STEJNÉ PRAVIDLO jako žebříček a homepage (porovnejNejlevnejsi, src/lib/trhy.ts): TER > 0,
+  // fond ≥ 100 mil. €, bez měnového zajištění, při shodě akumulační, pak větší. Kolo 6: dřív první řádek dotazu (XD9D).
+  const proPravidlo = (e: ETFBasicInfo) => ({ ter: e.ter_numeric, acc: distKind(e.distribution_policy) === 'acc', velikost: e.fund_size_numeric });
+  const levne = featured.lowCost
+    .filter((e) => e.ter_numeric != null && e.ter_numeric > 0 && (e.fund_size_numeric ?? 0) >= 100 && !detectHedging(e.name).isHedged)
+    .sort((a, b) => porovnejNejlevnejsi(proPravidlo(a), proPravidlo(b)));
+  const lowestTerEtf = levne[0] ?? null;
+  const stejnyTer = lowestTerEtf ? levne.filter((e) => e !== lowestTerEtf && e.ter_numeric === lowestTerEtf.ter_numeric).length : 0;
+  const lowestTicker = lowestTerEtf ? zobrazovanyTicker(lowestTerEtf as unknown as Record<string, unknown>) : null;
 
-  // Medián výnosu 1R v CZK z velkých fondů – obecný orientační údaj, ne tip na konkrétní fond.
+  // Medián výnosu za 1 rok v Kč z 20 největších fondů v databázi (akcie, dluhopisy, peněžní trh) – obecný
+  // orientační údaj, ne tip na konkrétní fond. Skutečný medián (u sudého počtu průměr dvou prostředních).
   const perfVals = featured.bySize
     .map((e) => e.return_1y_czk)
     .filter((v): v is number => v != null)
     .sort((a, b) => a - b);
-  const medianPerf = perfVals.length ? perfVals[Math.floor(perfVals.length / 2)] : null;
+  const medianPerf = perfVals.length
+    ? (perfVals.length % 2 ? perfVals[(perfVals.length - 1) / 2] : (perfVals[perfVals.length / 2 - 1] + perfVals[perfVals.length / 2]) / 2)
+    : null;
+
+  // Modelový příklad poplatků – počítá se, ne natvrdo (kolo 6: r/12 dávalo 5 085 000 / 4 207 000 Kč).
+  const P = PRIKLAD_POPLATKU;
+  const hodnotaLevny = hodnotaVkladu(P.mesicne, P.let, P.hrubyVynos - P.terLevny);
+  const hodnotaDrahy = hodnotaVkladu(P.mesicne, P.let, P.hrubyVynos - P.terDrahy);
+  const tisice = (v: number) => `${(Math.round(v / 1000) * 1000).toLocaleString('cs-CZ')}\u00a0Kč`;
+  const procento = (v: number) => `${(v * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}\u00a0%`;
 
   /* ---------- Tři ukázkové široké fondy pro začátečníka (živá data) ---------- */
   const pool = [...featured.bySize, ...featured.byRating, ...featured.lowCost];
@@ -278,15 +304,38 @@ export default async function GuidePreview() {
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Nejnižší TER</p>
                   <p className="text-lg font-bold tabular-nums">{ter(lowestTerEtf?.ter_numeric ?? null)}</p>
-                  <p className="text-xs text-slate-400">{platnyTicker(lowestTerEtf?.primary_ticker) ?? 'ročně'}</p>
+                  <p className="text-xs text-slate-400">{lowestTicker ?? 'ročně'}{stejnyTer > 0 ? ` a ${stejnyTer} dalších` : ''}</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Medián 1R (CZK)</p>
+                  <p className="text-xs text-slate-400">Medián výnosu za 1 rok</p>
                   <p className={`text-lg font-bold tabular-nums ${(medianPerf ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pct(medianPerf)}</p>
-                  <p className="text-xs text-slate-400">velké fondy</p>
+                  <p className="text-xs text-slate-400">v Kč, 20 největších fondů, k {dataDen}</p>
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* VE ZKRATCE – 3 kroky nahoře (kolo 6: 12 minut a 9 kapitol bez shrnutí). Fakta a odkazy, ne doporučení. */}
+        <section className="pb-7" data-sekce="ve-zkratce">
+          <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-4 md:p-5">
+            <p className="text-sm font-semibold text-slate-900">Ve zkratce: tři kroky k prvnímu ETF</p>
+            <ol className="mt-3 grid gap-2.5 md:grid-cols-3">
+              {([
+                ['1', 'Vyberte široký indexový fond', 'Třeba fond na celý svět – ukázka: VWCE (FTSE All-World).', '/etf/IE00BK5BQT80', 'Detail fondu VWCE'],
+                ['2', 'Vyberte brokera', 'Kolik zaplatíte za nákup a směnu měny při vaší částce.', '/kde-koupit', 'Kalkulačka nákladů brokerů'],
+                ['3', 'Investujte pravidelně a dlouhodobě', 'Kolik vás za desítky let stojí poplatek fondu.', '/kalkulacka', 'Kalkulačka poplatků'],
+              ] as [string, string, string, string, string][]).map(([n, t, d, href, odkaz]) => (
+                <li key={n} className="flex gap-2.5 rounded-lg bg-white border border-slate-200 p-3">
+                  <span className="flex items-center justify-center w-6 h-6 shrink-0 rounded-full bg-teal-700 text-white text-xs font-semibold">{n}</span>
+                  <span className="min-w-0 text-sm">
+                    <span className="block font-medium text-slate-900">{t}</span>
+                    <span className="block text-xs text-slate-500 mt-0.5 leading-relaxed">{d}</span>
+                    <Link href={href} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-800">{odkaz} <ArrowRight className="w-3.5 h-3.5" /></Link>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -552,27 +601,29 @@ export default async function GuidePreview() {
               <Coins className="w-4 h-4 text-teal-700 shrink-0" /> Kolik vás poplatky reálně stojí v korunách
             </p>
             <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
-              Modelový příklad: <strong className="text-slate-900">10 000 Kč měsíčně po dobu 20 let</strong> (vloženo
-              2 400 000 Kč) při shodném hrubém zhodnocení 7 % ročně. Jediný rozdíl je roční poplatek fondu.
+              Modelový příklad: <strong className="text-slate-900">{P.mesicne.toLocaleString('cs-CZ')}{'\u00a0'}Kč měsíčně po dobu {P.let} let</strong> (vloženo
+              {' '}{(P.mesicne * 12 * P.let).toLocaleString('cs-CZ')}{'\u00a0'}Kč, vždy na konci měsíce) při shodném hrubém zhodnocení {procento(P.hrubyVynos)} ročně.
+              Jediný rozdíl je roční poplatek fondu, který zhodnocení snižuje.
             </p>
             <div className="mt-4 grid sm:grid-cols-2 gap-3">
               <div className="rounded-lg border border-teal-200 bg-teal-50/50 p-4">
-                <p className="text-xs font-medium text-teal-800">Levný ETF – TER 0,2 %</p>
-                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">≈ 5 085 000 Kč</p>
+                <p className="text-xs font-medium text-teal-800">Levný ETF – TER {procento(P.terLevny)}</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900" data-priklad-levny={Math.round(hodnotaLevny)}>≈ {tisice(hodnotaLevny)}</p>
                 <p className="text-xs text-slate-500 mt-0.5">hodnota po 20 letech</p>
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-600">Aktivní fond – poplatek 1,8 %</p>
-                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">≈ 4 207 000 Kč</p>
+                <p className="text-xs font-medium text-slate-600">Aktivní fond – poplatek {procento(P.terDrahy)}</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900" data-priklad-drahy={Math.round(hodnotaDrahy)}>≈ {tisice(hodnotaDrahy)}</p>
                 <p className="text-xs text-slate-500 mt-0.5">hodnota po 20 letech</p>
               </div>
             </div>
             <p className="mt-3 text-sm text-slate-700">
-              Rozdíl jen kvůli poplatku: <strong className="text-slate-900 tabular-nums">zhruba 880 000 Kč</strong>{' '}
-              méně na účtu. Rozdíl 0,2 % vs 1,8 % ročně vypadá malý, ale za 20–30 let ukrojí značnou část výnosu.
+              Rozdíl jen kvůli poplatku: <strong className="text-slate-900 tabular-nums">zhruba {tisice(hodnotaLevny - hodnotaDrahy)}</strong>{' '}
+              méně na účtu. Rozdíl {procento(P.terLevny)} vs {procento(P.terDrahy)} ročně vypadá malý, ale za 20–30 let ukrojí značnou část výnosu.
             </p>
             <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-              Ilustrační výpočet za zjednodušených předpokladů (konstantní výnos, bez daní a poplatků brokera). Na
+              Ilustrační výpočet za zjednodušených předpokladů (konstantní výnos 7 % minus poplatek, měsíční úročení
+              odpovídající roční sazbě, bez daní a poplatků brokera). Na
               vlastní částku si dopad spočítejte v{' '}
               <Link href="/kalkulacka" className="text-teal-700 hover:underline font-medium">
                 kalkulačce poplatků ETF
@@ -611,7 +662,7 @@ export default async function GuidePreview() {
                       <Icon className="w-4 h-4" /> {role}
                     </span>
                     <p className="mt-2 font-semibold text-slate-900">{shortName(etf.name)}</p>
-                    <p className="text-xs text-slate-400">{platnyTicker(etf.primary_ticker) ?? etf.isin}</p>
+                    <p className="text-xs text-slate-400">{zobrazovanyTicker(etf as unknown as Record<string, unknown>) ?? etf.isin}</p>
                     <p className="mt-2 text-xs text-slate-500 leading-relaxed flex-1">{desc}</p>
                     <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-sm">
                       <div>
@@ -707,7 +758,7 @@ export default async function GuidePreview() {
               ['1', 'Vyberte brokera', 'Obchodníka s cennými papíry – např. DEGIRO, XTB nebo Trading 212.'],
               ['2', 'Ověření a vklad', 'Registrace, ověření totožnosti a převod peněz (obvykle 1–3 dny).'],
               ['3', 'Najděte fond podle ISIN', 'ISIN je jednoznačný kód fondu – zadáte ho do vyhledávání u brokera.'],
-              ['4', 'Nákup limitním pokynem', 'Limitní pokyn určí maximální cenu – nenaženete se vyšší, než chcete.'],
+              ['4', 'Nákup limitním pokynem', 'Limitní pokyn určí nejvyšší cenu, kterou jste ochotni zaplatit – dráž nenakoupíte.'],
             ].map(([n, t, d]) => (
               <div key={n} className="rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-7 h-7 rounded-full bg-teal-50 text-teal-700 text-sm font-semibold">{n}</span>
