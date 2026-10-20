@@ -137,7 +137,8 @@ ignoruje TER 0 % (u akcií/dluhopisů chyba zdroje, u Xetra-Gold apod. náklady 
 stříbro, bitcoin – `INDEXOVE` v nejlepsi-etf/[slug]/page.tsx) karta „Nejvýkonnější“ ZÁMĚRNĚ CHYBÍ** –
 fondy mají stejný podklad, rozdíl 1–2 p. b. je šum tříd a poplatků. Místo ní neutrální „Jak vybrat mezi
 fondy na stejný index“ (TER, velikost, Acc/Dist, kde koupit). Jinde karta ukazuje pravidlo výběru a medián;
-práh velikosti je aspoň velikost nejmenšího načteného fondu (dluhopisy: tabulka nese 300 z ~800 fondů).
+práh velikosti karet je 100 mil. € a karty se počítají z CELÉ kategorie (`getVyberKarty`, kolo 6) – ne z 300 fondů
+v tabulce.
 
 **Index fondu na žebříčku („Co v kategorii je“) = `indexFonduLabel`** (stejná funkce jako srovnávač, odvozuje
 i z názvu fondu – `index_name` je u ~3 000 fondů prázdný/useknutý). Hlídá check-fund-data: u indexových
@@ -488,3 +489,15 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   (BPUE, WLSC, SAAI…), u VALL sedí s Xetra VGLA.DE (20. 8. → 16. 10. +2,4 %, zdroj +2,1 % od 18. 8.).
 - **W‑8BEN FAQ a věta o irské smlouvě s USA (15 % místo 30 %) jen u akciových fondů s americkými akciemi** (USA ≥ 5 % ve složení).
 - Hlídá `scripts/check-fund-data.mjs`, blok `kolo6 detail`.
+
+- **Sektorové žebříčky podle sektoru zdroje, ne jen podle názvu (kolo 6):** finanční = `investment_focus` Financials/Insurance
+  („UmweltBank“ má „Bank“ jen ve jménu), energetické = Energy (proto tam není ani uranový NCLR – ten má zaměření jen
+  „Equity, World“), zlato = Precious Metals (bez koše Bitcoin+Gold a opčního Gold+ Yield). Dividendové = jen fondy
+  vybírající dividendové akcie; opční „Premium/High/Option Income“, multi-asset „Portfolio Income“ a XUKX (FTSE 100,
+  „Income“ = třída) sem NEpatří. Peněžní trh (investment_focus „Money Market“) není v akciových ani dluhopisových
+  žebříčcích (stejně jako srovnávač). Hlídá check-fund-data.mjs (kolo6 zebricky).
+- **Dluhopisové žebříčky ukazují v „Co v kategorii je“ SKUPINY indexů** (státní USA, státní eurozóna, firemní EUR…,
+  `RODINY_DLUHOPISU` v indexDescriptions.ts), ne jednotlivé indexy – ty se tříští na desítky variant splatnosti a
+  poskytovatele („Euro Government 2 z 259“). „Patří sem X z 300 největších fondů“ je správně.
+- **Monogram „21“ u 21Shares** (ne „2“) a ticker s burzou („GOLD (Amsterdam)“ / „GOLD (Stuttgart)“), když stejný
+  ticker mají v jednom žebříčku dva různé fondy – záměr.

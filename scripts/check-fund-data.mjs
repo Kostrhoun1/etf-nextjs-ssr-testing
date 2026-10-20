@@ -1131,6 +1131,181 @@ const main = async () => {
   }
   // --- /kolo5 C ---
 
+  // --- kolo6 zebricky --- (revize 20. 10. 2026: žebříčky a články /pruvodce, /jak-zacit, /dane-z-etf; pravidlo č. 1, bod 4)
+  {
+    const hlav = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const html = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return r.ok ? (await r.text()).replace(/<!-- -->/g, '') : ''; } catch { return ''; } };
+    const isinyZPayloadu = (t) => new Set([...t.matchAll(/isin\\":\\"([A-Z]{2}[A-Z0-9]{10})/g)].map((m) => m[1]));
+    const db = async (isiny, sloupce = 'isin,name,investment_focus,fund_size_numeric,scraping_date') => {
+      const out = [];
+      for (let i = 0; i < isiny.length; i += 150) {
+        const r = await fetch(`${URL_DB}?select=${sloupce}&isin=in.(${isiny.slice(i, i + 150).join(',')})`, hlav);
+        if (!r.ok) throw new Error(`Supabase HTTP ${r.status}`);
+        out.push(...(await r.json()));
+      }
+      return out;
+    };
+    const sekce = (t, jmeno) => t.match(new RegExp(`data-sekce="${jmeno}"[\\s\\S]*?</section>`))?.[0] ?? '';
+    const ZAJ = /[Hh]edg|(^|[\s-])h(EUR|USD|GBP|CHF|JPY)\b/;
+    const ZEBRICKY = ['nejlepsi-etf-2026', 'nejlepsi-evropske-etf', 'nejlepsi-dividendove-etf', 'nejlepsi-realitni-etf', 'nejlepsi-dluhopisove-etf',
+      'nejlepsi-vladni-dluhopisy-etf', 'nejlepsi-akciove-etf', 'nejlepsi-zlato-etf', 'nejlepsi-bitcoin-etf', 'nejlepsi-emerging-markets-etf',
+      'nejlepsi-energeticke-etf', 'nejlepsi-financni-etf', 'nejlepsi-sp500-etf', 'nejlepsi-obnovitelne-zdroje-etf'];
+    const stranky = new Map();
+    for (const slug of ZEBRICKY) stranky.set(slug, await html(`/nejlepsi-etf/${slug}`));
+
+    // 1) CIZÍ FONDY V KATEGORIÍCH. Revize našla: XUKX (obyčejný FTSE 100, „Income“ = třída) a opční „Premium Income“
+    //    v dividendových, fondy peněžního trhu v akciových, UmweltBank SDG ve finančních, koš Bitcoin+Gold v zlatě
+    //    i bitcoinu, čistou energii v energetických. Pravidla: nameExcludes/focusContains v src/lib/etf-data.ts.
+    try {
+      const PRAVIDLA = {
+        'nejlepsi-dividendove-etf': (f) => /Premium Income|High Income|Option Income|Options|Covered Call|Put Write|Target Income|Enhanced Income|Portfolio Income|FTSE 100 UCITS ETF Income/i.test(f.name) || /Covered Call|Put Write/i.test(f.investment_focus ?? ''),
+        'nejlepsi-akciove-etf': (f) => /^Money Market/i.test(f.investment_focus ?? ''),
+        'nejlepsi-dluhopisove-etf': (f) => /^Money Market/i.test(f.investment_focus ?? ''),
+        'nejlepsi-financni-etf': (f) => !/Financials|Insurance/i.test(f.investment_focus ?? ''),
+        'nejlepsi-zlato-etf': (f) => /Bitcoin|Yield/i.test(f.name) || !/Precious Metals/i.test(f.investment_focus ?? ''),
+        'nejlepsi-bitcoin-etf': (f) => /Gold|Ethereum|Basket/i.test(f.name),
+        'nejlepsi-energeticke-etf': (f) => /Clean Energy|New Energy|Renewable|Solar|Wind|Bioenergy|Energy Storage|Hydrogen/i.test(f.name) || !/Energy/i.test(f.investment_focus ?? ''),
+      };
+      const cizi = [];
+      for (const [slug, nesmi] of Object.entries(PRAVIDLA)) {
+        const isiny = [...isinyZPayloadu(stranky.get(slug))];
+        if (!isiny.length) { cizi.push(`${slug}: stránka se nenačetla`); continue; }
+        for (const f of (await db(isiny)).filter(nesmi)) cizi.push(`${slug}: ${f.isin} ${String(f.name).slice(0, 45)} (${f.investment_focus})`);
+      }
+      // Čistá energie vyřazená z energetických musí být v obnovitelných (když je čerstvá a nad 50 mil. €).
+      const obn = isinyZPayloadu(stranky.get('nejlepsi-obnovitelne-zdroje-etf'));
+      const MUSI_OBN = ['IE00B1XNHC34', 'FR0010524777', 'IE00BK5BCH80', 'IE000U58J0M1'];
+      for (const f of (await db(MUSI_OBN)).filter((x) => x.fund_size_numeric >= 50 && dni(x) <= 14 && !obn.has(x.isin))) cizi.push(`obnovitelné zdroje: chybí ${f.isin} ${String(f.name).slice(0, 45)}`);
+      if (cizi.length) poplach.push({ co: `Žebříčky obsahují fondy, které do kategorie nepatří (${cizi.length}) – etf-data.ts nameExcludes/focusContains`, ukazka: cizi.slice(0, 8) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu cizích fondů v žebříčcích (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 2) KARTY „VYBRANÉ PODLE DAT“: „Nejvýkonnější“ nesmí být na indexových a širokých smíšených žebříčcích (ZAMERNA),
+    //    práh v kartách je vždy 100 mil. € (dřív „mezi fondy nad 2 289 mil. €“ – karty z 300 načtených fondů),
+    //    u finančních nesmí zmizet třetí výběr, když nejvýkonnější = největší.
+    try {
+      const chyby = [];
+      const BEZ = ['nejlepsi-etf-2026', 'nejlepsi-akciove-etf', 'nejlepsi-dluhopisove-etf', 'nejlepsi-sp500-etf', 'nejlepsi-zlato-etf', 'nejlepsi-bitcoin-etf'];
+      for (const slug of ZEBRICKY) {
+        const v = sekce(stranky.get(slug), 'vybrane');
+        if (!v) { chyby.push(`${slug}: chybí sekce Vybrané podle dat`); continue; }
+        if (BEZ.includes(slug) && /Nejvýkonnější|nejvýkonnější/.test(v)) chyby.push(`${slug}: karta „Nejvýkonnější“`);
+        const prahy = [...v.matchAll(/nad ([\d\s ]+)(?:\s| |&nbsp;)mil/g)].map((m) => Number(m[1].replace(/\D/g, ''))).filter((x) => x !== 100);
+        if (prahy.length) chyby.push(`${slug}: práh v kartách ${prahy[0]} mil. € (má být 100)`);
+        if (/s nejdelší historií/.test(stranky.get(slug))) chyby.push(`${slug}: slib „s nejdelší historií“`);
+      }
+      if (!/nejvýkonnější/i.test(sekce(stranky.get('nejlepsi-financni-etf'), 'vybrane'))) chyby.push('nejlepsi-financni-etf: chybí výběr nejvýkonnějšího (i když je to největší fond)');
+      if (chyby.length) poplach.push({ co: `Karty „Vybrané podle dat“ na žebříčcích (${chyby.length})`, ukazka: chyby.slice(0, 8) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu karet žebříčků (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 3) NEJLEVNĚJŠÍ FOND – nezávislý přepočet z DB (pravidlo: TER > 0, ≥ 100 mil. €, čerstvý, bez páky a zajištění,
+    //    nejnižší TER → akumulační → větší). Musí sedět karta na nejlepsi-etf-2026 i dlaždice na /pruvodce
+    //    (tam dřív XD9D – první řádek dotazu – místo SPYL).
+    try {
+      const od = new Date(Date.now() - 14 * 864e5).toISOString();
+      const r = await fetch(`${URL_DB}?select=isin,name,ter_numeric,fund_size_numeric,distribution_policy,primary_ticker&ter_numeric=gt.0&fund_size_numeric=gte.100&scraping_date=gte.${od}&is_leveraged=not.is.true&name=not.is.null&order=ter_numeric.asc&limit=200`, hlav).then((x) => x.json());
+      const zaj = (n) => ZAJ.test(n) && !/unhedged|not hedged/i.test(n); // „USD Unhedged (Acc)“ = nezajištěná (SPYL)
+      const bez = r.filter((f) => !zaj(f.name));
+      const kand = bez.filter((f) => f.ter_numeric === bez[0]?.ter_numeric);
+      kand.sort((a, b) => Number(/^acc/i.test(b.distribution_policy ?? '')) - Number(/^acc/i.test(a.distribution_policy ?? '')) || b.fund_size_numeric - a.fund_size_numeric);
+      const vitez = kand[0];
+      const chyby = [];
+      const v = sekce(stranky.get('nejlepsi-etf-2026'), 'vybrane');
+      const karty = v.split(/href="\/etf\//).slice(1).map((k) => ({ isin: k.slice(0, 12), text: k }));
+      const levnaKarta = karty.find((k) => /Nejnižší poplatek|Nejlevnější/.test(k.text));
+      if (!levnaKarta) chyby.push('nejlepsi-etf-2026: karta Nejnižší poplatek chybí');
+      else if (vitez && levnaKarta.isin !== vitez.isin) chyby.push(`nejlepsi-etf-2026: karta ${levnaKarta.isin}, podle pravidla ${vitez.isin} (${vitez.primary_ticker})`);
+      const pr = (await html('/pruvodce')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+      const dlazdice = pr.match(/Nejnižší TER\s+([\d,]+)\s*%\s+(\S+)/);
+      if (!dlazdice) chyby.push('/pruvodce: dlaždice Nejnižší TER nenalezena');
+      else if (vitez && dlazdice[2] !== vitez.primary_ticker) chyby.push(`/pruvodce: Nejnižší TER ukazuje ${dlazdice[2]}, podle pravidla ${vitez.primary_ticker}`);
+      if (chyby.length) poplach.push({ co: 'Nejlevnější fond nesedí s jednotným pravidlem (porovnejNejlevnejsi)', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu nejlevnějšího fondu (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 4) TICKER V ŽEBŘÍČKU JEDNOZNAČNÝ: „GOLD“ měly Amundi Physical Gold i EUWAX Gold. Stejný ticker u dvou ISIN = ukázat burzu.
+    try {
+      const dup = [];
+      for (const slug of ZEBRICKY) {
+        const pary = [...stranky.get(slug).matchAll(/isin\\":\\"([A-Z]{2}[A-Z0-9]{10})\\",\\"nazev\\":\\"(?:[^"\\]|\\.)*?\\",\\"ticker\\":\\"([^"\\]+)\\"/g)];
+        const podle = new Map();
+        for (const [, isin, tk] of pary) { if (!podle.has(tk)) podle.set(tk, new Set()); podle.get(tk).add(isin); }
+        for (const [tk, is] of podle) if (is.size > 1) dup.push(`${slug}: ${tk} = ${[...is].join(', ')}`);
+        if (!pary.length && stranky.get(slug)) dup.push(`${slug}: v datech tabulky nenalezen ticker (změnil se tvar dat?)`);
+      }
+      if (dup.length) poplach.push({ co: 'Stejný ticker u různých fondů v jednom žebříčku (připojit burzu)', ukazka: dup.slice(0, 6) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu duplicitních tickerů (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 5) AKCIOVÉ: počet žebříčku vs. srovnávač kat=Akcie&minvel=50. Srovnávač bere fondy do 30 dní stáří, žebříček
+    //    do 14 → přesná shoda nejde; hlídá se odkaz s prahem a rozdíl nad 2 %. Peněžní trh je mimo obojí (bod 1).
+    try {
+      const t = stranky.get('nejlepsi-akciove-etf');
+      const pocet = Number(t.match(/data-pocet-fondu="(\d+)"/)?.[1] ?? NaN);
+      const chyby = [];
+      if (!/href="\/srovnani\?kat=Akcie&amp;minvel=50"/.test(t)) chyby.push('odkaz do srovnávače nemá kat=Akcie&minvel=50');
+      const od30 = new Date(Date.now() - 30 * 864e5).toISOString();
+      const r = await fetch(`${URL_DB}?select=isin&category=eq.Akcie&fund_size_numeric=gte.50&scraping_date=gte.${od30}&is_leveraged=not.is.true&name=not.is.null&or=(investment_focus.is.null,investment_focus.not.ilike.Money%20Market*)`, { headers: { ...hlav.headers, Prefer: 'count=exact', Range: '0-0' } });
+      const srov = Number(r.headers.get('content-range')?.split('/')[1] ?? NaN);
+      if (Number.isFinite(pocet) && Number.isFinite(srov) && Math.abs(srov - pocet) / srov > 0.02) chyby.push(`žebříček ${pocet}, srovnávač ~${srov}`);
+      if (chyby.length) poplach.push({ co: 'Akciové ETF: počet žebříčku nesedí s odkazem do srovnávače', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu počtu akciových fondů (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 6) DLUHOPISY „CO V KATEGORII JE“ po rodinách indexů: dřív „Euro Government 2 z 259“ a chyběly státní dluhopisy USA.
+    try {
+      const chyby = [];
+      for (const [slug, musi] of [['nejlepsi-dluhopisove-etf', ['Státní dluhopisy USA', 'Státní dluhopisy eurozóny']], ['nejlepsi-vladni-dluhopisy-etf', ['Státní dluhopisy USA', 'Státní dluhopisy eurozóny']]]) {
+        const s = sekce(stranky.get(slug), 'slozeni');
+        for (const m of musi) if (!s.includes(m)) chyby.push(`${slug}: chybí „${m}“`);
+        const karty = [...s.matchAll(/data-index-pocet="(\d+)" data-index-celkem="(\d+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
+        const suma = karty.reduce((a, [n]) => a + n, 0);
+        if (karty.length && suma / karty[0][1] < 0.4) chyby.push(`${slug}: skupiny pokrývají jen ${suma} z ${karty[0][1]} fondů`);
+      }
+      if (chyby.length) poplach.push({ co: 'Dluhopisové žebříčky: skupiny indexů nesedí (indexDescriptions.ts, RODINY_DLUHOPISU)', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu skupin dluhopisových indexů (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 7) /pruvodce – MODELOVÝ PŘÍKLAD POPLATKŮ: nezávislý přepočet (vklad na konci měsíce, efektivní měsíční sazba
+    //    (1+r)^(1/12)−1, 10 000 Kč, 20 let, 7 % − TER). Dřív r/12 → 5 085 000 / 4 207 000 Kč místo ≈ 4 962 000 / 4 149 000.
+    try {
+      const t = await html('/pruvodce');
+      const levny = Number(t.match(/data-priklad-levny="(\d+)"/)?.[1] ?? NaN);
+      const drahy = Number(t.match(/data-priklad-drahy="(\d+)"/)?.[1] ?? NaN);
+      const fv = (r) => { const m = (1 + r) ** (1 / 12) - 1; return 10000 * (((1 + m) ** 240 - 1) / m); };
+      const chyby = [];
+      if (!Number.isFinite(levny) || Math.abs(levny - fv(0.068)) > 2) chyby.push(`levný fond: stránka ${levny}, přepočet ${Math.round(fv(0.068))}`);
+      if (!Number.isFinite(drahy) || Math.abs(drahy - fv(0.052)) > 2) chyby.push(`drahý fond: stránka ${drahy}, přepočet ${Math.round(fv(0.052))}`);
+      if (chyby.length) poplach.push({ co: '/pruvodce: modelový příklad poplatků nesedí s nezávislým přepočtem', ukazka: chyby });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu příkladu poplatků (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // 8) TEXTY V KÓDU: DIP jednotně „nejméně 120 měsíců a výběr nejdříve v 60 letech“ (dřív i „zpravidla do 60 let“),
+    //    žádný tichý fallback počtu fondů na /pruvodce, bez „spotřebitelské půjčky“ (redakční hranice).
+    try {
+      const chyby = [];
+      const projdi = (d, out = []) => { for (const f of readdirSync(d)) { const p = `${d}/${f}`; if (statSync(p).isDirectory()) projdi(p, out); else if (/\.(tsx?|mjs)$/.test(f)) out.push(p); } return out; };
+      for (const p of projdi('src')) {
+        const k = readFileSync(p, 'utf8');
+        if (/zpravidla do 60 let|alespoň 10 let a (zpravidla )?do 60|zpravidla alespoň/.test(k)) chyby.push(`${p}: DIP popsaný jinak než „120 měsíců a výběr nejdříve v 60 letech“`);
+        if (/spotřebitelsk\w* půjčk/.test(k)) chyby.push(`${p}: zmínka o spotřebitelské půjčce`);
+      }
+      if (/totalCount\.toLocaleString\('cs-CZ'\) : '\d/.test(readFileSync('src/app/pruvodce/page.tsx', 'utf8'))) chyby.push('src/app/pruvodce/page.tsx: tichý fallback počtu fondů');
+      if (chyby.length) poplach.push({ co: 'Texty článků: DIP / tichý fallback / redakční hranice', ukazka: chyby.slice(0, 6) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu textů článků (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+  }
+  // --- konec kolo6 zebricky ---
+
   // --- middleware a indexace (20. 10. 2026) ---
   // Middleware běží jen na /etf/*, /srovnani/*, /srovnani-etf (šetří CPU free tieru); noindex pro jiné domény
   // než etfpruvodce.cz je v next.config.ts (headers, missing host). Hlídáme obě strany: ostrá doména NESMÍ mít

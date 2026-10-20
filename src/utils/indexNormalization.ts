@@ -169,8 +169,14 @@ const POSKYTOVATEL_INDEXU = /^(msci|s&p|ftse|stoxx|euro stoxx|euro istoxx|istoxx
 /** Čistý zápis indexu k zobrazení: bez metadat třídy, ®/™, „ex-“ = „ex “, bez koncového „Swap/SF/Index/NR/TR/II“. */
 function cistyZapis(raw?: string | null): string {
   let s = normalizeIndexName(raw).replace(/[®™]/g, '').replace(/\bex-/gi, 'ex ')
+    // Kolo 6 (20. 10. 2026): scraper teď ukládá plné názvy indexů – „S&P 500® (EUR Hedged)“,
+    // „MSCI All Country World (ACWI)“, „MSCI All Country World Investable Market (ACWI IMI)“. Měnové zajištění
+    // třídy ani zkratka v závorce nejsou jiný index (jinak žebříček poznal index jen u 5 z 25 celosvětových fondů).
+    .replace(/\s*\((?:[A-Z]{3}\s+)?hedged\)\s*$/i, '')
+    .replace(/\bMSCI All Country World Investable Market\b/gi, 'MSCI ACWI IMI')
     // „MSCI All Country World X“ = „MSCI AC World X“ = „MSCI ACWI X“ (jeden index, tři zápisy)
-    .replace(/\bMSCI (All Country World|AC World)\b/gi, 'MSCI ACWI');
+    .replace(/\bMSCI (All Country World|AC World)\b/gi, 'MSCI ACWI')
+    .replace(/\s*\((?:ACWI(?: IMI)?|IMI)\)\s*$/i, '');
   // „Xtrackers“ na konci = jméno emitenta přilepené ke kódu indexu (SCWX: „MSCI AC World Xtrackers“), ne jiný index.
   for (let i = 0; i < 3; i++) s = s.replace(/\s+(swap|sf|index|nr|tr|ii|net total return|net return|total return|xtrackers)$/i, '');
   return s.replace(/\s+/g, ' ').trim();

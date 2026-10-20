@@ -465,7 +465,7 @@ export const categoryContent: Record<string, CategoryContent> = {
     ]
   },
   "nejlepsi-dividendove-etf": {
-    "introTitle": "Dividendové ETF: pravidelný příjem z akcií v jednom fondu",
+    "introTitle": "Dividendové ETF: vyplácené dividendy z akcií v jednom fondu (bez záruky výše)",
     "intro": [
       "Dividendové ETF vybírají akcie firem s nadprůměrnou nebo dlouhodobě rostoucí dividendou a dividendy vyplácejí investorům, často čtvrtletně. Fondy se dělí zhruba na dvě skupiny. High-yield fondy, například Vanguard FTSE All-World High Dividend Yield (IE00B8GKDB10) nebo VanEck Morningstar Developed Markets Dividend Leaders (NL0011683594), vybírají akcie s vysokým aktuálním dividendovým výnosem. Strategie Dividend Aristocrats, například SPDR S&P US Dividend Aristocrats (IE00B6YX5D40), vybírají firmy, které dividendu zvyšují mnoho let po sobě – u tohoto fondu nejméně 20 let v řadě.",
       "Fondy se obchodují na evropských burzách, většinou v EUR nebo USD. Dividendy přicházejí v měně fondu, takže jejich hodnota přepočtená do korun kolísá s kurzem.",
@@ -1487,7 +1487,7 @@ export const categoryContent: Record<string, CategoryContent> = {
         "a": "Jeden globální fond (např. na FTSE All-World nebo MSCI ACWI) obsahuje vyspělé i rozvíjející se trhy v tržním poměru. Kombinace více fondů (např. S&P 500 a samostatné rozvíjející se trhy) umožňuje řídit váhy regionů, ale vyžaduje rebalancování. Více fondů neznamená automaticky vyšší diverzifikaci, pokud se jejich složení překrývá."
       },
       {
-        "q": "Proč se doporučují právě irské (Acc) fondy?",
+        "q": "Proč jsou mezi českými investory rozšířené irské (Acc) fondy?",
         "a": "Irský domicil snižuje srážkovou daň z amerických dividend uvnitř fondu z 30 % na 15 %. Akumulační varianta (Acc) dividendy reinvestuje uvnitř fondu, takže se v průběhu držení nevyplácejí ani nedaní. Proto jsou irské akumulační třídy mezi českými investory rozšířené."
       },
       {
@@ -1615,7 +1615,7 @@ export const categoryContent: Record<string, CategoryContent> = {
       "Extrémní volatilita: bitcoin běžně kolísá o desítky procent během měsíců a propady o více než 70 % od vrcholu se opakovaly (např. 2018 a 2022). Výnos za jeden rok o dalším vývoji mnoho neříká.",
       "Riziko emitenta a custodiana: ETP je dluhový cenný papír, ne fond s odděleným majetkem jako UCITS ETF. I u fyzicky krytých produktů nesete riziko emitenta a správce úschovy; syntetické konstrukce mají riziko vyšší.",
       "Měnové riziko vůči koruně: bitcoin se oceňuje v dolarech a produkty se obchodují v EUR nebo USD. Výnos v korunách proto vždy ovlivňuje i kurz koruny.",
-      "Daňová nejistota: bitcoin ETP je dluhový cenný papír, ne podíl ve fondu. Jak se na něj uplatní časový test a hodnotový limit, se může lišit podle typu produktu a výkladu; analogie s akciovými ETF nemusí platit."
+      "Daňový režim: bitcoin ETP je dluhový cenný papír, ne přímo držený bitcoin. Osvobození pro cenné papíry (časový a hodnotový test) se na něj podle běžného výkladu vztahuje stejně jako u zlatých ETC; přímo držené kryptoměny se posuzují podle jiných ustanovení. U konkrétního produktu ověřte u daňového poradce."
     ],
     "faqs": [
       {
@@ -1632,7 +1632,7 @@ export const categoryContent: Record<string, CategoryContent> = {
       },
       {
         "q": "Jak se v ČR daní zisk z bitcoin ETP?",
-        "a": "Bitcoin ETP je dluhový cenný papír, ne podíl ve fondu jako akciová ETF. Jak se na něj vztahuje tříletý časový test a hodnotový limit 100 000 Kč ročně, se může lišit podle typu produktu a výkladu. Aktuální pravidla shrnuje náš daňový přehled; konkrétní situaci je dobré ověřit u daňového poradce."
+        "a": "Bitcoin ETP je dluhový cenný papír (ne podíl ve fondu a ne přímo držený bitcoin). Zákon o daních z příjmů osvobozuje příjem z prodeje cenného papíru po více než 3 letech držby (časový test) a příjmy z prodeje cenných papírů do 100 000 Kč za rok (hodnotový test) – podle běžného výkladu tedy i u ETC a ETP. Nejde o daňové poradenství; u konkrétního produktu si to ověřte u daňového poradce. Přímo držené kryptoměny se posuzují podle jiných ustanovení."
       },
       {
         "q": "Mám raději koupit bitcoin ETP, nebo bitcoin přímo na burze?",
@@ -2129,7 +2129,7 @@ export const categoryContent: Record<string, CategoryContent> = {
       },
       {
         "q": "Jak se v Česku daní zisk ze zlatého ETC?",
-        "a": "ETC je cenný papír, proto pro zisk z prodeje platí stejné osvobození jako u ETF: držba déle než 3 roky (časový test), nebo příjem z prodejů cenných papírů do 100 000 Kč za rok. Nejde o daňové poradenství – v nejasných případech se obraťte na daňového poradce."
+        "a": "Zlaté ETC je dluhový cenný papír (ne podíl ve fondu). Zákon o daních z příjmů osvobozuje příjem z prodeje cenného papíru po více než 3 letech držby (časový test) a příjmy z prodeje cenných papírů do 100 000 Kč za rok (hodnotový test) – podle běžného výkladu tedy i u ETC a ETP. Nejde o daňové poradenství; u konkrétního produktu si to ověřte u daňového poradce."
       },
       {
         "q": "Proč se výnosy různých zlatých ETC liší?",
@@ -2158,12 +2158,12 @@ export const categoryContent: Record<string, CategoryContent> = {
       "Vysoká volatilita: kvůli velké průmyslové složce poptávky je stříbro kolísavější než zlato a v korekcích padá hlouběji a rychleji.",
       "Měnové riziko: stříbro se kotuje v USD, takže i při růstu ceny kovu můžete v korunách vydělat méně nebo prodělat. Třídy zajištěné do eura řeší jen kurz USD/EUR, ne pohyb koruny.",
       "Struktura produktu: ETC je dluhový cenný papír krytý kovem, ne fond UCITS. Pákové (např. 3SIL, LSIL) a short produkty (SSIL, 3SSI) se kvůli dennímu přepočtu chovají při delším držení jinak než cena stříbra.",
-      "Daňový režim: ETC je dluhový nástroj krytý komoditou, takže časový a hodnotový test se na něj nemusí uplatnit stejně jako u podílů ve fondech. Režim se může lišit podle konkrétního produktu."
+      "Daňový režim: ETC je dluhový cenný papír krytý komoditou, ne podíl ve fondu. Osvobození pro cenné papíry (časový a hodnotový test) se na něj podle běžného výkladu vztahuje stejně jako u zlatých ETC a bitcoinových ETP; u konkrétního produktu ověřte u daňového poradce."
     ],
     "faqs": [
       {
         "q": "Je stříbrné ETF vlastně ETF, nebo ETC?",
-        "a": "Téměř vždy jde technicky o ETC (Exchange Traded Commodity), nikoli o klasický fondový ETF. ETC je dluhový cenný papír krytý fyzickým stříbrem v trezoru. Obchoduje se stejně snadno jako akcie či ETF přes burzu, liší se ale právní strukturou a v některých případech i daňovým režimem."
+        "a": "Téměř vždy jde technicky o ETC (Exchange Traded Commodity), nikoli o klasický fondový ETF. ETC je dluhový cenný papír krytý fyzickým stříbrem v trezoru. Obchoduje se stejně snadno jako akcie či ETF přes burzu, liší se ale právní strukturou (riziko emitenta)."
       },
       {
         "q": "Proč zvolit stříbro místo zlata, nebo vedle něj?",
@@ -2183,7 +2183,7 @@ export const categoryContent: Record<string, CategoryContent> = {
       },
       {
         "q": "Jak se v Česku daní zisk ze stříbrného ETC?",
-        "a": "Protože ETC je dluhový cenný papír krytý komoditou, nikoli klasický fondový ETF, nemusí se na něj časový test (držení nad 3 roky) a hodnotový test (úhrn prodejů do 100 000 Kč ročně) vztahovat stejně jako u běžných akciových či dluhopisových ETF. Režim se může lišit podle konkrétního produktu. Aktuální stav shrnuje náš daňový přehled; konkrétní situaci je dobré ověřit u daňového poradce."
+        "a": "Stříbrné ETC je dluhový cenný papír krytý kovem (ne podíl ve fondu). Zákon o daních z příjmů osvobozuje příjem z prodeje cenného papíru po více než 3 letech držby (časový test) a příjmy z prodeje cenných papírů do 100 000 Kč za rok (hodnotový test) – podle běžného výkladu tedy i u ETC a ETP. Nejde o daňové poradenství; u konkrétního produktu si to ověřte u daňového poradce."
       }
     ]
   },
@@ -2252,6 +2252,12 @@ export const categoryLead: Record<string, string> = {
   'nejlepsi-ftse100-etf': '100 největších firem z londýnské burzy.',
   'nejlepsi-americke-etf': 'Akcie amerických firem – S&P 500, MSCI USA a další americké indexy.',
   'nejlepsi-bitcoin-etf': 'Burzovně obchodované produkty (ETP/ETN) sledující cenu bitcoinu – v Evropě nejde o klasické UCITS fondy.',
+  // Kolo 6 (20. 10. 2026): obecné „Top … ETF fondy“ nahrazeny konkrétním popisem. Jen fakta, bez doporučení.
+  'nejlepsi-dividendove-etf': 'Akciové fondy, které vybírají firmy s vyšší dividendou a vyplácejí ji (distribuční třídy). Výše výplat se mění – dividenda není zaručená. Opční strategie („Premium Income“) sem nepočítáme.',
+  'nejlepsi-realitni-etf': 'Akcie realitních firem a REITs (nájemní byty, kanceláře, sklady) – ne přímo nemovitosti. Ceny kolísají jako akcie a citlivě reagují na sazby.',
+  'nejlepsi-vladni-dluhopisy-etf': 'Dluhopisy států – USA, eurozóny, Británie, Japonska i rozvíjejících se zemí. Čím delší splatnost, tím víc cena reaguje na změnu sazeb.',
+  'nejlepsi-energeticke-etf': 'Tradiční energetický sektor – firmy kolem ropy a zemního plynu. Čistá energie má vlastní žebříček obnovitelných zdrojů.',
+  'nejlepsi-financni-etf': 'Akcie bank, pojišťoven a dalších finančních firem – celý sektor v USA, Evropě nebo ve světě, případně jen banky či jen pojišťovny.',
 };
 
 export function getCategoryContent(slug: string): CategoryContent | null {

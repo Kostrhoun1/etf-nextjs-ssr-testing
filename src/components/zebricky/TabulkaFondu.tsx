@@ -136,11 +136,20 @@ export default function TabulkaFondu({
     mer('zalozka', { s: 'tabulka', c: k });
   };
 
-  // Nadpis = počet ZOBRAZENÝCH fondů a jednou větou proč ne všech (srozumitelněji než „35 z 58 fondů“ – Markéta, kolo 4).
+  // Kolo 6: počty JEDNOU větou („Ukazujeme 300 největších z 2 256 fondů nad 100 mil. €, bez 13 měnově zajištěných
+  // tříd“) – dřív nadpis „287 fondů bez měnového zajištění“ + druhý řádek „300 největších z 2 256…“.
   const castecne = celkem > radky.length;
   const zajisteneVTypu = radky.filter((r) => r.zajisteni && (typ === 'vse' || r.typ === typ)).length;
   const skrytoZajistenych = bezZajisteni ? zajisteneVTypu : 0;
-  const nadpis = `${n0(vyber.length)} ${typSlovo(typ, vyber.length)}${fondu(vyber.length)}${skrytoZajistenych > 0 ? ' bez měnového zajištění' : ''}`;
+  const nadpis = 'Fondy v žebříčku';
+  const zCeho = castecne
+    ? `${n0(radky.length)} největších z ${n0(celkem)} fondů${prah ? ` nad ${prah}${NB}mil.${NB}€` : ''}`
+    : `${n0(celkem)} ${celkem === 1 ? 'fondu' : 'fondů'}`;
+  const veta = castecne
+    ? (typ === 'vse' ? `Ukazujeme ${zCeho}` : `Ukazujeme ${n0(vyber.length)} ${typSlovo(typ, vyber.length)}z ${zCeho}`)
+    : typ === 'vse' && skrytoZajistenych === 0
+      ? `Ukazujeme ${celkem === 1 ? 'jediný fond' : `všech ${n0(celkem)} ${fondu(celkem)}`}`
+      : `Ukazujeme ${n0(vyber.length)} ${typSlovo(typ, vyber.length)}z ${zCeho}`;
 
   const zobrazene = vyber.slice(0, pocet);
   const zbyva = vyber.length - zobrazene.length;
@@ -167,35 +176,31 @@ export default function TabulkaFondu({
   return (
     <div>
       <h2 id={nadpisId} className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">{nadpis}</h2>
-      <p className="mt-1 mb-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-500">
-        {castecne && (
-          <span>{n0(radky.length)} největších z {n0(celkem)} fondů{prah ? ` nad ${prah}${NB}mil.${NB}€` : ''}<span aria-hidden> ·</span></span>
-        )}
-        {zajisteneVTypu > 0 && (bezZajisteni ? (
-          <button type="button" onClick={() => zmenZajisteni(false)} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">
-            Zobrazit i {n0(zajisteneVTypu)} {zajisteneVTypu === 1 ? 'zajištěný' : zajisteneVTypu <= 4 ? 'zajištěné' : 'zajištěných'}
-          </button>
-        ) : (
-          <>
-            <span>včetně {n0(zajisteneVTypu)} měnově {zajisteneVTypu === 1 ? 'zajištěného' : 'zajištěných'} ·</span>
-            <button type="button" onClick={() => zmenZajisteni(true)} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Skrýt zajištěné</button>
-          </>
-        ))}
-        {zajisteneVTypu > 0 && <InfoTip label={TIP_ZAJISTENI}>{null}</InfoTip>}
+      <p className="mt-1 mb-3 text-sm text-slate-500 leading-relaxed" data-veta-pocty>
+        {veta}
+        {zajisteneVTypu > 0 ? (bezZajisteni
+          ? <>, bez {n0(skrytoZajistenych)}{NB}měnově {skrytoZajistenych === 1 ? 'zajištěné třídy' : 'zajištěných tříd'}{' '}
+              <InfoTip label={TIP_ZAJISTENI}>{null}</InfoTip>{' · '}
+              <button type="button" onClick={() => zmenZajisteni(false)} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">zobrazit je</button></>
+          : <>, včetně {n0(zajisteneVTypu)}{NB}měnově {zajisteneVTypu === 1 ? 'zajištěné třídy' : 'zajištěných tříd'}{' '}
+              <InfoTip label={TIP_ZAJISTENI}>{null}</InfoTip>{' · '}
+              <button type="button" onClick={() => zmenZajisteni(true)} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">skrýt je</button></>)
+          : '.'}
       </p>
 
       {/* Ovládání: řazení, typ, měna – jedna výška, jeden aktivní styl */}
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <Prepinac label="Řazení fondů" mrizka hodnota={klic} onChange={(k) => radit(k)}
           moznosti={RAZENI.map((r) => [r.id, r.label, r.mobil] as const)} />
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Mobil: druhá řada přes celou šířku (kolo 6: nerovný pravý okraj vůči řazení nad ní). */}
+        <div className={`grid gap-2 sm:flex sm:flex-wrap sm:items-center ${maOba ? 'grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : 'grid-cols-1'}`}>
           {maOba && (
-            <Prepinac label="Typ fondu" hodnota={typ} onChange={(t) => { setTyp(t); setPocet(KROK); }}
+            <Prepinac label="Typ fondu" mrizka hodnota={typ} onChange={(t) => { setTyp(t); setPocet(KROK); }}
               moznosti={[['vse', 'Vše'], ['acc', 'Akumulační', 'Akum.'], ['dist', 'Distribuční', 'Dist.']] as const} />
           )}
-          <span className="inline-flex items-center gap-2">
+          <span className="flex min-w-0 items-center gap-2 sm:inline-flex">
             <span className="hidden sm:inline text-xs font-medium text-slate-500">Výnosy v</span>
-            <Prepinac label="Měna výnosů" hodnota={cur} onChange={setCur} moznosti={CURRENCIES.map((c) => [c, c] as const)} />
+            <Prepinac label="Měna výnosů" mrizka hodnota={cur} onChange={setCur} moznosti={CURRENCIES.map((c) => [c, c] as const)} />
           </span>
         </div>
       </div>
