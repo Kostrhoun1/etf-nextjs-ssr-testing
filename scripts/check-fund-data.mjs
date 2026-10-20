@@ -93,11 +93,11 @@ const main = async () => {
     poplach.push({ co: `Za poslední 3 dny aktualizováno jen ${cerstve} fondů (${(100 * cerstve / n).toFixed(0)} %) – běží scraper?`, ukazka: [] });
   // Od 20. 10. 2026 scraper spouští Supabase pg_cron („scraper-spusteni“ út–pá 01:30 UTC, „scraper-spusteni-pondeli“
   // po 05:00 UTC; token github_scraper_dispatch z Vault – platnost 1 rok), záloha = GitHub plán 08:23 UTC.
-  // Kontrola běží 15:30 UTC: v pracovní den musí být většina fondů stažená za posledních 16 h. Když ne,
+  // Kontrola běží 15:30 UTC: v pracovní den musí být většina fondů stažená za posledních 20 h. Když ne,
   // nefunguje spouštění (vypršel token? pg_cron?) i záloha – víkend se nestahuje záměrně.
   const denTydne = new Date().getUTCDay();
   if (denTydne >= 1 && denTydne <= 5 && new Date().getUTCHours() >= 13) {
-    const dnesni = fondy.filter((x) => x.scraping_date && dni(x) <= 16 / 24).length;
+    const dnesni = fondy.filter((x) => x.scraping_date && dni(x) <= 20 / 24).length; // 20 h: ať projde i ruční běh pozdě večer (scrape začíná nejdřív 01:30 UTC)
     if (dnesni / n < 0.8)
       poplach.push({ co: `Dnes (pracovní den) se stáhlo jen ${dnesni} fondů (${(100 * dnesni / n).toFixed(0)} %) – scraper se nespustil? Ověř pg_cron „scraper-spusteni“ (net._http_response) a token github_scraper_dispatch`, ukazka: [] });
   }
