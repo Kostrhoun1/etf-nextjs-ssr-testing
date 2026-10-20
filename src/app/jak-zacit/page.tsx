@@ -316,7 +316,7 @@ export default async function HowToStartPreview() {
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
-                  <span className="inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> Čtení ~9 min</span>
+                  <span className="inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> Čtení ~6 min</span>
                   <span className="inline-flex items-center gap-1.5"><ListChecks className="w-3.5 h-3.5" /> 7 kroků</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">

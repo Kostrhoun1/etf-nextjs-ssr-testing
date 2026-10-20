@@ -423,8 +423,13 @@ export default async function CategoryDetailPreview(
           <h1 className="text-[28px] md:text-4xl font-bold tracking-tight leading-tight text-slate-900">{cfg.title}</h1>
           <p className="mt-2 max-w-2xl text-[15px] md:text-base text-slate-600 leading-relaxed">{nbsp(lead)}</p>
           {/* Co znamená „nejlepší“ (Markéta, kolo 4: nadpis „Nejlepší…“ a pak jen „největší a nejlevnější“) */}
-          <p className="mt-1.5 max-w-2xl text-sm text-slate-500 leading-relaxed">
+          {/* Kolo 6: mobil – jedna krátká věta + vysvětlivka (tabulka začínala až na 770–970 px). */}
+          <p className="hidden md:block mt-1.5 max-w-2xl text-sm text-slate-500 leading-relaxed">
             „Nejlepší“ = vybrané podle faktů: {kriteriaText} (fondy nad {prahText}). Tabulku si seřadíte sami. Pořadí není placené ani doporučení.
+          </p>
+          <p className="md:hidden mt-1 text-sm text-slate-500 inline-flex items-center gap-1">
+            „Nejlepší“ = podle faktů, ne doporučení
+            <InfoTip label={`Vybíráme podle faktů: ${kriteriaText} (fondy nad ${prahText}). Tabulku si seřadíte sami. Pořadí není placené ani doporučení.`}>{null}</InfoTip>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-600">
             <span data-pocet-fondu={pocetDb ?? undefined} className="inline-flex items-center gap-1">
@@ -458,7 +463,7 @@ export default async function CategoryDetailPreview(
                         <span className="mt-0.5 md:mt-2.5 flex items-center gap-2.5 min-w-0">
                           <span className="hidden md:inline-flex"><EmitentLogo nazev={etf.name} size={32} monogram={etf.fund_provider} /></span>
                           <span className="min-w-0">
-                            <span className="block text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 line-clamp-2">{nazevFondu(etf.name)}</span>
+                            <span className="text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 line-clamp-1 md:line-clamp-2">{nazevFondu(etf.name)}</span>
                             <span className="block text-xs text-slate-500">{tk ?? etf.isin}<span className="md:hidden"> · {popis}</span></span>
                           </span>
                         </span>
@@ -468,7 +473,9 @@ export default async function CategoryDetailPreview(
                         <span className="hidden md:inline text-xs text-slate-500 text-right leading-snug">{popis}</span>
                       </span>
                     </Link>
-                    {pravidlo && <p className="mt-1.5 md:mt-2 text-[11px] leading-snug text-slate-500">{pravidlo}</p>}
+                    {pravidlo && <p className="hidden md:block mt-2 text-[11px] leading-snug text-slate-500">{pravidlo}</p>}
+                    {/* Mobil: pravidlo výběru ve vysvětlivce vpravo nahoře, ať karta zabírá jeden řádek. */}
+                    {pravidlo && <span className="md:hidden absolute right-2.5 top-2"><InfoTip label={pravidlo}>{null}</InfoTip></span>}
                   </div>
                 );
               })}

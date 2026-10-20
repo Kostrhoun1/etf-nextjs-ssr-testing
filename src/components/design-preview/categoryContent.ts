@@ -2253,10 +2253,10 @@ export const categoryLead: Record<string, string> = {
   'nejlepsi-americke-etf': 'Akcie amerických firem – S&P 500, MSCI USA a další americké indexy.',
   'nejlepsi-bitcoin-etf': 'Burzovně obchodované produkty (ETP/ETN) sledující cenu bitcoinu – v Evropě nejde o klasické UCITS fondy.',
   // Kolo 6 (20. 10. 2026): obecné „Top … ETF fondy“ nahrazeny konkrétním popisem. Jen fakta, bez doporučení.
-  'nejlepsi-dividendove-etf': 'Akciové fondy, které vybírají firmy s vyšší dividendou a dividendy vyplácejí (distribuční třídy). Výše výplat se rok od roku mění – dividenda není zaručená. Opční strategie typu „Premium Income“ sem nepočítáme.',
-  'nejlepsi-realitni-etf': 'Akcie kótovaných realitních firem a REITs (nájemní byty, kanceláře, sklady, obchodní centra) – ne přímo nemovitosti. Ceny kolísají jako akcie a citlivě reagují na úrokové sazby.',
-  'nejlepsi-vladni-dluhopisy-etf': 'Fondy na dluhopisy států – USA, eurozóny, Británie, Japonska i rozvíjejících se zemí, od splatnosti do 1 roku po 20+ let. Čím delší splatnost, tím víc cena reaguje na změnu sazeb.',
-  'nejlepsi-energeticke-etf': 'Akcie firem tradičního energetického sektoru – těžba, zpracování a přeprava ropy a zemního plynu. Čistou a obnovitelnou energii najdete v samostatném žebříčku obnovitelných zdrojů.',
+  'nejlepsi-dividendove-etf': 'Akciové fondy, které vybírají firmy s vyšší dividendou a vyplácejí ji (distribuční třídy). Výše výplat se mění – dividenda není zaručená. Opční strategie („Premium Income“) sem nepočítáme.',
+  'nejlepsi-realitni-etf': 'Akcie realitních firem a REITs (nájemní byty, kanceláře, sklady) – ne přímo nemovitosti. Ceny kolísají jako akcie a citlivě reagují na sazby.',
+  'nejlepsi-vladni-dluhopisy-etf': 'Dluhopisy států – USA, eurozóny, Británie, Japonska i rozvíjejících se zemí. Čím delší splatnost, tím víc cena reaguje na změnu sazeb.',
+  'nejlepsi-energeticke-etf': 'Tradiční energetický sektor – firmy kolem ropy a zemního plynu. Čistá energie má vlastní žebříček obnovitelných zdrojů.',
   'nejlepsi-financni-etf': 'Akcie bank, pojišťoven a dalších finančních firem – celý sektor v USA, Evropě nebo ve světě, případně jen banky či jen pojišťovny.',
 };
 

@@ -307,10 +307,15 @@ export default async function GuidePreview() {
                   <p className="text-xs text-slate-400">{lowestTicker ?? 'ročně'}{stejnyTer > 0 ? ` a ${stejnyTer} dalších` : ''}</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Medián výnosu za 1 rok</p>
+                  <p className="text-xs text-slate-400">Výnos za 1 rok</p>
                   <p className={`text-lg font-bold tabular-nums ${(medianPerf ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pct(medianPerf)}</p>
-                  <p className="text-xs text-slate-400">v Kč, 20 největších fondů, k {dataDen}</p>
+                  <p className="text-xs text-slate-400">medián, v Kč</p>
                 </div>
+                {/* Kolo 6: definice a datum čísel v dlaždicích (dřív „Medián 1R – velké fondy“ bez data). */}
+                <p className="col-span-3 md:col-span-1 text-[11px] leading-snug text-slate-400">
+                  Data k {dataDen}. Výnos = medián výnosů za posledních 12 měsíců v korunách u 20 největších fondů v databázi.
+                  Nejnižší TER: fondy nad 100 mil. € bez měnového zajištění, při shodě akumulační, pak větší.
+                </p>
               </div>
             </div>
           </div>
