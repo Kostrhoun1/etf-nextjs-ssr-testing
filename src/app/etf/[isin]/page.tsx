@@ -28,8 +28,10 @@ import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaInde
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy } from '@/lib/trhy';
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
+import { kanonickaDvojice, dvojiceFondu, POPISKY_DVOJIC } from '@/lib/pairs';
 import OdkazBurzy from './OdkazBurzy';
 import { datumCen } from '@/lib/datumCen';
+import { titulekDetailu, popisekDetailu } from '@/lib/seoDetailu';
 import { ceskaZeme, ceskySektor, zamereniStitky, SEKTORY_POZNAMKA } from '@/lib/preklady';
 import { terFmt, procenta, velikostFondu, cislo, NBSP } from '@/lib/formatyCisel';
 import { nevyplaciKomodita, VYPLATA_ACC, VYPLATA_DIST } from '@/lib/dividendyFondu';
@@ -78,14 +80,13 @@ export async function generateMetadata(
   const { isin } = await params;
   const { data } = await supabaseAdmin
     .from('etf_funds')
-    .select('name, fund_size_numeric, ' + SLOUPCE_TICKERU.join(', '))
+    .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', '))
     .eq('isin', isin).single();
   const fund = data as Record<string, unknown> | null;
   const name = (fund?.name as string) || 'ETF fond';
   // Zobrazovaný ticker (jeden pro celý web, src/lib/ticker.ts) první – stejný jako hero, srovnávač a žebříčky.
   const zt = zobrazovanyTicker(fund);
   const tickers = zt ? [zt, ...uniqueTickers(fund).filter((t) => t.toUpperCase() !== zt.toUpperCase())] : uniqueTickers(fund);
-  const titleTk = tickers.slice(0, 4).join(', '); // titulek: max 4 (kdyby jich měl fond 8)
   // DIFERENCOVANÁ INDEXACE (experiment od 2026-07-07, měří CEO):
   // - Bing/Seznam/ostatní: indexovat VŠECHNY detaily – už dnes z nich chodí traffic
   //   (GA4: 54 organických vstupů / 28 dní), který jsme si dřív blanket-noindexem
@@ -95,12 +96,20 @@ export async function generateMetadata(
   //   necháme googlebot-noindex. Práh + seznam hlavy: src/lib/etf-head.ts (hlava
   //   musí být i v sitemap.ts, jinak ji Google neobjeví).
   const isHead = isHeadFund(fund?.fund_size_numeric);
+  // Den dat = stejný výpočet jako „Data k …“ na stránce (datumCen ze scraping_date) – popisek se cachuje 30 dní.
+  const stazeno = fund?.scraping_date ? new Date(String(fund.scraping_date)) : null;
+  const datumDat = stazeno && !Number.isNaN(stazeno.getTime()) ? datumCen(stazeno) : null;
+  const staleDni = datumDat ? Math.floor((Date.now() - datumDat.getTime()) / 864e5) : null;
+  // Výnos mimo svůj trh (opožděná cena u zdroje) → na stránce se výnosy neukazují, tedy ani v popisku.
+  const vynosNeovereny = !!(await nactiTrhy())?.some((r) => r.odlehle.some((f) => f.isin === isin));
+  const terN = fund?.ter_numeric == null ? null : Number(fund.ter_numeric);
+  const r1 = fund?.return_1y_czk == null ? null : Number(fund.return_1y_czk);
   return {
-    // Brand „| ETF průvodce.cz" doplní layout template – neduplikovat.
-    title: titleTk ? `${name} (${titleTk}): výnos v Kč, TER` : `${name} – detail fondu, výnos v Kč`,
-    description: tickers.length
-      ? `${name}. Burzovní tickery: ${tickers.slice(0, 5).join(', ')}. ISIN ${isin} – TER, výnos přepočtený do korun, složení, rizika a kde koupit fond. Pro české investory.`
-      : `Detail fondu ${name} (ISIN ${isin}): TER, výnos přepočtený do korun, složení, rizika a kde koupit fond. Pro české investory.`,
+    // Bez brandu z layoutu (title.absolute): titulek do 65 znaků s tickerem dopředu (SEO audit 20. 10. 2026).
+    title: { absolute: titulekDetailu({ name, ticker: zt, dalsiTicker: tickers[1] ?? null, ter: terN, distribution_policy: fund?.distribution_policy as string | null, distribution_frequency: fund?.distribution_frequency as string | null }) },
+    description: popisekDetailu({ name, isin, tickery: tickers, ter: terN, vynos1rCzk: r1, datumDat, staleDni, vynosNeovereny }),
+    // Kanonická adresa = ISIN velkými písmeny (malá písmena přesměruje middleware 301). Dřív canonical chyběl.
+    alternates: { canonical: `/etf/${isin.toUpperCase()}` },
     robots: isHead
       ? { index: true, follow: true }
       : { index: true, follow: true, googleBot: { index: false, follow: true } },
@@ -379,8 +388,14 @@ export default async function ETFDetailPreview(
   // nejčastěji opožděná cena u zdroje. Pravidlo č. 1: číslo nechat, ale viditelně upozornit.
   const trhOdlehly = (await nactiTrhy())?.find((r) => r.odlehle.some((f) => f.isin === etf.isin)) ?? null;
   const souper = podobne.find((f) => f.primary_ticker && TICKER_OK.test(f.primary_ticker));
-  const parHref = souper && etf.primary_ticker && TICKER_OK.test(etf.primary_ticker)
-    ? `/srovnani/${etf.primary_ticker.toLowerCase()}-vs-${souper.primary_ticker!.toLowerCase()}` : null;
+  // Odkaz rovnou na KANONICKOU adresu dvojice (src/lib/pairs.ts) – dřív primární tickery v pořadí „tento vs. soupeř“,
+  // takže polovina odkazů mířila na tvar, který se přesměrovává (SEO audit 20. 10. 2026).
+  const parSlug = souper && etf.primary_ticker && TICKER_OK.test(etf.primary_ticker)
+    ? kanonickaDvojice({ isin: etf.isin, ticker: zobrazovanyTicker(etf as unknown as Record<string, unknown>) }, { isin: souper.isin, ticker: platnyTicker(souper.primary_ticker) })
+    : null;
+  const parHref = parSlug ? `/srovnani/${parSlug}` : null;
+  // Kurátorská srovnání, ve kterých fond je („Srovnání s …“) – jediný interní odkaz na některé z nich (audit 20. 10. 2026).
+  const kuratorskaSrovnani = dvojiceFondu(etf.isin).filter((sl) => `/srovnani/${sl}` !== parHref);
   const distText = distLabelOf(dKind);
   const replText = replLabel(etf.replication);
   const domText = domLabel(etf.fund_domicile);
@@ -486,7 +501,7 @@ export default async function ETFDetailPreview(
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Srovnání ETF', item: 'https://etfpruvodce.cz/srovnani-etf' },
+      { '@type': 'ListItem', position: 2, name: 'Srovnání ETF', item: 'https://etfpruvodce.cz/srovnani' },
       { '@type': 'ListItem', position: 3, name: etf.name, item: `https://etfpruvodce.cz/etf/${etf.isin}` },
     ],
   };
@@ -1185,6 +1200,25 @@ export default async function ETFDetailPreview(
           </section>
         )}
 
+        {kuratorskaSrovnani.length > 0 && (
+          <section data-sekce="srovnani-s" className="pb-10">
+            <h2 className="mb-3 text-lg font-bold tracking-tight text-slate-900">Srovnání s dalšími fondy</h2>
+            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {kuratorskaSrovnani.map((sl) => (
+                <li key={sl}>
+                  <Link href={`/srovnani/${sl}`} prefetch={false} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm hover:border-teal-300">
+                    <span className="min-w-0">
+                      <span className="font-semibold text-slate-900 uppercase">{sl.replace('-vs-', ' vs ')}</span>
+                      {POPISKY_DVOJIC[sl] && <span className="block text-xs text-slate-500">{POPISKY_DVOJIC[sl]}</span>}
+                    </span>
+                    <ArrowRight className="w-4 h-4 shrink-0 text-slate-400" aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* FAQ */}
         <section data-sekce="faq" className="pb-8">
           <SectionHead title="Časté dotazy k fondu" />
@@ -1194,7 +1228,7 @@ export default async function ETFDetailPreview(
         {/* Zdroj dat – jednou a střídmě (revize 18. 10. 2026: justETF se na stránce jmenoval 2×). */}
         <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
           <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-          <span>Data fondu: justETF{etf.fund_provider ? `, ${etf.fund_provider}` : ''} · kurzy ČNB · data k {dateStr}{isStale ? ` (před ${staleDays} dny)` : ''}. <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">O webu</Link></span>
+          <span>Data fondu: justETF{etf.fund_provider ? `, ${etf.fund_provider}` : ''} · kurzy ČNB · data k {dateStr}{isStale ? ` (před ${staleDays} dny)` : ''}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link> · <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">O webu</Link></span>
         </p>
         <InvestmentDisclaimer variant="inline" className="mt-2 !text-slate-400" />
       </main>

@@ -14,9 +14,10 @@ import { terFmt, procenta, velikostFondu } from '@/lib/formatyCisel';
 const ter = (v: number | null) => terFmt(v);
 const pct = (v: number | null) => procenta(v);
 const money = (v: number | null, _cur?: string | null) => velikostFondu(v);
-import { POPULAR_PAIRS } from '@/lib/pairs';
+import { POPULAR_PAIRS, KURATORSKE, KURATORSKE_ALIASY, kanonickaDvojice } from '@/lib/pairs';
+import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
 import { distKind } from '@/utils/distribution';
-import { platnyTicker } from '@/lib/ticker';
+import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
 import { nactiDoplnkyFondu, tickerProCesko } from '@/lib/srovnaniRocni';
 import SrovnaniRocniVynosy from '@/components/design-preview/SrovnaniRocniVynosy';
 import ParametryDvojice from './ParametryDvojice';
@@ -62,6 +63,22 @@ const burzy = (etf: ComparisonETF) => {
   })).filter((b) => b.burza && b.ticker && b.ticker !== '-');
 };
 
+/**
+ * Kanonická adresa dvojice (SEO audit 20. 10. 2026, pravidlo v src/lib/pairs.ts): kurátorská dvojice je kanonická
+ * sama (alias → hlavní kurátorská, bez přesměrování); ostatní tvary → kurátorská pro stejné fondy, jinak zobrazované
+ * tickery abecedně. `presmerovat` = adresa se liší od kanonické → trvalé přesměrování.
+ */
+function kanonika(pair: string, etf1: ComparisonETF, etf2: ComparisonETF, t1: string, t2: string) {
+  const slug = pair.toLowerCase();
+  if (KURATORSKE[slug]) return { kanon: KURATORSKE_ALIASY[slug] ?? slug, kuratorska: true, presmerovat: null as string | null };
+  const zt = (e: ComparisonETF) => zobrazovanyTicker(e as unknown as Record<string, unknown>);
+  let cil = kanonickaDvojice({ isin: etf1.isin, ticker: zt(etf1) }, { isin: etf2.isin, ticker: zt(etf2) });
+  // Tentýž fond pod dvěma tickery mimo kurátorský seznam: tickery z adresy (tak se lidé ptají), jen abecedně.
+  if (!cil && etf1.isin === etf2.isin && !jeIsin(t1) && !jeIsin(t2) && t1 !== t2) cil = [t1.toLowerCase(), t2.toLowerCase()].sort().join('-vs-');
+  const kanon = cil ?? slug;
+  return { kanon, kuratorska: !!KURATORSKE[kanon], presmerovat: kanon !== slug ? kanon : null };
+}
+
 export async function generateMetadata(
   { params }: { params: Promise<{ pair: string }> },
 ): Promise<Metadata> {
@@ -72,10 +89,18 @@ export async function generateMetadata(
   const data = await getComparisonETFData(t1, t2);
   if (!data) return { title: `${t1} vs ${t2}`, robots: { index: false, follow: false } };
   const k1 = zobrazTicker(t1, data.etf1), k2 = zobrazTicker(t2, data.etf2);
+  const { kanon, kuratorska } = kanonika(pair, data.etf1, data.etf2, t1, t2);
+  // Dvojice mimo kurátorský seznam: Google ne (nekonečný prostor kombinací = tenké duplicity), Bing/Seznam ano –
+  // stejný princip jako ocas detailů fondů (experiment-index-detaily). Kurátorské dvojice indexují všichni.
+  const robots = kuratorska ? undefined : { index: true, follow: true, googleBot: { index: false, follow: true } };
+  // Canonical: kurátorský alias → hlavní dvojice. Jiný nekanonický tvar stránka přesměruje (metadata se nepoužijí);
+  // když přesměrování neprojde ověřením (ticker vede na jiný fond), zůstane stránka s canonicalem na sebe.
+  const alternates = { canonical: `/srovnani/${KURATORSKE[pair.toLowerCase()] ? kanon : pair.toLowerCase()}` };
   if (data.etf1.isin === data.etf2.isin) {
     return {
       title: `${k1} vs ${k2}: je to stejný ETF? Ano – liší se jen burza a měna`,
-      alternates: { canonical: `/srovnani/${pair.toLowerCase()}` },
+      alternates,
+      ...(robots ? { robots } : {}),
       description: `${k1} a ${k2} jsou tickery téhož fondu ${data.etf1.name} (ISIN ${data.etf1.isin}). Stejný poplatek, složení i výnos – liší se burza a měna obchodování. Přehled všech burz a tickerů.`,
     };
   }
@@ -84,7 +109,8 @@ export async function generateMetadata(
   const cheaper = (num(data.etf1.ter_numeric) ?? 9) <= (num(data.etf2.ter_numeric) ?? 9) ? data.etf1 : data.etf2;
   return {
     title: `${k1} vs ${k2}: srovnání ETF – výnos v Kč, poplatky, riziko`,
-    alternates: { canonical: `/srovnani/${pair.toLowerCase()}` },
+    alternates,
+    ...(robots ? { robots } : {}),
     description: `Srovnání ${k1} (${data.etf1.isin}) a ${k2} (${data.etf2.isin}) pro české investory: poplatek (TER), výnos přepočtený do korun po letech, riziko a index. ${terRozdil ? `Nižší TER má ${cheaper === data.etf1 ? k1 : k2} (${ter(cheaper.ter_numeric)}).` : `Oba mají TER ${ter(data.etf1.ter_numeric)}.`}`,
   };
 }
@@ -129,15 +155,28 @@ export default async function PairComparePage(
   const data = await getComparisonETFData(t1, t2);
   if (!data) notFound();
   const { etf1, etf2 } = data;
-  // Adresa s ISINy → trvale na tickerovou (jedna kanonická stránka na dvojici).
-  if (jeIsin(t1) || jeIsin(t2)) {
-    const a = zobrazTicker(t1, etf1), b = zobrazTicker(t2, etf2);
-    if (!jeIsin(a) && !jeIsin(b)) permanentRedirect(`/srovnani/${a.toLowerCase()}-vs-${b.toLowerCase()}`);
+  // Jedna kanonická adresa na dvojici fondů (dřív jen ISIN → ticker; SEO audit 20. 10. 2026: obrácené pořadí a aliasy
+  // tickerů byly duplicity s vlastním canonicalem). Cíl mimo kurátorský seznam se před přesměrováním ověří – jeho
+  // tickery musí vést na tytéž fondy (ticker bývá u víc fondů), jinak by vznikla smyčka nebo jiné srovnání.
+  const { kanon, presmerovat } = kanonika(pair, etf1, etf2, t1, t2);
+  if (presmerovat) {
+    let platny = !!KURATORSKE[presmerovat];
+    if (!platny) {
+      const [c1, c2] = presmerovat.toUpperCase().split('-VS-');
+      const over = await getComparisonETFData(c1, c2);
+      platny = !!over && [over.etf1.isin, over.etf2.isin].sort().join() === [etf1.isin, etf2.isin].sort().join();
+    }
+    if (platny) permanentRedirect(`/srovnani/${presmerovat}`);
   }
+  const vlastni = KURATORSKE[pair.toLowerCase()] ? kanon : pair.toLowerCase(); // kanonická adresa vykreslené stránky
   // Ticker z URL – tak ho člověk hledal („sxr8 vs vuaa"), ne primární ticker fondu.
   const tk1 = zobrazTicker(t1, etf1);
   const tk2 = zobrazTicker(t2, etf2);
-  if (etf1.isin === etf2.isin) return <StejnyFond etf={etf1} tk1={tk1} tk2={tk2} />;
+  if (etf1.isin === etf2.isin) {
+    const dp = (await nactiDoplnkyFondu([etf1.isin]))[etf1.isin];
+    const den = dp?.scrapingDate ? datumCen(new Date(dp.scrapingDate)) : await getDataDate(new Date());
+    return <StejnyFond etf={etf1} tk1={tk1} tk2={tk2} kanon={vlastni} dateStr={den.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })} />;
+  }
   const curated = getPairContent(pair);
   // V nadpisu tickery z URL; dál na stránce JEDNO jméno – ticker z XETRA, pod kterým se fond v Česku kupuje
   // (kolo 3: střídalo se „CSPX (SXR8)“ a „SXR8“). Rozdíl se vysvětlí jednou v úvodu.
@@ -223,7 +262,7 @@ export default async function PairComparePage(
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Srovnávač ETF', item: 'https://etfpruvodce.cz/srovnani' },
-      { '@type': 'ListItem', position: 3, name: `${tk1} vs ${tk2}` },
+      { '@type': 'ListItem', position: 3, name: `${tk1} vs ${tk2}`, item: `https://etfpruvodce.cz/srovnani/${vlastni}` },
     ],
   };
 
@@ -360,6 +399,8 @@ export default async function PairComparePage(
           <FaqSeznam items={vsechnyFaq} />
         </section>
 
+        <DalsiSrovnani aktualni={vlastni} />
+
         {/* PROLINKOVÁNÍ */}
         <section className="pb-4">
           <div className="flex flex-wrap gap-2.5">
@@ -370,7 +411,7 @@ export default async function PairComparePage(
           </div>
           <p className="mt-4 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
             <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-            <span>Data fondů: justETF · kurzy ČNB · data k {dateStr}.</span>
+            <span>Data fondů: justETF · kurzy ČNB · data k {dateStr}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link></span>
           </p>
           <InvestmentDisclaimer variant="inline" className="mt-2 !text-slate-400" />
         </section>
@@ -380,22 +421,36 @@ export default async function PairComparePage(
 }
 
 /* „CSPX vs SXR8" – dva tickery TÉHOŽ fondu. Častý dotaz (našeptávač 17. 10. 2026: „iwda swda eunl",
-   „cspx nebo sxr8", „vuaa vs vuag"); dřív stránka vracela 404. */
-function StejnyFond({ etf, tk1, tk2 }: { etf: ComparisonETF; tk1: string; tk2: string }) {
+   „cspx nebo sxr8", „vuaa vs vuag"); dřív stránka vracela 404. SEO audit 20. 10. 2026: stránka měla 215–236 slov,
+   bez data a drobečků → doplněno datum dat, BreadcrumbList, jasná věta o stejném ISINu, odkazy a další srovnání.
+   Canonical zůstává na sobě (jiný záměr hledání než detail fondu: „je X totéž co Y?“); alias iwda-vs-swda → iwda-vs-eunl. */
+function StejnyFond({ etf, tk1, tk2, kanon, dateStr }: { etf: ComparisonETF; tk1: string; tk2: string; kanon: string; dateStr: string }) {
   const seznam = burzy(etf);
+  const meny = Array.from(new Set(seznam.map((b) => b.mena).filter(Boolean))) as string[];
   const faqs = [
     { q: `Je ${tk1} a ${tk2} stejný ETF?`, a: `Ano. ${tk1} a ${tk2} jsou tickery téhož fondu ${etf.name} (ISIN ${etf.isin}). Fond má jeden poplatek (TER ${ter(etf.ter_numeric)}), jedno složení a jeden výnos. Liší se jen burza, na které se obchoduje, a měna obchodování.` },
+    { q: `Podle čeho poznám, že jde o stejný fond?`, a: `Podle ISINu – mezinárodního identifikátoru fondu. Ticker se liší podle burzy (jedna burza = jeden ticker), ISIN je pro fond jen jeden. ${tk1} i ${tk2} mají ISIN ${etf.isin}.` },
     { q: `Který ticker koupit – ${tk1}, nebo ${tk2}?`, a: `Ten, který váš broker nabízí na burze s nejnižšími poplatky a v měně, kterou chcete platit. Měna obchodování (EUR, USD, GBP…) nemění měnové riziko fondu – to určuje, do čeho fond investuje – ale ovlivní poplatek za směnu korun u brokera. Na větších burzách bývá i užší rozpětí mezi nákupní a prodejní cenou.` },
   ];
   const faqSchema = {
     '@context': 'https://schema.org', '@type': 'FAQPage',
     mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   };
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
+      { '@type': 'ListItem', position: 2, name: 'Srovnávač ETF', item: 'https://etfpruvodce.cz/srovnani' },
+      { '@type': 'ListItem', position: 3, name: `${tk1} vs ${tk2}`, item: `https://etfpruvodce.cz/srovnani/${kanon}` },
+    ],
+  };
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <Head />
-      <main id="obsah" className="max-w-3xl mx-auto px-4 pb-24">
+      <main id="obsah" data-stejny-fond className="max-w-3xl mx-auto px-4 pb-24">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
           <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>
@@ -408,6 +463,24 @@ function StejnyFond({ etf, tk1, tk2 }: { etf: ComparisonETF; tk1: string; tk2: s
             Poplatek, složení i výnos jsou stejné – liší se jen burza a měna, ve které se obchoduje.
           </p>
           <p className="mt-2 text-xs text-slate-400 font-mono">ISIN {etf.isin} · TER {ter(etf.ter_numeric)} · {money(etf.fund_size_numeric, etf.fund_currency)}</p>
+          <p className="mt-1 text-xs text-slate-400">Data k {dateStr}.</p>
+        </section>
+
+        <section className="pt-8">
+          <h2 className="text-xl font-bold tracking-tight">Jde o tentýž fond (stejný ISIN)</h2>
+          <p className="mt-2 text-slate-700 leading-relaxed">
+            Jde o tentýž fond (stejný ISIN {etf.isin}), liší se jen burza a měna obchodování. Fond je jeden – jeden
+            správce, jeden majetek a jeden poplatek (TER {ter(etf.ter_numeric)}). Každá burza, na které je fond kotovaný,
+            mu ale přidělí vlastní zkratku (ticker){meny.length > 1 ? <>, a podle burzy se obchoduje v různých měnách ({meny.join(', ')})</> : null}.
+            Proto {tk1} a {tk2} mají stejné složení i stejný výnos ve stejné měně – rozdíl může být jen v ceně obchodu
+            u konkrétního brokera.
+          </p>
+          <p className="mt-3 text-slate-700 leading-relaxed">
+            Výnos fondu přepočtený do korun, poplatky, složení a riziko najdete na{' '}
+            <Link href={`/etf/${etf.isin}`} className="font-medium text-teal-700 underline underline-offset-2">detailu fondu</Link>.
+            U kterých brokerů se fond dá koupit a kolik stojí nákup, ukazuje{' '}
+            <Link href="/kde-koupit" className="font-medium text-teal-700 underline underline-offset-2">přehled Kde koupit ETF</Link>.
+          </p>
         </section>
 
         {seznam.length > 0 && (
@@ -452,6 +525,12 @@ function StejnyFond({ etf, tk1, tk2 }: { etf: ComparisonETF; tk1: string; tk2: s
           <Link href={`/etf/${etf.isin}`} className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><Wallet className="w-4 h-4" /> Detail fondu s výnosem v Kč</Link>
           <Link href="/kde-koupit" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700">Kde fond koupit</Link>
         </section>
+
+        <div className="pt-10"><DalsiSrovnani aktualni={kanon} /></div>
+        <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
+          <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>Data fondu: justETF · data k {dateStr}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link></span>
+        </p>
       </main>
     </div>
   );

@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
         missing: [{ type: 'host', value: 'etfpruvodce.cz' }],
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
+      // OG obrázky (/api/og?…) smí sociální sítě stáhnout (robots.ts je povoluje), ale vyhledávač je nemá
+      // vést jako samostatné výsledky – Seznam je měl v indexu (SEO audit 20. 10. 2026). Hlavička nestojí CPU.
+      {
+        source: '/api/og',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+      },
     ];
   },
   async redirects() {
