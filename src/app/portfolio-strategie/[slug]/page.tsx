@@ -22,6 +22,7 @@ import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { getPortfolioContent } from '@/components/design-preview/portfolioContent';
 import { getMetricsByIsins } from '@/lib/etf-data';
 import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
 const SP500_ISIN = 'IE00B5BMR087';
@@ -39,10 +40,17 @@ export async function generateMetadata(
   const m = portfolioModels.find((p) => p.slug === slug);
   if (!m) return { title: 'Portfolio', robots: { index: false, follow: false } };
   return {
-    title: `${m.name} – složení, ETF a výnos v Kč`,
-    description: `${m.name}: ${m.tagline} Složení z ETF, riziko a historická výkonnost v korunách od roku 2008.`,
+    title: titulek(`${m.name} – složení, ETF a výnos v Kč`),
+    description: popisPortfolia(m.name, m.tagline, !BEZ_HISTORIE[slug]),
     alternates: { canonical: `/portfolio-strategie/${slug}` },
   };
+}
+
+/** Popisek ≤ 160 znaků (SEO audit 6b); portfolio bez historie netvrdí „historii od roku 2008“. */
+function popisPortfolia(nazev: string, tagline: string, sHistorii: boolean) {
+  const konec = sHistorii ? 'Složení z ETF, riziko a historická výkonnost v korunách od roku 2008.' : 'Složení z ETF, konkrétní fondy a riziko. Historii v korunách neuvádíme (chybí data indexu).';
+  const kandidati = [`${nazev}: ${tagline} ${konec}`, `${nazev}: ${tagline} Složení z ETF a ${sHistorii ? 'historie v Kč od 2008' : 'konkrétní fondy'}.`, `${nazev} – složení z ETF, konkrétní fondy, riziko${sHistorii ? ' a historická výkonnost v korunách od roku 2008' : ''}.`];
+  return kandidati.find((k) => k.length <= 160) ?? kandidati[2];
 }
 
 const pct = (v: number | null) =>

@@ -13,7 +13,7 @@ import {
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import BrokerFeeTable from '@/components/design-preview/BrokerFeeTable';
-import { getDataDate } from '@/lib/etf-data';
+import { upravenoDlouze, datumUpravy } from '@/lib/redakce';
 // Ceníky brokerů: datum ověření z brokerData (CENIKY_OVERENY), ne obecná redakční kontrola (18. 10. 2026).
 import { cenikyOverenyIso as editorialCheckDateIso, cenikyOverenyStr as editorialCheckDateStr } from '@/data/brokerData';
 
@@ -32,8 +32,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BrokerReviewPreview() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = upravenoDlouze('/recenze/degiro'); // datum úpravy textu recenze, ne den dat fondů
 
   /* ---------- Rychlá fakta ---------- */
   const facts: { icon: typeof Wallet; label: ReactNode; value: string }[] = [
@@ -114,7 +113,7 @@ export default async function BrokerReviewPreview() {
     author: { '@type': 'Person', name: 'Tomáš Kostrhoun' },
     publisher: { '@type': 'Organization', name: 'ETF průvodce.cz' },
     datePublished: `${YEAR}-01-01`,
-    dateModified: today.toISOString().slice(0, 10),
+    dateModified: datumUpravy('/recenze/degiro'),
   };
   const breadcrumbSchema = {
     '@context': 'https://schema.org',

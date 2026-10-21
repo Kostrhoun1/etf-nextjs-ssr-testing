@@ -15,13 +15,14 @@ import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { simulateAndSerialize } from '@/lib/backtest/simulate';
 import { ogImage } from '@/lib/ogImage';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/backtest' },
-  title: 'Backtest portfolia ETF: historický test výnosů a poklesů',
+  title: titulek('Backtest portfolia ETF: historický test výnosů a poklesů'),
   description:
     'Otestujte své ETF portfolio na reálných datech od roku 2000. Roční zhodnocení, největší pokles a kolísavost – v přepočtu na koruny, včetně grafu vývoje.',
   openGraph: {
@@ -221,7 +222,7 @@ export default async function BacktestPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Nástroj i data stavíme nezávisle, na veřejných historických datech – bez placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Nástroj i data stavíme nezávisle, na veřejných historických datech – bez placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>

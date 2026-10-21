@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Momentum faktor: jediný, který porazil index – hloubková analýza',
+  title: titulek('Momentum: jediný faktor, který porazil index (analýza v Kč)'),
   description:
-    'Momentum je nejsilnější faktor: od roku 2000 vydělal v korunách 8,0 % ročně proti 6,2 % u S&P 500 – jako jediný index jasně porazil. Jak funguje, co říká výzkum, rolling okna, chování ve čtyřech krizích včetně crashe 2009.',
+    'Momentum od roku 2000 vydělal v korunách 8,0 % ročně proti 6,2 % u S&P 500 – jako jediný faktor index jasně porazil. Jak funguje, co říká výzkum a čtyři krize.',
   alternates: { canonical: '/faktorove-etf/momentum' },
   openGraph: {
     title: 'Momentum: jediný faktor, který porazil index',

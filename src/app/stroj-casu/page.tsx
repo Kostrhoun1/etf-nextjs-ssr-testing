@@ -9,6 +9,7 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import StrojCasuWidget from '@/components/design-preview/StrojCasuWidget';
 import { nactiStrojCasu, spocitejStroj, STROJ_PRESETY } from '@/lib/strojCasu';
 import { ogImage } from '@/lib/ogImage';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Korunový stroj času (Vlna 6). Řady se počítají při ISR renderu (1× denně) stejným enginem
    jako backtest; prohlížeč jen násobí – žádný výpočet na serveru při každé návštěvě. */
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = 'Kolik byste dnes měli, kdybyste začali investovat dřív?';
   const description = 'Korunový stroj času: kolik by dnes měly vaše pravidelné investice od roku 2000, 2010 nebo 2020 – v korunách, na skutečných historických datech včetně krizí.';
   return {
-    title: 'Korunový stroj času: kolik byste dnes měli, kdybyste investovali od roku…',
+    title: titulek('Korunový stroj času: kolik byste dnes měli, kdybyste začali dřív'),
     description,
     alternates: { canonical: '/stroj-casu' },
     openGraph: {

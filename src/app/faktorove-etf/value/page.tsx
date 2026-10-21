@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Value faktor: 13 let čekání na nové maximum – hloubková analýza',
+  title: titulek('Value faktor: 13 let čekání na nové maximum (analýza v Kč)'),
   description:
-    'Hodnotové akcie jsou nejstarší faktor s nejsilnější akademickou evidencí – a nejdelším čekáním. V korunách od roku 2000: výnos, propad −64 %, rolling okna, krize a proč value vyžaduje trpělivost, kterou většina investorů nemá.',
+    'Hodnotové akcie mají nejsilnější akademickou evidenci – a nejdelší čekání. V korunách od roku 2000: výnos, propad −64 %, klouzavá okna, krize a trpělivost.',
   alternates: { canonical: '/faktorove-etf/value' },
   openGraph: {
     title: 'Value: faktor, který testuje trpělivost',

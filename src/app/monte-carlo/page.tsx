@@ -13,21 +13,21 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import MonteCarloWidget from '@/components/design-preview/MonteCarloWidget';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze } from '@/lib/redakce';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/monte-carlo' },
-  title: 'Monte Carlo simulátor portfolia: pravděpodobnostní scénáře v Kč',
+  title: titulek('Monte Carlo simulátor portfolia: scénáře budoucnosti v Kč'),
   description:
-    'Nikdo nezná budoucnost. Monte Carlo simulátor vygeneruje stovky možných vývojů vašeho portfolia a ukáže pesimistický, mediánový i optimistický scénář v korunách – včetně šance na dosažení cíle.',
+    'Monte Carlo simulátor vygeneruje stovky možných vývojů portfolia a ukáže pesimistický, střední i optimistický scénář v korunách včetně šance na dosažení cíle.',
 };
 
 export default async function MonteCarloPreview() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/monte-carlo'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -121,7 +121,7 @@ export default async function MonteCarloPreview() {
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Výsledky v korunách</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -265,8 +265,8 @@ export default async function MonteCarloPreview() {
           <div className="grid sm:grid-cols-3 gap-4">
             {([
               [ShieldCheck, 'Nezávislý nástroj', 'Bez placeného pořadí a reklamních doporučení.'],
-              [Crown, '12 let praxe ve financích', 'Obsah od jmenného autora, ne anonymně.'],
-              [Database, 'Ověřená metodika', `Stejný výpočetní model jako náš původní simulátor. Aktualizováno ${dateStr}.`],
+              [Crown, '12+ let v českém bankovnictví', 'Obsah od jmenného autora, ne anonymně.'],
+              [Database, 'Ověřená metodika', `Stejný výpočetní model jako náš původní simulátor. Aktualizováno ${upraveno}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -304,13 +304,13 @@ export default async function MonteCarloPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Simulátor stavíme nezávisle – výpočetní model vychází z ověřené metodiky Monte Carlo.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Simulátor stavíme nezávisle – výpočetní model vychází z ověřené metodiky Monte Carlo.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Metodika: měsíční simulace s historickými dolarovými výnosy a volatilitou aktiv (bez pohybu kurzu koruny), korelace přes Choleskyho dekompozici, percentily z výsledných scénářů. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Metodika: měsíční simulace s historickými dolarovými výnosy a volatilitou aktiv (bez pohybu kurzu koruny), korelace přes Choleskyho dekompozici, percentily z výsledných scénářů. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Simulátor má vzdělávací charakter, pracuje s nominálními hodnotami a předpokládá přibližně normální rozdělení výnosů – skutečné výnosy kolísají a nelze je zaručit.</p>
             </div>
           </div>

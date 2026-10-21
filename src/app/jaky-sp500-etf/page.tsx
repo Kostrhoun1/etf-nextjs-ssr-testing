@@ -16,6 +16,7 @@ import { datumCen } from '@/lib/datumCen';
 import { procenta, terFmt, velikostFondu } from '@/lib/formatyCisel';
 import { SITEMAP_PAIRS } from '@/lib/pairs';
 import { cache as reactCache } from 'react';
+import { clanekSchema } from '@/lib/redakce';
 
 export const revalidate = 86400;
 /* SEO audit kola 6 – kanibalizace s /nejlepsi-etf/nejlepsi-sp500-etf: žebříček = srovnání VŠECH S&P 500 ETF
@@ -157,6 +158,7 @@ export default async function JakySp500Etf() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/jaky-sp500-etf', nadpis: 'Jaký S&P 500 ETF vybrat: CSPX, VUAA, SPYL, nebo VUSA?', obrazek: ogImage({ title: TITULEK, eyebrow: 'Průvodce výběrem' }).url })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -403,7 +405,7 @@ export default async function JakySp500Etf() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Srovnání stavíme nezávisle a nekomerčně, z vlastní databáze – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Srovnání stavíme nezávisle a nekomerčně, z vlastní databáze – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>

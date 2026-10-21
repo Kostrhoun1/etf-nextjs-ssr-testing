@@ -267,7 +267,7 @@ export default async function ZebrickyPage() {
             {totalCategories} žebříčků podle indexu, regionu i tématu – u každého počet fondů, nejnižší poplatek a výnos největšího fondu v korunách.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-600">
-            {totalCount > 0 && <span><strong className="font-semibold text-slate-900 tabular-nums">{totalCount.toLocaleString('cs-CZ')}</strong> fondů ve srovnávači</span>}
+            {totalCount > 0 && <span><strong className="font-semibold text-slate-900 tabular-nums">{`${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+`}</strong> fondů ve srovnávači</span>}
             <AktualnostDat datum={dataDate} />
           </div>
           {/* Proč „Akciové 1 780“, když srovnávač má 2 900+ akciových fondů (kolo 5): práh velikosti žebříčku.

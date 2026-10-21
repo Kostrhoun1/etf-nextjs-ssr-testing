@@ -13,6 +13,7 @@ import { RoboKarta, FaqSeznam, AutorBox, doporuceniProfily } from '@/components/
 import { brokeriAbecedne, roboPoradci, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
 import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
+import { titulek } from '@/lib/seoTitulek';
 
 /* /srovnani-brokeru = DETAILNÍ TABULKA parametrů. Průvodce „kde koupit“ (rozhodnutí + spočítané náklady)
    je na /kde-koupit; doporučení podle profilu je na obou stránkách ZE STEJNÉHO zdroje (brokerUI). */
@@ -20,7 +21,7 @@ import { nactiKurzCnb } from '@/lib/kurzCnb';
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Srovnání brokerů pro ETF 2026 – poplatky, směna, ochrana, daně',
+  title: titulek('Srovnání brokerů pro ETF 2026 – poplatky, směna, ochrana, daně'),
   description:
     'Srovnání 5 brokerů pro ETF a robo-poradce Portu vedle sebe: poplatek za nákup, směna měny, ochrana hotovosti a cenných papírů, zdanění českých dividend.',
   alternates: { canonical: '/srovnani-brokeru' },

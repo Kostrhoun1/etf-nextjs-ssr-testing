@@ -295,7 +295,7 @@ export default async function InfografikyRozcestnik() {
           <div className="mt-6 grid sm:grid-cols-3 gap-4">
             {[
               [ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/o-nas'],
-              [Star, '12 let praxe ve financích', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/o-nas'],
+              [Star, '12+ let v českém bankovnictví', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/o-nas'],
               [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/kde-koupit'],
             ].map(([Icon, t, d, href]: any) => (
               <Link

@@ -19,6 +19,8 @@ import { detectHedging } from '@/utils/hedgingDetection';
 import { distKind } from '@/utils/distribution';
 
 import { hodnotaVkladu, PRIKLAD_POPLATKU } from '@/lib/prikladPoplatku';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 
 export const revalidate = 86400;
 
@@ -26,7 +28,7 @@ export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/pruvodce' },
-  title: 'Co jsou ETF? Jednoduchý průvodce pro začátečníky 2026',
+  title: titulek('Co jsou ETF? Jednoduchý průvodce pro začátečníky 2026'),
   description:
     'ETF jednoduše vysvětleno: jak fungují, co je TER, akumulační vs distribuční, daně v ČR a výnosy přepočtené do korun. Průvodce pro začátečníky.',
 };
@@ -37,6 +39,7 @@ export default async function GuidePreview() {
   const today = new Date();
   const datumDat = await getDataDate(today);
   const dateStr = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/pruvodce'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
   const dataDen = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
   const year = today.getFullYear();
 
@@ -197,17 +200,8 @@ export default async function GuidePreview() {
   ];
 
   /* ---------- JSON-LD: Article + FAQPage + BreadcrumbList ---------- */
-  const articleSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: 'Co jsou ETF? Průvodce pro začátečníky',
-    description: metadata.description,
-    author: { '@type': 'Person', name: 'Tomáš Kostrhoun', url: 'https://etfpruvodce.cz/o-nas' },
-    publisher: { '@type': 'Organization', name: 'ETF průvodce.cz' },
-    datePublished: '2025-01-01',
-    dateModified: today.toISOString().slice(0, 10),
-    mainEntityOfPage: 'https://etfpruvodce.cz/co-jsou-etf',
-  };
+  // Article ze sdíleného helperu: skutečné datum zveřejnění/úpravy (redakce.ts), ne „dnes“; správná URL (dřív /co-jsou-etf).
+  const articleSchema = clanekSchema({ cesta: '/pruvodce', nadpis: 'Co jsou ETF? Průvodce pro začátečníky', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) });
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -284,7 +278,7 @@ export default async function GuidePreview() {
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> Čtení ~12 min</span>
                   <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroj: justETF / ČNB / vlastní databáze</span>
                 </div>
@@ -794,7 +788,7 @@ export default async function GuidePreview() {
             {([
               [ShieldCheck, 'Vysvětleno bez žargonu', 'Každý pojem rozebíráme srozumitelně a s příkladem.'],
               [BadgeCheck, 'Jmenný autor', 'Obsah od Tomáše Kostrhouna, ne anonymně.'],
-              [Database, 'Živá data', `Ukázková čísla tažená z databáze, aktualizováno ${dateStr}.`],
+              [Database, 'Živá data', `Ukázková čísla tažená z databáze, data k ${dateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -841,7 +835,7 @@ export default async function GuidePreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: justETF, S&amp;P Dow Jones Indices, ČNB, vlastní databáze. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: justETF, S&amp;P Dow Jones Indices, ČNB, vlastní databáze. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy. Investice do ETF nesou riziko ztráty. {year}</p>
             </div>
           </div>

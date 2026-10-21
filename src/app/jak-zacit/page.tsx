@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { getTotalETFCount , getDataDate } from '@/lib/etf-data';
+import { getTotalETFCount } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, User, CalendarDays, BookOpen,
   Wallet, ShieldCheck, Target, ListChecks, Search, Building2, CalendarClock,
@@ -15,11 +15,13 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import { GuideSection, GuideCallout, GuideTOC, GuideFAQ } from '@/components/design-preview/GuideUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Jak začít investovat do ETF: 7 kroků pro začátečníky 2026',
+  title: titulek('Jak začít investovat do ETF: 7 kroků pro začátečníky 2026'),
   description:
     'Praktická roadmapa pro úplného začátečníka: od finanční rezervy přes výběr fondu a brokera až po první nákup. 7 kroků, časté chyby a jak nepanikařit.',
   alternates: { canonical: '/jak-zacit' },
@@ -29,8 +31,7 @@ export default async function HowToStartPreview() {
   const totalCount = await getTotalETFCount();
   const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
 
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/jak-zacit'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   /* ---------- 7 akčních kroků (číslo + nadpis + věty + mini-seznam) ---------- */
   const steps: {
@@ -274,6 +275,7 @@ export default async function HowToStartPreview() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/jak-zacit', nadpis: 'Jak začít investovat do ETF', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header – 1:1 dle pruvodce */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -315,7 +317,7 @@ export default async function HowToStartPreview() {
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> Čtení ~6 min</span>
                   <span className="inline-flex items-center gap-1.5"><ListChecks className="w-3.5 h-3.5" /> 7 kroků</span>
                 </div>
@@ -485,7 +487,7 @@ export default async function HowToStartPreview() {
               </div>
             </div>
             <p className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 leading-relaxed">
-              Aktualizováno {dateStr}.
+              Aktualizováno {upraveno}.
             </p>
           </div>
 

@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Quality faktor: kvalitní firmy v korunách – hloubková analýza',
+  title: titulek('Quality faktor: kvalitní firmy v korunách (analýza od 2000)'),
   description:
-    'Quality ETF drží ziskové firmy s nízkým dluhem. V korunách od roku 2000 vydělaly 5,8 % ročně (index 6,2 %) – teze „dražší index“ na dlouhém okně platí. Rozbor: kdy quality svítí, čtyři krize a rolling okna.',
+    'Quality ETF drží ziskové firmy s nízkým dluhem. V korunách od roku 2000 vydělaly 5,8 % ročně (index 6,2 %). Kdy kvalita svítí, čtyři krize a klouzavá okna.',
   alternates: { canonical: '/faktorove-etf/quality' },
   openGraph: {
     title: 'Quality: dražší index, nebo lepší spaní?',

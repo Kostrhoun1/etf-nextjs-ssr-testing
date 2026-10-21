@@ -12,18 +12,20 @@ import {
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate, getETFsByIsins, getTotalETFCount } from '@/lib/etf-data';
+import { getETFsByIsins, getTotalETFCount, getDataDate } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (data v Kč)',
+  title: titulek('ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (v Kč)'),
   description:
-    'Koupit ETF, nebo si vybírat vlastní akcie? Data ukazují, že jen menšina akcií dlouhodobě překoná i státní dluhopisy – a pouhá 4 % firem vytvořila veškerý čistý zisk trhu. Rozdíl v diverzifikaci, nákladech, daních a riziku srozumitelně a v korunách.',
+    'ETF, nebo vlastní akcie? Většina akcií dlouhodobě nepřekoná ani státní pokladniční poukázky a 4 % firem vytvořila veškerý čistý zisk trhu. Rozdíly srozumitelně.',
   alternates: { canonical: '/etf-vs-akcie' },
   openGraph: {
-    title: 'ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (data v Kč)',
+    title: 'ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (v Kč)',
     description:
       'Proč většina jednotlivých akcií zaostává, kolik firem koupíte jedním ETF a kdy dávají vlastní akcie smysl. Nezávisle, s daty a v korunách.',
     url: 'https://etfpruvodce.cz/etf-vs-akcie',
@@ -52,14 +54,12 @@ const BROAD_ISINS = [
 ];
 
 export default async function EtfVsAkciePage() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  const upraveno = upravenoDlouze('/etf-vs-akcie'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
   const [funds, totalCount] = await Promise.all([
     getETFsByIsins(BROAD_ISINS),
     getTotalETFCount(),
   ]);
+  const datumDat = (await getDataDate(new Date())).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }); // čísla v tabulce fondů
   const totalStr = totalCount >= 100 ? `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+` : `${totalCount}`;
 
   const faqs = [
@@ -115,6 +115,7 @@ export default async function EtfVsAkciePage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/etf-vs-akcie', nadpis: 'ETF, nebo jednotlivé akcie?', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -163,7 +164,7 @@ export default async function EtfVsAkciePage() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -296,7 +297,7 @@ export default async function EtfVsAkciePage() {
               </div>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
                 <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-                Výnos je za 5 let přepočtený do korun (obsahuje i pohyb kurzu, který český investor reálně cítí).
+                Data k {datumDat}. Výnos je za 5 let přepočtený do korun (obsahuje i pohyb kurzu, který český investor reálně cítí).
                 Není to doporučení konkrétního fondu ani záruka budoucího výnosu – minulé výsledky se nemusí opakovat.
                 Rozdíl mezi indexy rozebírá{' '}
                 <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
@@ -437,13 +438,13 @@ export default async function EtfVsAkciePage() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Statistiky o rozdělení výnosů akcií vycházejí z výzkumu prof. Hendrika Bessembindera (Do Stocks Outperform Treasury Bills?) nad americkými akciemi 1926–2025. Výnosy fondů jsou informativní, minulé výsledky nezaručují budoucí. Nejde o investiční ani daňové poradenství. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Statistiky o rozdělení výnosů akcií vycházejí z výzkumu prof. Hendrika Bessembindera (Do Stocks Outperform Treasury Bills?) nad americkými akciemi 1926–2025. Výnosy fondů jsou informativní, minulé výsledky nezaručují budoucí. Nejde o investiční ani daňové poradenství. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

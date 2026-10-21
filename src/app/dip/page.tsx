@@ -12,18 +12,20 @@ import {
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate, getETFsByIsins, getETFCountLabel } from '@/lib/etf-data';
+import { getETFsByIsins, getETFCountLabel, getDataDate } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF, v Kč)',
+  title: titulek('DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF)'),
   description:
-    'Dlouhodobý investiční produkt (DIP) 2026 srozumitelně a nezávisle: kolik reálně dostanete zpět od státu v korunách, pravidlo 120/60, příspěvek zaměstnavatele, sankce za předčasný výběr a kdy je DIP výhodnější než běžný účet s ETF.',
+    'DIP 2026 srozumitelně: kolik vám stát vrátí na dani v korunách, pravidlo 120/60, příspěvek zaměstnavatele, sankce za předčasný výběr a srovnání s účtem s ETF.',
   alternates: { canonical: '/dip' },
   openGraph: {
-    title: 'DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF, v Kč)',
+    title: 'DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF)',
     description:
       'Kolik na DIP reálně získáte zpět od státu v korunách, pravidlo 120/60, příspěvek zaměstnavatele a kdy se DIP vyplatí víc než běžný účet s ETF. Nezávisle a česky.',
     url: 'https://etfpruvodce.cz/dip',
@@ -74,11 +76,9 @@ const DIP_ISINS = [
 
 export default async function DipPage() {
   const pocetFondu = await getETFCountLabel();
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  const upraveno = upravenoDlouze('/dip'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
   const funds = await getETFsByIsins(DIP_ISINS);
+  const datumDat = (await getDataDate(new Date())).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }); // čísla v tabulce fondů
 
   const maxBack15 = DEDUCTION_CAP * 0.15; // 7 200 Kč
   const maxBack23 = DEDUCTION_CAP * 0.23; // 11 040 Kč
@@ -141,6 +141,7 @@ export default async function DipPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/dip', nadpis: 'DIP: vyplatí se dlouhodobý investiční produkt?', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -189,7 +190,7 @@ export default async function DipPage() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Úspora v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -453,7 +454,7 @@ export default async function DipPage() {
             </div>
             <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
               <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-              Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
+              Data k {datumDat}. Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
               Do režimu DIP navíc nezařadí každý poskytovatel každý fond; nabídku si ověřte u toho svého. Rozdíl mezi
               indexy rozebírá <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
               všech {pocetFondu} fondů profiltrujete ve{' '}
@@ -512,13 +513,13 @@ export default async function DipPage() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., nominálně před inflací) a mají vzdělávací charakter. Nejde o investiční ani daňové poradenství a skutečné výsledky se liší. Daňová pravidla DIP se mohou měnit – ověřte si aktuální stav a konkrétní situaci proberte s daňovým poradcem. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., nominálně před inflací) a mají vzdělávací charakter. Nejde o investiční ani daňové poradenství a skutečné výsledky se liší. Daňová pravidla DIP se mohou měnit – ověřte si aktuální stav a konkrétní situaci proberte s daňovým poradcem. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

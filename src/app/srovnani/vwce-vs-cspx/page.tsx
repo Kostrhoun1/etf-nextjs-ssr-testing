@@ -25,6 +25,7 @@ import { barvaFondu } from '@/lib/barvyFondu';
 import { datumCen } from '@/lib/datumCen';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 
@@ -42,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
     ? `VWCE (TER ${ter(data.etf1.ter_numeric)}, ${data.etf1.total_holdings?.toLocaleString('cs-CZ') ?? 'tisíce'} firem celého světa) vs CSPX/SXR8 (TER ${ter(data.etf2.ter_numeric)}, ${data.etf2.total_holdings?.toLocaleString('cs-CZ') ?? '500'} firem USA). Výnos v Kč po letech, poplatky, složení, daně a měnové riziko vedle sebe.`
     : 'VWCE (celý svět) vs CSPX/SXR8 (500 firem USA): výnos v Kč po letech, poplatky, složení, daně a měnové riziko vedle sebe.';
   return {
-    title: `VWCE vs CSPX (SXR8): srovnání ETF v korunách ${new Date().getFullYear()}`,
+    title: titulek(`VWCE vs CSPX (SXR8): srovnání ETF v korunách ${new Date().getFullYear()}`),
     description: popis,
     alternates: { canonical: CANONICAL },
   };

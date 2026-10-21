@@ -16,6 +16,7 @@ import {
   TrendingUp, ShieldCheck,
   History, Activity, Search, Landmark, BookOpen, Trophy,
 } from 'lucide-react';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 
@@ -23,9 +24,9 @@ export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/portfolio-strategie' },
-  title: `Modelová portfolia z ETF: ${portfolioModels.length} ověřených strategií pro české investory`,
+  title: titulek(`Modelová portfolia z ETF: ${portfolioModels.length} strategií pro české investory`),
   description:
-    'Hotová modelová portfolia z ETF – Permanentní, All Weather, Nobelovo, 60/40, Akciové, Dividendové a Svět + malé firmy. Složení, konkrétní fondy (ISIN) a historie v korunách od roku 2008.',
+    'Modelová portfolia z ETF – Permanentní, All Weather, Nobelovo, 60/40, Akciové, Dividendové a Svět + malé firmy: složení, konkrétní fondy a historie v Kč.',
 };
 
 const BASE = 'https://etfpruvodce.cz';

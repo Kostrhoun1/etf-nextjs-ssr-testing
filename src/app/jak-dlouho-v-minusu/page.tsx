@@ -7,10 +7,11 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import AutorBox from '@/components/design-preview/AutorBox';
-import { clanekSchema } from '@/lib/redakce';
+import { clanekSchema, drobeckySchema } from '@/lib/redakce';
 import { ogImage } from '@/lib/ogImage';
 import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
 import { spoctiPodVodou, type PodVodouPreset, type DlouhoNad } from '@/lib/clanky/podVodou';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Vlna 7 – obsah z dat v korunách. Otázka, kterou si začínající investor klade po prvním propadu.
    Čísla se počítají při ISR (1× denně) z řad Korunového stroje času + inflace ČSÚ; ověřeno
@@ -20,12 +21,12 @@ export const revalidate = 86400;
 /* Vlastní OG: bez něj se dědí og:url homepage → Facebook by sdílel titulní stranu. */
 export async function generateMetadata(): Promise<Metadata> {
   const title = 'Jak dlouho můžete být v minusu? Data v korunách i po inflaci';
-  const description = 'Jak dlouho trvalo, než se investice do akcií po propadu vrátila nad vklad – v korunách a po české inflaci. Nejhorší případy od roku 2000, krize 2008, covid i rok 2022.';
+  const description = 'Jak dlouho trvalo, než se investice do akcií po propadu vrátila nad vklad, v korunách i po české inflaci. Nejhorší případy od roku 2000, rok 2008, covid i 2022.';
   const d = await spoctiPodVodou();
   const s0 = d?.presety.find((p) => p.id === 'sp500')?.starty[0];
   const stat = s0 && s0.start === '2000-01' && s0.nominalne ? doba(s0.nominalne) : undefined;
   return {
-    title, description,
+    title: titulek(title), description,
     alternates: { canonical: '/jak-dlouho-v-minusu' },
     openGraph: {
       title, description, url: '/jak-dlouho-v-minusu', type: 'article',
@@ -168,6 +169,7 @@ export default async function JakDlouhoVMinusu() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(drobeckySchema([['Co říkají data', '/co-rikaji-data'], ['Jak dlouho v minusu', '/jak-dlouho-v-minusu']])) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/jak-dlouho-v-minusu', nadpis: 'Jak dlouho můžete být v minusu? Data v korunách i po inflaci', denDat: d?.posledniDen ?? null })) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">

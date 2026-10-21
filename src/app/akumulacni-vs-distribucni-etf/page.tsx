@@ -11,13 +11,14 @@ import {
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Akumulační vs. distribuční ETF: který je pro vás lepší?',
+  title: titulek('Akumulační vs. distribuční ETF: který je pro vás lepší?'),
   description:
-    'Akumulační (Acc), nebo distribuční (Dist) ETF? Vysvětlíme rozdíl, dopad na daně a složené úročení i to, který se hodí pro fázi spoření a který pro rentu. Přehledně a v korunách.',
+    'Akumulační (Acc), nebo distribuční (Dist) ETF? Rozdíl, dopad na daně a složené úročení a který se hodí pro fázi spoření a který pro rentu – v korunách.',
   alternates: { canonical: '/akumulacni-vs-distribucni-etf' },
   openGraph: {
     title: 'Akumulační vs. distribuční ETF: který je pro vás lepší?',
@@ -30,8 +31,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AccVsDist() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/akumulacni-vs-distribucni-etf'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   const faqs = [
     {
@@ -73,6 +73,7 @@ export default async function AccVsDist() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/akumulacni-vs-distribucni-etf', nadpis: 'Akumulační vs. distribuční ETF: který zvolit?', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -120,7 +121,7 @@ export default async function AccVsDist() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Vše v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -309,13 +310,13 @@ export default async function AccVsDist() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací obsah, není investičním ani daňovým doporučením. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací obsah, není investičním ani daňovým doporučením. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

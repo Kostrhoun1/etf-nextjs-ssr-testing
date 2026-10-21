@@ -6,11 +6,12 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import AutorBox from '@/components/design-preview/AutorBox';
-import { clanekSchema } from '@/lib/redakce';
+import { clanekSchema, drobeckySchema } from '@/lib/redakce';
 import { spoctiSp500NeboSvet } from '@/lib/clanky/sp500NeboSvet';
 import { spoctiSp500NeboSvetHloubka, type Krize, type Okna } from '@/lib/clanky/sp500NeboSvetHloubka';
 import { ogImage } from '@/lib/ogImage';
 import { ceskySektor } from '@/lib/preklady';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Vlna 7 – obsah z dat v korunách. Česky hledaná otázka („s&p 500 nebo msci world", našeptávač
    17. 10. 2026). Čísla se počítají při ISR (1× denně) stejným enginem jako backtest a jsou ověřená
@@ -26,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const sv = d?.od2008.find((x) => x.id === 'svet');
   const stat = sp && sv ? `${pct(sp.cagr)} vs. ${pct(sv.cagr)}` : undefined;
   return {
-    title, description,
+    title: titulek(title), description,
     alternates: { canonical: '/sp500-nebo-cely-svet' },
     openGraph: {
       title, description, url: '/sp500-nebo-cely-svet', type: 'article',
@@ -138,6 +139,7 @@ export default async function Sp500NeboSvet() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(drobeckySchema([['Co říkají data', '/co-rikaji-data'], ['S&P 500, nebo celý svět?', '/sp500-nebo-cely-svet']])) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/sp500-nebo-cely-svet', nadpis: 'S&P 500, nebo celý svět? Co vydělalo víc v korunách', denDat: d?.posledniDen ?? null })) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">

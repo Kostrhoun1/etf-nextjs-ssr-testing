@@ -15,13 +15,15 @@ import { brokers } from '@/data/brokerData';
 import FeeCalculatorWidget from '@/components/design-preview/FeeCalculatorWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { platnyTicker } from '@/lib/ticker';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze } from '@/lib/redakce';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/kalkulacka' },
-  title: 'Kalkulačka poplatků ETF: dopad TER na výnos za 30 let',
+  title: titulek('Kalkulačka poplatků ETF: dopad TER na výnos za 30 let'),
   description:
     'Spočítejte v korunách, kolik vás roční poplatek (TER) stojí za 30 let. Srovnání levného ETF vs. bankovní fond + nejlevnější ETF z naší databáze.',
 };
@@ -36,6 +38,7 @@ export default async function FeeCalculatorPreview() {
 
   const today = new Date();
   const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/kalkulacka'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   const lowestTer = cheapest[0];
 
@@ -158,7 +161,7 @@ export default async function FeeCalculatorPreview() {
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -340,7 +343,7 @@ export default async function FeeCalculatorPreview() {
             })}
           </div>
           <p className="text-xs text-slate-400 mt-3">
-            Údaje jsou orientační a tažené z naší databáze brokerů. Aktuální ceník vždy ověřte u brokera. Aktualizováno {dateStr}.
+            Údaje jsou orientační a tažené z naší databáze brokerů. Aktuální ceník vždy ověřte u brokera. Aktualizováno {upraveno}.
           </p>
         </section>
 
@@ -429,8 +432,8 @@ export default async function FeeCalculatorPreview() {
           <div className="grid sm:grid-cols-3 gap-4">
             {([
               [ShieldCheck, 'Nezávislé srovnání', 'Žádné placené pořadí ani reklamní žebříček.'],
-              [Crown, '12 let praxe ve financích', 'Obsah od jmenného autora, ne anonymně.'],
-              [Database, 'Aktuální data', `Nejlevnější ETF i brokeři z vlastní databáze, aktualizováno ${dateStr}.`],
+              [Crown, '12+ let v českém bankovnictví', 'Obsah od jmenného autora, ne anonymně.'],
+              [Database, 'Aktuální data', `Nejlevnější ETF i brokeři z vlastní databáze, data k ${dateStr}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -468,13 +471,13 @@ export default async function FeeCalculatorPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačku i srovnání stavíme nezávisle, na základě veřejných dat – bez placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Kalkulačku i srovnání stavíme nezávisle, na základě veřejných dat – bez placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: justETF, vlastní databáze ETF a brokerů, ČNB. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: justETF, vlastní databáze ETF a brokerů, ČNB. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Kalkulačka má vzdělávací charakter a pracuje s modelovým výnosem – skutečné výnosy se liší a nelze je zaručit. Obsah nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy. Investice do ETF nesou riziko ztráty.</p>
             </div>
           </div>

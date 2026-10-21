@@ -10,6 +10,7 @@ import { portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, backtestOdkaz 
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Ukázkový fond každé kategorie výsledku – velký, běžně dostupný fond; výnos za 5 let v Kč z dat fondu s datem.
    Akumulační i distribuční třída: příklad se vybírá podle odpovědi „Co s dividendami?“ (revize 19. 10. 2026:
@@ -43,8 +44,8 @@ export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/vyber-etf' },
-  title: 'Který ETF si vybrat? Průvodce výběrem ETF pro české investory',
-  description: 'Nevíte, který ETF koupit? Odpovězte na 4 otázky a průvodce podle horizontu, rizika a cíle ukáže, které typy ETF a modelová portfolia odpovídají – se skutečnými výnosy v korunách.',
+  title: titulek('Který ETF si vybrat? Průvodce výběrem pro české investory'),
+  description: 'Odpovězte na 4 otázky a průvodce podle horizontu, rizika a cíle ukáže, které typy ETF a modelová portfolia odpovídají – se skutečnými výnosy v korunách.',
 };
 
 export default async function VyberEtfPage() {

@@ -12,13 +12,14 @@ import CistyPlatWidget from '@/components/design-preview/CistyPlatWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/cisty-plat' },
-  title: 'Kalkulačka čisté mzdy 2026: výpočet čistého platu z hrubého',
+  title: titulek('Kalkulačka čisté mzdy 2026: výpočet čistého platu z hrubého'),
   description:
     'Spočítejte si čistou mzdu z hrubé podle pravidel pro rok 2026 – pojistné, daň 15/23 %, sleva na poplatníka i na děti. Včetně nákladů zaměstnavatele.',
 };
@@ -266,7 +267,7 @@ export default async function CistyPlatPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačka vychází z platných sazeb pojistného a daně pro rok 2026.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Kalkulačka vychází z platných sazeb pojistného a daně pro rok 2026.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>

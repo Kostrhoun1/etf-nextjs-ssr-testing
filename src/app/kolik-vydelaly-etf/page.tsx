@@ -646,7 +646,7 @@ export default async function KolikVydelalyEtf() {
         </section>
 
         {/* AUTOR / E-E-A-T – sdílená AutorBox s daty zveřejnění a úpravy (SEO audit 20. 10. 2026) */}
-        <AutorBox cesta="/kolik-vydelaly-etf" denDat={denDat} text={<>Autor ETF průvodce.cz s 12 lety praxe ve financích. Čísla vycházejí z historických dat širokého indexu
+        <AutorBox cesta="/kolik-vydelaly-etf" denDat={denDat} text={<>Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Čísla vycházejí z historických dat širokého indexu
           světových akcií přepočtených do korun – jde o orientační vzdělávací materiál, nikoli investiční doporučení. Pro výpočet
           na vlastních číslech použijte <Link href="/backtest" className="text-teal-700 hover:underline">backtest</Link>.</>} />
 

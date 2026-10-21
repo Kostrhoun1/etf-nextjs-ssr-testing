@@ -9,6 +9,7 @@ import { getScreenerRows, buildInitialScreenerRows, getDataDate, getETFCountLabe
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
 import PocetFondu from '@/components/design-preview/PocetFondu';
 import { COMPARE_MAX } from '@/components/design-preview/compareLimit';
+import { titulek } from '@/lib/seoTitulek';
 
 const currentYear = new Date().getFullYear();
 
@@ -40,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // Titulek: zaokrouhlené číslo („4 900+“) ze stejné definice jako počet na stránce (getTotalETFCount).
   const count = await getETFCountLabel();
   return {
-    title: `Srovnávač ETF: filtrujte a porovnejte ${count} fondů`,
+    title: titulek(`Srovnávač ETF: filtrujte a porovnejte ${count} fondů`),
     description:
       'Interaktivní srovnávač ETF pro české investory. Filtrujte podle indexu, TER a typu výplaty, řaďte podle výnosu v Kč a porovnejte fondy vedle sebe.',
     alternates: { canonical: '/srovnani' },
@@ -71,8 +72,10 @@ export default async function SrovnaniScreenerPreview() {
     isAccessibleForFree: true,
     inLanguage: 'cs-CZ',
     creator: { '@type': 'Organization', '@id': 'https://etfpruvodce.cz/#organization', name: 'ETF průvodce.cz', url: 'https://etfpruvodce.cz' },
-    temporalCoverage: `${currentYear}`,
-    spatialCoverage: 'Globální ETF trhy',
+    // SEO audit 6b (21. 10. 2026): skutečný rozsah dat = kalendářní výnosy od roku 2021 (sloupce return_2021…2025)
+    // a výnosy za 1–5 let do dne dat; prostor = ETF dostupné z Česka (Place). distribution/license vynecháno záměrně.
+    temporalCoverage: `2021-01-01/${dataDate.toISOString().slice(0, 10)}`,
+    spatialCoverage: { '@type': 'Place', name: 'Česká republika' },
     variableMeasured: ['TER poplatky', 'Historická výkonnost v Kč', 'Velikost fondu', 'Dividendový výnos', 'Replikace'],
   };
   const breadcrumbSchema = {
@@ -158,7 +161,7 @@ export default async function SrovnaniScreenerPreview() {
               <div>
                 <h2 className="mb-1.5 text-sm font-semibold text-slate-900">Co je srovnávač ETF</h2>
                 <p>
-                  Nástroj pro české investory: projdete {pocet.toLocaleString('cs-CZ')} ETF fondů a seřadíte je podle poplatku (TER),
+                  Nástroj pro české investory: projdete {`${(Math.floor(pocet / 100) * 100).toLocaleString('cs-CZ')}+`} ETF fondů a seřadíte je podle poplatku (TER),
                   velikosti nebo výnosu. Na rozdíl od zahraničních srovnávačů ukazuje <strong className="text-slate-800">výnosy přepočtené
                   do korun</strong> kurzem ČNB – tedy kolik byste reálně vydělali vy.
                 </p>
