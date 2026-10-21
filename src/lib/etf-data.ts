@@ -2,6 +2,7 @@
  * Server-side data fetching functions for ETF pages
  * These functions are used for SSG/ISR to pre-render pages with data
  */
+import { jeSvycarskyFond } from '@/lib/nazevFondu';
 import { cache as reactCache } from 'react';
 import { datumCen } from '@/lib/datumCen';
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
@@ -61,8 +62,8 @@ export interface CategoryConfig {
     categories?: string[];
     nameContains?: string[];
     /** Názvy, které se z výsledku VYŘADÍ (AND, case-insensitive).
-     *  Bez toho spadne „MSCI World Semiconductors" do kategorie „Celý svět" jen proto,
-     *  že má v názvu „World" – `nameContains` je totiž prostá shoda podřetězce. */
+     *  Bez toho spadne „MSCI World Semiconductors“ do kategorie „Celý svět“ jen proto,
+     *  že má v názvu „World“ – `nameContains` je totiž prostá shoda podřetězce. */
     nameExcludes?: string[];
     /** Sektor/zaměření podle zdroje (`investment_focus`, OR) – fond musí mít aspoň jedno. Název nestačí:
      *  „UmweltBank“ obsahuje „Bank“, „Clean Energy“ obsahuje „Energy“ (kolo 6, 20. 10. 2026). */
@@ -191,7 +192,7 @@ export function filtrKategorie(q: any, config: CategoryConfig): any {
     query = query.gte('fund_size_numeric', 10);
 
     // Pojistky správnosti (audit dat 17. 10. 2026):
-    // - pákové a inverzní produkty do žebříčků nepatří (vyhrávaly „Nejvyšší výnos": WTI 2x +272 %);
+    // - pákové a inverzní produkty do žebříčků nepatří (vyhrávaly „Nejvyšší výnos“: WTI 2x +272 %);
     // - fond bez názvu je rozbitý řádek ze scraperu;
     // - fond se zamrzlými daty (scraper ho 14+ dní neaktualizoval) by ukazoval staré výnosy
     //   jako dnešní (VUAA: YTD +5 % místo +18,5 %). Měří se scraping_date, NE updated_at –
@@ -304,7 +305,7 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
  *  Volá se jen u žebříčků, kde tabulka nenese celou kategorii; běží v ISR (revalidate), ne při každé návštěvě.
  *  null = chyba dotazu → stránka karty raději vynechá, než by je spočítala z části dat. */
 export async function getVyberKarty(config: CategoryConfig, prah: number, sVykonem: boolean): Promise<{
-  levne: ETFBasicInfo[]; nejvetsi: ETFBasicInfo | null; vsechny: ETFBasicInfo[] | null;
+  levne: ETFBasicInfo[]; nejvetsi: ETFBasicInfo | null; nejvetsiJeCH: boolean; vsechny: ETFBasicInfo[] | null;
 } | null> {
   const sloupce = ['isin', 'name', 'fund_provider', 'ter_numeric', 'fund_size_numeric', 'distribution_policy',
     'return_1y_czk', 'return_3y_czk', 'inception_date', 'scraping_date', ...SLOUPCE_TICKERU].join(',');
@@ -312,7 +313,8 @@ export async function getVyberKarty(config: CategoryConfig, prah: number, sVykon
   try {
     const [lev, vel] = await Promise.all([
       zaklad().gt('ter_numeric', 0).order('ter_numeric', { ascending: true }).order('fund_size_numeric', { ascending: false }).limit(300),
-      zaklad().order('fund_size_numeric', { ascending: false }).limit(1),
+      // 10 největších: karta „Největší fond“ přeskakuje švýcarské fondy (sídlo CH, jeSvycarskyFond) – SEO audit 6b.
+      zaklad().order('fund_size_numeric', { ascending: false }).limit(10),
     ]);
     if (lev.error || vel.error) { console.error(`getVyberKarty ${config.slug}:`, lev.error ?? vel.error); return null; }
     let vsechny: ETFBasicInfo[] | null = null;
@@ -325,26 +327,33 @@ export async function getVyberKarty(config: CategoryConfig, prah: number, sVykon
         if ((data ?? []).length < 1000) break;
       }
     }
-    return { levne: (lev.data ?? []) as ETFBasicInfo[], nejvetsi: ((vel.data ?? [])[0] as ETFBasicInfo) ?? null, vsechny };
+    const mimoCH = (xs: ETFBasicInfo[]) => xs.filter((e) => !jeSvycarskyFond(e.isin, e.name));
+    const velke = (vel.data ?? []) as ETFBasicInfo[];
+    return {
+      levne: mimoCH((lev.data ?? []) as ETFBasicInfo[]),
+      nejvetsi: mimoCH(velke)[0] ?? null,
+      nejvetsiJeCH: !!velke[0] && jeSvycarskyFond(velke[0].isin, velke[0].name),
+      vsechny: vsechny ? mimoCH(vsechny) : null,
+    };
   } catch (error) {
     console.error(`getVyberKarty ${config.slug}:`, error);
     return null;
   }
 }
 
-/** Sektorové/faktorové/pákové fondy – podle názvu. Mají v DB občas chybně index „S&P 500" /
- *  „MSCI World" (audit 17. 10. 2026), takže je nesmíme brát jako „stejný index". */
+/** Sektorové/faktorové/pákové fondy – podle názvu. Mají v DB občas chybně index „S&P 500“ /
+ *  „MSCI World“ (audit 17. 10. 2026), takže je nesmíme brát jako „stejný index“. */
 export const SPECIFICKY_FOND = /\b(sector|energy|financials?|information technology|technology|health ?care|utilities|industrials?|materials|consumer|communication|real estate|equal weight|value|growth|momentum|quality|min(imum)? vol|dividend|esg|sri|paris|climate|ex[- ]|small ?cap|mid ?cap|leveraged|short|inverse|\dx)\b/i;
 
 export interface PodobnyFond { isin: string; name: string; primary_ticker: string | null; ter_numeric: number | null; fund_size_numeric: number | null; return_1y_czk: number | null }
 
 /**
- * Podobné fondy pro „Další fondy na index X" na detailu (kolo 6, 20. 10. 2026): STEJNÝ index jako nadpis
+ * Podobné fondy pro „Další fondy na index X“ na detailu (kolo 6, 20. 10. 2026): STEJNÝ index jako nadpis
  * (klíč z indexDetailu – src/lib/detailFondu.ts) a STEJNÉ měnové zajištění (zajištěná třída jen se zajištěnými
  * do stejné měny, nezajištěná jen s nezajištěnými). Dřív holé `.eq('index_name')`: nadpis a seznam stály na
  * jiném klíči, EMIM (IMI) by ukázal fondy na MSCI EM standard a VHYL nenašel akumulační VGWE (SPECIFICKY_FOND
  * vracel prázdno). Jeden dotaz jako dřív (kandidáti podle začátku index_name), filtr v JS. Bez pákových, bez
- * fondů se zamrzlými daty, seřazené podle velikosti. Specifické fondy (sektor, ESG…) se ke „obyčejnému" indexu
+ * fondů se zamrzlými daty, seřazené podle velikosti. Specifické fondy (sektor, ESG…) se ke „obyčejnému“ indexu
  * nepřidávají ani při shodném index_name (chybná data zdroje, audit 17. 10. 2026).
  * Kontrola: scripts/check-fund-data.mjs (blok kolo6 detail).
  */
@@ -409,7 +418,7 @@ const COMPOSITION_FIELDS = `
 /**
  * Vytáhne z řady polí name/weight (číslované 1..n) čisté segmenty:
  * vynechá prázdné názvy a nulové/neplatné váhy. Data v etf_funds jsou
- * „špinavá" – komoditní/zlaté ETC mají prázdné řetězce a váhu „0".
+ * „špinavá“ – komoditní/zlaté ETC mají prázdné řetězce a váhu „0“.
  */
 function extractSlices(
   row: Record<string, unknown>,
@@ -503,7 +512,7 @@ export async function getFeaturedETFs(): Promise<{
 
     // Fetch top by 1Y performance – V KORUNÁCH a jen AKCIOVÉ fondy (audit 17. 10. 2026: panel
     // ukazoval výnos v měně fondu a vedly ho komoditní ETC – zemní plyn +194 %, stříbro –
-    // hned nad blokem „Kterým ETF začít"; navíc fondy se zamrzlými daty z dubna).
+    // hned nad blokem „Kterým ETF začít“; navíc fondy se zamrzlými daty z dubna).
     const byPerformancePromise = supabaseAdmin
       .from('etf_funds')
       .select(ETF_SELECT_FIELDS)
@@ -546,7 +555,9 @@ export async function getFeaturedETFs(): Promise<{
       .lte('ter_numeric', 0.15)
       .gte('scraping_date', cerstveOd())
       .order('ter_numeric', { ascending: true })
-      .limit(20);
+      // Při shodě TER větší fond (pravidlo porovnejNejlevnejsi) – jinak limit useknul velké fondy se stejným TER.
+      .order('fund_size_numeric', { ascending: false })
+      .limit(40);
 
     const [bySizeResult, byPerformanceResult, byRatingResult, lowCostResult] = await Promise.all([
       bySizePromise,
@@ -599,7 +610,7 @@ export async function getDataDatum(): Promise<Date | null> {
 export async function getLastModifiedDate(): Promise<string | null> {
   try {
     // scraping_date = kdy scraper data fondu opravdu stáhl. updated_at to NEní: do 17. 10. 2026
-    // ho přepisoval i upsert starých dat z checkpointů (dubnová data hlásila „dnes").
+    // ho přepisoval i upsert starých dat z checkpointů (dubnová data hlásila „dnes“).
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
       .select('scraping_date')
@@ -664,8 +675,8 @@ export async function getTotalETFCount(): Promise<number> {
 }
 
 /**
- * Počet fondů do textu a titulků (z getTotalETFCount – stejné číslo jako srovnávač): zaokrouhleno DOLŮ na stovky („4 900+"), aby text zůstal
- * pravdivý a titulek se neměnil každý den. Dřív bylo „4 800+" a „4 300+" napevno v kódu.
+ * Počet fondů do textu a titulků (z getTotalETFCount – stejné číslo jako srovnávač): zaokrouhleno DOLŮ na stovky („4 900+“), aby text zůstal
+ * pravdivý a titulek se neměnil každý den. Dřív bylo „4 800+“ a „4 300+“ napevno v kódu.
  */
 export async function getETFCountLabel(): Promise<string> {
   const n = await getTotalETFCount();
@@ -746,7 +757,7 @@ export async function getMetricsByIsins(
 
 /**
  * Načte vybrané ETF podle ISINů (zachová pořadí vstupu) – pro kurátorské sekce
- * jako „kterým ETF začít".
+ * jako „kterým ETF začít“.
  */
 export async function getETFsByIsins(isins: string[]): Promise<ETFBasicInfo[]> {
   try {
@@ -770,7 +781,7 @@ export interface MarketSnapshotItem {
 }
 
 /**
- * Přehled „jak si vedou trhy" – pro klíčové trhy vrací korunový roční výnos
+ * Přehled „jak si vedou trhy“ – pro klíčové trhy vrací korunový roční výnos
  * největšího fondu v dané kategorii (reálná data, žádné hardcoded číslo).
  */
 export async function getMarketSnapshot(): Promise<MarketSnapshotItem[]> {
@@ -842,7 +853,7 @@ export interface ComparisonETF {
   _rizikoNesedi?: RizikoPole[];
 }
 
-/** Burzy fondu (pro odpověď „stejný fond, jiný ticker" – kde a v jaké měně se obchoduje). */
+/** Burzy fondu (pro odpověď „stejný fond, jiný ticker“ – kde a v jaké měně se obchoduje). */
 const COMPARISON_LISTING_FIELDS = Array.from({ length: 10 }, (_, i) => [`exchange_${i + 1}_name`, `exchange_${i + 1}_currency`]).flat();
 
 const COMPARISON_TICKER_FIELDS = [
@@ -860,7 +871,7 @@ export async function getComparisonETFData(
   ticker2: string
 ): Promise<{ etf1: ComparisonETF; etf2: ComparisonETF } | null> {
   try {
-    // Symbol = ticker NEBO ISIN (lidé hledají i „ie00b5bmr087 vs ie00bfmxxd54" – našeptávač
+    // Symbol = ticker NEBO ISIN (lidé hledají i „ie00b5bmr087 vs ie00bfmxxd54“ – našeptávač
     // Googlu 17. 10. 2026). Hodnoty jsou už ověřené ([a-z0-9]{1,12}) v middleware i parsePair.
     const jeIsin = (x: string) => /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x.toUpperCase());
     const orConditions = [ticker1, ticker2]
@@ -915,7 +926,7 @@ export async function getComparisonETFData(
     const etf1 = nejlepsi(ticker1) as unknown as ComparisonETF | undefined;
     const etf2 = nejlepsi(ticker2) as unknown as ComparisonETF | undefined;
 
-    // Stejný ISIN (CSPX vs SXR8) se NEodmítá: je to častý dotaz „je to stejný fond?" a stránka
+    // Stejný ISIN (CSPX vs SXR8) se NEodmítá: je to častý dotaz „je to stejný fond?“ a stránka
     // na něj odpoví (dřív 404).
     if (!etf1 || !etf2) {
       return null;
@@ -953,7 +964,7 @@ export async function rizikoNesediFondu(e: TridaRiziko): Promise<RizikoPole[]> {
 }
 
 /**
- * Načte ETF pro detailní porovnání dle ISINů (nový design – stránka „porovnání").
+ * Načte ETF pro detailní porovnání dle ISINů (nový design – stránka „porovnání“).
  * Zachovává pořadí vstupu.
  */
 export async function getComparisonETFsByIsins(isins: string[]): Promise<ComparisonETF[]> {
@@ -1114,7 +1125,7 @@ export interface ScreenerRow {
   _dist: DistKind;  // typ výplaty – stejná logika jako detail fondu (src/utils/distribution.ts)
   _tickers: string[]; // všechny tickery lowercase (pro relevanci hledání)
   _dom: string | null;   // domicil už počeštěný (je zároveň hodnotou filtru)
-  /** Rok vzniku fondu. `inception_date` je v DB anglický TEXT („8 April 2011"), takže
+  /** Rok vzniku fondu. `inception_date` je v DB anglický TEXT („8 April 2011“), takže
    *  se podle něj nedalo řadit. Parsujeme jednou na serveru a posíláme číslo. */
   _year: number | null;
 }
@@ -1159,7 +1170,7 @@ function domLabelSrv(d: string | null): string | null {
   return DOM_CS[d] ?? d;
 }
 
-/** Rok vzniku z textového `inception_date` („8 April 2011"). Vrací null, když se
+/** Rok vzniku z textového `inception_date` („8 April 2011“). Vrací null, když se
  *  datum nepodaří přečíst – radši prázdno než smyšlený rok. */
 export function inceptionYear(v: string | null | undefined): number | null {
   if (!v) return null;
@@ -1353,10 +1364,10 @@ export function buildInitialScreenerRows(rows: ScreenerRow[], q: string, n = 50,
  * This maps each page slug to its filter configuration
  */
 /** Sektorové, faktorové a tematické názvy, které NEPATŘÍ do širokých tržních/regionálních
- *  žebříčků („Celý svět", „USA", „Evropa"…). Důvod: `nameContains` je jen shoda podřetězce,
- *  takže bez tohohle se mezi „nejlepší celosvětové ETF" dostaly velké sektorové fondy
+ *  žebříčků („Celý svět“, „USA“, „Evropa“…). Důvod: `nameContains` je jen shoda podřetězce,
+ *  takže bez tohohle se mezi „nejlepší celosvětové ETF“ dostaly velké sektorové fondy
  *  (MSCI World Semiconductors, World Health Care) i faktorové (World Value/Momentum/Small Cap).
- *  Změřeno 2026-08: 95 z 346 fondů se slovem „World" bylo tohoto typu.
+ *  Změřeno 2026-08: 95 z 346 fondů se slovem „World“ bylo tohoto typu.
  *  POZOR: nepoužívat u sektorových kategorií – tam ty fondy naopak patří. */
 /** Fond, který scraper neaktualizoval déle, se v žebříčcích neukazuje (viz getTopETFsForCategory). */
 export const CERSTVOST_DNI = 14;

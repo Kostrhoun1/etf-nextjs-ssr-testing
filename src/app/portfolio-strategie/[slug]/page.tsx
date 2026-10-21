@@ -49,8 +49,8 @@ export async function generateMetadata(
 /** Popisek ≤ 160 znaků (SEO audit 6b); portfolio bez historie netvrdí „historii od roku 2008“. */
 function popisPortfolia(nazev: string, tagline: string, sHistorii: boolean) {
   const konec = sHistorii ? 'Složení z ETF, riziko a historická výkonnost v korunách od roku 2008.' : 'Složení z ETF, konkrétní fondy a riziko. Historii v korunách neuvádíme (chybí data indexu).';
-  const kandidati = [`${nazev}: ${tagline} ${konec}`, `${nazev}: ${tagline} Složení z ETF a ${sHistorii ? 'historie v Kč od 2008' : 'konkrétní fondy'}.`, `${nazev} – složení z ETF, konkrétní fondy, riziko${sHistorii ? ' a historická výkonnost v korunách od roku 2008' : ''}.`];
-  return kandidati.find((k) => k.length <= 160) ?? kandidati[2];
+  const kandidati = [`${nazev}: ${tagline} ${konec}`, `${nazev}: ${tagline} Složení z ETF a ${sHistorii ? 'historie v Kč od 2008' : 'konkrétní fondy'}.`, `${nazev}: ${tagline.split(/[:—–]/)[0].trim().replace(/[.]$/, '')}. Složení z ETF, riziko${sHistorii ? ' a historie v Kč od 2008' : ''}.`, `${nazev} – modelové portfolio z ETF: složení, konkrétní fondy s ISIN, riziko${sHistorii ? ' a historická výkonnost v korunách od roku 2008 včetně největších propadů' : ' a co v historii chybí'}.`];
+  return kandidati.find((k) => k.length <= 160 && k.length >= 110) ?? kandidati[kandidati.length - 1];
 }
 
 const pct = (v: number | null) =>
@@ -69,7 +69,7 @@ export default async function PortfolioDetailPreview(
     ? await Promise.all([predpocitejPortfolio(btConfig.items, btConfig.start), predpocitejPortfolio([BACKTEST_BENCHMARK], btConfig.start)])
     : [null, null];
   const btInitial = btPf && btBench ? { pf: btPf, bench: btBench } : null;
-  // Kurátorský max. pokles strategie (číslo z „do −15 %").
+  // Kurátorský max. pokles strategie (číslo z „do −15 %“).
   // Max. pokles: skutečný z backtestu (stejné období a měna jako srovnání), kurátorský odhad „do −40 %“ jen
   // když backtest chybí. Dřív byla na stránce tři různá čísla (revize 18. 10. 2026).
   const btDD = btPf?.risk.maxDrawdown.depth;
@@ -130,7 +130,7 @@ export default async function PortfolioDetailPreview(
   const perf3y = weighted('return_3y_czk');
 
   /* NÁKLADY PORTFOLIA. Vážený TER složek + kolik to dělá v korunách ročně.
-     Samotné „0,18 %" čtenáři nic neřekne; „1 800 Kč ročně z milionu" ano – a je to
+     Samotné „0,18 %“ čtenáři nic neřekne; „1 800 Kč ročně z milionu“ ano – a je to
      přesně to číslo, které o strategii rozhoduje víc než odhad výnosu.
      Pokud některá složka TER v databázi nemá, vážíme jen pokrytou část a řekneme to. */
   const NAKLADY_PRIKLAD = 1_000_000;

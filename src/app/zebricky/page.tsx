@@ -10,6 +10,7 @@ import {
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { categoryConfigs, getTotalETFCount, getDataDate, getDataDatum } from '@/lib/etf-data';
+import { NAZVY_ZEBRICKU } from '@/lib/zebrickySouvisejici';
 import { nactiSouhrnyZebricku, type SouhrnZebricku } from '@/lib/zebricky';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 
@@ -50,56 +51,8 @@ const catHref = (slug: string) => `/nejlepsi-etf/${slug}`;
 
 /* Krátký název do řádku rozcestníku („Nejlepší S&P 500 ETF“ ×48 byla zeď stejných slov – revize
    18. 10. 2026) + nepovinné upřesnění. Titulek stránky žebříčku (SEO) zůstává beze změny. */
-const POPISKY: Record<string, [string, string?]> = {
-  'nejlepsi-etf-2026': ['Největší fondy', 'napříč všemi třídami aktiv'],
-  'nejlevnejsi-etf': ['Nejlevnější fondy', 'podle poplatku TER, bez produktů s TER 0 %'],
-  'nejlepsi-akciove-etf': ['Akciové'],
-  'nejlepsi-dluhopisove-etf': ['Dluhopisové'],
-  'nejlepsi-komoditni-etf': ['Komoditní'],
-  'nejlepsi-dividendove-etf': ['Dividendové', 's výplatou dividend'],
-  'nejlepsi-realitni-etf': ['Realitní', 'REITs'],
-  'nejlepsi-vladni-dluhopisy-etf': ['Vládní dluhopisy'],
-  'nejlepsi-korporatni-dluhopisy-etf': ['Firemní dluhopisy'],
-  'nejlepsi-high-yield-etf': ['High yield', 'dluhopisy s vyšším rizikem'],
-  'nejlepsi-sp500-etf': ['S&P 500', '500 největších firem USA'],
-  'nejlepsi-msci-world-etf': ['MSCI World', 'vyspělé trhy'],
-  'nejlepsi-nasdaq-etf': ['Nasdaq-100', 'americké technologie'],
-  'nejlepsi-dax-etf': ['DAX', 'Německo'],
-  'nejlepsi-stoxx600-etf': ['STOXX Europe 600', 'Evropa'],
-  'nejlepsi-ftse100-etf': ['FTSE 100', 'Velká Británie'],
-  'nejlepsi-celosvetove-etf': ['Celý svět', 'vyspělé i rozvíjející se trhy'],
-  'nejlepsi-americke-etf': ['USA'],
-  'nejlepsi-evropske-etf': ['Evropa'],
-  'nejlepsi-japonske-etf': ['Japonsko'],
-  'nejlepsi-cinske-etf': ['Čína'],
-  'nejlepsi-indicke-etf': ['Indie'],
-  'nejlepsi-emerging-markets-etf': ['Rozvíjející se trhy', 'emerging markets'],
-  'nejlepsi-asijsko-pacificke-etf': ['Asie a Pacifik'],
-  'nejlepsi-technologicke-etf': ['Technologie'],
-  'nejlepsi-healthcare-etf': ['Zdravotnictví'],
-  'nejlepsi-financni-etf': ['Finance'],
-  'nejlepsi-energeticke-etf': ['Energetika'],
-  'nejlepsi-prumyslove-etf': ['Průmysl'],
-  'nejlepsi-spotrebitelske-etf': ['Spotřební zboží'],
-  'nejlepsi-infrastrukturni-etf': ['Infrastruktura'],
-  'nejlepsi-ai-etf': ['Umělá inteligence'],
-  'nejlepsi-robotika-etf': ['Robotika'],
-  'nejlepsi-cloud-etf': ['Cloud'],
-  'nejlepsi-kyberbezpecnost-etf': ['Kyberbezpečnost'],
-  'nejlepsi-obnovitelne-zdroje-etf': ['Obnovitelné zdroje'],
-  'nejlepsi-biotechnologie-etf': ['Biotechnologie'],
-  'nejlepsi-defense-etf': ['Obrana'],
-  'nejlepsi-esg-etf': ['ESG', 'udržitelné investování'],
-  'nejlepsi-zlato-etf': ['Zlato'],
-  'nejlepsi-stribro-etf': ['Stříbro'],
-  'nejlepsi-ropa-etf': ['Ropa'],
-  'nejlepsi-bitcoin-etf': ['Bitcoin'],
-  'nejlepsi-value-etf': ['Value', 'levnější firmy'],
-  'nejlepsi-growth-etf': ['Growth', 'růstové firmy'],
-  'nejlepsi-small-cap-etf': ['Malé firmy', 'small cap'],
-  'nejlepsi-akumulacni-etf': ['Akumulační', 'dividendy zůstávají ve fondu'],
-  'nejlepsi-distribucni-etf': ['Distribuční', 'dividendy se vyplácejí'],
-};
+// Krátké názvy žebříčků – jedna definice pro rozcestník, „Související žebříčky“ i články (src/lib/zebrickySouvisejici.ts).
+const POPISKY = NAZVY_ZEBRICKU;
 
 /* Nejhledanější žebříčky – štítek „populární“ (ne hvězda: ★ jinde na webu znamená hodnocení). */
 const HLEDANE = new Set(['nejlepsi-sp500-etf', 'nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlevnejsi-etf', 'nejlepsi-nasdaq-etf', 'nejlepsi-zlato-etf']);

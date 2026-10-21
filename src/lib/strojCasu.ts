@@ -10,7 +10,7 @@
  *   měsíčně:      hodnota = Σ_m  vklad × NAV[konec] / NAV[m]   (vklad na začátku měsíce m)
  * Žádné volání API při zobrazení, data jsou desítky kB a cachují se s ISR stránkou.
  *
- * Zjednodušení proti backtestu: měsíční vklad „sleduje" NAV portfolia (jako by se přidal
+ * Zjednodušení proti backtestu: měsíční vklad „sleduje“ NAV portfolia (jako by se přidal
  * v aktuálním poměru složek), backtest ho rozdělí v cílovém poměru. Rozdíl je malý a je
  * změřený v ověření (scripts/overeni-stroj-casu.mjs, PLAN-OPRAV-2026-10.md – Vlna 6).
  *

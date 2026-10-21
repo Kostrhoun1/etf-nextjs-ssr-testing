@@ -130,6 +130,15 @@ const GROUPS: Group[] = [
 
 const toolCount = GROUPS.reduce((n, g) => n + g.tools.length, 0);
 
+/** Šířka buňky v 6sloupcové mřížce: po třech (span 2); zbylé 2 přes polovinu (span 3), zbylá 1 přes celou šířku. */
+function bunka(i: number, n: number): string {
+  const zbytek = n % 3;
+  const vPosledniRade = i >= n - zbytek;
+  const lg = !zbytek || !vPosledniRade ? 'lg:col-span-2' : zbytek === 2 ? 'lg:col-span-3' : 'lg:col-span-6';
+  const sm = n % 2 === 1 && i === n - 1 ? 'sm:col-span-2' : '';
+  return `${lg} ${sm}`.trim();
+}
+
 const kamDalItems = (countLabel: string): { href: string; label: string; desc: string; icon: typeof Calculator }[] => [
   { href: '/srovnani', label: 'Srovnání ETF fondů', desc: `Porovnejte ${countLabel} fondů podle vlastních kritérií.`, icon: BarChart3 },
   { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: 'Hotové strategie složené z ETF na míru cíli.', icon: PieChart },
@@ -138,7 +147,7 @@ const kamDalItems = (countLabel: string): { href: string; label: string; desc: s
 
 export default async function KalkulackyPage() {
   const etfCount = await getTotalETFCount();
-  const KAM_DAL = kamDalItems(etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800');
+  const KAM_DAL = kamDalItems(etfCount > 0 ? `${(Math.floor(etfCount / 100) * 100).toLocaleString('cs-CZ')}+` : '4 800+');
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -223,12 +232,14 @@ export default async function KalkulackyPage() {
               <h2 className="text-2xl font-bold tracking-tight text-slate-900">{g.title}</h2>
             </div>
             <p className="mt-1 max-w-2xl text-sm text-slate-600 leading-relaxed">{g.intro}</p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {g.tools.map((t) => (
+            {/* SEO audit 6b (art director): 5 nástrojů v mřížce po 3 nechávalo prázdné místo → 6sloupcová mřížka,
+                poslední dva přes 3 sloupce (3 + 2 bez díry); na tabletu lichý poslední přes celou šířku. */}
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+              {g.tools.map((t, i) => (
                 <Link
                   key={t.href}
                   href={t.href}
-                  className="group flex flex-col rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all"
+                  className={`${bunka(i, g.tools.length)} group flex flex-col rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all`}
                 >
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3 group-hover:bg-teal-100 transition-colors">
                     <t.icon className="w-5 h-5" />

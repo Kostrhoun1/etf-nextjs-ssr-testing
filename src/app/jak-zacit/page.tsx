@@ -17,6 +17,7 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 
 export default async function HowToStartPreview() {
   const totalCount = await getTotalETFCount();
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
+  const countLabel = totalCount > 0 ? `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+` : '4 800+';
 
   const upraveno = upravenoDlouze('/jak-zacit'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
@@ -170,7 +171,7 @@ export default async function HowToStartPreview() {
   const mistakes: { icon: typeof Clock; title: string; desc: string }[] = [
     { icon: Clock, title: 'Časování trhu', desc: 'Čekání na „ideální okamžik“. Trefit dno se dlouhodobě skoro nikomu nedaří – pravidelnost vyhrává.' },
     { icon: Boxes, title: 'Příliš mnoho fondů', desc: 'Deset překrývajících se ETF nezvyšuje rozložení rizika, jen zamotá hlavu i daně. Pro start stačí jeden.' },
-    { icon: AlertTriangle, title: 'Prodej v panice', desc: 'Výprodej při propadu zafixuje ztrátu. Široké světové indexy se z propadů zatím vždy zotavily, ale jednotlivé trhy ne vždy rychle – japonský Nikkei se na vrchol z roku 1989 vrátil až v roce 2024.' },
+    { icon: AlertTriangle, title: 'Prodej v panice', desc: 'Výprodej při propadu zafixuje ztrátu. Široké světové indexy se z dosavadních propadů zotavily, jednotlivé trhy ale ne vždy rychle – japonský Nikkei se na vrchol z roku 1989 vrátil až v roce 2024.' },
     { icon: Wallet, title: 'Ignorování poplatků', desc: 'Vysoký TER a poplatky za nákup i konverzi měn ukrajují výnos potichu, ale celé roky.' },
   ];
 
@@ -180,9 +181,11 @@ export default async function HowToStartPreview() {
       q: 'Kolik peněz potřebuju na start?',
       a: (
         <>
-          Klidně pár tisíc korun – u řady brokerů koupíte i zlomek jedné akcie ETF. Důležitější než velikost
-          první částky je <strong>pravidelnost</strong> a dlouhý horizont. Investujte jen peníze, které několik
-          let nebudete potřebovat.
+          U brokerů, kteří prodávají i zlomky podílu (Trading 212 od 1 €, XTB, Interactive Brokers), se dá začít
+          i s několika stovkami korun; robo-poradce Portu má minimální vklad 500 Kč. Kde se kupují jen celé podíly,
+          potřebujete aspoň cenu jednoho podílu – u velkých akciových ETF od desítek po stovky eur. Důležitější než
+          velikost první částky je <strong>pravidelnost</strong> a dlouhý horizont. Investujte jen peníze, které
+          několik let nebudete potřebovat.
         </>
       ),
     },
@@ -445,6 +448,9 @@ export default async function HowToStartPreview() {
           </div>
         </GuideSection>
 
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-etf-2026', 'nejlepsi-celosvetove-etf', 'nejlepsi-sp500-etf', 'nejlevnejsi-etf']} />
+
         {/* FAQ */}
         <GuideSection id="faq">
           <SectionHead title="Časté dotazy" desc="Co řeší skoro každý, kdo stojí před prvním nákupem." />
@@ -524,7 +530,7 @@ function stepPlainText(title: string): string {
 function faqPlainText(q: string): string {
   const map: Record<string, string> = {
     'Kolik peněz potřebuju na start?':
-      'Klidně pár tisíc korun – u řady brokerů koupíte i zlomek akcie ETF. Důležitější než velikost první částky je pravidelnost a dlouhý horizont. Investujte jen peníze, které několik let nebudete potřebovat.',
+      'U brokerů, kteří prodávají i zlomky podílu (Trading 212 od 1 €, XTB, Interactive Brokers), se dá začít i s několika stovkami korun; robo-poradce Portu má minimální vklad 500 Kč. Kde se kupují jen celé podíly, potřebujete aspoň cenu jednoho podílu – u velkých akciových ETF od desítek po stovky eur. Důležitější než velikost první částky je pravidelnost a dlouhý horizont. Investujte jen peníze, které několik let nebudete potřebovat.',
     'Jak často mám investovat?':
       'Pro většinu lidí se osvědčí pravidelná měsíční investice stejné částky, ideálně po výplatě. Nakupujete tak za různé ceny a nemusíte řešit, jestli je zrovna dobrá doba.',
     'Stačí jeden fond, nebo jich mám mít víc?':

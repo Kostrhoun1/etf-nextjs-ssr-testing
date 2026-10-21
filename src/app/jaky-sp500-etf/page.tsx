@@ -4,11 +4,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, Percent, PiggyBank, Trophy,
-  CheckCircle2, BookOpen, Layers,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, Percent, PiggyBank, Trophy, CheckCircle2, BookOpen, Layers, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getETFsByIsins, CERSTVOST_DNI } from '@/lib/etf-data';
@@ -17,6 +13,8 @@ import { procenta, terFmt, velikostFondu } from '@/lib/formatyCisel';
 import { SITEMAP_PAIRS } from '@/lib/pairs';
 import { cache as reactCache } from 'react';
 import { clanekSchema } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
+import KlicovaCisla from '@/components/design-preview/KlicovaCisla';
 
 export const revalidate = 86400;
 /* SEO audit kola 6 – kanibalizace s /nejlepsi-etf/nejlepsi-sp500-etf: žebříček = srovnání VŠECH S&P 500 ETF
@@ -52,9 +50,9 @@ const DVOJICE = ['cspx-vs-vuaa', 'cspx-vs-spyl', 'cspx-vs-vusa', 'vusa-vs-vuaa',
    Jen fondy na ČISTÝ S&P 500 (market-cap), bez sektorových/equal-weight variant. */
 type Fund = { isin: string; tickers: string; name: string; note: string };
 const FUNDS: Fund[] = [
-  { isin: 'IE00B5BMR087', tickers: 'CSPX / SXR8', name: 'iShares Core S&P 500', note: 'Největší a nejlikvidnější – bezpečná výchozí volba' },
-  { isin: 'IE00BFMXXD54', tickers: 'VUAA', name: 'Vanguard S&P 500', note: 'Vanguard, nižší cena jednoho podílu' },
-  { isin: 'IE000XZSV718', tickers: 'SPYL', name: 'SPDR S&P 500', note: 'Nejnižší TER (ale širší spread)' },
+  { isin: 'IE00B5BMR087', tickers: 'CSPX / SXR8', name: 'iShares Core S&P 500', note: 'Největší fond na S&P 500 (nejvíc spravovaného majetku)' },
+  { isin: 'IE00BFMXXD54', tickers: 'VUAA', name: 'Vanguard S&P 500', note: 'Vanguard, akumulační, TER 0,07 %' },
+  { isin: 'IE000XZSV718', tickers: 'SPYL', name: 'SPDR S&P 500', note: 'Nejnižší TER; cena jednoho podílu v desítkách eur' },
   // Xetra P500 (EUR), LSE SPXS (USD) – ověřeno 19. 10. 2026 (dřív chybně „SPXP“).
   { isin: 'IE00B3YCGJ38', tickers: 'P500 / SPXS', name: 'Invesco S&P 500', note: 'Swap – historicky mírně lepší tracking' },
   { isin: 'IE00B3XXRP09', tickers: 'VUSA', name: 'Vanguard S&P 500', note: 'Vyplácí dividendy (čtvrtletně)' },
@@ -110,6 +108,7 @@ export default async function JakySp500Etf() {
   const vuaa = podle('IE00BFMXXD54');
   // Výnos za 5 let v Kč: rozpětí přes fondy, které ho mají (SPYL je mladší než 5 let).
   const r5 = fondy.map((f) => f.r5).filter((v): v is number => v != null);
+  const terMin = fondy.map((f) => f.ter).filter((v): v is number => v != null && v > 0).reduce<number | null>((a, b) => (a == null || b < a ? b : a), null);
   const r5Text = r5.length >= 2
     ? `${procenta(Math.min(...r5))} až ${procenta(Math.max(...r5))}`
     : null;
@@ -117,11 +116,11 @@ export default async function JakySp500Etf() {
   const faqs = [
     {
       q: 'Který S&P 500 ETF je nejlepší?',
-      a: 'Neexistuje jeden „nejlepší" – všechny sledují stejný index, takže výnosy jsou prakticky totožné. Jako bezpečná výchozí volba slouží iShares CSPX (největší a nejlikvidnější). Kdo chce nejnižší poplatek, sáhne po SPDR (SPYL/SPY5, TER 0,03 %). Kdo chce dividendy v hotovosti, volí distribuční (VUSA, IUSA).',
+      a: 'Neexistuje jeden „nejlepší“ – všechny sledují stejný index, takže výnosy jsou prakticky totožné. Největší je iShares CSPX/SXR8 (nejvíc spravovaného majetku). Nejnižší poplatek má SPDR (SPYL/SPY5, TER 0,03 %). Kdo chce dividendy v hotovosti, volí distribuční (VUSA, IUSA).',
     },
     {
       q: 'Jaký je rozdíl mezi CSPX a VUAA?',
-      a: `Oba jsou akumulační S&P 500 ETF s TER 0,07 %, fyzickou replikací a irským domicilem – v podstatě zaměnitelné. CSPX (iShares) je mnohem větší (${cspx.aum != null && vuaa.aum != null ? `${velikostFondu(cspx.aum)} vs ${velikostFondu(vuaa.aum)}${dateStr ? ` k ${dateStr}` : ''}` : 'několikanásobně'}), takže má lepší likviditu a o chlup lepší tracking. VUAA (Vanguard) má nižší cenu jednoho podílu, což se hodí při malých pravidelných nákupech.`,
+      a: `Oba jsou akumulační S&P 500 ETF s TER 0,07 %, fyzickou replikací a irským domicilem – v podstatě zaměnitelné. CSPX (iShares) je mnohem větší (${cspx.aum != null && vuaa.aum != null ? `${velikostFondu(cspx.aum)} vs ${velikostFondu(vuaa.aum)}${dateStr ? ` k ${dateStr}` : ''}` : 'několikanásobně'}), takže má lepší likviditu a o chlup lepší tracking. U brokera, který neprodává zlomky podílu, rozhoduje při malých nákupech i cena jednoho podílu – ze sledovaných fondů je nejnižší u SPYL (desítky eur), CSPX/SXR8 stojí stovky eur.`,
     },
     {
       q: 'Akumulační, nebo distribuční S&P 500 ETF?',
@@ -129,7 +128,7 @@ export default async function JakySp500Etf() {
     },
     {
       q: 'Proč je SPDR (SPYL) levnější, ale ne vždy výhodnější?',
-      a: 'SPDR má nejnižší TER (0,03 % vs 0,07 % u iShares/Vanguard), ale historicky širší rozpětí nákup/prodej (spread). U jednorázové malé investice může vyšší spread ten rozdíl v TER sníst; u dlouhodobého držení a větších částek se nižší TER vyplatí. Rozhoduje celková nákladovost, ne jen poplatek.',
+      a: 'SPDR má nejnižší TER (0,03 % vs 0,07 % u iShares/Vanguard); menší fond ale může mít širší rozpětí nákup/prodej (spread). Spread zaplatíte jednou při každém nákupu a prodeji (jako procento z obchodu), TER každý rok. Při krátkém držení nebo velmi častém obchodování proto může širší spread rozdíl v TER převážit, při dlouhodobém držení rozhoduje spíš TER.',
     },
     {
       q: 'Fyzická, nebo syntetická replikace?',
@@ -227,6 +226,24 @@ export default async function JakySp500Etf() {
           </div>
         </section>
 
+        {/* Klíčová čísla k datu dat fondů (SEO/GEO audit 6b) – z téže DB jako tabulka níž (nactiFondy). */}
+        {dateStr && (
+          <KlicovaCisla
+            datum={dateStr}
+            radky={[
+              ...(terMin != null ? [{ co: 'Nejnižší TER mezi sledovanými fondy', hodnota: terFmt(terMin), pozn: fondy.filter((f) => f.ter === terMin).map((f) => f.tickers).join(', ') }] : []),
+              ...(cspx.aum != null ? [{ co: 'Největší fond (CSPX / SXR8, iShares)', hodnota: velikostFondu(cspx.aum), pozn: 'spravovaný majetek' }] : []),
+              ...(r5Text ? [{ co: 'Výnos za 5 let v Kč (rozpětí fondů)', hodnota: r5Text, pozn: 'po poplatcích, před daní' }] : []),
+              { co: 'Sledované fondy na S&P 500', hodnota: String(FUNDS.length), pozn: 'všechny se sídlem v Irsku (UCITS)' },
+            ]}
+            zdroje={[
+              { href: 'https://www.spglobal.com/spdji/en/indices/equity/sp-500/', text: 'S&P Dow Jones Indices – S&P 500' },
+              { href: 'https://www.ishares.com/uk/individual/en/products/253743/', text: 'iShares Core S&P 500 (CSPX)' },
+              { href: 'https://www.ssga.com/ie/en_gb/intermediary/etfs/state-street-spdr-sp-500-ucits-etf-acc-spyl-gy', text: 'SPDR S&P 500 (SPYL)' },
+            ]}
+          />
+        )}
+
         {/* SROVNÁVACÍ TABULKA */}
         <section className="pb-10">
           <SectionHead title="Srovnání hlavních S&P 500 ETF" desc={`Nejznámější fondy na čistý S&P 500 dostupné českým investorům.${dateStr ? ` Velikost, poplatek a výnos v Kč k ${dateStr}.` : ''}`} />
@@ -305,13 +322,13 @@ export default async function JakySp500Etf() {
 
         {/* ROZHODOVACÍ VODÍTKO */}
         <section className="pb-10">
-          <SectionHead title="Který si vybrat (rychlé vodítko)" desc="Podle toho, co je pro vás priorita." />
+          <SectionHead title="Čím se fondy liší (rychlé vodítko)" desc="Fakta podle toho, co je pro vás důležité – ne doporučení." />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {([
-              [Trophy, 'Nechci nic řešit', 'CSPX (iShares) – největší, nejlikvidnější, akumulační. Bezpečný default.'],
-              [Percent, 'Nejnižší poplatek', 'SPYL / SPY5 (SPDR), TER 0,03 %. Pozor na spread u malých částek.'],
+              [Trophy, 'Největší fond', 'CSPX / SXR8 (iShares) – nejvíc spravovaného majetku, akumulační, TER 0,07 %.'],
+              [Percent, 'Nejnižší poplatek', 'SPYL / SPY5 (SPDR), TER 0,03 %. Spread se platí při každém obchodu – u krátkého držení ho porovnejte.'],
               [PiggyBank, 'Chci dividendy v hotovosti', 'VUSA nebo IUSA (distribuční) – vyplácí čtvrtletně.'],
-              [Coins, 'Malé pravidelné nákupy', 'VUAA (Vanguard) – nižší cena jednoho podílu.'],
+              [Coins, 'Malé nákupy bez zlomků podílu', 'Rozhoduje cena jednoho podílu: SPYL stojí desítky eur, CSPX / SXR8 stovky eur.'],
             ] as [typeof Trophy, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 mb-2.5"><Icon className="w-4 h-4" /></span>
@@ -327,7 +344,7 @@ export default async function JakySp500Etf() {
           <SectionHead title="Čtyři věci, které rozhodují" desc="Výnos ne (ten je stejný). Tohle ano." />
           <div className="space-y-3">
             {([
-              [Percent, 'Poplatek (TER)', 'Rozpětí je 0,03–0,07 % ročně. Rozdíl je malý, ale za desítky let se sečte. U velkých částek a dlouhého držení má nejnižší TER (SPDR) navrch – pokud ho nesní širší spread.'],
+              [Percent, 'Poplatek (TER)', 'Rozpětí je 0,03–0,07 % ročně. Rozdíl je malý, ale za desítky let se sečte. Při dlouhém držení má nejnižší TER (SPDR) navrch; spread se platí jen při nákupu a prodeji.'],
               [PiggyBank, 'Akumulace vs. distribuce', 'Akumulační reinvestuje dividendy uvnitř (daňově jednodušší pro dlouhodobé zhodnocení). Distribuční vyplácí hotovost, která se daní 15 %. Viz náš průvodce daněmi.'],
               [Layers, 'Replikace', 'Fyzická drží reálné akcie (transparentní). Syntetická (swap) mívá o chlup lepší tracking díky daňové mechanice US dividend, nese ale malé riziko protistrany.'],
               [Scale, 'Likvidita a spread', 'Větší fond = užší rozpětí nákup/prodej = levnější obchod. CSPX je zdaleka největší; drobný spread ušetříte hlavně u větších nebo jednorázových nákupů.'],
@@ -379,6 +396,9 @@ export default async function JakySp500Etf() {
           </div>
         </section>
 
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-sp500-etf', 'nejlepsi-nasdaq-etf', 'nejlepsi-americke-etf', 'nejlepsi-celosvetove-etf']} />
+
         {/* FAQ */}
         <section className="pb-10">
           <SectionHead title="Časté otázky" />
@@ -389,7 +409,7 @@ export default async function JakySp500Etf() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>

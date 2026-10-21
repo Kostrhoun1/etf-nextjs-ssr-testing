@@ -21,6 +21,7 @@ import { distKind } from '@/utils/distribution';
 import { hodnotaVkladu, PRIKLAD_POPLATKU } from '@/lib/prikladPoplatku';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 
@@ -45,7 +46,7 @@ export default async function GuidePreview() {
 
   /* ---------- Živé metriky do hero (vše z DB, nic ručně psaného) ---------- */
   // Bez čísla raději „—“ než vymyšlený odhad (kolo 6: dřív tichý fallback „4 800“).
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '—';
+  const countLabel = totalCount > 0 ? `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+` : '—';
   // Nejnižší TER = STEJNÉ PRAVIDLO jako žebříček a homepage (porovnejNejlevnejsi, src/lib/trhy.ts): TER > 0,
   // fond ≥ 100 mil. €, bez měnového zajištění, při shodě akumulační, pak větší. Kolo 6: dřív první řádek dotazu (XD9D).
   const proPravidlo = (e: ETFBasicInfo) => ({ ter: e.ter_numeric, acc: distKind(e.distribution_policy) === 'acc', velikost: e.fund_size_numeric });
@@ -176,7 +177,7 @@ export default async function GuidePreview() {
       ),
     },
     {
-      q: 'Co znamená „výnos přepočtený do korun"?',
+      q: 'Co znamená „výnos přepočtený do korun“?',
       a: (
         <>
           Většina ETF je vedená v dolarech nebo eurech, protože drží zahraniční akcie. Váš reálný výnos jako Čecha ale
@@ -510,7 +511,7 @@ export default async function GuidePreview() {
               term="Akumulační vs distribuční"
               abbr="Co fond dělá s dividendami"
               definition="Akumulační fond dividendy automaticky reinvestuje uvnitř. Distribuční je vyplácí na váš účet."
-              why="V Česku má volba daňový dopad: vyplacené dividendy (distribuční) se daní 15 % a uvádějí v přiznání. Akumulační tuto starost odpadá."
+              why="V Česku má volba daňový dopad: vyplacené dividendy (distribuční) se daní 15 % a uvádějí v přiznání. U akumulačního tato starost odpadá."
               example="Chcete v klidu budovat majetek? Akumulační. Chcete pravidelný příjem na účet? Distribuční."
             />
             <GuideTermCard
@@ -820,6 +821,9 @@ export default async function GuidePreview() {
           </div>
         </section>
 
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-etf-2026', 'nejlepsi-celosvetove-etf', 'nejlepsi-sp500-etf', 'nejlevnejsi-etf', 'nejlepsi-dividendove-etf']} />
+
         {/* E-E-A-T patička + disclaimer */}
         <section className="pb-12">
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
@@ -884,7 +888,7 @@ function faqPlainText(q: string): string {
       'Pro většinu lidí jsou ETF jednodušší a méně rizikové: jedním nákupem získáte podíl ve stovkách firem. Výběr jednotlivých akcií vyžaduje čas, znalosti a nese vyšší riziko.',
     'Co je TER a kolik ETF stojí?':
       'TER je roční poplatek za správu fondu, který se strhává automaticky. U široce diverzifikovaných indexových fondů bývá velmi nízký (desetiny procenta ročně), aktivní fondy si účtují víc. Aktuální poplatky najdete ve srovnání ETF.',
-    'Co znamená „výnos přepočtený do korun"?':
+    'Co znamená „výnos přepočtený do korun“?':
       'ETF je obvykle v dolarech či eurech. Reálný výnos Čecha ovlivňuje i kurz koruny, proto výnosy uvádíme přepočtené do korun – ukazují, co byste měli na účtu v Kč. Nejde o ETF v korunách.',
     'Jaké jsou nevýhody ETF?':
       'ETF kopírují trh, takže v recesi klesají spolu s ním. U zahraničních fondů nesete měnové riziko (pohyb koruny vůči dolaru či euru). Výnos se mírně liší od indexu (odchylka od indexu) a nemůžete ovlivnit, které konkrétní akcie fond drží. Ve srovnání s výhodami – nízké náklady, diverzifikace, jednoduchost – jsou tyto nevýhody pro dlouhodobého investora malé.',

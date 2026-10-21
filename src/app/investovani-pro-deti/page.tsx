@@ -4,17 +4,14 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, Gavel,
-  LineChart, Landmark, AlertTriangle, Lock, Baby, Globe,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, Gavel, LineChart, Landmark, AlertTriangle, Lock, Baby, Globe, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getETFsByIsins, getETFCountLabel, getDataDate } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 
@@ -41,7 +38,7 @@ export const metadata: Metadata = {
 };
 
 /* Budoucí hodnota pravidelného měsíčního vkladu (spořicí anuita). */
-// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně" bylo opravdu 7 % ročně. Dřív r/12
+// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně“ bylo opravdu 7 % ročně. Dřív r/12
 // = 7,23 % ročně (audit výpočtů 17. 10. 2026; stejně jako investiční kalkulačka).
 const mesicni = (annual: number) => Math.pow(1 + annual, 1 / 12) - 1;
 const fv = (pmt: number, annual: number, years: number) => {
@@ -109,7 +106,7 @@ export default async function InvestovaniProDeti() {
     },
     {
       q: 'Vyplatí se dítěti DIP?',
-      a: 'Zpravidla ne. Hlavní výhoda DIP je odečet vkladů až 48 000 Kč ročně od základu daně – jenže dítě žádný zdanitelný příjem nemá, takže si nemá co odečíst, a jako rodič si můžete odečíst pouze vklady do svého vlastního DIP. Navíc platí pravidlo 120/60: peníze jdou vybrat nejdřív po 10 letech a zároveň nejdřív v 60 letech věku. Pro cíl „mít peníze v osmnácti" je to tedy naopak překážka – peníze by byly zamčené dalších přes 40 let.',
+      a: 'Zpravidla ne. Hlavní výhoda DIP je odečet vkladů až 48 000 Kč ročně od základu daně – jenže dítě žádný zdanitelný příjem nemá, takže si nemá co odečíst, a jako rodič si můžete odečíst pouze vklady do svého vlastního DIP. Navíc platí pravidlo 120/60: peníze jdou vybrat nejdřív po 10 letech a zároveň nejdřív v 60 letech věku. Pro cíl „mít peníze v osmnácti“ je to tedy naopak překážka – peníze by byly zamčené dalších přes 40 let.',
     },
     {
       q: 'Jaký ETF zvolit pro dítě?',
@@ -276,7 +273,7 @@ export default async function InvestovaniProDeti() {
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 mb-3"><User className="w-5 h-5" /></span>
               <p className="font-semibold text-slate-900">Účet na vaše jméno</p>
               <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                Běžný investiční účet, u kterého si jen v hlavě (nebo v tabulce) vedete, že je „dětský".
+                Běžný investiční účet, u kterého si jen v hlavě (nebo v tabulce) vedete, že je „dětský“.
               </p>
               <ul className="mt-3 space-y-2 text-sm">
                 <li className="flex items-start gap-2 text-slate-600"><ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Plná flexibilita – žádný soud, žádné schvalování.</li>
@@ -382,7 +379,7 @@ export default async function InvestovaniProDeti() {
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Pro cíl „mít peníze v osmnácti" je tedy běžný investiční účet bez wrapperu jednodušší i pružnější.
+            Pro cíl „mít peníze v osmnácti“ je tedy běžný investiční účet bez wrapperu jednodušší i pružnější.
             DIP dává smysl vám na vlastní důchod, ne dítěti na studia – kdy a komu se{' '}
             <Link href="/dip" className="text-teal-700 hover:underline">DIP vyplatí</Link>, rozebíráme zvlášť.
           </p>
@@ -476,13 +473,16 @@ export default async function InvestovaniProDeti() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-akumulacni-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">

@@ -33,7 +33,7 @@ const CANONICAL_LABELS: Record<string, string> = {
 };
 
 /**
- * Vrátí „čistý" základ názvu indexu bez metadat třídy akcií.
+ * Vrátí „čistý“ základ názvu indexu bez metadat třídy akcií.
  */
 export function normalizeIndexName(raw?: string | null): string {
   if (!raw) return '';
@@ -87,7 +87,7 @@ export function getIndexProvider(label: string): string {
 }
 
 // Nejhledanější indexy – pokud jsou v datech přítomné, zobrazí se v sekci
-// „Populární" nahoře. Hodnoty odpovídají kanonickým labelům.
+// „Populární“ nahoře. Hodnoty odpovídají kanonickým labelům.
 export const POPULAR_INDEXES: string[] = [
   'MSCI World',
   'S&P 500',
@@ -333,7 +333,7 @@ export function sestavIndexy(fondy: (FondIndexu & { is_leveraged?: boolean | nul
 
 /**
  * Z pole ETF sestaví seskupené možnosti pro filtr indexu:
- *   - sekce „Populární" (nejčastější indexy, pokud existují)
+ *   - sekce „Populární“ (nejčastější indexy, pokud existují)
  *   - sekce po poskytovatelích (MSCI, FTSE, S&P, …), seřazené dle četnosti
  *
  * Vrací i plochý seznam `flat` (kanonické labely) pro případné jiné použití.
@@ -375,7 +375,7 @@ export function buildIndexOptions(etfs: { index_name?: string | null }[]): {
   }
 
   // Poskytovatele seřadit dle celkové četnosti (nejčetnější první),
-  // „Ostatní indexy" vždy na konec.
+  // „Ostatní indexy“ vždy na konec.
   const providerGroups: IndexOptionGroup[] = Array.from(providerMap.entries())
     .map(([heading, items]) => ({
       heading,

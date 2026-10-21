@@ -4,15 +4,12 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Globe,
-  Landmark, Scale, ShieldCheck, HelpCircle, Building2, Sprout, Layers,
-  CheckCircle2, BookOpen, MapPin,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Globe, Landmark, Scale, ShieldCheck, HelpCircle, Building2, Sprout, Layers, CheckCircle2, BookOpen, MapPin, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -74,11 +71,11 @@ export default async function SvetoveEtfIndexy() {
     },
     {
       q: 'Mám do portfolia zařadit emerging markets?',
-      a: 'Emerging markets přidávají diverzifikaci a expozici na rychle rostoucí ekonomiky, ale nesou vyšší riziko a v posledních letech zaostávaly za USA. V celosvětovém indexu tvoří jen ~10 %, takže portfoliem nezahýbou dramaticky. Kdo chce mít „celý svět", volí index s emerging markets (ACWI / All-World); kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.',
+      a: 'Emerging markets přidávají diverzifikaci a expozici na rychle rostoucí ekonomiky, ale nesou vyšší riziko a v posledních letech zaostávaly za USA. V celosvětovém indexu tvoří jen ~10 %, takže portfoliem nezahýbou dramaticky. Kdo chce mít „celý svět“, volí index s emerging markets (ACWI / All-World); kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.',
     },
     {
       q: 'Poznám podle názvu ETF, jaký index sleduje?',
-      a: 'Většinou ano – v názvu bývá přímo „MSCI World", „FTSE All-World", „MSCI ACWI" nebo „S&P 500". V našem srovnávači navíc u každého fondu vidíte sledovaný index a můžete podle něj filtrovat.',
+      a: 'Většinou ano – v názvu bývá přímo „MSCI World“, „FTSE All-World“, „MSCI ACWI“ nebo „S&P 500“. V našem srovnávači navíc u každého fondu vidíte sledovaný index a můžete podle něj filtrovat.',
     },
   ];
   const faqSchema = {
@@ -132,7 +129,7 @@ export default async function SvetoveEtfIndexy() {
               Světové ETF: který index vybrat?
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
-              MSCI World, FTSE All-World, ACWI, S&amp;P 500 – „světový" znamená u každého něco jiného. Konečně{' '}
+              MSCI World, FTSE All-World, ACWI, S&amp;P 500 – „světový“ znamená u každého něco jiného. Konečně{' '}
               <strong className="text-white">přehledně</strong>: které indexy obsahují emerging markets a které jen
               rozvinuté trhy, kolik drží firem a jaký mají podíl USA – s příklady konkrétních ETF.
             </p>
@@ -156,8 +153,8 @@ export default async function SvetoveEtfIndexy() {
         <section className="pb-9">
           <div className="max-w-3xl text-[15px] text-slate-600 leading-relaxed space-y-3">
             <p>
-              Rozhodli jste se pro „jeden světový ETF" a najednou koukáte na džungli názvů. Háček je v tom, že{' '}
-              <strong className="text-slate-900">slovo „světový" každý index chápe jinak</strong>: některé drží opravdu
+              Rozhodli jste se pro „jeden světový ETF“ a najednou koukáte na džungli názvů. Háček je v tom, že{' '}
+              <strong className="text-slate-900">slovo „světový“ každý index chápe jinak</strong>: některé drží opravdu
               celý svět včetně Číny a Indie, jiné jen rozvinuté trhy a S&amp;P 500 vůbec není světový – je čistě americký.
             </p>
             <p>
@@ -251,7 +248,7 @@ export default async function SvetoveEtfIndexy() {
             {([
               [Landmark, 'S&P 500 – jen USA', '500 největších amerických firem. Není to světový index, ale nejsledovanější akciový benchmark světa. Skvělá historická výkonnost, tažená technologiemi, ale veškerá expozice v jedné zemi a jedné měně. Příklady: CSPX, VUAA.'],
               [Building2, 'MSCI World / FTSE Developed – rozvinuté trhy', 'Zhruba 23 vyspělých ekonomik (USA, Evropa, Japonsko, Kanada, Austrálie…), dohromady ~1 300–2 000 firem. Emerging markets NEobsahují. USA v nich váží kolem 70 %. Nejpopulárnější volba pro ty, kdo věří hlavně rozvinutému světu. Příklady: IWDA, SWDA, VHVG.'],
-              [Globe, 'MSCI ACWI / FTSE All-World – celý svět', 'Rozvinuté i rozvíjející se trhy v jednom fondu (~2 500–4 300 firem). Emerging markets tvoří zhruba 10–12 %. „Kup jeden fond a máš celý svět." Nejčastější volba pro pasivního dlouhodobého investora. Příklady: VWCE, VWRL (FTSE), SSAC/ISAC (MSCI).'],
+              [Globe, 'MSCI ACWI / FTSE All-World – celý svět', 'Rozvinuté i rozvíjející se trhy v jednom fondu (~2 500–4 300 firem). Emerging markets tvoří zhruba 10–12 %. „Kup jeden fond a máš celý svět.“ Nejčastější volba pro pasivního dlouhodobého investora. Příklady: VWCE, VWRL (FTSE), SSAC/ISAC (MSCI).'],
               [Layers, 'FTSE Global All Cap / MSCI ACWI IMI – úplně všechno', 'Rozvinuté + emerging + navíc malé firmy (small caps) – klidně přes 9 000 titulů. Nejúplnější záběr trhu. Rozdíl proti All-World je ale malý (small caps váží málo), proto většině stačí běžný all-world fond.'],
             ] as [typeof Globe, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-5">
@@ -274,7 +271,7 @@ export default async function SvetoveEtfIndexy() {
               <ul className="mt-2 space-y-1.5 text-sm text-slate-600 leading-relaxed list-disc pl-4">
                 <li>Diverzifikace napříč více ekonomikami a měnami.</li>
                 <li>Expozice na rychle rostoucí trhy (Indie, jihovýchodní Asie).</li>
-                <li>„Celý svět" bez sázky na to, kdo poroste příště.</li>
+                <li>„Celý svět“ bez sázky na to, kdo poroste příště.</li>
               </ul>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-5">
@@ -288,7 +285,7 @@ export default async function SvetoveEtfIndexy() {
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Neexistuje jediná správná odpověď. Kdo chce „celý svět" a nechce nic řešit, volí index s emerging markets
+            Neexistuje jediná správná odpověď. Kdo chce „celý svět“ a nechce nic řešit, volí index s emerging markets
             (ACWI / All-World). Kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.
           </p>
         </section>
@@ -346,13 +343,16 @@ export default async function SvetoveEtfIndexy() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-sp500-etf', 'nejlepsi-emerging-markets-etf', 'nejlepsi-etf-2026']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">

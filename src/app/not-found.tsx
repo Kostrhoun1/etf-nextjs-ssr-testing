@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 /**
  * Stránka 404. Dřív tu nebyla a návštěvník viděl výchozí anglickou stránku Next.js
- * („404: This page could not be found."). Sem vedou i nesmyslné adresy, které zastaví
+ * („404: This page could not be found.“). Sem vedou i nesmyslné adresy, které zastaví
  * middleware (neplatný ISIN, neplatná dvojice srovnání), a fondy, které v databázi nejsou.
  * Statická – nevolá databázi.
  */

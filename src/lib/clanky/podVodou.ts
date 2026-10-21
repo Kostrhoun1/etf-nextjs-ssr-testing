@@ -1,10 +1,10 @@
 /**
- * „Jak dlouho můžete být v minusu" – čísla pro článek (Vlna 7, 17. 10. 2026).
+ * „Jak dlouho můžete být v minusu“ – čísla pro článek (Vlna 7, 17. 10. 2026).
  *
  * Pro každý měsíc startu (jednorázová investice) hledáme POSLEDNÍ měsíc, kdy hodnota byla pod
- * vloženou částkou – nominálně (v Kč) a reálně (v Kč po české inflaci, ČSÚ). Doba „v minusu" =
+ * vloženou částkou – nominálně (v Kč) a reálně (v Kč po české inflaci, ČSÚ). Doba „v minusu“ =
  * od startu do posledního měsíce pod vkladem (i když se mezitím na chvíli dostala nad).
- * Když je pod vkladem i poslední bod, je „dosud" (null).
+ * Když je pod vkladem i poslední bod, je „dosud“ (null).
  *
  * Data: měsíční řady stroje času (stejný engine jako backtest, ověřené – scripts/overeni-stroj-casu.mjs)
  * a index cen ČSÚ (src/lib/backtest/inflation.ts, ověřený na publikovanou míru inflace).
@@ -14,7 +14,7 @@
  * - S&P 500 od 1/2000 v Kč nominálně: 31. 12. 2013 hodnota 0,90 vkladu (1,641 × 19,894/36,132),
  *   v Kč pod vkladem naposledy 7/2014 → výpočet 175 měsíců (2000-01 … 2014-07) ✓
  * - totéž reálně: začátek 2018 hodnota ~1,46–1,52 vkladu, ceny ×1,48 → pod vodou do 3/2018 ✓ (219 měsíců)
- * - v USD pod vkladem naposledy 8/2011 (141 měsíců) – sedí s obecně známým „ztraceným desetiletím"
+ * - v USD pod vkladem naposledy 8/2011 (141 měsíců) – sedí s obecně známým „ztraceným desetiletím“
  */
 import { cache } from 'react';
 import { runBacktest } from '@/lib/backtest/engine';
@@ -65,7 +65,7 @@ export interface PodVodouPreset {
   doba: { median: number; p75: number; p90: number; medianReal: number; p75Real: number; p90Real: number; startu: number };
 }
 
-/** Délka v minusu pro řazení – „dosud" = do konce dat. */
+/** Délka v minusu pro řazení – „dosud“ = do konce dat. */
 const delka = (x: number | null, zbyva: number) => (x === null ? zbyva : x);
 
 /**

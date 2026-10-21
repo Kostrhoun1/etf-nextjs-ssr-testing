@@ -1,5 +1,5 @@
 /**
- * Čísla pro článek „S&P 500, nebo celý svět?" (Vlna 7, 17. 10. 2026).
+ * Čísla pro článek „S&P 500, nebo celý svět?“ (Vlna 7, 17. 10. 2026).
  *
  * Počítá se při ISR renderu stejným enginem jako backtest (runBacktest, CZK, roční vyvažování,
  * data = ETF po poplatcích: SPY, VT, VGTSX). Text článku se z těchto čísel skládá – nic napevno.

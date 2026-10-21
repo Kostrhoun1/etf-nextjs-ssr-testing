@@ -28,7 +28,7 @@ const videno = new Set<string>();
 /** Chyby, které nejsou naše a nedá se s nimi nic dělat – nehlásit, jen by zahltily logy. */
 function jeSum(p: ClientErrorPayload): boolean {
   const m = p.message || '';
-  // Cizí skript, prohlížeč skryl detaily. Chrome před zprávu přidává „Uncaught Error:" –
+  // Cizí skript, prohlížeč skryl detaily. Chrome před zprávu přidává „Uncaught Error:“ –
   // ověřeno testem 17. 10. 2026, prosté porovnání řetězců to propustilo.
   if (/^(Uncaught\s+)?(Error:\s*)?Script error\.?$/i.test(m.trim())) return true;
   if (/ResizeObserver loop/i.test(m)) return true; // neškodné varování prohlížeče

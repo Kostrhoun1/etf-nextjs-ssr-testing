@@ -58,7 +58,7 @@ export default async function SrovnaniBrokeruPage() {
   const published = '2026-01-10T08:00:00+01:00';
   const modified = (await getDataDate(new Date())).toISOString();
   const etfCount = await getTotalETFCount();
-  const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '—';
+  const etfCountLabel = etfCount > 0 ? `${(Math.floor(etfCount / 100) * 100).toLocaleString('cs-CZ')}+` : '—';
   const kurzy = await nactiKurzCnb();
   // Štítek „pro koho“ v hlavičce tabulky = stejné doporučení jako na /kde-koupit (jeden zdroj).
   const profil: Record<string, string> = {};

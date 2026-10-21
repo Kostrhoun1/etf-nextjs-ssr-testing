@@ -4,11 +4,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
-  Percent, Landmark, Wallet, Coins, Layers, Receipt, Scale, ShieldCheck,
-  Crown, HelpCircle, BookOpen,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator, Percent, Landmark, Wallet, Coins, Layers, Receipt, Scale, ShieldCheck, Crown, HelpCircle, BookOpen, ChevronDown } from 'lucide-react';
 import { ter, shortName, SectionHead } from '@/components/design-preview/CategoryUI';
 import { getTopETFsForCategory, getTotalETFCount, categoryConfigs , getDataDate } from '@/lib/etf-data';
 import { brokers } from '@/data/brokerData';
@@ -404,7 +400,7 @@ export default async function FeeCalculatorPreview() {
 
           <div className="mt-4">
             <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-800">
-              Zobrazit všech {totalCount > 0 ? `${totalCount.toLocaleString('cs-CZ')} ` : ''}ETF <ArrowRight className="w-4 h-4" />
+              Zobrazit všech {totalCount > 0 ? `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+ ` : ''}ETF <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </section>
@@ -419,7 +415,7 @@ export default async function FeeCalculatorPreview() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>

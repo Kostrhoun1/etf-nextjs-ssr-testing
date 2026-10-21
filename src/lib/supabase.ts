@@ -4,7 +4,7 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-// Název „Admin" je historický (dřív service role). Je to tentýž klient s veřejným klíčem;
+// Název „Admin“ je historický (dřív service role). Je to tentýž klient s veřejným klíčem;
 // ponechán, ať se nemusí přepisovat desítky importů.
 export const supabaseAdmin = supabase;
 

@@ -4,11 +4,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Scale, ShieldCheck, HelpCircle, Clock, LineChart, PiggyBank, BookOpen,
-  Brain, CalendarClock,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Scale, ShieldCheck, HelpCircle, Clock, LineChart, PiggyBank, BookOpen, Brain, CalendarClock, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
@@ -40,11 +36,11 @@ export default async function DcaVsJednorazova() {
     },
     {
       q: 'Je pravidelné investování z výplaty horší než jednorázové?',
-      a: 'Ne – to je falešné srovnání. Když žádný balík hotovosti nemáte, investování průběžně z příjmu je jediná možnost a je naprosto správné. Debata „naráz vs. postupně" má smysl jen u peněz, které už máte na účtu teď.',
+      a: 'Ne – to je falešné srovnání. Když žádný balík hotovosti nemáte, investování průběžně z příjmu je jediná možnost a je naprosto správné. Debata „naráz vs. postupně“ má smysl jen u peněz, které už máte na účtu teď.',
     },
     {
       q: 'Mám počkat, až trh spadne, a pak investovat?',
-      a: 'Obvykle prohra. Odkládání investice je samo o sobě skryté časování trhu – a to se dlouhodobě daří málokomu. Trh většinu času roste a nejlepší dny se často schovávají hned za propady, takže kdo čeká „na dně", je většinou propásne.',
+      a: 'Obvykle prohra. Odkládání investice je samo o sobě skryté časování trhu – a to se dlouhodobě daří málokomu. Trh většinu času roste a nejlepší dny se často schovávají hned za propady, takže kdo čeká „na dně“, je většinou propásne.',
     },
     {
       q: 'Kdy naopak vyhraje postupné investování (DCA)?',
@@ -138,7 +134,7 @@ export default async function DcaVsJednorazova() {
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-100 text-teal-700 mb-3"><PiggyBank className="w-5 h-5" /></span>
               <p className="font-semibold text-slate-900">Mám balík hotovosti TEĎ</p>
               <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                Dědictví, bonus, prodej bytu. <strong className="text-slate-800">Jen tady má debata „naráz vs. postupně" smysl</strong> –
+                Dědictví, bonus, prodej bytu. <strong className="text-slate-800">Jen tady má debata „naráz vs. postupně“ smysl</strong> –
                 a jen tady je jednorázový vstup statisticky lepší. O tom je celý tento článek.
               </p>
             </div>
@@ -153,7 +149,7 @@ export default async function DcaVsJednorazova() {
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Nemá smysl se trápit, že jste „měli investovat naráz", když žádný balík neexistuje. Pravidelné investování
+            Nemá smysl se trápit, že jste „měli investovat naráz“, když žádný balík neexistuje. Pravidelné investování
             z příjmu je správné vždy.
           </p>
         </section>
@@ -194,7 +190,7 @@ export default async function DcaVsJednorazova() {
               <p>
                 Vanguard proto DCA doporučuje hlavně investorům s <strong className="text-slate-900">velmi vysokou averzí
                 ke ztrátě</strong>, kteří by jinak nechali celý balík ležet v hotovosti. I DCA totiž poráží držení hotovosti
-                (v ~69 % případů) – takže když je alternativou „nechat cash ležet", i postupné investování je lepší než nic.
+                (v ~69 % případů) – takže když je alternativou „nechat cash ležet“, i postupné investování je lepší než nic.
               </p>
             </div>
           </div>
@@ -230,7 +226,7 @@ export default async function DcaVsJednorazova() {
             <div className="text-[15px] text-amber-900/90 leading-relaxed space-y-3">
               <p>
                 <strong>Odkládání investice je samo o sobě skrytá forma časování trhu</strong> – a to se dlouhodobě daří
-                málokomu. „Cost of waiting": zatímco čekáte na dno, trh vám většinou uteče nahoru.
+                málokomu. „Cost of waiting“: zatímco čekáte na dno, trh vám většinou uteče nahoru.
               </p>
               <p>
                 Nejlepší dny na trhu se navíc <strong>schovávají hned za propady</strong> (přes tři čtvrtiny nejlepších dnů
@@ -238,7 +234,7 @@ export default async function DcaVsJednorazova() {
                 nejlepších dnů za 20 let dokáže konečný výnos <strong>zhruba půlit</strong>.
               </p>
               <p className="text-sm text-amber-900/70">
-                Pointa: <strong>„čas na trhu" poráží „časování trhu".</strong> Čísla o nejlepších dnech jsou ilustrace principu, ne přesný zákon.
+                Pointa: <strong>„čas na trhu“ poráží „časování trhu“.</strong> Čísla o nejlepších dnech jsou ilustrace principu, ne přesný zákon.
               </p>
             </div>
           </div>
@@ -299,7 +295,7 @@ export default async function DcaVsJednorazova() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>

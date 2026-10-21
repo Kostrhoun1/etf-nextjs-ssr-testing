@@ -172,7 +172,7 @@ export function SectionHead({
 
 /* ---------- Infografika složení vlajkového fondu ---------- */
 
-// Odstupňovaná tyrkysová paleta pro segmenty (poslední = „ostatní" – šedá).
+// Odstupňovaná tyrkysová paleta pro segmenty (poslední = „ostatní“ – šedá).
 const SLICE_COLORS = ['#0f766e', '#14b8a6', '#2dd4bf', '#5eead4', '#99f6e4'];
 const REST_COLOR = '#cbd5e1';
 
@@ -196,7 +196,7 @@ function pickDimension(
   };
   for (const dim of order) {
     const slices = byDim[dim];
-    // Přeskoč degenerované případy: 0/1 segment nebo jediný „Other 100 %".
+    // Přeskoč degenerované případy: 0/1 segment nebo jediný „Other 100 %“.
     const meaningful = slices.filter((s) => s.name.toLowerCase() !== 'other' || slices.length > 1);
     if (meaningful.length >= 2) return { dim, slices };
   }
@@ -215,8 +215,8 @@ const DIM_META: Record<Dimension, { title: string; icon: typeof Globe2; localize
 };
 
 /**
- * Vizuální infografika „co v tom je" – 100% skládaný pruh + legenda.
- * Segmenty se normalizují na 100 %; zbytek do 100 % je „Ostatní".
+ * Vizuální infografika „co v tom je“ – 100% skládaný pruh + legenda.
+ * Segmenty se normalizují na 100 %; zbytek do 100 % je „Ostatní“.
  * Graceful: když vlajkový fond nemá použitelná data (zlato, ropa), vrací null.
  */
 export function CompositionInfographic({
@@ -239,7 +239,7 @@ export function CompositionInfographic({
   const top = slices.slice(0, 5).map((s) => ({ ...s, label: meta.localize(s.name) }));
   const sum = top.reduce((a, s) => a + s.weight, 0);
   const rest = Math.max(0, 100 - sum);
-  // „Ostatní" segment: buď už je v datech (name==Other), nebo dopočet nad 3 %.
+  // „Ostatní“ segment: buď už je v datech (name==Other), nebo dopočet nad 3 %.
   const hasExplicitOther = top.some((s) => s.name.toLowerCase() === 'other');
   const showRest = !hasExplicitOther && rest > 3 && dim !== 'holding';
 
@@ -305,7 +305,7 @@ export function CompositionInfographic({
 }
 
 /**
- * „Které indexy tato kategorie sleduje" – datově řízený přehled reálně sledovaných
+ * „Které indexy tato kategorie sleduje“ – datově řízený přehled reálně sledovaných
  * indexů (dle fondů v kategorii) s odborným popisem. Index fondu = indexFonduLabel (stejně jako srovnávač).
  * Počet slovy („Sledují ho všechny fondy v žebříčku (58)“, „14 z 24 fondů“) – „58 z 58“ bylo nesrozumitelné.
  */

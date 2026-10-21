@@ -41,7 +41,7 @@ export const categoryContent: Record<string, CategoryContent> = {
     "faqs": [
       {
         "q": "Který S&P 500 ETF je nejlevnější?",
-        "a": "Nejnižší TER u S&P 500 ETF se pohybuje kolem 0,03 % ročně. Aktuální pořadí podle nákladovosti najdete v žebříčku „Nejlevnější (TER)\" na této stránce."
+        "a": "Nejnižší TER u S&P 500 ETF se pohybuje kolem 0,03 % ročně. Aktuální pořadí podle nákladovosti najdete v žebříčku „Nejlevnější (TER)\“ na této stránce."
       },
       {
         "q": "Je lepší akumulační, nebo distribuční S&P 500 ETF?",
@@ -1496,7 +1496,7 @@ export const categoryContent: Record<string, CategoryContent> = {
       },
       {
         "q": "Kolik peněz potřebuji na začátek?",
-        "a": "Minimální částka závisí na brokerovi a ceně podílu; někteří brokeři umožňují nákup zlomků podílu i pravidelné nákupy po menších částkách. Velké fondy jako iShares Core S&P 500, iShares Core MSCI World nebo Vanguard FTSE All-World lze nakupovat i pravidelně."
+        "a": "U brokerů, kteří prodávají i zlomky podílu (Trading 212 od 1 €, XTB, Interactive Brokers), se dá začít i s několika stovkami korun; robo-poradce Portu má minimální vklad 500 Kč. Kde se kupují jen celé podíly, potřebujete aspoň cenu jednoho podílu – u velkých akciových ETF od desítek po stovky eur. Důležitější než velikost první částky je pravidelnost a dlouhý horizont. Investujte jen peníze, které několik let nebudete potřebovat."
       },
       {
         "q": "Vyplatí se čekat na propad trhu, než začnu investovat?",
@@ -2258,6 +2258,29 @@ export const categoryLead: Record<string, string> = {
   'nejlepsi-vladni-dluhopisy-etf': 'Dluhopisy států – USA, eurozóny, Británie, Japonska i rozvíjejících se zemí. Čím delší splatnost, tím víc cena reaguje na změnu sazeb.',
   'nejlepsi-energeticke-etf': 'Tradiční energetický sektor – firmy kolem ropy a zemního plynu. Čistá energie má vlastní žebříček obnovitelných zdrojů.',
   'nejlepsi-financni-etf': 'Akcie bank, pojišťoven a dalších finančních firem – celý sektor v USA, Evropě nebo ve světě, případně jen banky či jen pojišťovny.',
+  // SEO audit 6b (21. 10. 2026): úvody pro nejnavštěvovanější žebříčky bez vlastního popisu (GA4/Bing). Jen fakta, bez doporučení.
+  'nejlepsi-etf-2026': 'Největší ETF fondy dostupné z Česka napříč akciemi, dluhopisy, komoditami i peněžním trhem, seřazené podle spravovaného majetku. Velikost říká, kolik peněz fond spravuje – ne jak si povede.',
+  'nejlevnejsi-etf': 'Fondy s nejnižším ročním poplatkem za správu (TER) napříč všemi kategoriemi. Fondy s TER 0 % vynecháváme – u akcií a dluhopisů jde o chybu zdroje, u fyzického zlata se náklady platí jinak.',
+  'nejlepsi-akciove-etf': 'Všechny akciové fondy nad prahem velikosti: široké světové a regionální indexy, jednotlivé země, sektory i tematické fondy. Pákové a inverzní produkty nezahrnujeme.',
+  'nejlepsi-komoditni-etf': 'Produkty na zlato, stříbro, ropu, zemědělské komodity a koše komodit. Většinou jde o ETC/ETN (dluhopisové cenné papíry) – výnos nevyplácejí a ceny kolísají víc než u akcií.',
+  'nejlepsi-technologicke-etf': 'Akcie technologických firem – software, polovodiče, internetové služby a hardware – v USA i ve světě. Několik největších firem v nich mívá velkou váhu.',
+  'nejlepsi-obnovitelne-zdroje-etf': 'Firmy z čisté energie: výrobci solárních a větrných zařízení, provozovatelé obnovitelných zdrojů, baterie a vodík. Tradiční ropné a plynárenské firmy mají vlastní žebříček energetiky.',
+  'nejlepsi-esg-etf': 'Fondy s výběrem firem podle kritérií ESG (životní prostředí, společnost, řízení firmy) – vyřazují vybraná odvětví nebo upřednostňují firmy s lepším hodnocením. Každý index má vlastní pravidla.',
+  'nejlepsi-akumulacni-etf': 'Fondy, které dividendy a úroky nevyplácejí, ale znovu investují uvnitř fondu. Výnos se projeví v ceně podílu – na účet nic nepřichází.',
+  'nejlepsi-distribucni-etf': 'Fondy, které dividendy nebo úroky pravidelně vyplácejí na účet (čtvrtletně, pololetně nebo ročně). Vyplacené dividendy se v Česku daní.',
+  'nejlepsi-korporatni-dluhopisy-etf': 'Dluhopisy firem s investičním ratingem v eurech, dolarech i dalších měnách. Proti státním dluhopisům nesou vyšší úrok za vyšší kreditní riziko.',
+  'nejlepsi-high-yield-etf': 'Dluhopisy firem s ratingem pod investičním stupněm. Platí vyšší úrok, ale riziko nesplacení je vyšší a ceny v krizích padají víc než u kvalitních dluhopisů.',
+  'nejlepsi-japonske-etf': 'Akcie japonských firem – indexy MSCI Japan, TOPIX nebo Nikkei 225, v jenové i měnově zajištěné variantě.',
+  'nejlepsi-cinske-etf': 'Akcie čínských firem obchodované v Hongkongu, v USA i na pevninských burzách (A-akcie). Indexy se liší tím, které z nich obsahují.',
+  'nejlepsi-indicke-etf': 'Akcie indických firem – indexy MSCI India a Nifty 50. Výnos v korunách ovlivňuje i kurz indické rupie.',
+  'nejlepsi-asijsko-pacificke-etf': 'Akcie z Asie a Pacifiku – vyspělé trhy (Austrálie, Hongkong, Singapur, často bez Japonska) i rozvíjející se asijské země, podle indexu.',
+  'nejlepsi-small-cap-etf': 'Akcie menších firem (small cap) z USA, Evropy nebo celého světa. Kolísají víc než velké firmy a v indexech mají tisíce titulů.',
+  'nejlepsi-value-etf': 'Akcie firem, které jsou levné vzhledem ke svým ziskům a majetku (hodnotové, value). Výběr dělá index podle ukazatelů jako P/E nebo P/B.',
+  'nejlepsi-growth-etf': 'Akcie firem s rychlým růstem tržeb a zisků (růstové, growth), často technologických. Bývají dražší vzhledem k ziskům než trh.',
+  'nejlepsi-healthcare-etf': 'Akcie firem ze zdravotnictví – farmacie, zdravotnické prostředky, pojišťovny a služby – v USA, Evropě i ve světě.',
+  'nejlepsi-ai-etf': 'Tematické fondy na umělou inteligenci – firmy vyvíjející software, čipy a datová centra. Každý fond si téma vymezuje jinak, složení se proto liší.',
+  'nejlepsi-defense-etf': 'Akcie zbrojních a leteckých firem z USA a Evropy. Tematické fondy se liší tím, zda zahrnují i civilní letectví a kybernetickou bezpečnost.',
+  'nejlepsi-ropa-etf': 'ETC sledující cenu ropy přes futures kontrakty (Brent, WTI). Výnos se liší od spotové ceny ropy kvůli přechodu mezi kontrakty (rolování).',
 };
 
 export function getCategoryContent(slug: string): CategoryContent | null {

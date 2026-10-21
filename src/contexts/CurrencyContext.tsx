@@ -37,7 +37,7 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
   const setCurrency = (currency: Currency) => {
     // Obrana: přijmi jen platnou měnu. Chrání sdílený stav před tím, aby do něj
     // omylem nepřitekl např. celý klikací event (což rozbíjelo JSON.stringify
-    // v backtestu – „cyclic structures"). Viz fix měny v nástrojích.
+    // v backtestu – „cyclic structures“). Viz fix měny v nástrojích.
     if (currency !== 'EUR' && currency !== 'CZK' && currency !== 'USD') {
       if (process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line no-console

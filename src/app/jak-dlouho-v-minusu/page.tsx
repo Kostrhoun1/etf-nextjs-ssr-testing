@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Fragment } from 'react';
-import { TrendingUp, ArrowRight, HelpCircle } from 'lucide-react';
+import { TrendingUp, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const tvar = (n: number, a: string, b: string, c: string) => (n === 1 ? a : n >= 2 && n <= 4 ? b : c);
-/** 175 → „14 let a 7 měsíců" */
+/** 175 → „14 let a 7 měsíců“ */
 function doba(m: number | null): string {
   if (m === null) return 'dosud';
   if (m === 0) return 'ani měsíc';
@@ -51,14 +51,14 @@ const dobaV = (m: number | null) => (m === null ? 'dosud – stále je pod vklad
 const MESICE = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
 const MESICE1 = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
-/** „v lednu 2000" */
+/** „v lednu 2000“ */
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v ${MESICE6[m - 1]} ${y}`; };
 const plusMesicu = (ym: string, n: number) => { const [y, m] = ym.split('-').map(Number); return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7); };
 const kdy = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE1[m - 1]} ${y}`; };
 const od = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE[m - 1]} ${y}`; };
 const pct = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(Math.round(v * 100))} %`;
 
-/** Události, u kterých čtenáře zajímá „kdybych koupil těsně před…". */
+/** Události, u kterých čtenáře zajímá „kdybych koupil těsně před…“. */
 const UDALOSTI: [string, string][] = [
   ['2000-01', 'Těsně před splasknutím internetové bubliny'],
   ['2007-10', 'Na vrcholu před finanční krizí'],
@@ -454,7 +454,7 @@ export default async function JakDlouhoVMinusu() {
               <div className="mt-3 space-y-2">
                 {faqs.map((f, i) => (
                   <details key={i} className="group rounded-lg border border-slate-200 bg-white p-4">
-                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" /></summary>
+                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" /></summary>
                     <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</p>
                   </details>
                 ))}

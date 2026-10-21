@@ -78,7 +78,7 @@ export default async function PortfolioStrategieDesignPreview() {
   const historieDo = hodnoty.map((h) => h.do).sort().pop();
   const historieOd = hodnoty.map((h) => h.od).sort()[0];
   const mr = (iso: string) => `${Number(iso.slice(5, 7))}/${iso.slice(0, 4)}`;
-  const etfCountLabel = etfCount > 0 ? etfCount.toLocaleString('cs-CZ') : '4 800';
+  const etfCountLabel = etfCount > 0 ? `${(Math.floor(etfCount / 100) * 100).toLocaleString('cs-CZ')}+` : '4 800+';
 
   // SCHEMA: BreadcrumbList + ItemList (5 detailů) + FAQPage synchronizovaný se zněním FAQ.
   const breadcrumbSchema = {

@@ -6,7 +6,7 @@
    PŘI MĚSÍČNÍ KONTROLE: po ověření bumpni datum níže (jediné místo v repu). */
 const EDITORIAL_CHECK_DATE = new Date('2026-09-01T00:00:00Z');
 
-/** „1. září 2026" – datum poslední ruční kontroly editorských dat. */
+/** „1. září 2026“ – datum poslední ruční kontroly editorských dat. */
 export const editorialCheckDateStr = EDITORIAL_CHECK_DATE.toLocaleDateString('cs-CZ', {
   day: 'numeric',
   month: 'long',

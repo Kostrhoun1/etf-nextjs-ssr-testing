@@ -9,7 +9,7 @@ import TridaStitky from '@/components/design-preview/TridaStitky';
 import type { TridaFondu } from '@/lib/nazevFondu';
 
 /* Živý našeptávač ETF v hlavičce – při psaní rovnou nabízí fondy (název/ISIN/ticker),
-   klik nebo Enter otevře detail fondu; „Zobrazit vše" pošle dotaz do screeneru.
+   klik nebo Enter otevře detail fondu; „Zobrazit vše“ pošle dotaz do screeneru.
    Ovládání i klávesnicí (šipky, Enter, Esc). Skryté na úzkých obrazovkách. */
 
 interface Result {

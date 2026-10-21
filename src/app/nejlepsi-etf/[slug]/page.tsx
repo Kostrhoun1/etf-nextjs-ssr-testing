@@ -25,10 +25,13 @@ import { topIndexesForCategory, topBondFamilies } from '@/components/design-prev
 import CompareButton from '@/components/design-preview/CompareButton';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import TabulkaFondu, { type RadekFondu } from '@/components/zebricky/TabulkaFondu';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
+import { SOUVISEJICI, RADKU_TABULKY_VYCHOZI } from '@/lib/zebrickySouvisejici';
+import { HEAD_MIN_SIZE } from '@/lib/etf-head';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { zobrazovanyTicker } from '@/lib/ticker';
 import { detectHedging } from '@/utils/hedgingDetection';
-import { tridaFondu } from '@/lib/nazevFondu';
+import { tridaFondu, tridaText, jeSvycarskyFond } from '@/lib/nazevFondu';
 import { distKind } from '@/utils/distribution';
 
 export const revalidate = 86400;
@@ -55,9 +58,9 @@ function preferredDimension(slug: string): 'country' | 'sector' | 'holding' {
   return 'country';
 }
 
-/* Kategorie, u kterých dává smysl odkázat na pilíř „Světové ETF – který index"
+/* Kategorie, u kterých dává smysl odkázat na pilíř „Světové ETF – který index“
    (porovnání MSCI World / FTSE All-World / ACWI / S&P 500 napříč žebříčky).
-   Silo: pilíř = hub „který index", žebříček = užší seznam pro daný index. */
+   Silo: pilíř = hub „který index“, žebříček = užší seznam pro daný index. */
 const WORLD_INDEX_SLUGS = new Set([
   'nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-sp500-etf',
   'nejlepsi-americke-etf', 'nejlepsi-evropske-etf', 'nejlepsi-emerging-markets-etf',
@@ -113,15 +116,29 @@ function nazevFondu(n: string): string {
  *  Kolo 5 (19. 10. 2026): dřív syrový konec názvu („· 1C“, „· 4C“, „· USD acc“ vs „· USD Acc“, „· USD Ukdis“).
  *  Teď normalizovaně ze sdílené funkce (src/lib/nazevFondu.ts): v názvu jen měna třídy, výplatu (akumulační/
  *  distribuční) a měnové zajištění ukazuje druhý řádek; kód třídy se neukazuje. Revize kola 2: řádky nešly odlišit. */
-function kratkeNazvy(nazvy: string[]): string[] {
-  const kratke = nazvy.map(nazevFondu);
-  const pocet = new Map<string, number>();
-  kratke.forEach((k) => pocet.set(k, (pocet.get(k) ?? 0) + 1));
-  return kratke.map((k, i) => {
-    if ((pocet.get(k) ?? 0) < 2) return k;
-    const mena = tridaFondu(nazvy[i]).mena;
+function kratkeNazvy(fondy: { name: string; distribution_policy?: string | null; ticker?: string | null }[]): string[] {
+  const kratke = fondy.map((f) => nazevFondu(f.name));
+  const duplicity = (xs: string[]) => {
+    const pocet = new Map<string, number>();
+    xs.forEach((k) => pocet.set(k, (pocet.get(k) ?? 0) + 1));
+    return (k: string) => (pocet.get(k) ?? 0) > 1;
+  };
+  // 1) měna třídy („· USD“), 2) celá třída – výplata, měna, zajištění („· Acc · USD“, „· Dist · zajištěno do EUR“),
+  // 3) ticker. SEO audit 6b: 5× „UBS MSCI ACWI SF“, 2× „… · USD“ se v tabulce nedaly rozlišit.
+  const dupl1 = duplicity(kratke);
+  const krok1 = kratke.map((k, i) => {
+    if (!dupl1(k)) return k;
+    const mena = tridaFondu(fondy[i].name).mena;
     return mena ? `${k}\u00a0· ${mena}` : k;
   });
+  const dupl2 = duplicity(krok1);
+  const krok2 = krok1.map((k, i) => {
+    if (!dupl2(k)) return k;
+    const t = tridaText(tridaFondu(fondy[i].name, fondy[i].distribution_policy));
+    return t ? `${kratke[i]}\u00a0· ${t}` : k;
+  });
+  const dupl3 = duplicity(krok2);
+  return krok2.map((k, i) => (dupl3(k) && fondy[i].ticker ? `${k} (${fondy[i].ticker})` : k));
 }
 
 /** Indexové kategorie: fondy sledují STEJNÝ podklad (index, kov, bitcoin) a liší se hlavně poplatkem a třídou.
@@ -129,6 +146,20 @@ function kratkeNazvy(nazvy: string[]): string[] {
 /** Široké smíšené žebříčky: karta „Nejvýkonnější“ ZÁMĚRNĚ chybí (ZAMERNA-ROZHODNUTI.md, kolo 6) – vyhrávaly úzké
  *  sektorové sázky (polovodiče +228 %, konvertibilní dluhopisy +45 %) a první velké zelené číslo působilo jako tip. */
 const BEZ_VYKONU = new Set(['nejlepsi-etf-2026', 'nejlepsi-akciove-etf', 'nejlepsi-dluhopisove-etf']);
+
+/** Žebříčky, kde se v jedné tabulce míchají akcie s dluhopisy, komoditami a peněžním trhem → štítek typu v řádku
+ *  (SEO audit 6b, Markéta: v „Nejlepší ETF 2026“ nebylo poznat, že zlato je ETC a XEON peněžní trh). */
+const SMISENE = new Set(['nejlepsi-etf-2026', 'nejlevnejsi-etf', 'nejlepsi-akumulacni-etf', 'nejlepsi-distribucni-etf', 'nejlepsi-esg-etf']);
+function druhProduktu(kategorie: string | null | undefined, nazev: string): string | null {
+  switch (kategorie) {
+    case 'Komodity': return /\bUCITS\b/i.test(nazev) ? 'komodity' : 'ETC';
+    case 'Krypto': return 'krypto ETP';
+    case 'Peněžní trh': return 'peněžní trh';
+    case 'Dluhopisy': return 'dluhopisy';
+    case 'Nemovitosti': return 'nemovitosti';
+    default: return null;
+  }
+}
 
 /** Práh velikosti pro karty „Vybrané podle dat“ – stejný jako homepage (MIN_VELIKOST_VITEZE v src/lib/trhy.ts). */
 const PRAH_KARET = 100;
@@ -158,10 +189,10 @@ function tickeryBezDuplicit(fondy: ETFBasicInfo[]): Map<string, string | null> {
   }));
 }
 
-const INDEXOVE: Record<string, 'akcie' | 'komodita'> = {
+const INDEXOVE: Record<string, 'akcie' | 'komodita' | 'krypto'> = {
   'nejlepsi-sp500-etf': 'akcie', 'nejlepsi-msci-world-etf': 'akcie', 'nejlepsi-nasdaq-etf': 'akcie',
   'nejlepsi-celosvetove-etf': 'akcie', 'nejlepsi-dax-etf': 'akcie', 'nejlepsi-stoxx600-etf': 'akcie', 'nejlepsi-ftse100-etf': 'akcie',
-  'nejlepsi-zlato-etf': 'komodita', 'nejlepsi-stribro-etf': 'komodita', 'nejlepsi-bitcoin-etf': 'komodita',
+  'nejlepsi-zlato-etf': 'komodita', 'nejlepsi-stribro-etf': 'komodita', 'nejlepsi-bitcoin-etf': 'krypto',
 };
 
 /** Riziko „Hlavička: podrobnosti…“ → [hlavička, zbytek]. Hlavička jde do krátkého bodu, zbytek do rozbalení. */
@@ -174,14 +205,17 @@ function rozdelRiziko(t: string): [string, string] {
 
 /** „Jak vybrat mezi fondy na stejný index“ – fakta, ne doporučení. Desktop: karta se seznamem.
  *  Mobil: jeden kompaktní rozbalovací řádek („1 TER · 2 velikost · …“), ať tabulka začíná výš. */
-function JakVybrat({ druh }: { druh: 'akcie' | 'komodita' }) {
+function JakVybrat({ druh }: { druh: 'akcie' | 'komodita' | 'krypto' }) {
   const nadpis = druh === 'akcie' ? 'Jak vybrat mezi fondy na stejný index' : 'Jak vybrat mezi produkty na stejný podklad';
   const body: [string, string, React.ReactNode][] = [
     ['TER', 'Poplatek (TER)', 'strhává se každý rok z hodnoty fondu'],
     ['velikost', 'Velikost fondu', 'spravovaný majetek; malé fondy správci ruší častěji'],
     druh === 'akcie'
       ? ['akum./dist.', 'Akumulační, nebo distribuční', 'dividendy fond reinvestuje, nebo vyplácí']
-      : ['zajištění', 'Zajištěná, nebo nezajištěná třída', 'zajištění tlumí kurz dolaru (ne koruny)'],
+      : druh === 'krypto'
+        // SEO audit 6b (Markéta): u bitcoinu rozhoduje krytí a úschova, ne měnové zajištění.
+        ? ['krytí', 'Krytí, úschova a emitent', 'zda je produkt krytý skutečným bitcoinem, kdo ho uschovává a kdo produkt vydává (ETP je dluhový cenný papír emitenta)']
+        : ['zajištění', 'Zajištěná, nebo nezajištěná třída', 'zajištění tlumí kurz dolaru (ne koruny)'],
     ['kde koupit', 'Kde ho koupíte', <>ne každý broker má každý fond. <Link href="/kde-koupit" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Kde koupit</Link></>],
   ];
   const cislo = (i: number) => (
@@ -255,9 +289,12 @@ const nactiZebricek = reactCache(async (slug: string) => {
   // žebříček řazený podle TER), načtou se kandidáti zvlášť lehkým dotazem – práh je vždy 100 mil. €.
   const castecneNacteno = celkem > etfs.length || cfg.sortBy === 'ter_numeric';
   const vyberDb = castecneNacteno ? await getVyberKarty(cfg, PRAH_KARET, sVykonem) : null;
-  const zdrojLevne = castecneNacteno ? (vyberDb?.levne ?? []) : etfs;
-  const zdrojVykon = castecneNacteno ? (vyberDb?.vsechny ?? []) : etfs;
-  const nejvetsi = castecneNacteno ? (vyberDb?.nejvetsi ?? null) : (bySize[0] ?? null);
+  // Švýcarské fondy (sídlo CH, jeSvycarskyFond) se na karty nevybírají – v tabulce zůstávají se štítkem (SEO audit 6b).
+  const mimoCH = (xs: ETFBasicInfo[]) => xs.filter((e) => !jeSvycarskyFond(e.isin, e.name));
+  const zdrojLevne = castecneNacteno ? (vyberDb?.levne ?? []) : mimoCH(etfs);
+  const zdrojVykon = castecneNacteno ? (vyberDb?.vsechny ?? []) : mimoCH(etfs);
+  const nejvetsi = castecneNacteno ? (vyberDb?.nejvetsi ?? null) : (mimoCH(bySize)[0] ?? null);
+  const nejvetsiJeCH = castecneNacteno ? !!vyberDb?.nejvetsiJeCH : !!bySize[0] && jeSvycarskyFond(bySize[0].isin, bySize[0].name);
   // Nejvýkonnější: jen „čisté“ třídy (ne ESG/Screened/Leaders, ne měnově zajištěné – liší se metodikou nebo
   // měnou, ne kvalitou fondu) a fondy ≥ 100 mil. €. Momentum za 12 měsíců je u indexových kategorií spíš
   // šum (revize 18. 10. 2026) → primárně 3 roky v Kč, když je má aspoň 3 fondy.
@@ -288,7 +325,7 @@ const nactiZebricek = reactCache(async (slug: string) => {
     : null;
 
   return {
-    cfg, etfs, pocetDb, celkem, prah, dataDatum, bySize, indexova, sVykonem, nejvetsi, jeEsgKategorie,
+    cfg, etfs, pocetDb, celkem, prah, dataDatum, bySize, indexova, sVykonem, nejvetsi, nejvetsiJeCH, jeEsgKategorie,
     byTer, stejnyTer, vykonObdobi, byPerf, hodnotaVykonu, medianVykonu, terOd,
   };
 });
@@ -313,7 +350,7 @@ function dataSeo(z: Zebricek): DataZebricku {
     prah: z.prah,
     terOd: z.terOd,
     nejlevnejsi: L && L.ter_numeric != null ? { ...fondSeo(L), ter: L.ter_numeric, stejnyTer: z.stejnyTer } : null,
-    nejvetsi: V ? { ...fondSeo(V), velikost: num(V.fund_size_numeric), r1Kc: num(V.return_1y_czk) } : null,
+    nejvetsi: V ? { ...fondSeo(V), velikost: num(V.fund_size_numeric), r1Kc: num(V.return_1y_czk), mimoCH: z.nejvetsiJeCH } : null,
     median: z.medianVykonu != null ? { hodnota: z.medianVykonu, obdobi: z.vykonObdobi, pocet: z.byPerf.length, bezVariant: !z.jeEsgKategorie } : null,
     prahKaret: PRAH_KARET,
   };
@@ -370,10 +407,11 @@ export default async function CategoryDetailPreview(
     }
     recos.push({ tag, icon, etf, hodnota, popis, pravidlo });
   };
-  pushReco('Největší fond', Trophy, nejvetsi, nejvetsi ? money(nejvetsi.fund_size_numeric) : '', 'spravovaný majetek');
+  pushReco('Největší fond', Trophy, nejvetsi, nejvetsi ? money(nejvetsi.fund_size_numeric) : '', 'spravovaný majetek',
+    z.nejvetsiJeCH ? 'Největší fond mimo švýcarské fondy (sídlo CH) – ty v Česku nabízí jen část brokerů, proto je na karty nevybíráme; v tabulce zůstávají.' : undefined);
   pushReco('Nejnižší poplatek', Wallet, byTer[0], byTer[0] ? ter(byTer[0].ter_numeric) : '', 'roční poplatek',
     byTer[0] && stejnyTer > 0
-      ? `Stejný poplatek ${ter(byTer[0].ter_numeric)} má ${stejnyTer} ${dalsiFondy(stejnyTer)} – při shodě ukazujeme akumulační, pak větší fond. Jen fondy nad ${prahText} bez měnového zajištění.`
+      ? `Stejný poplatek ${ter(byTer[0].ter_numeric)} ${stejnyTer >= 2 && stejnyTer <= 4 ? 'mají' : 'má'} ${stejnyTer} ${dalsiFondy(stejnyTer)} – při shodě ukazujeme akumulační, pak větší fond. Jen fondy nad ${prahText} bez měnového zajištění.`
       : `Jen fondy nad ${prahText} bez měnového zajištění.`);
   if (sVykonem && byPerf[0]) {
     const v = hodnotaVykonu(byPerf[0]);
@@ -389,9 +427,9 @@ export default async function CategoryDetailPreview(
   const kriteriaText = kriteria.length === 3 ? `${kriteria[0]}, ${kriteria[1]} a ${kriteria[2]}` : `${kriteria[0]} a ${kriteria[1]}`;
 
   // Tabulka – data pro klienta (bez fallbacku mezi měnami).
-  const nazvy = kratkeNazvy(etfs.map((e) => e.name));
   // Jeden ticker webu (src/lib/ticker.ts); stejný ticker u dvou různých fondů v jednom žebříčku → s burzou.
   const tickery = tickeryBezDuplicit([...etfs, ...recos.map((r) => r.etf).filter((e) => !etfs.some((x) => x.isin === e.isin))]);
+  const nazvy = kratkeNazvy(etfs.map((e) => ({ name: e.name, distribution_policy: e.distribution_policy, ticker: tickery.get(e.isin) ?? null })));
   const radky: RadekFondu[] = etfs.map((e, i) => {
     const k = distKind(e.distribution_policy);
     return {
@@ -406,8 +444,28 @@ export default async function CategoryDetailPreview(
       r3: { CZK: num(e.return_3y_czk), EUR: num(e.return_3y), USD: num(e.return_3y_usd) },
       typ: k === 'unknown' ? null : k,
       zajisteni: zajisteni(e.name),
+      svycarsky: jeSvycarskyFond(e.isin, e.name),
+      druh: SMISENE.has(slug) ? druhProduktu(e.category, e.name) : null,
     };
   });
+  // Velké fondy (hlava katalogu, AUM ≥ HEAD_MIN_SIZE – ty jsou v sitemapě), které tabulka ve VÝCHOZÍM pohledu
+  // neukáže (zajištěné třídy skryté, prvních KROK řádků) → serverový seznam odkazů, ať žádný detail z hlavy
+  // nezůstane bez vnitřního odkazu (SEO audit 6b: 86 osiřelých detailů). Řazení výchozího pohledu = jako TabulkaFondu.
+  const vychoziKlic = cfg.sortBy === 'ter_numeric' ? 'ter' : 'size';
+  const vychoziPohled = radky
+    .filter((r) => !r.zajisteni)
+    .sort((a, b) => {
+      if (vychoziKlic === 'size') return (b.velikost ?? -1) - (a.velikost ?? -1);
+      const x = a.ter != null && a.ter > 0 ? a.ter : null, y = b.ter != null && b.ter > 0 ? b.ter : null;
+      if (x == null || y == null) return x == null && y == null ? (b.velikost ?? 0) - (a.velikost ?? 0) : x == null ? 1 : -1;
+      return x - y || Number(b.typ === 'acc') - Number(a.typ === 'acc') || (b.velikost ?? 0) - (a.velikost ?? 0);
+    })
+    .slice(0, RADKU_TABULKY_VYCHOZI);
+  const videt = new Set(vychoziPohled.map((r) => r.isin));
+  const dalsiVelke = radky.filter((r) => (r.velikost ?? 0) >= HEAD_MIN_SIZE && !videt.has(r.isin))
+    .sort((a, b) => (b.velikost ?? 0) - (a.velikost ?? 0));
+  const souvisejiciZebricky = (SOUVISEJICI[slug] ?? []).filter((x) => x !== slug && categoryConfigs[x]);
+
   const sr = SROVNAVAC[slug];
   // Odkaz „všechny … fondy“ nese i práh velikosti žebříčku – jinak srovnávač ukáže tisíce fondů místo počtu
   // ze žebříčku (kolo 6: „1 782 akciových“ vs. srovnávač bez prahu).
@@ -415,7 +473,7 @@ export default async function CategoryDetailPreview(
     : sr.q.startsWith('kat=') ? { href: `/srovnani?${sr.q}&minvel=${prah}`, text: `${sr.text} (nad ${prah}\u00a0mil.\u00a0€)` }
     : { href: `/srovnani?${sr.q}`, text: sr.text };
 
-  // Infografika „co v tom je" – složení největšího fondu kategorie. Rozložení podle zemí jen když
+  // Infografika „co v tom je“ – složení největšího fondu kategorie. Rozložení podle zemí jen když
   // něco říká: „USA 97 %“ u S&P 500 je informace s nulovou hodnotou → sektory.
   const flagship = nejvetsi ?? bySize[0];
   const composition = flagship ? await getFlagshipComposition(flagship.isin) : null;
@@ -495,7 +553,9 @@ export default async function CategoryDetailPreview(
           <h1 className="text-[28px] md:text-4xl font-bold tracking-tight leading-tight text-slate-900">{cfg.title}</h1>
           {/* Odpověď nahoře (SEO/GEO, kolo 6): fakta z dat stránky s datem – počet, nejnižší poplatek, největší fond, výnos v Kč. */}
           {odpoved.length > 0 && (
-            <p data-odpoved="zebricek" className="mt-2 max-w-3xl text-sm md:text-base text-slate-800 leading-relaxed">{odpoved.join(' ')}</p>
+            <p data-odpoved="zebricek" className="mt-2 max-w-3xl text-sm md:text-base text-slate-800 leading-relaxed">{odpoved.slice(0, 2).join(' ')}
+            {/* Mobil: jen první 2 věty (počet + poplatek/velikost) – další opakují karty pod nimi a tlačily tabulku níž (SEO audit 6b). */}
+            {odpoved.slice(2).map((v) => <span key={v} className="hidden md:inline"> {v}</span>)}</p>
           )}
           {/* Mobil: s odpovědí nahoře se popis kategorie neukazuje (zůstává v HTML) – ať tabulka nezačíná až pod ohybem (kolo 6). */}
           <p className={`mt-2 max-w-2xl text-sm md:text-[15px] text-slate-600 leading-relaxed ${odpoved.length > 0 ? 'hidden md:block' : ''}`}>{nbsp(lead)}</p>
@@ -572,6 +632,29 @@ export default async function CategoryDetailPreview(
         {radky.length > 0 && (
           <section data-sekce="tabulka" className="pb-10" aria-labelledby="tabulka-h">
             <TabulkaFondu nadpisId="tabulka-h" radky={radky} celkem={celkem} vychozi={cfg.sortBy === 'ter_numeric' ? 'ter' : 'size'} datum={datumText} srovnavac={srovnavac} prah={prah} />
+            {radky.some((r) => r.druh === 'ETC' || r.druh === 'krypto ETP') && (
+              <p data-sekce="vysvetlivka-druhu" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm leading-relaxed text-amber-900">
+                <strong>ETC a ETP nejsou klasické fondy:</strong> jde o dluhové cenné papíry emitenta kryté kovem nebo kryptoměnou.
+                Zlato a další komodity nevyplácejí dividendy ani úroky – výnos plyne jen ze změny ceny, která umí roky stagnovat nebo padat.
+              </p>
+            )}
+            {dalsiVelke.length > 0 && (
+              <details data-sekce="dalsi-velke-fondy" className="group mt-3 rounded-xl border border-slate-200 bg-white">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50 rounded-xl [&::-webkit-details-marker]:hidden">
+                  <span>Další velké fondy v žebříčku ({dalsiVelke.length}) – nad 2 mld. €, ve výchozím pohledu tabulky nejsou{dalsiVelke.some((r) => r.zajisteni) ? ' (i měnově zajištěné třídy)' : ''}</span>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+                </summary>
+                <ul className="flex flex-wrap gap-2 border-t border-slate-100 px-4 py-3">
+                  {dalsiVelke.map((r) => (
+                    <li key={r.isin}>
+                      <Link href={`/etf/${r.isin}`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-700 hover:border-teal-300 hover:text-teal-800">
+                        {r.ticker && <span className="font-semibold">{r.ticker}</span>}<span>{r.nazev}</span>{r.zajisteni && <span className="text-amber-800">· zajištěno</span>}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </section>
         )}
 
@@ -658,6 +741,9 @@ export default async function CategoryDetailPreview(
             <div className="max-w-3xl"><FaqSeznam items={faqs.map((f) => ({ q: nbsp(f.q), a: nbsp(f.a) }))} /></div>
           </section>
         )}
+
+        {/* SOUVISEJÍCÍ ŽEBŘÍČKY – vzájemné odkazy mezi příbuznými kategoriemi (SEO audit 6b) */}
+        <SouvisejiciZebricky slugy={souvisejiciZebricky} />
 
         {/* CTA */}
         <section data-sekce="dalsi-kroky" className="pb-8">

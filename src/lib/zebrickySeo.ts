@@ -32,7 +32,7 @@ export interface DataZebricku {
   /** Karta „Nejnižší poplatek“. */
   nejlevnejsi: (FondSeo & { ter: number; stejnyTer: number }) | null;
   /** Karta „Největší fond“. */
-  nejvetsi: (FondSeo & { velikost: number | null; r1Kc: number | null }) | null;
+  nejvetsi: (FondSeo & { velikost: number | null; r1Kc: number | null; /** větší je švýcarský fond, který karty přeskakují */ mimoCH?: boolean }) | null;
   /** Medián výnosu z karty „Nejvýkonnější“ (jen kde ji stránka ukazuje). */
   median: { hodnota: number; obdobi: '3y' | '1y'; pocet: number; bezVariant: boolean } | null;
   /** Práh karet (100 mil. €). */
@@ -54,6 +54,8 @@ const pocet = (n: number) => n.toLocaleString('cs-CZ');
 /** 1 fond, 2–4 fondy, 5+ fondů (1. pád). */
 const fondy1 = (n: number) => (n === 1 ? 'fond' : n >= 2 && n <= 4 ? 'fondy' : 'fondů');
 /** Za předložkou s 2. pádem („srovnání 3 fondů“). */
+/** Shoda podmětu s číslovkou: „má 1 další fond“, „mají 2–4 další fondy“, „má 5 dalších fondů“ (SEO audit 6b). */
+const maji = (n: number) => (n >= 2 && n <= 4 ? 'mají' : 'má');
 const fondy2 = (n: number) => (n === 1 ? 'fondu' : 'fondů');
 const stejnyDen = (a: Date | null, b: Date | null) => !!a && !!b && datumText(a) === datumText(b);
 /** Ticker, jinak krátký název. */
@@ -89,7 +91,7 @@ export function popisekZebricku(d: DataZebricku): string | null {
   const uvodDlouhy = `Srovnání ${pocet(d.celkem)} ${fondy2(d.celkem)} nad ${d.prah}${NB}mil.${NB}€ podle poplatku, velikosti a výnosu v Kč.`;
   const uvodKratky = `${pocet(d.celkem)} ${fondy1(d.celkem)} nad ${d.prah}${NB}mil.${NB}€ s výnosy v Kč.`;
   const L = d.nejlevnejsi, V = d.nejvetsi;
-  const stejny = !!L && !!V && L.nazev === V.nazev && L.ticker === V.ticker;
+  const stejny = !!L && !!V && L.nazev === V.nazev && L.ticker === V.ticker && !V.mimoCH;
   // „Nejnižší poplatek“ bez upřesnění jen tehdy, když karta = skutečné minimum kategorie; jinak s prahem karty.
   const levnyKde = L && d.terOd != null && L.ter === d.terOd ? '' : ` nad ${d.prahKaret}${NB}mil.${NB}€`;
   const levny = L && !stejny ? `Nejnižší TER${levnyKde} má ${oznaceni(L)} (${terText(L.ter)}).` : null;
@@ -97,7 +99,7 @@ export function popisekZebricku(d: DataZebricku): string | null {
   const velky = (sVelikosti: boolean) => {
     if (!V) return null;
     const vel = sVelikosti && V.velikost != null ? ` (${velikostText(V.velikost)})` : '';
-    const kdo = stejny && L ? `Největší a nejlevnější${levnyKde ? ` nad ${d.prahKaret}${NB}mil.${NB}€` : ''} je ${oznaceni(V)}${vel}, TER ${terText(L.ter)}` : `Největší je ${oznaceni(V)}${vel}`;
+    const kdo = stejny && L ? `Největší a nejlevnější${levnyKde ? ` nad ${d.prahKaret}${NB}mil.${NB}€` : ''} je ${oznaceni(V)}${vel}, TER ${terText(L.ter)}` : `Největší${V.mimoCH ? ' mimo švýcarské fondy' : ''} je ${oznaceni(V)}${vel}`;
     return `${kdo}${r1 != null ? `, za 12 měsíců v Kč ${pctText(r1)}` : ''}.`;
   };
   const varianty = [
@@ -126,18 +128,18 @@ export function odpovedZebricku(d: DataZebricku): string[] {
   const jmeno = (f: FondSeo) => (f.ticker ? `${f.nazev} (${f.ticker})` : f.nazev) + kDni(f);
   const L = d.nejlevnejsi, V = d.nejvetsi;
   const casti: string[] = [];
-  const tentyz = !!L && !!V && L.nazev === V.nazev && L.ticker === V.ticker;
+  const tentyz = !!L && !!V && L.nazev === V.nazev && L.ticker === V.ticker && !V.mimoCH;
   if (L && V && tentyz && V.velikost != null) {
     // Nejlevnější je zároveň největší (STOXX 600, robotika…) – jedna věta, ne „má X; největší je X“.
     const kde = d.terOd != null && L.ter === d.terOd ? '' : ` mezi fondy nad ${d.prahKaret}${NB}mil.${NB}€ bez měnového zajištění`;
-    const dalsi = L.stejnyTer > 0 ? ` (stejný poplatek má ještě ${L.stejnyTer} ${L.stejnyTer === 1 ? 'další fond' : L.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'})` : '';
+    const dalsi = L.stejnyTer > 0 ? ` (stejný poplatek ${maji(L.stejnyTer)} ještě ${L.stejnyTer} ${L.stejnyTer === 1 ? 'další fond' : L.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'})` : '';
     casti.push(`nejnižší poplatek${kde} a zároveň největší majetek má ${jmeno(L)}: TER ${terText(L.ter)}${dalsi}, ${velikostText(V.velikost)}`);
   } else if (L) {
     const kde = d.terOd != null && L.ter === d.terOd ? '' : ` mezi fondy nad ${d.prahKaret}${NB}mil.${NB}€ bez měnového zajištění`;
-    const dalsi = L.stejnyTer > 0 ? `, stejný má ještě ${L.stejnyTer} ${L.stejnyTer === 1 ? 'další fond' : L.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'}` : '';
+    const dalsi = L.stejnyTer > 0 ? `, stejný ${maji(L.stejnyTer)} ještě ${L.stejnyTer} ${L.stejnyTer === 1 ? 'další fond' : L.stejnyTer <= 4 ? 'další fondy' : 'dalších fondů'}` : '';
     casti.push(`nejnižší poplatek${kde} má ${jmeno(L)} s${NB}TER ${terText(L.ter)}${dalsi}`);
   }
-  if (V && V.velikost != null && !tentyz) casti.push(`největší je ${jmeno(V)} se spravovaným majetkem ${velikostText(V.velikost)}`);
+  if (V && V.velikost != null && !tentyz) casti.push(`největší${V.mimoCH ? ' mimo švýcarské fondy' : ''} je ${jmeno(V)} se spravovaným majetkem ${velikostText(V.velikost)}`);
   if (casti.length) {
     const s = casti.join('; ');
     vety.push(`${s.charAt(0).toUpperCase()}${s.slice(1)}.`);

@@ -36,7 +36,7 @@ const getPortfolioParameters = (strategy: Strategy) => {
 
 /* Očekávaný (nominální) roční výnos strategie. FIRE ukazuje očekávanou střední
    dráhu – nejistotu a výkyvy záměrně řeší samostatná Monte Carlo simulace, ne
-   pseudonáhodný ornament. Proto tu žádný „Math.sin" ani umělá volatilita nejsou. */
+   pseudonáhodný ornament. Proto tu žádný „Math.sin“ ani umělá volatilita nejsou. */
 const expectedAnnualReturn = (strategy: Strategy): number =>
   getPortfolioParameters(strategy).expectedReturn / 100;
 
@@ -60,7 +60,7 @@ interface FireResult {
 /* Poctivý model očekávané dráhy: portfolio roste očekávaným výnosem strategie,
    cílová částka i (volitelně) měsíční spoření se navyšují o inflaci – aby model
    nebyl asymetrický (dřív cíl rostl s inflací, ale vklad byl konstantní, což FIRE
-   uměle oddalovalo). Bez pseudonáhodných výkyvů a bez umělé „podlahy". */
+   uměle oddalovalo). Bez pseudonáhodných výkyvů a bez umělé „podlahy“. */
 function computeFire(params: {
   currentAge: number;
   currentSavings: number;
@@ -120,7 +120,7 @@ function computeFire(params: {
 }
 
 /* Deterministický generátor (Mulberry32, jako Monte Carlo). Dřív Math.random → výsledek
-   („FIRE za 25 let") se měnil při každém načtení stránky (audit výpočtů 17. 10. 2026). */
+   („FIRE za 25 let“) se měnil při každém načtení stránky (audit výpočtů 17. 10. 2026). */
 function createRng(seed: number): () => number {
   let a = seed >>> 0;
   return function () {
@@ -155,7 +155,7 @@ interface FireRange {
 /* Monte Carlo v REÁLNÝCH korunách (dnešní kupní síla): reálný výnos = (1+nom)/(1+infl)-1,
    měsíční kroky s kolísáním, cíl je konstantní (25× ročních výdajů dnes). Vrací rozsah LET
    do cíle (10./50./90. percentil) + pás hodnot pro graf. Nejistota akumulace = KDY, ne JESTLI. */
-/* Volitelné „životní události" na časové ose (v dnešních korunách):
+/* Volitelné „životní události“ na časové ose (v dnešních korunách):
    jednorázový výdaj (auto, rekonstrukce), jednorázový příliv (dědictví, prodej),
    dodatečný měsíční příjem (přivýdělek) do roku N. Modelujeme je v reálných korunách. */
 type LifeEventType = 'oneoffExpense' | 'oneoffIncome' | 'monthlyIncome';
@@ -311,7 +311,7 @@ export default function FireKalkulackaWidget() {
     [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions],
   );
 
-  // Monte Carlo rozsah (kolísání trhu) – nejistota akumulace je „kdy", ne „jestli".
+  // Monte Carlo rozsah (kolísání trhu) – nejistota akumulace je „kdy“, ne „jestli“.
   const range = useMemo(
     () => computeFireRange({
       currentAge, currentSavings, monthlySavings,
@@ -358,7 +358,7 @@ export default function FireKalkulackaWidget() {
   };
 
   // Graf: pás jistoty (10.–90. percentil) kolem střední (mediánové) dráhy, v dnešních korunách.
-  // Ořízneme do „když se nedařilo" + kontext, jinak do 50 let.
+  // Ořízneme do „když se nedařilo“ + kontext, jinak do 50 let.
   const chartData = useMemo(() => {
     const horizon = range.slowYears != null ? range.slowYears + 3 : 40;
     return range.band.slice(0, Math.max(2, Math.min(range.band.length, horizon + 1)))
@@ -368,7 +368,7 @@ export default function FireKalkulackaWidget() {
   const warnExpenses = monthlyExpensesInFire < 10000;
   const warnInflation = inflationRate < 0 || inflationRate > 10;
   const warnNoFire = range.medYears === null;
-  // Věky dosažení z Monte Carlo rozsahu (nejistota je „kdy", ne „jestli").
+  // Věky dosažení z Monte Carlo rozsahu (nejistota je „kdy“, ne „jestli“).
   const fastAge = range.fastYears != null ? range.currentAge + range.fastYears : null;
   const medAge = range.medYears != null ? range.currentAge + range.medYears : null;
   const slowAge = range.slowYears != null ? range.currentAge + range.slowYears : null;
@@ -554,7 +554,7 @@ export default function FireKalkulackaWidget() {
           <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
             <Sparkles className="w-4 h-4" /> Váš výsledek
           </p>
-          {/* Headline = rozsah věku (nejistota akumulace je „kdy", ne „jestli") */}
+          {/* Headline = rozsah věku (nejistota akumulace je „kdy“, ne „jestli“) */}
           <p className="mt-3 text-2xl md:text-3xl font-bold leading-tight text-balance">
             Nezávislosti dosáhnete nejspíš <span className="whitespace-nowrap">mezi {fastAge} a {slowAge} lety</span>, obvykle kolem {medAge}.
           </p>

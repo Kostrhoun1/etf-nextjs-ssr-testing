@@ -98,7 +98,7 @@ export function spocitejStroj(rada: StrojRada, odMesic: string, mesicne: number,
   if (i0 < 0 || i0 >= rada.nav.length) return null;
   const nav = rada.nav;
   const navPred = (i: number) => (i === 0 ? 1 : nav[i - 1]); // hodnota na začátku měsíce i
-  let podily = 0; // počet „podílů" NAV, které vklady koupily
+  let podily = 0; // počet „podílů“ NAV, které vklady koupily
   let vlozeno = 0;
   const prubeh: StrojVysledek['prubeh'] = [];
   let vrchol = navPred(i0); // nákupní cena je první vrchol – propad v 1. měsíci se počítá

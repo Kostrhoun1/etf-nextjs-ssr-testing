@@ -1,5 +1,5 @@
 /**
- * „Pravidlo 4 % v korunách" – čísla pro článek (Vlna 7 / bod 7.2, 17. 10. 2026).
+ * „Pravidlo 4 % v korunách“ – čísla pro článek (Vlna 7 / bod 7.2, 17. 10. 2026).
  *
  * Simulace: na začátku 1 (= 100 % portfolia). Každý měsíc na začátku měsíce výběr sazba/12 počáteční
  * hodnoty, navyšovaný o českou inflaci od startu (ČSÚ, cpiLevel). Zbytek nese výnos portfolia

@@ -4,15 +4,12 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, Repeat, Banknote, Percent,
-  CheckCircle2, BookOpen,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, Repeat, Banknote, Percent, CheckCircle2, BookOpen, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -52,7 +49,7 @@ export default async function AccVsDist() {
     },
     {
       q: 'Poznám třídu fondu podle názvu?',
-      a: 'Většinou ano – v názvu fondu bývá zkratka „Acc" (accumulating, akumulační) nebo „Dist" / „D" (distributing, distribuční). Jistotu dá karta fondu. V našem srovnávači u každého ETF vidíte štítek ACC/DIST a můžete podle něj i filtrovat.',
+      a: 'Většinou ano – v názvu fondu bývá zkratka „Acc“ (accumulating, akumulační) nebo „Dist“ / „D“ (distributing, distribuční). Jistotu dá karta fondu. V našem srovnávači u každého ETF vidíte štítek ACC/DIST a můžete podle něj i filtrovat.',
     },
   ];
   const faqSchema = {
@@ -294,13 +291,16 @@ export default async function AccVsDist() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-akumulacni-etf', 'nejlepsi-distribucni-etf', 'nejlepsi-dividendove-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">

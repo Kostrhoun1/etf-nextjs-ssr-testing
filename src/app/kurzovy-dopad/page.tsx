@@ -4,11 +4,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
-  Coins, Wallet, Scale, Landmark, ShieldCheck, Crown, HelpCircle, BookOpen,
-  PiggyBank, DollarSign, ShieldAlert, RefreshCcw, Banknote,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator, Coins, Wallet, Scale, Landmark, ShieldCheck, Crown, HelpCircle, BookOpen, PiggyBank, DollarSign, ShieldAlert, RefreshCcw, Banknote, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import KurzovyDopadWidget from '@/components/design-preview/KurzovyDopadWidget';
@@ -245,7 +241,7 @@ export default async function KurzovyDopadPreview() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>

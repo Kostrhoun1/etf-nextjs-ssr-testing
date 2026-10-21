@@ -4,15 +4,12 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, Globe, RefreshCw, ArrowLeftRight,
-  CheckCircle2, BookOpen, AlertTriangle,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, Globe, RefreshCw, ArrowLeftRight, CheckCircle2, BookOpen, AlertTriangle, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -48,7 +45,7 @@ export default async function MenoveRizikoEtf() {
     },
     {
       q: 'Zajistí mě EUR hedged ETF proti pohybu koruny?',
-      a: 'Ne. „EUR hedged" znamená zajištění do eura, ne do koruny. Jako český investor pořád nesete riziko kurzu EUR/CZK. Fondy zajištěné přímo do koruny prakticky nejsou dostupné, takže Čech typicky drží nezajištěný globální fond a měnový pohyb bere jako součást hry.',
+      a: 'Ne. „EUR hedged“ znamená zajištění do eura, ne do koruny. Jako český investor pořád nesete riziko kurzu EUR/CZK. Fondy zajištěné přímo do koruny prakticky nejsou dostupné, takže Čech typicky drží nezajištěný globální fond a měnový pohyb bere jako součást hry.',
     },
     {
       q: 'Kolik zajištění stojí?',
@@ -56,7 +53,7 @@ export default async function MenoveRizikoEtf() {
     },
     {
       q: 'Jak poznám, jestli je ETF zajištěný?',
-      a: 'V názvu bývá „EUR Hedged", „USD Hedged" nebo zkratka „H". V našem srovnávači navíc můžete filtrovat podle měnového zajištění (nezajištěné, EUR/USD/GBP/CHF zajištěné) a zvolený typ si ověřit.',
+      a: 'V názvu bývá „EUR Hedged“, „USD Hedged“ nebo zkratka „H“. V našem srovnávači navíc můžete filtrovat podle měnového zajištění (nezajištěné, EUR/USD/GBP/CHF zajištěné) a zvolený typ si ověřit.',
     },
   ];
   const faqSchema = {
@@ -134,7 +131,7 @@ export default async function MenoveRizikoEtf() {
         <section className="pb-9">
           <div className="max-w-3xl text-[15px] text-slate-600 leading-relaxed space-y-3">
             <p>
-              Skoro každý český investor do ETF řeší stejnou obavu: „Kupuju fond v dolarech – co když dolar spadne?"
+              Skoro každý český investor do ETF řeší stejnou obavu: „Kupuju fond v dolarech – co když dolar spadne?“
               Je to logická otázka, ale skrývá <strong className="text-slate-900">jeden velký omyl</strong>, kvůli
               kterému lidé zbytečně platí za zajištění, které nepotřebují.
             </p>
@@ -263,13 +260,16 @@ export default async function MenoveRizikoEtf() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-sp500-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-dluhopisove-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">

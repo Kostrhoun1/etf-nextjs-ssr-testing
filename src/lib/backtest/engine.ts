@@ -81,7 +81,7 @@ export interface ExchangeRate {
  *
  * POZOR: stránkuje po 1000 řádcích stejně jako loadIndexData. Bez stránkování Supabase
  * vrátí jen prvních 1000 řádků (~4 roky denních kurzů) a všechna pozdější data se pak
- * tiše převáděla zastaralým kurzem – to byla příčina „start-závislého" FX přepočtu.
+ * tiše převáděla zastaralým kurzem – to byla příčina „start-závislého“ FX přepočtu.
  */
 export async function loadExchangeRates(
   startDate?: Date,
@@ -463,7 +463,7 @@ export async function getAvailableIndexes(): Promise<
  *   hodnota = data × [(1 − desiredTer) / (1 − sourceTer)]^roky
  *
  *   • desiredTer = sourceTer (výchozí) → faktor 1 → data beze změny (poctivé, poplatek fondu v ceně)
- *   • desiredTer = 0                   → čistý index, co udělal trh (pokročilé „zrušit poplatek")
+ *   • desiredTer = 0                   → čistý index, co udělal trh (pokročilé „zrušit poplatek“)
  *   • desiredTer = 0,005               → modeluje dražší fond / poplatky brokera
  */
 function simulateETFFromIndex(
@@ -670,11 +670,11 @@ function combinePortfolio(
  * Rebalancovat v tento den?
  *
  * OPRAVENO 17. 10. 2026 (audit výpočtů, pravidlo č. 1):
- * - Data jsou DENNÍ a podmínka se dřív vyhodnocovala každý obchodní den: „měsíčně" rebalancovalo
- *   DENNĚ, „ročně" každý den v prosinci, „čtvrtletně" každý den v březnu/červnu/září/prosinci.
- *   (60/40, 2005–2025: „měsíčně" vycházelo 9,04 % p.a. místo správných 8,08 %.) Teď jen POSLEDNÍ
+ * - Data jsou DENNÍ a podmínka se dřív vyhodnocovala každý obchodní den: „měsíčně“ rebalancovalo
+ *   DENNĚ, „ročně“ každý den v prosinci, „čtvrtletně“ každý den v březnu/červnu/září/prosinci.
+ *   (60/40, 2005–2025: „měsíčně“ vycházelo 9,04 % p.a. místo správných 8,08 %.) Teď jen POSLEDNÍ
  *   obchodní den období = když příští datum patří do jiného období.
- * - Volby „při odchylce nad X %" dřív nedělaly nic (default: false) = totéž co „vůbec". Teď se
+ * - Volby „při odchylce nad X %“ dřív nedělaly nic (default: false) = totéž co „vůbec“. Teď se
  *   rebalancuje, když se váha kterékoli složky odchýlí od cíle o víc než X procentních bodů.
  */
 function shouldRebalance(
@@ -831,7 +831,7 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
 }
 
 /**
- * Reálné (inflačně očištěné) zhodnocení – jádro USP „kolik reálně vyděláš v korunách".
+ * Reálné (inflačně očištěné) zhodnocení – jádro USP „kolik reálně vyděláš v korunách“.
  *
  * Deflujeme českým CPI (viz `inflation.ts`), proto to dává smysl jen u výnosů v Kč –
  * a ty v Kč jsou (FX vrstva převádí každý index zvlášť). Vrací null, když datum leží

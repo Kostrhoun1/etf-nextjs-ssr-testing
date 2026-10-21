@@ -13,7 +13,7 @@ export type AssetClass = 'akcie' | 'dluhopisy' | 'nemovitosti' | 'komodity' | 'z
 export type DruhDluhopisu = 'dlouhe' | 'stredni' | 'kratke';
 
 export interface PortfolioAllocation {
-  /** Zobrazený název položky v legendě, např. „Dlouhodobé dluhopisy". */
+  /** Zobrazený název položky v legendě, např. „Dlouhodobé dluhopisy“. */
   label: string;
   /** Třída aktiva. */
   cls: AssetClass;
@@ -33,9 +33,9 @@ export interface PortfolioModel {
   name: string;            // plný název (H1, nadpis karty)
   /** Krátký název = stejný jako na homepage (NAZEV_PORTFOLIA). */
   kratkyNazev: string;
-  tagline: string;         // 1 věta „pro koho"
+  tagline: string;         // 1 věta „pro koho“
   risk: PortfolioRisk;
-  /** % v akciích – pro tabulku „pro koho". */
+  /** % v akciích – pro tabulku „pro koho“. */
   stocksPct: number;
   horizon: string;         // typický horizont
   forWhom: string;         // verdikt do tabulky
@@ -342,7 +342,7 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
      portfolia. Řada S&P Global Dividend Aristocrats v manifestu není (us_dividend = americký VYM, jiný index) → „—“. */
 };
 
-// Benchmark pro srovnání „portfolio vs čisté akcie".
+// Benchmark pro srovnání „portfolio vs čisté akcie“.
 export const BACKTEST_BENCHMARK: BacktestItem = { indexCode: 'ftse_all_world', weight: 1, ter: 0.0022 };
 
 // Barva pilulky rizika (slate / amber / red – nikdy fialová).

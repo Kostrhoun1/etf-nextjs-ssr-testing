@@ -44,7 +44,7 @@ interface YearRow {
 }
 
 // ===== VÝPOČET (původně 1:1 z utils/investmentCalculations.ts, ten už neexistuje) =====
-// 17. 10. 2026 OPRAVENO (pravidlo č. 1): měsíční sazba byla „roční / 12", takže zadaných 7 % p.a.
+// 17. 10. 2026 OPRAVENO (pravidlo č. 1): měsíční sazba byla „roční / 12“, takže zadaných 7 % p.a.
 // ve skutečnosti úročilo 7,23 % ročně a výsledek za 20 let byl o ~3 % vyšší (3,02 vs. 2,94 mil. Kč
 // u 100 000 + 5 000/měs.). Teď (1 + r)^(1/12) − 1 – zadaný roční výnos je skutečně roční.
 function calculateInvestment(params: {

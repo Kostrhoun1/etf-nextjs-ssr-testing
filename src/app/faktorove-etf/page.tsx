@@ -14,6 +14,7 @@ import {
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -370,6 +371,9 @@ export default async function FaktoroveEtf() {
             UCITS verze v tabulce jsou mladší, ale v ČR je reálně koupíte. Metodiky se mírně liší.
           </p>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-value-etf', 'nejlepsi-small-cap-etf', 'nejlepsi-growth-etf', 'nejlepsi-dividendove-etf']} />
 
         {/* FAQ */}
         <section className="pb-10">

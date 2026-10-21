@@ -4,15 +4,12 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, BookOpen, Flame, Target, PiggyBank,
-  Percent, Coffee, Sprout, Gem, LineChart,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, BookOpen, Flame, Target, PiggyBank, Percent, Coffee, Sprout, Gem, LineChart, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -32,10 +29,10 @@ export const metadata: Metadata = {
 
 /* Cílová částka = 25× roční výdaje = 300× měsíční výdaje (pravidlo 4 %). */
 const TARGET_ROWS: { monthly: number; note: string }[] = [
-  { monthly: 25000, note: 'skromnější „lean" život' },
+  { monthly: 25000, note: 'skromnější „lean“ život' },
   { monthly: 35000, note: 'běžná domácnost' },
   { monthly: 50000, note: 'komfortní život' },
-  { monthly: 75000, note: 'štědrý „fat" rozpočet' },
+  { monthly: 75000, note: 'štědrý „fat“ rozpočet' },
 ];
 
 /* Roky do FIRE podle míry úspor (start od nuly, ~5 % reálný výnos, cíl 25× výdaje). */
@@ -352,13 +349,16 @@ export default async function FireHub() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-dividendove-etf', 'nejlepsi-dluhopisove-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">

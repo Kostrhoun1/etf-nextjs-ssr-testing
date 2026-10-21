@@ -169,7 +169,7 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
   );
 
   // Kolísavost portfolia ZPŮSOBENÁ KURZEM (v % hodnoty celého portfolia). Dřív se míchala s akciovou
-  // volatilitou přiřazenou jen korunové části → nesmyslné číslo („celková kolísavost" 10,5 %).
+  // volatilitou přiřazenou jen korunové části → nesmyslné číslo („celková kolísavost“ 10,5 %).
   const portfolioVolatility = currencyVolatility * currencyExposure * 100;
 
   const maxDrawdown = portfolioVolatility * 2.2;

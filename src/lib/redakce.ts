@@ -12,7 +12,7 @@ export const AUTOR_ID = `${BASE}/o-nas#tomas-kostrhoun`;
 export const ORGANIZACE_ID = `${BASE}/#organization`;
 
 export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string }> = {
-  '/kolik-vydelaly-etf': { publikovano: '2026-07-10', upraveno: '2026-10-17' },
+  '/kolik-vydelaly-etf': { publikovano: '2026-07-10', upraveno: '2026-10-21' }, // 21. 10.: všechna čísla z dat (dřív napevno a v USD)
   '/stroj-casu': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
   '/sp500-nebo-cely-svet': { publikovano: '2026-10-17', upraveno: '2026-10-19' },
   '/jak-dlouho-v-minusu': { publikovano: '2026-10-17', upraveno: '2026-10-17' },

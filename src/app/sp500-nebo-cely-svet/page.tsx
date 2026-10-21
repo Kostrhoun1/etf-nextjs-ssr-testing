@@ -1,19 +1,21 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { TrendingUp, ArrowRight, HelpCircle } from 'lucide-react';
+import { TrendingUp, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import AutorBox from '@/components/design-preview/AutorBox';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 import { clanekSchema, drobeckySchema } from '@/lib/redakce';
 import { spoctiSp500NeboSvet } from '@/lib/clanky/sp500NeboSvet';
 import { spoctiSp500NeboSvetHloubka, type Krize, type Okna } from '@/lib/clanky/sp500NeboSvetHloubka';
 import { ogImage } from '@/lib/ogImage';
 import { ceskySektor } from '@/lib/preklady';
 import { titulek } from '@/lib/seoTitulek';
+import KlicovaCisla from '@/components/design-preview/KlicovaCisla';
 
-/* Vlna 7 – obsah z dat v korunách. Česky hledaná otázka („s&p 500 nebo msci world", našeptávač
+/* Vlna 7 – obsah z dat v korunách. Česky hledaná otázka („s&p 500 nebo msci world“, našeptávač
    17. 10. 2026). Čísla se počítají při ISR (1× denně) stejným enginem jako backtest a jsou ověřená
    proti S&P DJI, publikovaným výnosům VT a kurzům ČNB (viz src/lib/clanky/sp500NeboSvet.ts). */
 export const revalidate = 86400;
@@ -178,6 +180,24 @@ export default async function Sp500NeboSvet() {
                 na tom byl lépe. Která část světa povede příště, dopředu nikdo neví – proto evidence mluví spíš pro celý svět.
               </p>
             </section>
+
+            {/* Klíčová čísla k datu (SEO/GEO audit 6b) – stejná data jako tabulka níž (spoctiSp500NeboSvet). */}
+            <KlicovaCisla
+              className="mt-8"
+              datum={new Date(d.posledniDen).toLocaleDateString('cs-CZ', { timeZone: 'UTC' })}
+              radky={[
+                { co: 'S&P 500 (fond SPY) – ročně v Kč od 7/2008', hodnota: pct(sp.cagr), pozn: `ze 100 000 Kč ${kc(sp.konec)}` },
+                { co: 'Celý svět (fond VT) – ročně v Kč od 7/2008', hodnota: pct(sv.cagr), pozn: `ze 100 000 Kč ${kc(sv.konec)}` },
+                { co: 'Nejhlubší propad S&P 500 od 2008 (v Kč / v USD)', hodnota: `${pct(sp.maxPokles)} / ${pct(d.usdPropad.sp500)}` },
+                { co: 'S&P 500 v dekádě 2000–2009 (v Kč)', hodnota: `${pct(d.dekada2000.sp500)} ročně`, pozn: `svět mimo USA ${pct(d.dekada2000.mimoUsa)} ročně` },
+              ]}
+              zdroje={[
+                { href: 'https://www.spglobal.com/spdji/en/indices/equity/sp-500/', text: 'S&P Dow Jones Indices – S&P 500' },
+                { href: 'https://investor.vanguard.com/investment-products/etfs/profile/vt', text: 'Vanguard VT' },
+                { href: 'https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/', text: 'kurzy ČNB' },
+                { href: 'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html', text: 'referenční kurzy ECB' },
+              ]}
+            />
 
             {/* Tabulka od 2008 */}
             <section className="mt-8">
@@ -461,7 +481,7 @@ export default async function Sp500NeboSvet() {
               <div className="mt-3 space-y-2">
                 {faqs.map((f, i) => (
                   <details key={i} className="group rounded-lg border border-slate-200 bg-white p-4">
-                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" /></summary>
+                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" /></summary>
                     <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</p>
                   </details>
                 ))}
@@ -479,6 +499,7 @@ export default async function Sp500NeboSvet() {
                 Složení a poplatky fondů: justETF (náš denní scraper). Minulé výnosy nezaručují budoucí.
               </p>
             </section>
+            <SouvisejiciZebricky nadpis="Žebříčky k tématu" className="mt-10" slugy={['nejlepsi-sp500-etf', 'nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-americke-etf']} />
             <div className="mt-10"><AutorBox cesta="/sp500-nebo-cely-svet" denDat={d.posledniDen} /></div>
           </>
         )}

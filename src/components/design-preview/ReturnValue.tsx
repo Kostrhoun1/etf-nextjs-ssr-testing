@@ -24,7 +24,7 @@ export default function ReturnValue({
   return <span className={`tabular-nums ${color} ${className}`}>{fmtPct(v)}</span>;
 }
 
-/* Popisek měny výnosů, reaktivní (např. do hlavičky sloupce „1R (Kč)"). */
+/* Popisek měny výnosů, reaktivní (např. do hlavičky sloupce „1R (Kč)“). */
 export function ReturnCurLabel({ prefix = '' }: { prefix?: string }) {
   const [cur] = useCurrency() as [Currency, unknown];
   return <>{prefix}{curLabel[cur]}</>;

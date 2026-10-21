@@ -4,15 +4,12 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock,
-  LineChart, BookOpen, AlertTriangle,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, LineChart, BookOpen, AlertTriangle, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -31,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 /* Budoucí hodnota pravidelného měsíčního vkladu (spořicí anuita). */
-// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně" bylo opravdu 7 % ročně. Dřív r/12
+// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně“ bylo opravdu 7 % ročně. Dřív r/12
 // = 7,23 % ročně (audit výpočtů 17. 10. 2026; stejně jako investiční kalkulačka).
 const mesicni = (annual: number) => Math.pow(1 + annual, 1 / 12) - 1;
 const fv = (pmt: number, annual: number, years: number) => {
@@ -48,7 +45,7 @@ const RATE = 0.07; // modelový nominální výnos p.a.
 const MONTHLY = [1000, 3000, 5000, 10000];
 const HORIZONS = [10, 20, 30];
 
-/* Kč: nad milion „X,XX mil.", jinak plné číslo. */
+/* Kč: nad milion „X,XX mil.“, jinak plné číslo. */
 const kc = (v: number) =>
   v >= 1_000_000
     ? `${(v / 1_000_000).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
@@ -73,7 +70,7 @@ export default async function KolikInvestovat() {
     },
     {
       q: 'Je lepší investovat pravidelně, nebo jednorázově?',
-      a: 'Pokud máte peníze k dispozici hned, historicky mírně vyhrává jednorázová investice (trh většinu času roste). Pravidelné investování (DCA) je ale pro většinu lidí přirozenější – investujete z výplaty, rozložíte nákupy v čase a nemusíte řešit „správný okamžik". Nejdůležitější je vůbec začít a vydržet.',
+      a: 'Pokud máte peníze k dispozici hned, historicky mírně vyhrává jednorázová investice (trh většinu času roste). Pravidelné investování (DCA) je ale pro většinu lidí přirozenější – investujete z výplaty, rozložíte nákupy v čase a nemusíte řešit „správný okamžik“. Nejdůležitější je vůbec začít a vydržet.',
     },
     {
       q: 'Kolik potřebuji naspořit na rentu?',
@@ -157,7 +154,7 @@ export default async function KolikInvestovat() {
         <section className="pb-9">
           <div className="max-w-3xl text-[15px] text-slate-600 leading-relaxed space-y-3">
             <p>
-              „Kolik mám investovat?" je špatně položená otázka. Správně zní: <strong className="text-slate-900">kolik
+              „Kolik mám investovat?“ je špatně položená otázka. Správně zní: <strong className="text-slate-900">kolik
               chci mít – a za jak dlouho?</strong> Zbytek je aritmetika, kterou za vás odpracuje složené úročení.
             </p>
             <p>
@@ -330,13 +327,16 @@ export default async function KolikInvestovat() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-sp500-etf', 'nejlepsi-akumulacni-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">

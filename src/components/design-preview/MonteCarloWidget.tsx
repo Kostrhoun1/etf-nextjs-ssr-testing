@@ -391,7 +391,7 @@ export default function MonteCarloWidget() {
         simulations * 13 +
         totalAllocation) >>> 0 || 1;
 
-    // necháme prohlížeč vykreslit stav „počítám" a teprve pak spustíme výpočet
+    // necháme prohlížeč vykreslit stav „počítám“ a teprve pak spustíme výpočet
     setTimeout(() => {
       const res = runMonteCarloSimulation({
         allocation,

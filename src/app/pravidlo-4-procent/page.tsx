@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { TrendingUp, ArrowRight, HelpCircle } from 'lucide-react';
+import { TrendingUp, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -443,7 +443,7 @@ export default async function PravidloCtyriProcenta() {
               <div className="mt-3 space-y-2">
                 {faqs.map((f, i) => (
                   <details key={i} className="group rounded-lg border border-slate-200 bg-white p-4">
-                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" /></summary>
+                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" /></summary>
                     <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</p>
                   </details>
                 ))}
