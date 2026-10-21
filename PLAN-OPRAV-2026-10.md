@@ -505,8 +505,43 @@ faze4 nasazena 19. 10. v 7:05 (viz výše).
   zápisů za den → další deploy nejdřív až se zápisy vrátí pod ~170 tis. Majitel rozhodl nasadit dnes (odhad vrcholu
   176–187 tis.).
 - ✅ **Scraper:** etf-astro `oprava-indexy` (9b7d16f) → main 20. 10. před dnešním scrapem.
-- ⏳ **21. 10.:** po scrapu ověřit podíl čerstvých fondů s prázdným index_name (z ~60 % na jednotky %), Money Market →
-  kategorie „Peněžní trh“, zmizení varování v check-fund-data; Vercel spotřebu (ISR writes pod 190 tis.?).
-- ⏳ Měření finalizace posledního bodu u zdroje (scratchpad/mereni-justetf/log.txt; noční mezery – počítač spal):
-  bod 19. 10. SXR8 = 743,07 beze změny od 19. 10. 18:41 do 20. 10. 6:25 SELČ → ve všední dny se zřejmě nemíchá;
-  podezření na víkend/pondělí. Ověřit dál přes novou kontrolu (kolo5 C) a navrhnout úpravu scraperu.
+- ✅ **21. 10. ověřeno** (úloha overeni-2026-10-21, ~12:30 SELČ):
+  - **Spouštění:** pg_cron `scraper-spusteni` 01:30:00 UTC succeeded → workflow_dispatch běh vznikl 01:30:02 UTC (token OK;
+    odpověď 204 už v `net._http_response` není – tabulka drží jen pár hodin). Běh v 05:33 UTC ručně zrušen
+    (majitel/jiná session) kvůli nasazení 599faf7 (výnosy z denní řady, `returns_as_of`) a spuštěn znovu 05:27 UTC;
+    checkpointy z jiné verze kódu se zahodily → plný scrape **05:34–10:14 UTC, success** (5 079 fondů). Data byla
+    dnes tedy čerstvá až kolem poledne – jednorázově kvůli ručnímu restartu. GitHub záloha 08:23 se nespustila (OK).
+    Job „Trigger Vercel rebuild“ skipped (závisí na odstaveném backtest jobu) → scrape nedělá deploy ani zápisy ISR.
+  - **Indexy:** čerstvé fondy s prázdným index_name **0,00 %** (z ~60 %); Money Market → „Peněžní trh“ **54/54**
+    (Fineco MONEJ se přeřadil po dnešním scrapu). Vzorek: SXR8 „S&P 500®“, VWCE „FTSE All-World“, SPYI „MSCI All Country
+    World Investable Market (ACWI IMI)“, EUNL „MSCI World“, EMIM „MSCI Emerging Markets Investable Market (IMI)“ – SXR8
+    a EMIM shodně s justETF. LevDAX LU0411075376 `is_leveraged = true` (opraveno 0d3b798) → úkol scraperu hotový.
+  - **Výnosy (nezávisle):** SXR8 YTD 18,78 % / 1 r. 19,98 % = profil justETF přesně. EMIM, VWCE přepočet z holé denní řady
+    zdroje k returns_as_of = DB na 0,01 p. b.; Yahoo (Xetra close IS3N/VWCE) 1 r. −0,25 / +0,94 p. b., YTD ±0,3 p. b.
+    (jiná doba ocenění NAV vs. Xetra, start 17. 10. 2025 byl pátek). Rozložení returns_as_of: 20. 10. 2 575, 19. 10. 1 571,
+    16. 10. 817, 15. 10. 67, září 3 (krypto ETN – kontrola je vypisuje), bez data 46.
+  - **check-fund-data proti produkci:** kontrola „Výnosy za období nesedí s burzovními cenami“ **nevystřelila** →
+    start út–pá 01:30 UTC zatím netřeba posouvat (dnešní běh ale začal až 05:34). 13 poplachů, rozbor:
+    - 🔴 **NOVÁ regrese z opravy indexů:** scraper teď ukládá oficiální název indexu ve tvaru „S&P 500® (EUR Hedged)“,
+      „MSCI All Country World (ACWI)“. Normalizace na produkci (main 39d56e6) umí jen staré tvary (dvojitá mezera /
+      pomlčka) → zajištěné třídy mají vlastní „index“ „S&P 500 (EUR Hedged)“, ACWI se ukazuje jako „MSCI ACWI (ACWI)“,
+      žebříčky poznají index jen u S&P 500 35/58, MSCI World 26/46, celosvětové 5/25 a hledání „ACWI“ nevrací IUSQ ani SPYI.
+      Čísla nejsou špatně (jen roztříštěné štítky/počty), **oprava už je na větvi** `vylepseni-stranek`
+      (src/utils/indexNormalization.ts + api/etf/search – ověřeno: „S&P 500® (EUR Hedged)“ → „S&P 500“, „MSCI All Country
+      World (ACWI)“ → „MSCI ACWI“, ACWI IMI → „MSCI ACWI IMI“). Kontrola to chytá sama (žebříčky + hledání ACWI).
+      ⏳ **Nasadit s příštím deployem** (dnes ne – ověřovací den, limit ISR).
+    - „Výnos 12 m mimo trh“ (Nasdaq EQQX/BCFN/XNAS/EQQB/NASQ, EM IE00BTJRMP35/FR0010429068): **není chyba dat** – fondy
+      mají returns_as_of 19. 10., medián skupiny je z fondů k 20. 10. (Nasdaq-100 k 19. 10. medián 24,23 %, k 20. 10. 22,41 %).
+      ⏳ Kontrolu upravit, aby porovnávala jen fondy se stejným returns_as_of (ať nehlásí falešně).
+    - Ostatní poplachy (karty žebříčků, dividendové covered call, /pruvodce NaN, /dane-z-etf strop 40 mil., dluhopisové
+      skupiny, ticker GOLD…) = kontroly kola 6/6b proti produkci bez nasazených oprav z větve; čekají na deploy.
+  - **Vercel (Last 30 Days, Sep 21 – Oct 21 4am):** ISR Writes **166K / 200K** (+~8K za den), Fluid Active CPU
+    **3 h 11 min / 4 h** (+4 min za den po zúžení middleware – dřív ~+15 min). Pod prahy 190K / 3 h 45 min → bez zásahu.
+    Deploy (12–22K zápisů) by teď vedl na 178–188K – možný, ale ideálně až zápisy klesnou (nejstarší dny vypadávají).
+  - Drobnost: pg_cron `yfinance-etf-update` (*/15) občas končí timeoutem 5 s v pg_net (09:00, 10:00 UTC) – jen čekání
+    na odpověď, funkce běží dál; neovlivňuje data fondů.
+- ✅ Měření finalizace (scratchpad/mereni-justetf/log.txt): log končí 20. 10. 05:25 UTC, nic nového. Bod 19. 10.
+  SXR8 = 743,07 beze změny od 19. 10. 16:41 do 20. 10. 05:25 UTC; přepis jen u pátku 16. 10. přes víkend. Mezitím jiná
+  session zjistila (599faf7), že zdroj za den D zveřejní předběžnou hodnotu a během D+1 ji přepíše → scraper už bere
+  výnosy k předposlednímu dni řady (`returns_as_of`) a web ukazuje jejich den. Návrh úpravy scraperu tím vyřešen;
+  posun startu není potřeba, dokud kontrola „Výnosy za období nesedí…“ mlčí.
