@@ -34,7 +34,7 @@ const PERSON = {
   description:
     'Zakladatel a autor ETF průvodce.cz. 12+ let praxe v českém bankovnictví (MONETA Money Bank, Česká spořitelna).',
   sameAs: [
-    'https://www.linkedin.com/in/tomaskostrhoun/',
+    'https://www.linkedin.com/in/tomas-kostrhoun-b34a6831',
     'https://x.com/ETFpruvodce',
   ],
   worksFor: { '@type': 'Organization', name: 'ETF průvodce.cz' },
@@ -131,7 +131,7 @@ export default async function AboutPage() {
                   12+ let v bankovnictví – MONETA Money Bank a Česká spořitelna.
                 </p>
                 <a
-                  href="https://www.linkedin.com/in/tomaskostrhoun/"
+                  href="https://www.linkedin.com/in/tomas-kostrhoun-b34a6831"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors"
@@ -273,7 +273,7 @@ export default async function AboutPage() {
               </span>
             </a>
             <a
-              href="https://www.linkedin.com/in/tomaskostrhoun/"
+              href="https://www.linkedin.com/in/tomas-kostrhoun-b34a6831"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 transition-colors"
