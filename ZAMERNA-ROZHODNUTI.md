@@ -451,8 +451,10 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Proč ne GitHub cron:** plánované běhy zdržuje o 4–7 h (00:37 UTC startovalo ~05:10 UTC). **Proč ne večer (22:00):**
   zdroj má za daný den večer předběžnou cenu – výnosy za období by byly ze smíšené řady. **Proč ne o víkendu:** ceny se
   nemění a víkendový scrape 18. 10. stáhl předběžný bod pátku (SXR8 letos +18,64 % místo +17,69 %). Víkend bez scrapu
-  je záměr – data „k pátku“ s datem jsou správně. Út–pá dřív: hodnota všedního dne se u zdroje po večeru neměnila
-  (19. 10. stejná od 18:41 do rána); kdyby kontrola výnosů za období (kolo5 C) začala hlásit odchylky, start posunout později.
+  je záměr – data „k pátku“ s datem jsou správně. ⚠️ OPRAVA 21. 10. 2026: předpoklad „hodnota všedního dne se po večeru nemění“
+  NEPLATÍ – zdroj přepisuje bod dne D předběžné → konečné během dne D+1 (SXR8 19. 10.: 743,07 do 20. 10. 05:25 UTC,
+  pak 739,32). Čas startu to neřeší → scraper počítá výnosy za období z denní řady zdroje a končí posledním JISTĚ
+  konečným dnem (předposlední obchodní den řady), per-fund `returns_as_of` (větev vynosy-konecna-rada).
 - Hlídá `check-fund-data.mjs` (v pracovní den po 13:00 UTC musí být ≥ 80 % fondů stažených za 16 h) a kontrola výnosů
   za období proti denním cenám (kolo5 C).
 
