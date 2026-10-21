@@ -1580,7 +1580,7 @@ const main = async () => {
         return r > Number(D.slice(0, 4)) ? null : [`${r - 1}-12-31`, r < Number(D.slice(0, 4)) ? `${r}-12-31` : D];
       };
       const kurz = (rada, d) => { let r = null; for (const [k, v] of rada) { if (k <= d) r = [k, v]; else break; } return r && (new Date(d) - new Date(r[0])) / 864e5 <= 7 ? r[1] : null; };
-      const db = await fetch(`${URL_DB}?select=isin,primary_ticker,scraping_date,${OBD.flatMap((o) => [`return_${o}`, `return_${o}_czk`, `return_${o}_usd`]).join(',')}&isin=in.(${KOTVY_FX.join(',')})`, H).then((r) => r.json());
+      const db = await fetch(`${URL_DB}?select=isin,primary_ticker,scraping_date,returns_as_of,${OBD.flatMap((o) => [`return_${o}`, `return_${o}_czk`, `return_${o}_usd`]).join(',')}&isin=in.(${KOTVY_FX.join(',')})`, H).then((r) => r.json());
       if (!Array.isArray(db) || !db.length) throw new Error('DB nevrátila kotevní fondy');
       // ČNB: Kč za 1 EUR po dnech (rok.txt; záhlaví „Datum|1 AUD|…|1 EUR|…“ se může v roce opakovat).
       const roky = [...new Set(db.map((f) => Number(String(f.scraping_date).slice(0, 4))))];
@@ -1605,7 +1605,8 @@ const main = async () => {
       if (czk.length < 1000 || usd.length < 1000) throw new Error(`málo kurzů (ČNB ${czk.length}, ECB ${usd.length})`);
       const vadne = [], porovnano = [];
       for (const f of db) {
-        const D = denDat(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
+        // kolo6b (21. 10. 2026): scraper převádí kurzy ke dni returns_as_of fondu (poslední jistě konečný den řady).
+        const D = f.returns_as_of ? String(f.returns_as_of).slice(0, 10) : denDat(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
         const chyby = [];
         let n = 0;
         for (const o of OBD) {
