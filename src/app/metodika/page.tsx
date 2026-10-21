@@ -129,8 +129,9 @@ export default async function Metodika() {
           <p>
             Údaj <strong>„Data k …“</strong> je den, ke kterému platí výnosy fondu – poslední obchodní den, za který má zdroj
             dat <strong>konečnou</strong> hodnotu fondu, ne den, kdy jsme data stáhli. Zdroj totiž za poslední obchodní den
-            nejdřív zveřejní předběžnou cenu a konečnou ji nahradí až během dalšího dne. Výnosy proto počítáme z denní řady
-            hodnot fondu k předposlednímu obchodnímu dni řady – bývají tak o den starší, ale nezmění se.
+            nejdřív zveřejní předběžnou cenu a konečnou ji nahradí až během dalšího dne (během obchodování navíc ukazuje průběžnou
+            cenu dneška). Výnosy proto počítáme z denní řady hodnot fondu k poslednímu obchodnímu dni, který je nejméně dva
+            pracovní dny před stažením dat – bývají tak o den až dva starší, ale nezmění se.
           </p>
           <p>
             Den výnosů má každý fond vlastní. U některých fondů má zdroj ceny o pár dní později; ty mají u výnosu své

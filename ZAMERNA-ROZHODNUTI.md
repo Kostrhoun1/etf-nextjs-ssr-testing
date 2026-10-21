@@ -50,8 +50,10 @@ přepočítá na požadovaný poplatek. Default `desiredTer = sourceTer` → **d
 widgetu je jen na zobrazení — needituj kvůli němu výpočet. (Dvojitý odečet opraven 16. 7. 2026, čísla
 na webu +1,7 %.) → paměť `ter-dvojity-odecet-oprava`
 
-**Výnosy za období platí k `returns_as_of` = PŘEDPOSLEDNÍMU pracovnímu dni řady zdroje, ne ke dni před stažením (21. 10. 2026).**
-Scrape v út 01:30 UTC tedy ukáže „Data k“ pátku/pondělí o den starší, než by čekal člověk – ZÁMĚR. Zdroj (justETF) vede
+**Výnosy za období platí k `returns_as_of` = poslednímu pracovnímu dni řady zdroje, který je ≥ 2 pracovní dny před dnem
+stažení A zároveň není posledním bodem řady (21. 10. 2026, upřesněno odpoledne).** Pouhý „předposlední bod“ nestačí: zdroj
+během obchodování přidává PRŮBĚŽNÝ bod dneška, takže 21. 10. po 07:20 UTC byl předposledním bodem předběžný 20. 10.
+(741,30 ≈ závěr Xetry). Scrape ve středu tedy ukáže „Data k“ pondělí, v úterý pátku – ZÁMĚR (raději starší, ale konečná). Zdroj (justETF) vede
 poslední den nejdřív předběžně (≈ závěr Xetry) a konečnou hodnotou (NAV) ho přepíše až další den; výnosy k němu byly
 o 0,2–0,9 p. b. vedle (SXR8 19. 10.: 743,07 → 739,32). Výpočet: etf-astro `scraper/vynosy_z_rady.py` (jedno volání
 chart API, RELATIVE_CHANGE – ne MARKET_VALUE, ta má u levných fondů chybu zaokrouhlení až 0,1 p. b.).
@@ -467,7 +469,7 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   je záměr – data „k pátku“ s datem jsou správně. ⚠️ OPRAVA 21. 10. 2026: předpoklad „hodnota všedního dne se po večeru nemění“
   NEPLATÍ – zdroj přepisuje bod dne D předběžné → konečné během dne D+1 (SXR8 19. 10.: 743,07 do 20. 10. 05:25 UTC,
   pak 739,32). Čas startu to neřeší → scraper počítá výnosy za období z denní řady zdroje a končí posledním JISTĚ
-  konečným dnem (předposlední obchodní den řady), per-fund `returns_as_of` (větev vynosy-konecna-rada).
+  konečným dnem (≥ 2 pracovní dny před stažením, ne poslední bod řady), per-fund `returns_as_of`.
 - Hlídá `check-fund-data.mjs` (v pracovní den po 13:00 UTC musí být ≥ 80 % fondů stažených za 16 h) a kontrola výnosů
   za období proti denním cenám (kolo5 C).
 
