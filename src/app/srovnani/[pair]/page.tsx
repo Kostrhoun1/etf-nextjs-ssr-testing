@@ -1,3 +1,4 @@
+import { titulek } from '@/lib/seoTitulek';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -100,20 +101,20 @@ export async function generateMetadata(
   const alternates = { canonical: `/srovnani/${KURATORSKE[pair.toLowerCase()] ? kanon : pair.toLowerCase()}` };
   if (data.etf1.isin === data.etf2.isin) {
     return {
-      title: `${k1} vs ${k2}: je to stejný ETF? Ano – liší se jen burza a měna`,
+      title: titulek(`${k1} vs ${k2}: stejný ETF, liší se jen burza a měna`),
       alternates,
       ...(robots ? { robots } : {}),
-      description: `${k1} a ${k2} jsou tickery téhož fondu ${data.etf1.name} (ISIN ${data.etf1.isin}). Stejný poplatek, složení i výnos – liší se burza a měna obchodování. Přehled všech burz a tickerů.`,
+      description: `${k1} a ${k2} jsou tickery téhož fondu (ISIN ${data.etf1.isin}): stejný poplatek, složení i výnos, liší se jen burza a měna. Přehled burz a tickerů.`,
     };
   }
   // „Nižší TER má…“ jen při rozdílu, který je po zaokrouhlení vidět.
   const terRozdil = data.etf1.ter_numeric != null && data.etf2.ter_numeric != null && ter(data.etf1.ter_numeric) !== ter(data.etf2.ter_numeric);
   const cheaper = (num(data.etf1.ter_numeric) ?? 9) <= (num(data.etf2.ter_numeric) ?? 9) ? data.etf1 : data.etf2;
   return {
-    title: `${k1} vs ${k2}: srovnání ETF – výnos v Kč, poplatky, riziko`,
+    title: titulek(`${k1} vs ${k2}: srovnání ETF – výnos v Kč a poplatky`),
     alternates,
     ...(robots ? { robots } : {}),
-    description: `Srovnání ${k1} (${data.etf1.isin}) a ${k2} (${data.etf2.isin}) pro české investory: poplatek (TER), výnos přepočtený do korun po letech, riziko a index. ${terRozdil ? `Nižší TER má ${cheaper === data.etf1 ? k1 : k2} (${ter(cheaper.ter_numeric)}).` : `Oba mají TER ${ter(data.etf1.ter_numeric)}.`}`,
+    description: `${k1} vs ${k2}: poplatek (TER), výnos v korunách po letech, riziko a index vedle sebe. ${terRozdil ? `Nižší TER má ${cheaper === data.etf1 ? k1 : k2} (${ter(cheaper.ter_numeric)}).` : `Oba mají TER ${ter(data.etf1.ter_numeric)}.`}`,
   };
 }
 

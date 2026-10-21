@@ -29,15 +29,17 @@ export function titulekDetailu(f: {
   for (const t of tk2 ? [tk2, tk] : [tk]) {
     varianty.push(`${pred(t)}${nazev}: výnos v Kč${terTxt}`);
   }
-  varianty.push(`${pred(tk)}${nazev}: výnos v Kč`, `${pred(tk)}${nazev}`);
+  // Bez třídy v závorce (raději než useknout uvnitř závorky – „IS3C – … (Dist,…“, SEO audit 6b).
+  const zaklad = kratkyNazevFondu(f.name);
+  varianty.push(`${pred(tk)}${nazev}: výnos v Kč`, `${pred(tk)}${nazev}`, `${pred(tk)}${zaklad}: výnos v Kč`, `${pred(tk)}${zaklad}`);
   const vejde = varianty.find((v) => v.length <= MAX_TITULEK);
   if (vejde) return vejde;
   // Dlouhý název (sektorové a tematické fondy): useknout na celé slovo + „…“.
   const zbyva = MAX_TITULEK - pred(tk).length - 1;
-  const slova = nazev.split(' ');
+  const slova = zaklad.split(' ');
   let kratky = '';
   for (const w of slova) { if ((kratky ? kratky + ' ' + w : w).length > zbyva) break; kratky = kratky ? kratky + ' ' + w : w; }
-  return `${pred(tk)}${kratky || nazev.slice(0, zbyva)}…`;
+  return `${pred(tk)}${kratky || zaklad.slice(0, zbyva)}…`;
 }
 
 export function popisekDetailu(f: {
