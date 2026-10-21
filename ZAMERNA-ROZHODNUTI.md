@@ -561,6 +561,11 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   +3,4 %); stará equity křivka (equityCurve.ts) běžela bez měny = v dolarech – smazána. Sekce „od roku 1993 v korunách“ zrušena:
   kurzy koruny máme od roku 2000, číslo nešlo ověřit → nahrazeno S&P 500 v Kč od 1/2000. Bez dat stránka vyhodí výjimku (ISR
   ponechá poslední dobrou verzi). Hlídá check-fund-data (VT ročně = /sp500-nebo-cely-svet).
+  Nezávislé ověření 21. 10. 2026 (Yahoo adj. close × denní kurzy ČNB, skript mimo kód webu): VT 2. 7. 2008 → 19. 10. 2026
+  ≈ 685 500 Kč / 11,09 % ročně (web 684 442 / 11,08 %), roční výnosy 2009–2026 ±0,1 p. b., max. pokles −32,1 % (z denních
+  cen; na koncích měsíců −25,0 %), 5 000 Kč měsíčně 8/2008–10/2026 (219 vkladů) 3 563 277 Kč (web 3 560 277), SPY/EFA/EEM
+  od 7/2008 ±0,17 p. b. ročně, SPY od 1/2000 6,27 × 6,28 %. Engine začíná 2. 7. 2008 (ne 1. 7.) – stránka proto píše
+  skutečný první den řady (`prvniDen`), ne „1. 7.“.
 - **„Aktualizováno …“ na statických stránkách = datum úpravy TEXTU (DATA_CLANKU v src/lib/redakce.ts), ne den dat fondů.**
   U tabulek fondů na těchže stránkách je zvlášť „Data k …“. Při věcné úpravě textu posunout `upraveno`.
 - **Počet fondů v textech zaokrouhleně („4 900+“)** – homepage, /o-nas, /zebricky, /kalkulacky, titulky, Organization, llms.txt.

@@ -20,7 +20,7 @@ import { titulek } from '@/lib/seoTitulek';
 
 /*
  * SEO audit 6b (21. 10. 2026): VŠECHNA čísla stránky se počítají z dat (src/lib/clanky/kolikVydelaly.ts) – stejný
- * engine a start (1. 7. 2008, Kč) jako ověřený /sp500-nebo-cely-svet. Dřív byla napevno a z doby před opravou kurzové
+ * engine a start (začátek července 2008, Kč) jako ověřený /sp500-nebo-cely-svet. Dřív byla napevno a z doby před opravou kurzové
  * vrstvy: „čtyřnásobek, 8–9 % ročně, propad −50 %“, roční výnosy ve skutečnosti v dolarech (2017 +24 % místo +3 % v Kč).
  * Chybí-li data, stránka vyhodí výjimku – ISR ponechá poslední dobrou verzi (ZAMERNA-ROZHODNUTI.md, články z dat).
  */
@@ -159,6 +159,8 @@ export default async function KolikVydelalyEtf() {
   const d = await spoctiKolikVydelaly();
   if (!d) throw new Error('kolik-vydelaly-etf: data se nenačetla');
   const datum = denText(d.posledniDen);
+  const start = denText(d.prvniDen); // skutečný první den řady (2. 7. 2008), ne předpoklad
+  const vkladu = Math.round(d.dca.vlozeno / 5000);
   const roky = Math.round(d.svet.roky);
   const okno = (r: number) => d.okna.find((o) => o.roky === r) ?? null;
   const o1 = okno(1), o10 = okno(10);
@@ -179,7 +181,7 @@ export default async function KolikVydelalyEtf() {
   const faqs = [
     {
       q: `Kolik vydělaly světové akcie za posledních zhruba ${roky} let?`,
-      a: `Podle našich historických dat zhodnotil fond VT (index FTSE Global All Cap, akcie celého světa) od 1. července 2008 do ${datum} v korunách ${pctBez(d.svet.cagr)} ročně – ze 100 000 Kč se stalo zhruba ${kc(d.svet.konec)}, tedy ${nasobekText(d.svet.nasobek)} vkladu. Výpočet je po poplatcích fondu, před daní, z minulých dat – není to příslib budoucnosti.`,
+      a: `Podle našich historických dat zhodnotil fond VT (index FTSE Global All Cap, akcie celého světa) od ${start} do ${datum} v korunách ${pctBez(d.svet.cagr)} ročně – ze 100 000 Kč se stalo zhruba ${kc(d.svet.konec)}, tedy ${nasobekText(d.svet.nasobek)} vkladu. Výpočet je po poplatcích fondu, před daní, z minulých dat – není to příslib budoucnosti.`,
     },
     {
       q: 'Znamená to, že investování do širokých akciových ETF je bez rizika?',
@@ -288,11 +290,11 @@ export default async function KolikVydelalyEtf() {
         <KlicovaCisla
           datum={datum}
           radky={[
-            { co: 'Akcie celého světa (fond VT) – roční zhodnocení od 1. 7. 2008', hodnota: pctBez(d.svet.cagr), pozn: 'v Kč, po poplatcích fondu, před daní' },
-            { co: '100 000 Kč vložených 1. 7. 2008', hodnota: kc(d.svet.konec), pozn: `${nasobekText(d.svet.nasobek)} vkladu` },
+            { co: `Akcie celého světa (fond VT) – roční zhodnocení od ${start}`, hodnota: pctBez(d.svet.cagr), pozn: 'v Kč, po poplatcích fondu, před daní' },
+            { co: `100 000 Kč vložených ${start}`, hodnota: kc(d.svet.konec), pozn: `${nasobekText(d.svet.nasobek)} vkladu` },
             { co: 'Nejhlubší propad v korunách', hodnota: pctBez(d.svet.maxPokles), pozn: `${mesRok(prvniPropad.od)} → ${mesRok(prvniPropad.dno)}` },
-            { co: '5 000 Kč měsíčně od července 2008', hodnota: kc(d.dca.hodnota), pozn: `vloženo ${kc(d.dca.vlozeno)}` },
-            { co: 'S&P 500 (USA) – roční zhodnocení od 1. 7. 2008', hodnota: pctBez(sp.cagr), pozn: 'v Kč, fond SPY' },
+            { co: `5 000 Kč měsíčně (${vkladu} vkladů od srpna 2008)`, hodnota: kc(d.dca.hodnota), pozn: `vloženo ${kc(d.dca.vlozeno)}` },
+            { co: `S&P 500 (USA) – roční zhodnocení od ${start}`, hodnota: pctBez(sp.cagr), pozn: 'v Kč, fond SPY' },
           ]}
           zdroje={[
             { href: 'https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/', text: 'kurzy devizového trhu ČNB' },
@@ -307,7 +309,7 @@ export default async function KolikVydelalyEtf() {
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-900 leading-relaxed">
               <strong>Pohled do historie, ne příslib budoucnosti.</strong> Čísla vycházejí z denních cen fondu Vanguard VT
-              (index FTSE Global All Cap) přepočtených do korun denními kurzy ECB, od 1. července 2008 do {datum}, po poplatcích
+              (index FTSE Global All Cap) přepočtených do korun denními kurzy ECB, od {start} do {datum}, po poplatcích
               fondu a před daní. Minulé výnosy nezaručují ty budoucí a skutečný výsledek závisí na konkrétním fondu, poplatcích,
               daních i době, kdy nakoupíte a prodáte. Jak počítáme: <Link href="/metodika" className="underline underline-offset-2">metodika</Link>.
             </p>
@@ -323,7 +325,7 @@ export default async function KolikVydelalyEtf() {
               <div className="text-[15px] text-slate-600 leading-relaxed space-y-3">
                 <p>
                   Fond VT sleduje index FTSE Global All Cap – tisíce velkých, středních i malých firem z vyspělých
-                  i rozvíjejících se trhů. Kdo do něj vložil <strong className="text-slate-900">100 000 Kč</strong> 1. července 2008,
+                  i rozvíjejících se trhů. Kdo do něj vložil <strong className="text-slate-900">100 000 Kč</strong> {start},
                   měl by k {datum} v korunách <strong className="text-emerald-700">zhruba {kc(d.svet.konec)}</strong>. To odpovídá
                   průměrnému zhodnocení <strong className="text-slate-900">{pctBez(d.svet.cagr)} ročně</strong>.
                 </p>
@@ -343,7 +345,7 @@ export default async function KolikVydelalyEtf() {
           <div className="mb-3 rounded-xl border border-slate-200 bg-white p-4 md:p-5">
             <p className="text-sm font-medium text-slate-900 mb-2">Hodnota 100 000 Kč v akciích celého světa (7/2008 – {datum}, v Kč)</p>
             <div className="overflow-x-auto"><GrafHodnoty d={d} /></div>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">Fond Vanguard VT (index FTSE Global All Cap) přepočtený do korun, hodnoty ke konci měsíců; červeně tři nejhlubší propady v korunách. Minulé výnosy nezaručují ty budoucí.</p>
+            <p className="mt-2 text-xs text-slate-500 leading-relaxed">Fond Vanguard VT (index FTSE Global All Cap) přepočtený do korun, hodnoty ke konci měsíců; červeně tři nejhlubší propady v korunách (hloubka z denních cen, proto je bod na křivce mělčí). Minulé výnosy nezaručují ty budoucí.</p>
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed">
             Vidět na papíře &bdquo;{pctBez(d.svet.maxPokles, 0)}&ldquo; je jiné než to zažít na vlastním účtu. Právě proto skončí spousta lidí ve ztrátě –
@@ -472,7 +474,7 @@ export default async function KolikVydelalyEtf() {
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 border border-slate-200 mb-3"><Repeat className="w-5 h-5" /></span>
               <p className="text-xs uppercase tracking-wide text-slate-500">Celkem vloženo</p>
               <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">{kc(d.dca.vlozeno)}</p>
-              <p className="text-sm text-slate-500 mt-0.5">5 000 Kč měsíčně od 7/2008</p>
+              <p className="text-sm text-slate-500 mt-0.5">{vkladu}× 5 000 Kč, měsíčně od srpna 2008</p>
             </div>
             <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-5">
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200 mb-3"><Sprout className="w-5 h-5" /></span>
@@ -512,7 +514,7 @@ export default async function KolikVydelalyEtf() {
 
         {/* SVĚT vs USA vs REGIONY */}
         <section className="pb-10">
-          <SectionHead title="Svět, USA, nebo rozvíjející se trhy?" desc="Stejných 100 000 Kč, stejné období (od 1. 7. 2008) – ale jiný region. Rozdíly jsou velké a hodně napoví o riziku koncentrace." />
+          <SectionHead title="Svět, USA, nebo rozvíjející se trhy?" desc="Stejných 100 000 Kč, stejné období (od začátku července 2008) – ale jiný region. Rozdíly jsou velké a hodně napoví o riziku koncentrace." />
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-sm">
               <thead>

@@ -34,6 +34,8 @@ export interface Propad { od: string; dno: string; navrat: string | null; hloubk
 
 export interface KolikVydelaly {
   posledniDen: string;
+  /** Skutečný první den řady (nezávislé ověření 21. 10. 2026: engine začíná 2. 7. 2008, ne 1. 7.). */
+  prvniDen: string;
   /** Celý svět (VT) od 1. 7. 2008 v Kč: roční zhodnocení, konečná hodnota 100 000 Kč, nejhlubší pokles. */
   svet: { cagr: number; konec: number; nasobek: number; maxPokles: number; roky: number };
   /** Roční výnosy v Kč (první a poslední rok neúplné). */
@@ -98,6 +100,7 @@ async function spoctiBezCache(): Promise<KolikVydelaly | null> {
       }));
     return {
       posledniDen: iso(mn[mn.length - 1].date),
+      prvniDen: iso(mn[0].date),
       svet: { cagr: vt.summary.cagr, konec: vt.summary.netAssetValue, nasobek: vt.summary.netAssetValue / VKLAD, maxPokles: vt.risk.maxDrawdown.depth, roky },
       rocne: vt.returns.annualReturns.map((x) => ({ rok: x.year, vynos: x.return, neuplny: x.year === prvniRok || x.year === posledniRok })),
       okna: [1, 5, 10, 15].map((r) => okna(mesicne, r)).filter((x): x is Okno => !!x),

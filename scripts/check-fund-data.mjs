@@ -2093,7 +2093,7 @@ const main = async () => {
       const kv = text(nacteno.get('/kolik-vydelaly-etf')?.html ?? ''), sw = text(nacteno.get('/sp500-nebo-cely-svet')?.html ?? '');
       if (/čtyřnásob|8–9 % ročně/.test(kv)) chyby.push('/kolik-vydelaly-etf: staré napevno zapsané „čtyřnásobek / 8–9 % ročně“');
       const vtSw = sw.match(/Celý svět \(fond VT\) (\d+,\d) %/)?.[1];
-      const vtKv = kv.match(/roční zhodnocení od 1\. 7\. 2008 (\d+,\d) %/)?.[1];
+      const vtKv = kv.match(/Akcie celého světa \(fond VT\) – roční zhodnocení od \d{1,2}\. 7\. 2008 (\d+,\d) %/)?.[1];
       if (!vtSw || !vtKv || vtSw !== vtKv) chyby.push(`/kolik-vydelaly-etf: roční zhodnocení VT ${vtKv} % ≠ /sp500-nebo-cely-svet ${vtSw} %`);
 
       // 6) Inflace ČSÚ: poslední měsíc řady (src/lib/backtest/inflation.ts) – ČSÚ zveřejňuje kolem 10. dne následujícího měsíce.
