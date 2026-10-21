@@ -13,7 +13,7 @@ import UpravitVyber from '@/components/design-preview/UpravitVyber';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import { zobrazovanyTicker } from '@/lib/ticker';
-import { datumCen } from '@/lib/datumCen';
+import { nejcastejsiDatumVynosu, jineDatumVynosu, datumVynosuIso, type SDatemVynosu } from '@/lib/datumVynosu';
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
@@ -116,10 +116,12 @@ export default async function PorovnaniPreview(
   const list = (isins ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 4);
   const etfs = await getComparisonETFsByIsins(list);
 
-  // Každé číslo má datum (pravidlo č. 1): nejstarší datum stažení dat mezi porovnávanými fondy.
-  const nejstarsi = etfs.map((e) => (e as unknown as { scraping_date?: string | null }).scraping_date).filter(Boolean).sort()[0];
-  // „Data k“ = den CEN (předchozí obchodní den před stažením), stejně jako srovnávač – ne den stažení (src/lib/datumCen.ts).
-  const datumDat = nejstarsi ? datumCen(new Date(nejstarsi)) : null;
+  // Každé číslo má datum (pravidlo č. 1). 21. 10. 2026: „Data k“ = nejčastější den VÝNOSŮ porovnávaných fondů
+  // (returns_as_of – poslední jistě konečný den u zdroje, src/lib/datumVynosu.ts); když se fondy liší (zpožděná
+  // řada u zdroje – ESEA 16. 10. vs. VWCE 19. 10.), vypíše se den u každého fondu zvlášť.
+  const sDaty = etfs as unknown as (SDatemVynosu & { isin: string })[];
+  const datumDat = nejcastejsiDatumVynosu(sDaty);
+  const jineDny = sDaty.map((e, i) => ({ e, i, dv: jineDatumVynosu(e, datumDat) })).filter((x) => x.dv);
   // Rok dat: letošní (YTD) sloupec grafu a posledních 5 dokončených roků se počítají od data dat, ne od dneška.
   const rokDat = (datumDat ?? new Date()).getFullYear();
   const fondy = etfs.map((e) => ({ isin: e.isin, label: zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? e.isin.slice(0, 8) }));
@@ -153,6 +155,14 @@ export default async function PorovnaniPreview(
               <CurrencyToggle size="sm" showLabel={false} />
             </div>
           </div>
+          {jineDny.length > 0 && (
+            <p className="mt-2 text-xs text-amber-800">
+              Výnosy některých fondů platí k jinému dni (zdroj má jejich ceny se zpožděním):{' '}
+              {jineDny.map((x, k) => (
+                <span key={x.e.isin} data-vynosy-k={datumVynosuIso(x.e) ?? undefined}>{k > 0 && ', '}<strong>{fondy[x.i]?.label}</strong> k {x.dv}</span>
+              ))}.
+            </p>
+          )}
         </section>
 
         <div className="space-y-4">

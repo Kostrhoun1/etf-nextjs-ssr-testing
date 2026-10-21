@@ -11,7 +11,7 @@ import { clanekSchema } from '@/lib/redakce';
 /**
  * /metodika – odkud bereme data a jak je počítáme (SEO audit 20. 10. 2026, E-E-A-T).
  * VŠECHNA FAKTA jsou z kódu a ZAMERNA-ROZHODNUTI.md (scraper a kurzy: etf-astro/scraper/exchange_rates_fetcher.py,
- * performance_converter.py; den dat: src/lib/datumCen.ts; čerstvost: CERSTVOST_DNI/NABIDKA_DNI v etf-data.ts;
+ * performance_converter.py; den dat: src/lib/datumVynosu.ts (returns_as_of, etf-astro scraper/vynosy_z_rady.py); čerstvost: CERSTVOST_DNI/NABIDKA_DNI v etf-data.ts;
  * backtest: src/lib/backtest/engine.ts, BACKTEST-DATA.md; inflace: src/lib/backtest/inflation.ts). Zdroj dat fondů se
  * tu jmenuje (rozhodnutí majitele 19. 10. 2026: jmenovat v metodice a patičce detailu, ne na homepage).
  * Když se změní postup (frekvence scraperu, zdroj kurzů…), upravte i tuhle stránku a `upraveno` v src/lib/redakce.ts.
@@ -126,12 +126,15 @@ export default async function Metodika() {
 
         <Sekce id="datum" icon={CalendarDays} nadpis="K jakému dni čísla platí">
           <p>
-            Údaj <strong>„Data k …“</strong> je den, ke kterému platí ceny fondu – poslední obchodní den před stažením, ne den,
-            kdy jsme data stáhli. Scraper běží ráno, takže stahuje ceny z předchozího obchodního dne. Svátky jednotlivých
-            burz neznáme, proto může být datum nejvýš o den novější než skutečná poslední cena.
+            Údaj <strong>„Data k …“</strong> je den, ke kterému platí výnosy fondu – poslední obchodní den, za který má zdroj
+            dat <strong>konečnou</strong> hodnotu fondu, ne den, kdy jsme data stáhli. Zdroj totiž za poslední obchodní den
+            nejdřív zveřejní předběžnou cenu a konečnou ji nahradí až během dalšího dne. Výnosy proto počítáme z denní řady
+            hodnot fondu k předposlednímu obchodnímu dni řady – bývají tak o den starší, ale nezmění se.
           </p>
           <p>
-            Stáří dat měříme u každého fondu zvlášť – podle toho, kdy jsme právě jeho data naposledy stáhli. Když fond
+            Den výnosů má každý fond vlastní. U některých fondů má zdroj ceny o pár dní později; ty mají u výnosu své
+            datum („výnosy k …“) a když jsou o víc než 3 pracovní dny pozadu, nepočítáme je do mediánů ani do výběru
+            nejvýkonnějšího fondu. „Data k …“ celé stránky je den, ke kterému platí výnosy většiny fondů. Když fond
             v datech zdroje chybí, jeho datum zůstane staré a web to řekne (viz níže).
           </p>
         </Sekce>

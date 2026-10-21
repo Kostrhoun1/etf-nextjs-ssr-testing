@@ -27,6 +27,8 @@ const POHLEDY: { id: Pohled; label: string; sloupec: string; dalsi: { href: stri
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
 /** Výnos se znaménkem (− je skutečné minus, ne pomlčka – čtečky i barvoslepí). */
 const znamenko = (v: number) => (v > 0 ? '+' : v < 0 ? '−' : '');
+/** „2026-10-16“ → „16. 10.“ (den výnosů fondu se zpožděnou řadou). */
+const datumKratce = (iso: string) => { const [, m, d] = iso.slice(0, 10).split('-'); return `${Number(d)}.\u00a0${Number(m)}.`; };
 const pct = (v: number | null) => (v == null ? '—' : `${znamenko(v)}${cz(Math.abs(v))}\u00a0%`);
 const terF = (v: number | null) => (v == null ? '—' : `${cz(v, 2)}\u00a0%`);
 const mld = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 1000)}\u00a0mld.\u00a0€` : `${Math.round(v)}\u00a0mil.\u00a0€`);
@@ -132,6 +134,10 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
                   <span className={`hidden md:block text-right text-sm tabular-nums ${p.id === 'r1' ? 'text-slate-600' : f?.r1 == null || r.odlehle.some((o) => o.isin === f.isin) ? 'text-slate-500' : f.r1 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                     {/* Fond s neověřeným výnosem (odlehlý) i tady „—“ – pravidlo č. 1. */}
                     {p.id === 'r1' ? terF(f?.ter ?? null) : pct(f && !r.odlehle.some((o) => o.isin === f.isin) ? f.r1 : null)}
+                    {/* Výnos fondu se zpožděnou řadou u zdroje platí k jinému dni – ukázat ho (src/lib/datumVynosu.ts). */}
+                    {p.id !== 'r1' && f?.r1 != null && f.returnsAsOf && r.pozadu.some((o) => o.isin === f.isin) && (
+                      <span data-vynosy-k={f.returnsAsOf.slice(0, 10)} className="block whitespace-nowrap text-[11px] text-amber-700">k {datumKratce(f.returnsAsOf)}</span>
+                    )}
                   </span>
                 </li>
               );
@@ -143,6 +149,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
             <p className="mt-2 text-xs text-slate-500 text-pretty">
               Fondy na stejný index se liší hlavně poplatkem a třídou, proto je rozdíl proti mediánu trhu malý.
               {radky.some((r) => r.odlehle.length > 0) && ' Fondy s neověřeným výnosem neukazujeme.'}
+              {radky.some((r) => r.pozadu.length > 0) && ' Fondy, jejichž ceny má zdroj o několik dní později, do mediánu nepočítáme.'}
             </p>
           )}
         </div>

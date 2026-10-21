@@ -6,7 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import {
-  getTotalETFCount, getETFCountLabel, getLastModifiedDate, getReturnsByIsins,
+  getTotalETFCount, getETFCountLabel, getDataDatum, getReturnsByIsins,
   getETFsByIsins, categoryConfigs, CERSTVOST_DNI, type ETFBasicInfo,
 } from '@/lib/etf-data';
 import { nactiTrhy } from '@/lib/trhy';
@@ -20,7 +20,7 @@ import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { TrendingUp, ArrowRight, Globe, LineChart, Building2, ChevronDown, Check } from 'lucide-react';
 import { BARVY_SLOZEK } from '@/components/design-preview/portfolioData';
-import { datumCen } from '@/lib/datumCen';
+import { jineDatumVynosu, datumVynosuIso } from '@/lib/datumVynosu';
 
 export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
@@ -198,10 +198,10 @@ export default async function DesignPreviewV2() {
   // (rozumí češtině) → tři pohledy na fondy podle trhu → startovní fondy → modelová portfolia →
   // odkud čísla bereme → brokeři → FAQ. Bez simulací „kolik by z toho bylo“.
   const allPortfolioIsins = Array.from(new Set(portfolioModels.flatMap((p) => p.allocations.map((a) => a.isin))));
-  const [totalCount, starters, posledniScrape, isinReturns, trhy, kurzy] = await Promise.all([
+  const [totalCount, starters, datumDatWebu, isinReturns, trhy, kurzy] = await Promise.all([
     getTotalETFCount(),
     getETFsByIsins(STARTER_ISINS),
-    getLastModifiedDate(),
+    getDataDatum(),
     getReturnsByIsins(allPortfolioIsins),
     nactiTrhy(),
     nactiKurzCnb(),
@@ -218,8 +218,9 @@ export default async function DesignPreviewV2() {
   };
   const pocet = totalCount.toLocaleString('cs-CZ');
   // Pravidlo č. 1: datum dat BEZ fallbacku na dnešek – když ho nejde načíst, čísla s datem se neukážou.
-  // Datum CEN (předchozí obchodní den před stažením), ne den stažení – src/lib/datumCen.ts.
-  const dataDate = posledniScrape && !Number.isNaN(new Date(posledniScrape).getTime()) ? datumCen(new Date(posledniScrape)) : null;
+  // 21. 10. 2026: nejčastější den VÝNOSŮ fondů (returns_as_of – poslední jistě konečný den u zdroje), ne den stažení
+  // (getDataDatum, src/lib/datumVynosu.ts). Fond s jiným dnem má u výnosu vlastní datum.
+  const dataDate = datumDatWebu;
   // Pevné mezery: datum se nesmí rozlomit na „18. / 10. 2026“.
   const datumText = dataDate ? dataDate.toLocaleDateString('cs-CZ', { timeZone: 'UTC' }).replace(/ /g, '\u00a0') : null;
   const cerstvy = (e: ETFBasicInfo) => !!e.scraping_date && Date.now() - new Date(e.scraping_date).getTime() < CERSTVOST_DNI * 864e5;
@@ -352,6 +353,9 @@ export default async function DesignPreviewV2() {
                       </span>
                     </Link>
                     <p className="hidden md:block mt-2 flex-1 text-sm text-slate-600 leading-relaxed">{meta?.why}</p>
+                    {jineDatumVynosu(etf, dataDate) && (
+                      <p data-vynosy-k={datumVynosuIso(etf)} className="mt-2 text-xs text-amber-700">Výnos k {jineDatumVynosu(etf, dataDate)} (zdroj má ceny tohoto fondu se zpožděním)</p>
+                    )}
                     <dl className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-xs text-slate-500">
                       <div><dt>Poplatek</dt><dd className="mt-0.5 text-base font-semibold text-slate-900 tabular-nums">{ter(etf.ter_numeric)}</dd></div>
                       <div><dt>Ø ročně 5 let v Kč</dt><dd className={`mt-0.5 text-base font-semibold tabular-nums ${r5 == null ? 'text-slate-500' : r5 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{pct(r5)}</dd></div>

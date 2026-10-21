@@ -50,6 +50,19 @@ přepočítá na požadovaný poplatek. Default `desiredTer = sourceTer` → **d
 widgetu je jen na zobrazení — needituj kvůli němu výpočet. (Dvojitý odečet opraven 16. 7. 2026, čísla
 na webu +1,7 %.) → paměť `ter-dvojity-odecet-oprava`
 
+**Výnosy za období platí k `returns_as_of` = PŘEDPOSLEDNÍMU pracovnímu dni řady zdroje, ne ke dni před stažením (21. 10. 2026).**
+Scrape v út 01:30 UTC tedy ukáže „Data k“ pátku/pondělí o den starší, než by čekal člověk – ZÁMĚR. Zdroj (justETF) vede
+poslední den nejdřív předběžně (≈ závěr Xetry) a konečnou hodnotou (NAV) ho přepíše až další den; výnosy k němu byly
+o 0,2–0,9 p. b. vedle (SXR8 19. 10.: 743,07 → 739,32). Výpočet: etf-astro `scraper/vynosy_z_rady.py` (jedno volání
+chart API, RELATIVE_CHANGE – ne MARKET_VALUE, ta má u levných fondů chybu zaokrouhlení až 0,1 p. b.).
+- Fondy se zpožděnou řadou u zdroje (ESEA, PSP5, S5USAS, WSPX…) mají VLASTNÍ, starší den – web ho u nich ukazuje
+  („výnosy k 16. 10. 2026“). „Data k“ stránky = nejčastější `returns_as_of` (src/lib/datumVynosu.ts).
+- Fond pozadu o víc než 3 pracovní dny není v mediánech, kartě „Nejvýkonnější“ ani v součtech portfolií (jiné období).
+- Selže-li chart API, jsou výnosy za období `null` („—“) – NIKDY náhrada z HTML profilu (ten je předběžný). Kalendářní roky
+  (2021–2025) dál z profilu: jsou uzavřené a sedí.
+- „Od vzniku“ (return_inception) se počítá z téže řady (= profil zdroje). Dřív parser četl „+2,141.66%“ jako 2,141 %.
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo6b rada`. Platí, dokud zdroj nezačne zveřejňovat jen konečné hodnoty.
+
 ## Infrastruktura (CI, hosting)
 
 **Kontrola integrity: měsíční indexy (`monthly: true`) mají volnější prahy ocasu i díry.**

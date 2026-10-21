@@ -56,6 +56,13 @@ function Dividenda({ e }: { e: ScreenerRow }) {
   return <>{pct1(d)}</>;
 }
 
+/* Výnosy fondu platí k jinému dni než „Data k …“ stránky (zpožděná řada u zdroje, src/lib/datumVynosu.ts) →
+   u fondu jeho datum (pravidlo č. 1: každé číslo má datum). data-vynosy-k = značka pro kontrolu kolo6b. */
+function DatumVynosuChip({ e }: { e: ScreenerRow }) {
+  if (!e._dv) return null;
+  return <span data-vynosy-k={e._dv} title={`Výnosy tohoto fondu platí k ${e._dv} – zdroj má jeho ceny se zpožděním.`} className="cursor-help whitespace-nowrap rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">výnosy k {e._dv}</span>;
+}
+
 /* Kolísavost: „—“ i tam, kde údaj zdroje nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts, pravidlo č. 1). */
 function Kolisavost({ e }: { e: ScreenerRow }) {
   if (e._volX) return <span title={RIZIKO_NESEDI_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({RIZIKO_NESEDI_TEXT})</span></span>;
@@ -648,7 +655,7 @@ export default function ScreenerUI({
       `# Výnosy přepočtené do: ${curLabel[cur]} (prázdné = přepočet chybí)`,
       '',
     ];
-    const sloupce = ['Název','ISIN','Ticker','Poskytovatel','Kategorie','Region','Sledovaný index','Domicil','Rok vzniku','TER (%)','Velikost (mil. EUR)','Měna fondu','Typ výplaty','Replikace','Div. výnos (%)',`YTD (${curLabel[cur]}, %)`,`1 rok (${curLabel[cur]}, %)`,`3 roky (${curLabel[cur]}, %)`,`5 let (${curLabel[cur]}, %)`,'Kolísavost 1r (EUR, %)','Páka'];
+    const sloupce = ['Název','ISIN','Ticker','Poskytovatel','Kategorie','Region','Sledovaný index','Domicil','Rok vzniku','TER (%)','Velikost (mil. EUR)','Měna fondu','Typ výplaty','Replikace','Div. výnos (%)',`YTD (${curLabel[cur]}, %)`,`1 rok (${curLabel[cur]}, %)`,`3 roky (${curLabel[cur]}, %)`,`5 let (${curLabel[cur]}, %)`,'Výnosy k datu','Kolísavost 1r (EUR, %)','Páka'];
     const radky = filtered.map(({ e }) => {
       const o = e as unknown as Record<string, unknown>;
       return [
@@ -658,7 +665,7 @@ export default function ScreenerUI({
         distTxt[e._dist], e._repl ?? '',
         dec(num(e.current_dividend_yield_numeric)),
         dec(pickReturn(o, 'ytd', cur), 1), dec(pickReturn(o, '1y', cur), 1), dec(pickReturn(o, '3y', cur), 1),
-        dec(pickReturn(o, '5y', cur), 1), dec(num(e.volatility_1y), 1), e.is_leveraged ? 'ano' : '',
+        dec(pickReturn(o, '5y', cur), 1), e._dv ?? (dataDate || ''), dec(num(e.volatility_1y), 1), e.is_leveraged ? 'ano' : '',
       ].map((v) => q2(String(v))).join(';');
     });
     const csv = '﻿' + [...hlavicka, sloupce.map(q2).join(';'), ...radky].join('\r\n');
@@ -863,6 +870,7 @@ export default function ScreenerUI({
                           <span title={c.title} className={`inline-block text-[10px] font-medium px-1.5 py-px rounded-full ${c.cls}`}>{c.label}</span>
                           {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
                           <HedgeChip h={e._hedge} />
+                          <DatumVynosuChip e={e} />
                         </span>
                       </div>
                     </div>
@@ -925,6 +933,7 @@ export default function ScreenerUI({
                       <span className={`inline-block text-[10px] font-medium px-1.5 py-px rounded-full ${c.cls}`}>{c.label}</span>
                       {e.is_leveraged && <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">páka</span>}
                       <HedgeChip h={e._hedge} />
+                      <DatumVynosuChip e={e} />
                     </span>
                   </div>
                   <CompareButton isin={e.isin} label={tk ?? e.name.slice(0, 8)} variant="row" />

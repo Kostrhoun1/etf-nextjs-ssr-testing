@@ -22,7 +22,7 @@ import SrovnaniRocniVynosy from '@/components/design-preview/SrovnaniRocniVynosy
 import { ceskaZeme } from '@/lib/preklady';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { barvaFondu } from '@/lib/barvyFondu';
-import { datumCen } from '@/lib/datumCen';
+import { datumVynosu } from '@/lib/datumVynosu';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 
@@ -67,9 +67,9 @@ export default async function SrovnaniPreview() {
   const t2 = tickerProCesko(etf2) ?? TICKER2;
   const doplnky = await nactiDoplnkyFondu([etf1.isin, etf2.isin]);
   const dp1 = doplnky[etf1.isin], dp2 = doplnky[etf2.isin];
-  // Datum = den cen staršího ze dvou fondů (datumCen ze scraping_date), ne den stažení ani globální datum.
-  const stazeno = [dp1?.scrapingDate, dp2?.scrapingDate].filter(Boolean).map((d) => new Date(String(d))).sort((a, b) => a.getTime() - b.getTime())[0];
-  const denDat = stazeno ? datumCen(stazeno) : await getDataDate(today);
+  // Datum = den výnosů staršího ze dvou fondů (returns_as_of, src/lib/datumVynosu.ts), ne den stažení ani globální datum.
+  const nejstarsiDen = [dp1, dp2].map((d) => datumVynosu({ returns_as_of: d?.returnsAsOf, scraping_date: d?.scrapingDate })).filter((d): d is Date => !!d).sort((a, b) => a.getTime() - b.getTime())[0];
+  const denDat = nejstarsiDen ?? await getDataDate(today);
   const datumK = denDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const odl1 = !!dp1?.odlehly, odl2 = !!dp2?.odlehly;
 

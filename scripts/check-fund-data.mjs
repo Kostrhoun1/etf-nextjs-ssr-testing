@@ -58,7 +58,7 @@ const ZLATA_SADA = [
 ];
 
 async function nactiFondy() {
-  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name,primary_ticker,total_exchanges,index_name,investment_focus,volatility_1y,volatility_3y,volatility_5y,return_1m,return_3y,max_drawdown_1y,max_drawdown_3y,max_drawdown_5y'; // kolo6: výnosy zlata, poklesy tříd
+  const cols = 'isin,name,fund_provider,ter_numeric,return_1y,is_leveraged,distribution_policy,updated_at,scraping_date,category,holding_1_name,holding_9_name,holding_10_name,primary_ticker,total_exchanges,index_name,investment_focus,volatility_1y,volatility_3y,volatility_5y,return_1m,return_3y,max_drawdown_1y,max_drawdown_3y,max_drawdown_5y,returns_as_of,return_ytd'; // kolo6: výnosy zlata, poklesy tříd; kolo6b: den výnosů
   let all = [];
   for (let off = 0; ; off += 1000) {
     const r = await fetch(`${URL_DB}?select=${cols}&order=isin&limit=1000&offset=${off}`,
@@ -1055,14 +1055,16 @@ const main = async () => {
       return (e[1] / s[1] - 1) * 100;
     };
     const fmt = (x) => x.toFixed(2).replace('.', ',');
-    const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,scraping_date,${Object.keys(OBDOBI).map((o) => `return_${o}`).join(',')}&isin=in.(${KOTVY.map((k) => k[0]).join(',')})`,
+    const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,scraping_date,returns_as_of,${Object.keys(OBDOBI).map((o) => `return_${o}`).join(',')}&isin=in.(${KOTVY.map((k) => k[0]).join(',')})`,
       { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
     if (!Array.isArray(db)) throw new Error('neplatná odpověď DB');
     const vysA = [], vysB = [], nejdeA = [], nejdeB = [];
     for (const [isin, xetra] of KOTVY) {
       const f = db.find((x) => x.isin === isin);
       if (!f?.scraping_date) { nejdeA.push(`${isin}: v DB chybí`); continue; }
-      const D = datumCenD(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
+      // kolo6b (21. 10. 2026): výnosy platí ke dni returns_as_of (poslední jistě konečný den řady fondu), ne ke dni
+      // odvozenému z času stažení – jinak by tahle kontrola po nasazení nového scraperu hlásila falešný rozdíl.
+      const D = f.returns_as_of ? String(f.returns_as_of).slice(0, 10) : datumCenD(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
       const jm = `${f.primary_ticker || isin}`;
       // A) justETF holé denní ceny (EUR, s dividendami). Řada má i víkendy → konec musí být přesně den dat.
       try {
@@ -1578,7 +1580,7 @@ const main = async () => {
         return r > Number(D.slice(0, 4)) ? null : [`${r - 1}-12-31`, r < Number(D.slice(0, 4)) ? `${r}-12-31` : D];
       };
       const kurz = (rada, d) => { let r = null; for (const [k, v] of rada) { if (k <= d) r = [k, v]; else break; } return r && (new Date(d) - new Date(r[0])) / 864e5 <= 7 ? r[1] : null; };
-      const db = await fetch(`${URL_DB}?select=isin,primary_ticker,scraping_date,${OBD.flatMap((o) => [`return_${o}`, `return_${o}_czk`, `return_${o}_usd`]).join(',')}&isin=in.(${KOTVY_FX.join(',')})`, H).then((r) => r.json());
+      const db = await fetch(`${URL_DB}?select=isin,primary_ticker,scraping_date,returns_as_of,${OBD.flatMap((o) => [`return_${o}`, `return_${o}_czk`, `return_${o}_usd`]).join(',')}&isin=in.(${KOTVY_FX.join(',')})`, H).then((r) => r.json());
       if (!Array.isArray(db) || !db.length) throw new Error('DB nevrátila kotevní fondy');
       // ČNB: Kč za 1 EUR po dnech (rok.txt; záhlaví „Datum|1 AUD|…|1 EUR|…“ se může v roce opakovat).
       const roky = [...new Set(db.map((f) => Number(String(f.scraping_date).slice(0, 4))))];
@@ -1603,7 +1605,8 @@ const main = async () => {
       if (czk.length < 1000 || usd.length < 1000) throw new Error(`málo kurzů (ČNB ${czk.length}, ECB ${usd.length})`);
       const vadne = [], porovnano = [];
       for (const f of db) {
-        const D = denDat(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
+        // kolo6b (21. 10. 2026): scraper převádí kurzy ke dni returns_as_of fondu (poslední jistě konečný den řady).
+        const D = f.returns_as_of ? String(f.returns_as_of).slice(0, 10) : denDat(new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(f.scraping_date) ? f.scraping_date : `${f.scraping_date}Z`));
         const chyby = [];
         let n = 0;
         for (const o of OBD) {
@@ -2141,6 +2144,158 @@ const main = async () => {
     }
   }
   // --- konec kolo6 seo ---
+
+  // --- kolo6b rada --- (21. 10. 2026; pravidlo č. 1, bod 4 – oprava výnosů za období má kontrolu)
+  // Zdroj (justETF) vede poslední obchodní den nejdřív PŘEDBĚŽNĚ a konečnou hodnotou (NAV) ho přepíše až během dalšího
+  // dne; výnosy z HTML profilu se počítaly k tomu předběžnému bodu (SXR8 19. 10.: 743,07 → konečně 739,32, u fondů na
+  // USA 0,2–0,9 p. b. u všech období) a některé fondy mají řadu o dny pozadu (ESEA, PSP5 16. 10. vs. většina 19. 10.).
+  // Od scraperu etf-astro (větev vynosy-konecna-rada, scraper/vynosy_z_rady.py) se výnosy počítají z denní řady ke dni
+  // returns_as_of = předposlední pracovní den řady fondu (poslední jistě konečný). Kontroly:
+  //  (a) kotevní fondy: výnosy v DB (EUR i Kč) = NEZÁVISLÝ přepočet tady z ceny (MARKET_VALUE, jiná řada než scraper,
+  //      který bere RELATIVE_CHANGE) k returns_as_of a kurzů ČNB; práh 0,05 p. b. + chyba zaokrouhlení ceny zdroje
+  //      na 2 des. místa. Chytí i to, že zdroj den returns_as_of po stažení ještě přepsal (nebyl konečný).
+  //  (b) returns_as_of není v budoucnosti, u ≤ 5 % čerstvých fondů je starší než 7 dní; po nasazení scraperu
+  //      má returns_as_of ≥ 95 % čerstvých fondů a žádný fond nemá výnosy bez returns_as_of (tichá náhrada z profilu).
+  //  (c) web: detail fondu s jiným dnem výnosů než většina ukazuje SVŮJ den (data-vynosy-k), srovnávač mu dává _dv.
+  try {
+    const UA6 = { 'User-Agent': 'Mozilla/5.0 (compatible; etfpruvodce.cz kontrola dat)' };
+    const H = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const iso = (d) => d.toISOString().slice(0, 10);
+    const poledne = (s) => new Date(`${String(s).slice(0, 10)}T12:00:00Z`);
+    const fmt6 = (x) => x.toFixed(2).replace('.', ',');
+    // Kdy se nový výpočet dostal do main scraperu (GitHub API, bez tokenu) – fondy stažené potom už returns_as_of mají mít.
+    const commit = await fetch('https://api.github.com/repos/Kostrhoun1/etf-astro/commits?path=scraper/vynosy_z_rady.py&sha=main&per_page=1', { headers: UA6 })
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const nasazenoOd = Array.isArray(commit) && commit[0]?.commit?.committer?.date ? new Date(commit[0].commit.committer.date) : null;
+
+    // (b) ─────────────────────────────────────────────────────────────────────────────────────────────────
+    const cerstve6 = fondy.filter((x) => x.name && x.scraping_date && dni(x) <= 3);
+    const sDnem = cerstve6.filter((x) => x.returns_as_of);
+    const zitra = iso(new Date(Date.now() + 864e5));
+    const budouci = sDnem.filter((x) => String(x.returns_as_of) >= zitra);
+    if (budouci.length) poplach.push({ co: `${budouci.length} fondů má den výnosů (returns_as_of) v budoucnosti`, ukazka: ukazka(budouci, (x) => `${x.isin} returns_as_of ${x.returns_as_of}`) });
+    const stare7 = sDnem.filter((x) => (Date.now() - poledne(x.returns_as_of)) / 864e5 > 7);
+    if (cerstve6.length && stare7.length / cerstve6.length > 0.05)
+      poplach.push({ co: `${stare7.length} čerstvě stažených fondů (${(100 * stare7.length / cerstve6.length).toFixed(1)} %) má výnosy k dni staršímu než 7 dní (práh 5 %) – zdroj přestal posílat ceny, nebo scraper bere špatný den?`, ukazka: ukazka(stare7, (x) => `${x.isin} ${String(x.name).slice(0, 30)} k ${x.returns_as_of}`) });
+    else if (stare7.length) varovani.push({ co: `${stare7.length} čerstvých fondů má výnosy k dni staršímu než 7 dní (zdroj nemá nové ceny – web u nich ukazuje jejich den)`, ukazka: ukazka(stare7, (x) => `${x.isin} ${String(x.name).slice(0, 30)} k ${x.returns_as_of}`) });
+    const poNasazeni = nasazenoOd ? cerstve6.filter((x) => new Date(x.scraping_date) > new Date(nasazenoOd.getTime() + 3600e3)) : [];
+    if (!nasazenoOd) varovani.push({ co: 'Kolo6b: výpočet výnosů z denní řady (etf-astro scraper/vynosy_z_rady.py) ještě není v main scraperu, nebo GitHub API neodpovědělo – kontroly returns_as_of jen částečně', ukazka: [] });
+    if (poNasazeni.length >= 500) {
+      const bezDne = poNasazeni.filter((x) => !x.returns_as_of);
+      const tichaNahrada = bezDne.filter((x) => x.return_1y != null || x.return_ytd != null || x.return_1m != null);
+      if (tichaNahrada.length) poplach.push({ co: `${tichaNahrada.length} fondů stažených novým scraperem má výnosy za období BEZ returns_as_of – tichá náhrada z HTML profilu (předběžná data)?`, ukazka: ukazka(tichaNahrada, (x) => `${x.isin} 1 r ${x.return_1y}`) });
+      if (bezDne.length / poNasazeni.length > 0.05) poplach.push({ co: `${bezDne.length} z ${poNasazeni.length} fondů stažených novým scraperem (${(100 * bezDne.length / poNasazeni.length).toFixed(1)} %) nemá výnosy za období (returns_as_of = null, práh 5 %) – chart API zdroje selhává? Log scraperu: „VÝNOSY z denní řady“`, ukazka: ukazka(bezDne) });
+    }
+
+    // (a) ─────────────────────────────────────────────────────────────────────────────────────────────────
+    const KOTVY6 = [['IE00B5BMR087', 'SXR8'], ['IE00BK5BQT80', 'VWCE'], ['IE00B4L5Y983', 'EUNL'], ['DE0002635307', 'EXSA'], ['IE00BKM4GZ66', 'EMIM'],
+      ['IE00B53SZB19', 'SXRV'], ['IE00B4ND3602', 'SGLN'], ['FR0011550680', 'ESEA'], ['LU0290358497', 'XEON'], ['DE000A27Z304', 'BTCE']];
+    const OBD = ['ytd', '1m', '3m', '6m', '1y', '3y', '5y'];
+    const MES = { '1m': 1, '3m': 3, '6m': 6, '1y': 12, '3y': 36, '5y': 60 };
+    const minusMes = (d, m) => { // d − m kalendářních měsíců, den oříznutý na konec měsíce (nezávislá implementace)
+      const [r, mm, dd] = d.split('-').map(Number);
+      const cil = new Date(Date.UTC(r, mm - 1 - m, 1, 12));
+      const posl = new Date(Date.UTC(cil.getUTCFullYear(), cil.getUTCMonth() + 1, 0, 12)).getUTCDate();
+      cil.setUTCDate(Math.min(dd, posl));
+      return iso(cil);
+    };
+    const zac = (D, o) => (o === 'ytd' ? `${Number(D.slice(0, 4)) - 1}-12-31` : minusMes(D, MES[o]));
+    const kurzy = new Map();
+    const cnb = async (d) => { // Kč za 1 EUR platný k dni d (ČNB vrací poslední vyhlášený ≤ d; ověř záhlaví)
+      if (kurzy.has(d)) return kurzy.get(d);
+      const [r, m, dd] = d.split('-');
+      const t = await fetch(`https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt?date=${dd}.${m}.${r}`, { headers: UA6 }).then((x) => (x.ok ? x.text() : ''));
+      const hl = /^(\d{2})\.(\d{2})\.(\d{4})/.exec(t);
+      const den = hl ? `${hl[3]}-${hl[2]}-${hl[1]}` : null;
+      const radek = t.split('\n').find((l) => l.split('|')[3] === 'EUR');
+      const k = den && den <= d && (poledne(d) - poledne(den)) / 864e5 <= 7 && radek ? Number(radek.split('|')[4].replace(',', '.')) / Number(radek.split('|')[2]) : null;
+      kurzy.set(d, k);
+      return k;
+    };
+    const db6 = await fetch(`${URL_DB}?select=isin,returns_as_of,return_inception,${OBD.map((o) => `return_${o},return_${o}_czk`).join(',')}&isin=in.(${KOTVY6.map((k) => k[0]).join(',')})`, H).then((r) => r.json());
+    if (!Array.isArray(db6)) throw new Error('neplatná odpověď DB (kotvy kolo6b)');
+    const vys6 = [], nejde6 = [], tabulka6 = [];
+    for (const [isin, tk] of KOTVY6) {
+      const f = db6.find((x) => x.isin === isin);
+      if (!f?.returns_as_of) { nejde6.push(`${tk}: returns_as_of v DB chybí${nasazenoOd ? '' : ' (nový scraper ještě neběžel)'}`); continue; }
+      const D = String(f.returns_as_of).slice(0, 10);
+      try {
+        const j = await fetch(`https://www.justetf.com/api/etfs/${isin}/performance-chart?locale=en&currency=EUR&valuesType=MARKET_VALUE&reduceData=false&includeDividends=true&features=DIVIDENDS&dateFrom=1990-01-01&dateTo=${iso(new Date(poledne(D).getTime() + 864e5))}`, { headers: UA6 })
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))));
+        const rada = (j.series ?? []).map((p) => [p.date, Number(p.value?.raw)]).filter(([, v]) => v > 0);
+        const bodK = (d) => { let r = null; for (const b of rada) { if (b[0] <= d) r = b; else break; } return r; };
+        const e = bodK(D);
+        if (!e || e[0] !== D) { nejde6.push(`${tk}: řada zdroje nemá bod ${D}`); continue; }
+        const chyby = [];
+        const porovnej = (o, s, dbV, kurzS, kurzE, mena) => {
+          if (dbV == null || !s) return;
+          const pomer = e[1] / s[1];
+          const v = (pomer * (kurzS && kurzE ? kurzE / kurzS : 1) - 1) * 100;
+          const tol = 0.05 + 100 * pomer * (0.005 / e[1] + 0.005 / s[1]);
+          tabulka6.push(`${tk} ${o} ${mena}: DB ${fmt6(Number(dbV))} vs ${fmt6(v)}`);
+          if (Math.abs(Number(dbV) - v) > tol) chyby.push(`${o} ${mena} DB ${fmt6(Number(dbV))} % vs. přepočet ${fmt6(v)} % (tolerance ${fmt6(tol)})`);
+        };
+        const kE = await cnb(D);
+        for (const o of OBD) {
+          const z = zac(D, o), s = bodK(z);
+          if (!s || (poledne(z) - poledne(s[0])) / 864e5 > 7) continue; // fond tehdy neexistoval
+          porovnej(o, s, f[`return_${o}`], null, null, 'EUR');
+          const kS = await cnb(z);
+          if (kS && kE) porovnej(o, s, f[`return_${o}_czk`], kS, kE, 'Kč');
+          else nejde6.push(`${tk}: kurz ČNB k ${z} nebo ${D} nedostupný`);
+        }
+        porovnej('od vzniku', rada[0], f.return_inception, null, null, 'EUR');
+        if (chyby.length) vys6.push(`${tk} k ${D}: ${chyby.join('; ')}`);
+      } catch (e) { nejde6.push(`${tk}: justETF neodpověděl (${e.message})`); }
+    }
+    const TEXT6 = 'Výnosy za období v DB nesedí s nezávislým přepočtem z denních cen zdroje a kurzů ČNB ke dni returns_as_of';
+    if (vys6.length >= 2) poplach.push({ co: `${TEXT6} – ${vys6.length} z ${KOTVY6.length} kotevních fondů (zdroj den po stažení přepsal = nebyl konečný, nebo chyba přepočtu ve scraperu etf-astro)`, ukazka: vys6 });
+    else if (vys6.length === 1) varovani.push({ co: `${TEXT6} – 1 kotevní fond`, ukazka: vys6 });
+    if (nejde6.length) varovani.push({ co: `Kontrolu kolo6b (a) nešlo u části kotevních fondů provést (${nejde6.length})`, ukazka: nejde6.slice(0, 6) });
+    if (process.env.KOLO6B_TABULKA) console.log(tabulka6.join('\n'));
+
+    // (c) ─────────────────────────────────────────────────────────────────────────────────────────────────
+    if (sDnem.length >= 100) {
+      const pocty = new Map();
+      for (const x of sDnem) pocty.set(String(x.returns_as_of).slice(0, 10), (pocty.get(String(x.returns_as_of).slice(0, 10)) ?? 0) + 1);
+      const vetsina = [...pocty.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? 1 : -1))[0][0];
+      const jine = sDnem.filter((x) => String(x.returns_as_of).slice(0, 10) !== vetsina && (x.return_1y != null || x.return_ytd != null));
+      // Nejdřív známé fondy se zpožděnou řadou, pak ostatní – max. 3 detaily (ISR, ať kontrola nezatěžuje web).
+      const ZNAME = ['FR0011550680', 'FR0011871128', 'IE00B4JY5R22', 'XS2427355958'];
+      const vzorek = [...jine.filter((x) => ZNAME.includes(x.isin)), ...jine.filter((x) => !ZNAME.includes(x.isin))].slice(0, 3);
+      const spatne = [], nenacteno = [];
+      const sxr8 = await fetch(`${WEB_URL}/etf/IE00B5BMR087`).then((r) => (r.ok ? r.text() : '')).catch(() => '');
+      const webNasazen = /data-vynosy-k=/.test(sxr8);
+      if (webNasazen) {
+        for (const x of vzorek) {
+          const html = await fetch(`${WEB_URL}/etf/${x.isin}`).then((r) => (r.ok ? r.text() : '')).catch(() => '');
+          if (!html) { nenacteno.push(x.isin); continue; }
+          const m = /data-vynosy-k="(\d{4}-\d{2}-\d{2})"/.exec(html);
+          // Detail se cachuje (ISR) – smí ukazovat starší den než DB (i čísla jsou pak z té doby), novější ne a bez data nikdy.
+          if (!m) spatne.push(`${x.isin}: detail neukazuje den výnosů (DB ${x.returns_as_of}, většina ${vetsina})`);
+          else if (m[1] > String(x.returns_as_of).slice(0, 10)) spatne.push(`${x.isin}: detail ukazuje ${m[1]}, DB má výnosy k ${x.returns_as_of}`);
+        }
+        const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        if (Array.isArray(rows)) {
+          const podle = new Map(rows.map((r) => [r.isin, r]));
+          // Srovnávač se cachuje 24 h → jen fondy pozadu o víc než 3 pracovní dny (ty byly pozadu i včera).
+          const pracDni = (a, b) => { let n = 0; const d = poledne(a); while (iso(d) < b && n < 400) { d.setUTCDate(d.getUTCDate() + 1); if (d.getUTCDay() % 6) n++; } return n; };
+          for (const x of jine.filter((y) => pracDni(String(y.returns_as_of).slice(0, 10), vetsina) > 3)) {
+            const r = podle.get(x.isin);
+            if (r && (r.return_1y != null || r.return_ytd != null) && !r._dv) spatne.push(`${x.isin}: srovnávač nemá u fondu den výnosů (_dv), DB ${x.returns_as_of}, většina ${vetsina}`);
+            if (spatne.length > 8) break;
+          }
+        } else nenacteno.push('/api/etf/screener');
+        if (spatne.length) poplach.push({ co: `Web neukazuje u fondu s jiným dnem výnosů než většina (${vetsina}) jeho den – výnosy vypadají jako k „Data k …“ stránky`, ukazka: spatne.slice(0, 6) });
+        if (nenacteno.length) varovani.push({ co: 'Kontrolu kolo6b (c) – den výnosů na webu – nešlo u části stránek provést', ukazka: nenacteno });
+      } else if (nasazenoOd) {
+        varovani.push({ co: 'Kolo6b (c): web ještě nemá značku dne výnosů (data-vynosy-k) – větev rada-web není nasazená', ukazka: [] });
+      }
+    }
+  } catch (e) {
+    varovani.push({ co: `Kontrolu kolo6b (výnosy z denní řady, returns_as_of) se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+  // --- konec kolo6b rada ---
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;

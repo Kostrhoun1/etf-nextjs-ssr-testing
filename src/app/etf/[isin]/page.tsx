@@ -32,7 +32,7 @@ import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { kanonickaDvojice, dvojiceFondu, kuratorskaProIsiny } from '@/lib/pairs';
 import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
 import OdkazBurzy from './OdkazBurzy';
-import { datumCen } from '@/lib/datumCen';
+import { datumVynosu, type SDatemVynosu } from '@/lib/datumVynosu';
 import { titulekDetailu, popisekDetailu } from '@/lib/seoDetailu';
 import { ceskaZeme, ceskySektor, zamereniStitky, SEKTORY_POZNAMKA } from '@/lib/preklady';
 import { terFmt, procenta, velikostFondu, cislo, NBSP } from '@/lib/formatyCisel';
@@ -91,7 +91,7 @@ export async function generateMetadata(
   const { isin } = await params;
   const { data } = await supabaseAdmin
     .from('etf_funds')
-    .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', ') + ', ' + Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_currency`).join(', '))
+    .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, returns_as_of, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', ') + ', ' + Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_currency`).join(', '))
     .eq('isin', isin).single();
   const fund = data as Record<string, unknown> | null;
   const name = (fund?.name as string) || 'ETF fond';
@@ -107,9 +107,8 @@ export async function generateMetadata(
   //   necháme googlebot-noindex. Práh + seznam hlavy: src/lib/etf-head.ts (hlava
   //   musí být i v sitemap.ts, jinak ji Google neobjeví).
   const isHead = isHeadFund(fund?.fund_size_numeric);
-  // Den dat = stejný výpočet jako „Data k …“ na stránce (datumCen ze scraping_date) – popisek se cachuje 30 dní.
-  const stazeno = fund?.scraping_date ? new Date(String(fund.scraping_date)) : null;
-  const datumDat = stazeno && !Number.isNaN(stazeno.getTime()) ? datumCen(stazeno) : null;
+  // Den dat = stejný výpočet jako „Data k …“ na stránce (den výnosů fondu, src/lib/datumVynosu.ts) – popisek se cachuje 30 dní.
+  const datumDat = datumVynosu(fund as SDatemVynosu | null);
   const staleDni = datumDat ? Math.floor((Date.now() - datumDat.getTime()) / 864e5) : null;
   // Výnos mimo svůj trh (opožděná cena u zdroje) → na stránce se výnosy neukazují, tedy ani v popisku.
   const vynosNeovereny = (await odlehleIsiny()).has(isin);
@@ -367,11 +366,9 @@ export default async function ETFDetailPreview(
      přesně ten typ automaticky se posouvajícího data, jaké jsme vyhodili u ceníků
      brokerů (viz src/lib/editorial-check.ts). Fallback na globální datum jen tehdy,
      když fond vlastní `updated_at` nemá. */
-  const fundUpdated = (() => {
-    const iso = (etf as unknown as Record<string, unknown>).scraping_date ?? (etf as unknown as Record<string, unknown>).updated_at;
-    const d = iso ? new Date(String(iso)) : null;
-    return d && !Number.isNaN(d.getTime()) ? datumCen(d) : null; // datum cen (předchozí obchodní den), ne den stažení
-  })();
+  // 21. 10. 2026: den VÝNOSŮ tohoto fondu (returns_as_of = poslední jistě konečný den jeho řady u zdroje; ESEA a spol.
+  // mají řadu o dny pozadu), u dat před nasazením den cen podle času stažení (src/lib/datumVynosu.ts).
+  const fundUpdated = datumVynosu(etf as unknown as SDatemVynosu); // ne den stažení, ne updated_at
   const dataDate = fundUpdated ?? (await getDataDate(today));
   const dateStr = dataDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const staleDays = Math.floor((today.getTime() - dataDate.getTime()) / 864e5);
@@ -880,9 +877,9 @@ export default async function ETFDetailPreview(
                     <HeroVynosy
                       byCur={heroByCur}
                       datum={isStale ? (
-                        <span className="inline-flex items-center gap-1 text-amber-200"><AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> data z {dataDate.toLocaleDateString('cs-CZ')}</span>
+                        <span data-vynosy-k={dataDate.toISOString().slice(0, 10)} className="inline-flex items-center gap-1 text-amber-200"><AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> data z {dataDate.toLocaleDateString('cs-CZ')}</span>
                       ) : (
-                        <span className="tabular-nums">data k {dataDate.toLocaleDateString('cs-CZ')}</span>
+                        <span data-vynosy-k={dataDate.toISOString().slice(0, 10)} className="tabular-nums">data k {dataDate.toLocaleDateString('cs-CZ')}</span>
                       )}
                     />
                   )}

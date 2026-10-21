@@ -15,7 +15,7 @@
 export interface FondSeo {
   nazev: string;
   ticker: string | null;
-  /** K jakému dni platí data fondu (datumCen(scraping_date)). */
+  /** K jakému dni platí data fondu (den výnosů – src/lib/datumVynosu.ts). */
   datum: Date | null;
 }
 
