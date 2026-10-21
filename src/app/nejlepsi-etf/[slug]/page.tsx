@@ -13,7 +13,7 @@ import {
   getTopETFsForCategory, getCategoryCount, getFlagshipComposition, categoryConfigs, getVyberKarty,
   type ETFBasicInfo, getDataDatum, inceptionYear,
 } from '@/lib/etf-data';
-import { datumCen } from '@/lib/datumCen';
+import { datumVynosu, jineDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
 import { titulekZebricku, popisekZebricku, odpovedZebricku, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
 import { porovnejNejlevnejsi } from '@/lib/trhy';
 import { ter, money, shortName, nbsp, SectionHead, CompositionInfographic, CategoryIndexes, slozeniPouzitelne } from '@/components/design-preview/CategoryUI';
@@ -262,7 +262,10 @@ const nactiZebricek = reactCache(async (slug: string) => {
   // měnou, ne kvalitou fondu) a fondy ≥ 100 mil. €. Momentum za 12 měsíců je u indexových kategorií spíš
   // šum (revize 18. 10. 2026) → primárně 3 roky v Kč, když je má aspoň 3 fondy.
   const jeEsgKategorie = /esg|udrzitel|klima|zajist|hedg|equal|stejne-vah/i.test(slug);
-  const kandidati = zdrojVykon.filter((e) => (e.fund_size_numeric ?? 0) >= PRAH_KARET && (jeEsgKategorie || (!VARIANTA.test(e.name) && !zajisteni(e.name))));
+  // Fond s výnosy o víc než 3 pracovní dny staršími než většina (zpožděná řada u zdroje, src/lib/datumVynosu.ts)
+  // do „Nejvýkonnějšího“ ani mediánu nepatří – srovnávalo by se jiné období (21. 10. 2026).
+  const kandidati = zdrojVykon.filter((e) => (e.fund_size_numeric ?? 0) >= PRAH_KARET && (jeEsgKategorie || (!VARIANTA.test(e.name) && !zajisteni(e.name)))
+    && !vynosyPozadu(e, dataDatum));
   // Nejnižší poplatek = PRAVIDLO HOMEPAGE (porovnejNejlevnejsi v src/lib/trhy.ts): nejnižší TER > 0, při shodě
   // akumulační třída, pak větší fond; jen fondy nad 100 mil. € a bez měnového zajištění.
   const jeZajistKategorie = /zajist|hedg/i.test(slug);
@@ -299,7 +302,7 @@ type Zebricek = Awaited<ReturnType<typeof nactiZebricek>>;
 const fondSeo = (e: ETFBasicInfo): FondSeo => ({
   nazev: nazevFondu(e.name),
   ticker: zobrazovanyTicker(e as unknown as Record<string, unknown>),
-  datum: e.scraping_date ? datumCen(new Date(e.scraping_date)) : null,
+  datum: datumVynosu(e),
 });
 
 /** Vstup pro src/lib/zebrickySeo.ts – jen čísla, která stránka sama ukazuje. */
@@ -406,6 +409,7 @@ export default async function CategoryDetailPreview(
       r3: { CZK: num(e.return_3y_czk), EUR: num(e.return_3y), USD: num(e.return_3y_usd) },
       typ: k === 'unknown' ? null : k,
       zajisteni: zajisteni(e.name),
+      ...((dv) => (dv ? { vynosyK: dv } : {}))(jineDatumVynosu(e, dataDate)),
     };
   });
   const sr = SROVNAVAC[slug];

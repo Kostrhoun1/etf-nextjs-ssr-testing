@@ -12,7 +12,7 @@ import {
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getETFsByIsins, CERSTVOST_DNI } from '@/lib/etf-data';
-import { datumCen } from '@/lib/datumCen';
+import { datumVynosu } from '@/lib/datumVynosu';
 import { procenta, terFmt, velikostFondu } from '@/lib/formatyCisel';
 import { SITEMAP_PAIRS } from '@/lib/pairs';
 import { cache as reactCache } from 'react';
@@ -76,7 +76,8 @@ const nactiFondy = reactCache(async (): Promise<{ fondy: FundData[]; datum: Date
     const e = podle.get(f.isin);
     const sd = e?.scraping_date ? new Date(e.scraping_date) : null;
     const ok = !!e && !!sd && sd.getTime() >= hranice;
-    if (ok && sd && (!nejstarsi || sd < nejstarsi)) nejstarsi = sd;
+    const dv = ok ? datumVynosu(e) : null; // den výnosů fondu (returns_as_of), src/lib/datumVynosu.ts
+    if (dv && (!nejstarsi || dv < nejstarsi)) nejstarsi = dv;
     const num = (v: unknown) => (ok && v != null && Number.isFinite(Number(v)) ? Number(v) : null);
     const dp = String(e?.distribution_policy ?? '').toLowerCase();
     const rp = String(e?.replication ?? '').toLowerCase();
@@ -87,7 +88,7 @@ const nactiFondy = reactCache(async (): Promise<{ fondy: FundData[]; datum: Date
       repl: !ok ? null : /synth|swap/.test(rp) ? 'Syntetická' as const : /phys|full|sampl|optim/.test(rp) ? 'Fyzická' as const : null,
     };
   });
-  return { fondy, datum: nejstarsi ? datumCen(nejstarsi) : null };
+  return { fondy, datum: nejstarsi };
 });
 
 const datumText = (d: Date) => d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });

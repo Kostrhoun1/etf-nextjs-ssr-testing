@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { RefreshCw } from 'lucide-react';
-import { datumCen } from '@/lib/datumCen';
+import { datumVynosu, type SDatemVynosu } from '@/lib/datumVynosu';
 
 /**
  * Štítek „Data k …“ – u žebříčků a přehledů fondů. Jen datum (18. 10. 2026, majitel: dovětek
@@ -42,12 +42,13 @@ export default function AktualnostDat({
   );
 }
 
-/** Nejstarší datum scrapu ze seznamu fondů (pro `nejstarsi`). */
-export function nejstarsiDatum(etfs: { scraping_date?: string | null }[]): Date | null {
-  let min: number | null = null;
+/** Nejstarší den výnosů ze seznamu fondů (pro `nejstarsi`): returns_as_of, u starších dat den cen ze scraping_date
+ *  (src/lib/datumVynosu.ts). 21. 10. 2026: fondy se zpožděnou řadou u zdroje (ESEA 16. 10. vs. většina 19. 10.). */
+export function nejstarsiDatum(etfs: SDatemVynosu[]): Date | null {
+  let min: Date | null = null;
   for (const e of etfs) {
-    const t = e.scraping_date ? new Date(e.scraping_date).getTime() : NaN;
-    if (!Number.isNaN(t) && (min == null || t < min)) min = t;
+    const d = datumVynosu(e);
+    if (d && (min == null || d < min)) min = d;
   }
-  return min == null ? null : datumCen(new Date(min)); // datum cen, ne den stažení
+  return min;
 }

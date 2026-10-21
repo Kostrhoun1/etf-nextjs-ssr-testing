@@ -1,12 +1,12 @@
 /**
  * Korunové výnosy vybraných fondů I S DATEM, ke kterému platí (pravidlo č. 1: každé číslo má datum).
- * Datum = datumCen(scraping_date) – stejně jako detail fondu. Fond, který scraper 14+ dní neaktualizoval
+ * Datum = den výnosů (returns_as_of, src/lib/datumVynosu.ts) – stejně jako detail fondu. Fond, který scraper 14+ dní neaktualizoval
  * (CERSTVOST_DNI), vrací výnosy null → na webu „—“, ne stará čísla vydávaná za dnešní.
  * Použití: výsledek průvodce /vyber-etf, detail modelového portfolia bez backtestu.
  */
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
-import { datumCen } from '@/lib/datumCen';
+import { datumVynosuIso, type SDatemVynosu } from '@/lib/datumVynosu';
 import { CERSTVOST_DNI } from '@/lib/etf-data';
 
 const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -27,7 +27,7 @@ export async function vynosyFonduSDatem(isins: string[]): Promise<Record<string,
   try {
     const { data, error } = await db
       .from('etf_funds')
-      .select('isin, name, primary_ticker, return_1y_czk, return_3y_czk, return_5y_czk, scraping_date')
+      .select('isin, name, primary_ticker, return_1y_czk, return_3y_czk, return_5y_czk, scraping_date, returns_as_of')
       .in('isin', isins);
     if (error || !data) return out;
     const hranice = Date.now() - CERSTVOST_DNI * 864e5;
@@ -42,7 +42,7 @@ export async function vynosyFonduSDatem(isins: string[]): Promise<Record<string,
         r1: num(r.return_1y_czk),
         r3: num(r.return_3y_czk),
         r5: num(r.return_5y_czk),
-        datum: cerstve && sd ? datumCen(sd).toISOString().slice(0, 10) : null,
+        datum: cerstve ? datumVynosuIso(r as SDatemVynosu) : null, // den výnosů (returns_as_of), src/lib/datumVynosu.ts
       };
     }
   } catch (e) {

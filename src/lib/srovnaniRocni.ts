@@ -14,6 +14,8 @@ export interface DoplnekFondu {
   roky: RokVynosu[];
   zeme: { nazev: string; vaha: number }[];
   scrapingDate: string | null;
+  /** Den výnosů fondu (returns_as_of, src/lib/datumVynosu.ts); null u dat před 21. 10. 2026. */
+  returnsAsOf: string | null;
   /** Výnos fondu mimo svůj trh (src/lib/trhy.ts) → letošní výnos neověřený, neukazovat. */
   odlehly: boolean;
 }
@@ -23,7 +25,7 @@ const num = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? 
 
 export async function nactiDoplnkyFondu(isins: string[]): Promise<Record<string, DoplnekFondu>> {
   const sloupce = [
-    'isin', 'scraping_date', 'return_ytd', 'return_ytd_czk', 'return_ytd_usd',
+    'isin', 'scraping_date', 'returns_as_of', 'return_ytd', 'return_ytd_czk', 'return_ytd_usd',
     ...ROKY.flatMap((r) => [`return_${r}`, `return_${r}_czk`, `return_${r}_usd`]),
     ...[1, 2, 3, 4, 5].flatMap((i) => [`country_${i}_name`, `country_${i}_weight`]),
   ];
@@ -48,7 +50,7 @@ export async function nactiDoplnkyFondu(isins: string[]): Promise<Record<string,
       const zeme = [1, 2, 3, 4, 5]
         .map((i) => ({ nazev: String(radek[`country_${i}_name`] ?? '').trim(), vaha: num(radek[`country_${i}_weight`]) ?? 0 }))
         .filter((z) => z.nazev && z.vaha > 0);
-      out[isin] = { isin, roky, zeme, scrapingDate: (radek.scraping_date as string) ?? null, odlehly };
+      out[isin] = { isin, roky, zeme, scrapingDate: (radek.scraping_date as string) ?? null, returnsAsOf: (radek.returns_as_of as string) ?? null, odlehly };
     }
     return out;
   } catch {

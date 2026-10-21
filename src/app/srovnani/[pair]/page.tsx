@@ -22,7 +22,7 @@ import { nactiDoplnkyFondu, tickerProCesko } from '@/lib/srovnaniRocni';
 import SrovnaniRocniVynosy from '@/components/design-preview/SrovnaniRocniVynosy';
 import ParametryDvojice from './ParametryDvojice';
 import { barvaFondu } from '@/lib/barvyFondu';
-import { datumCen } from '@/lib/datumCen';
+import { datumVynosu } from '@/lib/datumVynosu';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { ceskaZeme } from '@/lib/preklady';
@@ -174,7 +174,7 @@ export default async function PairComparePage(
   const tk2 = zobrazTicker(t2, etf2);
   if (etf1.isin === etf2.isin) {
     const dp = (await nactiDoplnkyFondu([etf1.isin]))[etf1.isin];
-    const den = dp?.scrapingDate ? datumCen(new Date(dp.scrapingDate)) : await getDataDate(new Date());
+    const den = datumVynosu({ returns_as_of: dp?.returnsAsOf, scraping_date: dp?.scrapingDate }) ?? await getDataDate(new Date());
     return <StejnyFond etf={etf1} tk1={tk1} tk2={tk2} kanon={vlastni} dateStr={den.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })} />;
   }
   const curated = getPairContent(pair);
@@ -186,9 +186,9 @@ export default async function PairComparePage(
   const dp1 = doplnky[etf1.isin], dp2 = doplnky[etf2.isin];
 
   const today = new Date();
-  // Datum = den cen staršího ze dvou fondů (datumCen ze scraping_date), ne globální datum (pravidlo č. 1).
-  const stazeno = [dp1?.scrapingDate, dp2?.scrapingDate].filter(Boolean).map((d) => new Date(String(d))).sort((a, b) => a.getTime() - b.getTime())[0];
-  const dateStr = (stazeno ? datumCen(stazeno) : await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Datum = den výnosů staršího ze dvou fondů (returns_as_of, src/lib/datumVynosu.ts), ne globální datum (pravidlo č. 1).
+  const nejstarsiDen = [dp1, dp2].map((d) => datumVynosu({ returns_as_of: d?.returnsAsOf, scraping_date: d?.scrapingDate })).filter((d): d is Date => !!d).sort((a, b) => a.getTime() - b.getTime())[0];
+  const dateStr = (nejstarsiDen ?? await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const zemeDvojice = [dp1?.zeme ?? [], dp2?.zeme ?? []];
   const ODSTINY = ['bg-slate-700', 'bg-slate-500', 'bg-slate-400', 'bg-slate-300', 'bg-slate-200'];
 

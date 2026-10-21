@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase';
 import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { CERSTVOST_DNI } from '@/lib/etf-data';
+import { nejcastejsiDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
 
 /* Výpočet pro homepage sekci „Nejlevnější, největší a nejvýkonnější ETF podle trhu“.
@@ -20,6 +21,8 @@ export interface FondTrhu {
   velikost: number | null;
   r1: number | null;
   scrapingDate: string | null;
+  /** Den, ke kterému platí výnosy fondu (returns_as_of, src/lib/datumVynosu.ts). */
+  returnsAsOf?: string | null;
   /** Akumulační třída – při shodě TER má přednost (začátečníkům radíme akumulační). */
   acc: boolean;
 }
@@ -36,6 +39,9 @@ export interface RadekTrhu {
   max: number | null;
   nejvykonnejsi: FondTrhu | null;
   odlehle: FondTrhu[];
+  /** Fondy s výnosy o víc než 3 pracovní dny staršími než většina (zpožděná řada u zdroje) – mimo medián
+   *  a „nejvýkonnější“ (srovnávala by se různá období); jejich výnos platí k jejich vlastnímu dni. */
+  pozadu: FondTrhu[];
   nejstarsi: string | null;
 }
 
@@ -68,7 +74,9 @@ export const median = (xs: number[]) => {
 /** Čistý výpočet nad načtenými fondy (exportovaný kvůli testu odlehlé hodnoty). */
 export function spocitejTrh(trh: Trh, fondy: FondTrhu[], ted = Date.now()): RadekTrhu {
   const cerstve = fondy.filter((f) => f.scrapingDate && ted - new Date(f.scrapingDate).getTime() < CERSTVOST_DNI * 864e5);
-  const sVynosem = cerstve.filter((f) => f.r1 != null);
+  const vetsina = nejcastejsiDatumVynosu(cerstve.map((f) => ({ returns_as_of: f.returnsAsOf, scraping_date: f.scrapingDate })));
+  const pozadu = cerstve.filter((f) => f.r1 != null && vynosyPozadu({ returns_as_of: f.returnsAsOf, scraping_date: f.scrapingDate }, vetsina));
+  const sVynosem = cerstve.filter((f) => f.r1 != null && !pozadu.includes(f));
   const med0 = median(sVynosem.map((f) => f.r1!));
   const odlehle = med0 == null ? [] : sVynosem.filter((f) => Math.abs(f.r1! - med0) > ODLEHLA_PB);
   const platneVynosy = sVynosem.filter((f) => !odlehle.includes(f));
@@ -95,6 +103,7 @@ export function spocitejTrh(trh: Trh, fondy: FondTrhu[], ted = Date.now()): Rade
     max: dost ? Math.max(...vyn) : null,
     nejvykonnejsi,
     odlehle,
+    pozadu,
     nejstarsi,
   };
 }
@@ -103,7 +112,7 @@ export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
   const isiny = TRHY.flatMap((t) => t.isins);
   const { data, error } = await supabaseAdmin
     .from('etf_funds')
-    .select(`isin, name, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, distribution_policy, ${SLOUPCE_TICKERU.join(', ')}`)
+    .select(`isin, name, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, returns_as_of, distribution_policy, ${SLOUPCE_TICKERU.join(', ')}`)
     .in('isin', isiny);
   if (error || !data) return null; // raději sekci neukázat než ukázat nesmysl
   const podleIsin = new Map<string, FondTrhu>(
@@ -116,6 +125,7 @@ export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
       velikost: r.fund_size_numeric == null ? null : Number(r.fund_size_numeric),
       r1: r.return_1y_czk == null ? null : Number(r.return_1y_czk),
       scrapingDate: r.scraping_date == null ? null : String(r.scraping_date),
+      returnsAsOf: r.returns_as_of == null ? null : String(r.returns_as_of),
       acc: jeAkumulacni(r.distribution_policy),
     }]),
   );

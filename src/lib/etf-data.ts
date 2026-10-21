@@ -4,6 +4,7 @@
  */
 import { cache as reactCache } from 'react';
 import { datumCen } from '@/lib/datumCen';
+import { nejcastejsiDatumVynosu, jineDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
@@ -34,6 +35,8 @@ export interface ETFBasicInfo {
   return_1y: number | null;
   return_1y_czk: number | null;
   scraping_date?: string | null;
+  /** Den, ke kterému platí výnosy za období (src/lib/datumVynosu.ts); null u dat před 21. 10. 2026. */
+  returns_as_of?: string | null;
   return_1y_usd: number | null;
   return_3y: number | null;
   return_3y_czk: number | null;
@@ -112,7 +115,8 @@ const ETF_SELECT_FIELDS = `
   fund_currency,
   index_name,
   inception_date,
-  scraping_date
+  scraping_date,
+  returns_as_of
 `;
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- builder Supabase dotazu má generický typ podle selectu */
@@ -307,7 +311,7 @@ export async function getVyberKarty(config: CategoryConfig, prah: number, sVykon
   levne: ETFBasicInfo[]; nejvetsi: ETFBasicInfo | null; vsechny: ETFBasicInfo[] | null;
 } | null> {
   const sloupce = ['isin', 'name', 'fund_provider', 'ter_numeric', 'fund_size_numeric', 'distribution_policy',
-    'return_1y_czk', 'return_3y_czk', 'inception_date', 'scraping_date', ...SLOUPCE_TICKERU].join(',');
+    'return_1y_czk', 'return_3y_czk', 'inception_date', 'scraping_date', 'returns_as_of', ...SLOUPCE_TICKERU].join(',');
   const zaklad = () => filtrKategorie(supabaseAdmin.from('etf_funds').select(sloupce), config).gte('fund_size_numeric', prah);
   try {
     const [lev, vel] = await Promise.all([
@@ -572,14 +576,30 @@ export async function getFeaturedETFs(): Promise<{
   }
 }
 
-/* Reálné datum poslední aktualizace dat (MAX scraping_date) – data se počítají denně,
-   takže zobrazujeme skutečné čerstvé datum, ne 1. v měsíci (web musí působit up‑to‑date).
+/* „Data k …“ celého webu = NEJČASTĚJŠÍ den výnosů (returns_as_of) u naposledy stažených fondů (21. 10. 2026).
+   Výnosy platí k poslednímu jistě konečnému dni zdroje (src/lib/datumVynosu.ts) – ne ke dni stažení a ne
+   k předběžnému dni. JEDEN dotaz jako dřív (jen víc řádků: 1 000 naposledy stažených fondů, ~1 sloupec).
+   Dokud scraper returns_as_of neplní (data před 21. 10. 2026), platí dosavadní datum cen z MAX scraping_date.
    Cacheováno pro celý render (dedup napříč generateMetadata + komponentou). */
 const _dataDate = reactCache(async (): Promise<Date | null> => {
-  const iso = await getLastModifiedDate();
-  const d = iso ? new Date(iso) : null;
-  // Datum CEN (předchozí obchodní den před stažením), ne den stažení – viz src/lib/datumCen.ts.
-  return d && !Number.isNaN(d.getTime()) ? datumCen(d) : null;
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select('scraping_date, returns_as_of')
+      .not('scraping_date', 'is', null)
+      .order('scraping_date', { ascending: false })
+      .limit(1000);
+    if (error || !data?.length) return null;
+    const radky = data as { scraping_date: string | null; returns_as_of: string | null }[];
+    const sVynosy = radky.filter((r) => r.returns_as_of);
+    if (sVynosy.length) return nejcastejsiDatumVynosu(sVynosy);
+    const d = new Date(String(radky[0].scraping_date));
+    // Datum CEN (předchozí obchodní den před stažením), ne den stažení – viz src/lib/datumCen.ts.
+    return Number.isNaN(d.getTime()) ? null : datumCen(d);
+  } catch (error) {
+    console.error('Error in _dataDate:', error);
+    return null;
+  }
 });
 
 /** Vrátí datum posledních dat; když se nepodaří načíst, použije `fallback` (zpravidla dnešek). */
@@ -683,14 +703,20 @@ export async function getReturnsByIsins(
   try {
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('isin, return_1y_czk, return_3y_czk')
+      .select('isin, return_1y_czk, return_3y_czk, returns_as_of, scraping_date')
       .in('isin', isins);
     if (error || !data) return {};
+    type Radek = { isin: string; return_1y_czk: number | null; return_3y_czk: number | null; returns_as_of: string | null; scraping_date: string | null };
+    const radky = data as Radek[];
+    // Výnosy se tu SČÍTAJÍ do portfolií → všechny složky musí platit ke stejnému období. Složka s výnosy o víc než
+    // 3 pracovní dny staršími než většina (zpožděná řada u zdroje) → null, portfolio pak „—“ (src/lib/datumVynosu.ts).
+    const vetsina = nejcastejsiDatumVynosu(radky);
     const map: Record<string, { return_1y_czk: number | null; return_3y_czk: number | null }> = {};
-    for (const row of data as Array<{ isin: string; return_1y_czk: number | null; return_3y_czk: number | null }>) {
+    for (const row of radky) {
+      const pozadu = vynosyPozadu(row, vetsina);
       map[row.isin] = {
-        return_1y_czk: row.return_1y_czk != null ? Number(row.return_1y_czk) : null,
-        return_3y_czk: row.return_3y_czk != null ? Number(row.return_3y_czk) : null,
+        return_1y_czk: row.return_1y_czk != null && !pozadu ? Number(row.return_1y_czk) : null,
+        return_3y_czk: row.return_3y_czk != null && !pozadu ? Number(row.return_3y_czk) : null,
       };
     }
     return map;
@@ -1015,6 +1041,7 @@ export interface ScreenerETF {
   distribution_policy: string | null;
   distribution_frequency: string | null;
   scraping_date: string | null;
+  returns_as_of?: string | null;
   replication: string | null;
   index_name: string | null;
   region: string | null;
@@ -1040,7 +1067,7 @@ const SCREENER_COLUMNS = `
   return_1y_usd, return_3y_usd, return_5y_usd, return_ytd_usd,
   volatility_1y, current_dividend_yield_numeric,
   distribution_policy, distribution_frequency, replication, index_name, region, investment_focus,
-  fund_currency, currency_risk, category, is_leveraged, rating, inception_date, fund_domicile, scraping_date
+  fund_currency, currency_risk, category, is_leveraged, rating, inception_date, fund_domicile, scraping_date, returns_as_of
 `;
 
 /**
@@ -1103,6 +1130,9 @@ export interface ScreenerRow {
   volatility_1y: number | null;
   /** 1 = volatilitu zdroje neukazujeme: nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts). Jinak chybí. */
   _volX?: 1;
+  /** Den výnosů fondu („16. 10. 2026“) – JEN když se liší od dne většiny fondů ve srovnávači (src/lib/datumVynosu.ts).
+   *  Zpožděná řada u zdroje (ESEA, PSP5…): výnosy platí k jinému dni než „Data k …“ stránky. Jinak chybí. */
+  _dv?: string;
   fund_provider: string | null;
   // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
   _region: string | null;
@@ -1232,6 +1262,8 @@ export const getScreenerRows = reactCache(async (): Promise<{
   const volNesedi = rizikoNesedi(raw, ['volatility_1y']);
   const trhPodleIsin = new Map<string, string>();
   for (const t of TRHY_SROVNAVACE) for (const i of trhIsiny.get(t.id) ?? []) if (!trhPodleIsin.has(i)) trhPodleIsin.set(i, t.id);
+  // Den výnosů většiny fondů (bez dotazu navíc) – fond s jiným dnem dostane u výnosů vlastní datum (_dv).
+  const vetsinaVynosu = nejcastejsiDatumVynosu(raw);
 
   const rows: ScreenerRow[] = raw.map((e, idx) => {
     const tickers = [
@@ -1263,6 +1295,7 @@ export const getScreenerRows = reactCache(async (): Promise<{
       return_5y: r1(e.return_5y), return_5y_czk: r1(e.return_5y_czk), return_5y_usd: r1(e.return_5y_usd),
       volatility_1y: volNesedi.has(e.isin) ? null : r1(e.volatility_1y),
       ...(volNesedi.has(e.isin) ? { _volX: 1 as const } : {}),
+      ...((dv) => (dv ? { _dv: dv } : {}))(jineDatumVynosu(e, vetsinaVynosu)),
       fund_provider: e.fund_provider,
       _dom: domLabelSrv(e.fund_domicile),
       _year: inceptionYear(e.inception_date),

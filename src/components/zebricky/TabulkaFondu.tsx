@@ -33,6 +33,9 @@ export interface RadekFondu {
   typ: 'acc' | 'dist' | null;
   /** Měna zajištění („EUR“, „CHF“…), „ano“ když měna není poznat, null = nezajištěná třída. */
   zajisteni: string | null;
+  /** Den výnosů fondu („16. 10. 2026“) jen když se liší od „Data k …“ žebříčku (zpožděná řada u zdroje,
+   *  src/lib/datumVynosu.ts); jinak chybí. */
+  vynosyK?: string;
 }
 
 type Klic = 'size' | 'ter' | 'r1' | 'r3';
@@ -246,6 +249,7 @@ export default function TabulkaFondu({
                       {r.typ && <span>· {r.typ === 'acc' ? 'akumulační' : 'distribuční'}</span>}
                       {r.rok && <span>· od {r.rok}</span>}
                       {r.zajisteni && <span className="rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">zajištěno{r.zajisteni !== 'ano' ? ` ${r.zajisteni}` : ''}</span>}
+                      {r.vynosyK && <span data-vynosy-k={r.vynosyK} title="Zdroj má ceny tohoto fondu se zpožděním – jeho výnosy platí k jinému dni než ostatní." className="cursor-help rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">výnosy k {r.vynosyK}</span>}
                     </span>
                   </span>
                 </Link>
