@@ -11,8 +11,8 @@ export function curSuffix(cur: Currency): '' | '_czk' | '_usd' {
   return cur === 'CZK' ? '_czk' : cur === 'USD' ? '_usd' : '';
 }
 
-/** Symbol/label měny pro popisky. */
-export const curLabel: Record<Currency, string> = { CZK: 'Kč', EUR: '€', USD: '$' };
+/** Popisek měny („Výnos v Kč / v EUR / v USD“). Kolo 6b: dřív „€“ a „$“ vedle „EUR/USD“ v přepínači – jednotně kódy. */
+export const curLabel: Record<Currency, string> = { CZK: 'Kč', EUR: 'EUR', USD: 'USD' };
 
 /**
  * Vybere hodnotu výnosu za období v dané měně z objektu s poli

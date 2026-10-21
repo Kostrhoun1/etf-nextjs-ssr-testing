@@ -14,6 +14,8 @@ import { detectHedging } from '@/utils/hedgingDetection';
 import { TRHY_SROVNAVACE, INDEXY_TRHU } from '@/lib/screenerTrhy';
 import { rizikoNesedi, type RizikoPole } from '@/lib/tridyFondu';
 import { indexDetailu, klicPodobnych, prefixIndexu, zajisteniFondu, type FondDetailu } from '@/lib/detailFondu';
+import { odlehleIsiny, kotvyRizika, radkyTrhu, trhyZRadku, odlehleZTrhu, kotvyZRadku } from '@/lib/trhy';
+import { bezVynosuObdobi, bezOdlehlychVynosu, bezOdlehlehoVynosu } from '@/lib/vynosNeovereny';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
@@ -336,7 +338,7 @@ export async function getVyberKarty(config: CategoryConfig, prah: number, sVykon
  *  „MSCI World" (audit 17. 10. 2026), takže je nesmíme brát jako „stejný index". */
 export const SPECIFICKY_FOND = /\b(sector|energy|financials?|information technology|technology|health ?care|utilities|industrials?|materials|consumer|communication|real estate|equal weight|value|growth|momentum|quality|min(imum)? vol|dividend|esg|sri|paris|climate|ex[- ]|small ?cap|mid ?cap|leveraged|short|inverse|\dx)\b/i;
 
-export interface PodobnyFond { isin: string; name: string; primary_ticker: string | null; ter_numeric: number | null; fund_size_numeric: number | null; return_1y_czk: number | null }
+export interface PodobnyFond { isin: string; name: string; primary_ticker: string | null; ter_numeric: number | null; fund_size_numeric: number | null; return_1y_czk: number | null; fund_provider: string | null }
 
 /**
  * Podobné fondy pro „Další fondy na index X" na detailu (kolo 6, 20. 10. 2026): STEJNÝ index jako nadpis
@@ -357,7 +359,7 @@ export async function getPodobneFondy(fond: FondDetailu & { isin: string }): Pro
   try {
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, index_name, investment_focus, category')
+      .select('isin, name, primary_ticker, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, index_name, investment_focus, category')
       .ilike('index_name', prefix)
       .neq('isin', fond.isin)
       .not('is_leveraged', 'is', true)
@@ -372,7 +374,7 @@ export async function getPodobneFondy(fond: FondDetailu & { isin: string }): Pro
       .filter((f) => { const h = zajisteniFondu(f); return h.isHedged === zaj.isHedged && h.hedgedCurrency === zaj.hedgedCurrency; })
       .filter((f) => specificky || !SPECIFICKY_FOND.test(f.name))
       .slice(0, 4)
-      .map(({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk }) => ({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk }));
+      .map(({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider }) => ({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider: fund_provider ?? null }));
   } catch {
     return [];
   }
@@ -840,6 +842,8 @@ export interface ComparisonETF {
   category: string | null;
   /** Rizikové ukazatele, které nesedí s jinou třídou téhož fondu → web ukazuje „—“ (src/lib/tridyFondu.ts). */
   _rizikoNesedi?: RizikoPole[];
+  /** Výnos fondu mimo svůj trh → výnosy za období jsou null a web ukazuje „—“ s vysvětlivkou (src/lib/vynosNeovereny.ts). */
+  _vynosNeovereny?: boolean;
 }
 
 /** Burzy fondu (pro odpověď „stejný fond, jiný ticker" – kde a v jaké měně se obchoduje). */
@@ -869,6 +873,7 @@ export async function getComparisonETFData(
         : COMPARISON_TICKER_FIELDS.map(field => `${field}.eq.${symbol}`).join(','))
       .join(',');
 
+    const odlehleP = odlehleIsiny().catch(() => new Set<string>());
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
       .select(`
@@ -912,8 +917,10 @@ export async function getComparisonETFData(
     const nejlepsi = (ticker: string) => radky
       .filter(e => matches(e, ticker))
       .sort((a, b) => skore(b, ticker) - skore(a, ticker) || Number(b.fund_size_numeric ?? 0) - Number(a.fund_size_numeric ?? 0))[0];
-    const etf1 = nejlepsi(ticker1) as unknown as ComparisonETF | undefined;
-    const etf2 = nejlepsi(ticker2) as unknown as ComparisonETF | undefined;
+    // Odlehlý výnos (src/lib/vynosNeovereny.ts): výnosy za období null – stejně jako detail fondu.
+    const odlehle = await odlehleP;
+    const etf1 = bezOdlehlehoVynosu(nejlepsi(ticker1) as unknown as ComparisonETF | undefined, odlehle) ?? undefined;
+    const etf2 = bezOdlehlehoVynosu(nejlepsi(ticker2) as unknown as ComparisonETF | undefined, odlehle) ?? undefined;
 
     // Stejný ISIN (CSPX vs SXR8) se NEodmítá: je to častý dotaz „je to stejný fond?" a stránka
     // na něj odpoví (dřív 404).
@@ -944,9 +951,11 @@ async function tridyTehozFondu(e: { name?: string | null; fund_provider?: string
 /** Rizikové ukazatele fondu, které nesedí s jinou třídou téhož fondu (detail fondu → „—“, pravidlo č. 1). */
 export async function rizikoNesediFondu(e: TridaRiziko): Promise<RizikoPole[]> {
   try {
-    const tridy = new Map((await tridyTehozFondu(e)).map((f) => [f.isin, f]));
+    // Kotva trhu (kolo 6b) ze stejné React cache jako nactiTrhy – na detailu žádný dotaz navíc.
+    const [sourozenci, kotvy] = await Promise.all([tridyTehozFondu(e), kotvyRizika()]);
+    const tridy = new Map(sourozenci.map((f) => [f.isin, f]));
     tridy.set(e.isin, e);
-    return rizikoNesedi([...tridy.values()]).get(e.isin) ?? [];
+    return rizikoNesedi([...tridy.values()], undefined, kotvy).get(e.isin) ?? [];
   } catch {
     return [];
   }
@@ -961,18 +970,20 @@ export async function getComparisonETFsByIsins(isins: string[]): Promise<Compari
   try {
     // Načteme VŠECHNA pole (jen ≤4 řádky) – porovnání má ukázat maximum toho,
     // co o fondech víme: top pozice, sektory, země, riziko, všechna období.
-    const { data, error } = await supabaseAdmin
-      .from('etf_funds')
-      .select('*')
-      .in('isin', isins.slice(0, 4));
+    const [{ data, error }, odlehle, kotvy] = await Promise.all([
+      supabaseAdmin.from('etf_funds').select('*').in('isin', isins.slice(0, 4)),
+      odlehleIsiny(),
+      kotvyRizika(),
+    ]);
     if (error || !data) return [];
-    const byIsin = new Map((data as ComparisonETF[]).map((e) => [e.isin, e]));
+    // Odlehlý výnos (src/lib/vynosNeovereny.ts): výnosy za období null – stejně jako detail fondu a srovnávač.
+    const byIsin = new Map(bezOdlehlychVynosu(data as ComparisonETF[], odlehle).map((e) => [e.isin, e]));
     const vysledek = isins.map((i) => byIsin.get(i)).filter((e): e is ComparisonETF => !!e);
     // Ostatní třídy téhož fondu (stejný poskytovatel a název před „UCITS ETF“) – kontrola volatility.
     const sourozenci = await Promise.all(vysledek.map((e) => tridyTehozFondu(e)));
     const tridy = new Map(sourozenci.flat().map((f) => [f.isin, f]));
     for (const e of vysledek) if (!tridy.has(e.isin)) tridy.set(e.isin, e as never);
-    const nesedi = rizikoNesedi([...tridy.values()]);
+    const nesedi = rizikoNesedi([...tridy.values()], undefined, kotvy);
     return vysledek.map((e) => (nesedi.has(e.isin) ? { ...e, _rizikoNesedi: nesedi.get(e.isin) } : e));
   } catch (error) {
     console.error('Error in getComparisonETFsByIsins:', error);
@@ -1103,6 +1114,8 @@ export interface ScreenerRow {
   volatility_1y: number | null;
   /** 1 = volatilitu zdroje neukazujeme: nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts). Jinak chybí. */
   _volX?: 1;
+  /** Výnos fondu mimo svůj trh (src/lib/vynosNeovereny.ts) → výnosy za období „—“ s vysvětlivkou. */
+  _vynX?: 1;
   fund_provider: string | null;
   // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
   _region: string | null;
@@ -1216,7 +1229,11 @@ export const getScreenerRows = reactCache(async (): Promise<{
   // Fondy se zamrzlými daty (scraper je 30+ dní neaktualizoval – typicky už nejsou v nabídce)
   // by ukazovaly staré výnosy jako dnešní; detail fondu zůstává dostupný s varováním.
   // Stejná definice „v nabídce“ jako getTotalETFCount (homepage, brokeři) – viz jeVNabidce.
-  const [vse, trhIsiny] = await Promise.all([getScreenerETFData(), nactiTrhySrovnavace()]);
+  // Odlehlé výnosy (src/lib/vynosNeovereny.ts) – stejné pravidlo jako detail fondu: výnosy za období „—“.
+  // Řádky trhů JEDNÍM dotazem (API route nemá React cache): z nich odlehlé ISINy i kotva rizika tříd (kolo 6b).
+  const [vse, trhIsiny, radkyT] = await Promise.all([getScreenerETFData(), nactiTrhySrovnavace(), radkyTrhu()]);
+  const odlehle = odlehleZTrhu(trhyZRadku(radkyT));
+  const kotvy = kotvyZRadku(radkyT);
   const raw = vse.filter(jeVNabidce);
 
   // Index každého fondu (čištění nabídky + odvození z názvu, viz src/utils/indexNormalization.ts).
@@ -1229,11 +1246,14 @@ export const getScreenerRows = reactCache(async (): Promise<{
     })
     .filter((g) => g.options.length > 0);
   // Volatilita, která nesedí s jinou třídou téhož fondu → „—“ (pravidlo č. 1, src/lib/tridyFondu.ts).
-  const volNesedi = rizikoNesedi(raw, ['volatility_1y']);
+  const volNesedi = rizikoNesedi(raw, ['volatility_1y'], kotvy);
   const trhPodleIsin = new Map<string, string>();
   for (const t of TRHY_SROVNAVACE) for (const i of trhIsiny.get(t.id) ?? []) if (!trhPodleIsin.has(i)) trhPodleIsin.set(i, t.id);
 
-  const rows: ScreenerRow[] = raw.map((e, idx) => {
+  const rows: ScreenerRow[] = raw.map((e0, idx) => {
+    // Fond s výnosem mimo svůj trh: výnosy za období null (řazení podle výnosu ho nevytáhne nahoru) + značka _vynX.
+    const vynX = odlehle.has(e0.isin);
+    const e = vynX ? bezVynosuObdobi(e0) : e0;
     const tickers = [
       e.primary_ticker,
       e.exchange_1_ticker, e.exchange_2_ticker, e.exchange_3_ticker, e.exchange_4_ticker, e.exchange_5_ticker,
@@ -1263,6 +1283,7 @@ export const getScreenerRows = reactCache(async (): Promise<{
       return_5y: r1(e.return_5y), return_5y_czk: r1(e.return_5y_czk), return_5y_usd: r1(e.return_5y_usd),
       volatility_1y: volNesedi.has(e.isin) ? null : r1(e.volatility_1y),
       ...(volNesedi.has(e.isin) ? { _volX: 1 as const } : {}),
+      ...(vynX ? { _vynX: 1 as const } : {}),
       fund_provider: e.fund_provider,
       _dom: domLabelSrv(e.fund_domicile),
       _year: inceptionYear(e.inception_date),

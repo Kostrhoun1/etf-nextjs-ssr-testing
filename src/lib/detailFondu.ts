@@ -173,3 +173,18 @@ export const datumKratce = (d: Date) => `${d.getDate()}.${' '}${d.getMonth() + 
 
 /** Česky: 1 rok, 2–4 roky, 5+ let. */
 export const roky = (n: number) => (n === 1 ? 'rok' : n >= 2 && n <= 4 ? 'roky' : 'let');
+
+/* ---------- pořadí burz (JEDNA funkce pro detail, porovnání i stránky dvojic – kolo 6b) ----------
+   XETRA první (DEGIRO, XTB, Trading 212 – tam Češi nakupují), pak ostatní EUR burzy (Amsterdam, Milán, Paříž, gettex,
+   Stuttgart, Frankfurt), až potom Londýn a SIX. V rámci burzy listing v EUR před jinou měnou. Dřív 3 kopie: detail
+   (tahle), porovnání jen „XETRA první“ a /srovnani/[pair] bez řazení (XETRA poslední u cspx-vs-sxr8). */
+const PORADI_BURZ = [/xetra/i, /amsterdam/i, /milan|italiana/i, /paris/i, /gettex/i, /stuttgart/i, /frankfurt/i, /london/i, /six|swiss/i];
+export function poradiBurzy(e: { name: string | null | undefined; currency?: string | null }): number {
+  const i = PORADI_BURZ.findIndex((re) => re.test(e.name ?? ''));
+  if (i === 0) return e.currency === 'EUR' || !e.currency ? 0 : 1; // XETRA vždy první
+  return (e.currency === 'EUR' ? 10 : 100) + (i < 0 ? 99 : i);
+}
+/** Seřadí listingy podle `poradiBurzy` (stabilně – při shodě pořadí ze zdroje). */
+export function seradBurzy<T>(xs: T[], burza: (x: T) => { name: string | null | undefined; currency?: string | null }): T[] {
+  return xs.map((x, i) => ({ x, i, p: poradiBurzy(burza(x)) })).sort((a, b) => a.p - b.p || a.i - b.i).map((o) => o.x);
+}

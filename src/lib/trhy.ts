@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { CERSTVOST_DNI } from '@/lib/etf-data';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
+import { RIZIKO_POLE, klicTridy, type RizikoPole } from '@/lib/tridyFondu';
 
 /* Výpočet pro homepage sekci „Nejlevnější, největší a nejvýkonnější ETF podle trhu“.
    Jeden dotaz (~130 fondů) při ISR renderu, nic na návštěvníka. Pravidlo č. 1:
@@ -99,15 +100,22 @@ export function spocitejTrh(trh: Trh, fondy: FondTrhu[], ted = Date.now()): Rade
   };
 }
 
-export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
+/** Jeden dotaz na fondy všech trhů (React cache) – z něj nactiTrhy, odlehleIsiny i kotvyRizika (žádný dotaz navíc). */
+const nactiFondyTrhu = cache(async (): Promise<Record<string, unknown>[] | null> => {
   const isiny = TRHY.flatMap((t) => t.isins);
   const { data, error } = await supabaseAdmin
     .from('etf_funds')
-    .select(`isin, name, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, distribution_policy, ${SLOUPCE_TICKERU.join(', ')}`)
+    .select(`isin, name, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, distribution_policy, ${RIZIKO_POLE.join(', ')}, ${SLOUPCE_TICKERU.join(', ')}`)
     .in('isin', isiny);
   if (error || !data) return null; // raději sekci neukázat než ukázat nesmysl
+  return data as unknown as Record<string, unknown>[];
+});
+
+/** Výpočet trhů z načtených řádků (sdílí ho nactiTrhy a getScreenerRows – API route nemá React cache). */
+export function trhyZRadku(data: Record<string, unknown>[] | null): RadekTrhu[] | null {
+  if (!data) return null;
   const podleIsin = new Map<string, FondTrhu>(
-    (data as unknown as Record<string, unknown>[]).map((r) => [String(r.isin), {
+    data.map((r) => [String(r.isin), {
       isin: String(r.isin),
       nazev: kratky(String(r.name ?? r.isin)),
       ticker: zobrazovanyTicker(r), // jeden ticker webu (src/lib/ticker.ts)
@@ -120,4 +128,46 @@ export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => {
     }]),
   );
   return TRHY.map((t) => spocitejTrh(t, t.isins.map((i) => podleIsin.get(i)).filter((f): f is FondTrhu => Boolean(f))));
-});
+}
+
+export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => trhyZRadku(await nactiFondyTrhu()));
+
+/** Odlehlé ISINy z vypočtených trhů. */
+export const odlehleZTrhu = (trhy: RadekTrhu[] | null) => new Set((trhy ?? []).flatMap((t) => t.odlehle.map((f) => f.isin)));
+
+/** ISINy fondů s výnosem mimo svůj trh (> ODLEHLA_PB od mediánu) – JEDEN seznam pro detail, žebříčky, srovnávač
+ *  i porovnání (src/lib/vynosNeovereny.ts). Stojí na `nactiTrhy` (React cache) → na stránce, která trhy už načítá,
+ *  žádný dotaz navíc. Chyba dotazu = prázdná množina (stejně jako dřív detail). */
+export const odlehleIsiny = cache(async (): Promise<Set<string>> => odlehleZTrhu(await nactiTrhy()));
+
+/**
+ * KOTVA RIZIKA (kolo 6b, 21. 10. 2026): medián kolísavosti/poklesu ostatních fondů na STEJNÝ trh (ruční seznamy
+ * src/data/trhyDvojcata.ts – jen nezajištěné třídy širokého indexu), bez tříd téhož fondu (klicTridy). Slouží
+ * pravidlu tříd (src/lib/tridyFondu.ts): když se dvě třídy téhož fondu rozcházejí, ta, která sedí s kotvou, se
+ * NEskrývá (P500 max. pokles 3 roky −22,61 % ověřen nezávisle; D500 −31,41 % je chyba zdroje).
+ * Kotva jen z čerstvých dat a z aspoň MIN_KOTVA fondů; jinak žádná (= původní pravidlo, obě třídy „—“).
+ */
+const MIN_KOTVA = 5;
+export function kotvyZRadku(data: Record<string, unknown>[] | null, ted = Date.now()): Map<string, Partial<Record<RizikoPole, number>>> {
+  const out = new Map<string, Partial<Record<RizikoPole, number>>>();
+  if (!data) return out;
+  const podleIsin = new Map(data.map((r) => [String(r.isin), r]));
+  for (const t of TRHY) {
+    const fondy = t.isins.map((i) => podleIsin.get(i)).filter((r): r is Record<string, unknown> => !!r)
+      .filter((r) => r.scraping_date && ted - new Date(String(r.scraping_date)).getTime() < CERSTVOST_DNI * 864e5);
+    for (const f of fondy) {
+      const klic = klicTridy(f.name as string | null, f.fund_provider as string | null);
+      const ostatni = fondy.filter((x) => x !== f && (klic == null || klicTridy(x.name as string | null, x.fund_provider as string | null) !== klic));
+      const kotva: Partial<Record<RizikoPole, number>> = {};
+      for (const o of RIZIKO_POLE) {
+        const xs = ostatni.map((x) => (x[o] == null ? null : Math.abs(Number(x[o])))).filter((v): v is number => v != null && Number.isFinite(v) && v > 0);
+        if (xs.length >= MIN_KOTVA) kotva[o] = median(xs)!;
+      }
+      if (Object.keys(kotva).length) out.set(String(f.isin), kotva);
+    }
+  }
+  return out;
+}
+export const kotvyRizika = cache(async () => kotvyZRadku(await nactiFondyTrhu()));
+/** Pro getScreenerRows: řádky trhů jedním dotazem (API route nemá React cache – nevolat nactiTrhy a kotvy zvlášť). */
+export const radkyTrhu = nactiFondyTrhu;

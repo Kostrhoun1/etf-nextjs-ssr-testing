@@ -6,6 +6,14 @@ import { indexFonduLabel } from '@/utils/indexNormalization';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { tridaFondu, kratkyNazevFondu } from '@/lib/nazevFondu';
 import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
+import { unstable_cache } from 'next/cache';
+import { odlehleIsiny } from '@/lib/trhy';
+import { TRHY } from '@/data/trhyDvojcata';
+
+/* Výnos mimo svůj trh (src/lib/vynosNeovereny.ts) – v našeptávači taky bez čísla (kolo 6b). Dotaz na trhy jen když
+   výsledek obsahuje fond některého trhu, a sdílený přes datovou cache (1 h) – ne dotaz na každé hledání. */
+const ISINY_TRHU = new Set(TRHY.flatMap((t) => t.isins));
+const odlehleCache = unstable_cache(async () => [...(await odlehleIsiny())], ['odlehle-isiny'], { revalidate: 3600 });
 
 // slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší zlato ETF).
 const KATEGORIE: Record<string, string> = Object.fromEntries(Object.entries(categoryConfigs).map(([slug, c]) => [slug, c.title]));
@@ -72,10 +80,14 @@ export async function GET(request: NextRequest) {
     const skore = rows.map((row) => ({ row, s: score(row) }));
     // Přesná shoda tickeru („CSPX“) → bez fondů, které ticker jen začínají stejně (šum).
     const presna = skore.some((x) => x.s === 4) && /^[a-z0-9]{2,8}$/i.test(q);
-    const ranked = skore
+    const vybrane = skore
       .filter((x) => !presna || x.s !== 3)
       .sort((a, b) => b.s - a.s || (Number(b.row.fund_size_numeric) || 0) - (Number(a.row.fund_size_numeric) || 0))
-      .slice(0, 8)
+      .slice(0, 8);
+    const odlehle = vybrane.some(({ row }) => ISINY_TRHU.has(String(row.isin)))
+      ? new Set(await odlehleCache().catch(() => [] as string[]))
+      : new Set<string>();
+    const ranked = vybrane
       .map(({ row }) => ({
         isin: row.isin,
         name: row.name,
@@ -90,7 +102,7 @@ export async function GET(request: NextRequest) {
         fund_size_numeric: row.fund_size_numeric,
         // TER 0 u akcií/dluhopisů je chyba zdroje → null (stejně jako srovnávač).
         ter: row.ter_numeric == null || (Number(row.ter_numeric) === 0 && ['Akcie', 'Dluhopisy'].includes(String(row.category))) ? null : Number(row.ter_numeric),
-        r1_czk: row.return_1y_czk == null ? null : Number(row.return_1y_czk),
+        r1_czk: row.return_1y_czk == null || odlehle.has(String(row.isin)) ? null : Number(row.return_1y_czk),
         rating: row.rating,
       }));
 

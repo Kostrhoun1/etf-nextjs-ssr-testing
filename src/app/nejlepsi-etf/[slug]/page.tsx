@@ -15,7 +15,8 @@ import {
 } from '@/lib/etf-data';
 import { datumCen } from '@/lib/datumCen';
 import { titulekZebricku, popisekZebricku, odpovedZebricku, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
-import { porovnejNejlevnejsi } from '@/lib/trhy';
+import { porovnejNejlevnejsi, odlehleIsiny } from '@/lib/trhy';
+import { bezOdlehlychVynosu, bezOdlehlehoVynosu } from '@/lib/vynosNeovereny';
 import { ter, money, shortName, nbsp, SectionHead, CompositionInfographic, CategoryIndexes, slozeniPouzitelne } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent, categoryLead } from '@/components/design-preview/categoryContent';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
@@ -236,12 +237,14 @@ export function generateStaticParams() {
  *  takže titulek/popisek nemůžou ukázat jiné číslo než stránka a metadata nepřidávají žádný dotaz (free tier). */
 const nactiZebricek = reactCache(async (slug: string) => {
   const cfg = categoryConfigs[slug];
-  const [all, pocetDb, dataDatum] = await Promise.all([
+  const [all, pocetDb, dataDatum, odlehle] = await Promise.all([
     getTopETFsForCategory({ ...cfg, limit: MAX_V_TABULCE }),
     getCategoryCount(cfg),
     getDataDatum(),
+    odlehleIsiny(),
   ]);
-  const etfs = all.filter((e) => e.ter_numeric != null || e.fund_size_numeric != null);
+  // Kolo 6b: fond s výnosem mimo svůj trh (src/lib/vynosNeovereny.ts) – výnosy null → „—“ v tabulce, mimo karty/medián/odpověď.
+  const etfs = bezOdlehlychVynosu(all, odlehle).filter((e) => e.ter_numeric != null || e.fund_size_numeric != null);
   // Počet fondů v kategorii: z DB (count), jinak aspoň kolik jsme načetli – nikdy nevymyšlený.
   const celkem = Math.max(pocetDb ?? 0, etfs.length);
   const prah = cfg.filters.minFundSize ?? 10;
@@ -254,7 +257,12 @@ const nactiZebricek = reactCache(async (slug: string) => {
   // Kolo 6: karty z CELÉ kategorie, ne z 300 načtených fondů. Když tabulka nenese všechno (velké kategorie,
   // žebříček řazený podle TER), načtou se kandidáti zvlášť lehkým dotazem – práh je vždy 100 mil. €.
   const castecneNacteno = celkem > etfs.length || cfg.sortBy === 'ter_numeric';
-  const vyberDb = castecneNacteno ? await getVyberKarty(cfg, PRAH_KARET, sVykonem) : null;
+  const vyberDb0 = castecneNacteno ? await getVyberKarty(cfg, PRAH_KARET, sVykonem) : null;
+  const vyberDb = vyberDb0 && {
+    levne: bezOdlehlychVynosu(vyberDb0.levne, odlehle),
+    nejvetsi: bezOdlehlehoVynosu(vyberDb0.nejvetsi, odlehle),
+    vsechny: vyberDb0.vsechny && bezOdlehlychVynosu(vyberDb0.vsechny, odlehle),
+  };
   const zdrojLevne = castecneNacteno ? (vyberDb?.levne ?? []) : etfs;
   const zdrojVykon = castecneNacteno ? (vyberDb?.vsechny ?? []) : etfs;
   const nejvetsi = castecneNacteno ? (vyberDb?.nejvetsi ?? null) : (bySize[0] ?? null);
@@ -287,9 +295,11 @@ const nactiZebricek = reactCache(async (slug: string) => {
     : prah >= PRAH_KARET && vyberDb ? (terKladne(vyberDb.levne).length ? Math.min(...terKladne(vyberDb.levne)) : null)
     : null;
 
+  const neovereneVynosy = etfs.filter((e) => odlehle.has(e.isin));
+
   return {
     cfg, etfs, pocetDb, celkem, prah, dataDatum, bySize, indexova, sVykonem, nejvetsi, jeEsgKategorie,
-    byTer, stejnyTer, vykonObdobi, byPerf, hodnotaVykonu, medianVykonu, terOd,
+    byTer, stejnyTer, vykonObdobi, byPerf, hodnotaVykonu, medianVykonu, terOd, neovereneVynosy,
   };
 });
 
@@ -572,6 +582,11 @@ export default async function CategoryDetailPreview(
         {radky.length > 0 && (
           <section data-sekce="tabulka" className="pb-10" aria-labelledby="tabulka-h">
             <TabulkaFondu nadpisId="tabulka-h" radky={radky} celkem={celkem} vychozi={cfg.sortBy === 'ter_numeric' ? 'ter' : 'size'} datum={datumText} srovnavac={srovnavac} prah={prah} />
+            {z.neovereneVynosy.length > 0 && (
+              <p data-vynos-neovereny className="mt-2 text-xs text-slate-500">
+                {z.neovereneVynosy.map((e) => tickery.get(e.isin) ?? nazevFondu(e.name)).join(', ')}: výnosy neukazujeme („—“) – výnos za 12 měsíců se lišil o víc než 1,5 p. b. od ostatních fondů na stejný trh, nejčastěji kvůli opožděné ceně u zdroje dat.
+              </p>
+            )}
           </section>
         )}
 

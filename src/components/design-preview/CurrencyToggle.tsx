@@ -3,8 +3,8 @@
 import { Coins } from 'lucide-react';
 import { CURRENCIES, useCurrency } from '@/components/design-preview/currencyStore';
 
-/* Přepínač měny pro zobrazení výkonnosti (CZK default). Drží se přes localStorage
-   napříč stránkami. `label` lze vypnout u kompaktních umístění. */
+/* Přepínač měny pro zobrazení výkonnosti (CZK default). Volba platí jen v rámci stránky (kolo 6b, currencyStore.ts) –
+   na další stránce zase CZK. `label` lze vypnout u kompaktních umístění. */
 export default function CurrencyToggle({ size = 'md', showLabel = true }: { size?: 'sm' | 'md'; showLabel?: boolean }) {
   const [cur, setCur] = useCurrency();
   // Na mobilu vyšší (py-2) kvůli klikací ploše – s py-1 měl přepínač ~24px a špatně se trefoval.

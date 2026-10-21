@@ -1,13 +1,13 @@
 import { Metadata } from 'next';
 import { indexFonduLabel } from '@/utils/indexNormalization';
 import Link from 'next/link';
-import { HLAVNI_DVOJICE, POPISKY_DVOJIC } from '@/lib/pairs';
+import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
 import { autorSchema, vydavatelSchema, dataClanku, datumUpravy } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { getComparisonETFData, type ComparisonETF, getDataDate } from '@/lib/etf-data';
-import { TrendingUp, ArrowRight, ArrowUpRight, Database, Globe2, Landmark, Info } from 'lucide-react';
+import { TrendingUp, ArrowRight, Database, Globe2, Landmark, Info } from 'lucide-react';
 import { terFmt, procenta, velikostFondu } from '@/lib/formatyCisel';
 
 // Jednotné formáty (kolo 5): „0,07 %“, „−15,9 %“, „139,4 mld. €“ – src/lib/formatyCisel.ts.
@@ -180,7 +180,7 @@ export default async function SrovnaniPreview() {
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-400 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-600">Domů</Link>
           <span>/</span>
-          <Link href="/srovnani" className="hover:text-slate-600">Srovnávač</Link>
+          <Link href="/srovnani" className="hover:text-slate-600">Srovnávač ETF</Link>
           <span>/</span>
           <span className="text-slate-600">{TICKER1} vs {TICKER2}</span>
         </nav>
@@ -341,20 +341,9 @@ export default async function SrovnaniPreview() {
         </section>
 
         {/* POKRAČUJTE */}
+        {/* Kolo 6b: stejná komponenta jako ostatní dvojice a detail (dřív vlastní mřížka 13 karet s ↗ a jiným písmem). */}
         <section data-sekce="dalsi" className="pb-8">
-          <h2 className="mb-3 text-xl md:text-2xl font-bold tracking-tight text-slate-900">Další srovnání</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {/* Všechny hlavní kurátorské dvojice (src/lib/pairs.ts) – dřív 5 ručně, z toho alias cspx-vs-eunl (SEO audit 20. 10. 2026). */}
-            {HLAVNI_DVOJICE.filter((slug) => slug !== 'vwce-vs-cspx').map((slug) => ({ slug, label: slug.toUpperCase().replace('-VS-', ' vs '), popis: POPISKY_DVOJIC[slug] ?? '' })).map((d) => (
-              <Link key={d.slug} href={`/srovnani/${d.slug}`} prefetch={false} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 hover:border-teal-300 transition-colors">
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-slate-900">{d.label}</span>
-                  <span className="block truncate text-xs text-slate-500">{d.popis}</span>
-                </span>
-                <ArrowUpRight className="w-4 h-4 text-slate-400 shrink-0" />
-              </Link>
-            ))}
-          </div>
+          <DalsiSrovnani aktualni="vwce-vs-cspx" nadpis="Další srovnání" />
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             <Link href="/kde-koupit" className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">Kde koupit ETF <ArrowRight className="w-4 h-4" /></Link>
             {([['DEGIRO', reviewHref.degiro], ['XTB', reviewHref.xtb], ['Interactive Brokers', reviewHref.ibkr]] as [string, string][]).map(([b, href]) => (

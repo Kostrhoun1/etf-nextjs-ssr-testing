@@ -17,6 +17,13 @@
  * Tři a víc → „—“ u těch, které se liší od mediánu. Pokles od založení se NEporovnává (třídy mají různé stáří);
  * pokles za 5 let ano (zdroj ho u třídy mladší 5 let neuvádí).
  * Kontrola: scripts/check-fund-data.mjs (VAROVÁNÍ „volatilita tříd téhož fondu se liší“).
+ *
+ * ZPŘESNĚNÍ (kolo 6b, 21. 10. 2026): „nevíme, která je správně“ přestává platit, když máme NEZÁVISLOU KOTVU – medián
+ * téhož údaje u ostatních fondů na stejný široký index (jiní emitenti, src/lib/trhy.ts `kotvyRizika`). Třída, která
+ * s kotvou sedí (stejné kritérium `nesedi`), se ze skupiny, která se rozchází, NEskrývá; skryje se jen ta, která
+ * s kotvou nesedí. P500 (Invesco S&P 500 Acc): max. pokles 3 roky −22,61 % (ověřil Martin; kotva trhu S&P 500 ~−22 %)
+ * vs. D500 (Dist) −31,41 % → dřív „—“ u obou, teď jen u D500. Bez kotvy (fond mimo ruční seznamy trhů) nebo když
+ * s kotvou nesedí ani jedna třída → původní pravidlo (obě „—“).
  */
 import { detectHedging } from '@/utils/hedgingDetection';
 
@@ -41,8 +48,11 @@ const nesedi = (a: number, b: number) => Math.abs(a - b) >= 1 && Math.max(a, b) 
 
 type Fond = { isin: string; name: string | null; fund_provider: string | null } & Partial<Record<RizikoPole, number | null>>;
 
+/** Kotva: ISIN → nezávislý medián údaje u ostatních fondů na stejný index (absolutní hodnota). */
+export type KotvyRizika = ReadonlyMap<string, Partial<Record<RizikoPole, number>>>;
+
 /** ISIN → ukazatele, které nesedí s jinou třídou téhož fondu. Jen fondy s problémem. */
-export function rizikoNesedi(fondy: Fond[], pole: readonly RizikoPole[] = RIZIKO_POLE): Map<string, RizikoPole[]> {
+export function rizikoNesedi(fondy: Fond[], pole: readonly RizikoPole[] = RIZIKO_POLE, kotvy?: KotvyRizika): Map<string, RizikoPole[]> {
   const skupiny = new Map<string, Fond[]>();
   for (const f of fondy) {
     const k = klicTridy(f.name, f.fund_provider);
@@ -57,13 +67,21 @@ export function rizikoNesedi(fondy: Fond[], pole: readonly RizikoPole[] = RIZIKO
       const s = g.map((f) => ({ isin: f.isin, v: f[o] == null ? null : Math.abs(Number(f[o])) }))
         .filter((x): x is { isin: string; v: number } => x.v != null && x.v > 0);
       if (s.length < 2) continue;
+      let podezrele: { isin: string; v: number }[];
       if (s.length === 2) {
-        if (nesedi(s[0].v, s[1].v)) { pridej(s[0].isin, o); pridej(s[1].isin, o); }
-        continue;
+        podezrele = nesedi(s[0].v, s[1].v) ? s : [];
+      } else {
+        const serazene = s.map((x) => x.v).sort((a, b) => a - b);
+        const med = serazene.length % 2 ? serazene[(serazene.length - 1) / 2] : (serazene[serazene.length / 2 - 1] + serazene[serazene.length / 2]) / 2;
+        podezrele = s.filter((x) => nesedi(x.v, med));
       }
-      const serazene = s.map((x) => x.v).sort((a, b) => a - b);
-      const med = serazene.length % 2 ? serazene[(serazene.length - 1) / 2] : (serazene[serazene.length / 2 - 1] + serazene[serazene.length / 2]) / 2;
-      for (const x of s) if (nesedi(x.v, med)) pridej(x.isin, o);
+      if (!podezrele.length) continue;
+      // Kotva (stejná pro celou skupinu – stejný trh): třída, která s ní sedí, se neskrývá – pokud aspoň jedna sedí.
+      const kotva = s.map((x) => kotvy?.get(x.isin)?.[o]).find((k): k is number => k != null && k > 0);
+      const sKotvou = kotva == null ? [] : s.filter((x) => !nesedi(x.v, kotva));
+      for (const x of podezrele) if (!sKotvou.some((k) => k.isin === x.isin)) pridej(x.isin, o);
+      // Rozpor se vyřešil kotvou → skrýt i třídy, které s kotvou nesedí, když je pravidlo mediánu nechalo (3+ tříd).
+      if (sKotvou.length) for (const x of s) if (!sKotvou.includes(x) && !podezrele.includes(x)) pridej(x.isin, o);
     }
   }
   return out;

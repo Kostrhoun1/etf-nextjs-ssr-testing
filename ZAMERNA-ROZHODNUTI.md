@@ -541,3 +541,20 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **/llms.txt je route (src/app/llms.txt/route.ts), ne soubor v public/** – počet fondů a seznamy se generují.
 - **next.config.ts nemá vlastní `splitChunks`** – dřív jeden „vendors“ (326 KB gzip i s recharts) na každé stránce. Nevracet.
 - Hlídá `scripts/check-fund-data.mjs`, blok `kolo6 seo`.
+
+## Kontrolní revize kola 6b (21. 10. 2026)
+
+- **Výnos mimo svůj trh (> 1,5 p. b. od mediánu, src/lib/trhy.ts) = „—“ VŠUDE**, ne jen na detailu: žebříčky, srovnávač
+  (/api/etf/screener, značka `_vynX`), porovnání, stránky dvojic i našeptávač. Jedna funkce `src/lib/vynosNeovereny.ts`
+  (výnosy za období + výnos/riziko → null, kalendářní roky zůstávají) nad jedním seznamem `odlehleIsiny()`. Takový fond
+  nevyhrává karty, nepočítá se do mediánu ani do odpovědi nahoře. Neukazovat ho „aspoň v tabulce“. Hlídá check-fund-data (kolo6b).
+- **Pravidlo tříd (src/lib/tridyFondu.ts) má kotvu trhu**: když se dvě třídy téhož fondu rozcházejí v kolísavosti/poklesu,
+  třída, která sedí s mediánem ostatních fondů na stejný široký index (jiní emitenti, `kotvyRizika`), se NEskrývá. P500
+  max. pokles 3 roky −22,61 % je vidět, D500 −31,41 % „—“. Bez kotvy (fond mimo ruční seznamy trhů) dál „—“ u obou.
+- **Volba měny (Kč/EUR/USD) platí jen v rámci stránky** – na každé další stránce je zase Kč (výnosy v Kč jsou USP).
+  Dřív se pamatovala v localStorage napříč webem. Popisky měn jsou kódy („v EUR“, „v USD“), ne „€“/„$“.
+- **„Další srovnání“ = jedna komponenta `DalsiSrovnani`**: nejvýš 8 kurátorských dvojic (nejdřív se společným fondem),
+  sudý počet, odkaz „Všechna srovnání“ na /srovnani/porovnani (ta má proto `follow`). Detail z hlavy (indexovaný Googlem)
+  neodkazuje na nekurátorskou dvojici (googlebot noindex) – místo ní porovnání `?isins=`; ocas detailů dál na dvojici.
+- **Nový fond (< 1 rok): datum vzniku a „od vzniku / 1 měsíc“ jen v úvodu** (+ datum v tabulce faktů), přepínač měny
+  ve Výkonnosti skrytý (údaje jsou jen v EUR).

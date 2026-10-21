@@ -16,6 +16,7 @@ const pct = (v: number | null) => procenta(v);
 const money = (v: number | null, _cur?: string | null) => velikostFondu(v);
 import { POPULAR_PAIRS, KURATORSKE, KURATORSKE_ALIASY, kanonickaDvojice } from '@/lib/pairs';
 import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
+import { seradBurzy } from '@/lib/detailFondu';
 import { distKind } from '@/utils/distribution';
 import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
 import { nactiDoplnkyFondu, tickerProCesko } from '@/lib/srovnaniRocni';
@@ -55,12 +56,13 @@ const jeIsin = (x: string) => /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x);
 /** Ticker, pod kterým fond zobrazit: ten z URL (tak ho člověk hledal), u ISINu primární ticker. */
 const zobrazTicker = (urlTok: string, etf: ComparisonETF) =>
   jeIsin(urlTok) ? (etf.primary_ticker && etf.primary_ticker !== '-' ? etf.primary_ticker : urlTok) : urlTok;
-/** Burzy fondu z polí exchange_N_* (jen pro odpověď „stejný fond"). */
+/** Burzy fondu z polí exchange_N_* (jen pro odpověď „stejný fond"). Pořadí = sdílená funkce detailu (XETRA první,
+ *  pak EUR burzy – src/lib/detailFondu.ts); dřív pořadí ze zdroje → u cspx-vs-sxr8 XETRA poslední (kolo 6b). */
 const burzy = (etf: ComparisonETF) => {
   const r = etf as unknown as Record<string, string | null>;
-  return Array.from({ length: 10 }, (_, i) => ({
+  return seradBurzy(Array.from({ length: 10 }, (_, i) => ({
     burza: r[`exchange_${i + 1}_name`], ticker: r[`exchange_${i + 1}_ticker`], mena: r[`exchange_${i + 1}_currency`],
-  })).filter((b) => b.burza && b.ticker && b.ticker !== '-');
+  })).filter((b) => b.burza && b.ticker && b.ticker !== '-'), (b) => ({ name: b.burza, currency: b.mena }));
 };
 
 /**
@@ -275,7 +277,7 @@ export default async function PairComparePage(
       <main id="obsah" className="max-w-6xl mx-auto px-4 pb-16">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
-          <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>
+          <Link href="/srovnani" className="hover:text-slate-700">Srovnávač ETF</Link><span>/</span>
           <span className="text-slate-700">{tk1} vs {tk2}</span>
         </nav>
 
@@ -453,7 +455,7 @@ function StejnyFond({ etf, tk1, tk2, kanon, dateStr }: { etf: ComparisonETF; tk1
       <main id="obsah" data-stejny-fond className="max-w-3xl mx-auto px-4 pb-24">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
-          <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>
+          <Link href="/srovnani" className="hover:text-slate-700">Srovnávač ETF</Link><span>/</span>
           <span className="text-slate-700">{tk1} vs {tk2}</span>
         </nav>
         <section className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9">

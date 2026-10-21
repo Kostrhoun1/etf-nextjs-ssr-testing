@@ -19,7 +19,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Porovnání ETF vedle sebe',
   description: 'Detailní porovnání vybraných ETF fondů vedle sebe – poplatky, výnosy v Kč, riziko, typ a daně.',
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: true }, // follow: seznam všech srovnání (odkaz „Všechna srovnání“, kolo 6b)
 };
 
 function Head() {
@@ -103,7 +103,7 @@ async function PrazdnePorovnani({ vybrane }: { vybrane: string[] }) {
 
       <div className="mt-8 text-center">
         <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><Search className="w-4 h-4" /> Vybrat jiné fondy ve srovnávači</Link>
-        <p className="mt-2 text-xs text-slate-500">Ve srovnávači i na detailu fondu přidáte fond tlačítkem „Porovnat“.</p>
+        <p className="mt-2 text-xs text-slate-500">Ve srovnávači i na detailu fondu přidáte fond tlačítkem „Do porovnání“.</p>
       </div>
     </div>
   );
@@ -141,7 +141,7 @@ export default async function PorovnaniPreview(
       <main id="obsah" className="max-w-6xl mx-auto px-4 pb-24">
         <nav aria-label="Drobečková navigace" className="py-3 text-xs text-slate-500 flex items-center gap-1.5">
           <Link href="/" className="hover:text-slate-700">Domů</Link><span>/</span>
-          <Link href="/srovnani" className="hover:text-slate-700">Srovnávač</Link><span>/</span>
+          <Link href="/srovnani" className="hover:text-slate-700">Srovnávač ETF</Link><span>/</span>
           <span className="text-slate-700">Porovnání</span>
         </nav>
 

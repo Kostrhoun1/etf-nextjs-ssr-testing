@@ -79,7 +79,7 @@ export function SrovnaniSoubojKarta({
       <div className="flex items-center gap-2 min-w-0">
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: barva }} aria-hidden="true" />
         <p className="text-lg md:text-2xl font-bold text-white leading-tight">{ticker ?? platnyTicker(etf.primary_ticker) ?? '—'}</p>
-        <span className="ml-auto hidden md:block"><EmitentLogo nazev={etf.name} size={28} /></span>
+        <span className="ml-auto hidden md:block"><EmitentLogo nazev={etf.name} size={28} monogram={etf.fund_provider} /></span>
       </div>
       <p className="mt-0.5 text-[11px] md:text-xs text-slate-400 leading-snug line-clamp-2">{podtitul}</p>
       <dl className="mt-2.5 space-y-1 text-xs md:text-sm">

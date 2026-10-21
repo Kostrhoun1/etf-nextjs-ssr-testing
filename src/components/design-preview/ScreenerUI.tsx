@@ -17,6 +17,7 @@ import EmitentLogo from '@/components/home/EmitentLogo';
 import { TipTlacitko } from '@/components/design-preview/InfoTip';
 import { procenta, terText, velikostText } from '@/lib/formatSrovnavac';
 import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
+import { VYNOS_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
 import { DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
@@ -61,6 +62,13 @@ function Kolisavost({ e }: { e: ScreenerRow }) {
   return <>{pct1(num(e.volatility_1y))}</>;
 }
 
+/* Výnos za období: fond s výnosem mimo svůj trh (src/lib/vynosNeovereny.ts) = podtržená „—“ s vysvětlivkou
+   jako na detailu fondu (pravidlo č. 1, kolo 6b). */
+function vyn(e: ScreenerRow, v: number | null) {
+  if (e._vynX) return <span title={VYNOS_NEOVERENY_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({VYNOS_NEOVERENY_TEXT})</span></span>;
+  return pct(v);
+}
+
 /* Investiční styly (faktory). Data nemají sloupec „faktor", takže se rozpoznávají
    z názvu fondu (`blob` = název + ISIN + poskytovatel + tickery, lowercase).
    `exclude` řeší falešné shody – např. „Battery Value-Chain" NENÍ value fond. */
@@ -81,7 +89,7 @@ const VYSVETLIVKY: Record<string, string> = {
   ter: 'TER = roční poplatek za správu fondu. Strhává se automaticky z hodnoty fondu, nikam ho neplatíte. Čím nižší, tím lépe.',
   size: 'Kolik peněz fond spravuje (v eurech). Větší fond = obvykle nižší náklady na obchodování a menší riziko, že ho emitent zruší.',
   ytd: 'Výnos od 1. ledna letošního roku do data dat, přepočtený do zvolené měny.',
-  r1: 'Výnos za posledních 12 měsíců, přepočtený do zvolené měny (v korunách včetně vlivu kurzu).',
+  r1: 'Výnos za posledních 12 měsíců, přepočtený do zvolené měny (v korunách včetně vlivu kurzu). Podtržená „—“ = výnos fondu se o víc než 1,5 p. b. liší od ostatních fondů na stejný trh (nejčastěji opožděná cena u zdroje dat), proto ho neukazujeme.',
   r3: 'Výnos za poslední 3 roky celkem (ne za rok), přepočtený do zvolené měny.',
   r5: 'Výnos za posledních 5 let celkem (ne za rok), přepočtený do zvolené měny. Řekne o fondu víc než jeden rok.',
   vol: 'Kolísavost (volatilita) za poslední rok, počítaná v eurech. Vyšší číslo = divočejší průběh, ne nutně horší fond. „—“ = údaj chybí nebo nesedí s jinou třídou téhož fondu.',
@@ -861,10 +869,10 @@ export default function ScreenerUI({
                   </td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-medium text-slate-800 ${SKUPINA}`}>{ter(num(e.ter_numeric))}</td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600">{money(num(e.fund_size_numeric))}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${SKUPINA} ${barva(ytd)}`}>{pct(ytd)}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${VYNOSY} ${barva(r1)}`}>{pct(r1)}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r3)}`}>{pct(r3)}</td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r5)}`}>{pct(r5)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${SKUPINA} ${barva(ytd)}`}>{vyn(e, ytd)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${VYNOSY} ${barva(r1)}`}>{vyn(e, r1)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r3)}`}>{vyn(e, r3)}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r5)}`}>{vyn(e, r5)}</td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600 ${SKUPINA}`}><Kolisavost e={e} /></td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600"><Dividenda e={e} /></td>
                   <td className="py-2.5 pl-1 pr-2.5 text-right">
@@ -891,7 +899,7 @@ export default function ScreenerUI({
         </button>
         {legenda && (
           <dl className="mb-2 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 space-y-1.5">
-            <div><dt className="inline font-semibold text-slate-800">1 rok, 5 let: </dt><dd className="inline">výnos celkem za dané období, přepočtený do {curLabel[cur] === 'Kč' ? 'korun (včetně vlivu kurzu)' : 'zvolené měny'}. Minulý výnos nezaručuje budoucí.</dd></div>
+            <div><dt className="inline font-semibold text-slate-800">1 rok, 5 let: </dt><dd className="inline">výnos celkem za dané období, přepočtený do {curLabel[cur] === 'Kč' ? 'korun (včetně vlivu kurzu)' : 'zvolené měny'}. Minulý výnos nezaručuje budoucí. Podtržená „—“ = výnos se o víc než 1,5 p. b. liší od ostatních fondů na stejný trh (nejčastěji opožděná cena u zdroje), proto ho neukazujeme.</dd></div>
             <div><dt className="inline font-semibold text-slate-800">TER: </dt><dd className="inline">{VYSVETLIVKY.ter}</dd></div>
             <div><dt className="inline font-semibold text-slate-800">Velikost: </dt><dd className="inline">{VYSVETLIVKY.size}</dd></div>
             <div><dt className="inline font-semibold text-slate-800">ACC / DIST: </dt><dd className="inline">{VYSVETLIVKY.typ}</dd></div>
@@ -925,11 +933,11 @@ export default function ScreenerUI({
                 <dl className="mt-2.5 grid grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-1.5 text-xs">
                   <div>
                     <dt className="text-slate-500">1 rok</dt>
-                    <dd className={`tabular-nums text-sm font-semibold whitespace-nowrap ${barva(r1)}`}>{pct(r1)}</dd>
+                    <dd className={`tabular-nums text-sm font-semibold whitespace-nowrap ${barva(r1)}`}>{vyn(e, r1)}</dd>
                   </div>
                   <div>
                     <dt className="text-slate-500">5 let</dt>
-                    <dd className={`tabular-nums text-sm font-semibold whitespace-nowrap ${barva(r5)}`}>{pct(r5)}</dd>
+                    <dd className={`tabular-nums text-sm font-semibold whitespace-nowrap ${barva(r5)}`}>{vyn(e, r5)}</dd>
                   </div>
                   <div>
                     <dt className="text-slate-500">TER</dt>
