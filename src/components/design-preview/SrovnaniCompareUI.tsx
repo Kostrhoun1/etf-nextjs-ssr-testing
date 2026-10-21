@@ -238,7 +238,7 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
       hint: 'Více firem = širší rozložení rizika (diverzifikace)',
       v1: etf1.total_holdings ? celeCislo(etf1.total_holdings) : '—',
       v2: etf2.total_holdings ? celeCislo(etf2.total_holdings) : '—',
-      winner: 0, // víc/míň firem není „lepší/horší", je to jiná strategie
+      winner: 0, // víc/míň firem není „lepší/horší“, je to jiná strategie
     },
     {
       label: 'Sledovaný index',
@@ -329,7 +329,7 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
   ];
 }
 
-/* Malý štítek „remíza/shodné" pro řádky, kde se fondy neliší. */
+/* Malý štítek „remíza/shodné“ pro řádky, kde se fondy neliší. */
 export function SrovnaniShodne() {
   return (
     <span className="inline-flex items-center gap-1 text-xs text-slate-400">

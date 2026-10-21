@@ -14,6 +14,7 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
       { href: '/svetove-etf-indexy', label: 'Který světový index' },
       { href: '/jaky-sp500-etf', label: 'Který S&P 500 ETF' },
       { href: '/dane-z-etf', label: 'Daně z ETF' },
+      { href: '/vyber-etf', label: 'Který ETF vybrat (4 otázky)' },
     ],
   },
   {
@@ -25,6 +26,18 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
       { href: '/portfolio-strategie', label: 'Modelová portfolia' },
       { href: '/kalkulacky', label: 'Kalkulačky' },
       { href: '/kde-koupit', label: 'Kde koupit ETF' },
+    ],
+  },
+  {
+    // SEO audit 6b (21. 10. 2026): hlavní žebříčky měly jen 1–2 vnitřní odkazy (z rozcestníku) → patička na každé stránce.
+    heading: 'Žebříčky ETF',
+    links: [
+      { href: '/nejlepsi-etf/nejlepsi-etf-2026', label: 'Největší ETF 2026' },
+      { href: '/nejlepsi-etf/nejlepsi-sp500-etf', label: 'S&P 500 ETF' },
+      { href: '/nejlepsi-etf/nejlepsi-msci-world-etf', label: 'MSCI World ETF' },
+      { href: '/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'ETF na celý svět' },
+      { href: '/nejlepsi-etf/nejlevnejsi-etf', label: 'Nejlevnější ETF' },
+      { href: '/nejlepsi-etf/nejlepsi-dividendove-etf', label: 'Dividendové ETF' },
     ],
   },
   {
@@ -48,7 +61,7 @@ export default function SiteFooter() {
     <footer className="border-t border-slate-200 bg-white">
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
         {/* Mobil: odkazové sloupce po dvou (dřív pod sebou → patička 978 px; UX audit 17. 10. 2026) */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:gap-y-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:gap-y-8 md:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
           {/* Brand + USP */}
           <div className="col-span-2 md:col-span-1 min-w-0">
             <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-slate-900">

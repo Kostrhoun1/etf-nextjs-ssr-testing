@@ -11,7 +11,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 
-// Zápis jde VEŘEJNÝM (publishable) klíčem: tabulka má RLS politiku „anon smí jen INSERT" –
+// Zápis jde VEŘEJNÝM (publishable) klíčem: tabulka má RLS politiku „anon smí jen INSERT“ –
 // nikdy SELECT/UPDATE/DELETE (ověřeno 17. 10. 2026: zápis 201, čtení [], smazání nic nesmaže,
 // příliš dlouhé pole 400). Proč web nemá tajný klíč vůbec: src/lib/supabase-config.ts.
 const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });

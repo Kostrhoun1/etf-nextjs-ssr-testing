@@ -38,13 +38,13 @@ type ContributionFrequency = 'none' | 'monthly' | 'quarterly' | 'yearly';
  *
  * Dřív tu byla druhá natvrdo psaná kopie 26 indexů včetně proxy ETF a TER. Manifest
  * `src/lib/backtest/indexes.ts` přitom o sobě říká, že je jediná pravda — a měl pravdu
- * i fakticky: kopie tvrdila u eur_govt_bond_3_7y „od 2009", zatímco v DB data začínají
+ * i fakticky: kopie tvrdila u eur_govt_bond_3_7y „od 2009“, zatímco v DB data začínají
  * 2008-01-31. Přesně tenhle typ rozdvojení stál za incidentem 15.7.2026.
  *
  * Držíme tu UŽ JEN SEZNAM KÓDŮ a jejich pořadí. Manifest má `inBacktest: true` u 37 indexů,
  * ale nástroj vědomě nabízí těchto 26 — 11 sektorových indexů sem (zatím) nepatří, proto
  * se nabídka nesmí odvozovat prostým filtrem `inBacktest`.
- * Názvy, proxy ETF, TER i „odkdy" se berou z manifestu.
+ * Názvy, proxy ETF, TER i „odkdy“ se berou z manifestu.
  */
 const BACKTEST_INDEX_CODES: string[] = [
   'sp500',
@@ -75,7 +75,7 @@ const BACKTEST_INDEX_CODES: string[] = [
   'commodities',
 ];
 
-/** Popisek „odkdy": u spliced řad se uvádí až rok reálného ETF, ne začátek dopočtené historie. */
+/** Popisek „odkdy“: u spliced řad se uvádí až rok reálného ETF, ne začátek dopočtené historie. */
 const sinceLabel = (i: IndexDef) =>
   i.splicedFrom ? `reálné ETF od ${i.splicedFrom.slice(0, 4)}` : `od ${i.since.slice(0, 4)}`;
 
@@ -139,7 +139,7 @@ const PRESET_PORTFOLIOS = [
     ],
   },
   {
-    id: 'permanent', name: 'Permanentní portfolio', description: 'Portfolio Harryho Browna: po 25 % akcie, dlouhé státní dluhopisy, krátké dluhopisy (hotovost) a zlato. Jednoduché a odolné „za každého počasí".',
+    id: 'permanent', name: 'Permanentní portfolio', description: 'Portfolio Harryho Browna: po 25 % akcie, dlouhé státní dluhopisy, krátké dluhopisy (hotovost) a zlato. Jednoduché a odolné „za každého počasí“.',
     etfs: [
       { indexCode: 'ftse_all_world', weight: 25 }, { indexCode: 'us_treasury_20y', weight: 25 },
       { indexCode: 'us_treasury_1_3y', weight: 25 }, { indexCode: 'gold', weight: 25 },
@@ -167,7 +167,7 @@ const PRESET_SHORT: Record<string, string> = {
   'buffett-90-10': 'Buffett 90/10',
 };
 
-// Investiční styly (faktory) – rychlý vstup „faktor vs S&P 500". Kliknutí nahraje faktor (100 %),
+// Investiční styly (faktory) – rychlý vstup „faktor vs S&P 500“. Kliknutí nahraje faktor (100 %),
 // přidá S&P 500 do porovnání a spustí. `since` = odkdy má faktor REÁLNÉ ETF (momentum/quality až 2014).
 const FACTOR_STYLES: { code: string; label: string; slug: string; since: string }[] = [
   { code: 'us_momentum', label: 'Momentum', slug: 'momentum', since: '2014-01-01' },
@@ -372,7 +372,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     setActiveStyle(null);
   };
 
-  // Rychlý vstup „faktor vs S&P 500": nahraje faktor (100 %), přidá index do porovnání,
+  // Rychlý vstup „faktor vs S&P 500“: nahraje faktor (100 %), přidá index do porovnání,
   // nastaví okno od reálného ETF a vypne pravidelné vklady (čistá jednorázová komparace).
   const applyFactor = (code: string) => {
     const style = FACTOR_STYLES.find((s) => s.code === code);
@@ -439,7 +439,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const runBacktest = async (overrideCurrency?: Currency) => {
     // Obrana: overrideCurrency smí být jen platná měna. Kdyby se sem dostal
     // např. klikací event (onClick={runBacktest}), padne JSON.stringify na
-    // „cyclic structures". Proto raději fallback na aktuální currency.
+    // „cyclic structures“. Proto raději fallback na aktuální currency.
     const cur: Currency =
       overrideCurrency === 'EUR' || overrideCurrency === 'CZK' || overrideCurrency === 'USD'
         ? overrideCurrency
@@ -1875,7 +1875,7 @@ function ComparisonBlock({
     return out;
   }, [portfolios]);
 
-  // Řádky tabulky: hodnota + směr „co je lepší" (pro zvýraznění nejlepšího sloupce).
+  // Řádky tabulky: hodnota + směr „co je lepší“ (pro zvýraznění nejlepšího sloupce).
   const rows: { label: React.ReactNode; values: number[]; fmt: (v: number) => string; better: 'high' | 'low' }[] = [
     { label: 'Konečná hodnota', values: portfolios.map((p) => p.result.summary.netAssetValue), fmt: (v) => fmtMoney(v, currency), better: 'high' },
     { label: 'Roční zhodnocení (CAGR)', values: portfolios.map((p) => p.result.summary.cagr * 100), fmt: (v) => fmtPct(v), better: 'high' },

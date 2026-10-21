@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { getTotalETFCount , getDataDate } from '@/lib/etf-data';
+import { getTotalETFCount } from '@/lib/etf-data';
 import {
   TrendingUp, ArrowRight, ArrowUpRight, User, CalendarDays, BookOpen,
   Wallet, ShieldCheck, Target, ListChecks, Search, Building2, CalendarClock,
@@ -15,11 +15,14 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import { GuideSection, GuideCallout, GuideTOC, GuideFAQ } from '@/components/design-preview/GuideUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'Jak začít investovat do ETF: 7 kroků pro začátečníky 2026',
+  title: titulek('Jak začít investovat do ETF: 7 kroků pro začátečníky 2026'),
   description:
     'Praktická roadmapa pro úplného začátečníka: od finanční rezervy přes výběr fondu a brokera až po první nákup. 7 kroků, časté chyby a jak nepanikařit.',
   alternates: { canonical: '/jak-zacit' },
@@ -27,10 +30,9 @@ export const metadata: Metadata = {
 
 export default async function HowToStartPreview() {
   const totalCount = await getTotalETFCount();
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
+  const countLabel = totalCount > 0 ? `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+` : '4 800+';
 
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/jak-zacit'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   /* ---------- 7 akčních kroků (číslo + nadpis + věty + mini-seznam) ---------- */
   const steps: {
@@ -169,7 +171,7 @@ export default async function HowToStartPreview() {
   const mistakes: { icon: typeof Clock; title: string; desc: string }[] = [
     { icon: Clock, title: 'Časování trhu', desc: 'Čekání na „ideální okamžik“. Trefit dno se dlouhodobě skoro nikomu nedaří – pravidelnost vyhrává.' },
     { icon: Boxes, title: 'Příliš mnoho fondů', desc: 'Deset překrývajících se ETF nezvyšuje rozložení rizika, jen zamotá hlavu i daně. Pro start stačí jeden.' },
-    { icon: AlertTriangle, title: 'Prodej v panice', desc: 'Výprodej při propadu zafixuje ztrátu. Široké světové indexy se z propadů zatím vždy zotavily, ale jednotlivé trhy ne vždy rychle – japonský Nikkei se na vrchol z roku 1989 vrátil až v roce 2024.' },
+    { icon: AlertTriangle, title: 'Prodej v panice', desc: 'Výprodej při propadu zafixuje ztrátu. Široké světové indexy se z dosavadních propadů zotavily, jednotlivé trhy ale ne vždy rychle – japonský Nikkei se na vrchol z roku 1989 vrátil až v roce 2024.' },
     { icon: Wallet, title: 'Ignorování poplatků', desc: 'Vysoký TER a poplatky za nákup i konverzi měn ukrajují výnos potichu, ale celé roky.' },
   ];
 
@@ -179,9 +181,11 @@ export default async function HowToStartPreview() {
       q: 'Kolik peněz potřebuju na start?',
       a: (
         <>
-          Klidně pár tisíc korun – u řady brokerů koupíte i zlomek jedné akcie ETF. Důležitější než velikost
-          první částky je <strong>pravidelnost</strong> a dlouhý horizont. Investujte jen peníze, které několik
-          let nebudete potřebovat.
+          U brokerů, kteří prodávají i zlomky podílu (Trading 212 od 1 €, XTB, Interactive Brokers), se dá začít
+          i s několika stovkami korun; robo-poradce Portu má minimální vklad 500 Kč. Kde se kupují jen celé podíly,
+          potřebujete aspoň cenu jednoho podílu – u velkých akciových ETF od desítek po stovky eur. Důležitější než
+          velikost první částky je <strong>pravidelnost</strong> a dlouhý horizont. Investujte jen peníze, které
+          několik let nebudete potřebovat.
         </>
       ),
     },
@@ -274,6 +278,7 @@ export default async function HowToStartPreview() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/jak-zacit', nadpis: 'Jak začít investovat do ETF', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header – 1:1 dle pruvodce */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -315,7 +320,7 @@ export default async function HowToStartPreview() {
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> Čtení ~6 min</span>
                   <span className="inline-flex items-center gap-1.5"><ListChecks className="w-3.5 h-3.5" /> 7 kroků</span>
                 </div>
@@ -443,6 +448,9 @@ export default async function HowToStartPreview() {
           </div>
         </GuideSection>
 
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-etf-2026', 'nejlepsi-celosvetove-etf', 'nejlepsi-sp500-etf', 'nejlevnejsi-etf']} />
+
         {/* FAQ */}
         <GuideSection id="faq">
           <SectionHead title="Časté dotazy" desc="Co řeší skoro každý, kdo stojí před prvním nákupem." />
@@ -485,7 +493,7 @@ export default async function HowToStartPreview() {
               </div>
             </div>
             <p className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 leading-relaxed">
-              Aktualizováno {dateStr}.
+              Aktualizováno {upraveno}.
             </p>
           </div>
 
@@ -522,7 +530,7 @@ function stepPlainText(title: string): string {
 function faqPlainText(q: string): string {
   const map: Record<string, string> = {
     'Kolik peněz potřebuju na start?':
-      'Klidně pár tisíc korun – u řady brokerů koupíte i zlomek akcie ETF. Důležitější než velikost první částky je pravidelnost a dlouhý horizont. Investujte jen peníze, které několik let nebudete potřebovat.',
+      'U brokerů, kteří prodávají i zlomky podílu (Trading 212 od 1 €, XTB, Interactive Brokers), se dá začít i s několika stovkami korun; robo-poradce Portu má minimální vklad 500 Kč. Kde se kupují jen celé podíly, potřebujete aspoň cenu jednoho podílu – u velkých akciových ETF od desítek po stovky eur. Důležitější než velikost první částky je pravidelnost a dlouhý horizont. Investujte jen peníze, které několik let nebudete potřebovat.',
     'Jak často mám investovat?':
       'Pro většinu lidí se osvědčí pravidelná měsíční investice stejné částky, ideálně po výplatě. Nakupujete tak za různé ceny a nemusíte řešit, jestli je zrovna dobrá doba.',
     'Stačí jeden fond, nebo jich mám mít víc?':

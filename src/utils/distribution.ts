@@ -2,8 +2,8 @@
  * Typ výplaty fondu – JEDNO místo pro celý web (detail fondu i srovnávač).
  *
  * Dřív byla funkce zkopírovaná v detailu i ve srovnávači a srovnávač navíc nedostával
- * `distribution_frequency` → fondy bez `distribution_policy` byly na detailu „distribuční"
- * a ve srovnávači „neznámé" a filtr „distribuční" je vynechal (audit 17. 10. 2026).
+ * `distribution_frequency` → fondy bez `distribution_policy` byly na detailu „distribuční“
+ * a ve srovnávači „neznámé“ a filtr „distribuční“ je vynechal (audit 17. 10. 2026).
  *
  * Prázdná politika se NEdomýšlí na akumulační; distribuci prozradí výplatní frekvence.
  */

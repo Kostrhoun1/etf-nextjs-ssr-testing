@@ -16,6 +16,8 @@ import { getBrokerContent } from '@/components/design-preview/brokerContent';
 import { BrokerLogo, FaqSeznam, AutorBox, TipZaTextem, CASTKA_PRIKLAD } from '@/components/design-preview/brokerUI';
 import { nactiKurzCnb, datumKurzu } from '@/lib/kurzCnb';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
+import { titulek } from '@/lib/seoTitulek';
+import { clanekSchema } from '@/lib/redakce';
 
 /* Recenze brokera (revize kola 2): každý údaj JEDNOU – podtitulek bez čísel, fakta jen v kartě „Kolik vás stojí“
    (na desktopu vpravo, na mobilu hned pod rychlým „Pro koho / Pro koho ne“). Dlouhé odstavce sbalené.
@@ -34,8 +36,8 @@ export async function generateMetadata(
   const b = brokers.find((x) => x.id === broker);
   if (!b) return { title: 'Recenze brokera', robots: { index: false, follow: false } };
   return {
-    title: `${b.name} recenze ${new Date().getFullYear()} – poplatky, ETF, daně`,
-    description: `Recenze ${b.robo ? 'robo-poradce' : 'brokera'} ${b.name} pro investování do ETF: poplatky, směna měn, zdanění dividend, ochrana hotovosti a cenných papírů, pro koho se hodí a jak založit účet.`,
+    title: titulek(`${b.name} recenze ${new Date().getFullYear()} – poplatky, ETF, daně`),
+    description: `Recenze ${b.robo ? 'robo-poradce' : 'brokera'} ${b.name} pro ETF: poplatky, směna měn, zdanění dividend, ochrana hotovosti a cenných papírů a pro koho se hodí.`,
     alternates: { canonical: `https://etfpruvodce.cz/recenze/${b.id}` },
   };
 }
@@ -150,6 +152,7 @@ export default async function BrokerReview(
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: `/recenze/${b.id}`, nadpis: `${b.name}: recenze` })) }} />
 
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">

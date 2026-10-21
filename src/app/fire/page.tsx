@@ -4,37 +4,35 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, BookOpen, Flame, Target, PiggyBank,
-  Percent, Coffee, Sprout, Gem, LineChart,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, BookOpen, Flame, Target, PiggyBank, Percent, Coffee, Sprout, Gem, LineChart, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'FIRE v Česku: kolik potřebuješ na finanční nezávislost (v Kč)',
+  title: titulek('FIRE v Česku: kolik potřebujete na finanční nezávislost (v Kč)'),
   description:
-    'Kompletní český průvodce FIRE a finanční nezávislostí. Kolik reálně potřebujete naspořit podle pravidla 4 % v korunách, jak dlouho to trvá podle míry úspor, role ETF a české daně. Vzdělávací, nezávislé, bez reklam.',
+    'Český průvodce FIRE: kolik naspořit podle pravidla 4 % v korunách, jak dlouho to trvá podle míry úspor a jakou roli hrají ETF a české daně. Vzdělávací obsah.',
   alternates: { canonical: '/fire' },
   openGraph: {
-    title: 'FIRE v Česku: kolik potřebuješ na finanční nezávislost (v Kč)',
+    title: 'FIRE v Česku: kolik potřebujete na finanční nezávislost (v Kč)',
     description:
       'Kolik naspořit podle pravidla 4 % v korunách, jak dlouho to trvá podle míry úspor, role ETF a české daně. Vzdělávací a nezávislé.',
     url: 'https://etfpruvodce.cz/fire',
-    images: [ogImage({ title: 'FIRE v Česku: kolik potřebuješ na finanční nezávislost (v Kč)', eyebrow: 'Finanční nezávislost', stat: '25×', statLabel: 'ročních výdajů podle pravidla 4 %' })],
+    images: [ogImage({ title: 'FIRE v Česku: kolik potřebujete na finanční nezávislost (v Kč)', eyebrow: 'Finanční nezávislost', stat: '25×', statLabel: 'ročních výdajů podle pravidla 4 %' })],
     type: 'article',
   },
 };
 
 /* Cílová částka = 25× roční výdaje = 300× měsíční výdaje (pravidlo 4 %). */
 const TARGET_ROWS: { monthly: number; note: string }[] = [
-  { monthly: 25000, note: 'skromnější „lean" život' },
+  { monthly: 25000, note: 'skromnější „lean“ život' },
   { monthly: 35000, note: 'běžná domácnost' },
   { monthly: 50000, note: 'komfortní život' },
-  { monthly: 75000, note: 'štědrý „fat" rozpočet' },
+  { monthly: 75000, note: 'štědrý „fat“ rozpočet' },
 ];
 
 /* Roky do FIRE podle míry úspor (start od nuly, ~5 % reálný výnos, cíl 25× výdaje). */
@@ -52,8 +50,7 @@ const czk = (v: number) => v.toLocaleString('cs-CZ');
 const mil = (v: number) => (v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 });
 
 export default async function FireHub() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/fire'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   const faqs = [
     {
@@ -115,6 +112,7 @@ export default async function FireHub() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/fire', nadpis: 'FIRE a finanční nezávislost v Česku', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -162,7 +160,7 @@ export default async function FireHub() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Vše v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Bez provizí a reklam</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -351,13 +349,16 @@ export default async function FireHub() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-dividendove-etf', 'nejlepsi-dluhopisove-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">
@@ -367,13 +368,13 @@ export default async function FireHub() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle, na základě veřejných dat a doložené metodiky – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle, na základě veřejných dat a doložené metodiky – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter, není investičním ani daňovým doporučením. Uvedené výpočty jsou modelové a orientační. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter, není investičním ani daňovým doporučením. Uvedené výpočty jsou modelové a orientační. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

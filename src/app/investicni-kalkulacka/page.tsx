@@ -15,13 +15,14 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import { simulateAndSerialize } from '@/lib/backtest/simulate';
 import { scenarSkutecnosti, shrnSkutecnost, type SkutecnostVysledek } from '@/lib/kalkulackaSkutecnost';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/investicni-kalkulacka' },
-  title: 'Investiční kalkulačka: složené úročení a pravidelné investování',
+  title: titulek('Investiční kalkulačka: složené úročení a pravidelné investování'),
   description:
     'Spočítejte, na kolik narostou vaše investice díky složenému úročení. Zadejte jednorázový i pravidelný vklad, dobu a výnos – výsledek v korunách včetně grafu.',
 };
@@ -177,7 +178,7 @@ export default async function InvesticniKalkulackaPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačku stavíme nezávisle, bez placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Kalkulačku stavíme nezávisle, bez placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>

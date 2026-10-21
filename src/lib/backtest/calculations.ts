@@ -131,7 +131,7 @@ export interface RollingReturnResult {
 
 /**
  * Rolling (klouzavé) výnosy: pro každé okno délky N let vezme VŠECHNY možné začátky v historii
- * a spočítá anualizovaný výnos → nejhorší / průměr / nejlepší. Ukazuje „záleželo, kdy jsi začal".
+ * a spočítá anualizovaný výnos → nejhorší / průměr / nejlepší. Ukazuje „záleželo, kdy jsi začal“.
  * Z EUR NAV (jako ostatní výnos/riziko) → start-nezávislé a konzistentní s CAGR.
  */
 export function calculateRollingReturns(
@@ -157,12 +157,12 @@ export function calculateRollingReturns(
 }
 
 /**
- * „Underwater" řada – pro každý měsíc, jak hluboko byla hodnota pod dosavadním vrcholem
+ * „Underwater“ řada – pro každý měsíc, jak hluboko byla hodnota pod dosavadním vrcholem
  * (0 na vrcholech, záporné ve ztrátě). Z EUR NAV (jako ostatní riziko) → start-nezávislé.
  *
  * Počítá se z DENNÍ řady a za měsíc se bere NEJHLUBŠÍ bod (ne konec měsíce). Dřív se řada
  * nejdřív převzorkovala na konce měsíců → dno uprostřed měsíce (např. 9. 3. 2009) v grafu
- * chybělo a graf ukazoval mělčí propad (~−47 %) než „Max. pokles" v tabulce (−52,8 %,
+ * chybělo a graf ukazoval mělčí propad (~−47 %) než „Max. pokles“ v tabulce (−52,8 %,
  * ten je z denních dat). Teď dno grafu = max. pokles.
  */
 export function calculateDrawdownSeries(nav: TimeSeriesPoint[]): { date: string; drawdown: number }[] {

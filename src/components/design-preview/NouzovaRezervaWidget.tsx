@@ -60,7 +60,7 @@ interface EmergencyFundData {
 }
 
 /* ===== VÝPOČET 1:1 z calculateEmergencyFund (řádky 63–217) – NEMĚNIT ===== */
-/** „1 měsíc", „2–4 měsíce", „5+ měsíců" (dřív vždy „měsíců" – „4 měsíců"). */
+/** „1 měsíc“, „2–4 měsíce“, „5+ měsíců“ (dřív vždy „měsíců“ – „4 měsíců“). */
 const mesice = (n: number) => `${n.toLocaleString('cs-CZ')} ${n === 1 ? 'měsíc' : n >= 2 && n <= 4 ? 'měsíce' : 'měsíců'}`;
 
 function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData {
@@ -144,8 +144,8 @@ function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData 
   const phase3Target = recommendedAmount; // Celá částka
 
   // Kolik měsíců spoření ZBÝVÁ do cíle – počítá se s tím, co už člověk má. Dřív se ignorovaly
-  // současné úspory: „Čas do cíle 4 měsíce" a vedle „plná rezerva – naspoříte za 24 měsíců"
-  // (audit výpočtů 17. 10. 2026). Splněný krok = „splněno".
+  // současné úspory: „Čas do cíle 4 měsíce“ a vedle „plná rezerva – naspoříte za 24 měsíců“
+  // (audit výpočtů 17. 10. 2026). Splněný krok = „splněno“.
   const zbyva = (cil: number) => {
     const chybi = Math.max(0, cil - currentSavings);
     if (chybi === 0) return 'splněno';

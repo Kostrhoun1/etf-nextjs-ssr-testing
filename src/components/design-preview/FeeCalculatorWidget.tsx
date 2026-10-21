@@ -185,7 +185,7 @@ export default function FeeCalculatorWidget() {
       return;
     }
 
-    // TER se strhává z hodnoty fondu → čistý výnos = (1 + r)(1 − TER) − 1. Dřív „r − TER", což
+    // TER se strhává z hodnoty fondu → čistý výnos = (1 + r)(1 − TER) − 1. Dřív „r − TER“, což
     // dopad poplatku mírně podceňovalo (výchozí příklad o ~5 %; audit výpočtů 17. 10. 2026).
     const annualETFReturn = Math.max(-0.99, (1 + annualReturn) * (1 - etfTER / 100) - 1);
     const annualActiveReturn = Math.max(-0.99, (1 + annualReturn) * (1 - activeTER / 100) - 1);

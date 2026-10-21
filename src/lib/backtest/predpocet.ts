@@ -23,12 +23,13 @@ export const POCATECNI_VKLAD: Record<Currency, number> = { CZK: 100000, EUR: 400
 /** Jedna položka portfolia (tvar z portfolioData.ts – BacktestItem). */
 type Polozka = { indexCode: string; weight: number; ter: number }
 
-export async function predpocitejPortfolio(items: Polozka[], start: string, cur: Currency = 'CZK'): Promise<PortfolioVysledek | null> {
+/** `konecDne` (ISO den) = volitelný poslední den simulace; bez něj do dneška (data rozhodnou, kde řada končí). */
+export async function predpocitejPortfolio(items: Polozka[], start: string, cur: Currency = 'CZK', konecDne?: string): Promise<PortfolioVysledek | null> {
   try {
     const r = await simulateAndSerialize({
       portfolio: items.map((i) => ({ isin: i.indexCode, name: i.indexCode, weight: i.weight, ter: i.ter, indexCode: i.indexCode })),
       startDate: start,
-      endDate: new Date().toISOString().split('T')[0],
+      endDate: konecDne ?? new Date().toISOString().split('T')[0],
       initialAmount: POCATECNI_VKLAD[cur],
       rebalancingStrategy: 'yearly',
       currency: cur,

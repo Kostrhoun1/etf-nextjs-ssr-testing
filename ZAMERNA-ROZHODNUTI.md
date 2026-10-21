@@ -571,3 +571,38 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   neodkazuje na nekurátorskou dvojici (googlebot noindex) – místo ní porovnání `?isins=`; ocas detailů dál na dvojici.
 - **Nový fond (< 1 rok): datum vzniku a „od vzniku / 1 měsíc“ jen v úvodu** (+ datum v tabulce faktů), přepínač měny
   ve Výkonnosti skrytý (údaje jsou jen v EUR).
+
+## SEO obsah – kontrolní audit 6b (21. 10. 2026)
+
+- **Švýcarské fondy (sídlo CH, `jeSvycarskyFond` v src/lib/nazevFondu.ts) se na karty žebříčků NEVYBÍRAJÍ** (Největší /
+  Nejlevnější / Nejvýkonnější) – iShares Swiss Dividend (CH), UBS ETF (CH) Gold, Swisscanto (CH) Gold, Raiffeisen ETF Solid
+  Gold… nejsou UCITS a část brokerů je českým investorům nenabízí (chybí KID). V tabulce ZŮSTÁVAJÍ se štítkem „sídlo CH –
+  ověřte dostupnost u brokera“. Když je největší fond kategorie švýcarský, karta i odpověď nahoře píšou „největší mimo
+  švýcarské fondy“. Výjimka: ETP/ETN švýcarských emitentů (21Shares – bitcoin, Solana…) – dluhové cenné papíry s evropským
+  prospektem, ne fondy. Hlídá check-fund-data.mjs (blok kolo6b seo obsah).
+- **Franklin FTSE Korea (FLXK, IE00BHZRR030) +101,7 % za rok v Kč je SKUTEČNOST** (ověřeno 21. 10. 2026 nezávisle):
+  Xetra FLXK.DE 17. 10. 2025 → 19. 10. 2026: 39,40 → 79,66 € = +102,2 %; justETF graf +100,9 %; o den jindy (16.→16.)
+  +93,3 % – volatilita 59 % (jeden den = ~10 p. b.). EWY (MSCI Korea, USD) +71–77 % – rozdíl je jiný index (FTSE Korea 30/18
+  Capped, víc Samsung a SK Hynix). Číslo se smí ukazovat jen s datem. Na /infografiky se už neukazuje (panel „Nejvýkonnější“
+  zrušen kvůli rozhodnutí „široké seznamy bez Nejvýkonnější“ – nahrazen „Největší podle majetku“ a „Nejlevnější podle TER“
+  jednotným pravidlem `porovnejNejlevnejsi`).
+- **/kolik-vydelaly-etf počítá VŠECHNA čísla z dat** (src/lib/clanky/kolikVydelaly.ts, start 1. 7. 2008, Kč, stejný engine
+  jako /sp500-nebo-cely-svet). Dřív napevno „čtyřnásobek, 8–9 % ročně, propad −50 %“ a roční výnosy v USD (2017 +24 % – v Kč
+  +3,4 %); stará equity křivka (equityCurve.ts) běžela bez měny = v dolarech – smazána. Sekce „od roku 1993 v korunách“ zrušena:
+  kurzy koruny máme od roku 2000, číslo nešlo ověřit → nahrazeno S&P 500 v Kč od 1/2000. Bez dat stránka vyhodí výjimku (ISR
+  ponechá poslední dobrou verzi). Hlídá check-fund-data (VT ročně = /sp500-nebo-cely-svet).
+  Nezávislé ověření 21. 10. 2026 (Yahoo adj. close × denní kurzy ČNB, skript mimo kód webu): VT 2. 7. 2008 → 19. 10. 2026
+  ≈ 685 500 Kč / 11,09 % ročně (web 684 442 / 11,08 %), roční výnosy 2009–2026 ±0,1 p. b., max. pokles −32,1 % (z denních
+  cen; na koncích měsíců −25,0 %), 5 000 Kč měsíčně 8/2008–10/2026 (219 vkladů) 3 563 277 Kč (web 3 560 277), SPY/EFA/EEM
+  od 7/2008 ±0,17 p. b. ročně, SPY od 1/2000 6,27 × 6,28 %. Engine začíná 2. 7. 2008 (ne 1. 7.) – stránka proto píše
+  skutečný první den řady (`prvniDen`), ne „1. 7.“.
+- **„Aktualizováno …“ na statických stránkách = datum úpravy TEXTU (DATA_CLANKU v src/lib/redakce.ts), ne den dat fondů.**
+  U tabulek fondů na těchže stránkách je zvlášť „Data k …“. Při věcné úpravě textu posunout `upraveno`.
+- **Počet fondů v textech zaokrouhleně („4 900+“)** – homepage, /o-nas, /zebricky, /kalkulacky, titulky, Organization, llms.txt.
+  Výjimka: živé počítadlo nad tabulkou srovnávače (počet řádků podle filtru) je přesné záměrně.
+- **Kvíz /vyber-etf: všechny výsledky končí společným posledním dnem.** Měsíční dluhopisová řada `eur_govt_bond_1_3y` dostává
+  od sync jobu i body s dnešním datem zapsané během obchodního dne (= včerejší závěr) → kvíz psal „– 20. 10.“ a ostatní „– 19. 10.“.
+  Delší řady se přepočtou do nejkratšího konce (predpocitejPortfolio s `konecDne`). Hlídá check-fund-data.
+- **Titulek > 65 znaků → bez „| ETF průvodce.cz“** (`titulek()` v src/lib/seoTitulek.ts), stejně jako u žebříčků a detailů.
+- **Organization schema: „Největší český průvodce ETF fondy“ ZŮSTÁVÁ** (rozhodnutí majitele 18. 10., viz výše) i přes
+  doporučení auditu 6b; odstraněna jen „Jedinečná databáze ETF pro české investory“.

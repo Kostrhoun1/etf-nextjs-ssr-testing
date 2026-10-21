@@ -2,11 +2,12 @@
  * Český index spotřebitelských cen (ČSÚ) – pro přepočet výnosů na REÁLNÉ (po inflaci).
  *
  * ZDROJ (ověřeno 2026-07-16):
- *  - Měsíční bazický index „Úhrn", domácnosti celkem, Česko, **2015 = 100**:
+ *  - Měsíční bazický index „Úhrn“, domácnosti celkem, Česko, **2015 = 100**:
  *    ČSÚ open data, datová sada CEN0101E
  *    https://data.csu.gov.cz/opendata/sady/CEN0101E/distribuce/csv
- *    Pokrytí: 2015-01 … 2026-06 (exaktní měsíční data).
- *  - Roky 1999–2015: dopočteno z publikované „míry inflace" (průměrná roční, ČSÚ
+ *    Pokrytí: 2015-01 … 2026-09 (exaktní měsíční data; doplněno 21. 10. 2026 – datová sada má od 2026
+ *    i bázi 2025 = 100, bereme dál řádky „Bazický index (2015 = 100)“).
+ *  - Roky 1999–2015: dopočteno z publikované „míry inflace“ (průměrná roční, ČSÚ
  *    https://csu.gov.cz/csu/czso/mira_inflace), zřetězeno zpět od kotvy průměr 2015 = 100.
  *    Tyto hodnoty jsou ROČNÍ PRŮMĚRY cenové hladiny (ne měsíční body).
  *
@@ -17,7 +18,7 @@
  *
  * PŘESNOST: od 2015-01 měsíčně exaktní. Před 2015 interpolujeme mezi ročními průměry
  * (kotva = 1. července), takže uvnitř roku jde o odhad – na víceletých horizontech
- * backtestu je chyba zanedbatelná, roční kotvy jsou oficiální. Po 2026-06 držíme
+ * backtestu je chyba zanedbatelná, roční kotvy jsou oficiální. Po posledním měsíci řady držíme
  * poslední známý index (novější data ČSÚ ještě nezveřejnil) – reálný výnos tím
  * NEnadhodnocujeme o budoucí inflaci, jen ji do konce řady nezapočítáme.
  *
@@ -164,6 +165,11 @@ export const MONTHLY_CPI: Record<string, number> = {
   '2026-04': 158.0,
   '2026-05': 158.3,
   '2026-06': 157.8,
+  // Doplněno 21. 10. 2026 z CEN0101E (řada „Bazický index (2015 = 100)“); kontrola proti zprávě ČSÚ z 13. 10. 2026:
+  // září meziročně +2,5 % (159,2 / 155,3), meziměsíčně 0,0 %, srpen +1,9 % (159,2 / 156,2). Viz check-fund-data.mjs (kolo6b).
+  '2026-07': 158.8,
+  '2026-08': 159.2,
+  '2026-09': 159.2,
 }
 
 /** Roční PRŮMĚR cenové hladiny (stejná báze 2015 = 100), dopočtený z míry inflace ČSÚ. */
@@ -244,5 +250,5 @@ export function inflationFactor(startDate: string | Date, endDate: string | Date
   return b / a
 }
 
-/** Poslední měsíc, pro který máme oficiální index (pro popisky „data k…"). */
+/** Poslední měsíc, pro který máme oficiální index (pro popisky „data k…“). */
 export const CPI_LAST_MONTH = LAST_MONTHLY

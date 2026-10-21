@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { RADKU_TABULKY_VYCHOZI } from '@/lib/zebrickySouvisejici';
 import Link from 'next/link';
 import { ArrowRight, ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 import EmitentLogo from '@/components/home/EmitentLogo';
@@ -36,6 +37,10 @@ export interface RadekFondu {
   /** Den výnosů fondu („16. 10. 2026“) jen když se liší od „Data k …“ žebříčku (zpožděná řada u zdroje,
    *  src/lib/datumVynosu.ts); jinak chybí. */
   vynosyK?: string;
+  /** Švýcarský fond (sídlo CH) – štítek „sídlo CH – ověřte dostupnost u brokera“ (SEO audit 6b). */
+  svycarsky?: boolean;
+  /** Typ produktu ve smíšených žebříčcích („ETC“, „peněžní trh“, „dluhopisy“…); null = akcie / neukazovat. */
+  druh?: string | null;
 }
 
 type Klic = 'size' | 'ter' | 'r1' | 'r3';
@@ -45,7 +50,8 @@ const RAZENI: { id: Klic; label: string; mobil: string; kratce: string }[] = [
   { id: 'r1', label: 'Výnos 1 rok', mobil: 'Výnos 1 r.', kratce: 'výnos za 12 měs.' },
   { id: 'r3', label: 'Výnos 3 roky', mobil: 'Výnos 3 r.', kratce: 'výnos za 3 roky' },
 ];
-const KROK = 20;
+// Počet řádků ve výchozím pohledu – sdílený se žebříčkem (vypisuje velké fondy, které tabulka hned neukáže).
+const KROK = RADKU_TABULKY_VYCHOZI;
 
 const NB = ' ';
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -145,11 +151,14 @@ export default function TabulkaFondu({
   const zajisteneVTypu = radky.filter((r) => r.zajisteni && (typ === 'vse' || r.typ === typ)).length;
   const skrytoZajistenych = bezZajisteni ? zajisteneVTypu : 0;
   const nadpis = 'Fondy v žebříčku';
+  // SEO audit 6b: dřív „Ukazujeme 300 největších z 813 fondů, bez 64 zajištěných“ – ukázalo se ale 236 řádků.
+  // Teď vždy skutečný počet řádků: „Ukazujeme 236 z 300 největších fondů (celkem 813 nad 50 mil. €); 64 … skrýváme“.
+  const celkemText = `celkem ${n0(celkem)}${prah ? ` nad ${prah}${NB}mil.${NB}€` : ''}`;
   const zCeho = castecne
-    ? `${n0(radky.length)} největších z ${n0(celkem)} fondů${prah ? ` nad ${prah}${NB}mil.${NB}€` : ''}`
+    ? `${n0(radky.length)} největších fondů (${celkemText})`
     : `${n0(celkem)} ${celkem === 1 ? 'fondu' : 'fondů'}`;
   const veta = castecne
-    ? (typ === 'vse' ? `Ukazujeme ${zCeho}` : `Ukazujeme ${n0(vyber.length)} ${typSlovo(typ, vyber.length)}z ${zCeho}`)
+    ? (vyber.length === radky.length ? `Ukazujeme ${zCeho}` : `Ukazujeme ${n0(vyber.length)} ${typSlovo(typ, vyber.length)}z ${zCeho}`)
     : typ === 'vse' && skrytoZajistenych === 0
       ? `Ukazujeme ${celkem === 1 ? 'jediný fond' : `všech ${n0(celkem)} ${fondu(celkem)}`}`
       : `Ukazujeme ${n0(vyber.length)} ${typSlovo(typ, vyber.length)}z ${zCeho}`;
@@ -182,7 +191,7 @@ export default function TabulkaFondu({
       <p className="mt-1 mb-3 text-sm text-slate-500 leading-relaxed" data-veta-pocty>
         {veta}
         {zajisteneVTypu > 0 ? (bezZajisteni
-          ? <>, bez {n0(skrytoZajistenych)}{NB}měnově {skrytoZajistenych === 1 ? 'zajištěné třídy' : 'zajištěných tříd'}{' '}
+          ? <>; {n0(skrytoZajistenych)}{NB}{skrytoZajistenych === 1 ? 'měnově zajištěnou třídu' : skrytoZajistenych <= 4 ? 'měnově zajištěné třídy' : 'měnově zajištěných tříd'} skrýváme{' '}
               <InfoTip label={TIP_ZAJISTENI}>{null}</InfoTip>{' · '}
               <button type="button" onClick={() => zmenZajisteni(false)} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">zobrazit je</button></>
           : <>, včetně {n0(zajisteneVTypu)}{NB}měnově {zajisteneVTypu === 1 ? 'zajištěné třídy' : 'zajištěných tříd'}{' '}
@@ -250,6 +259,8 @@ export default function TabulkaFondu({
                       {r.rok && <span>· od {r.rok}</span>}
                       {r.zajisteni && <span className="rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">zajištěno{r.zajisteni !== 'ano' ? ` ${r.zajisteni}` : ''}</span>}
                       {r.vynosyK && <span data-vynosy-k={r.vynosyK} title="Zdroj má ceny tohoto fondu se zpožděním – jeho výnosy platí k jinému dni než ostatní." className="cursor-help rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">výnosy k {r.vynosyK}</span>}
+                      {r.druh && <span className="rounded bg-slate-100 px-1 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200">{r.druh}</span>}
+                      {r.svycarsky && <span className="rounded bg-slate-100 px-1 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200" title="Fond se sídlem ve Švýcarsku (není UCITS) – část brokerů ho českým investorům nenabízí.">sídlo CH – ověřte dostupnost u brokera</span>}
                     </span>
                   </span>
                 </Link>

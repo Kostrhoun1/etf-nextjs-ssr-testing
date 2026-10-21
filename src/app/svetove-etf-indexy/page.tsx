@@ -4,20 +4,18 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Globe,
-  Landmark, Scale, ShieldCheck, HelpCircle, Building2, Sprout, Layers,
-  CheckCircle2, BookOpen, MapPin,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Globe, Landmark, Scale, ShieldCheck, HelpCircle, Building2, Sprout, Layers, CheckCircle2, BookOpen, MapPin, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Světové ETF: MSCI World vs FTSE All-World vs ACWI vs S&P 500',
+  title: titulek('Světové ETF: MSCI World vs FTSE All-World vs ACWI vs S&P 500'),
   description:
-    'Který světový index vybrat? Přehledně vysvětlíme, které indexy obsahují emerging markets a které jen rozvinuté trhy, kolik mají firem a jaký podíl USA – s příklady konkrétních ETF. Srozumitelně a v korunách.',
+    'Který světový index vybrat? Které indexy obsahují rozvíjející se trhy a které jen vyspělé, kolik mají firem a jaký podíl USA – s příklady konkrétních ETF.',
   alternates: { canonical: '/svetove-etf-indexy' },
   openGraph: {
     title: 'Světové ETF: MSCI World vs FTSE All-World vs ACWI vs S&P 500',
@@ -52,8 +50,7 @@ const ROWS: Row[] = [
 ];
 
 export default async function SvetoveEtfIndexy() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/svetove-etf-indexy'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   const faqs = [
     {
@@ -74,11 +71,11 @@ export default async function SvetoveEtfIndexy() {
     },
     {
       q: 'Mám do portfolia zařadit emerging markets?',
-      a: 'Emerging markets přidávají diverzifikaci a expozici na rychle rostoucí ekonomiky, ale nesou vyšší riziko a v posledních letech zaostávaly za USA. V celosvětovém indexu tvoří jen ~10 %, takže portfoliem nezahýbou dramaticky. Kdo chce mít „celý svět", volí index s emerging markets (ACWI / All-World); kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.',
+      a: 'Emerging markets přidávají diverzifikaci a expozici na rychle rostoucí ekonomiky, ale nesou vyšší riziko a v posledních letech zaostávaly za USA. V celosvětovém indexu tvoří jen ~10 %, takže portfoliem nezahýbou dramaticky. Kdo chce mít „celý svět“, volí index s emerging markets (ACWI / All-World); kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.',
     },
     {
       q: 'Poznám podle názvu ETF, jaký index sleduje?',
-      a: 'Většinou ano – v názvu bývá přímo „MSCI World", „FTSE All-World", „MSCI ACWI" nebo „S&P 500". V našem srovnávači navíc u každého fondu vidíte sledovaný index a můžete podle něj filtrovat.',
+      a: 'Většinou ano – v názvu bývá přímo „MSCI World“, „FTSE All-World“, „MSCI ACWI“ nebo „S&P 500“. V našem srovnávači navíc u každého fondu vidíte sledovaný index a můžete podle něj filtrovat.',
     },
   ];
   const faqSchema = {
@@ -99,6 +96,7 @@ export default async function SvetoveEtfIndexy() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/svetove-etf-indexy', nadpis: 'Světové ETF: který index vybrat?', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -131,7 +129,7 @@ export default async function SvetoveEtfIndexy() {
               Světové ETF: který index vybrat?
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
-              MSCI World, FTSE All-World, ACWI, S&amp;P 500 – „světový" znamená u každého něco jiného. Konečně{' '}
+              MSCI World, FTSE All-World, ACWI, S&amp;P 500 – „světový“ znamená u každého něco jiného. Konečně{' '}
               <strong className="text-white">přehledně</strong>: které indexy obsahují emerging markets a které jen
               rozvinuté trhy, kolik drží firem a jaký mají podíl USA – s příklady konkrétních ETF.
             </p>
@@ -146,7 +144,7 @@ export default async function SvetoveEtfIndexy() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Data z MSCI a FTSE Russell</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -155,8 +153,8 @@ export default async function SvetoveEtfIndexy() {
         <section className="pb-9">
           <div className="max-w-3xl text-[15px] text-slate-600 leading-relaxed space-y-3">
             <p>
-              Rozhodli jste se pro „jeden světový ETF" a najednou koukáte na džungli názvů. Háček je v tom, že{' '}
-              <strong className="text-slate-900">slovo „světový" každý index chápe jinak</strong>: některé drží opravdu
+              Rozhodli jste se pro „jeden světový ETF“ a najednou koukáte na džungli názvů. Háček je v tom, že{' '}
+              <strong className="text-slate-900">slovo „světový“ každý index chápe jinak</strong>: některé drží opravdu
               celý svět včetně Číny a Indie, jiné jen rozvinuté trhy a S&amp;P 500 vůbec není světový – je čistě americký.
             </p>
             <p>
@@ -250,7 +248,7 @@ export default async function SvetoveEtfIndexy() {
             {([
               [Landmark, 'S&P 500 – jen USA', '500 největších amerických firem. Není to světový index, ale nejsledovanější akciový benchmark světa. Skvělá historická výkonnost, tažená technologiemi, ale veškerá expozice v jedné zemi a jedné měně. Příklady: CSPX, VUAA.'],
               [Building2, 'MSCI World / FTSE Developed – rozvinuté trhy', 'Zhruba 23 vyspělých ekonomik (USA, Evropa, Japonsko, Kanada, Austrálie…), dohromady ~1 300–2 000 firem. Emerging markets NEobsahují. USA v nich váží kolem 70 %. Nejpopulárnější volba pro ty, kdo věří hlavně rozvinutému světu. Příklady: IWDA, SWDA, VHVG.'],
-              [Globe, 'MSCI ACWI / FTSE All-World – celý svět', 'Rozvinuté i rozvíjející se trhy v jednom fondu (~2 500–4 300 firem). Emerging markets tvoří zhruba 10–12 %. „Kup jeden fond a máš celý svět." Nejčastější volba pro pasivního dlouhodobého investora. Příklady: VWCE, VWRL (FTSE), SSAC/ISAC (MSCI).'],
+              [Globe, 'MSCI ACWI / FTSE All-World – celý svět', 'Rozvinuté i rozvíjející se trhy v jednom fondu (~2 500–4 300 firem). Emerging markets tvoří zhruba 10–12 %. „Kup jeden fond a máš celý svět.“ Nejčastější volba pro pasivního dlouhodobého investora. Příklady: VWCE, VWRL (FTSE), SSAC/ISAC (MSCI).'],
               [Layers, 'FTSE Global All Cap / MSCI ACWI IMI – úplně všechno', 'Rozvinuté + emerging + navíc malé firmy (small caps) – klidně přes 9 000 titulů. Nejúplnější záběr trhu. Rozdíl proti All-World je ale malý (small caps váží málo), proto většině stačí běžný all-world fond.'],
             ] as [typeof Globe, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-5">
@@ -273,7 +271,7 @@ export default async function SvetoveEtfIndexy() {
               <ul className="mt-2 space-y-1.5 text-sm text-slate-600 leading-relaxed list-disc pl-4">
                 <li>Diverzifikace napříč více ekonomikami a měnami.</li>
                 <li>Expozice na rychle rostoucí trhy (Indie, jihovýchodní Asie).</li>
-                <li>„Celý svět" bez sázky na to, kdo poroste příště.</li>
+                <li>„Celý svět“ bez sázky na to, kdo poroste příště.</li>
               </ul>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-5">
@@ -287,7 +285,7 @@ export default async function SvetoveEtfIndexy() {
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Neexistuje jediná správná odpověď. Kdo chce „celý svět" a nechce nic řešit, volí index s emerging markets
+            Neexistuje jediná správná odpověď. Kdo chce „celý svět“ a nechce nic řešit, volí index s emerging markets
             (ACWI / All-World). Kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.
           </p>
         </section>
@@ -345,13 +343,16 @@ export default async function SvetoveEtfIndexy() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-sp500-etf', 'nejlepsi-emerging-markets-etf', 'nejlepsi-etf-2026']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">
@@ -361,13 +362,13 @@ export default async function SvetoveEtfIndexy() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: MSCI (index factsheets), FTSE Russell / LSEG. Počty firem a podíl USA jsou orientační a v čase se mění. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: MSCI (index factsheets), FTSE Russell / LSEG. Počty firem a podíl USA jsou orientační a v čase se mění. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací obsah, není investičním doporučením.</p>
             </div>
           </div>

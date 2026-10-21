@@ -4,26 +4,24 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Scale, ShieldCheck,
-  HelpCircle, PieChart, Layers, LineChart, Landmark, Globe, Percent,
-  TrendingDown, Building2, Calculator, Wallet, CheckCircle2, XCircle,
-  Target, Clock, Sparkles,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Scale, ShieldCheck, HelpCircle, PieChart, Layers, LineChart, Landmark, Globe, Percent, TrendingDown, Building2, Calculator, Wallet, CheckCircle2, XCircle, Target, Clock, Sparkles, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate, getETFsByIsins, getTotalETFCount } from '@/lib/etf-data';
+import { getETFsByIsins, getTotalETFCount, getDataDate } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (data v Kč)',
+  title: titulek('ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (v Kč)'),
   description:
-    'Koupit ETF, nebo si vybírat vlastní akcie? Data ukazují, že jen menšina akcií dlouhodobě překoná i státní dluhopisy – a pouhá 4 % firem vytvořila veškerý čistý zisk trhu. Rozdíl v diverzifikaci, nákladech, daních a riziku srozumitelně a v korunách.',
+    'ETF, nebo vlastní akcie? Většina akcií dlouhodobě nepřekoná ani státní pokladniční poukázky a 4 % firem vytvořila veškerý čistý zisk trhu. Rozdíly srozumitelně.',
   alternates: { canonical: '/etf-vs-akcie' },
   openGraph: {
-    title: 'ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (data v Kč)',
+    title: 'ETF, nebo jednotlivé akcie? Srovnání pro začátečníka (v Kč)',
     description:
       'Proč většina jednotlivých akcií zaostává, kolik firem koupíte jedním ETF a kdy dávají vlastní akcie smysl. Nezávisle, s daty a v korunách.',
     url: 'https://etfpruvodce.cz/etf-vs-akcie',
@@ -43,7 +41,7 @@ const pct = (v: number | null) =>
   v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(1).replace('.', ',')} %`;
 const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
 
-/* Široké „koupíte celý trh" fondy – ukázka toho, co znamená ETF místo jedné akcie.
+/* Široké „koupíte celý trh“ fondy – ukázka toho, co znamená ETF místo jedné akcie.
    Data se dotahují živě z naší DB, ISIN je stabilní identifikátor. */
 const BROAD_ISINS = [
   'IE00BK5BQT80', // Vanguard FTSE All-World (VWCE) – celý svět
@@ -52,14 +50,12 @@ const BROAD_ISINS = [
 ];
 
 export default async function EtfVsAkciePage() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  const upraveno = upravenoDlouze('/etf-vs-akcie'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
   const [funds, totalCount] = await Promise.all([
     getETFsByIsins(BROAD_ISINS),
     getTotalETFCount(),
   ]);
+  const datumDat = (await getDataDate(new Date())).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }); // čísla v tabulce fondů
   const totalStr = totalCount >= 100 ? `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+` : `${totalCount}`;
 
   const faqs = [
@@ -77,11 +73,11 @@ export default async function EtfVsAkciePage() {
     },
     {
       q: 'Nevydělám na akciích jako Apple nebo Nvidia víc než na nudném indexu?',
-      a: 'Když trefíte budoucího vítěze na začátku, ano. Problém je, že tyhle firmy jsou „jasná volba" až zpětně – dopředu to jistota není a na každý Apple připadají desítky firem, které vypadaly stejně slibně a skončily neúspěchem (Kodak i Enron zkrachovaly úplně). Navíc: pokud takový vítěz vyroste do velikosti, je stejně automaticky velkou vahou v indexu, takže z jeho růstu těžíte i přes ETF – jen bez rizika, že vsadíte na špatného koně.',
+      a: 'Když trefíte budoucího vítěze na začátku, ano. Problém je, že tyhle firmy jsou „jasná volba“ až zpětně – dopředu to jistota není a na každý Apple připadají desítky firem, které vypadaly stejně slibně a skončily neúspěchem (Kodak i Enron zkrachovaly úplně). Navíc: pokud takový vítěz vyroste do velikosti, je stejně automaticky velkou vahou v indexu, takže z jeho růstu těžíte i přes ETF – jen bez rizika, že vsadíte na špatného koně.',
     },
     {
       q: 'Kdy dávají jednotlivé akcie smysl?',
-      a: 'Když vás investování opravdu baví, máte čas sledovat firmy a rozumíte tomu, co kupujete – a hlavně když jde o menší část portfolia, kterou si můžete dovolit ztratit, aniž to ohrozí vaše cíle. Osvědčený přístup je „jádro a satelit": pevné jádro tvoří široký ETF (klidně 80–90 % portfolia) a menší satelit jsou jednotlivé akcie nebo tematické sázky. Tak se necháte bavit stock pickingem, ale výsledek celého portfolia stojí na diverzifikaci.',
+      a: 'Když vás investování opravdu baví, máte čas sledovat firmy a rozumíte tomu, co kupujete – a hlavně když jde o menší část portfolia, kterou si můžete dovolit ztratit, aniž to ohrozí vaše cíle. Osvědčený přístup je „jádro a satelit“: pevné jádro tvoří široký ETF (klidně 80–90 % portfolia) a menší satelit jsou jednotlivé akcie nebo tematické sázky. Tak se necháte bavit stock pickingem, ale výsledek celého portfolia stojí na diverzifikaci.',
     },
     {
       q: 'Jak se liší daně u ETF a u jednotlivých akcií?',
@@ -115,6 +111,7 @@ export default async function EtfVsAkciePage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/etf-vs-akcie', nadpis: 'ETF, nebo jednotlivé akcie?', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -163,7 +160,7 @@ export default async function EtfVsAkciePage() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -296,7 +293,7 @@ export default async function EtfVsAkciePage() {
               </div>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
                 <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-                Výnos je za 5 let přepočtený do korun (obsahuje i pohyb kurzu, který český investor reálně cítí).
+                Data k {datumDat}. Výnos je za 5 let přepočtený do korun (obsahuje i pohyb kurzu, který český investor reálně cítí).
                 Není to doporučení konkrétního fondu ani záruka budoucího výnosu – minulé výsledky se nemusí opakovat.
                 Rozdíl mezi indexy rozebírá{' '}
                 <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
@@ -362,7 +359,7 @@ export default async function EtfVsAkciePage() {
               <p className="font-semibold text-slate-900">Akcie mají místo, když…</p>
               <ul className="mt-3 space-y-2 text-sm">
                 <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Investování vás baví a máte čas firmy sledovat.</li>
-                <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Jde o menší „satelit" (klidně 10–20 %), ne o základ portfolia.</li>
+                <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Jde o menší „satelit“ (klidně 10–20 %), ne o základ portfolia.</li>
                 <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Rozumíte tomu, co kupujete, a unesete výkyvy i ztrátu.</li>
                 <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Jádro už máte pokryté širokým ETF.</li>
               </ul>
@@ -380,7 +377,7 @@ export default async function EtfVsAkciePage() {
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Osvědčený kompromis je strategie <strong className="text-slate-700">„jádro a satelit"</strong>: pevné
+            Osvědčený kompromis je strategie <strong className="text-slate-700">„jádro a satelit“</strong>: pevné
             jádro tvoří široký ETF (80–90 % portfolia) a menší satelit jsou vlastní akcie nebo tematické sázky.
             Jak jádro poskládat, ukazují{' '}
             <Link href="/portfolio-strategie" className="text-teal-700 hover:underline">modelová portfolia</Link>.
@@ -421,13 +418,16 @@ export default async function EtfVsAkciePage() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-sp500-etf', 'nejlepsi-etf-2026']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">
@@ -437,13 +437,13 @@ export default async function EtfVsAkciePage() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Statistiky o rozdělení výnosů akcií vycházejí z výzkumu prof. Hendrika Bessembindera (Do Stocks Outperform Treasury Bills?) nad americkými akciemi 1926–2025. Výnosy fondů jsou informativní, minulé výsledky nezaručují budoucí. Nejde o investiční ani daňové poradenství. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Statistiky o rozdělení výnosů akcií vycházejí z výzkumu prof. Hendrika Bessembindera (Do Stocks Outperform Treasury Bills?) nad americkými akciemi 1926–2025. Výnosy fondů jsou informativní, minulé výsledky nezaručují budoucí. Nejde o investiční ani daňové poradenství. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

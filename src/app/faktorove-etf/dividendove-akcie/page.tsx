@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Dividendové ETF: psychologie vs. matematika – analýza v korunách',
+  title: titulek('Dividendové ETF: psychologie vs. matematika (analýza v Kč)'),
   description:
-    'Dividendové akcie jsou nejoblíbenější „faktor“ českých investorů – a matematicky nejslabší. Od 2006 v Kč: 8,9 % ročně vs 10,7 % u S&P 500. Ale v roce 2022 jako jediné vydělaly. Včetně českého daňového pohledu na dividendy.',
+    'Dividendové akcie jsou nejoblíbenější „faktor“ – a matematicky nejslabší: od 2006 v Kč 8,9 % ročně proti 10,7 % u S&P 500. V roce 2022 ale jako jediné vydělaly.',
   alternates: { canonical: '/faktorove-etf/dividendove-akcie' },
   openGraph: {
     title: 'Dividendové akcie: psychologie vs. matematika',

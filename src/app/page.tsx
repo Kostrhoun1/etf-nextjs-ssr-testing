@@ -26,8 +26,8 @@ export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
   const pocet = await getETFCountLabel();
   return {
-    // Title/description ladí na dotaz „etf" (pozice ~10, dřív CTR 0 %): konkrétní číslo fondů
-    // + USP „výnosy v Kč" místo obecných frází; bez ★ znaků, které Google trestá přepsáním snippetu.
+    // Title/description ladí na dotaz „etf“ (pozice ~10, dřív CTR 0 %): konkrétní číslo fondů
+    // + USP „výnosy v Kč“ místo obecných frází; bez ★ znaků, které Google trestá přepsáním snippetu.
     title: `Srovnání ${pocet} ETF fondů, výnosy v Kč – ETF průvodce.cz`,
     description:
       `Kolik reálně vydělaly ETF? Výnosy ${pocet} fondů přepočtené do korun, žebříčky pro rok 2026, backtest portfolia a investiční kalkulačky. Zdarma a česky.`,
@@ -59,7 +59,7 @@ const pct = (v: number | null) => {
 };
 const short = (n: string) => n.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)/, '').trim();
 
-/* Kurátorské „první volby" pro sekci Kterým ETF začít (úhel + důvod). */
+/* Kurátorské „první volby“ pro sekci Kterým ETF začít (úhel + důvod). */
 const STARTER_ISINS = ['IE00BK5BQT80', 'IE00B5BMR087', 'IE00B4L5Y983'];
 /* trh = řádek v TRHY (kolik fondů kopíruje stejný index), href = kam vede „porovnat“. */
 /* U každého startovního fondu nejčastější srovnání dvojice (art director: dvojice do karet, ne řádek čipů). */
@@ -82,6 +82,8 @@ const CATEGORY_COUNT = Object.keys(categoryConfigs).length;
 const HERO_ZEBRICKY = [
   // „Oblíbené žebříčky“ = nejklikanější z homepage podle GA4 (90 dní). Dřív „Další žebříčky“ – v hero
   // nedávalo smysl, nad nimi žádné nejsou (majitel 18. 10. 2026).
+  // SEO audit 6b: „Největší ETF 2026“ = nejnavštěvovanější žebříček z vyhledávačů (Bing), z homepage dřív bez odkazu.
+  { href: '/nejlepsi-etf/nejlepsi-etf-2026', label: 'Největší ETF 2026' },
   { href: '/nejlepsi-etf/nejlepsi-celosvetove-etf', label: 'Celosvětové ETF' },
   { href: '/nejlepsi-etf/nejlepsi-evropske-etf', label: 'Evropské ETF' },
   { href: '/nejlepsi-etf/nejlepsi-emerging-markets-etf', label: 'Rozvíjející se trhy' },
@@ -216,7 +218,8 @@ export default async function DesignPreviewV2() {
     if (n.celkemKc == null) return `od ${kc(n.provizeKc)}`;
     return n.plusBurza ? `od ${kc(n.celkemKc)}` : kc(n.celkemKc);
   };
-  const pocet = totalCount.toLocaleString('cs-CZ');
+  // Jedno číslo na celém webu: zaokrouhleně „4 900+“ jako titulek, Organization a /llms.txt (SEO audit 6b).
+  const pocet = `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+`;
   // Pravidlo č. 1: datum dat BEZ fallbacku na dnešek – když ho nejde načíst, čísla s datem se neukážou.
   // 21. 10. 2026: nejčastější den VÝNOSŮ fondů (returns_as_of – poslední jistě konečný den u zdroje), ne den stažení
   // (getDataDatum, src/lib/datumVynosu.ts). Fond s jiným dnem má u výnosu vlastní datum.

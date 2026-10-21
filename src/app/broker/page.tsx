@@ -4,16 +4,11 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, ArrowUpRight, Check, X, AlertTriangle, Info,
-  ShieldCheck, Wallet, Landmark, Banknote, Percent, Layers, Coins,
-  User, CalendarDays, Database, BadgeCheck, HelpCircle, BookOpen,
-  Building2, Globe, Smartphone, Scale, Calculator, FileText,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, ArrowUpRight, Check, X, AlertTriangle, Info, ShieldCheck, Wallet, Landmark, Banknote, Percent, Layers, Coins, User, CalendarDays, Database, BadgeCheck, HelpCircle, BookOpen, Building2, Globe, Smartphone, Scale, Calculator, FileText, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InfoTip from '@/components/design-preview/InfoTip';
 import BrokerFeeTable from '@/components/design-preview/BrokerFeeTable';
-import { getDataDate } from '@/lib/etf-data';
+import { upravenoDlouze, datumUpravy } from '@/lib/redakce';
 // Ceníky brokerů: datum ověření z brokerData (CENIKY_OVERENY), ne obecná redakční kontrola (18. 10. 2026).
 import { cenikyOverenyIso as editorialCheckDateIso, cenikyOverenyStr as editorialCheckDateStr } from '@/data/brokerData';
 
@@ -32,8 +27,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BrokerReviewPreview() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = upravenoDlouze('/recenze/degiro'); // datum úpravy textu recenze, ne den dat fondů
 
   /* ---------- Rychlá fakta ---------- */
   const facts: { icon: typeof Wallet; label: ReactNode; value: string }[] = [
@@ -114,7 +108,7 @@ export default async function BrokerReviewPreview() {
     author: { '@type': 'Person', name: 'Tomáš Kostrhoun' },
     publisher: { '@type': 'Organization', name: 'ETF průvodce.cz' },
     datePublished: `${YEAR}-01-01`,
-    dateModified: today.toISOString().slice(0, 10),
+    dateModified: datumUpravy('/recenze/degiro'),
   };
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -566,7 +560,7 @@ export default async function BrokerReviewPreview() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>

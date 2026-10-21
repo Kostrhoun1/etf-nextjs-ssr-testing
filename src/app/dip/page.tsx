@@ -4,26 +4,24 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, Gift,
-  LineChart, Landmark, AlertTriangle, Lock, Globe, Percent, Briefcase,
-  CheckCircle2, XCircle,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, Gift, LineChart, Landmark, AlertTriangle, Lock, Globe, Percent, Briefcase, CheckCircle2, XCircle, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate, getETFsByIsins, getETFCountLabel } from '@/lib/etf-data';
+import { getETFsByIsins, getETFCountLabel, getDataDate } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: 'DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF, v Kč)',
+  title: titulek('DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF)'),
   description:
-    'Dlouhodobý investiční produkt (DIP) 2026 srozumitelně a nezávisle: kolik reálně dostanete zpět od státu v korunách, pravidlo 120/60, příspěvek zaměstnavatele, sankce za předčasný výběr a kdy je DIP výhodnější než běžný účet s ETF.',
+    'DIP 2026 srozumitelně: kolik vám stát vrátí na dani v korunách, pravidlo 120/60, příspěvek zaměstnavatele, sankce za předčasný výběr a srovnání s účtem s ETF.',
   alternates: { canonical: '/dip' },
   openGraph: {
-    title: 'DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF, v Kč)',
+    title: 'DIP: vyplatí se dlouhodobý investiční produkt? (daně, ETF)',
     description:
       'Kolik na DIP reálně získáte zpět od státu v korunách, pravidlo 120/60, příspěvek zaměstnavatele a kdy se DIP vyplatí víc než běžný účet s ETF. Nezávisle a česky.',
     url: 'https://etfpruvodce.cz/dip',
@@ -74,11 +72,9 @@ const DIP_ISINS = [
 
 export default async function DipPage() {
   const pocetFondu = await getETFCountLabel();
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  const upraveno = upravenoDlouze('/dip'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
   const funds = await getETFsByIsins(DIP_ISINS);
+  const datumDat = (await getDataDate(new Date())).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }); // čísla v tabulce fondů
 
   const maxBack15 = DEDUCTION_CAP * 0.15; // 7 200 Kč
   const maxBack23 = DEDUCTION_CAP * 0.23; // 11 040 Kč
@@ -87,11 +83,11 @@ export default async function DipPage() {
   const faqs = [
     {
       q: 'Co je dlouhodobý investiční produkt (DIP)?',
-      a: 'DIP je od roku 2024 daňově zvýhodněný „obal" na spoření na stáří. Není to konkrétní fond ani produkt jedné instituce – je to režim, do kterého si u licencovaného poskytovatele vložíte běžné investice (ETF, akcie, podílové fondy, dluhopisy, spořicí účet) a stát vám za to dá daňovou úlevu výměnou za to, že peníze necháte ležet do důchodu. Investiční logika uvnitř je stejná jako mimo DIP; mění se jen daňový a časový rámec.',
+      a: 'DIP je od roku 2024 daňově zvýhodněný „obal“ na spoření na stáří. Není to konkrétní fond ani produkt jedné instituce – je to režim, do kterého si u licencovaného poskytovatele vložíte běžné investice (ETF, akcie, podílové fondy, dluhopisy, spořicí účet) a stát vám za to dá daňovou úlevu výměnou za to, že peníze necháte ležet do důchodu. Investiční logika uvnitř je stejná jako mimo DIP; mění se jen daňový a časový rámec.',
     },
     {
       q: 'Kolik na DIP reálně dostanu zpět od státu?',
-      a: `Vklady si odečtete od základu daně až do 48 000 Kč ročně (společný limit s penzijním připojištěním, doplňkovým penzijním spořením a životním pojištěním). Při 15% sazbě daně to znamená až ${kcRound(maxBack15)} zpět za rok, při 23% sazbě až ${kcRound(maxBack23)}. Není to „výnos navíc" z investice – je to vrácená daň. Kdo vloží míň než 48 000 Kč, dostane zpět 15 % z toho, co vložil.`,
+      a: `Vklady si odečtete od základu daně až do 48 000 Kč ročně (společný limit s penzijním připojištěním, doplňkovým penzijním spořením, soukromým životním pojištěním a daňově podporovaným pojištěním dlouhodobé péče – § 15 odst. 6 zákona o daních z příjmů). Při 15% sazbě daně to znamená až ${kcRound(maxBack15)} zpět za rok, při 23% sazbě až ${kcRound(maxBack23)}. Není to „výnos navíc“ z investice – je to vrácená daň. Kdo vloží míň než 48 000 Kč, dostane zpět 15 % z toho, co vložil.`,
     },
     {
       q: 'Jaké je pravidlo 120/60?',
@@ -103,7 +99,7 @@ export default async function DipPage() {
     },
     {
       q: 'Může mi na DIP přispívat zaměstnavatel?',
-      a: `Ano a je to jedna z nejsilnějších stránek DIP. Příspěvek zaměstnavatele je osvobozený od daně i odvodů až do ${kcRound(EMPLOYER_CAP)} ročně (společný limit s penzijním spořením a životním pojištěním). Pro zaměstnavatele je to daňově uznatelný náklad, pro vás peníze, ze kterých neplatíte daň ani sociální a zdravotní. Jestli tuhle možnost zaměstnavatel nabízí, je to zpravidla nejvýhodnější část celé skládačky – zeptejte se na personálním oddělení.`,
+      a: `Ano a je to jedna z nejsilnějších stránek DIP. Příspěvek zaměstnavatele je osvobozený od daně i odvodů až do ${kcRound(EMPLOYER_CAP)} ročně (společný limit s penzijním spořením, životním pojištěním a pojištěním dlouhodobé péče). Pro zaměstnavatele je to daňově uznatelný náklad, pro vás peníze, ze kterých neplatíte daň ani sociální a zdravotní. Jestli tuhle možnost zaměstnavatel nabízí, je to zpravidla nejvýhodnější část celé skládačky – zeptejte se na personálním oddělení.`,
     },
     {
       q: 'Co si můžu do DIP dát?',
@@ -141,6 +137,7 @@ export default async function DipPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/dip', nadpis: 'DIP: vyplatí se dlouhodobý investiční produkt?', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -189,7 +186,7 @@ export default async function DipPage() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Úspora v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -249,8 +246,9 @@ export default async function DipPage() {
           <div className="mt-4 flex items-start gap-3 rounded-lg border border-teal-100 bg-teal-50/50 p-4">
             <Info className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
             <p className="text-sm text-slate-700 leading-relaxed">
-              Strop <strong>48 000 Kč</strong> je společný pro DIP, penzijní připojištění, doplňkové penzijní spoření
-              i životní pojištění dohromady – ne pro každý zvlášť. Máte-li už rozjeté penzijko blízko limitu, na DIP
+              Strop <strong>48 000 Kč</strong> je společný pro DIP, penzijní připojištění, doplňkové penzijní spoření,
+              soukromé životní pojištění i daňově podporované pojištění dlouhodobé péče dohromady – ne pro každý zvlášť
+              (<a href="https://www.zakonyprolidi.cz/cs/1992-586#p15-6" target="_blank" rel="noopener noreferrer" className="text-teal-700 underline underline-offset-2">§ 15 odst. 6 zákona o daních z příjmů</a>). Máte-li už rozjeté penzijko blízko limitu, na DIP
               vám z odpočtu zbyde jen zbytek. Sazbu 23 % má v praxi jen menšina poplatníků s vysokým příjmem;
               většina počítá s 15 %.
             </p>
@@ -322,7 +320,7 @@ export default async function DipPage() {
               <p className="font-semibold text-slate-900">Až {kcRound(EMPLOYER_CAP)} ročně bez daně</p>
               <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                 Příspěvek zaměstnavatele na DIP je osvobozený od daně z příjmu i od sociálního a zdravotního pojištění
-                až do {kcRound(EMPLOYER_CAP)} za rok (společný limit s penzijním spořením a životním pojištěním).
+                až do {kcRound(EMPLOYER_CAP)} za rok (společný limit s penzijním spořením, životním pojištěním a pojištěním dlouhodobé péče).
                 Dostanete tedy celou částku, ne jen její zdaněný zbytek.
               </p>
             </div>
@@ -404,7 +402,7 @@ export default async function DipPage() {
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Klíčový bod, který se v reklamách ztrácí: <strong className="text-slate-700">zisk z ETF je na běžném účtu
             po třech letech držby stejně osvobozený od daně</strong> (časový test, 3 roky). DIP tedy nepřidává „daň
-            z osvobozeného" – přidává odpočet vkladů a příspěvek zaměstnavatele, a bere za to likviditu. Pravidla daní
+            z osvobozeného“ – přidává odpočet vkladů a příspěvek zaměstnavatele, a bere za to likviditu. Pravidla daní
             rozebírá <Link href="/dane-z-etf" className="text-teal-700 hover:underline">Daně z ETF (2026)</Link>.
           </p>
         </section>
@@ -453,7 +451,7 @@ export default async function DipPage() {
             </div>
             <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
               <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-              Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
+              Data k {datumDat}. Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
               Do režimu DIP navíc nezařadí každý poskytovatel každý fond; nabídku si ověřte u toho svého. Rozdíl mezi
               indexy rozebírá <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
               všech {pocetFondu} fondů profiltrujete ve{' '}
@@ -496,13 +494,16 @@ export default async function DipPage() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-sp500-etf', 'nejlevnejsi-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">
@@ -512,13 +513,13 @@ export default async function DipPage() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., nominálně před inflací) a mají vzdělávací charakter. Nejde o investiční ani daňové poradenství a skutečné výsledky se liší. Daňová pravidla DIP se mohou měnit – ověřte si aktuální stav a konkrétní situaci proberte s daňovým poradcem. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., nominálně před inflací) a mají vzdělávací charakter. Nejde o investiční ani daňové poradenství a skutečné výsledky se liší. Daňová pravidla DIP se mohou měnit – ověřte si aktuální stav a konkrétní situaci proberte s daňovým poradcem. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

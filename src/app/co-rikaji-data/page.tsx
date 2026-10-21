@@ -2,10 +2,11 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { TrendingUp, ArrowUpRight } from 'lucide-react';
 import AutorBox from '@/components/design-preview/AutorBox';
-import { clanekSchema } from '@/lib/redakce';
+import { clanekSchema, drobeckySchema } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Rozcestník článků a nástrojů, které odpovídají na otázky investora DATY V KORUNÁCH.
    PROČ: tyto stránky byly z navigace nedostupné – na DCA vedl jediný odkaz (z homepage),
@@ -13,8 +14,8 @@ import SiteNav from '@/components/design-preview/SiteNav';
    bez čísel: čísla žijí v článcích, kde prošla ověřením (pravidlo č. 1, CLAUDE.md). */
 
 export const metadata: Metadata = {
-  title: 'Co říkají data: výnosy ETF v korunách a odpovědi pro české investory',
-  description: 'Kolik ETF reálně vydělaly v korunách, jak kurz koruny mění výnos, naráz nebo postupně, akumulační nebo distribuční – odpovědi z dat a výzkumů, přepočtené pro českého investora.',
+  title: titulek('Co říkají data: výnosy ETF v korunách pro české investory'),
+  description: 'Kolik ETF reálně vydělaly v korunách, jak kurz koruny mění výnos, zda investovat naráz, nebo postupně – odpovědi z dat a výzkumů pro českého investora.',
   alternates: { canonical: '/co-rikaji-data' },
 };
 
@@ -23,7 +24,7 @@ const SKUPINY: { nadpis: string; popis: string; polozky: { href: string; titulek
     nadpis: 'Kolik se dá vydělat – v korunách',
     popis: 'Výnosy po přepočtu do Kč, tedy tak, jak je uvidíte na účtu.',
     polozky: [
-      { href: '/stroj-casu', titulek: 'Korunový stroj času', text: 'Kolik byste dnes měli, kdybyste začali investovat od roku 2000, 2010 nebo 2016 – v korunách.' },
+      { href: '/stroj-casu', titulek: 'Korunový stroj času', text: 'Kolik byste dnes měli, kdybyste začali investovat v roce 2000, 2008, 2010, 2020 nebo jiném – v korunách.' },
       { href: '/kolik-vydelaly-etf', titulek: 'Kolik vydělaly ETF a akcie', text: 'Datový rozbor výnosů hlavních trhů v korunách za posledních zhruba 18 let.' },
       { href: '/backtest', titulek: 'Backtest portfolia', text: 'Otestujte vlastní složení na historických datech – výnos, propady a krize v Kč.' },
       { href: '/infografiky', titulek: 'Infografiky', text: 'Výkonnost, poplatky a tržní heatmapa na jeden pohled.' },
@@ -60,7 +61,8 @@ const SKUPINY: { nadpis: string; popis: string; polozky: { href: string; titulek
 export default function CoRikajiData() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/co-rikaji-data', nadpis: 'Co říkají data: výnosy ETF v korunách a odpovědi pro české investory' })) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(drobeckySchema([['Co říkají data', '/co-rikaji-data']])) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/co-rikaji-data', nadpis: 'Co říkají data: výnosy ETF v korunách pro české investory' })) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">

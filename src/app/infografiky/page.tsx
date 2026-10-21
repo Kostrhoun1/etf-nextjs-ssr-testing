@@ -13,34 +13,27 @@ import {
 import InfoTip from '@/components/design-preview/InfoTip';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import {
-  InfografikyCard,
-  InfografikyMiniPerf,
-  InfografikyMiniTer,
-  InfografikyMiniHeat,
   InfografikyHeatGrid,
-  InfografikyRankPanel,
+  InfografikyListPanel,
   InfografikyLinkRow,
   type InfografikyHeatTile,
 } from '@/components/design-preview/InfografikyUI';
-import {
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  Grid3x3,
-  ArrowRight,
-  ShieldCheck,
-  Star,
-  Banknote,
-} from 'lucide-react';
+import { TrendingUp, Wallet, Grid3x3, ShieldCheck, Star, Banknote, Layers } from 'lucide-react';
+import { titulek } from '@/lib/seoTitulek';
+import { porovnejNejlevnejsi, jeAkumulacni } from '@/lib/trhy';
+import { detectHedging } from '@/utils/hedgingDetection';
+import { zobrazovanyTicker } from '@/lib/ticker';
+import { shortName } from '@/components/design-preview/CategoryUI';
+import type { ETFBasicInfo } from '@/lib/etf-data';
 
 export const revalidate = 86400;
 
 const TOTAL_FALLBACK = 4800;
 
 export const metadata: Metadata = {
-  title: 'Infografiky ETF: výkonnost, poplatky a tržní heatmapa',
+  title: titulek('Infografiky ETF: velikost, poplatky a tržní heatmapa'),
   description:
-    'Vizuální přehledy z dat ETF fondů — nejvýkonnější a nejlevnější fondy a tržní heatmapa sektorů a regionů. Výnosy přepočtené do korun.',
+    'Vizuální přehledy z dat ETF fondů: největší fondy podle majetku, nejlevnější podle poplatku TER a tržní heatmapa regionů a sektorů s výnosy v korunách.',
   alternates: { canonical: 'https://etfpruvodce.cz/infografiky' },
 };
 
@@ -84,8 +77,23 @@ export default async function InfografikyRozcestnik() {
   ]);
 
   const count = totalCount > 0 ? totalCount : TOTAL_FALLBACK;
-  const byPerf = featured.byPerformance || [];
-  const lowCost = featured.lowCost || [];
+  // SEO audit 6b (art director): „Nejvýkonnější ETF“ (Korea +101 %, polovodiče) šlo proti rozhodnutí „široké seznamy
+  // bez Nejvýkonnější“ (ZAMERNA-ROZHODNUTI.md) → neutrální přehledy: největší podle majetku a nejlevnější podle
+  // JEDNOHO pravidla webu (porovnejNejlevnejsi: TER > 0, ≥ 100 mil. €, při shodě akumulační, pak větší; bez zajištění).
+  const nazevRadku = (e: ETFBasicInfo) => shortName(e.name);
+  const popisRadku = (e: ETFBasicInfo) => zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? e.fund_provider ?? null;
+  const nejvetsi = (featured.bySize || []).slice(0, 5);
+  const maxVel = Math.max(1, ...nejvetsi.map((e) => e.fund_size_numeric ?? 0));
+  const nejlevnejsi = (featured.lowCost || [])
+    .filter((e) => (e.ter_numeric ?? 0) > 0 && (e.fund_size_numeric ?? 0) >= 100 && !detectHedging(e.name).isHedged)
+    .sort((a, b) => porovnejNejlevnejsi(
+      { ter: a.ter_numeric, acc: jeAkumulacni(a.distribution_policy), velikost: a.fund_size_numeric },
+      { ter: b.ter_numeric, acc: jeAkumulacni(b.distribution_policy), velikost: b.fund_size_numeric },
+    ))
+    .slice(0, 5);
+  const maxTer = Math.max(0.01, ...nejlevnejsi.map((e) => e.ter_numeric ?? 0));
+  const velikostText = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mld. €` : `${Math.round(v).toLocaleString('cs-CZ')} mil. €`);
+  const terText = (t: number | null) => (t == null ? '—' : `${t.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
 
   // ItemList schema pro tři infografiky (rozcestník, ne Article)
   const itemListSchema = {
@@ -95,9 +103,9 @@ export default async function InfografikyRozcestnik() {
       {
         '@type': 'ListItem',
         position: 1,
-        name: 'Nejvýkonnější ETF',
-        description: 'Žebříček ETF podle výnosu za posledních 12 měsíců, přepočteno do korun.',
-        url: 'https://etfpruvodce.cz/zebricky',
+        name: 'Největší ETF podle majetku',
+        description: 'Fondy s největším spravovaným majetkem napříč všemi třídami aktiv.',
+        url: 'https://etfpruvodce.cz/nejlepsi-etf/nejlepsi-etf-2026',
       },
       {
         '@type': 'ListItem',
@@ -144,88 +152,67 @@ export default async function InfografikyRozcestnik() {
           <MobileMenu />
           <SiteNav />
           <HeaderSearch />
-          <Link
-            href="/srovnani"
-            className="hidden xl:inline-flex rounded-lg bg-teal-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-teal-800"
-          >
-            Srovnávač
-          </Link>
         </div>
       </header>
 
       <main id="obsah" className="max-w-6xl mx-auto px-4">
+        <nav aria-label="Drobečková navigace" className="pt-3 text-xs text-slate-500 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-slate-700">Domů</Link>
+          <span>/</span>
+          <span className="text-slate-700">Infografiky</span>
+        </nav>
+
         {/* Hero / intro – kompaktní, bez tmavého panelu */}
-        <section className="py-8 md:py-10">
+        <section className="pt-5 pb-8 md:pb-10">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
             Infografiky ETF: trhy a fondy přehledně
           </h1>
           <p className="mt-3 max-w-2xl text-base text-slate-600 leading-relaxed">
-            Vizuální přehledy z dat {count.toLocaleString('cs-CZ')} fondů — výnosy přepočtené do
-            korun, poplatky a výkonnost. Vyberte si přehled a proklikněte se k celému žebříčku.
+            Vizuální přehledy z dat {`${(Math.floor(count / 100) * 100).toLocaleString('cs-CZ')}+`} fondů: největší fondy podle majetku, nejlevnější
+            podle poplatku a tržní heatmapa regionů a sektorů s výnosy v korunách.
           </p>
           {/* Pravidlo č. 1: čísla na stránce bez data nebyla (SEO audit 20. 10. 2026). */}
           <AktualnostDat datum={dataDate} className="mt-3" />
         </section>
 
-        {/* Rozcestník karet infografik – jádro stránky */}
-        <section className="pb-2">
-          <h2 className="sr-only">Přehledy infografik</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <InfografikyCard
-              icon={TrendingUp}
-              title="Nejvýkonnější ETF"
-              desc="Fondy s nejvyšším výnosem za posledních 12 měsíců v korunách, bez pákových produktů. Ukáže, které trhy a témata za rok rostly nejvíc – minulý výnos nezaručuje budoucí."
-              href="/zebricky"
-              hrefLabel="Otevřít přehled výkonnosti"
-            >
-              <InfografikyMiniPerf etfs={byPerf} />
-            </InfografikyCard>
-
-            <InfografikyCard
-              icon={Wallet}
-              title="Nejlevnější ETF (TER)"
-              desc="Fondy s nejnižším ročním poplatkem za správu (TER). Pomůže najít levnější variantu fondu na trh, který už znáte – nižší TER znamená méně nákladů každý rok."
-              href="/nejlepsi-etf/nejlevnejsi-etf"
-              hrefLabel="Otevřít přehled poplatků"
-            >
-              <InfografikyMiniTer etfs={lowCost} />
-            </InfografikyCard>
-
-            <InfografikyCard
-              icon={Grid3x3}
-              title="Tržní heatmapa"
-              desc="Barevná mapa regionů a sektorů — zelená je růst, červená pokles za 12 měsíců v korunách. Hodnota je výnos největšího fondu v kategorii, takže na první pohled vidíte, kde se za rok dařilo."
-              href="#trzni-heatmapa"
-              hrefLabel="Otevřít tržní heatmapu"
-            >
-              <InfografikyMiniHeat tiles={heatTiles} />
-            </InfografikyCard>
-          </div>
-        </section>
-
-        {/* Mini-žebříček + plná heatmapa – reálná data, okamžitá hodnota */}
-        <section id="trzni-heatmapa" className="scroll-mt-20 py-10 grid lg:grid-cols-2 gap-6">
+        {/* Dva přehledy fondů – každé číslo jen jednou (dřív top 3 v kartách a znovu top 5 pod nimi). */}
+        <section className="pb-10 grid lg:grid-cols-2 gap-6">
           <div className="min-w-0">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
-              Nejvýkonnější za 12 měsíců
+            <h2 className="flex items-center gap-2 text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
+              <Layers className="w-5 h-5 text-teal-700" aria-hidden="true" /> Největší ETF podle majetku
             </h2>
-            <InfografikyRankPanel
-              title="Výnos za 12 měsíců (v přepočtu na Kč)"
-              subtitle="Bez pákových produktů"
-              href="/zebricky"
+            <InfografikyListPanel
+              title="Spravovaný majetek fondu"
+              subtitle="Napříč akciemi, dluhopisy i komoditami – velikost neříká nic o budoucím výnosu"
+              href="/nejlepsi-etf/nejlepsi-etf-2026"
               hrefLabel="celý žebříček"
-              etfs={byPerf}
+              rows={nejvetsi.map((e) => ({ isin: e.isin, nazev: nazevRadku(e), popis: popisRadku(e), hodnota: velikostText(e.fund_size_numeric), podil: (e.fund_size_numeric ?? 0) / maxVel }))}
             />
           </div>
           <div className="min-w-0">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
-              Výkonnost regionů a sektorů
+            <h2 className="flex items-center gap-2 text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
+              <Wallet className="w-5 h-5 text-teal-700" aria-hidden="true" /> Nejlevnější ETF podle TER
             </h2>
-            <InfografikyHeatGrid tiles={heatTiles} />
-            <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-              Hodnota = výnos největšího fondu v kategorii za 12 měsíců, přepočteno do Kč.
-            </p>
+            <InfografikyListPanel
+              title="Roční poplatek za správu (TER)"
+              subtitle="Fondy nad 100 mil. € bez měnového zajištění; při shodě akumulační, pak větší"
+              href="/nejlepsi-etf/nejlevnejsi-etf"
+              hrefLabel="celý žebříček"
+              rows={nejlevnejsi.map((e) => ({ isin: e.isin, nazev: nazevRadku(e), popis: popisRadku(e), hodnota: terText(e.ter_numeric), podil: (e.ter_numeric ?? 0) / maxTer }))}
+            />
           </div>
+        </section>
+
+        {/* Tržní heatmapa – jednou, v plné velikosti */}
+        <section id="trzni-heatmapa" className="scroll-mt-20 pb-10">
+          <h2 className="flex items-center gap-2 text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
+            <Grid3x3 className="w-5 h-5 text-teal-700" aria-hidden="true" /> Tržní heatmapa: regiony a sektory
+          </h2>
+          <InfografikyHeatGrid tiles={heatTiles} />
+          <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+            Hodnota = výnos největšího fondu v kategorii za 12 měsíců, přepočteno do Kč. Zelená je růst, červená pokles;
+            minulý výnos nezaručuje budoucí.
+          </p>
         </section>
 
         {/* Edukační pruh – ikonové vysvětlivky, BEZ schémat */}
@@ -236,15 +223,15 @@ export default async function InfografikyRozcestnik() {
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-lg border border-slate-200 bg-white p-5">
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3">
-                <TrendingUp className="w-5 h-5" strokeWidth={2} />
+                <Layers className="w-5 h-5" strokeWidth={2} />
               </span>
               <h3 className="text-sm font-semibold text-slate-900">
-                <InfoTip label="Jak hodnota fondu rostla za dané období. U nás přepočteno do korun, takže vidíte výnos tak, jak ho pocítí český investor.">
-                  Výkonnost
+                <InfoTip label="Kolik peněz fond spravuje (v eurech). Velký fond má obvykle nižší riziko zrušení a užší rozpětí mezi nákupní a prodejní cenou – o budoucím výnosu nic neříká.">
+                  Velikost fondu
                 </InfoTip>
               </h3>
               <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Jak fond rostl za období — u nás přepočteno do Kč.
+                Kolik majetku fond spravuje – ne jak si povede.
               </p>
             </div>
 
@@ -295,7 +282,7 @@ export default async function InfografikyRozcestnik() {
           <div className="mt-6 grid sm:grid-cols-3 gap-4">
             {[
               [ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/o-nas'],
-              [Star, '12 let praxe ve financích', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/o-nas'],
+              [Star, '12+ let v českém bankovnictví', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/o-nas'],
               [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/kde-koupit'],
             ].map(([Icon, t, d, href]: any) => (
               <Link

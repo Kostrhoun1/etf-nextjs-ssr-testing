@@ -2,26 +2,26 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import AboutHeader from '@/components/design-preview/AboutHeader';
 import InfoTip from '@/components/design-preview/InfoTip';
-import { getTotalETFCount } from '@/lib/etf-data';
+import { getETFCountLabel } from '@/lib/etf-data';
 import {
   Linkedin, Mail, ArrowRight, History, Landmark, Users, Award,
   Database, Coins, Scale, BookOpen, ShieldCheck, ExternalLink,
 } from 'lucide-react';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 
 // Preview build → noindex. Ostrá /o-nas se MÁ indexovat (autoritní signál):
 // na ostré routě se robots přepne na index:true (viz generateCanonicalMetadata).
 export async function generateMetadata(): Promise<Metadata> {
-  const n = await getTotalETFCount();
-  const count = n > 0 ? n.toLocaleString('cs-CZ') : '4 800';
+  const count = await getETFCountLabel(); // jedno číslo pro celý web („4 900+“)
   return {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/o-nas' },
-    title: 'O nás – kdo stojí za ETF průvodce.cz | Tomáš Kostrhoun',
+    title: titulek('O nás – kdo stojí za ETF průvodce.cz (Tomáš Kostrhoun)'),
     description:
-      `Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12+ let v bankovnictví (MONETA Money Bank, Česká spořitelna). Nezávislý srovnávač ${count} ETF s výnosy přepočtenými do korun.`,
+      `Za ETF průvodce.cz stojí Tomáš Kostrhoun – 12+ let v bankovnictví (MONETA Money Bank, Česká spořitelna). Nezávislý srovnávač ${count} ETF s výnosy v korunách.`,
   };
 }
 
@@ -91,8 +91,7 @@ const METODIKA = [
 ];
 
 export default async function AboutPage() {
-  const totalCount = await getTotalETFCount();
-  const countLabel = totalCount > 0 ? totalCount.toLocaleString('cs-CZ') : '4 800';
+  const countLabel = await getETFCountLabel(); // jedno číslo pro celý web („4 900+“)
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -115,7 +114,7 @@ export default async function AboutPage() {
           </h1>
           <p className="mt-3 text-base text-slate-600 leading-relaxed max-w-2xl">
             ETF průvodce.cz je nezávislý srovnávač ETF pro české investory. Nestojí za ním anonymní
-            redakce, ale konkrétní člověk s 12 lety praxe ve financích.
+            redakce, ale konkrétní člověk s více než 12 lety praxe v českém bankovnictví.
           </p>
 
           {/* Karta autora */}

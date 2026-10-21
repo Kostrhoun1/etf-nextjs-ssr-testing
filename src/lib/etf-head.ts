@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
 
-/* „Hlava" katalogu fondů = ty, které smí indexovat i Google (mil. EUR AUM).
+/* „Hlava“ katalogu fondů = ty, které smí indexovat i Google (mil. EUR AUM).
    ≥ 2 000 = ~329 největších a nejhledanějších fondů; zbytek (~4 560) má
    googlebot-noindex, ale Bing/Seznam indexují všechno.
 

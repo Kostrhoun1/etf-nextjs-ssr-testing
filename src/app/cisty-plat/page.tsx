@@ -3,22 +3,20 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
-  Wallet, Receipt, BadgePercent, HelpCircle, BookOpen, Scale, Landmark,
-} from 'lucide-react';
+import { TrendingUp, User, CalendarDays, Database, Info, Calculator, Wallet, Receipt, BadgePercent, HelpCircle, BookOpen, Scale, Landmark, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import CistyPlatWidget from '@/components/design-preview/CistyPlatWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { editorialCheckDateIso, editorialCheckDateStr } from '@/lib/editorial-check';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/cisty-plat' },
-  title: 'Kalkulačka čisté mzdy 2026: výpočet čistého platu z hrubého',
+  title: titulek('Kalkulačka čisté mzdy 2026: výpočet čistého platu z hrubého'),
   description:
     'Spočítejte si čistou mzdu z hrubé podle pravidel pro rok 2026 – pojistné, daň 15/23 %, sleva na poplatníka i na děti. Včetně nákladů zaměstnavatele.',
 };
@@ -250,7 +248,7 @@ export default async function CistyPlatPreview() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
@@ -266,7 +264,7 @@ export default async function CistyPlatPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačka vychází z platných sazeb pojistného a daně pro rok 2026.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Kalkulačka vychází z platných sazeb pojistného a daně pro rok 2026.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>

@@ -7,6 +7,7 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import AutorBox from '@/components/design-preview/AutorBox';
 import { getETFCountLabel, CERSTVOST_DNI, NABIDKA_DNI } from '@/lib/etf-data';
 import { clanekSchema } from '@/lib/redakce';
+import { titulek } from '@/lib/seoTitulek';
 
 /**
  * /metodika – odkud bereme data a jak je počítáme (SEO audit 20. 10. 2026, E-E-A-T).
@@ -21,7 +22,7 @@ export const revalidate = 86400;
 const POPIS = 'Odkud bere ETF průvodce.cz data o fondech, jak často je aktualizuje, jak přepočítává výnosy do korun, k jakému dni čísla platí a jak hlídáme a opravujeme chyby.';
 
 export const metadata: Metadata = {
-  title: 'Metodika: zdroje dat, přepočet do korun a aktualizace',
+  title: titulek('Metodika: zdroje dat, přepočet do korun a aktualizace'),
   description: POPIS,
   alternates: { canonical: '/metodika' },
 };

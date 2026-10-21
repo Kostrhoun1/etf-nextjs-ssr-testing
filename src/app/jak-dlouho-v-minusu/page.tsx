@@ -1,16 +1,17 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Fragment } from 'react';
-import { TrendingUp, ArrowRight, HelpCircle } from 'lucide-react';
+import { TrendingUp, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import AutorBox from '@/components/design-preview/AutorBox';
-import { clanekSchema } from '@/lib/redakce';
+import { clanekSchema, drobeckySchema } from '@/lib/redakce';
 import { ogImage } from '@/lib/ogImage';
 import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
 import { spoctiPodVodou, type PodVodouPreset, type DlouhoNad } from '@/lib/clanky/podVodou';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Vlna 7 – obsah z dat v korunách. Otázka, kterou si začínající investor klade po prvním propadu.
    Čísla se počítají při ISR (1× denně) z řad Korunového stroje času + inflace ČSÚ; ověřeno
@@ -20,12 +21,12 @@ export const revalidate = 86400;
 /* Vlastní OG: bez něj se dědí og:url homepage → Facebook by sdílel titulní stranu. */
 export async function generateMetadata(): Promise<Metadata> {
   const title = 'Jak dlouho můžete být v minusu? Data v korunách i po inflaci';
-  const description = 'Jak dlouho trvalo, než se investice do akcií po propadu vrátila nad vklad – v korunách a po české inflaci. Nejhorší případy od roku 2000, krize 2008, covid i rok 2022.';
+  const description = 'Jak dlouho trvalo, než se investice do akcií po propadu vrátila nad vklad, v korunách i po české inflaci. Nejhorší případy od roku 2000, rok 2008, covid i 2022.';
   const d = await spoctiPodVodou();
   const s0 = d?.presety.find((p) => p.id === 'sp500')?.starty[0];
   const stat = s0 && s0.start === '2000-01' && s0.nominalne ? doba(s0.nominalne) : undefined;
   return {
-    title, description,
+    title: titulek(title), description,
     alternates: { canonical: '/jak-dlouho-v-minusu' },
     openGraph: {
       title, description, url: '/jak-dlouho-v-minusu', type: 'article',
@@ -36,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const tvar = (n: number, a: string, b: string, c: string) => (n === 1 ? a : n >= 2 && n <= 4 ? b : c);
-/** 175 → „14 let a 7 měsíců" */
+/** 175 → „14 let a 7 měsíců“ */
 function doba(m: number | null): string {
   if (m === null) return 'dosud';
   if (m === 0) return 'ani měsíc';
@@ -50,14 +51,14 @@ const dobaV = (m: number | null) => (m === null ? 'dosud – stále je pod vklad
 const MESICE = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
 const MESICE1 = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
-/** „v lednu 2000" */
+/** „v lednu 2000“ */
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v ${MESICE6[m - 1]} ${y}`; };
 const plusMesicu = (ym: string, n: number) => { const [y, m] = ym.split('-').map(Number); return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7); };
 const kdy = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE1[m - 1]} ${y}`; };
 const od = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE[m - 1]} ${y}`; };
 const pct = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(Math.round(v * 100))} %`;
 
-/** Události, u kterých čtenáře zajímá „kdybych koupil těsně před…". */
+/** Události, u kterých čtenáře zajímá „kdybych koupil těsně před…“. */
 const UDALOSTI: [string, string][] = [
   ['2000-01', 'Těsně před splasknutím internetové bubliny'],
   ['2007-10', 'Na vrcholu před finanční krizí'],
@@ -168,6 +169,7 @@ export default async function JakDlouhoVMinusu() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(drobeckySchema([['Co říkají data', '/co-rikaji-data'], ['Jak dlouho v minusu', '/jak-dlouho-v-minusu']])) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/jak-dlouho-v-minusu', nadpis: 'Jak dlouho můžete být v minusu? Data v korunách i po inflaci', denDat: d?.posledniDen ?? null })) }} />
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -452,7 +454,7 @@ export default async function JakDlouhoVMinusu() {
               <div className="mt-3 space-y-2">
                 {faqs.map((f, i) => (
                   <details key={i} className="group rounded-lg border border-slate-200 bg-white p-4">
-                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" /></summary>
+                    <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-slate-900 list-none">{f.q}<ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" /></summary>
                     <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</p>
                   </details>
                 ))}

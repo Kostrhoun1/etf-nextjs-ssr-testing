@@ -29,7 +29,7 @@ export interface IndexDef {
   name: string
   /** Zařazení — určuje záložku v přehledu trhů. */
   group: IndexGroup
-  /** Reprezentativní ETF pro transparentnost v nástroji („asset class → přes proxy ETF · TER x %"). */
+  /** Reprezentativní ETF pro transparentnost v nástroji („asset class → přes proxy ETF · TER x %“). */
   proxyEtf?: { isin: string; name: string; ter: number }
   /** Odkdy data reálně jsou (pro poctivé upozornění v UI). */
   since: string
@@ -96,7 +96,7 @@ export const INDEXES: IndexDef[] = [
 
   // ─────────────── SEKTORY (americké, S&P 500) ───────────────
   // Nahráno 15.7.2026, metodika: 1 sektor = 1 kanonický SPDR Select Sector ETF. ŽÁDNÉ průměrování koše
-  // fondů (past `sector_1_weight` — taiwanské ETF by spadly do „Technology"). Viz memory/etf-data-quality-quirks.
+  // fondů (past `sector_1_weight` — taiwanské ETF by spadly do „Technology“). Viz memory/etf-data-quality-quirks.
   ...([
     ['sector_technology', 'XLK', 'Technologie'], ['sector_health_care', 'XLV', 'Zdravotnictví'],
     ['sector_financials', 'XLF', 'Finance'], ['sector_energy', 'XLE', 'Energetika'],

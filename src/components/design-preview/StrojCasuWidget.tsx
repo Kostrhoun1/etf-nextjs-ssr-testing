@@ -11,7 +11,7 @@ import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
    žádné volání API. Ověřeno proti backtestu (0,13–0,33 %, vklady na začátku měsíce) a proti
    vnějším zdrojům (S&P DJI, kurzy ČNB) – scripts/overeni-stroj-casu.mjs.
    UX review 17. 10. 2026: výsledek na mobilu v pruhu, obnova uloženého scénáře, české pády,
-   čtečky jen se stručným shrnutím, větší posuvník, prázdný stav, přesné „vloženo". */
+   čtečky jen se stručným shrnutím, větší posuvník, prázdný stav, přesné „vloženo“. */
 
 const ULOZENO_KLIC = 'stroj-casu:posledni';
 const fmtKc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
@@ -121,7 +121,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     [rada, rokStartu, mesicne, naraz, prazdne],
   );
 
-  // 2) URL odpovídá scénáři (sdílení) + uložení pro „od minulé návštěvy" – až po obnovení.
+  // 2) URL odpovídá scénáři (sdílení) + uložení pro „od minulé návštěvy“ – až po obnovení.
   useEffect(() => {
     if (!pripraveno || !vysledek || !rada) return;
     const p = new URLSearchParams({ co, mesicne: String(mesicne), od: String(rokStartu) });
@@ -144,7 +144,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     return () => io.disconnect();
   }, [vysledek]);
 
-  // „Od minulé návštěvy": jen TENTÝŽ scénář a jen když jsou mezitím novější data.
+  // „Od minulé návštěvy“: jen TENTÝŽ scénář a jen když jsou mezitím novější data.
   const zmena = minule && vysledek && rada && minule.co === co && minule.mesicne === mesicne
     && minule.naraz === naraz && minule.od === rokStartu && minule.den < rada.posledniDen
     ? { rozdil: vysledek.hodnota - minule.hodnota, pct: (vysledek.hodnota / minule.hodnota - 1) * 100, den: minule.den } : null;

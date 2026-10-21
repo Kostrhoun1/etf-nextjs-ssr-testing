@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Minimální volatilita: klidnější jízda za 4 % ročně – analýza v Kč',
+  title: titulek('Minimální volatilita: klidnější jízda za 4 % ročně (analýza v Kč)'),
   description:
-    'Min volatility ETF slibují menší kolísání za mírně nižší výnos. V korunách od 2011: výnos 12,6 % vs 16,4 % u S&P 500 – a překvapení: kurz koruny výhodu klidnější jízdy z velké části smazal.',
+    'ETF s minimální volatilitou slibují menší kolísání za nižší výnos. V Kč od 2011: 12,6 % ročně proti 16,4 % u S&P 500 – výhodu klidu z velké části smazal kurz.',
   alternates: { canonical: '/faktorove-etf/minimalni-volatilita' },
   openGraph: {
     title: 'Minimální volatilita: pojistka, ne motor',

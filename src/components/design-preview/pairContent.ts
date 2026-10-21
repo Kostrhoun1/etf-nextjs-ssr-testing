@@ -1,4 +1,4 @@
-/* Kurátorský obsah pro konkrétní „X vs Y" dvojice (/srovnani/[pair]).
+/* Kurátorský obsah pro konkrétní „X vs Y“ dvojice (/srovnani/[pair]).
  *
  * Šablona funguje pro LIBOVOLNOU dvojici čistě z dat (výnosy, TER, velikost, index). Tady jen REDAKČNÍ
  * úhel pro nejžádanější dvojice: proč se porovnávají a v čem se liší.
@@ -14,7 +14,7 @@
  * Pozor: stránka přejmenuje tickery z URL na ticker z XETRA (CSPX → SXR8, IWDA → EUNL) – proto texty nikdy
  * nezmiňují oba tickery téhož fondu (dřív vznikalo „SXR8 na burze vidím i jako SXR8“).
  *
- * Klíč = slug „ticker1-vs-ticker2" (malými písmeny). Vše je volitelné – co chybí, doplní datová šablona.
+ * Klíč = slug „ticker1-vs-ticker2“ (malými písmeny). Vše je volitelné – co chybí, doplní datová šablona.
  */
 
 export interface PairFaq {

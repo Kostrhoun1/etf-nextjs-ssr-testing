@@ -4,30 +4,26 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator,
-  ShieldAlert, Wallet, PiggyBank, Landmark, Clock, HelpCircle, BookOpen,
-  ShieldCheck, Crown, Scale, Coins, CheckCircle2, XCircle, Target,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator, ShieldAlert, Wallet, PiggyBank, Landmark, Clock, HelpCircle, BookOpen, ShieldCheck, Crown, Scale, Coins, CheckCircle2, XCircle, Target, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import NouzovaRezervaWidget from '@/components/design-preview/NouzovaRezervaWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze } from '@/lib/redakce';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/nouzova-rezerva' },
-  title: 'Kalkulačka nouzové rezervy: kolik si naspořit a za jak dlouho',
+  title: titulek('Kalkulačka nouzové rezervy: kolik si naspořit a za jak dlouho'),
   description:
     'Spočítejte si v korunách optimální velikost nouzové rezervy podle své situace – kolik vám chybí dospořit a za jak dlouho při vašem tempu spoření.',
 };
 
 export default async function NouzovaRezervaPreview() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/nouzova-rezerva'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -116,7 +112,7 @@ export default async function NouzovaRezervaPreview() {
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+                  <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výpočet v korunách</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -248,7 +244,7 @@ export default async function NouzovaRezervaPreview() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
@@ -261,7 +257,7 @@ export default async function NouzovaRezervaPreview() {
           <div className="grid sm:grid-cols-3 gap-4">
             {([
               [ShieldCheck, 'Nezávislý průvodce', 'Bez placeného pořadí a reklamních doporučení.'],
-              [Crown, '12 let praxe ve financích', 'Obsah od jmenného autora, ne anonymně.'],
+              [Crown, '12+ let v českém bankovnictví', 'Obsah od jmenného autora, ne anonymně.'],
               [Calculator, 'Průhledný výpočet', 'Metodika i předpoklady jsou popsané přímo na stránce.'],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
@@ -300,13 +296,13 @@ export default async function NouzovaRezervaPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Kalkulačku stavíme nezávisle a srozumitelně, s otevřenou metodikou – bez placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Kalkulačku stavíme nezávisle a srozumitelně, s otevřenou metodikou – bez placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Předpoklady: základ 3/6/9 měsíců dle stability, navýšení o riziko (max. 12 měsíců), pouze nezbytné výdaje. Aktualizováno {dateStr}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Předpoklady: základ 3/6/9 měsíců dle stability, navýšení o riziko (max. 12 měsíců), pouze nezbytné výdaje. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Kalkulačka má vzdělávací charakter a pracuje s modelovými předpoklady – nezohledňuje inflaci, daně ani specifické životní situace. Nepředstavuje investiční ani finanční doporučení.</p>
             </div>
           </div>

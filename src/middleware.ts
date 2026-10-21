@@ -27,7 +27,7 @@ function isinPlatny(s: string): boolean {
   return sum % 10 === 0;
 }
 
-/** Dvojice srovnání: „vwce-vs-iwda" – jen písmena a číslice (hodnoty jdou do dotazu na DB). */
+/** Dvojice srovnání: „vwce-vs-iwda“ – jen písmena a číslice (hodnoty jdou do dotazu na DB). */
 const PAR_SROVNANI = /^[a-z0-9]{1,12}-vs-[a-z0-9]{1,12}$/i;
 
 /**

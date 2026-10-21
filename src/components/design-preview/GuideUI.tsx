@@ -1,8 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
-import { ArrowRight, ChevronRight, HelpCircle } from 'lucide-react';
+import { ChevronRight, HelpCircle, ChevronDown } from 'lucide-react';
 
 /* =========================================================================
-   GuideUI – pomocné komponenty pro edukační stránku „Co jsou ETF".
+   GuideUI – pomocné komponenty pro edukační stránku „Co jsou ETF“.
    Prefix komponent: Guide* (ať nekolidují s ostatními pody).
    Vizuální jazyk 1:1 dle schválené kategorie (teal/slate, lucide,
    sentence case, žádné gradienty/emoji/fialová).
@@ -136,7 +136,7 @@ export function GuideFAQ({ faqs }: { faqs: { q: string; a: React.ReactNode }[] }
             <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
               <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
             </span>
-            <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+            <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
           </summary>
           <div className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</div>
         </details>

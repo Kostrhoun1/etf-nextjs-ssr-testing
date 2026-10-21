@@ -8,7 +8,7 @@
  */
 import Link from 'next/link';
 import AutorBox from '@/components/design-preview/AutorBox';
-import { clanekSchema } from '@/lib/redakce';
+import { clanekSchema, upravenoDlouze } from '@/lib/redakce';
 import {
   TrendingUp, Database, Calculator, Wallet, Scale, ShieldCheck,
   AlertTriangle, BookOpen, History, LineChart, Zap,
@@ -18,7 +18,6 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { getDataDate } from '@/lib/etf-data';
 import { runBacktest } from '@/lib/backtest/engine';
 import type { BacktestInput, TimeSeriesPoint } from '@/lib/backtest/types';
 
@@ -112,6 +111,7 @@ async function computeComparison(cfg: FactorConfig) {
       fac: m, spx: ms, ratio,
       facFinal: both[both.length - 1].f, spxFinal: both[both.length - 1].s,
       startYear: both[0].date.getFullYear(), endYear: both[both.length - 1].date.getFullYear(),
+      konec: both[both.length - 1].date,
       annual,
     };
   } catch {
@@ -181,9 +181,10 @@ function RatioChart({ cmp, shortName }: { cmp: NonNullable<Awaited<ReturnType<ty
 }
 
 export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   const cmp = await computeComparison(cfg);
+  // Datum úpravy TEXTU (redakce.ts) a zvlášť den, ke kterému platí spočítaná čísla (poslední bod řady) – SEO audit 6b.
+  const upraveno = upravenoDlouze(`/faktorove-etf/${cfg.slug}`);
+  const datumDat = cmp ? cmp.konec.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : null;
 
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -246,7 +247,8 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> {cfg.dataRange}</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Vzdělávací a nezávislé</span>
-              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
+              {datumDat && <span className="inline-flex items-center gap-1.5">Data k {datumDat}</span>}
             </div>
           </div>
         </section>

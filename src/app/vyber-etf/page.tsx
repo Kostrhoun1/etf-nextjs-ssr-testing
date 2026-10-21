@@ -10,6 +10,7 @@ import { portfolioModels, PORTFOLIO_BACKTEST, BACKTEST_BENCHMARK, backtestOdkaz 
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
+import { titulek } from '@/lib/seoTitulek';
 
 /* Ukázkový fond každé kategorie výsledku – velký, běžně dostupný fond; výnos za 5 let v Kč z dat fondu s datem.
    Akumulační i distribuční třída: příklad se vybírá podle odpovědi „Co s dividendami?“ (revize 19. 10. 2026:
@@ -43,8 +44,8 @@ export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/vyber-etf' },
-  title: 'Který ETF si vybrat? Průvodce výběrem ETF pro české investory',
-  description: 'Nevíte, který ETF koupit? Odpovězte na 4 otázky a průvodce podle horizontu, rizika a cíle ukáže, které typy ETF a modelová portfolia odpovídají – se skutečnými výnosy v korunách.',
+  title: titulek('Který ETF si vybrat? Průvodce výběrem pro české investory'),
+  description: 'Odpovězte na 4 otázky a průvodce podle horizontu, rizika a cíle ukáže, které typy ETF a modelová portfolia odpovídají – se skutečnými výnosy v korunách.',
 };
 
 export default async function VyberEtfPage() {
@@ -64,6 +65,17 @@ export default async function VyberEtfPage() {
   const kody = [...new Set(Object.values(PROPAD_KATEGORIE).map((x) => x.kod))];
   const startKodu = (kod: string) => { const s = INDEX_BY_CODE[kod]?.since ?? '2000-01-03'; return s < '2000-01-03' ? '2000-01-03' : s; };
   const vypocty = await Promise.all(kody.map((kod) => predpocitejPortfolio([{ indexCode: kod, weight: 1, ter: 0 }], startKodu(kod))));
+  // SEO audit 6b: řada dluhopisů 1–3 roky (monthly v manifestu) měla poslední bod s dnešním datem zapsaný během
+  // obchodního dne (= včerejší závěr) → kvíz psal „Backtest 1/2008 – 20. 10.“, ostatní „– 19. 10.“. Všechny výsledky
+  // proto končí SPOLEČNÝM posledním dnem (nejkratší řada); delší řady se přepočtou do něj.
+  const konce = vypocty.map((r) => r?.evolution?.at(-1)?.date?.slice(0, 10)).filter((d): d is string => !!d);
+  const spolecnyKonec = konce.length ? konce.reduce((a, b) => (a < b ? a : b)) : null;
+  if (spolecnyKonec) {
+    await Promise.all(kody.map(async (kod, i) => {
+      const k = vypocty[i]?.evolution?.at(-1)?.date?.slice(0, 10);
+      if (k && k > spolecnyKonec) vypocty[i] = await predpocitejPortfolio([{ indexCode: kod, weight: 1, ter: 0 }], startKodu(kod), 'CZK', spolecnyKonec);
+    }));
+  }
   const propadKodu = Object.fromEntries(kody.map((kod, i) => [kod, vypocty[i]]));
   const propady: Record<string, PropadKategorie | null> = Object.fromEntries(Object.entries(PROPAD_KATEGORIE).map(([k, def]) => {
     const r = propadKodu[def.kod];

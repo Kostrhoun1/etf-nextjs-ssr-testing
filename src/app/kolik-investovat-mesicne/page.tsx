@@ -4,20 +4,18 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock,
-  LineChart, BookOpen, AlertTriangle,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, LineChart, BookOpen, AlertTriangle, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { titulek } from '@/lib/seoTitulek';
+import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Kolik investovat měsíčně, abyste měli milion (nebo rentu)',
+  title: titulek('Kolik investovat měsíčně, abyste měli milion (nebo rentu)'),
   description:
-    'Kolik reálně naspoříte pravidelným měsíčním vkladem do ETF – spočítáno v korunách pro 10, 20 i 30 let. Kolik měsíčně na první milion, jak výnos mění výsledek a kolik potřebujete na rentu. Srozumitelně a bez keců.',
+    'Kolik naspoříte pravidelným měsíčním vkladem do ETF za 10, 20 i 30 let v korunách, kolik měsíčně potřebujete na první milion a kolik na rentu. Srozumitelně.',
   alternates: { canonical: '/kolik-investovat-mesicne' },
   openGraph: {
     title: 'Kolik investovat měsíčně, abyste měli milion (nebo rentu)',
@@ -30,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 /* Budoucí hodnota pravidelného měsíčního vkladu (spořicí anuita). */
-// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně" bylo opravdu 7 % ročně. Dřív r/12
+// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně“ bylo opravdu 7 % ročně. Dřív r/12
 // = 7,23 % ročně (audit výpočtů 17. 10. 2026; stejně jako investiční kalkulačka).
 const mesicni = (annual: number) => Math.pow(1 + annual, 1 / 12) - 1;
 const fv = (pmt: number, annual: number, years: number) => {
@@ -47,7 +45,7 @@ const RATE = 0.07; // modelový nominální výnos p.a.
 const MONTHLY = [1000, 3000, 5000, 10000];
 const HORIZONS = [10, 20, 30];
 
-/* Kč: nad milion „X,XX mil.", jinak plné číslo. */
+/* Kč: nad milion „X,XX mil.“, jinak plné číslo. */
 const kc = (v: number) =>
   v >= 1_000_000
     ? `${(v / 1_000_000).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
@@ -55,8 +53,7 @@ const kc = (v: number) =>
 const kcRound = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
 
 export default async function KolikInvestovat() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/kolik-investovat-mesicne'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   const faqs = [
     {
@@ -73,7 +70,7 @@ export default async function KolikInvestovat() {
     },
     {
       q: 'Je lepší investovat pravidelně, nebo jednorázově?',
-      a: 'Pokud máte peníze k dispozici hned, historicky mírně vyhrává jednorázová investice (trh většinu času roste). Pravidelné investování (DCA) je ale pro většinu lidí přirozenější – investujete z výplaty, rozložíte nákupy v čase a nemusíte řešit „správný okamžik". Nejdůležitější je vůbec začít a vydržet.',
+      a: 'Pokud máte peníze k dispozici hned, historicky mírně vyhrává jednorázová investice (trh většinu času roste). Pravidelné investování (DCA) je ale pro většinu lidí přirozenější – investujete z výplaty, rozložíte nákupy v čase a nemusíte řešit „správný okamžik“. Nejdůležitější je vůbec začít a vydržet.',
     },
     {
       q: 'Kolik potřebuji naspořit na rentu?',
@@ -100,6 +97,7 @@ export default async function KolikInvestovat() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/kolik-investovat-mesicne', nadpis: 'Kolik investovat měsíčně, abyste měli milion (nebo rentu)?', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -147,7 +145,7 @@ export default async function KolikInvestovat() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Výnosy v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -156,7 +154,7 @@ export default async function KolikInvestovat() {
         <section className="pb-9">
           <div className="max-w-3xl text-[15px] text-slate-600 leading-relaxed space-y-3">
             <p>
-              „Kolik mám investovat?" je špatně položená otázka. Správně zní: <strong className="text-slate-900">kolik
+              „Kolik mám investovat?“ je špatně položená otázka. Správně zní: <strong className="text-slate-900">kolik
               chci mít – a za jak dlouho?</strong> Zbytek je aritmetika, kterou za vás odpracuje složené úročení.
             </p>
             <p>
@@ -329,13 +327,16 @@ export default async function KolikInvestovat() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-celosvetove-etf', 'nejlepsi-sp500-etf', 'nejlepsi-akumulacni-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">
@@ -345,13 +346,13 @@ export default async function KolikInvestovat() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., před inflací a daněmi) a mají vzdělávací charakter. Nejde o investiční doporučení a skutečné výnosy se liší. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., před inflací a daněmi) a mají vzdělávací charakter. Nejde o investiční doporučení a skutečné výnosy se liší. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

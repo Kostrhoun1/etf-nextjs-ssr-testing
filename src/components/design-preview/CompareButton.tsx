@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Check } from 'lucide-react';
 import { isInCompare, toggleCompare, subscribeCompare, getCompare, COMPARE_MAX } from '@/components/design-preview/compareStore';
 
-/* Přidat/odebrat fond z porovnání. Varianta „button" (velké) nebo „chip" (kompaktní do řádku/karty). */
+/* Přidat/odebrat fond z porovnání. Varianta „button“ (velké) nebo „chip“ (kompaktní do řádku/karty). */
 export default function CompareButton({ isin, label, variant = 'button' }: { isin: string; label: string; variant?: 'button' | 'chip' | 'hero' | 'row' }) {
   const [inList, setInList] = useState(false);
   const [full, setFull] = useState(false);

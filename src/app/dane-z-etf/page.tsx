@@ -4,14 +4,12 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import {
-  TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins,
-  Landmark, Scale, ShieldCheck, HelpCircle, Clock, Receipt, Percent, PiggyBank,
-  CheckCircle2, AlertTriangle, BookOpen,
-} from 'lucide-react';
+import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, Clock, Receipt, Percent, PiggyBank, CheckCircle2, AlertTriangle, BookOpen, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { upravenoDlouze, clanekSchema, ogObrazek, denCesky, datumUpravy } from '@/lib/redakce';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
+import KlicovaCisla from '@/components/design-preview/KlicovaCisla';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -32,8 +30,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DaneZEtf() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/dane-z-etf'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   /* Modelový příklad v korunách (kolo 6: hero sliboval „v korunách“, příklad chyběl). Počítá se tady, ne natvrdo. */
   const kc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')}\u00a0Kč`;
@@ -62,7 +59,7 @@ export default async function DaneZEtf() {
     },
     {
       q: 'Co je DIP a jak snižuje daně?',
-      a: 'DIP (dlouhodobý investiční produkt) je od roku 2024 režim, ve kterém si příspěvky můžete odečíst od základu daně – až 48 000 Kč ročně (společný limit s penzijním a životním pojištěním). Podmínkou je, že DIP trvá nejméně 120 měsíců a peníze vyberete nejdříve v roce, kdy vám bude 60 let; při předčasném výběru se odečtené částky dodaňují. Konkrétní podmínky a nabídku DIP ověřte u svého poskytovatele a daňového poradce.',
+      a: 'DIP (dlouhodobý investiční produkt) je od roku 2024 režim, ve kterém si příspěvky můžete odečíst od základu daně – až 48 000 Kč ročně (společný limit s penzijním spořením, životním pojištěním a pojištěním dlouhodobé péče). Podmínkou je, že DIP trvá nejméně 120 měsíců a peníze vyberete nejdříve v roce, kdy vám bude 60 let; při předčasném výběru se odečtené částky dodaňují. Konkrétní podmínky a nabídku DIP ověřte u svého poskytovatele a daňového poradce.',
     },
     {
       q: 'Musím hlásit velký osvobozený příjem?',
@@ -99,6 +96,7 @@ export default async function DaneZEtf() {
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clanekSchema({ cesta: '/dane-z-etf', nadpis: 'Daně z ETF v Česku: kdy platíte a kdy ne', popis: typeof metadata.description === 'string' ? metadata.description : undefined, obrazek: ogObrazek(metadata) })) }} />
 
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -148,7 +146,7 @@ export default async function DaneZEtf() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Vše v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
 
             {/* Klíčová čísla – tři pravidla, která rozhodují o dani. Mobil: řádky (kolo 6: „100 000 Kč“ se ve třetině
@@ -171,6 +169,26 @@ export default async function DaneZEtf() {
             </div>
           </div>
         </section>
+
+        {/* Klíčová pravidla k datu poslední kontroly zákona (SEO/GEO audit 6b) – s odkazy na znění zákona. */}
+        <KlicovaCisla
+          nadpis="Klíčová pravidla"
+          datum={denCesky(datumUpravy('/dane-z-etf'))}
+          radky={[
+            { co: 'Časový test – zisk z prodeje bez daně', hodnota: 'po 3 letech', pozn: '§ 4 odst. 1 písm. u) ZDP' },
+            { co: 'Hodnotový test – roční příjem z prodeje cenných papírů bez daně', hodnota: 'do 100 000 Kč', pozn: '§ 4 odst. 1 písm. t) ZDP' },
+            { co: 'Daň ze zisku jinak', hodnota: '15 % / 23 %', pozn: '23 % z části základu nad 36násobek průměrné mzdy' },
+            { co: 'Vyplacené dividendy (distribuční ETF)', hodnota: '15 %', pozn: 'uvádějí se v daňovém přiznání' },
+            { co: 'Oznámení osvobozených příjmů finančnímu úřadu', hodnota: 'nad 5 mil. Kč', pozn: '§ 38v ZDP' },
+            { co: 'Odpočet vkladů do DIP (společný limit)', hodnota: 'až 48 000 Kč ročně', pozn: '§ 15 odst. 6 ZDP' },
+          ]}
+          zdroje={[
+            { href: 'https://www.zakonyprolidi.cz/cs/1992-586#p4-1-t', text: 'ZDP § 4 odst. 1 písm. t)' },
+            { href: 'https://www.zakonyprolidi.cz/cs/1992-586#p4-1-u', text: 'ZDP § 4 odst. 1 písm. u)' },
+            { href: 'https://www.zakonyprolidi.cz/cs/1992-586#p38v', text: 'ZDP § 38v' },
+            { href: 'https://www.zakonyprolidi.cz/cs/1992-586#p15-6', text: 'ZDP § 15 odst. 6' },
+          ]}
+        />
 
         {/* UPOZORNĚNÍ – orientační charakter */}
         <section className="pb-8">
@@ -298,7 +316,7 @@ export default async function DaneZEtf() {
                 <p>
                   <strong className="text-slate-900">DIP (dlouhodobý investiční produkt)</strong> umožňuje odečíst
                   příspěvky od základu daně – až <strong className="text-slate-900">48 000 Kč ročně</strong> (společný
-                  limit s penzijním a životním pojištěním). Při 15% dani to znamená až 7 200 Kč zpět ročně.
+                  limit s penzijním spořením, životním pojištěním a pojištěním dlouhodobé péče). Při 15% dani to znamená až 7 200 Kč zpět ročně.
                 </p>
                 <p>
                   Podmínkou je, že DIP trvá <strong className="text-slate-900">nejméně 120 měsíců</strong> a peníze vyberete
@@ -368,13 +386,16 @@ export default async function DaneZEtf() {
                   <span className="flex items-center gap-2 text-sm font-medium text-slate-900">
                     <HelpCircle className="w-4 h-4 text-teal-700 shrink-0" /> {f.q}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true" />
                 </summary>
                 <p className="px-4 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-akumulacni-etf', 'nejlepsi-distribucni-etf', 'nejlepsi-dividendove-etf']} />
 
         {/* E-E-A-T patička */}
         <section className="pb-8">
@@ -384,13 +405,13 @@ export default async function DaneZEtf() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s 12 lety praxe ve financích. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
                   <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací shrnutí, není daňovým ani investičním poradenstvím. Uvedená pravidla jsou orientační a mohou se měnit. Aktualizováno {dateStr}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací shrnutí, není daňovým ani investičním poradenstvím. Uvedená pravidla jsou orientační a mohou se měnit. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

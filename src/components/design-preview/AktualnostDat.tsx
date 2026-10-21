@@ -9,7 +9,7 @@ import { datumVynosu, type SDatemVynosu } from '@/lib/datumVynosu';
  * PROČ: čísla v žebříčcích (výnos za rok, velikost, TER) bez data nic neříkají a denní
  * aktualizace je naše silná stránka – má být vidět (požadavek majitele 17. 10. 2026).
  * Datum = skutečné datum scrapu (`scraping_date`), NE `updated_at`: ten do 17. 10. 2026
- * přepisoval i nahrávání starých dubnových dat, takže hlásil „dnes" i u zamrzlých fondů.
+ * přepisoval i nahrávání starých dubnových dat, takže hlásil „dnes“ i u zamrzlých fondů.
  *
  * `nejstarsi`: když má některý fond v seznamu starší data než ostatní (o 2+ dny), řekneme to.
  */

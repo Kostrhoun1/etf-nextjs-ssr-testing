@@ -3,7 +3,7 @@ import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import AutorBox from '@/components/design-preview/AutorBox';
 import { FAKTORY } from '@/components/design-preview/FactorDetail';
-import { clanekSchema } from '@/lib/redakce';
+import { clanekSchema, upravenoDlouze } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
@@ -13,13 +13,14 @@ import {
 } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getDataDate } from '@/lib/etf-data';
+import { titulek } from '@/lib/seoTitulek';
+import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Faktorové ETF: co skutečně říkají data (v korunách)',
+  title: titulek('Faktorové ETF: co skutečně říkají data (v korunách)'),
   description:
-    'Value, momentum, quality, small cap, minimální volatilita, dividendy – co je faktorové investování, co slibuje akademický výzkum a jak faktory dopadly v korunách na reálných datech od roku 2000. Včetně konkrétních UCITS ETF.',
+    'Value, momentum, quality, small cap, minimální volatilita a dividendy: co slibuje výzkum a jak faktory dopadly v korunách na datech od roku 2000 – s UCITS ETF.',
   alternates: { canonical: '/faktorove-etf' },
   openGraph: {
     title: 'Faktorové ETF: co skutečně říkají data (v korunách)',
@@ -32,8 +33,7 @@ export const metadata: Metadata = {
 };
 
 export default async function FaktoroveEtf() {
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const upraveno = upravenoDlouze('/faktorove-etf'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   // Čísla z našeho backtest enginu (denní data, v Kč, po TER, roční rebalance).
   // Každý faktor od začátku svých dat + S&P 500 na STEJNÉM okně (férové srovnání).
@@ -174,7 +174,7 @@ export default async function FaktoroveEtf() {
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Denní data od 2000, v Kč, po TER</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Vzdělávací a nezávislé</span>
-              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Aktualizováno {dateStr}</span>
+              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
           </div>
         </section>
@@ -371,6 +371,9 @@ export default async function FaktoroveEtf() {
             UCITS verze v tabulce jsou mladší, ale v ČR je reálně koupíte. Metodiky se mírně liší.
           </p>
         </section>
+
+        {/* Žebříčky k tématu (SEO audit 6b – prolinkování článků a žebříčků) */}
+        <SouvisejiciZebricky nadpis="Žebříčky k tématu" slugy={['nejlepsi-value-etf', 'nejlepsi-small-cap-etf', 'nejlepsi-growth-etf', 'nejlepsi-dividendove-etf']} />
 
         {/* FAQ */}
         <section className="pb-10">

@@ -1,12 +1,13 @@
 import { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import { titulek } from '@/lib/seoTitulek';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
-  title: 'Small cap faktor: malé firmy v korunách od 2000 – hloubková analýza',
+  title: titulek('Small cap: malé firmy v korunách od roku 2000 (analýza)'),
   description:
-    'Malé firmy porazily od roku 2000 S&P 500 – o desetiny procenta a za cenu nejdivočejší jízdy. Rolling okna, krize, DCA a proč size prémie od svého objevení slábne.',
+    'Malé firmy porazily od roku 2000 S&P 500 – o desetiny procenta a za cenu nejdivočejší jízdy. Klouzavá okna, krize, pravidelné vklady a proč prémie slábne.',
   alternates: { canonical: '/faktorove-etf/small-cap' },
   openGraph: {
     title: 'Small cap: nejdivočejší jízda za nejmenší prémii',

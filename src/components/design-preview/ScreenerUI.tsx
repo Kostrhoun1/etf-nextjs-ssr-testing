@@ -75,10 +75,9 @@ function vyn(e: ScreenerRow, v: number | null) {
   if (e._vynX) return <span title={VYNOS_NEOVERENY_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({VYNOS_NEOVERENY_TEXT})</span></span>;
   return pct(v);
 }
-
-/* Investiční styly (faktory). Data nemají sloupec „faktor", takže se rozpoznávají
+/* Investiční styly (faktory). Data nemají sloupec „faktor“, takže se rozpoznávají
    z názvu fondu (`blob` = název + ISIN + poskytovatel + tickery, lowercase).
-   `exclude` řeší falešné shody – např. „Battery Value-Chain" NENÍ value fond. */
+   `exclude` řeší falešné shody – např. „Battery Value-Chain“ NENÍ value fond. */
 const FACTORS: { value: string; label: string; match: string[]; exclude?: string[] }[] = [
   { value: 'small_cap', label: 'Small cap', match: ['small cap', 'smallcap', 'small-cap', 'russell 2000'] },
   { value: 'value', label: 'Value', match: ['value'], exclude: ['value-chain', 'value chain'] },
@@ -551,7 +550,7 @@ export default function ScreenerUI({
       if (domicile !== 'all' && e._dom !== domicile) return false;
       if (provider !== 'all' && e.fund_provider !== provider) return false;
       if (minAge !== 'all') {
-        // Fond bez data vzniku filtr na stáří NEPROJDE – tvrdit „je starší než X let" bez data by bylo horší.
+        // Fond bez data vzniku filtr na stáří NEPROJDE – tvrdit „je starší než X let“ bez data by bylo horší.
         if (e._year == null) return false;
         if (rok - e._year < Number(minAge)) return false;
       }

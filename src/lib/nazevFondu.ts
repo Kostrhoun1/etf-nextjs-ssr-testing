@@ -52,3 +52,13 @@ export function tridaText(t: TridaFondu): string {
   return [t.vyplata, t.mena, t.zajisteni ? (t.zajisteni === 'ano' ? 'zajištěno' : `zajištěno do ${t.zajisteni}`) : null]
     .filter(Boolean).join(' · ');
 }
+
+/**
+ * Švýcarský fond (sídlo CH, švýcarské právo – ne UCITS): iShares Swiss Dividend (CH), UBS ETF (CH) Gold, Swisscanto (CH) Gold,
+ * Raiffeisen ETF Solid Gold… Českým investorům je řada brokerů nenabízí (chybí KID/PRIIPs). Na webu nesou štítek
+ * „sídlo CH – ověřte dostupnost u brokera“ a nevybírají se na karty žebříčků (ZAMERNA-ROZHODNUTI.md, SEO audit 6b).
+ * Výjimka: ETP/ETN švýcarských emitentů (21Shares, …) – jsou to dluhové cenné papíry s evropským prospektem, ne fondy.
+ */
+export function jeSvycarskyFond(isin: string | null | undefined, name: string | null | undefined): boolean {
+  return /^CH/i.test(String(isin ?? '')) && !/\b(ETP|ETN)\b/i.test(String(name ?? ''));
+}

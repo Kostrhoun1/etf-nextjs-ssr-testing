@@ -7,7 +7,7 @@ import { SITEMAP_PAIRS } from '@/lib/pairs';
 /* Dynamická sitemapa – jen INDEXOVATELNÉ produkční URL (root routy nového webu).
    Vynecháno záměrně: /broker, /srovnani/porovnani, /prehled (noindex).
 
-   /etf/[isin]: jen „hlava" (AUM ≥ HEAD_MIN_SIZE z lib/etf-head), tedy detaily, které
+   /etf/[isin]: jen „hlava“ (AUM ≥ HEAD_MIN_SIZE z lib/etf-head), tedy detaily, které
    nemají googlebot-noindex. Dlouhý ocas do sitemapy nepatří – Googlu bychom
    posílali URL, které mu sami zakazujeme. */
 const BASE = 'https://etfpruvodce.cz';
