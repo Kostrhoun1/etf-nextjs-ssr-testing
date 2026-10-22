@@ -90,9 +90,10 @@ export default async function PortfolioDetailPreview(
     if (!ddPf) return '—';
     if (!ddPf.recovered || !ddPf.endDate) return 'zatím bez návratu na vrchol';
     const mes = Math.round((Date.parse(ddPf.endDate) - Date.parse(ddPf.troughDate)) / (30.44 * 864e5));
-    if (mes < 18) return `návrat na vrchol za ${Math.max(mes, 1)} měs.`;
+    // Kolo 7: doba od DNA (troughDate) – vždy s výchozím bodem.
+    if (mes < 18) return `návrat na vrchol za ${Math.max(mes, 1)} měs. od dna`;
     const r = Math.round(mes / 12);
-    return `návrat na vrchol za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
+    return `návrat na vrchol za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'} od dna`;
   })();
   const rok2022 = btPf?.returns.annualReturns.find((a) => a.year === 2022)?.return;
   const melciNezAkcie = btDD != null && benchDD != null && btDD > benchDD + 0.01;

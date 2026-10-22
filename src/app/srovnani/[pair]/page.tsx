@@ -6,7 +6,7 @@ import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowLeft, ArrowRight, Coins, Layers, Landmark, Info, Wallet, HelpCircle, ChevronDown, Equal, Database, LineChart } from 'lucide-react';
-import { getComparisonETFData, type ComparisonETF , getDataDate } from '@/lib/etf-data';
+import { getComparisonETFData, type ComparisonETF , getDataDatum } from '@/lib/etf-data';
 import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
 import { getPairContent } from '@/components/design-preview/pairContent';
 import { terFmt, procenta, velikostFondu } from '@/lib/formatyCisel';
@@ -177,8 +177,9 @@ export default async function PairComparePage(
   const tk2 = zobrazTicker(t2, etf2);
   if (etf1.isin === etf2.isin) {
     const dp = (await nactiDoplnkyFondu([etf1.isin]))[etf1.isin];
-    const den = datumVynosu({ returns_as_of: dp?.returnsAsOf, scraping_date: dp?.scrapingDate }) ?? await getDataDate(new Date());
-    return <StejnyFond etf={etf1} tk1={tk1} tk2={tk2} kanon={vlastni} dateStr={den.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })} />;
+    // Kolo 7: bez návratu ke dnešku – neznámý den dat = žádné „Data k …“ (pravidlo č. 1).
+    const den = datumVynosu({ returns_as_of: dp?.returnsAsOf, scraping_date: dp?.scrapingDate }) ?? await getDataDatum();
+    return <StejnyFond etf={etf1} tk1={tk1} tk2={tk2} kanon={vlastni} dateStr={den?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null} />;
   }
   const curated = getPairContent(pair);
   // V nadpisu tickery z URL; dál na stránce JEDNO jméno – ticker z XETRA, pod kterým se fond v Česku kupuje
@@ -188,10 +189,9 @@ export default async function PairComparePage(
   const doplnky = await nactiDoplnkyFondu([etf1.isin, etf2.isin]);
   const dp1 = doplnky[etf1.isin], dp2 = doplnky[etf2.isin];
 
-  const today = new Date();
   // Datum = den výnosů staršího ze dvou fondů (returns_as_of, src/lib/datumVynosu.ts), ne globální datum (pravidlo č. 1).
   const nejstarsiDen = [dp1, dp2].map((d) => datumVynosu({ returns_as_of: d?.returnsAsOf, scraping_date: d?.scrapingDate })).filter((d): d is Date => !!d).sort((a, b) => a.getTime() - b.getTime())[0];
-  const dateStr = (nejstarsiDen ?? await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateStr = (nejstarsiDen ?? await getDataDatum())?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null; // kolo 7: bez návratu ke dnešku
   const zemeDvojice = [dp1?.zeme ?? [], dp2?.zeme ?? []];
   const ODSTINY = ['bg-slate-700', 'bg-slate-500', 'bg-slate-400', 'bg-slate-300', 'bg-slate-200'];
 
@@ -287,7 +287,7 @@ export default async function PairComparePage(
           <div className="rounded-2xl bg-slate-900 text-white p-4 md:px-8 md:py-7">
             <h1 className="text-xl md:text-3xl font-bold tracking-tight leading-tight">{tk1} vs {tk2}: srovnání v korunách</h1>
             <p className="mt-1.5 text-sm text-slate-300 leading-snug">
-              Poplatky, výnos přepočtený do korun a riziko obou fondů vedle sebe. <span className="text-slate-400">Data k {dateStr}.</span>
+              Poplatky, výnos přepočtený do korun a riziko obou fondů vedle sebe.{dateStr && <> <span className="text-slate-400">Data k {dateStr}.</span></>}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2.5 md:gap-4">
               <SrovnaniSoubojKarta etf={etf1} ticker={cz1} podtitul={ix1 ?? etf1.name} barva={barvaFondu(0)} odlehly={!!dp1?.odlehly} />
@@ -414,7 +414,7 @@ export default async function PairComparePage(
           </div>
           <p className="mt-4 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
             <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-            <span>Data fondů: justETF · kurzy ČNB · data k {dateStr}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link></span>
+            <span>Data fondů: justETF · kurzy ČNB{dateStr ? ` · data k ${dateStr}` : ''}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link></span>
           </p>
           <InvestmentDisclaimer variant="inline" className="mt-2 !text-slate-400" />
         </section>
@@ -427,7 +427,7 @@ export default async function PairComparePage(
    „cspx nebo sxr8", „vuaa vs vuag"); dřív stránka vracela 404. SEO audit 20. 10. 2026: stránka měla 215–236 slov,
    bez data a drobečků → doplněno datum dat, BreadcrumbList, jasná věta o stejném ISINu, odkazy a další srovnání.
    Canonical zůstává na sobě (jiný záměr hledání než detail fondu: „je X totéž co Y?“); alias iwda-vs-swda → iwda-vs-eunl. */
-function StejnyFond({ etf, tk1, tk2, kanon, dateStr }: { etf: ComparisonETF; tk1: string; tk2: string; kanon: string; dateStr: string }) {
+function StejnyFond({ etf, tk1, tk2, kanon, dateStr }: { etf: ComparisonETF; tk1: string; tk2: string; kanon: string; dateStr: string | null }) {
   const seznam = burzy(etf);
   const meny = Array.from(new Set(seznam.map((b) => b.mena).filter(Boolean))) as string[];
   const faqs = [
@@ -466,7 +466,7 @@ function StejnyFond({ etf, tk1, tk2, kanon, dateStr }: { etf: ComparisonETF; tk1
             Poplatek, složení i výnos jsou stejné – liší se jen burza a měna, ve které se obchoduje.
           </p>
           <p className="mt-2 text-xs text-slate-400 font-mono">ISIN {etf.isin} · TER {ter(etf.ter_numeric)} · {money(etf.fund_size_numeric, etf.fund_currency)}</p>
-          <p className="mt-1 text-xs text-slate-400">Data k {dateStr}.</p>
+          {dateStr && <p className="mt-1 text-xs text-slate-400">Data k {dateStr}.</p>}
         </section>
 
         <section className="pt-8">
@@ -532,7 +532,7 @@ function StejnyFond({ etf, tk1, tk2, kanon, dateStr }: { etf: ComparisonETF; tk1
         <div className="pt-10"><DalsiSrovnani aktualni={kanon} /></div>
         <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
           <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-          <span>Data fondu: justETF · data k {dateStr}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link></span>
+          <span>Data fondu: justETF{dateStr ? ` · data k ${dateStr}` : ''}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link></span>
         </p>
       </main>
     </div>

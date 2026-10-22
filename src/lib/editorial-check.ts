@@ -1,5 +1,5 @@
 /* Datum poslední ruční kontroly editorských (napevno zadaných) dat.
-   ETF ceny/výnosy/TER se aktualizují denně scraperem – ty pokrývá getDataDate().
+   ETF ceny/výnosy/TER se aktualizují denně scraperem – ty pokrývá getDataDatum() (kolo 7: bez návratu ke dnešku).
    Tohle je jiná věc: daňové konstanty a ceníky brokerů se nemění samy, takže je
    jednou měsíčně ověřuje rutina podle MAINTENANCE-mesicni-kontrola.md.
 

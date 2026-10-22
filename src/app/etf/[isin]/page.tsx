@@ -20,7 +20,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { distKind } from '@/utils/distribution';
 import EtfReturns from '@/components/design-preview/EtfReturns';
 import { type CalCol } from '@/components/design-preview/EtfCalendarReturns';
-import { getDataDate, getPodobneFondy, SPECIFICKY_FOND, rizikoNesediFondu } from '@/lib/etf-data';
+import { getPodobneFondy, SPECIFICKY_FOND, rizikoNesediFondu } from '@/lib/etf-data';
 import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
 import { canonicalIndexLabel, indexFonduLabel } from '@/utils/indexNormalization';
 import { isHeadFund } from '@/lib/etf-head';
@@ -33,6 +33,7 @@ import { kanonickaDvojice, dvojiceFondu, kuratorskaProIsiny } from '@/lib/pairs'
 import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
 import OdkazBurzy from './OdkazBurzy';
 import { datumVynosu, type SDatemVynosu } from '@/lib/datumVynosu';
+import { datumCen } from '@/lib/datumCen';
 import { titulekDetailu, popisekDetailu } from '@/lib/seoDetailu';
 import { ceskaZeme, ceskySektor, zamereniStitky, SEKTORY_POZNAMKA } from '@/lib/preklady';
 import { terFmt, procenta, velikostFondu, cislo, NBSP } from '@/lib/formatyCisel';
@@ -368,12 +369,21 @@ export default async function ETFDetailPreview(
      když fond vlastní `updated_at` nemá. */
   // 21. 10. 2026: den VÝNOSŮ tohoto fondu (returns_as_of = poslední jistě konečný den jeho řady u zdroje; ESEA a spol.
   // mají řadu o dny pozadu), u dat před nasazením den cen podle času stažení (src/lib/datumVynosu.ts).
+  // Kolo 7 (22. 10. 2026): fond bez jediného výnosu (BTCW) den výnosů nemá → null; ostatní údaje (TER, výplaty) pak platí
+  // ke dni cen podle stažení TOHOTO fondu. Nikdy globální datum ani dnešek (dřív getDataDate(today) – tichý fallback).
   const fundUpdated = datumVynosu(etf as unknown as SDatemVynosu); // ne den stažení, ne updated_at
-  const dataDate = fundUpdated ?? (await getDataDate(today));
-  const dateStr = dataDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
-  const staleDays = Math.floor((today.getTime() - dataDate.getTime()) / 864e5);
+  const stazenoFondu = (etf as unknown as { scraping_date?: string | null }).scraping_date;
+  const denCenFondu = stazenoFondu && !Number.isNaN(new Date(stazenoFondu).getTime()) ? datumCen(new Date(stazenoFondu)) : null;
+  const dataDate: Date | null = fundUpdated ?? denCenFondu;
+  const dateStr = dataDate?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null;
+  const staleDays = dataDate ? Math.floor((today.getTime() - dataDate.getTime()) / 864e5) : 0;
   // 7 dní: scraper běží denně – týden bez aktualizace už znamená, že s fondem něco je.
   const isStale = staleDays > 7;
+  // Den, ke kterému emitent zveřejnil složení (holdings_as_of, scraper od 20. 10. 2026) – kolo 7.
+  const slozeniK = (() => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(r.holdings_as_of ?? ''));
+    return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12)) : null;
+  })();
 
   // krátký název pro nadpis – odvozený z názvu fondu (ne napevno)
   const shortName = etf.name.replace(/\s+UCITS ETF.*/i, '').replace(/\s+\(.*\)/, '').trim();
@@ -583,6 +593,8 @@ export default async function ETFDetailPreview(
   const heroByCur = trhOdlehly
     ? { CZK: NEOVERENO, EUR: NEOVERENO, USD: NEOVERENO }
     : returnsByCur;
+  // Samé „—“ v úvodu (žádná měna nemá 1/3/5 let) → bez „data k …“ (kolo 7: BTCW).
+  const heroPrazdne = Object.values(heroByCur).every((v) => v.y1 == null && v.y3 == null && v.y5 == null);
   const vznik = (() => { const d = etf.inception_date ? new Date(etf.inception_date) : null; return d && !Number.isNaN(d.getTime()) ? d : null; })();
   const rokVzniku = vznik ? String(vznik.getFullYear()) : '—';
   // NOVÝ FOND (kolo 6, VALL vznik 18. 8. 2026): místo stěny pomlček jedna věta a to, co je (1 měsíc, od vzniku).
@@ -743,7 +755,7 @@ export default async function ETFDetailPreview(
             ? 'Ne. Je to akumulační fond – úroky (kupóny) z dluhopisů se automaticky reinvestují uvnitř fondu. Na účet vám nic nechodí, takže v ČR neřešíte výplaty v daňovém přiznání.'
             : 'Ne. Je to akumulační fond – dividendy se automaticky reinvestují uvnitř fondu. Na účet vám nic nechodí, takže v ČR neřešíte dividendy v daňovém přiznání.'
         : isDist
-        ? `Ano. Je to distribuční fond – ${vyplataDluhopisu ? 'výnos z úroků' : 'dividendy'} vyplácí na váš účet${divYield != null ? ` (aktuální výnos z výplat zhruba ${procenta(divYield, 2, false)}, tj. ${divKcText} před daní, data k ${dateStr})` : ''}. V ČR se výplaty daní 15 % a uvádějí se v daňovém přiznání.`
+        ? `Ano. Je to distribuční fond – ${vyplataDluhopisu ? 'výnos z úroků' : 'dividendy'} vyplácí na váš účet${divYield != null ? ` (aktuální výnos z výplat zhruba ${procenta(divYield, 2, false)}, tj. ${divKcText} před daní${dateStr ? `, data k ${dateStr}` : ''})` : ''}. V ČR se výplaty daní 15 % a uvádějí se v daňovém přiznání.`
         : 'U tohoto fondu nemáme distribuční politiku spolehlivě ověřenou. Zkontrolujte si ji v dokumentu KID od emitenta – akumulační fondy výnos reinvestují, distribuční ho vyplácejí na účet.',
     },
     // W‑8BEN jen u fondů s americkými akciemi (kolo 6: dřív i u dluhopisů, peněžního trhu a komodit).
@@ -771,7 +783,7 @@ export default async function ETFDetailPreview(
     [<InfoTip key="ter" label="Total Expense Ratio – roční poplatek za správu fondu, strhává se průběžně z hodnoty investice.">Roční poplatek (TER)</InfoTip>, ter(etf.ter_numeric)],
     [`Velikost ${slovoFondu}`, money(etf.fund_size_numeric, etf.fund_currency)],
     [<InfoTip key="dist" label={tipVyplaty}>{vyplataDluhopisu ? 'Výplata výnosu' : 'Dividendy'}</InfoTip>, komodita ? `Nevyplácí (${komodita})` : isAcc ? VYPLATA_ACC : isDist ? VYPLATA_DIST : distText], // jednotné názvy (kolo 5)
-    ...(isDist ? [[<InfoTip key="dy" label={`${vyplataDluhopisu ? 'Výnos z výplat' : 'Dividendový výnos'} – kolik fond za rok vyplatil vůči své ceně (podle zdroje dat, k ${dateStr}). Přepočet na Kč je orientační, před 15% daní; výplaty se mění.`}>{vyplataDluhopisu ? 'Výnos z výplat' : 'Dividendový výnos'}</InfoTip>, divYield != null ? <span key="dyv">{procenta(divYield, 2, false)}<span className="block text-xs font-normal text-slate-500">{divKcText}</span></span> : '—'] as [React.ReactNode, React.ReactNode]] : []),
+    ...(isDist ? [[<InfoTip key="dy" label={`${vyplataDluhopisu ? 'Výnos z výplat' : 'Dividendový výnos'} – kolik fond za rok vyplatil vůči své ceně (podle zdroje dat${dateStr ? `, k ${dateStr}` : ''}). Přepočet na Kč je orientační, před 15% daní; výplaty se mění.`}>{vyplataDluhopisu ? 'Výnos z výplat' : 'Dividendový výnos'}</InfoTip>, divYield != null ? <span key="dyv">{procenta(divYield, 2, false)}<span className="block text-xs font-normal text-slate-500">{divKcText}</span></span> : '—'] as [React.ReactNode, React.ReactNode]] : []),
     [<InfoTip key="rep" label="Fyzická replikace = fond reálně nakupuje cenné papíry z indexu; syntetická používá swap s protistranou.">Replikace</InfoTip>, replText],
     [<InfoTip key="dom" label={domTip}>Domicil</InfoTip>, domText],
     podklad
@@ -842,7 +854,7 @@ export default async function ETFDetailPreview(
                       )}
                       {tickeryUvod.length > 0 && (
                         // Kolo 5: klik dřív nic viditelně neudělal (jen bublina) → odscroluje na burzy a rozbalí je.
-                        <OdkazBurzy title={`Stejný fond se obchoduje i na ${burzyText(burzyUvod)} pod tickery ${tickeryUvod.join(', ')}. Poplatek, složení i výnos jsou stejné, liší se jen burza a měna obchodování.`}>
+                        <OdkazBurzy title={`${dluhovyProdukt ? 'Stejný produkt' : 'Stejný fond'} se obchoduje i na ${burzyText(burzyUvod)} pod tickery ${tickeryUvod.join(', ')}. Poplatek, složení i výnos jsou stejné, liší se jen burza a měna obchodování.`}>
                           +{NBSP}{tickeryUvod.length} {tickeryText(tickeryUvod.length)}
                         </OdkazBurzy>
                       )}
@@ -869,17 +881,18 @@ export default async function ETFDetailPreview(
                         <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-300 tabular-nums">
                           {vynosOdVzniku != null && <span>Od vzniku <strong className={vynosOdVzniku >= 0 ? 'text-emerald-300' : 'text-red-300'}>{pct(vynosOdVzniku)}</strong> v EUR</span>}
                           {shortPeriods.m1 != null && <span>Za 1 měsíc <strong className={shortPeriods.m1 >= 0 ? 'text-emerald-300' : 'text-red-300'}>{pct(shortPeriods.m1)}</strong> v EUR</span>}
-                          <span className="text-slate-400">data k {dataDate.toLocaleDateString('cs-CZ')}</span>
+                          {fundUpdated && <span className="text-slate-400">data k {fundUpdated.toLocaleDateString('cs-CZ')}</span>}
                         </p>
                       )}
                     </div>
                   ) : (
                     <HeroVynosy
                       byCur={heroByCur}
-                      datum={isStale ? (
-                        <span data-vynosy-k={dataDate.toISOString().slice(0, 10)} className="inline-flex items-center gap-1 text-amber-200"><AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> data z {dataDate.toLocaleDateString('cs-CZ')}</span>
+                      // Kolo 7: „data k …“ jen nad skutečnými čísly – fond bez výnosů (BTCW) nebo s výnosy skrytými („—“) datum nemá.
+                      datum={!fundUpdated || heroPrazdne ? null : isStale ? (
+                        <span data-vynosy-k={fundUpdated.toISOString().slice(0, 10)} className="inline-flex items-center gap-1 text-amber-200"><AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> data z {fundUpdated.toLocaleDateString('cs-CZ')}</span>
                       ) : (
-                        <span data-vynosy-k={dataDate.toISOString().slice(0, 10)} className="tabular-nums">data k {dataDate.toLocaleDateString('cs-CZ')}</span>
+                        <span data-vynosy-k={fundUpdated.toISOString().slice(0, 10)} className="tabular-nums">data k {fundUpdated.toLocaleDateString('cs-CZ')}</span>
                       )}
                     />
                   )}
@@ -967,7 +980,7 @@ export default async function ETFDetailPreview(
               <p><strong className="text-slate-900">Fond je na trhu kratší dobu než rok</strong> – výnos za celé roky ani průměry za 3 a 5 let zatím nemá. Doplní se, jak bude mít fond delší historii.{vynosOdVzniku != null && ' Výnos od vzniku je v úvodu stránky.'}</p>
               {[shortPeriods.m3, shortPeriods.m6].some((v) => v != null) && (
                 <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2.5">
-                  <p className="text-xs text-slate-500">Co zatím je – v EUR, data k {dataDate.toLocaleDateString('cs-CZ')}</p>
+                  <p className="text-xs text-slate-500">Co zatím je – v EUR{fundUpdated ? `, data k ${fundUpdated.toLocaleDateString('cs-CZ')}` : ''}</p>
                   <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1 tabular-nums">
                     {([['3 měsíce', shortPeriods.m3], ['6 měsíců', shortPeriods.m6]] as const)
                       .filter(([, v]) => v != null).map(([k, v]) => (
@@ -993,7 +1006,7 @@ export default async function ETFDetailPreview(
                 byCur={trhOdlehly ? { CZK: NEOVERENO, EUR: NEOVERENO, USD: NEOVERENO } : returnsByCur}
                 fundCurrency={etf.fund_currency}
                 short={trhOdlehly ? { m1: null, m3: null, m6: null } : shortPeriods}
-                letos={`od 1.${NBSP}1.${NBSP}${dataDate.getFullYear()} do ${datumKratce(dataDate)}`}
+                letos={fundUpdated ? `od 1.${NBSP}1.${NBSP}${fundUpdated.getFullYear()} do ${datumKratce(fundUpdated)}` : undefined}
               >
                 {btCode && (
                   <Link href={`/backtest?fondy=${etf.isin}:100&run=1`} className="inline-flex items-center gap-1 font-medium text-teal-700 hover:text-teal-800">
@@ -1015,11 +1028,15 @@ export default async function ETFDetailPreview(
         {/* SLOŽENÍ FONDU */}
         {(holdings.length > 0 || sectors.length > 0 || countries.length > 0) && (
           <section data-sekce="slozeni" className="pb-10">
-            {/* Složení nemá v DB vlastní datum (justETF ho uvádí „k 31. 8.“, výnosy jsou k včerejšku) – revize kola 4.
-                Až scraper začne ukládat datum složení, nahradit konkrétním „Složení k …“. */}
+            {/* Kolo 7 (22. 10. 2026): datum složení = holdings_as_of (zdroj: „as of 31/08/2026“), ne den výnosů ani stažení.
+                Chybí-li, přiznáme to – nikdy datum dat fondu místo data složení. Hlídá check-fund-data (kolo7 data). */}
             <div className="mb-4">
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Složení fondu</h2>
-              <p className="mt-1 text-xs text-slate-500">Podle posledního zveřejnění emitenta – obvykle 1–2 měsíce zpětně, ne k datu výnosů.</p>
+              <p data-slozeni-k={slozeniK ? slozeniK.toISOString().slice(0, 10) : ''} className="mt-1 text-xs text-slate-500">
+                {slozeniK
+                  ? <>Složení k {slozeniK.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })} – poslední zveřejnění emitenta, ne k datu výnosů.</>
+                  : <>Datum složení neznáme – podle posledního zveřejnění emitenta (obvykle 1–2 měsíce zpětně), ne k datu výnosů.</>}
+              </p>
             </div>
             <div className="grid lg:grid-cols-2 gap-4">
               {holdings.length > 0 && !pozicNeuplne && (
@@ -1173,7 +1190,7 @@ export default async function ETFDetailPreview(
                 ? typ === 'penezni' ? 'Výnos se připisuje do ceny podílu – na účet nic nechodí a do prodeje nic nedaníte.'
                   : typ === 'dluhopisy' ? 'Fond úroky reinvestuje – na účet nic nechodí a do prodeje nic nedaníte.'
                   : 'Fond dividendy reinvestuje – na účet nic nechodí a do prodeje nic nedaníte.'
-                : <>Fond vyplácí {vyplataDluhopisu ? 'výnos z úroků' : 'dividendy'} na účet{divKcText ? <> – při současném výnosu {procenta(divYield, 2, false)} je to <strong className="font-semibold text-slate-900 whitespace-nowrap">{divKcText}</strong> (orientačně, data k {dateStr})</> : null}. V Česku je zdaníte 15 %.</>}{' '}
+                : <>Fond vyplácí {vyplataDluhopisu ? 'výnos z úroků' : 'dividendy'} na účet{divKcText ? <> – při současném výnosu {procenta(divYield, 2, false)} je to <strong className="font-semibold text-slate-900 whitespace-nowrap">{divKcText}</strong> (orientačně{dateStr ? `, data k ${dateStr}` : ''})</> : null}. V Česku je zdaníte 15 %.</>}{' '}
               <Link href="/akumulacni-vs-distribucni-etf" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Akumulační, nebo distribuční?</Link>
             </p>
           )}
@@ -1194,7 +1211,7 @@ export default async function ETFDetailPreview(
               {dalsiBurzy.length > 0 && (
                 <details id="dalsi-burzy" className="group border-t border-slate-100">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    <span>Další burzy ({dalsiBurzy.length}) <span className="font-normal text-slate-500">– {dalsiTickery.length > 0 ? `${dalsiTickery.length === 1 ? 'ticker' : 'tickery'} ${dalsiTickery.join(', ')}` : `stejný ticker ${hlavniListing?.ticker ?? ''}`}, stejný fond</span></span>
+                    <span>Další burzy ({dalsiBurzy.length}) <span className="font-normal text-slate-500">– {dalsiTickery.length > 0 ? `${dalsiTickery.length === 1 ? 'ticker' : 'tickery'} ${dalsiTickery.join(', ')}` : `stejný ticker ${hlavniListing?.ticker ?? ''}`}, {dluhovyProdukt ? 'stejný produkt' : 'stejný fond'}</span></span>
                     <ChevronDown className="w-4 h-4 shrink-0 text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true" />
                   </summary>
                   <ul className="divide-y divide-slate-100 border-t border-slate-100">
@@ -1272,7 +1289,7 @@ export default async function ETFDetailPreview(
         {/* Zdroj dat – jednou a střídmě (revize 18. 10. 2026: justETF se na stránce jmenoval 2×). */}
         <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
           <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-          <span>Data {slovoFondu}: justETF{etf.fund_provider ? `, ${etf.fund_provider}` : ''} · kurzy ČNB · data k {dateStr}{isStale ? ` (před ${staleDays} dny)` : ''}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link> · <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">O webu</Link></span>
+          <span>Data {slovoFondu}: justETF{etf.fund_provider ? `, ${etf.fund_provider}` : ''} · kurzy ČNB{dateStr ? ` · data k ${dateStr}` : ''}{isStale ? ` (před ${staleDays} dny)` : ''}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link> · <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">O webu</Link></span>
         </p>
         <InvestmentDisclaimer variant="inline" className="mt-2 !text-slate-400" />
       </main>

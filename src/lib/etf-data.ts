@@ -407,10 +407,12 @@ export interface FlagshipComposition {
   countries: CompositionSlice[];
   sectors: CompositionSlice[];
   holdings: CompositionSlice[];
+  /** Den, ke kterému emitent složení zveřejnil (holdings_as_of, YYYY-MM-DD); null = neznáme (kolo 7). */
+  slozeniK: string | null;
 }
 
 const COMPOSITION_FIELDS = `
-  isin, name, total_holdings,
+  isin, name, total_holdings, holdings_as_of,
   country_1_name, country_1_weight, country_2_name, country_2_weight,
   country_3_name, country_3_weight, country_4_name, country_4_weight, country_5_name, country_5_weight,
   sector_1_name, sector_1_weight, sector_2_name, sector_2_weight,
@@ -465,6 +467,7 @@ export async function getFlagshipComposition(isin: string): Promise<FlagshipComp
       countries: extractSlices(row, 'country', 5),
       sectors: extractSlices(row, 'sector', 5),
       holdings: extractSlices(row, 'holding', 10),
+      slozeniK: /^\d{4}-\d{2}-\d{2}/.test(String(row.holdings_as_of ?? '')) ? String(row.holdings_as_of).slice(0, 10) : null,
     };
   } catch (e) {
     console.error('Error in getFlagshipComposition:', e);

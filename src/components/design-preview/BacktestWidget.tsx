@@ -1483,10 +1483,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     const recLabel = rec == null
                       ? 'zatím bez návratu'
                       : rec < 1
-                        ? 'návrat do měsíce'
+                        ? 'návrat do měsíce od dna'
                         : rec < 18
-                        ? `návrat za ${rec} měs.`
-                        : `návrat za ~${y} ${y === 1 ? 'rok' : y < 5 ? 'roky' : 'let'}`;
+                        ? `návrat za ${rec} měs. od dna`
+                        : `návrat za ~${y} ${y === 1 ? 'rok' : y < 5 ? 'roky' : 'let'} od dna`; // recoveryMonths = od dna (calculateStressPeriods)
                     // Obsahuje okno krize dno max. poklesu? Pak ukázat, že celý propad (od dřívějšího vrcholu) byl hlubší.
                     const w = STRESS_WINDOWS.find((x) => x.key === s.key);
                     const md = result.risk.maxDrawdown;
@@ -1821,10 +1821,11 @@ function mesicu(n: number, z: number) {
 function navratPoPropadu(d: { troughDate: string; endDate: string | null; recovered: boolean }) {
   if (!d.recovered || !d.endDate) return 'zatím bez návratu';
   const mes = Math.round((Date.parse(d.endDate) - Date.parse(d.troughDate)) / (30.44 * 864e5));
-  if (mes < 1) return 'návrat do měsíce';
-  if (mes < 18) return `návrat za ${mes} měs.`;
+  // Kolo 7: vždy s výchozím bodem – doba se počítá od DNA (troughDate) do návratu na předchozí vrchol.
+  if (mes < 1) return 'návrat do měsíce od dna';
+  if (mes < 18) return `návrat za ${mes} měs. od dna`;
   const r = Math.round(mes / 12);
-  return `návrat za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
+  return `návrat za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'} od dna`;
 }
 
 // Nejlepší/nejhorší CELÝ rok z ročních výnosů (v %) – neúplné krajní roky se nepočítají.

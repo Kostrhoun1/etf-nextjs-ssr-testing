@@ -298,7 +298,14 @@ export function CompositionInfographic({
 
       <p className="mt-4 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-        Ilustrační složení největšího fondu v kategorii. Jednotlivé fondy se mohou lišit; přesné složení najdete v detailu fondu.
+        {/* Kolo 7: datum složení (holdings_as_of) – bez něj přiznat, že ho neznáme (pravidlo č. 1: každé číslo má datum).
+            V patičce, ne v podtitulku – ten má line-clamp-2 a datum by se na mobilu mohlo useknout. */}
+        <span data-slozeni-k={comp.slozeniK ?? ''}>
+          {comp.slozeniK
+            ? `Složení k ${new Date(`${comp.slozeniK}T12:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })} (poslední zveřejnění emitenta). `
+            : 'Datum složení neznáme. '}
+          Ilustrační složení největšího fondu v kategorii. Jednotlivé fondy se mohou lišit; přesné složení najdete v detailu fondu.
+        </span>
       </p>
     </div>
   );

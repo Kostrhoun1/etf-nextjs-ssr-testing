@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { getFeaturedETFs, getTotalETFCount, type ETFBasicInfo , getDataDate } from '@/lib/etf-data';
+import { getFeaturedETFs, getTotalETFCount, type ETFBasicInfo , getDataDatum } from '@/lib/etf-data';
 import {
   TrendingUp, TrendingDown, ArrowRight, ArrowDown, ArrowUpRight, User, CalendarDays, BookOpen,
   Database, Check, X, Layers, Coins, Percent, Banknote, ShieldCheck, Landmark,
@@ -38,10 +38,10 @@ export default async function GuidePreview() {
   const [featured, totalCount] = await Promise.all([getFeaturedETFs(), getTotalETFCount()]);
 
   const today = new Date();
-  const datumDat = await getDataDate(today);
-  const dateStr = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const datumDat = await getDataDatum(); // kolo 7: bez návratu ke dnešku (null = datum neukazovat)
+  const dateStr = datumDat?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null;
   const upraveno = upravenoDlouze('/pruvodce'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
-  const dataDen = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
+  const dataDen = datumDat?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }) ?? null;
   const year = today.getFullYear();
 
   /* ---------- Živé metriky do hero (vše z DB, nic ručně psaného) ---------- */
@@ -308,7 +308,7 @@ export default async function GuidePreview() {
                 </div>
                 {/* Kolo 6: definice a datum čísel v dlaždicích (dřív „Medián 1R – velké fondy“ bez data). */}
                 <p className="col-span-3 md:col-span-1 text-[11px] leading-snug text-slate-400">
-                  Data k {dataDen}. Výnos = medián výnosů za posledních 12 měsíců v korunách u 20 největších fondů v databázi.
+                  {dataDen && <>Data k {dataDen}. </>}Výnos = medián výnosů za posledních 12 měsíců v korunách u 20 největších fondů v databázi.
                   Nejnižší TER: fondy nad 100 mil. € bez měnového zajištění, při shodě akumulační, pak větší.
                 </p>
               </div>
@@ -789,7 +789,7 @@ export default async function GuidePreview() {
             {([
               [ShieldCheck, 'Vysvětleno bez žargonu', 'Každý pojem rozebíráme srozumitelně a s příkladem.'],
               [BadgeCheck, 'Jmenný autor', 'Obsah od Tomáše Kostrhouna, ne anonymně.'],
-              [Database, 'Živá data', `Ukázková čísla tažená z databáze, data k ${dateStr}.`],
+              [Database, 'Živá data', `Ukázková čísla tažená z databáze${dateStr ? `, data k ${dateStr}` : ''}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
