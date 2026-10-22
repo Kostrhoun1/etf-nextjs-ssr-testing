@@ -16,10 +16,13 @@
  *
  * Exit kód 0 = vše OK, 1 = aspoň jeden problém (vhodné pro cron/alert).
  */
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 const BASE = (process.env.BASE_URL || 'https://etfpruvodce.cz').replace(/\/$/, '');
 const ERROR_TEXT = /nepodařilo|cyclic|circular structure|Application error|Something went wrong/i;
+
+// Smoke test nesmí kazit měření návštěvnosti: každý kontext Playwrightu by byl v GA nový uživatel (22. 10. 2026).
+const BEZ_MERENI = /googletagmanager\.com|google-analytics\.com|\/api\/ev(\?|$)/;
 
 const results = [];
 const ok = (name) => results.push({ name, ok: true });
@@ -51,6 +54,7 @@ async function checkBacktest(page) {
     const preset = page.getByRole('button', { name: /^(60\/40|S&P 500|All Weather|Celý svět)$/i }).first();
     if (!(await preset.count())) return fail(name, 'na stránce není žádná předvolba portfolia');
     await preset.click();
+    await page.waitForTimeout(1000);
     const run = page.getByRole('button', { name: /Otestovat na historii|Spustit backtest/i }).first();
     if (await run.count()) await run.click();
     // počkej na výsledek NEBO chybu
@@ -66,17 +70,54 @@ async function checkBacktest(page) {
   }
 }
 
+// Mobilní hledání v hlavičce (kolo 7, 22. 10. 2026): na mobilu lupa otevřela pole, ale našeptávač se neukázal
+// a Enter/„Hledat“ nikam nevedly („Form submission canceled because the form is not connected“). Desktop fungoval,
+// takže to nikdo neviděl. Test: telefon 390×844 s dotykem → lupa → „VWCE“ → návrh s ISIN → Enter → /srovnani?q=VWCE.
+async function checkMobilniHledani(browserType, engine) {
+  const name = `MOBIL hledání (${engine})`;
+  let b;
+  try {
+    b = await browserType.launch();
+  } catch (e) {
+    if (engine === 'webkit') return ok(`${name} – přeskočeno, WebKit není nainstalovaný`);
+    return fail(name, String(e).slice(0, 140));
+  }
+  try {
+    const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: engine === 'chromium' });
+    await ctx.route(BEZ_MERENI, (r) => r.abort());
+    const page = await ctx.newPage();
+    page.setDefaultTimeout(30000);
+    await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(1500);
+    await page.getByRole('button', { name: 'Hledat ETF' }).tap();
+    const input = page.getByPlaceholder('Název, ISIN nebo ticker…');
+    await input.fill('VWCE');
+    const navrh = page.locator('[data-testid="mobil-naseptavac"]').getByText('IE00BK5BQT80');
+    try { await navrh.first().waitFor({ timeout: 10000 }); } catch { await ctx.close(); return fail(name, 'našeptávač neukázal VWCE (IE00BK5BQT80)'); }
+    await input.press('Enter');
+    try { await page.waitForURL(/\/srovnani\?q=VWCE/, { timeout: 30000 }); } catch { await ctx.close(); return fail(name, 'Enter nevede na /srovnani?q=VWCE'); }
+    await ctx.close();
+    ok(name);
+  } catch (e) {
+    fail(name, String(e).slice(0, 140));
+  } finally {
+    await b.close();
+  }
+}
+
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage();
-  // Monitoring nesmí kazit analytiku: GA i vlastní měření (/api/ev) blokovat.
-  await page.route(/googletagmanager\.com|google-analytics\.com|\/api\/ev(\?|$)/, (r) => r.abort());
+  const kontext = await browser.newContext();
+  await kontext.route(BEZ_MERENI, (r) => r.abort());
+  const page = await kontext.newPage();
   page.setDefaultTimeout(30000);
   for (const p of ['/', '/backtest', '/srovnani', '/fire', '/dane-z-etf', '/zebricky']) {
     await checkPage(page, p);
   }
   await checkBacktest(page);
   await browser.close();
+  await checkMobilniHledani(chromium, 'chromium');
+  await checkMobilniHledani(webkit, 'webkit');
 
   const failed = results.filter((r) => !r.ok);
   const stamp = new Date().toISOString();

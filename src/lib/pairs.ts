@@ -126,3 +126,17 @@ export function obracenaKuratorska(slug: string): string | null {
 export function dvojiceFondu(isin: string): string[] {
   return HLAVNI_DVOJICE.filter((s) => KURATORSKE[s].includes(isin));
 }
+
+/**
+ * Pořadí dvou fondů v porovnání (/srovnani/porovnani) podle hlavní kurátorské dvojice (kolo 7, 22. 10. 2026).
+ * Barva fondu = jeho pozice (src/lib/barvyFondu.ts), takže SXR8 byl v porovnání „SXR8,VWCE“ modrý a na stránce
+ * vwce-vs-cspx oranžový. Když dva vybrané fondy tvoří kurátorskou dvojici, seřadí se jako na její stránce →
+ * stejné barvy. Ostatní výběry (3–4 fondy, nekurátorské dvojice) zůstávají v pořadí, jak je uživatel vybral.
+ */
+export function poradiPodleDvojice(isins: string[]): string[] {
+  if (isins.length !== 2) return isins;
+  const kur = kuratorskaProIsiny(isins[0], isins[1]);
+  if (!kur) return isins;
+  const [a, b] = KURATORSKE[kur];
+  return a === b ? isins : [a, b];
+}

@@ -74,7 +74,7 @@ export default async function HowToStartPreview() {
       ),
       items: [
         { icon: Hourglass, text: <><strong>Krátký horizont</strong> (méně než 3–5 let): akciová ETF spíš ne – trh může zrovna být dole, když budete chtít vybrat.</> },
-        { icon: CalendarClock, text: <><strong>Dlouhý horizont</strong> (10+ let na penzi, na děti): ideální podhoubí pro pravidelné investování do širokých ETF.</> },
+        { icon: CalendarClock, text: <><strong>Dlouhý horizont</strong> (10+ let na penzi, na děti): ideální situace pro pravidelné investování do širokých ETF.</> },
       ],
     },
     {

@@ -48,8 +48,10 @@ export function fundAge(inception: string | null): string {
   const t = Date.parse(inception);
   if (Number.isNaN(t)) return '—';
   const years = (Date.now() - t) / (365.25 * 24 * 3600 * 1000);
-  if (years < 1) return 'méně než rok';
-  return `${Math.floor(years)} let na trhu`;
+  if (years < 1) return '< 1 rok';
+  // Kolo 7: stejný tvar jako porovnání (PorovnaniTable `age`) – dřív „7 let na trhu“ vs. „7 let“.
+  const n = Math.floor(years);
+  return `${n}\u00a0${n === 1 ? 'rok' : n <= 4 ? 'roky' : 'let'}`;
 }
 
 /* Karta jednoho fondu v úvodu srovnání (na tmavém pozadí). Kolo 3 (18. 10. 2026): kompaktní, na mobilu
@@ -164,6 +166,18 @@ export function SrovnaniParamTabulka({
   );
 }
 
+/* Popisek řádku s ikonou (i): ikona drží u posledního slova (kolo 7 – dřív osiřele padala na další řádek). */
+function PopisekSIkonou({ label, hint }: { label: string; hint?: string }) {
+  if (!hint) return <>{label}</>;
+  const i = label.lastIndexOf(' ');
+  return (
+    <>
+      {label.slice(0, i + 1)}
+      <span className="whitespace-nowrap">{label.slice(i + 1)}{'\u00a0'}<InfoTip label={hint}><span className="sr-only">Vysvětlení</span></InfoTip></span>
+    </>
+  );
+}
+
 /* Mobilní varianta tabulky parametrů (< md). Kolo 3: kompaktní tabulka (parametr | fond 1 | fond 2)
    místo karet po řádcích – dřív 16 karet ≈ 1 800 px. Vysvětlivky v tooltipu. */
 export function SrovnaniParamKarty({
@@ -188,7 +202,7 @@ export function SrovnaniParamKarty({
         <tbody className="divide-y divide-slate-100 text-slate-700">
           {rows.map((r) => (
             <tr key={r.label}>
-              <td className="py-2 pl-3 pr-1 align-top text-slate-600 leading-snug">{r.label}{r.hint && <> <InfoTip label={r.hint}><span className="sr-only">Vysvětlení</span></InfoTip></>}</td>
+              <td className="py-2 pl-3 pr-1 align-top text-slate-600 leading-snug"><PopisekSIkonou label={r.label} hint={r.hint} /></td>
               <td className={`py-2 px-1 text-right align-top tabular-nums whitespace-nowrap ${r.winner === 1 ? 'font-semibold text-emerald-700' : ''}`}>{r.v1}<CellMark win={r.winner === 1} /></td>
               <td className={`py-2 pl-1 pr-3 text-right align-top tabular-nums whitespace-nowrap ${r.winner === 2 ? 'font-semibold text-emerald-700' : ''}`}>{r.v2}<CellMark win={r.winner === 2} /></td>
             </tr>
@@ -274,14 +288,14 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
       winner: 0,
     },
     {
-      label: 'Kolísavost (1 rok, v EUR)',
+      label: 'Kolísavost 1 rok (v EUR)',
       hint: 'Roční volatilita ceny – nižší číslo znamená klidnější průběh',
       v1: procenta(etf1.volatility_1y, 1, false),
       v2: procenta(etf2.volatility_1y, 1, false),
       winner: lowerTerWin(etf1.volatility_1y, etf2.volatility_1y, 1),
     },
     {
-      label: 'Max. pokles (1 rok, v EUR)',
+      label: 'Max. pokles 1 rok (v EUR)',
       hint: 'Největší dočasný propad z vrcholu na dno – blíž k nule je lepší',
       v1: pct(etf1.max_drawdown_1y),
       v2: pct(etf2.max_drawdown_1y),
@@ -308,8 +322,8 @@ export function buildParamRows(etf1: ComparisonETF, etf2: ComparisonETF, cur: Cu
       winner: 0,
     },
     {
-      label: 'Domicil (sídlo fondu)',
-      hint: 'Irský domicil = bez formuláře W-8BEN pro českého investora',
+      label: 'Domicil',
+      hint: 'Sídlo fondu. Irský domicil = bez formuláře W-8BEN pro českého investora',
       v1: domicile(etf1.fund_domicile),
       v2: domicile(etf2.fund_domicile),
       winner: 0,

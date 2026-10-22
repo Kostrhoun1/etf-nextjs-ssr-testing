@@ -1,26 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, Search } from 'lucide-react';
 import { NAV_LINKS } from '@/components/design-preview/SiteNav';
+import HeaderSearch from '@/components/design-preview/HeaderSearch';
 
 /* Mobilní navigace nového webu (hledání + hamburger).
    Zobrazuje se pod 1024 px (lg:hidden) – stejně jako HeaderSearch od lg; na desktopu je SiteNav + HeaderSearch.
-   POZOR: HeaderSearch je `hidden lg:block`, takže pod 1024 px je JEDINÉ hledání tohle. */
+   POZOR: HeaderSearch je `hidden lg:block`, takže pod 1024 px je JEDINÉ hledání tohle – proto tu je TÁŽ komponenta
+   ve variantě „mobil“ (s našeptávačem). Hlídá scripts/prod-smoke.mjs (mobilní hledání, Chromium + WebKit). */
 // Odkazy jsou sdílené s desktopovou navigací (SiteNav.tsx).
 const LINKS = NAV_LINKS;
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Po otevření hledání rovnou kurzor do pole – na mobilu ušetří další klepnutí.
-  useEffect(() => {
-    if (searchOpen) inputRef.current?.focus();
-  }, [searchOpen]);
-
   const closeAll = () => { setOpen(false); setSearchOpen(false); };
 
   return (
@@ -59,23 +54,9 @@ export default function MobileMenu() {
 
           {searchOpen && (
             <div className="fixed left-0 right-0 top-14 z-50 border-b border-slate-200 bg-white shadow-lg">
-              <form action="/srovnani" onSubmit={closeAll} className="max-w-6xl mx-auto px-4 py-3">
-                <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 h-12 focus-within:border-teal-400 focus-within:bg-white transition-colors">
-                  <Search className="w-4 h-4 text-slate-400 shrink-0" />
-                  <input
-                    ref={inputRef}
-                    name="q"
-                    type="search"
-                    enterKeyHint="search"
-                    aria-label="Hledat ETF"
-                    placeholder="Název, ISIN nebo ticker…"
-                    className="flex-1 min-w-0 bg-transparent text-base text-slate-700 placeholder:text-slate-400 outline-none"
-                  />
-                  <button type="submit" className="shrink-0 rounded-md bg-teal-700 px-3 py-1.5 text-sm font-medium text-white active:bg-teal-800">
-                    Hledat
-                  </button>
-                </div>
-              </form>
+              <div className="max-w-6xl mx-auto px-4 py-3">
+                <HeaderSearch varianta="mobil" onHotovo={closeAll} />
+              </div>
             </div>
           )}
 
