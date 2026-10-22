@@ -6,6 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Globe, Landmark, Scale, ShieldCheck, HelpCircle, Building2, Sprout, Layers, CheckCircle2, BookOpen, MapPin, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
@@ -205,42 +206,30 @@ export default async function SvetoveEtfIndexy() {
         {/* 2. SROVNÁVACÍ TABULKA */}
         <section id="tabulka" className="pb-10 scroll-mt-16">
           <SectionHead title="Srovnávací tabulka indexů" desc={`Od nejužšího (S&P 500) po nejširší (Global All Cap). Počty firem a podíly k ${DATUM_INDEXU} podle factsheetů MSCI a FTSE Russell – v čase se mění.`} />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[46rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Index</th>
-                  <th className="py-3 px-4 text-left font-medium">Rozvinuté</th>
-                  <th className="py-3 px-4 text-center font-medium">Emerging</th>
-                  <th className="py-3 px-4 text-center font-medium">Small caps</th>
-                  <th className="py-3 px-4 text-right font-medium">Firem</th>
-                  <th className="py-3 px-4 text-right font-medium">Podíl USA</th>
-                  <th className="py-3 px-4 text-left font-medium">Příklad ETF</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ROWS.map((r) => (
-                  <tr key={r.index} className="border-b border-slate-100 last:border-0 align-top">
-                    <td className="py-3 px-4 font-semibold">
-                      {r.filter
-                        ? <Link href={`/srovnani?index=${encodeURIComponent(r.filter)}`} className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 hover:underline" title={`Zobrazit ${r.index} fondy ve srovnávači`}>{r.index}<ArrowRight className="w-3.5 h-3.5 opacity-60" /></Link>
-                        : <span className="text-slate-900">{r.index}</span>}
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">{r.dev}</td>
-                    <td className="py-3 px-4 text-center">
-                      {r.em === 'ano'
-                        ? <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">✓ {r.emNote && <span className="text-xs text-slate-400">{r.emNote}</span>}</span>
-                        : <span className="text-slate-300">✗</span>}
-                    </td>
-                    <td className="py-3 px-4 text-center">{r.small ? <span className="text-emerald-700 font-medium">✓</span> : <span className="text-slate-300">✗</span>}</td>
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-700">{r.firms}</td>
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-700">{r.usa}</td>
-                    <td className="py-3 px-4 text-slate-500 text-xs">{r.etf}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponzivniTabulka
+            popis="Srovnání světových akciových indexů"
+            tabulkaClassName="min-w-[46rem]"
+            sloupce={[
+              { nazev: 'Index' }, { nazev: 'Rozvinuté', zarovnani: 'left' }, { nazev: 'Emerging', zarovnani: 'center', nazevKarta: 'Rozvíjející se trhy' },
+              { nazev: 'Small caps', zarovnani: 'center', nazevKarta: 'Malé firmy' }, { nazev: 'Firem' }, { nazev: 'Podíl USA' }, { nazev: 'Příklad ETF', zarovnani: 'left' },
+            ]}
+            radky={ROWS.map((r) => ({
+              key: r.index,
+              bunky: bunky(
+                r.filter
+                  ? <Link href={`/srovnani?index=${encodeURIComponent(r.filter)}`} className="inline-flex items-center gap-1 font-semibold text-teal-700 hover:text-teal-800 hover:underline" title={`Zobrazit ${r.index} fondy ve srovnávači`}>{r.index}<ArrowRight className="w-3.5 h-3.5 opacity-60" /></Link>
+                  : <span className="font-semibold text-slate-900">{r.index}</span>,
+                <span className="text-slate-600">{r.dev}</span>,
+                r.em === 'ano'
+                  ? <span className="inline-flex items-center gap-1 font-medium text-emerald-700">✓ {r.emNote && <span className="text-xs text-slate-400">{r.emNote}</span>}</span>
+                  : <span className="text-slate-300">✗</span>,
+                r.small ? <span className="font-medium text-emerald-700">✓</span> : <span className="text-slate-300">✗</span>,
+                r.firms,
+                r.usa,
+                <span className="text-xs text-slate-500">{r.etf}</span>,
+              ),
+            }))}
+          />
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             <strong className="text-slate-700">Klikněte na název indexu</strong> → otevře se srovnávač s vyfiltrovanými
@@ -374,8 +363,8 @@ export default async function SvetoveEtfIndexy() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

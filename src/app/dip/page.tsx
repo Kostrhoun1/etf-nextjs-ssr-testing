@@ -6,6 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, Gift, LineChart, Landmark, AlertTriangle, Lock, Globe, Percent, Briefcase, CheckCircle2, XCircle, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getETFsByIsins, getETFCountLabel, getDataDatum } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
@@ -215,34 +216,23 @@ export default async function DipPage() {
             title="Kolik na DIP dostanete zpět"
             desc="Vklady si odečtete od základu daně až do 48 000 Kč ročně. Vratka daně = vaše sazba × odečtená částka. Není to výnos z investice, je to vrácená daň."
           />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Roční vklad</th>
-                  <th className="py-3 px-4 text-right font-medium">Jde na odpočet</th>
-                  <th className="py-3 px-4 text-right font-medium">Zpět při 15 %</th>
-                  <th className="py-3 px-4 text-right font-medium">Zpět při 23 %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {CONTRIB_ROWS.map((c) => {
-                  const used = Math.min(c, DEDUCTION_CAP);
-                  return (
-                    <tr key={c} className="border-b border-slate-100 last:border-0">
-                      <td className="py-3 px-4 font-semibold text-slate-900 tabular-nums">{kcRound(c)}</td>
-                      <td className="py-3 px-4 text-right tabular-nums text-slate-600">
-                        {kcRound(used)}
-                        {c > DEDUCTION_CAP && <span className="text-slate-400 text-xs"> (strop)</span>}
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-medium text-teal-700">{kcRound(used * 0.15)}</td>
-                      <td className="py-3 px-4 text-right tabular-nums text-slate-500">{kcRound(used * 0.23)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          {/* Kolo 8: na mobilu byla vidět jen 2 sloupce a vratka skrytá → sdílená responzivní tabulka (karty pod 640 px). */}
+          <ResponzivniTabulka
+            popis="Kolik daně dostanete zpět podle ročního vkladu na DIP"
+            sloupce={[{ nazev: 'Roční vklad' }, { nazev: 'Jde na odpočet' }, { nazev: 'Zpět při 15 %' }, { nazev: 'Zpět při 23 %' }]}
+            radky={CONTRIB_ROWS.map((c) => {
+              const used = Math.min(c, DEDUCTION_CAP);
+              return {
+                key: String(c),
+                bunky: bunky(
+                  <span className="tabular-nums">{kcRound(c)} ročně</span>,
+                  <>{kcRound(used)}{c > DEDUCTION_CAP && <span className="text-slate-400 text-xs"> (strop)</span>}</>,
+                  <span className="font-semibold text-teal-700">{kcRound(used * 0.15)}</span>,
+                  <span className="text-slate-600">{kcRound(used * 0.23)}</span>,
+                ),
+              };
+            })}
+          />
           <div className="mt-4 flex items-start gap-3 rounded-lg border border-teal-100 bg-teal-50/50 p-4">
             <Info className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
             <p className="text-sm text-slate-700 leading-relaxed">
@@ -348,7 +338,7 @@ export default async function DipPage() {
               <ul className="mt-3 space-y-2 text-sm">
                 <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Máte zdanitelný příjem (zaměstnanec i OSVČ), takže odpočet reálně využijete.</li>
                 <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Stejně byste investovali dlouhodobě až do důchodu – zámek do 60 vám nevadí.</li>
-                <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Zaměstnavatel na DIP přispívá – to je peníze navíc, které jinde nezískáte.</li>
+                <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Zaměstnavatel na DIP přispívá – to jsou peníze navíc, které jinde nezískáte.</li>
                 <li className="flex items-start gap-2 text-slate-600"><CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" /> Je vám blíž k šedesátce – zámek je pak krátký a odpočet čistý bonus.</li>
               </ul>
             </div>
@@ -371,33 +361,18 @@ export default async function DipPage() {
             title="DIP vs. běžný účet s ETF"
             desc="Nejsou to soupeři na život a na smrt – jsou to dvě legální cesty, každá s jinou cenou. Rozdíl není ve výnosu fondu (ten je stejný), ale v daních a v tom, kdy se k penězům dostanete."
           />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[44rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Vlastnost</th>
-                  <th className="py-3 px-4 text-left font-medium">DIP</th>
-                  <th className="py-3 px-4 text-left font-medium">Běžný účet s ETF</th>
-                </tr>
-              </thead>
-              <tbody className="[&_td]:py-3 [&_td]:px-4 [&_td]:align-top">
-                {([
-                  ['Odpočet vkladů z daní', 'Ano, až 48 000 Kč/rok', 'Ne'],
-                  ['Příspěvek zaměstnavatele', 'Možný, až 50 000 Kč/rok bez daně', 'Ne'],
-                  ['Daň ze zisku', 'Osvobozeno po splnění podmínek', 'Osvobozeno po 3 letech držby (časový test)'],
-                  ['Přístup k penězům', 'Až od 60 let a po 10 letech', 'Kdykoli'],
-                  ['Sankce za předčasný výběr', 'Dodanění odpočtů 10 let zpět', 'Žádná'],
-                  ['Na co se hodí', 'Peníze cíleně na důchod', 'Cokoli – i cíle před 60'],
-                ] as [string, string, string][]).map(([label, dip, plain]) => (
-                  <tr key={label} className="border-b border-slate-100 last:border-0">
-                    <td className="font-medium text-slate-900">{label}</td>
-                    <td className="text-slate-600">{dip}</td>
-                    <td className="text-slate-600">{plain}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponzivniTabulka
+            popis="DIP vs běžný účet s ETF"
+            sloupce={[{ nazev: 'Vlastnost' }, { nazev: 'DIP', zarovnani: 'left' }, { nazev: 'Běžný účet s ETF', zarovnani: 'left' }]}
+            radky={([
+              ['Odpočet vkladů z daní', 'Ano, až 48 000 Kč/rok', 'Ne'],
+              ['Příspěvek zaměstnavatele', 'Možný, až 50 000 Kč/rok bez daně', 'Ne'],
+              ['Daň ze zisku', 'Osvobozeno po splnění podmínek', 'Osvobozeno po 3 letech držby (časový test)'],
+              ['Přístup k penězům', 'Až od 60 let a po 10 letech', 'Kdykoli'],
+              ['Sankce za předčasný výběr', 'Dodanění odpočtů 10 let zpět', 'Žádná'],
+              ['Na co se hodí', 'Peníze cíleně na důchod', 'Cokoli – i cíle před 60'],
+            ] as [string, string, string][]).map(([label, dip, plain]) => ({ key: label, bunky: bunky(label, dip, plain) }))}
+          />
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Klíčový bod, který se v reklamách ztrácí: <strong className="text-slate-700">zisk z ETF je na běžném účtu
@@ -414,41 +389,30 @@ export default async function DipPage() {
               title="Co do DIP dát: široké světové ETF"
               desc="DIP je jen obal – náplň si volíte sami. Pro dlouhý horizont do důchodu bývá jádrem široký světový index v akumulační třídě. Data z naší databáze, výnos v korunách."
             />
-            <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-              <table className="w-full min-w-[46rem] text-sm">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                    <th className="py-3 px-4 text-left font-medium">Fond</th>
-                    <th className="py-3 px-4 text-left font-medium">Index</th>
-                    <th className="py-3 px-4 text-right font-medium">TER</th>
-                    <th className="py-3 px-4 text-right font-medium">Velikost</th>
-                    <th className="py-3 px-4 text-right font-medium">5 let (Kč)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {funds.map((f) => (
-                    <tr key={f.isin} className="border-b border-slate-100 last:border-0">
-                      <td className="py-3 px-4">
-                        <Link href={`/etf/${f.isin}`} className="font-medium text-slate-900 hover:text-teal-700">
-                          {platnyTicker(f.primary_ticker) ?? f.name}
-                        </Link>
-                        <span className="block text-xs text-slate-400 leading-relaxed">{f.name}</span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-600 text-xs">{f.index_name ?? '—'}</td>
-                      <td className="py-3 px-4 text-right tabular-nums text-slate-700">{ter(f.ter_numeric)}</td>
-                      <td className="py-3 px-4 text-right tabular-nums text-slate-500 text-xs">
-                        {f.fund_size_numeric == null
-                          ? '—'
-                          : f.fund_size_numeric >= 1000
-                            ? `${(f.fund_size_numeric / 1000).toFixed(1).replace('.', ',')} mld. €`
-                            : `${Math.round(f.fund_size_numeric)} mil €`}
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-medium text-teal-700">{pct(f.return_5y_czk)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {/* Kolo 8: tabulka fondů měla 736 px → sdílená responzivní tabulka. */}
+            <ResponzivniTabulka
+              popis="Široké světové ETF – parametry a výnos v korunách"
+              sloupce={[{ nazev: 'Fond' }, { nazev: 'Index', zarovnani: 'left' }, { nazev: 'TER' }, { nazev: 'Velikost' }, { nazev: '5 let (Kč)', nazevKarta: 'Výnos za 5 let (Kč)' }]}
+              radky={funds.map((f) => ({
+                key: f.isin,
+                bunky: bunky(
+                  <>
+                    <Link href={`/etf/${f.isin}`} className="font-medium text-slate-900 hover:text-teal-700">{platnyTicker(f.primary_ticker) ?? f.name}</Link>
+                    <span className="block text-xs font-normal text-slate-400 leading-relaxed">{f.name}</span>
+                  </>,
+                  <span className="text-xs text-slate-600">{f.index_name ?? '—'}</span>,
+                  ter(f.ter_numeric),
+                  <span className="text-xs text-slate-500">
+                    {f.fund_size_numeric == null
+                      ? '—'
+                      : f.fund_size_numeric >= 1000
+                        ? `${(f.fund_size_numeric / 1000).toFixed(1).replace('.', ',')} mld. €`
+                        : `${Math.round(f.fund_size_numeric)} mil €`}
+                  </span>,
+                  <span className="font-medium text-teal-700">{pct(f.return_5y_czk)}</span>,
+                ),
+              }))}
+            />
             <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
               <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
               {datumDat && <>Data k {datumDat}. </>}Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
@@ -513,8 +477,8 @@ export default async function DipPage() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

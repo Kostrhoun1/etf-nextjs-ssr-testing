@@ -41,7 +41,7 @@ export default async function MenoveRizikoEtf() {
     },
     {
       q: 'Potřebuje český investor zajištěný ETF?',
-      a: 'U dlouhodobého akciového portfolia obvykle ne. Měnové výkyvy se přes roky do velké míry vyrovnávají a jsou malé proti kolísání samotných akcií; zajištění navíc stojí peníze. Navíc drtivá většina ETF se zajišťuje do EUR nebo USD, ne do korun – takže vám měnové riziko koruny stejně nezajistí. Zajištění dává větší smysl u dluhopisů nebo krátkého investičního horizontu.',
+      a: 'U dlouhodobého akciového portfolia se zajištění obvykle nepoužívá, ale ne proto, že by se měna „vyrušila“ – kurz může výnos v korunách ovlivnit i za deset let (S&P 500 za 10 let do 21. 10. 2026: 15,5 % ročně v dolarech, 13,9 % v korunách). Zajištění ale stojí peníze. Navíc drtivá většina ETF se zajišťuje do EUR nebo USD, ne do korun – takže vám měnové riziko koruny stejně nezajistí. Zajištění dává větší smysl u dluhopisů nebo krátkého investičního horizontu.',
     },
     {
       q: 'Zajistí mě EUR hedged ETF proti pohybu koruny?',
@@ -187,10 +187,14 @@ export default async function MenoveRizikoEtf() {
 
         {/* 3. POTŘEBUJE HO ČECH – hlavní odpověď */}
         <section className="pb-10">
-          <SectionHead title="Potřebuje ho český investor? Většinou ne" desc="U dlouhodobého akciového portfolia hraje měna menší roli, než se zdá – a zajištění má tři háčky." />
+          <SectionHead title="Potřebuje ho český investor? Většinou ne" desc="Měna výnos v korunách ovlivňuje i dlouhodobě – zajištění to ale pro českého investora neřeší a má tři háčky." />
           <div className="grid gap-3 sm:grid-cols-3">
             {([
-              [TrendingUp, 'Měna se přes čas vyrovnává', 'U dlouhého horizontu jsou měnové výkyvy malé proti kolísání samotných akcií a v čase se do velké míry vyruší.'],
+              // Kolo 8 (22. 10. 2026): dřív „měna se přes čas vyrovnává … do velké míry vyruší“ – data to nepotvrzují (koruna
+              // dlouhodobě posilovala). Čísla: Yahoo SPY adj. close × kurz ČNB, nezávisle ověřeno proti backtestu webu (shoda
+              // ×4,231/×3,681 a ×8,143/×7,832): 21. 10. 2016 → 21. 10. 2026 USD 15,52 %/r, CZK 13,92 %/r, kurz 24,820 → 21,593;
+              // 20. 10. 2006 → 21. 10. 2026 USD 11,05 %/r, CZK 10,84 %/r, kurz 22,454 → 21,593 Kč/USD.
+              [TrendingUp, 'Měna se nevyruší sama', 'S&P 500 za 10 let do 21. 10. 2026 vydělal 15,5 % ročně v dolarech, ale 13,9 % v korunách – dolar mezitím zlevnil z 24,82 na 21,59 Kč. Za 20 let byl rozdíl menší (11,1 proti 10,8 % ročně), protože kurz skončil blízko výchozího.'],
               [Coins, 'Zajištění stojí peníze', 'Náklady na hedging (podle rozdílu úrokových sazeb) ukrajují z výnosu každý rok – navíc k poplatku TER.'],
               [Landmark, 'Do korun se nezajišťuje', 'Fondy se zajišťují do EUR nebo USD, prakticky ne do CZK. „EUR hedged“ vás před pohybem koruny stejně neochrání.'],
             ] as [typeof TrendingUp, string, string][]).map(([Icon, t, d]) => (
@@ -204,8 +208,10 @@ export default async function MenoveRizikoEtf() {
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Proto většina dlouhodobých investorů drží <strong className="text-slate-700">nezajištěný</strong> globální
-            akciový fond a měnový pohyb bere jako součást hry. Naše výnosy jsou navíc přepočtené do korun, takže reálný
-            dopad kurzu vidíte přímo.
+            akciový fond a měnový pohyb bere jako součást hry – s vědomím, že může výnos v korunách na roky snížit i zvýšit.
+            Když koruna posiluje, trvá návrat nad vklad déle: S&amp;P 500 koupený v lednu 2000 byl v korunách v minusu
+            déle než v dolarech (<Link href="/jak-dlouho-v-minusu" className="font-medium text-teal-700 hover:underline">rozbor Jak dlouho v minusu</Link>).
+            Naše výnosy jsou přepočtené do korun, takže reálný dopad kurzu vidíte přímo.
           </p>
         </section>
 
@@ -279,8 +285,8 @@ export default async function MenoveRizikoEtf() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

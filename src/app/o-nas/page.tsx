@@ -158,9 +158,9 @@ export default async function AboutPage() {
               a pomáhal uvést na trh první plně online hypotéku v Česku.
             </p>
             <p>
-              Při té práci jsem znovu a znovu narážel na jedno: nízkou finanční gramotnost. Lidé se
-              spoléhali na rady prodejců, kteří preferovali drahé produkty s tučnými provizemi před
-              jednoduchými a levnými řešeními. ETF přitom dělají investování dostupné každému –
+              Při té práci jsem znovu a znovu narážel na jedno: nízkou finanční gramotnost. Lidé často
+              nevěděli, jak investiční produkty porovnat podle nákladů, a jednoduchá a levná řešení
+              znali málo. ETF přitom dělají investování dostupné každému –
               nízké náklady, široká diverzifikace, transparentnost.
             </p>
             <p>
@@ -235,9 +235,10 @@ export default async function AboutPage() {
                   na rozdíl od většiny podobných webů, které z affiliate provizí žijí.
                 </p>
                 <p>
-                  Díky tomu vás nemáme důvod tlačit ke konkrétnímu produktu. Brokery i fondy řadíme
-                  výhradně podle reálných parametrů – poplatků, podmínek a nabídky. Cílem je, abyste se
-                  rozhodli dobře pro sebe, ne pro nás.
+                  Díky tomu vás nemáme důvod tlačit ke konkrétnímu produktu. Fondy řadíme podle reálných
+                  parametrů – poplatků, výnosů a velikosti. Brokery nebodujeme ani z nich nesestavujeme pořadí: ve srovnání
+                  jsou abecedně se stejnými údaji z veřejných ceníků a kalkulačka je seřadí jen podle nákladů
+                  pro částku, kterou zadáte. Cílem je, abyste se rozhodli dobře pro sebe, ne pro nás.
                 </p>
                 <Link href="/kde-koupit" className="inline-flex items-center gap-1.5 text-teal-700 font-medium hover:text-teal-800">
                   Srovnání brokerů pro české investory <ArrowRight className="w-4 h-4" />

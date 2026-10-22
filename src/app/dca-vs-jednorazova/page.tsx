@@ -160,7 +160,9 @@ export default async function DcaVsJednorazova() {
           <div className="grid gap-3 sm:grid-cols-3">
             {([
               ['~67 %', 'času vyhrála jednorázová investice nad postupným rozložením (Vanguard, US/UK/AU).'],
-              ['+1,8 % ročně', 'průměrný náskok jednorázové u portfolia 60/40 za rok (u 100% akcií ~2,2 %).'],
+              // Kolo 8: dřív „+1,8 % ročně“ – studie uvádí rozdíl KONEČNÝCH hodnot po 10 letech, ne roční (Vanguard 2012,
+              // „Dollar-cost averaging just means taking risk later“, str. 4: USA 2,3 %, UK 2,2 %, Austrálie 1,3 %; ověřeno 22. 10. 2026).
+              ['+2,3 %', 'vyšší konečná hodnota po 10 letech u portfolia 60/40 v USA proti rozložení do 12 měsíců (Británie +2,2 %, Austrálie +1,3 %). Je to rozdíl za celých 10 let, ne ročně.'],
               ['~90 %', 'času vyhrála jednorázová, když se DCA rozložilo na 36 měsíců – čím déle, tím hůř.'],
             ] as [string, string][]).map(([big, d]) => (
               <div key={big} className="rounded-lg border border-slate-200 bg-white p-5">
@@ -311,13 +313,13 @@ export default async function DcaVsJednorazova() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: Vanguard (2012 &amp; 2023) – studie o dollar-cost averaging vs. lump-sum. Aktualizováno {upraveno}.</p>
+              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: Vanguard (2012: Shtekhman, Tasopoulos, Wimmer – „Dollar-cost averaging just means taking risk later“, klouzavá 10letá období, USA od 1926, Británie od 1976, Austrálie od 1984; 2023) – studie o dollar-cost averaging vs. lump-sum. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací obsah, není investičním doporučením. Historická data nezaručují budoucí výsledky.</p>
             </div>
           </div>

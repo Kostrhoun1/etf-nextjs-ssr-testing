@@ -15,7 +15,7 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   '/kolik-vydelaly-etf': { publikovano: '2026-07-10', upraveno: '2026-10-21' }, // 21. 10.: všechna čísla z dat (dřív napevno a v USD)
   '/stroj-casu': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
   '/sp500-nebo-cely-svet': { publikovano: '2026-10-17', upraveno: '2026-10-19' },
-  '/jak-dlouho-v-minusu': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
+  '/jak-dlouho-v-minusu': { publikovano: '2026-10-17', upraveno: '2026-10-22' },
   '/pravidlo-4-procent': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
   '/co-rikaji-data': { publikovano: '2026-10-17', upraveno: '2026-10-21' }, // 21. 10.: karta Korunového stroje času
   '/faktorove-etf': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
@@ -27,11 +27,11 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   '/faktorove-etf/momentum': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
   '/faktorove-etf/quality': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
   // Modelová portfolia: šablona portfolio-strategie/[slug] (první verze 3. 7. 2026, poslední úprava 19. 10. 2026).
-  '/portfolio-strategie': { publikovano: '2025-10-01', upraveno: '2026-10-19' },
-  '/portfolio-strategie/*': { publikovano: '2026-07-03', upraveno: '2026-10-19' },
+  '/portfolio-strategie': { publikovano: '2025-10-01', upraveno: '2026-10-22' },
+  '/portfolio-strategie/*': { publikovano: '2026-07-03', upraveno: '2026-10-22' },
   '/kde-koupit': { publikovano: '2026-07-03', upraveno: '2026-10-20' }, // 20. 10.: odpověď nahoře (nejlevnější nákup za 2 000 Kč)
   // Ceníky ověřeny 18. 10. 2026 (CENIKY_OVERENY v brokerData.ts), poslední věcná změna textu 19. 10. (zrušené skóre).
-  '/srovnani-brokeru': { publikovano: '2025-10-01', upraveno: '2026-10-19' },
+  '/srovnani-brokeru': { publikovano: '2025-10-01', upraveno: '2026-10-22' },
   '/srovnani/vwce-vs-cspx': { publikovano: '2026-07-03', upraveno: '2026-10-20' },
   '/metodika': { publikovano: '2026-10-20', upraveno: '2026-10-21' }, // 21. 10.: „Data k“ = den konečných výnosů, ≥ 2 prac. dny (c8169fa)
   // Statické průvodce a nástroje (SEO audit 6b, 21. 10. 2026): „Aktualizováno“ = datum úpravy TEXTU odsud, ne den dat
@@ -39,17 +39,17 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   '/dane-z-etf': { publikovano: '2026-07-06', upraveno: '2026-10-21' },
   '/jak-zacit': { publikovano: '2026-07-03', upraveno: '2026-10-21' },
   '/jaky-sp500-etf': { publikovano: '2026-07-07', upraveno: '2026-10-21' },
-  '/dip': { publikovano: '2026-07-18', upraveno: '2026-10-21' },
-  '/fire': { publikovano: '2026-07-05', upraveno: '2026-10-17' },
-  '/svetove-etf-indexy': { publikovano: '2026-07-06', upraveno: '2026-10-17' },
-  '/akumulacni-vs-distribucni-etf': { publikovano: '2026-07-06', upraveno: '2026-10-17' },
-  '/menove-riziko-etf': { publikovano: '2026-07-06', upraveno: '2026-10-17' },
-  '/etf-vs-akcie': { publikovano: '2026-07-20', upraveno: '2026-10-18' },
-  '/dca-vs-jednorazova': { publikovano: '2026-07-08', upraveno: '2026-10-17' },
-  '/investovani-pro-deti': { publikovano: '2026-07-14', upraveno: '2026-10-20' },
-  '/kolik-investovat-mesicne': { publikovano: '2026-07-06', upraveno: '2026-10-17' },
+  '/dip': { publikovano: '2026-07-18', upraveno: '2026-10-22' },
+  '/fire': { publikovano: '2026-07-05', upraveno: '2026-10-22' },
+  '/svetove-etf-indexy': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
+  '/akumulacni-vs-distribucni-etf': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
+  '/menove-riziko-etf': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
+  '/etf-vs-akcie': { publikovano: '2026-07-20', upraveno: '2026-10-22' },
+  '/dca-vs-jednorazova': { publikovano: '2026-07-08', upraveno: '2026-10-22' },
+  '/investovani-pro-deti': { publikovano: '2026-07-14', upraveno: '2026-10-22' },
+  '/kolik-investovat-mesicne': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
   '/pruvodce': { publikovano: '2026-07-03', upraveno: '2026-10-21' },
-  '/recenze/*': { publikovano: '2026-07-03', upraveno: '2026-10-19' },
+  '/recenze/*': { publikovano: '2026-07-03', upraveno: '2026-10-22' },
   // Kalkulačky: datum úpravy textu a metodiky (výpočet běží v prohlížeči, data fondů nepoužívá).
   '/fire-kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-17' },
   '/nouzova-rezerva': { publikovano: '2026-07-03', upraveno: '2026-10-17' },

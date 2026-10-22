@@ -724,3 +724,61 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   nejlepsi-etf/[slug]/page.tsx – titulek a popisek dál src/lib/zebrickySeo.ts (`odpovedZebricku` se na stránce nepoužívá).
 - **Název fondu v tabulce žebříčku nekončí tickerem** (ticker je v řádku pod ním); rozsah „0‑1yr“ s nezlomitelnou pomlčkou.
 - Hlídá `scripts/check-fund-data.mjs`, blok `kolo7 srovnavac`.
+
+## Obsah a fakta – kolo 8 (22. 10. 2026)
+
+Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny 22. 10. 2026 u primárních dokumentů:
+
+- **Světové indexy = factsheety k 30. 9. 2026** (`DATUM_INDEXU` v /svetove-etf-indexy): MSCI World 1 249 firem / USA 72,94 %,
+  MSCI ACWI 2 414 / 64,21 % (msci.com/documents/10199/178e6643-6ae6-47b9-82be-e1fc565ededb a …/a71b65b5-d0ea-4b5c-a709-24b1213bc3c5),
+  EM v ACWI 12,0 % = tržní kap. MSCI EM 12,28 bil. / ACWI 102,70 bil. USD; FTSE All-World 4 204 / 62,28 %, EM 10,0 %
+  (research.ftserussell.com … issueName=AWORLDS), FTSE Developed 1 904 firem, USA 65,90/95,22 bil. = 69,2 %; FTSE Global All Cap
+  10 222 / 62,35 %, malé firmy 8,7 % (issueName=GEISLMS). **Jižní Korea: MSCI = emerging** (seznam EM v factsheetu ACWI),
+  **FTSE = developed** (FTSE Country Classification, Annual Announcement 9/2026, publ. 6. 10. 2026). Dřív obráceně.
+  **VWCE ≠ Global All Cap** (VWCE = FTSE All-World). UCITS fond na Global All Cap: Vanguard VALL/VGLA, IE000VAHT5T0, od 18. 8. 2026
+  (factsheet Vanguard). **S&P 500 „100 %¹“ USA je správně** podle pravidel S&P (US domicil: kotace, většina aktiv/tržeb v USA –
+  S&P U.S. Indices Methodology); data fondů (justETF, CSPX) podle země registrace ~97 % (Irsko: Linde, Accenture…) – obojí platí,
+  stránka to vysvětluje poznámkou. Při novém factsheetu posunout DATUM_INDEXU a čísla.
+- **Trading 212 – regulátor „CySEC, probíhá přesun pod BaFin – ověřte u brokera“ je ZÁMĚR.** Centrum nápovědy (článek
+  „What are the supported countries?“, helpcentre.trading212.com/hc/en-us/articles/12933782261917) dál řadí Česko pod Trading 212
+  Markets Ltd. (CySEC 398/21), zároveň probíhá „custody migration from Trading 212 Markets Ltd. to Trading 212 EU GmbH“
+  (článek 38272842804765). Datum přesunu českých účtů z veřejných zdrojů jednoznačně nejde určit → nepsat jistě ani jedno.
+  Ochrana u obou 90 %, max. 20 000 EUR (ICF: „€20,000 or 90% … whichever is lower“, cy/common/Investor-Compensation-Fund_EN.pdf;
+  EdW: článek 24338008071581). Převod portfolia k/od T212 i pro Markets Ltd. bez poplatku T212, jen celé kusy (článek 16105401083805).
+- **Ochrana cenných papírů = „90 % ztráty, max. 20 000 EUR“ u VŠECH garančních systémů** (dřív u DEGIRO/Fio/Portu jen „max. 20 000“):
+  DEGIRO EdB (degiro.de/ueber-degiro/impressum: „90% der Verbindlichkeiten … maximal 20.000 Euro“), Garanční fond OCP pro Fio
+  a Portu (gfo.cz; Portu „Informace o garančním fondu“), IBKR ICCL, T212 ICF/EdW. XTB zůstává 100 % do 3 000 + 90 %, max. 20 100 EUR.
+- **Brokeři – ceníky ověřené 22. 10. 2026:** XTB Tabulka poplatků ze dne 20. 10. 2026 (xtb.com/cz/ucet-a-poplatky): vedení účtu
+  zdarma, 10 EUR/měs. jen při 365 dnech bez otevření/uzavření pozice A 90 dnech bez vkladu; výstupní převod 25 EUR/ISIN.
+  DEGIRO Přehled poplatků (od 1. 1. 2026): převod portfolia z DEGIRO 20 EUR za pozici + externí náklady, k DEGIRO zdarma.
+  Fio Ceník základních služeb (účinnost 1. 7. 2026): převod IN z Xetry k jinému obchodníkovi 25 EUR/ISIN. IBKR (commissions-spot-currencies):
+  ruční směna 0,20 bp = 0,002 %, min. 2 USD; automatická konverze bez provize, +0,03 % v kurzu. Portu Sazebník (od 1. 9. 2026):
+  Klasický účet 1,00/0,80/0,60/0,40 % podle úrovně (do 0,5 / 0,5–1 / 1–5 / nad 5 mil. Kč), **sazba na celý majetek**; sleva za
+  fixaci 20/25/30/40 % (5/7/10/15 let) → 0,24–1 %. Recenze Portu ukazuje roční náklad při 100 000 a 750 000 Kč z `roboSazby`.
+  **Kalkulačka /kde-koupit Portu nepočítá** (jen brokery) – v recenzi Portu proto není „Spočítat pro vaši částku“, ale řádky výše.
+- **Příklad „Nákup za 2 000 Kč“ = součet ZAOKROUHLENÝCH částí** (`castiPrikladu`, dřív IBKR „od 74 Kč“ × „30 + 43 Kč“).
+- **Převod ETF mezi brokery nepřerušuje časový test** – § 4 odst. 1 písm. **u)** ZDP (zakonyprolidi.cz/cs/1992-586, znění od 1. 8. 2026:
+  „doba mezi nabytím a úplatným převodem“; dřívější písm. w) se přečíslovalo). Přesun k jinému custodianovi není nabytí ani úplatný
+  převod; prodej + nový nákup test restartuje.
+- **35% srážka = dividendy českých akcií na sběrném účtu zahraničního brokera**, ne ETF (dřív u Portu „35 % hrozících u některých ETF“).
+- **Modelová portfolia:** Dividendové se srovnává s VWCE (akcie celého světa; VT v datech fondů není), ne se S&P 500 – stejně jako
+  ostatní s VT. Štítek „Agresivní“ u Dividendového (95 % akcií) ZŮSTÁVÁ – stejný jako Akciové (80 %). „Za 12 měs. do D. M. v Kč“ =
+  nejstarší den výnosů ze složek (vynosyFonduSDatem). **Svět + malé firmy:** náskok proti VT NEDĚLAJÍ malé firmy – nezávisle
+  (Yahoo adj. close × kurzy ČNB, 26. 6. 2008 → 21. 10. 2026): celé 11,85 %, jádro bez satelitu (54/22/9 → 100 %) 11,90 %, satelit
+  místo S&P (69/22/9) 12,29 %, VT 10,87 % ročně; web 11,84/11,90/10,87. Náskok = pevná vyšší váha USA. Text čísla bere z backtestu
+  ({cagr}, {cagrJadro}, {cagrAkcie}; `srovnaniJadro` v PORTFOLIO_BACKTEST). DFSVX od 2. 3. 1993 (ne „44 let“); nečísla bez zdroje
+  (~20 bp, QUAL −0,4 %, DFSVX 11,4 %) odstraněna.
+- **/fire tabulka míry úspor = funkce** `rokyDoFire` (n = ln(1 + 25(1−s)r/s)/ln(1+r), r = 5 %): 70 % → 8,8 → „~9 let“ (dřív ručně
+  „~8,5“). Pravidlo 4 % = Trinity (Cooley, Hubbard, Walz, AAII Journal 2/1998): S&P 500 + americké firemní dluhopisy 1926–1995.
+- **/dca-vs-jednorazova:** Vanguard 2012 (Shtekhman, Tasopoulos, Wimmer, str. 4): konečná hodnota 60/40 po 10 letech LSI vs 12měs. DCA
+  USA +2,3 %, UK +2,2 %, **Austrálie +1,3 %** (dřív „+1,8 % ročně“ – ani roční, ani 1,8).
+- **/etf-vs-akcie:** Bessembinder, Chen, Choi, Wei (FAJ 2023, 1990–2020): 55,2 % amerických a 57,4 % neamerických akcií pod T-bills
+  (dřív zkomolené „55 z 57 trhů“).
+- **/menove-riziko-etf:** měna se NEvyruší – S&P 500 21. 10. 2016 → 21. 10. 2026 USD 15,5 %/r, CZK 13,9 %/r (kurz 24,82 → 21,59);
+  20 let 11,05 × 10,84 %. Yahoo SPY × ČNB = backtest webu (×4,231/×3,681, ×8,143/×7,832).
+- **/jak-dlouho-v-minusu:** „s aspoň N lety dat“ = jedna funkce `sAsponLety` (bez posledního rozběhlého měsíce) pro text i tabulky;
+  „kleslo pod vklad“ ze stejného vzorku jako „nikdy pod“ (dřív 75 % × 72 %).
+- **Mobilní tabulky = `ResponzivniTabulka`** (karty pod 640 px, tabulka nad tím) – /fire, /jak-dlouho-v-minusu, /akumulacni-vs-distribucni-etf,
+  /kolik-investovat-mesicne, /dip, /investovani-pro-deti, /svetove-etf-indexy. Nové tabulky v článcích stavět přes ni.
+- **/o-nas:** brokery nebodujeme ani neřadíme (abecedně, kalkulačka podle nákladů pro zadanou částku); věta o „prodejcích s tučnými
+  provizemi“ přeformulována neutrálně (redakční hranice: bez kritiky bank).
