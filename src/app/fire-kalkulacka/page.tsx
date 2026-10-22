@@ -44,7 +44,7 @@ export default async function FireKalkulackaPreview() {
     },
     {
       q: 'Jak je v kalkulačce zohledněna inflace?',
-      a: 'Měsíční výdaje zadáváte v dnešních cenách. Kalkulačka cílovou částku každý rok automaticky navyšuje o zadanou míru inflace, takže nemusíte odhadovat budoucí ceny – stačí říct, kolik byste potřebovali dnes.',
+      a: 'Měsíční výdaje zadáváte v dnešních cenách. Kalkulačka cílovou částku každý rok automaticky navyšuje o zadanou míru inflace, takže nemusíte odhadovat budoucí ceny – stačí říct, kolik byste potřebovali dnes. Volitelně můžete o inflaci navyšovat i měsíční spoření (jako když mzda roste s cenami); bez toho reálná hodnota vkladu každý rok klesá.',
     },
     {
       q: 'Jaké portfolio je pro cestu k nezávislosti vhodné?',

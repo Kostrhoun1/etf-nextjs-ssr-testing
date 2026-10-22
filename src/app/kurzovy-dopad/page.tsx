@@ -41,7 +41,7 @@ export default async function KurzovyDopadPreview() {
     },
     {
       q: 'Jak kurzové riziko snížit?',
-      a: 'U dlouhého horizontu (10 a více let) nejvíc pomáhá pravidelné investování stejné částky: postupně nakupujete za různé kurzy, čímž rozložíte riziko špatného načasování. U krátkého horizontu (do 3 let) je kurzové riziko významnější – tam dává smysl vyšší podíl korunových aktiv. Měnové zajištění proti koruně reálně k dispozici není.',
+      a: 'Pravidelné investování stejné částky rozloží nákupní kurz – nekoupíte vše za jeden (možná nevýhodný) kurz. Kurzové riziko už nakoupené části ale neruší: když koruna posílí, klesne korunová hodnota všeho, co držíte v cizí měně. U krátkého horizontu (do 3 let) je kurzové riziko významnější – tam dává smysl vyšší podíl korunových aktiv. Měnové zajištění proti koruně reálně k dispozici není.',
     },
     {
       q: 'Co přesně kalkulačka počítá a co ne?',
