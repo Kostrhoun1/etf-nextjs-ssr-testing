@@ -33,6 +33,12 @@ const pctBez = (x: number, d = 1) => `${x < 0 ? '−' : ''}${cz(Math.abs(x * 100
 const kc = (n: number) => `${cz(Math.round(n / 1000) * 1000)}${NB}Kč`;
 const MESICE = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 const mesRok = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE[m - 1]} ${y}`; };
+// 6. pád („v červenci 2014“) – kolo 7: dřív „naposledy pod vkladem červenec 2014“.
+const MESICE_6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
+const vMesRok = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `v${NB}${MESICE_6[m - 1]} ${y}`; };
+/** Skloňování podle počtu: 1 → jeden, 2–4 → dva, 0 a 5+ → pet. */
+const sklon = (n: number, jeden: string, dva: string, pet: string) => (n === 1 ? jeden : n >= 2 && n <= 4 ? dva : pet);
+const rokuText = (n: number) => `${n}${NB}${sklon(n, 'rok', 'roky', 'let')}`;
 const denText = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); return `${d}. ${m}. ${y}`; };
 const nasobekText = (x: number) => `${cz(x, 1)}×`;
 
@@ -65,8 +71,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function GrafHodnoty({ d }: { d: KolikVydelaly }) {
-  const W = 720, H = 300, padL = 8, padR = 14, padT = 18, padB = 30;
+/* Grafy (kolo 7, 22. 10. 2026): dřív jen 720px viewBox s min-w 520/560 px v overflow-x-auto – na mobilu se
+   graf nevešel (křivka končila ~2020, konečná hodnota nebyla vidět). Teď se SVG škáluje na šířku (w-full, bez
+   min-w) a pro úzké displeje má vlastní, užší rozvržení s většími popisky (`mobil`). */
+function GrafHodnoty({ d, mobil = false }: { d: KolikVydelaly; mobil?: boolean }) {
+  const W = mobil ? 360 : 720, H = mobil ? 250 : 300, padL = 8, padR = mobil ? 10 : 14, padT = mobil ? 24 : 18, padB = 30;
+  const krok = mobil ? 6 : 4; // popisky roků po 4 (desktop) / 6 letech (mobil)
   const body = d.graf.map((p) => ({ t: new Date(p.datum).getTime(), v: p.hodnota }));
   const t0 = body[0].t, t1 = body[body.length - 1].t;
   const yMin = Math.min(...body.map((p) => p.v), 100000) * 0.9;
@@ -77,7 +87,7 @@ function GrafHodnoty({ d }: { d: KolikVydelaly }) {
   const area = `${line} L${px(t1).toFixed(1)},${py(yMin).toFixed(1)} L${px(t0).toFixed(1)},${py(yMin).toFixed(1)} Z`;
   const r0 = new Date(t0).getUTCFullYear(), r1 = new Date(t1).getUTCFullYear();
   const roky: number[] = [];
-  for (let y = Math.ceil((r0 + 1) / 4) * 4; y <= r1; y += 4) roky.push(y);
+  for (let y = Math.ceil((r0 + 1) / 4) * 4; y <= r1; y += krok) roky.push(y);
   // Značky: tři nejhlubší propady (dno = měsíc z dat; bod grafu = konec téhož měsíce)
   const dna = d.propady.slice(0, 3).map((p) => {
     const cil = new Date(`${p.dno}-15T00:00:00Z`).getTime();
@@ -86,9 +96,9 @@ function GrafHodnoty({ d }: { d: KolikVydelaly }) {
   });
   const konec = body[body.length - 1];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto min-w-[520px]" role="img" aria-label={`Vývoj hodnoty 100 000 Kč v akciích celého světa (fond VT) v korunách od července 2008 do ${denText(d.posledniDen)}: ${kc(d.svet.konec)}.`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto" role="img" aria-label={`Vývoj hodnoty 100 000 Kč v akciích celého světa (fond VT) v korunách od července 2008 do ${denText(d.posledniDen)}: ${kc(d.svet.konec)}.`}>
       <defs>
-        <linearGradient id="eqFill" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={mobil ? 'eqFillM' : 'eqFill'} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#0d9488" stopOpacity="0.18" />
           <stop offset="100%" stopColor="#0d9488" stopOpacity="0" />
         </linearGradient>
@@ -98,23 +108,23 @@ function GrafHodnoty({ d }: { d: KolikVydelaly }) {
         return (
           <g key={y}>
             <line x1={xx} y1={padT} x2={xx} y2={H - 30} stroke="#f1f5f9" strokeWidth="1" />
-            <text x={xx} y={H - 11} textAnchor="middle" fontSize="11" fill="#94a3b8">{y}</text>
+            <text x={xx} y={H - 11} textAnchor="middle" fontSize={mobil ? 12 : 11} fill="#94a3b8">{y}</text>
           </g>
         );
       })}
       <line x1={padL} y1={py(100000)} x2={W - padR} y2={py(100000)} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 4" />
-      <text x={padL + 2} y={py(100000) - 4} fontSize="10.5" fill="#94a3b8">vklad 100 000 Kč</text>
-      <path d={area} fill="url(#eqFill)" />
+      <text x={padL + 2} y={py(100000) - 4} fontSize={mobil ? 11.5 : 10.5} fill="#94a3b8">vklad 100 000 Kč</text>
+      <path d={area} fill={`url(#${mobil ? 'eqFillM' : 'eqFill'})`} />
       <path d={line} fill="none" stroke="#0d9488" strokeWidth="2" strokeLinejoin="round" />
       {dna.map((t) => (
         <g key={t.key}>
           <circle cx={t.x} cy={t.y} r="3.5" fill="#e11d48" />
-          <text x={t.x} y={t.y + 16} textAnchor="middle" fontSize="11" fontWeight="600" fill="#e11d48">{t.label}</text>
+          <text x={Math.max(t.x, 16)} y={t.y + 16} textAnchor="middle" fontSize={mobil ? 12 : 11} fontWeight="600" fill="#e11d48">{t.label}</text>
         </g>
       ))}
       <circle cx={px(konec.t)} cy={py(konec.v)} r="3.5" fill="#0d9488" />
-      <text x={px(konec.t) - 6} y={py(konec.v) - 7} textAnchor="end" fontSize="12" fontWeight="700" fill="#0f766e">{kc(konec.v).replace(NB, ' ')}</text>
-      <text x={W - 2} y="12" textAnchor="end" fontSize="11" fontWeight="600" fill="#94a3b8">Zdroj: etfpruvodce.cz</text>
+      <text x={px(konec.t) - 6} y={py(konec.v) - 7} textAnchor="end" fontSize={mobil ? 13 : 12} fontWeight="700" fill="#0f766e">{kc(konec.v).replace(NB, ' ')}</text>
+      <text x={mobil ? padL : W - 2} y="12" textAnchor={mobil ? 'start' : 'end'} fontSize={mobil ? 10 : 11} fontWeight="600" fill="#94a3b8">Zdroj: etfpruvodce.cz</text>
     </svg>
   );
 }
@@ -131,7 +141,7 @@ function GrafRoku({ d }: { d: KolikVydelaly }) {
   const zero = py(0);
   const mrizka = [vMax - 10, 0, vMin + 10].filter((g, i, a) => a.indexOf(g) === i);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto min-w-[560px]" role="img" aria-label={`Roční zhodnocení akcií celého světa (fond VT) v korunách za roky ${d.rocne[0].rok}–${d.rocne[n - 1].rok}.`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto" role="img" aria-label={`Roční zhodnocení akcií celého světa (fond VT) v korunách za roky ${d.rocne[0].rok}–${d.rocne[n - 1].rok}.`}>
       {mrizka.map((g) => (
         <g key={g}>
           <line x1={padL} y1={py(g)} x2={W - padR} y2={py(g)} stroke={g === 0 ? '#cbd5e1' : '#f1f5f9'} strokeWidth="1" />
@@ -151,6 +161,39 @@ function GrafRoku({ d }: { d: KolikVydelaly }) {
         );
       })}
       <text x={W - 2} y="12" textAnchor="end" fontSize="11" fontWeight="600" fill="#94a3b8">Zdroj: etfpruvodce.cz</text>
+    </svg>
+  );
+}
+
+/** Mobilní varianta ročních výnosů: vodorovné pruhy (rok = řádek) – 19 svislých sloupců se do 360 px nevejde čitelně. */
+function GrafRokuMobil({ d }: { d: KolikVydelaly }) {
+  const W = 360, rowH = 21, padT = 22, padB = 6, labelW = 46, valW = 44;
+  const H = padT + d.rocne.length * rowH + padB;
+  const hodnoty = d.rocne.map((r) => r.vynos * 100);
+  const vMax = Math.max(10, Math.ceil(Math.max(...hodnoty) / 10) * 10);
+  const vMin = Math.min(0, Math.floor(Math.min(...hodnoty) / 10) * 10);
+  const x0 = labelW + valW, x1 = W - valW; // prostor pro popisky hodnot na obou stranách
+  const px = (v: number) => x0 + ((v - vMin) / (vMax - vMin)) * (x1 - x0);
+  const zero = px(0);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto" role="img" aria-label={`Roční zhodnocení akcií celého světa (fond VT) v korunách za roky ${d.rocne[0].rok}–${d.rocne[d.rocne.length - 1].rok}.`}>
+      <text x={0} y="12" fontSize="10" fontWeight="600" fill="#94a3b8">Zdroj: etfpruvodce.cz</text>
+      <line x1={zero} y1={padT - 4} x2={zero} y2={H - padB} stroke="#cbd5e1" strokeWidth="1" />
+      {d.rocne.map((r, i) => {
+        const v = r.vynos * 100;
+        const y = padT + i * rowH;
+        const xa = Math.min(px(v), zero), w = Math.max(Math.abs(px(v) - zero), 1);
+        const barva = v >= 0 ? '#0d9488' : '#e11d48';
+        return (
+          <g key={r.rok}>
+            <text x={0} y={y + 14} fontSize="12" fill="#64748b">{`${r.rok}${r.neuplny ? '*' : ''}`}</text>
+            <rect x={xa} y={y + 3} width={w} height={rowH - 7} rx="2" fill={barva} opacity={r.neuplny ? 0.55 : 1} />
+            <text x={v >= 0 ? xa + w + 4 : xa - 4} y={y + 14} textAnchor={v >= 0 ? 'start' : 'end'} fontSize="12" fontWeight="600" fill={v >= 0 ? '#0f766e' : '#e11d48'}>
+              {`${v >= 0 ? '+' : '−'}${Math.round(Math.abs(v))}${NB}%`}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
@@ -266,7 +309,8 @@ export default async function KolikVydelalyEtf() {
             </div>
 
             {/* Klíčová čísla v hero */}
-            <div className="mt-6 grid grid-cols-3 gap-2.5 max-w-2xl">
+            {/* Mobil 2 + 1 (kolo 7: ve třech sloupcích „688 000 Kč“ přetékalo do sousední dlaždice). */}
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-w-2xl">
               <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
                 <span className="flex items-center gap-1.5 text-xs text-slate-400"><Sprout className="w-3.5 h-3.5" /> Ze 100 000 Kč</span>
                 <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-emerald-400">{kc(d.svet.konec)}</p>
@@ -277,8 +321,8 @@ export default async function KolikVydelalyEtf() {
                 <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-rose-300">{pctBez(d.svet.maxPokles, 0)}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{mesRok(prvniPropad.od)} → {mesRok(prvniPropad.dno)}</p>
               </div>
-              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Timer className="w-3.5 h-3.5" /> Na 10 letech</span>
+              <div className="col-span-2 sm:col-span-1 rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
+                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Timer className="w-3.5 h-3.5" /> Na horizontu 10 let</span>
                 <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-white">{o10 ? `${cz(o10.vPlusu * 100)} %` : '—'}</p>
                 <p className="text-xs text-slate-400 mt-0.5">období skončilo v plusu</p>
               </div>
@@ -344,7 +388,8 @@ export default async function KolikVydelalyEtf() {
           <SectionHead title="Cesta ale zdaleka nebyla klidná" desc="Zhodnocení nevzniklo v přímé linii. Investor cestou zažil několik hlubokých propadů – a právě ty rozhodují, kdo výnos nakonec dostane." />
           <div className="mb-3 rounded-xl border border-slate-200 bg-white p-4 md:p-5">
             <p className="text-sm font-medium text-slate-900 mb-2">Hodnota 100 000 Kč v akciích celého světa (7/2008 – {datum}, v Kč)</p>
-            <div className="overflow-x-auto"><GrafHodnoty d={d} /></div>
+            <div className="hidden sm:block"><GrafHodnoty d={d} /></div>
+            <div className="sm:hidden"><GrafHodnoty d={d} mobil /></div>
             <p className="mt-2 text-xs text-slate-500 leading-relaxed">Fond Vanguard VT (index FTSE Global All Cap) přepočtený do korun, hodnoty ke konci měsíců; červeně tři nejhlubší propady v korunách (hloubka z denních cen, proto je bod na křivce mělčí). Minulé výnosy nezaručují ty budoucí.</p>
           </div>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed">
@@ -390,16 +435,31 @@ export default async function KolikVydelalyEtf() {
         <section className="pb-10">
           <SectionHead title={`Rok po roce (${d.rocne[0].rok}–${d.rocne[d.rocne.length - 1].rok})`} desc={`Průměr ${pctBez(d.svet.cagr)} ročně skrývá velké rozdíly mezi jednotlivými roky – od ${pct(nejhorsiRok.vynos, 0)} v roce ${nejhorsiRok.rok} po ${pct(nejlepsiRok.vynos, 0)} v roce ${nejlepsiRok.rok}.`} />
           <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
-            <div className="overflow-x-auto"><GrafRoku d={d} /></div>
-            <p className="mt-2 text-xs text-slate-500 leading-relaxed">Roční zhodnocení fondu Vanguard VT (index FTSE Global All Cap) v korunách, po poplatcích. * = neúplný rok ({d.rocne[0].rok} od 1. 7., {d.rocne[d.rocne.length - 1].rok} do {datum}).</p>
+            <div className="hidden sm:block"><GrafRoku d={d} /></div>
+            <div className="sm:hidden"><GrafRokuMobil d={d} /></div>
+            <p className="mt-2 text-xs text-slate-500 leading-relaxed">Roční zhodnocení fondu Vanguard VT (index FTSE Global All Cap) v korunách, po poplatcích. * = neúplný rok ({d.rocne[0].rok} od {start}, {d.rocne[d.rocne.length - 1].rok} do {datum}).</p>
           </div>
-          <p className="mt-3 text-sm text-slate-500 leading-relaxed">Z {plneRoky.length} celých kalendářních let bylo <strong className="text-slate-700">{kladne} kladných a {plneRoky.length - kladne} ztrátových</strong>. Výnos v korunách ovlivňuje i kurz koruny: v roce 2017 vydělal fond v dolarech přes 20 %, v korunách jen pár procent, protože koruna výrazně posílila. Silné a slabé roky se střídaly nepravidelně – a přesně proto se nedá &bdquo;počkat si na ten správný rok&ldquo;.</p>
+          <p className="mt-3 text-sm text-slate-500 leading-relaxed">Z {plneRoky.length} celých kalendářních let bylo <strong className="text-slate-700">{kladne} {sklon(kladne, 'kladný', 'kladné', 'kladných')} a {plneRoky.length - kladne} {sklon(plneRoky.length - kladne, 'ztrátový', 'ztrátové', 'ztrátových')}</strong>. Výnos v korunách ovlivňuje i kurz koruny: v roce 2017 vydělal fond v dolarech přes 20 %, v korunách jen pár procent, protože koruna výrazně posílila. Silné a slabé roky se střídaly nepravidelně – a přesně proto se nedá &bdquo;počkat si na ten správný rok&ldquo;.</p>
         </section>
 
         {/* ROLLING – tabulka oken */}
         <section className="pb-10">
           <SectionHead title="Záleželo, kdy jste začali – ale čím dýl, tím míň" desc="Vzali jsme všechna období dané délky (začátky po měsících) a spočítali nejhorší, nejlepší a průměrný roční výnos. Čím delší okno, tím užší rozpětí." />
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          {/* Mobil: karty místo 5sloupcové tabulky (kolo 7 – „Období v plusu“ bylo mimo obraz). Stejná data. */}
+          <ul className="sm:hidden divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+            {d.okna.map((r) => (
+              <li key={r.roky} className="px-4 py-3">
+                <p className="font-medium text-slate-900">Držel jsem {r.roky === 1 ? '1 rok' : `${r.roky} let`} <span className="text-xs font-normal text-slate-500">({r.pocet} období)</span></p>
+                <dl className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <div className="flex justify-between gap-2"><dt className="text-slate-500">Nejhorší p.a.</dt><dd className={`tabular-nums font-semibold ${r.nejhorsi < 0 ? 'text-rose-600' : 'text-slate-700'}`}>{pct(r.nejhorsi)}</dd></div>
+                  <div className="flex justify-between gap-2"><dt className="text-slate-500">Nejlepší p.a.</dt><dd className="tabular-nums text-slate-700">{pct(r.nejlepsi)}</dd></div>
+                  <div className="flex justify-between gap-2"><dt className="text-slate-500">Průměr p.a.</dt><dd className="tabular-nums text-slate-700">{pct(r.prumer)}</dd></div>
+                  <div className="flex justify-between gap-2"><dt className="text-slate-500">V plusu</dt><dd className={`tabular-nums font-semibold ${r.vPlusu === 1 ? 'text-emerald-600' : 'text-slate-700'}`}>{cz(r.vPlusu * 100)}{NB}%</dd></div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
@@ -429,14 +489,29 @@ export default async function KolikVydelalyEtf() {
         {/* KRIZE DO HLOUBKY */}
         <section className="pb-10">
           <SectionHead title="Největší propady v korunách" desc="Od vrcholu ke dnu a jak dlouho trvalo, než se hodnota vrátila na předchozí vrchol." />
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          {/* Doba návratu = měsíce OD VRCHOLU (začátku propadu) po nový vrchol – lengthMonths v calculations.ts. */}
+          <ul className="sm:hidden divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+            {d.propady.map((p) => (
+              <li key={p.od} className="px-4 py-3">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="font-medium text-slate-900">{mesRok(p.od)} → {mesRok(p.dno)}</p>
+                  <p className="tabular-nums font-semibold text-rose-600 shrink-0">{pct(p.hloubka)}</p>
+                </div>
+                <p className="mt-0.5 text-sm text-slate-600">
+                  {pricina(p.dno) !== '—' && <>{pricina(p.dno)} · </>}
+                  {p.mesicuNaVrchol != null ? `zpět na vrcholu za ${p.mesicuNaVrchol}${NB}měs. od vrcholu` : 'zpět na vrcholu: zatím ne'}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
                   <th className="px-4 py-3 font-medium">Vrchol → dno</th>
                   <th className="px-4 py-3 font-medium">Souvislost</th>
                   <th className="px-4 py-3 font-medium text-right">Propad</th>
-                  <th className="px-4 py-3 font-medium text-right">Zpět na vrcholu za</th>
+                  <th className="px-4 py-3 font-medium text-right">Zpět na vrcholu za<span className="block normal-case tracking-normal font-normal">(počítáno od vrcholu)</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -445,7 +520,7 @@ export default async function KolikVydelalyEtf() {
                     <td className="px-4 py-3 font-medium text-slate-900">{mesRok(p.od)} → {mesRok(p.dno)}</td>
                     <td className="px-4 py-3 text-slate-600">{pricina(p.dno)}</td>
                     <td className="px-4 py-3 text-right tabular-nums font-semibold text-rose-600">{pct(p.hloubka)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-slate-600">{p.mesicuNaVrchol != null ? `${p.mesicuNaVrchol} měs.` : 'zatím ne'}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-slate-600">{p.mesicuNaVrchol != null ? `${p.mesicuNaVrchol}${NB}měs. od vrcholu` : 'zatím ne'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -515,7 +590,19 @@ export default async function KolikVydelalyEtf() {
         {/* SVĚT vs USA vs REGIONY */}
         <section className="pb-10">
           <SectionHead title="Svět, USA, nebo rozvíjející se trhy?" desc="Stejných 100 000 Kč, stejné období (od začátku července 2008) – ale jiný region. Rozdíly jsou velké a hodně napoví o riziku koncentrace." />
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <ul className="sm:hidden divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+            {d.regiony.map((r) => (
+              <li key={r.id} className={`px-4 py-3 ${r.id === 'svet' ? 'bg-teal-50/40' : ''}`}>
+                <p className="font-medium text-slate-900">{r.nazev}</p>
+                <dl className="mt-1 grid grid-cols-3 gap-2 text-sm">
+                  <div><dt className="text-xs text-slate-500">Zhodnocení p.a.</dt><dd className="tabular-nums font-semibold text-slate-800">{pctBez(r.cagr)}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Ze 100 000 Kč</dt><dd className="tabular-nums text-slate-700">{kc(r.konec)}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Nejhlubší propad</dt><dd className="tabular-nums text-rose-600">{pct(r.maxPokles)}</dd></div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
@@ -559,11 +646,11 @@ export default async function KolikVydelalyEtf() {
             <div className="rounded-lg border border-slate-200 bg-white p-5">
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 mb-3"><Timer className="w-5 h-5" /></span>
               <p className="text-xs uppercase tracking-wide text-slate-500">Pod vkladem</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{pod ? `${rokuPod} let` : '—'}</p>
-              <p className="text-sm text-slate-600 mt-0.5">{pod ? `naposledy pod vkladem ${mesRok(pod)}` : 'bez dat'}</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{pod ? rokuText(rokuPod) : '—'}</p>
+              <p className="text-sm text-slate-600 mt-0.5">{pod ? `naposledy pod vkladem ${vMesRok(pod)}` : 'bez dat'}</p>
             </div>
           </div>
-          <p className="mt-3 text-sm text-slate-500 leading-relaxed">Kdo koupil americké akcie v lednu 2000, byl v korunách pod vloženou částkou naposledy {pod ? mesRok(pod) : '—'} – k pádu akcií se přidalo silné posílení koruny vůči dolaru. Extrémní příklad, proč horizont u akcií znamená klidně 15 let, ne pět. Podrobně: <Link href="/jak-dlouho-v-minusu" className={odkaz}>Jak dlouho můžete být v minusu</Link>. (Kurzy koruny máme v datech od roku 2000.)</p>
+          <p className="mt-3 text-sm text-slate-500 leading-relaxed">Kdo koupil americké akcie v lednu 2000, byl v korunách pod vloženou částkou naposledy {pod ? vMesRok(pod) : '—'} – k pádu akcií se přidalo silné posílení koruny vůči dolaru. Extrémní příklad, proč horizont u akcií znamená klidně 15 let, ne pět. Podrobně: <Link href="/jak-dlouho-v-minusu" className={odkaz}>Jak dlouho můžete být v minusu</Link>. (Kurzy koruny máme v datech od roku 2000.)</p>
         </section>
 
         {/* 4. CO SI Z TOHO VZÍT */}

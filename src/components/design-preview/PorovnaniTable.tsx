@@ -135,7 +135,9 @@ const age = (inc: string | null) => {
   if (!inc) return '—';
   const d = new Date(inc); if (Number.isNaN(d.getTime())) return '—';
   const y = (Date.now() - d.getTime()) / (365.25 * 864e5);
-  return y < 1 ? '< 1 rok' : `${Math.floor(y)} let`;
+  if (y < 1) return '< 1 rok';
+  const n = Math.floor(y); // kolo 7: dřív „2 let“
+  return `${n}\u00a0${n === 1 ? 'rok' : n <= 4 ? 'roky' : 'let'}`;
 };
 
 /* Barevná procentní buňka pro výnos (zelená = kladný, červená = záporný – nic jiného).
@@ -245,14 +247,18 @@ function VahyOtocene({ etfs, prefix, n }: { etfs: ComparisonETF[]; prefix: strin
 type Section = { title: string; rows: Row[] };
 
 /* Nejlepší hodnota v řádku: ✓ a tučně, NE zelenou – zelená už znamená kladný výnos (revize 18. 10. 2026).
-   Kolo 6b: fajfka se na mobilu (3–4 úzké sloupce) lepila do sousedního sloupce → flex-wrap: když se vedle hodnoty
-   nevejde, spadne pod ni. */
+   Kolo 6b: fajfka se na mobilu (3–4 úzké sloupce) lepila do sousedního sloupce → flex-wrap.
+   Kolo 7: flex-wrap posílal fajfku osiřele na další řádek („138,6 mld. €“ / „✓“). Teď je fajfka v toku textu a
+   u textové hodnoty se drží posledního slova (whitespace-nowrap) – zalomit se smí jen mezi číslem a jednotkou. */
 function Bunka({ children, vitez }: { children: React.ReactNode; vitez: boolean }) {
   if (!vitez) return <>{children}</>;
+  const fajfka = <Check className="inline-block ml-1 -mt-0.5 w-3.5 h-3.5 align-middle text-teal-700" aria-label="nejlepší v řádku" />;
+  const i = typeof children === 'string' ? children.lastIndexOf(' ') : -1;
   return (
-    <span className="inline-flex max-w-full flex-wrap items-center gap-x-1 font-bold text-slate-900 [&_span]:font-bold">
-      {children}
-      <Check className="w-3.5 h-3.5 shrink-0 text-teal-700" aria-label="nejlepší v řádku" />
+    <span className="font-bold text-slate-900 [&_span]:font-bold">
+      {typeof children === 'string'
+        ? <>{children.slice(0, i + 1)}<span className="whitespace-nowrap">{children.slice(i + 1)}{fajfka}</span></>
+        : <span className="whitespace-nowrap">{children}{fajfka}</span>}
     </span>
   );
 }
@@ -310,7 +316,8 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
         { label: 'Ticker', cell: (e) => <span className="font-semibold text-slate-800">{zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? '—'}</span> },
         /* ISIN je jediný identifikátor, podle kterého se zadává pokyn u brokera –
            musí být vidět vždy, i když má fond ticker. */
-        { label: 'ISIN', cell: (e) => <span className="font-mono text-xs text-slate-700 break-all">{e.isin}</span> },
+        // Kolo 7: ISIN se nezalamuje (dřív break-all uprostřed kódu) – menší písmo a těsnější proklad, u 4 fondů na mobilu 10 px.
+        { label: 'ISIN', cell: (e) => <span className={`font-mono tracking-tighter whitespace-nowrap text-slate-700 ${etfs.length >= 4 ? 'text-[10px] md:text-xs' : 'text-xs'}`}>{e.isin}</span> },
         { label: 'Poskytovatel', cell: (e) => str(e.fund_provider) ?? '—' },
         // Index: čistý údaj ze zdroje, jinak poznaný z názvu fondu (SPYI → MSCI ACWI IMI), jinak „—“.
         { label: 'Sledovaný index', cell: (e) => indexFonduLabel({ index_name: e.index_name, name: e.name, investment_focus: str(raw(e).investment_focus) }) ?? '—' },

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
+import { Database } from 'lucide-react';
 import { TrendingUp, ArrowLeft, ArrowRight, Search, Scale, Plus, Check } from 'lucide-react';
 import { getComparisonETFsByIsins, getETFsByIsins } from '@/lib/etf-data';
 import { HLAVNI_DVOJICE, POPISKY_DVOJIC } from '@/lib/pairs';
@@ -174,6 +175,11 @@ export default async function PorovnaniPreview(
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700"><ArrowLeft className="w-4 h-4" /> Zpět do srovnávače</Link>
         </div>
+        {/* Patička zdroje – stejně jako stránky dvojic (kolo 7). Datum = „Data k“ v záhlaví; bez data „—“. */}
+        <p className="mt-4 flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
+          <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>Data fondů: justETF · kurzy ČNB · data k {datumDat ? datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}. <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">Metodika</Link></span>
+        </p>
       </main>
     </div>
   );

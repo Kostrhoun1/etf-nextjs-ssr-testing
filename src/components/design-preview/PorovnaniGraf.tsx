@@ -71,15 +71,18 @@ export default function PorovnaniGraf({ fondy, rokDat }: { fondy: FondGrafu[]; r
   const minY = Math.min(0, Math.floor(Math.min(...vse, 0) / krok) * krok);
 
   const H = sirka < 500 ? 220 : 260;
-  const m = { l: 40, r: 6, t: 10, b: 26 };
+  const ticks: number[] = [];
+  for (let t = minY; t <= maxY + 1e-9; t += krok) ticks.push(t);
+  // Levý okraj podle nejdelšího popisku osy (kolo 7, 22. 10. 2026): pevných 40 px uřízlo znaménko –
+  // „−100 %“ (BITC) se zobrazilo jako „100 %“, u 4 fondů zmizelo „+“. ~6,6 px na znak při fontSize 11.
+  const nejdelsiPopisek = Math.max(...ticks.map((t) => procenta(t, 0, true).length));
+  const m = { l: Math.max(44, Math.ceil(nejdelsiPopisek * 6.6) + 10), r: 6, t: 10, b: 26 };
   const pw = sirka - m.l - m.r, ph = H - m.t - m.b;
   const y = (v: number) => m.t + ((maxY - v) / (maxY - minY)) * ph;
   const skupina = pw / radky.length;
   const k = fondy.length;
   const bw = Math.max(4, Math.min(24, (skupina * 0.72 - (k - 1) * 2) / k));
   const sirkaSkupiny = k * bw + (k - 1) * 2;
-  const ticks: number[] = [];
-  for (let t = minY; t <= maxY + 1e-9; t += krok) ticks.push(t);
 
   const nejstarsiChybi = fondy.filter((f, fi) => radky.some((r) => r.v[fi] == null)).map((f) => f.label);
 
