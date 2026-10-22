@@ -56,7 +56,7 @@ const cfg: FactorConfig = {
   statCards: [
     { big: '444 000 Kč', text: 'ze 100 000 Kč za 26 let (+5,9 % ročně) proti 419 tis. (+5,6 %) u S&P 500 na stejném okně. Kromě momenta jediný faktor nad indexem.' },
     { big: '+44,2 %', text: 'nejlepší rok (2013) – a jednoleté okno umělo i +74 %. Nejvyšší kolísavost ze všech faktorů (±25 %).' },
-    { big: '−63,2 %', text: 'nejhlubší propad (od září 2000). Návrat na vrchol trval 152 měsíců – přes 12 let.' },
+    { big: '−63,2 %', text: 'nejhlubší propad (od září 2000). Od vrcholu zpět na vrchol to trvalo 152 měsíců – přes 12 let.' },
   ],
   dcaText: (
     <>
@@ -78,9 +78,9 @@ const cfg: FactorConfig = {
     </>
   ),
   crises: [
-    { name: 'Finanční krize 2008', drop: '−53 %', note: 'návrat 35 měsíců – malé firmy padly hluboko, ale zotavily se rychleji než value' },
-    { name: 'COVID krach (2020)', drop: '−37 %', note: 'návrat 8 měsíců – nejhlubší covidový propad z faktorů, pak raketové zotavení' },
-    { name: 'Medvědí trh 2022', drop: '−21 %', note: 'návrat 20 měsíců – vyšší sazby dopadají na zadlužené malé firmy nejvíc' },
+    { name: 'Finanční krize 2008', drop: '−53 %', note: 'návrat 35 měsíců od dna – malé firmy padly hluboko, ale zotavily se rychleji než value' },
+    { name: 'COVID krach (2020)', drop: '−37 %', note: 'návrat 8 měsíců od dna – nejhlubší covidový propad z faktorů, pak raketové zotavení' },
+    { name: 'Medvědí trh 2022', drop: '−21 %', note: 'návrat 20 měsíců od dna – vyšší sazby dopadají na zadlužené malé firmy nejvíc' },
   ],
   riskTitle: 'Hlavní riziko: platíte plnou volatilitu za nejistou prémii',
   riskDesc: 'Size je nejslabší z klasických prémií – a nejdražší na nervy.',

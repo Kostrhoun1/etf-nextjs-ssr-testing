@@ -5,7 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
-import { getScreenerRows, buildInitialScreenerRows, getDataDate, getETFCountLabel } from '@/lib/etf-data';
+import { getScreenerRows, buildInitialScreenerRows, getDataDatum, getETFCountLabel } from '@/lib/etf-data';
 import ScreenerUI from '@/components/design-preview/ScreenerUI';
 import PocetFondu from '@/components/design-preview/PocetFondu';
 import { COMPARE_MAX } from '@/components/design-preview/compareLimit';
@@ -54,9 +54,10 @@ export default async function SrovnaniScreenerPreview() {
   // (homepage, brokeři) – jedna definice „v nabídce“, viz jeVNabidce v etf-data.ts.
   const pocet = rows.filter((r) => !r.is_leveraged).length;
   const initialRows = buildInitialScreenerRows(rows, '', 50);
-  const today = new Date();
-  const dataDate = await getDataDate(today);
-  const dateStr = dataDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Kolo 7: bez tichého návratu ke dnešku – když se den dat nenačte, datum ani dateModified neuvádíme (pravidlo č. 1).
+  const dataDate = await getDataDatum();
+  const dateStr = dataDate?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? '';
+  const denIso = dataDate?.toISOString().slice(0, 10) ?? null;
 
   const datasetSchema = {
     '@context': 'https://schema.org',
@@ -68,13 +69,13 @@ export default async function SrovnaniScreenerPreview() {
     // SEO audit 20. 10. 2026 (GEO): url, dateModified = den dat (stejný jako „Data k …“), volně dostupné, tvůrce s @id.
     // license záměrně chybí – jasnou licenci na data nemáme (raději nic než vymyšlené).
     url: 'https://etfpruvodce.cz/srovnani',
-    dateModified: dataDate.toISOString().slice(0, 10),
+    ...(denIso ? { dateModified: denIso } : {}),
     isAccessibleForFree: true,
     inLanguage: 'cs-CZ',
     creator: { '@type': 'Organization', '@id': 'https://etfpruvodce.cz/#organization', name: 'ETF průvodce.cz', url: 'https://etfpruvodce.cz' },
     // SEO audit 6b (21. 10. 2026): skutečný rozsah dat = kalendářní výnosy od roku 2021 (sloupce return_2021…2025)
     // a výnosy za 1–5 let do dne dat; prostor = ETF dostupné z Česka (Place). distribution/license vynecháno záměrně.
-    temporalCoverage: `2021-01-01/${dataDate.toISOString().slice(0, 10)}`,
+    ...(denIso ? { temporalCoverage: `2021-01-01/${denIso}` } : {}),
     spatialCoverage: { '@type': 'Place', name: 'Česká republika' },
     variableMeasured: ['TER poplatky', 'Historická výkonnost v Kč', 'Velikost fondu', 'Dividendový výnos', 'Replikace'],
   };
@@ -117,7 +118,7 @@ export default async function SrovnaniScreenerPreview() {
         <section className="pb-3 md:pb-4">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
             <h1 className="text-2xl md:text-[1.75rem] font-bold tracking-tight leading-tight text-slate-900">Srovnávač ETF</h1>
-            <AktualnostDat datum={dataDate} />
+            {dataDate && <AktualnostDat datum={dataDate} />}
           </div>
           <p className="mt-0.5 text-sm text-slate-600">
             <PocetFondu vychozi={pocet} /> fondů<span className="hidden sm:inline"> dostupných z Česka</span> · výnosy přepočtené do korun

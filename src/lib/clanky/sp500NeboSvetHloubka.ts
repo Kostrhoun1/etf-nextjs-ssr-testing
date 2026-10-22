@@ -11,12 +11,14 @@
  *   - podíl kurzu koruny (rozdíl výnosu v Kč a v USD),
  *   - krize jedna po druhé: hloubka propadu od vrcholu, dno, doba návratu na vrchol,
  *   - klouzavá okna (start každý měsíc): v kolika vyhrál S&P 500, medián a rozpětí rozdílu,
- *   - roční kolísavost (σ denních log-výnosů × √252) a korelace měsíčních výnosů.
+ *   - roční kolísavost a korelace z MĚSÍČNÍCH výnosů (kolo 7: kolísavost stejnou funkcí jako backtest – calculateSummary;
+ *     dřív σ denních log-výnosů × √252 = 21,1 % u S&P 500 v Kč, backtest a zbytek webu 14,2 %),
+ *   - „od 2008“ = od 1. 7. 2008 jako engine (první den řady 2. 7. 2008) – dřív od 30. 6. 2008 (14,7 % vs. 14,5 % ročně).
  * Ověření: viz hlavička stránky a scripts/overeni-sp500-svet-hloubka.mjs.
  */
 import { cache } from 'react';
 import { runBacktest } from '@/lib/backtest/engine';
-import { resampleMonthEnd } from '@/lib/backtest/calculations';
+import { resampleMonthEnd, calculateSummary } from '@/lib/backtest/calculations';
 import type { TimeSeriesPoint } from '@/lib/backtest/types';
 import { supabase } from '@/lib/supabase';
 import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
@@ -59,12 +61,15 @@ export interface Sp500NeboSvetHloubka {
   /** Od 7/2008: výnos v Kč a v USD; kurz = o kolik ročně koruna výsledek změnila ((1+Kč)/(1+USD) − 1). */
   menaOd2008: { sp: { czk: number; usd: number }; svet: { czk: number; usd: number }; kurzRocne: number };
   krize: Krize[];
+  /** Nejhlubší propad S&P 500 v Kč od 1/2000 (celá řada, ne jen okno jedné krize) – stejné číslo jako /kolik-vydelaly-etf. */
+  maxPropadSpKc: { hloubka: number; vrchol: string; dno: string; navrat: string | null; mesicuDoNavratu: number | null } | null;
   oknaSvet: Okna[];      // S&P 500 vs. celý svět (VT), od 2008
   oknaMimoUsa: Okna[];   // S&P 500 vs. svět mimo USA, od 2000
   kolisavost: { sp: number; svet: number; mimoUsa: number };
   korelace: { spSvet: number; spMimoUsa: number };
-  /** Složení dvou typických fondů (justETF přes náš scraper) – jen pokud jsou data čerstvá. */
-  slozeni: { isin: string; ticker: string; ter: number; zeme: [string, number][]; sektory: [string, number][]; datum: string }[];
+  /** Složení dvou typických fondů (justETF přes náš scraper) – jen pokud jsou data čerstvá.
+   *  `datum` = holdings_as_of (k jakému dni emitent složení zveřejnil), null = neznáme – NE den stažení (kolo 7). */
+  slozeni: { isin: string; ticker: string; ter: number; zeme: [string, number][]; sektory: [string, number][]; datum: string | null }[];
   /** Nejlevnější velké fondy na obě varianty (TER, velikost) – čerstvá data, bez zajištěných tříd. */
   levne: { sp: LevnyFond[]; svet: LevnyFond[] };
 }
@@ -85,13 +90,16 @@ async function nactiLevne(vzor: string, indexCode: string): Promise<LevnyFond[]>
 
 const SLOZENI_ISIN = ['IE00B5BMR087', 'IE00BK5BQT80']; // CSPX/SXR8, VWCE
 async function nactiSlozeni() {
-  const sl = ['isin', 'primary_ticker', 'ter_numeric', 'scraping_date', ...[1, 2, 3, 4, 5].flatMap((i) => [`country_${i}_name`, `country_${i}_weight`, `sector_${i}_name`, `sector_${i}_weight`])].join(',');
+  const sl = ['isin', 'primary_ticker', 'ter_numeric', 'scraping_date', 'holdings_as_of', ...[1, 2, 3, 4, 5].flatMap((i) => [`country_${i}_name`, `country_${i}_weight`, `sector_${i}_name`, `sector_${i}_weight`])].join(',');
   const { data, error } = await supabase.from('etf_funds').select(sl).in('isin', SLOZENI_ISIN);
   if (error || !data) return [];
   return (data as unknown as Record<string, string | number | null>[]).flatMap((f) => {
-    const datum = String(f.scraping_date ?? '').slice(0, 10);
+    const stazeno = String(f.scraping_date ?? '').slice(0, 10);
     // Pravidlo č. 1: starší data než 14 dní neukazovat.
-    if (!datum || Date.now() - new Date(datum).getTime() > 14 * 864e5) return [];
+    if (!stazeno || Date.now() - new Date(stazeno).getTime() > 14 * 864e5) return [];
+    // Datum složení = holdings_as_of (emitent, obvykle konec měsíce 1–2 měsíce zpět), ne den stažení (kolo 7: web psal
+    // „Složení fondů k 22. 10. 2026“, zdroj uvádí 31. 8. 2026).
+    const datum = /^\d{4}-\d{2}-\d{2}/.test(String(f.holdings_as_of ?? '')) ? String(f.holdings_as_of).slice(0, 10) : null;
     const par = (k: 'country' | 'sector') => [1, 2, 3, 4, 5].flatMap((i) => {
       const n = f[`${k}_${i}_name`], w = Number(f[`${k}_${i}_weight`]);
       return n && Number.isFinite(w) && w > 0 && n !== 'Other' ? [[String(n), w] as [string, number]] : [];
@@ -118,13 +126,17 @@ function propad(r: TimeSeriesPoint[], od: string, do_: string) {
   return { hloubka, vrchol: vrcholPredDnemD, dno, navrat, mesicuDoNavratu: mesice };
 }
 
+/** Část řady od dne `od` (včetně). */
+const odDne = (r: TimeSeriesPoint[], od: string) => r.filter((p) => den(p.date) >= od);
+
+/** Roční kolísavost STEJNOU funkcí jako backtest (calculateSummary: měsíční výnosy z konců měsíců × √(počet/rok)).
+ *  ZAMERNA-ROZHODNUTI.md „Riziko se počítá z MĚSÍČNÍCH výnosů“ – denní řady mají ojedinělé vadné ticky. */
 function kolisavost(r: TimeSeriesPoint[], od: string) {
-  const v = r.filter((p) => den(p.date) >= od);
-  const lr: number[] = [];
-  for (let i = 1; i < v.length; i++) lr.push(Math.log(v[i].value / v[i - 1].value));
-  const m = lr.reduce((a, b) => a + b, 0) / lr.length;
-  return Math.sqrt(lr.reduce((a, b) => a + (b - m) ** 2, 0) / (lr.length - 1)) * Math.sqrt(252);
+  return calculateSummary(odDne(r, od), 0, 0).standardDeviation;
 }
+
+/** Začátek „od 2008“ – stejný jako engine v sp500NeboSvet.ts a /kolik-vydelaly-etf (start 1. 7. 2008, první den řady 2. 7.). */
+const OD_2008 = '2008-07-01';
 
 function mesicniVynosy(r: TimeSeriesPoint[]) {
   const m = resampleMonthEnd(r);
@@ -187,9 +199,14 @@ async function spocti(): Promise<Sp500NeboSvetHloubka | null> {
       return { roky, od: d, sp: { czk: c(spC)!, usd: c(spU)! }, svet: sv !== null && svU !== null ? { czk: sv, usd: svU } : null };
     });
 
-    const s08 = (r: TimeSeriesPoint[]) => cagr(hodnotaK(r, '2008-06-30')!, r.at(-1)!);
+    // Kolo 7: CAGR stejnou funkcí a od stejného dne jako engine (calculateSummary nad řadou od 1. 7. 2008) – dřív od 30. 6.
+    // (S&P 500 v Kč 14,7 % zde vs. 14,5 % v tabulce „Od roku 2008“ na téže stránce).
+    const s08 = (r: TimeSeriesPoint[]) => calculateSummary(odDne(r, OD_2008), 0, 0).cagr;
     const spM = { czk: s08(spC), usd: s08(spU) };
-    const menaOd2008 = { sp: spM, svet: { czk: cagr(vtC[0], vtC.at(-1)!), usd: cagr(vtU[0], vtU.at(-1)!) }, kurzRocne: (1 + spM.czk) / (1 + spM.usd) - 1 };
+    const menaOd2008 = { sp: spM, svet: { czk: s08(vtC), usd: s08(vtU) }, kurzRocne: (1 + spM.czk) / (1 + spM.usd) - 1 };
+    // Nejhlubší propad S&P 500 v Kč za celou řadu od 1/2000 (vrchol 9/2000 → dno 3/2009): okno krize 2000–2003 končí
+    // dnem 2002/03, ale propad pokračoval do finanční krize (kolo 7: článek psal −61 %, skutečně −72 %).
+    const maxPropadSpKc = propad(spC, '2000-01-01', posledniDen);
 
     const krize: Krize[] = KRIZE_DEF.map((k) => {
       const kand: [string, string, Mena, TimeSeriesPoint[]][] = [
@@ -204,12 +221,12 @@ async function spocti(): Promise<Sp500NeboSvetHloubka | null> {
     const oknaSvet = [1, 3, 5, 10].map((r) => okna(spC, vtC, r)).filter((x): x is Okna => !!x);
     const oknaMimoUsa = [1, 3, 5, 10, 15].map((r) => okna(spC, exC, r)).filter((x): x is Okna => !!x);
 
-    const kolis = { sp: kolisavost(spC, '2008-07-01'), svet: kolisavost(vtC, '2008-07-01'), mimoUsa: kolisavost(exC, '2008-07-01') };
+    const kolis = { sp: kolisavost(spC, OD_2008), svet: kolisavost(vtC, OD_2008), mimoUsa: kolisavost(exC, OD_2008) };
     const mSp = mesicniVynosy(spC), mVt = mesicniVynosy(vtC), mEx = mesicniVynosy(exC);
     const kor = { spSvet: korelace(mSp, mVt, '2008-08'), spMimoUsa: korelace(mSp, mEx, '2000-02') };
 
     const [slozeni, levneSp, levneSvet] = await Promise.all([nactiSlozeni(), nactiLevne('S&P 500', 'sp500'), nactiLevne('All-World', 'ftse_all_world')]);
-    return { posledniDen, obdobi, menaOd2008, krize, oknaSvet, oknaMimoUsa, kolisavost: kolis, korelace: kor, slozeni, levne: { sp: levneSp, svet: levneSvet } };
+    return { posledniDen, obdobi, menaOd2008, krize, maxPropadSpKc, oknaSvet, oknaMimoUsa, kolisavost: kolis, korelace: kor, slozeni, levne: { sp: levneSp, svet: levneSvet } };
   } catch (e) {
     console.error('[sp500-svet-hloubka] výpočet selhal:', e);
     return null;

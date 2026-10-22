@@ -6,7 +6,7 @@ import { autorSchema, vydavatelSchema, dataClanku, datumUpravy } from '@/lib/red
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { getComparisonETFData, type ComparisonETF, getDataDate } from '@/lib/etf-data';
+import { getComparisonETFData, type ComparisonETF, getDataDatum } from '@/lib/etf-data';
 import { TrendingUp, ArrowRight, Database, Globe2, Landmark, Info } from 'lucide-react';
 import { terFmt, procenta, velikostFondu } from '@/lib/formatyCisel';
 
@@ -70,8 +70,9 @@ export default async function SrovnaniPreview() {
   const dp1 = doplnky[etf1.isin], dp2 = doplnky[etf2.isin];
   // Datum = den výnosů staršího ze dvou fondů (returns_as_of, src/lib/datumVynosu.ts), ne den stažení ani globální datum.
   const nejstarsiDen = [dp1, dp2].map((d) => datumVynosu({ returns_as_of: d?.returnsAsOf, scraping_date: d?.scrapingDate })).filter((d): d is Date => !!d).sort((a, b) => a.getTime() - b.getTime())[0];
-  const denDat = nejstarsiDen ?? await getDataDate(today);
-  const datumK = denDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Kolo 7: bez návratu ke dnešku – neznámý den dat = žádné „Data k …“ (pravidlo č. 1).
+  const denDat = nejstarsiDen ?? await getDataDatum();
+  const datumK = denDat?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null;
   const odl1 = !!dp1?.odlehly, odl2 = !!dp2?.odlehly;
 
   const terNizsi = etf1.ter_numeric != null && etf2.ter_numeric != null && ter(etf1.ter_numeric) !== ter(etf2.ter_numeric)
@@ -192,7 +193,7 @@ export default async function SrovnaniPreview() {
             <h1 className="text-xl md:text-3xl font-bold tracking-tight leading-tight">{TICKER1} vs {TICKER2}: srovnání v korunách</h1>
             <p className="mt-1.5 text-sm text-slate-300 leading-snug">
               Celý svět ({holdings1?.toLocaleString('cs-CZ') ?? 'tisíce'} firem) proti 500 největším firmám USA.{' '}
-              <span className="text-slate-400">Data k {datumK}.</span>
+              {datumK && <span className="text-slate-400">Data k {datumK}.</span>}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2.5 md:gap-4">
               <SrovnaniSoubojKarta etf={etf1} ticker={t1} podtitul="Celý svět" barva={barvaFondu(0)} odlehly={odl1} />
@@ -358,7 +359,7 @@ export default async function SrovnaniPreview() {
         <div className="pb-12 space-y-2">
           <p className="flex items-start gap-1.5 text-xs text-slate-400 leading-relaxed">
             <Database className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
-            <span>Data fondů: justETF · kurzy ČNB · data k {datumK} (<Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">metodika</Link>). Píše <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">Tomáš Kostrhoun</Link>, bez placeného pořadí.</span>
+            <span>Data fondů: justETF · kurzy ČNB{datumK ? ` · data k ${datumK}` : ''} (<Link href="/metodika" className="underline underline-offset-2 hover:text-slate-600">metodika</Link>). Píše <Link href="/o-nas" className="underline underline-offset-2 hover:text-slate-600">Tomáš Kostrhoun</Link>, bez placeného pořadí.</span>
           </p>
           <InvestmentDisclaimer variant="inline" className="!text-slate-400" />
         </div>

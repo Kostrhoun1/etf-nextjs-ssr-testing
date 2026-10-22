@@ -7,7 +7,7 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, Database, Info, Scale, ShieldCheck, HelpCircle, PieChart, Layers, LineChart, Landmark, Globe, Percent, TrendingDown, Building2, Calculator, Wallet, CheckCircle2, XCircle, Target, Clock, Sparkles, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getETFsByIsins, getTotalETFCount, getDataDate } from '@/lib/etf-data';
+import { getETFsByIsins, getTotalETFCount, getDataDatum } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
@@ -55,7 +55,7 @@ export default async function EtfVsAkciePage() {
     getETFsByIsins(BROAD_ISINS),
     getTotalETFCount(),
   ]);
-  const datumDat = (await getDataDate(new Date())).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }); // čísla v tabulce fondů
+  const datumDat = (await getDataDatum())?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null; // čísla v tabulce fondů; kolo 7: bez návratu ke dnešku
   const totalStr = totalCount >= 100 ? `${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+` : `${totalCount}`;
 
   const faqs = [
@@ -293,7 +293,7 @@ export default async function EtfVsAkciePage() {
               </div>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
                 <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-                Data k {datumDat}. Výnos je za 5 let přepočtený do korun (obsahuje i pohyb kurzu, který český investor reálně cítí).
+                {datumDat && <>Data k {datumDat}. </>}Výnos je za 5 let přepočtený do korun (obsahuje i pohyb kurzu, který český investor reálně cítí).
                 Není to doporučení konkrétního fondu ani záruka budoucího výnosu – minulé výsledky se nemusí opakovat.
                 Rozdíl mezi indexy rozebírá{' '}
                 <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,

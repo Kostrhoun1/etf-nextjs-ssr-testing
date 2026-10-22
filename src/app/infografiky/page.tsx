@@ -6,7 +6,7 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import {
   getFeaturedETFs,
   getTotalETFCount,
-  getDataDate,
+  getDataDatum,
   getTopETFsForCategory,
   categoryConfigs,
 } from '@/lib/etf-data';
@@ -73,7 +73,7 @@ export default async function InfografikyRozcestnik() {
     getFeaturedETFs(),
     getTotalETFCount(),
     getHeatmapTiles(),
-    getDataDate(new Date()),
+    getDataDatum(), // kolo 7: bez návratu ke dnešku (null = datum neukazovat)
   ]);
 
   const count = totalCount > 0 ? totalCount : TOTAL_FALLBACK;
@@ -172,7 +172,7 @@ export default async function InfografikyRozcestnik() {
             podle poplatku a tržní heatmapa regionů a sektorů s výnosy v korunách.
           </p>
           {/* Pravidlo č. 1: čísla na stránce bez data nebyla (SEO audit 20. 10. 2026). */}
-          <AktualnostDat datum={dataDate} className="mt-3" />
+          {dataDate && <AktualnostDat datum={dataDate} className="mt-3" />}
         </section>
 
         {/* Dva přehledy fondů – každé číslo jen jednou (dřív top 3 v kartách a znovu top 5 pod nimi). */}

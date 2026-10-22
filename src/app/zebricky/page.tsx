@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { categoryConfigs, getTotalETFCount, getDataDate, getDataDatum } from '@/lib/etf-data';
+import { categoryConfigs, getTotalETFCount, getDataDatum } from '@/lib/etf-data';
 import { NAZVY_ZEBRICKU } from '@/lib/zebrickySouvisejici';
 import { nactiSouhrnyZebricku, type SouhrnZebricku } from '@/lib/zebricky';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
@@ -140,9 +140,9 @@ export default async function ZebrickyPage() {
   const [souhrn, totalCount, dataDate] = await Promise.all([
     nactiSouhrnyZebricku(),
     getTotalETFCount(),
-    getDataDate(new Date()),
+    getDataDatum(), // kolo 7: bez návratu ke dnešku (null = datum neukazovat)
   ]);
-  const datum = fmtDatum(dataDate);
+  const datum = dataDate ? fmtDatum(dataDate) : null;
 
   // Skupiny jen z reálně existujících kategorií; zbytek configu do „Další žebříčky“.
   const groups = GROUP_DEFS.map((g) => ({ ...g, slugs: g.slugs.filter((s) => categoryConfigs[s]) })).filter((g) => g.slugs.length);
@@ -183,7 +183,7 @@ export default async function ZebrickyPage() {
       <span>Žebříček</span>
       <span className="text-right whitespace-nowrap"><InfoTip label="Kolik fondů do žebříčku patří: jen fondy nad práh velikosti (10, 50 nebo 100 mil. € – uvedený na stránce žebříčku), bez pákových produktů a fondů, jejichž data nebyla 14 dní aktualizována.">Fondů</InfoTip></span>
       <span className="text-right whitespace-nowrap"><InfoTip label="Nejnižší roční poplatek (TER) mezi fondy žebříčku.">TER od</InfoTip></span>
-      <span className="text-right whitespace-nowrap"><InfoTip label={`Výnos největšího fondu žebříčku za posledních 12 měsíců v Kč, k ${datum}. Pod číslem jeho ticker.`}>Největší, 12 m</InfoTip></span>
+      <span className="text-right whitespace-nowrap"><InfoTip label={`Výnos největšího fondu žebříčku za posledních 12 měsíců v Kč${datum ? `, k ${datum}` : ''}. Pod číslem jeho ticker.`}>Největší, 12 m</InfoTip></span>
       <span />
     </div>
   );
@@ -221,7 +221,7 @@ export default async function ZebrickyPage() {
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-600">
             {totalCount > 0 && <span><strong className="font-semibold text-slate-900 tabular-nums">{`${(Math.floor(totalCount / 100) * 100).toLocaleString('cs-CZ')}+`}</strong> fondů ve srovnávači</span>}
-            <AktualnostDat datum={dataDate} />
+            {dataDate && <AktualnostDat datum={dataDate} />}
           </div>
           {/* Proč „Akciové 1 780“, když srovnávač má 2 900+ akciových fondů (kolo 5): práh velikosti žebříčku.
               Změřeno 18. 10. 2026: data 98,7 % fondů jsou z téhož dne – rozdíl NENÍ čerstvost, ale fondy pod 50 mil. €. */}

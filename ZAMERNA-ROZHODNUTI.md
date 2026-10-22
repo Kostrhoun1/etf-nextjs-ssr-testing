@@ -265,9 +265,11 @@ ZŮSTÁVÁ** – majitel 18. 10. 2026: „když jsi u modelových portfolií dal
   12 sektorů zdroje: Technology, Finance, Healthcare, Consumer Non-Cyclicals, Industrials, Energy, Consumer Cyclicals,
   Non-Energy Materials, Consumer Services, Utilities, Business Services, Telecommunication(s). Kontrola: check-fund-data
   (název sektoru v DB bez českého překladu = varování).
-- **Složení fondu nemá na webu konkrétní datum** – DB (`etf_funds`) žádný sloupec s datem složení nemá (justETF ho
-  uvádí, scraper ho neukládá). Proto popisek „Podle posledního zveřejnění emitenta – obvykle 1–2 měsíce zpětně“. Až
-  scraper (etf-astro) datum začne ukládat, nahradit „Složení k …“.
+- **Složení fondu má datum `holdings_as_of`, ne den výnosů ani stažení** (kolo 7, 22. 10. 2026; dřív tu stálo „nemá datum“ –
+  sloupec scraper plní od 20. 10. 2026). Detail fondu: „Složení k 31. 8. 2026 – poslední zveřejnění emitenta“; žebříčky
+  (infografika složení největšího fondu) a /sp500-nebo-cely-svet totéž. Je to obvykle konec měsíce 1–2 měsíce zpět – ZÁMĚR,
+  nepřepisovat na den dat. Chybí-li datum, stránka napíše „Datum složení neznáme“ (nikdy den stažení – /sp500-nebo-cely-svet
+  psal „Složení fondů k 22. 10. 2026“, zdroj uvádí 31. 8.). Hlídá check-fund-data (kolo6 data + kolo7 data).
 - **Komodity a krypto: „Nevyplácí (komodita)“, i když zdroj píše „Accumulating“** (`src/lib/dividendyFondu.ts`). Jen
   akumulační třídy; distribuční komoditní fondy (Enhanced Commodity – úroky z pokladničních poukázek, Gold+ Yield –
   opce) ukazují, co uvádí zdroj. Fondy těžařů (miners) nejsou komodita. Hlídá `check-fund-data.mjs`.
@@ -608,3 +610,25 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Titulek > 65 znaků → bez „| ETF průvodce.cz“** (`titulek()` v src/lib/seoTitulek.ts), stejně jako u žebříčků a detailů.
 - **Organization schema: „Největší český průvodce ETF fondy“ ZŮSTÁVÁ** (rozhodnutí majitele 18. 10., viz výše) i přes
   doporučení auditu 6b; odstraněna jen „Jedinečná databáze ETF pro české investory“.
+
+## Data a datumy – kontrolní kolo 7 (22. 10. 2026)
+
+- **Žádný návrat ke dnešku.** Když se den dat nenačte (`getDataDatum()` = null), stránka „Data k …“ ani JSON-LD
+  `dateModified`/`temporalCoverage` NEUKAZUJE – i když to vypadá jako chybějící údaj. `getDataDate(fallback)` smí jen sitemapa.
+  Detail fondu bez výnosů bere den cen podle stažení TOHO fondu, nikdy globální datum. Hlídá check-fund-data (kolo7 data, statická kontrola).
+- **„Výnosy k …“ u fondu jen když je jeho den STARŠÍ než „Data k“ stránky** (`jineDatumVynosu`, src/lib/datumVynosu.ts) a fond má
+  aspoň jeden výnos za období. Fond s novějším dnem (výjimečně) nese den stránky – text u data říká „zdroj má ceny se zpožděním“,
+  což by u novějšího dne lhalo. Fond bez jediného výnosu (BTCW 22. 10.: returns_as_of null) žádný den výnosů nemá – „—“ bez data.
+- **ETC/ETN/ETP mají v porovnání „Právní struktura: ETC – dluhový cenný papír, ne fond“**, i když zdroj u nich vede „UCITS“
+  (BRNT, BITC, BTCW). Švýcarský fond „švýcarský fond (ne UCITS)“, rozbité hodnoty sloupce (`focus Equity…`, `Contractual`) → „UCITS“
+  jen když ho má fond v názvu, jinak „—“ (`pravniStrukturaText`, src/lib/detailFondu.ts). U nich i „stejný produkt“ místo „stejný fond“.
+- **Štítek „sídlo CH“ nedostávají ETP, ETC ani ETN** (XXBU – Xtrackers Galaxy Physical Bitcoin ETC Securities, CH1315732250).
+- **/sp500-nebo-cely-svet: kolísavost z MĚSÍČNÍCH výnosů stejnou funkcí jako backtest** (calculateSummary) – S&P 500 v Kč od 7/2008
+  13,7 % (dřív 21,1 % z denních log-výnosů). Ověřeno 22. 10. 2026: backtest API 13,74 %, Yahoo SPY × kurzy ČNB 13,72 %. „Od 2008“
+  = od 1. 7. 2008 jako engine (první den 2. 7.): S&P 500 v Kč 14,7 % ročně všude (dřív hloubkový rozbor od 30. 6. = 14,5 %);
+  Yahoo × ČNB 14,66 %. Nejhlubší propad S&P 500 v Kč = celá řada od 2000 (9/2000 → 3/2009, −72 %, zpět na vrcholu 12/2014),
+  ne dno okna 2000–2003 (−61 %); Yahoo × denní kurzy ČNB −71,7 %, stejné dny. Hlídá check-fund-data (kolo7 data).
+- **„Návrat“ vždy s výchozím bodem.** Backtest, portfolia a faktorové stránky (krize = calculateStressPeriods) počítají dobu
+  OD DNA do návratu na předchozí vrchol („návrat za 14 měs. od dna“); tabulka krizí v /sp500-nebo-cely-svet a /kolik-vydelaly-etf
+  a „nejhlubší propad“ faktorů (maxDrawdown.lengthMonths) OD VRCHOLU. Oba údaje jsou správně – liší se definicí, proto ji text
+  vždy uvádí. Hlídá check-fund-data (kolo7 data: „návrat za …“ bez „od dna/od vrcholu“ = poplach).

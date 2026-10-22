@@ -15,7 +15,7 @@ import { barvaFondu } from '@/lib/barvyFondu';
 import { cislo, procenta, terText, velikostText } from '@/lib/formatSrovnavac';
 import { RIZIKO_NESEDI_TEXT, type RizikoPole } from '@/lib/tridyFondu';
 import { VYPLATA_ACC, VYPLATA_DIST, DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
-import { cistyNazevPozice, slucPozice, seradBurzy } from '@/lib/detailFondu';
+import { cistyNazevPozice, slucPozice, seradBurzy, jeDluhovyProdukt, pravniStrukturaText } from '@/lib/detailFondu';
 import { VYNOS_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
@@ -77,11 +77,18 @@ function skupinyBurz(e: ComparisonETF) {
   return [...skupiny.values()];
 }
 
+/** „Stejný fond“ / „Stejný produkt“ (ETC/ETN/ETP nejsou fondy – kolo 7) / „Stejný fond či produkt“ (smíšené porovnání). */
+const dluhovy = (e: ComparisonETF) => !!jeDluhovyProdukt({ name: e.name, description_en: str(raw(e).description_en) });
+function slovoStejny(etfs: ComparisonETF[]): string {
+  const d = etfs.filter(dluhovy).length;
+  return d === 0 ? 'Stejný fond' : d === etfs.length ? 'Stejný produkt' : 'Stejný fond či produkt';
+}
+
 /* Mobil: burzy po fondech přes celou šířku (ve 3–4 úzkých sloupcích se seznam lámal po slovech). */
 function BurzyMobil({ etfs }: { etfs: ComparisonETF[] }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white divide-y divide-slate-100">
-      <p className="px-2.5 pt-2 text-xs text-slate-500">Burzy a tickery <span className="text-slate-400">· stejný fond, jiná burza a měna</span></p>
+      <p className="px-2.5 pt-2 text-xs text-slate-500">Burzy a tickery <span className="text-slate-400">· {slovoStejny(etfs).toLowerCase()}, jiná burza a měna</span></p>
       {etfs.map((e, i) => {
         const g = skupinyBurz(e);
         return (
@@ -325,9 +332,10 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
         { label: <InfoTip label="Fyzická = fond drží cenné papíry indexu (nebo fyzický kov). Syntetická = výnos indexu dodává protistrana swapem; „unfunded“ = fond drží vlastní koš cenných papírů a jeho výnos za výnos indexu směňuje.">Replikace</InfoTip>, cell: (e) => replLabel(e.replication) },
         { label: <InfoTip label="Zajištěná třída tlumí vliv kurzu (např. USD/EUR) za poplatek – její výnos se proto liší od nezajištěné třídy stejného indexu.">Měnové zajištění</InfoTip>, cell: (e) => { const h = detectHedging(e.name); return h.isHedged ? (h.hedgedCurrency ? `Zajištěno do ${h.hedgedCurrency}` : 'Zajištěno') : 'Nezajištěno'; } },
         { label: 'Domicil', cell: (e) => dom(e.fund_domicile) },
-        { label: 'Právní struktura', cell: (e) => str(raw(e).legal_structure) ?? '—' },
+        // Kolo 7: ETC/ETN/ETP nejsou UCITS fondy, i když je tak zdroj vede (BRNT, BITC, BTCW) – src/lib/detailFondu.ts.
+        { label: 'Právní struktura', cell: (e) => pravniStrukturaText({ isin: e.isin, name: e.name, legal_structure: str(raw(e).legal_structure), description_en: str(raw(e).description_en) }) ?? '—' },
         { label: 'Měna fondu', cell: (e) => str(e.fund_currency) ?? '—' },
-        { label: <InfoTip label="Stejný fond se obchoduje na více burzách pod různými tickery a v různých měnách – poplatek i výnos fondu jsou stejné. V Česku se nejčastěji kupuje na XETRA.">Burzy a tickery</InfoTip>, top: true, cell: (e) => <Burzy e={e} />, omit: etfs.every((e) => burzy(e).length === 0), mobil: <BurzyMobil etfs={etfs} /> },
+        { label: <InfoTip label={`${slovoStejny(etfs)} se obchoduje na více burzách pod různými tickery a v různých měnách – poplatek i výnos jsou stejné. V Česku se nejčastěji kupuje na XETRA.`}>Burzy a tickery</InfoTip>, top: true, cell: (e) => <Burzy e={e} />, omit: etfs.every((e) => burzy(e).length === 0), mobil: <BurzyMobil etfs={etfs} /> },
       ],
     },
     {
