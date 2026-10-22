@@ -14,6 +14,10 @@ export type InfografikyHeatTile = {
   label: string;
   value: number | null;
   href: string;
+  /** Ticker fondu, ze kterého je hodnota (kolo 7 – dřív nebylo vidět, čí výnos to je). */
+  ticker?: string | null;
+  /** Den výnosů fondu, když se liší od dne celé heatmapy (zpožděná řada u zdroje). */
+  jinyDen?: string | null;
 };
 
 /** Barevné pozadí dlaždice podle výkonnosti (zelená = růst, červená = pokles). */
@@ -151,6 +155,11 @@ export function InfografikyHeatGrid({ tiles }: { tiles: InfografikyHeatTile[] })
               ))}
           </span>
           <span className="block tabular-nums text-lg font-bold leading-tight mt-1">{pct(t.value)}</span>
+          {(t.ticker || t.jinyDen) && (
+            <span className="block text-[11px] leading-tight mt-0.5 opacity-80">
+              {t.ticker ?? ''}{t.jinyDen ? `${t.ticker ? ' · ' : ''}k ${t.jinyDen}` : ''}
+            </span>
+          )}
         </Link>
       ))}
     </div>
