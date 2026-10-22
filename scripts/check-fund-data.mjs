@@ -2417,7 +2417,7 @@ const main = async () => {
         if (/Ukazujeme \d[\d ]* největších z \d/.test(t)) chyby.push(`${z}: „Ukazujeme N největších z M … bez zajištěných“ – nesouhlasí s počtem řádků`);
         const karty = (nacteno.get(z)?.html ?? '').match(/data-sekce="vybrane"[\s\S]*?<\/section>/)?.[0] ?? '';
         // ETP švýcarských emitentů (21Shares – bitcoin) nejsou fondy → bitcoinový žebříček se nekontroluje.
-        for (const m of karty.matchAll(/href="\/etf\/(CH[A-Z0-9]{10})"[\s\S]{0,600}?<\/a>/g)) if (!/\b(ETP|ETN)\b/.test(text(m[0]))) chyby.push(`${z}: švýcarský fond ${m[1]} na kartě`);
+        for (const m of karty.matchAll(/href="\/etf\/(CH[A-Z0-9]{10})"[\s\S]{0,600}?<\/a>/g)) if (!/\b(ETP|ETC|ETN)\b/.test(text(m[0]))) chyby.push(`${z}: švýcarský fond ${m[1]} na kartě`); // kolo 7: + ETC (XXBU)
       }
       const z2026 = nacteno.get('/nejlepsi-etf/nejlepsi-etf-2026')?.html ?? '';
       if (/Gold|XEON|Overnight/i.test(z2026) && !/>ETC<|>peněžní trh</.test(z2026)) chyby.push('/nejlepsi-etf/nejlepsi-etf-2026: řádky zlata/peněžního trhu bez štítku typu');
@@ -2443,6 +2443,128 @@ const main = async () => {
     }
   }
   // --- konec kolo6b seo obsah ---
+  // --- kolo7 data --- (kontrolní kolo 7, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+  // Před nasazením (produkce ještě nemá data-slozeni-k na detailu fondu) se živé nálezy hlásí jen jako varování;
+  // statické kontroly zdrojáku platí vždy.
+  {
+    const chyby = [];
+    const staticke = [];
+    let nasazeno7 = false;
+    try {
+      const H7 = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+      const vem = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return { status: r.status, html: (await r.text()).replace(/<!-- -->/g, '') }; } catch { return { status: 0, html: '' }; } };
+      const text = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ')
+        .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/[  ]/g, ' ').replace(/\s+/g, ' ');
+      const souborySrc = (d) => readdirSync(d).flatMap((n) => { const p = `${d}/${n}`; return statSync(p).isDirectory() ? souborySrc(p) : /\.(tsx?|mjs)$/.test(n) ? [p] : []; });
+      const zdroje = souborySrc('src').map((p) => [p, readFileSync(p, 'utf8')]);
+      const isoZCs = (s) => { const m = /(\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/.exec(s ?? ''); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null; };
+      const denStranky = (h) => isoZCs(h.match(/Data k <strong[^>]*>([^<]+)<\/strong>/)?.[1]);
+
+      // 1) STATICKY: tichý návrat ke dnešku – getDataDate(fallback) jen v sitemapě (tam ho spravuje SEO). Jinde getDataDatum()
+      //    a při null datum/dateModified vynechat (dřív 14 stránek tvrdilo „dnes“, když se den dat nenačetl).
+      for (const [p, t] of zdroje) {
+        if (p.endsWith('src/app/sitemap.ts') || p.endsWith('src/lib/etf-data.ts')) continue;
+        t.split('\n').forEach((l, i) => { if (/getDataDate\(\s*[^)\s]/.test(l) && !/^\s*(\/\/|\*)/.test(l)) staticke.push(`${p}:${i + 1}: getDataDate(…) – použijte getDataDatum() a při null datum neukazujte`); });
+      }
+      // 2) STATICKY: štítek „sídlo CH“ nesmí dostat ETC/ETP/ETN (XXBU = Xtrackers Galaxy Physical Bitcoin ETC Securities).
+      const nf = readFileSync('src/lib/nazevFondu.ts', 'utf8').match(/export function jeSvycarskyFond[\s\S]*?!\/(.+?)\/i\.test/)?.[1];
+      if (!nf) staticke.push('src/lib/nazevFondu.ts: jeSvycarskyFond – nelze najít výjimku pro ETC/ETP/ETN');
+      else for (const n of ['Xtrackers Galaxy Physical Bitcoin ETC Securities', '21shares Bitcoin ETP', 'Hashdex Crypto Momentum Factor ETN'])
+        if (!new RegExp(nf, 'i').test(n)) staticke.push(`jeSvycarskyFond: „${n}“ by dostal štítek „sídlo CH“`);
+      // 3) STATICKY: „návrat“ vždy s výchozím bodem („od dna“ / „od vrcholu“) – backtest počítá od dna, krize v článku od vrcholu.
+      for (const [p, t] of zdroje) t.split('\n').forEach((l, i) => {
+        if (/[Nn]ávrat(em)? (za|do měsíce|na vrchol za|\d+ měsíc)|zotavení za \d/.test(l) && !/od (dna|vrcholu)/.test(l) && !/^\s*(\/\/|\*)/.test(l)) staticke.push(`${p}:${i + 1}: „návrat …“ bez „od dna/od vrcholu“`);
+      });
+
+      // Fondy pro živé kontroly z DB.
+      const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,legal_structure,description_en,scraping_date,returns_as_of,return_1m,return_3m,return_6m,return_ytd,return_1y,return_3y,return_5y,holdings_as_of&order=fund_size_numeric.desc.nullslast&limit=1000`, H7).then((r) => r.json());
+      if (!Array.isArray(db)) throw new Error('neplatná odpověď DB (kolo7)');
+      const cerstvy = (x) => (Date.now() - new Date(x.scraping_date)) / 864e5 <= 3;
+      const bezVynosu = db.filter((x) => cerstvy(x) && !x.returns_as_of && ['return_1m', 'return_3m', 'return_6m', 'return_ytd', 'return_1y', 'return_3y', 'return_5y'].every((k) => x[k] == null)).slice(0, 3);
+      const dluhove = db.filter((x) => cerstvy(x) && !/\bUCITS\b/i.test(x.name ?? '') && (/\b(ETC|ETN|ETP)\b/.test(x.name ?? '') || /\bThe (ETC|ETN|ETP)'s\b/.test(x.description_en ?? '')) && /^UCITS\b/.test(x.legal_structure ?? '')).slice(0, 3);
+      const sxr8 = (await fetch(`${URL_DB}?select=isin,holdings_as_of&isin=in.(IE00B5BMR087,IE00BK5BQT80)`, H7).then((r) => r.json()));
+      const slozeniDb = new Map((Array.isArray(sxr8) ? sxr8 : []).map((x) => [x.isin, x.holdings_as_of ? String(x.holdings_as_of).slice(0, 10) : '']));
+
+      const detailSxr8 = await vem('/etf/IE00B5BMR087');
+      nasazeno7 = /data-slozeni-k=/.test(detailSxr8.html);
+
+      // 4) Fond bez jediného výnosu (BTCW 22. 10. 2026) nemá nad samými „—“ „data k …“ (hero data-vynosy-k).
+      for (const f of bezVynosu) {
+        const h = (await vem(`/etf/${f.isin}`)).html;
+        if (/data-vynosy-k=/.test(h)) chyby.push(`/etf/${f.isin} (${f.primary_ticker}): fond bez výnosů má „data k …“ nad „—“`);
+      }
+      // 5) Porovnání: den výnosů fondu (data-vynosy-k) jen STARŠÍ než „Data k“ stránky; bez výnosů žádné datum.
+      //    Právní struktura: ETC/ETN/ETP nejsou UCITS (BRNT, BITC, BTCW měly „UCITS“).
+      const porIsiny = [...dluhove.map((x) => x.isin), 'IE00B5BMR087'].slice(0, 4);
+      const porBez = [...bezVynosu.map((x) => x.isin).slice(0, 2), 'IE00B5BMR087', 'IE00BK5BQT80'];
+      for (const isiny of [porIsiny, porBez]) {
+        const h = (await vem(`/srovnani/porovnani?isins=${isiny.join(',')}`)).html;
+        const den = denStranky(h);
+        for (const m of h.matchAll(/data-vynosy-k="(\d{4}-\d{2}-\d{2})"/g)) if (den && m[1] >= den) chyby.push(`/srovnani/porovnani?isins=${isiny.join(',')}: „výnosy k ${m[1]}“ není starší než Data k ${den} (věta o zpoždění by lhala)`);
+        if (isiny === porIsiny && dluhove.length) {
+          const t = text(h);
+          const radek = t.match(/Právní struktura (.*?) Měna fondu/)?.[1] ?? '';
+          const ucits = (radek.match(/\bUCITS\b/g) ?? []).length;
+          if (!radek) chyby.push('/srovnani/porovnani: chybí řádek „Právní struktura“');
+          else if (ucits > isiny.length - dluhove.length) chyby.push(`/srovnani/porovnani: ETC/ETN/ETP s „UCITS“ v právní struktuře („${radek.slice(0, 120)}“)`);
+          if (/stejný fond, jiná burza/.test(t)) chyby.push('/srovnani/porovnani: u ETC/ETN „stejný fond“ (má být „stejný produkt“)');
+        }
+      }
+      // 6) Žebříčky: „výnosy k …“ (vynosyK) jen starší než den stránky; ETC/ETP/ETN švýcarských emitentů bez štítku „sídlo CH“.
+      for (const z of ['/nejlepsi-etf/nejlepsi-bitcoin-etf', '/nejlepsi-etf/nejlepsi-krypto-etf', '/nejlepsi-etf/nejlepsi-etf-2026']) {
+        const r = await vem(z);
+        if (r.status !== 200) continue;
+        const h = r.html.replace(/\\"/g, '"');
+        const den = denStranky(r.html);
+        for (const m of h.matchAll(/"isin":"([A-Z0-9]{12})","nazev":"([^"]*)"[^{}]*?(?:\{[^{}]*\}[^{}]*?)*?"vynosyK":"([^"]+)"/g)) {
+          const iso = isoZCs(m[3]);
+          if (den && iso && iso >= den) chyby.push(`${z}: ${m[1]} „výnosy k ${m[3]}“ není starší než Data k ${den}`);
+        }
+        for (const m of h.matchAll(/"isin":"(CH[A-Z0-9]{10})","nazev":"([^"]*\b(?:ETC|ETP|ETN)\b[^"]*)"[^{}]*?(?:\{[^{}]*\}[^{}]*?)*?"svycarsky":true/g)) chyby.push(`${z}: ${m[1]} (${m[2].slice(0, 40)}) má štítek „sídlo CH“, ale je to ETC/ETP/ETN`);
+      }
+      // 7) Datum složení = holdings_as_of (ne den stažení): detail SXR8, žebříček S&P 500, článek S&P 500 vs. svět.
+      const sk = detailSxr8.html.match(/data-slozeni-k="([^"]*)"/)?.[1];
+      if (sk === undefined) chyby.push('/etf/IE00B5BMR087: u složení chybí datum (data-slozeni-k)');
+      else if (sk !== (slozeniDb.get('IE00B5BMR087') ?? '')) chyby.push(`/etf/IE00B5BMR087: složení k „${sk}“ ≠ DB holdings_as_of „${slozeniDb.get('IE00B5BMR087')}“`);
+      const zsp = (await vem('/nejlepsi-etf/nejlepsi-sp500-etf')).html;
+      if (/Rozložení podle sektorů|Geografické rozložení|Největší pozice ve fondu/.test(zsp) && !/data-slozeni-k=/.test(zsp)) chyby.push('/nejlepsi-etf/nejlepsi-sp500-etf: rozložení složení bez data (data-slozeni-k)');
+      const sw = (await vem('/sp500-nebo-cely-svet')).html;
+      const swSk = sw.match(/data-slozeni-k="([^"]*)"/)?.[1];
+      const swDb = ['IE00B5BMR087', 'IE00BK5BQT80'].map((i) => slozeniDb.get(i) ?? '').join(',');
+      if (/Co vlastně porovnáváme/.test(sw) && swSk !== swDb) chyby.push(`/sp500-nebo-cely-svet: složení fondů k „${swSk}“ ≠ DB holdings_as_of „${swDb}“ (dřív den stažení)`);
+
+      // 8) /sp500-nebo-cely-svet: jedno číslo S&P 500 v Kč od 2008, kolísavost z měsíčních výnosů (= backtest),
+      //    skutečný max. propad (= /kolik-vydelaly-etf), mezery a formáty.
+      const t = text(sw);
+      const kcKlic = t.match(/S&P 500 \(fond SPY\) – ročně v Kč od 7\/2008 (\d+,\d) %/)?.[1];
+      const kcKoruna = t.match(/vydělal S&P 500 v dolarech -?\d+,\d % ročně, v korunách (\d+,\d) %/)?.[1];
+      if (!kcKlic || !kcKoruna || kcKlic !== kcKoruna) chyby.push(`/sp500-nebo-cely-svet: S&P 500 v Kč od 2008 jednou ${kcKlic} %, jinde ${kcKoruna} %`);
+      if (/denních (log-)?výnosů/.test(t)) chyby.push('/sp500-nebo-cely-svet: kolísavost z denních výnosů (web jinde z měsíčních)');
+      const volClanek = Number((t.match(/kolísal S&P 500 v korunách o (\d+,\d) %/)?.[1] ?? '').replace(',', '.'));
+      try {
+        const dnes = new Date().toISOString().slice(0, 10);
+        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ portfolio: [{ isin: 'sp500', name: 'sp500', weight: 1, ter: 0, indexCode: 'sp500' }], startDate: '2008-07-01', endDate: dnes, initialAmount: 100000, rebalancingStrategy: 'yearly', currency: 'CZK' }) }).then((r) => r.json());
+        const volBt = 100 * Number(bt?.summary?.standardDeviation);
+        if (!Number.isFinite(volClanek) || !Number.isFinite(volBt) || Math.abs(volClanek - volBt) > 0.15) chyby.push(`/sp500-nebo-cely-svet: kolísavost S&P 500 ${volClanek} % ≠ backtest ${volBt.toFixed(2)} %`);
+        const cagrBt = 100 * Number(bt?.summary?.cagr);
+        if (kcKlic && Math.abs(Number(kcKlic.replace(',', '.')) - cagrBt) > 0.06) chyby.push(`/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % ≠ backtest ${cagrBt.toFixed(2)} %`);
+      } catch (e) { varovani.push({ co: `kolo7: backtest pro kontrolu kolísavosti nešel zavolat: ${e.message}`, ukazka: [] }); }
+      const propadClanek = sw.match(/data-max-propad-sp-kc="(-?[\d.]+)"/)?.[1];
+      const propadKv = text((await vem('/kolik-vydelaly-etf')).html).match(/Nejhlubší propad v Kč (−|-)(\d+) %/)?.[2];
+      if (!propadClanek) chyby.push('/sp500-nebo-cely-svet: chybí věta o nejhlubším propadu S&P 500 v Kč (data-max-propad-sp-kc)');
+      else if (propadKv && String(Math.round(Math.abs(Number(propadClanek)))) !== propadKv) chyby.push(`/sp500-nebo-cely-svet: nejhlubší propad S&P 500 v Kč ${propadClanek} % ≠ /kolik-vydelaly-etf −${propadKv} %`);
+      for (const [re, co] of [[/Kč\.(Jenže|A) /, 'chybí mezera „Kč.Jenže“'], [/ročně\.Tohle/, 'chybí mezera „ročně.Tohle“'], [/data k dnešku/, '„data k dnešku“ místo data'],
+        [/\d mld €/, '„mld €“ místo „mld. €“'], [/v období (leden|únor|březen|duben|květen|červen|červenec|srpen|září|říjen|listopad|prosinec) \d{4}/, '„v období prosinec 2014“ místo „v prosinci 2014“']])
+        if (re.test(t)) chyby.push(`/sp500-nebo-cely-svet: ${co}`);
+    } catch (e) {
+      varovani.push({ co: `Kontrolu kolo7 data se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+    }
+    if (staticke.length) poplach.push({ co: `Kód (kolo 7): ${staticke.length} nálezů – tichý návrat ke dnešku / štítek CH / „návrat“ bez výchozího bodu`, ukazka: staticke.slice(0, 10) });
+    if (chyby.length) {
+      (nasazeno7 ? poplach : varovani).push({ co: `Data a datumy (kolo 7)${nasazeno7 ? '' : ' – produkce ještě bez oprav (před nasazením)'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 15) });
+    }
+  }
+  // --- konec kolo7 data ---
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
