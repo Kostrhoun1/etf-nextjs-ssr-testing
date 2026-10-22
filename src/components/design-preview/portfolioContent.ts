@@ -4,7 +4,9 @@
  * ČÍSLA JEN Z DAT (pravidlo č. 1, revize 19. 10. 2026): místo čísel bez zdroje („klidně o 45 %“, „−40 % i víc“)
  * zástupné značky, které detail doplní z backtestu stránky (stejná data a období jako tabulka historie):
  *   {maxPokles} největší propad portfolia, {obdobiPropadu} „vrchol 10/2007 → dno 3/2009“, {navrat} „návrat na vrchol za ~4 roky od dna“,
- *   {od} začátek dat („6/2008“), {maxPoklesAkcie} propad 100 % akcií světa (VT) ve stejném období, {rok2022} výnos 2022.
+ *   {od} začátek dat („6/2008“), {maxPoklesAkcie} propad 100 % akcií světa (VT) ve stejném období, {rok2022} výnos 2022,
+ *   {maxPoklesAbs} propad bez znaménka (do „spadlo až o …“ – kolo 8: dřív dvojí zápor „o −33,3 %“),
+ *   {cagr} roční zhodnocení portfolia, {cagrAkcie} VT, {cagrJadro} portfolio bez satelitu (srovnaniJadro v PORTFOLIO_BACKTEST).
  * Chybí-li data, doplní se „—“ (raději žádné číslo než špatné).
  */
 
@@ -27,25 +29,30 @@ export const portfolioContent: Record<string, PortfolioContent> = {
     ],
     howItWorks: 'Akcie nesou dlouhodobý růst, dluhopisy tlumí výkyvy. Jednou ročně vrátíte poměr na 60/40 (vyvážení) – prodáte část toho, co narostlo, a dokoupíte to, co zaostalo. Po propadu akcií tak dokupujete akcie levněji.',
     strengths: 'Jednoduchost: dva fondy a jedno vyvážení ročně. A mírnější propady než u čistých akcií: největší propad v datech od {od} byl {maxPokles} ({obdobiPropadu}), u 100 % akcií celého světa ve stejném období {maxPoklesAkcie}.',
-    weakness: 'Když akcie i dluhopisy padají současně – jako v roce 2022, kdy rychle rostly úrokové sazby – dluhopisy propad netlumí: portfolio v roce 2022 ztratilo {rok2022} (v Kč). Za klidnější průběh navíc platíte nižším dlouhodobým výnosem než u čistě akciového portfolia.',
+    weakness: 'Když akcie i dluhopisy padají současně – jako v roce 2022, kdy rychle rostly úrokové sazby – dluhopisy propad netlumí: portfolio skončilo rok 2022 na {rok2022} (v Kč). Za klidnější průběh navíc platíte nižším dlouhodobým výnosem než u čistě akciového portfolia.',
   },
   'globalni-jadro-small-cap-value': {
+    /* Kolo 8 (22. 10. 2026): přepsáno. Dřív „jak bychom sami stavěli … kdyby šlo o vlastní peníze“ (blízko doporučení),
+       čísla bez zdroje (~20 bp, QUAL −0,4 %, DFSVX ~11,4 %, „44 let živé historie“ × DFSVX od 1993) a náskok proti VT
+       mlčky připsaný malým firmám. Nezávislý přepočet (Yahoo adj. close × kurzy ČNB, 26. 6. 2008 → 21. 10. 2026):
+       celé portfolio 11,85 %, jádro bez satelitu 11,90 %, VT 10,87 % ročně – náskok dělá váha USA, ne malé firmy.
+       Čísla v textu doplňuje stránka z backtestu ({cagr}, {cagrJadro}, {cagrAkcie}). */
     intro: [
-      'ETF průvodce portfolio je vzorové portfolio, na kterém ukazujeme, jak bychom sami stavěli čistě akciové portfolio, kdyby šlo o vlastní dlouhodobé peníze — s důrazem na dvě věci, které se dají doložit čísly: minimalizovat daně a náklady jádra a přidat jen ty faktory, které po nákladech reálně přežijí. Není to investiční doporučení, ale poctivě odůvodněný příklad.',
-      'Jádro (85 %) záměrně nestavíme na jednom „all-world“ fondu, ale na třech cap-weight stavebních kamenech vybraných kvůli daním a nákladům: syntetický S&P 500 (vyhýbá se americké srážkové dani z dividend — na 10 letech dat reálně o ~20 bp/rok lepší než fyzická replikace), MSCI World ex USA a rozvíjející se trhy (EM IMI). Dohromady tvoří stejný globální trh jako jeden all-world fond, ale s ověřeným nadvýnosem ~+15–20 bp ročně. Je to málo — ale je to zadarmo a natrvalo.',
-      'U faktorů jsme byli tvrdí. Value, quality, momentum i size jsou na papíře reálné prémie, jenže otázka pro českého UCITS investora nezní „existují?“, ale „dokážu je po nákladech vytěžit?“. A tam většina padá: value po poplatcích ~0, quality taky (QUAL zaostal −0,4 % za trhem), momentum se v UCITS obalu nedá koupit za rozumnou cenu. Jediný faktor, který přežívá i po nákladech a má za sebou 44 let živé historie, je small-cap value — fond DFSVX vydělával ~11,4 % ročně od 1993, ~+1,8 pb/rok nad svým benchmarkem.',
-      'Proto je jediný náklon v tomhle portfoliu 15% satelit small-cap value (Avantis). A nedržíme ho kvůli honbě za výnosem — bereme ho jako režimovou pojistku: pomáhá nejvíc ve „ztracené dekádě“ cap-weight trhu, jeho očekávaný přínos je skromný (0–15 bp s pravděpodobností úspěchu ~60–65 %). To znamená disciplínu: závazek držet ho i roky, kdy zaostává, protože přesně to je cena za tu prémii.',
-      'A ještě jedna vědomá volba — proč zrovna Avantis Global Small Cap Value, a ne obyčejný small-value indexový fond. AVWS není indexový fond: je to systematická aktivní strategie od týmu kolem Eduarda Repetta (bývalého CIO Dimensional, který v roce 2019 založil Avantis). Stejná akademická DNA jako slavné fondy DFA, jen modernější a levnější. Akcie nevybírá podle indexu, ale podle kombinace levného ocenění × ziskovosti — chce firmy, které jsou levné vůči účetní hodnotě (očištěné o goodwill, aby „levnost“ nebyla jen iluze z akvizic) A ZÁROVEŇ provozně ziskové. Právě ta kombinace nese většinu prémie: levná nezisková firma bývá levná právem (value past), drahá zisková firma prémii nemá.',
-      'Navíc vědomě vyřazuje „lottery tickets“ — malé neziskové, agresivně investující firmy, kvůli jejichž katastrofálním výnosům samotný size faktor v indexech nefunguje — a obchoduje průběžně a trpělivě místo pololetních rekonstitucí (žádné front-runnutí rebalančních dnů, čerstvé signály místo půl roku starých). Obyčejný small-value index tohle nedělá: hrubé P/B s goodwillovými iluzemi, žádný filtr ziskovosti, rekonstituce 2× ročně. To je ten ~0,2–0,3 % rozdíl v poplatku, který si Avantis „vydělává zpátky“ — fondy s touhle DNA historicky doručovaly zhruba +1 pb ročně nad srovnatelné value indexy čistě.',
+      'Svět + malé firmy je vzorové čistě akciové portfolio pro pokročilé. Ukazuje jeden konkrétní přístup: levné světové jádro a k němu jediný doplněk – malé hodnotové firmy. Není to investiční doporučení, ale odůvodněný příklad; zda se vám hodí, posuďte sami.',
+      'Jádro (85 %) netvoří jeden celosvětový fond, ale tři běžné indexové fondy vážené tržní hodnotou firem: S&P 500 se syntetickou replikací (fond drží na index swap, takže ho nezatěžuje americká srážková daň z dividend – úspora je malá, řádově desetiny procenta ročně), vyspělé trhy mimo USA (MSCI World ex USA) a rozvíjející se trhy (MSCI EM IMI). Poměr 54/22/9 zhruba odpovídá dnešním vahám celosvětového indexu (ve FTSE All-World k 30. 9. 2026 USA 62,3 %, rozvíjející se trhy 10,0 %), je ale pevný – když se váhy trhu změní, portfolio je samo nesleduje.',
+      'Proč jen jeden faktor: hodnota (value), kvalita (quality), momentum i velikost (size) mají v akademických datech prémii, po poplatcích fondů je ale skutečný přínos menší a v čase kolísá. Fondy na tyto faktory pro evropské investory existují (přehled je v sekci faktorových ETF). Tohle portfolio sází jen na malé hodnotové firmy, kde mají fondy se stejným zaměřením dlouhou živou historii – například americký DFA U.S. Small Cap Value (DFSVX) od března 1993.',
+      'Satelit (15 %) je Avantis Global Small Cap Value. Není to čistý indexový fond: vybírá malé firmy, které jsou levné vůči účetní hodnotě a zároveň ziskové, a vyřazuje malé neziskové firmy s agresivními investicemi. Obchoduje průběžně, ne jen při pololetní změně indexu, kdy ostatní obchodníci ceny předem posouvají. Za to má vyšší poplatek než běžný indexový fond. Malé hodnotové firmy mohou za trhem zaostávat i deset let – satelit dává smysl jen tomu, kdo ho vydrží držet.',
+      'Co ukazuje historie: od {od} vydělalo celé portfolio v korunách {cagr} ročně, celosvětový fond VT {cagrAkcie}. Náskok ale nedělají malé firmy – samotné jádro bez satelitu by vydělalo {cagrJadro}. Rozdíl proti VT jde hlavně na vrub pevné vyšší váhy USA (S&P 500 tvoří 64 % jádra) v období, kdy americké akcie vedly. Satelit navíc historie počítá přes americké malé firmy (Russell 2000), ne přes globální malé hodnotové firmy.',
     ],
-    howItWorks: 'Jednou ročně vyvážíte zpět na 54/22/9/15. Jádro (85 %) dělá hlavní práci a přebírá tržní výnos co nejlevněji a daňově nejčistěji; small-cap value satelit (15 %) je dlouhodobá pojistka, se kterou se neobchoduje podle nálady — nechává se běžet i v letech, kdy zaostává za trhem.',
-    strengths: 'Levné, daňově optimalizované světové jádro s ověřeným nadvýnosem nad jedním all-world fondem, plus jediný faktor s doloženým přínosem po nákladech. Poctivost je tu záměrná: nepřidáváme faktory, které po poplatcích mizí, a u satelitu otevřeně přiznáváme, že jde o pojistku se skromným očekáváním, ne o zázračný výnos.',
-    weakness: 'Je to 100% akciové portfolio — v datech od {od} spadlo až o {maxPokles} ({obdobiPropadu}, {navrat}). Small-cap value může zaostávat i celou dekádu a vyžaduje pevné nervy a závazek ho neprodat. A oproti jednomu all-world fondu je náročnější na správu: čtyři fondy, pravidelné vyvažování na cílové podíly a víc administrativy — vyplatí se jen tomu, kdo to opravdu udrží dlouhé roky.',
+    howItWorks: 'Jednou ročně vyvážíte zpět na 54/22/9/15. Jádro (85 %) přebírá tržní výnos co nejlevněji; satelit malých hodnotových firem (15 %) se drží dlouhodobě a neprodává se podle nálady – ani v letech, kdy za trhem zaostává.',
+    strengths: 'Levné světové jádro s menší daňovou ztrátou z amerických dividend a jediný doplněk, u kterého otevřeně říkáme, že jde o dlouhodobou sázku se skromným očekáváním, ne o zaručený vyšší výnos.',
+    weakness: 'Je to 100% akciové portfolio – v datech od {od} spadlo až o {maxPoklesAbs} ({obdobiPropadu}, {navrat}). Malé hodnotové firmy mohou zaostávat i celou dekádu a vyžadují pevné nervy. A oproti jednomu celosvětovému fondu je portfolio náročnější na správu: čtyři fondy a pravidelné vyvažování na cílové podíly.',
   },
   'permanentni-portfolio': {
     intro: [
       'Permanentní portfolio vychází z myšlenky Harryho Browna z 80. let: rozložit majetek rovným dílem mezi aktiva, z nichž každé se daří v jiné fázi ekonomiky. Když jedna část klesá, jiná zpravidla roste, a celek tak zůstává klidný bez ohledu na to, co dělá trh.',
-      'Drží čtyři rovnoměrné čtvrtiny přesně podle Browna: světové akcie (růst v dobách prosperity), dlouhé státní dluhopisy (opora při recesi a deflaci), zlato (ochrana při inflaci a krizích důvěry) a hotovost v podobě krátkých státních dluhopisů (klid a rezerva na nákupy během propadů). Žádná složka nepřesahuje 25 %, takže portfolio nestojí a nepadá s jediným trhem.',
+      'Drží čtyři rovnoměrné čtvrtiny přesně podle Browna: světové akcie (růst v dobách prosperity), dlouhé státní dluhopisy (opora při recesi a deflaci), zlato (ochrana při inflaci a krizích důvěry) a hotovost v podobě krátkých státních dluhopisů (klid a rezerva na nákupy během propadů). Žádná složka nepřesahuje 25 %, takže portfolio nestojí a nepadá s jediným trhem.',
+      'Pozor na měnu: „hotovost“ i dlouhé dluhopisy jsou tu americké státní dluhopisy v dolarech. Pro českého investora proto hotovost není korunová jistota – v korunách kolísá s kurzem USD/CZK a polovina portfolia (dluhopisy) nese měnové riziko dolaru.',
     ],
     howItWorks: 'Jednou ročně portfolio vyvážíte zpět na 25/25/25/25 – prodáte část toho, co vyrostlo, a dokoupíte to, co zaostalo. Tím automaticky prodáváte draho a nakupujete levně a udržujete nízké riziko.',
     strengths: 'Mimořádně klidný průběh a mělké propady. Historicky zvládá inflaci i recesi bez velkých ztrát, takže investor méně podléhá panice a vydrží.',
@@ -54,7 +61,7 @@ export const portfolioContent: Record<string, PortfolioContent> = {
   'nobel-portfolio': {
     intro: [
       'Nobelovo portfolio staví na moderní teorii portfolia Harryho Markowitze, za kterou dostal Nobelovu cenu za ekonomii. Její jádro zní: kombinací aktiv, která se nehýbou stejně, lze při daném výnosu snížit riziko – diverzifikace je „jediný oběd zdarma“ na trhu.',
-      'V praxi jde o vyváženou střední cestu: většinu tvoří světové akcie kvůli růstu (55 %), zbytek doplňují globální dluhopisy (25 %) a nemovitosti (20 %) pro tlumení výkyvů a stálý příjem. Výsledek míří mezi klid konzervativního a růst agresivního portfolia.',
+      'V praxi jde o vyváženou střední cestu: většinu tvoří světové akcie kvůli růstu (55 %), zbytek doplňují státní dluhopisy zemí eurozóny v eurech (25 %) a nemovitosti (20 %) pro tlumení výkyvů a stálý příjem. Výsledek míří mezi klid konzervativního a růst agresivního portfolia.',
     ],
     howItWorks: 'Akcie táhnou dlouhodobý výnos, dluhopisy a nemovitosti snižují celkovou kolísavost. Poměr udržujete pravidelným vyvažováním – jednou ročně vrátíte složky na cílové podíly.',
     strengths: 'Rozumný kompromis – slušný růst při znatelně menších výkyvech než čistě akciové portfolio. Vhodné jako „univerzální“ jádro pro střední horizont.',
@@ -67,7 +74,7 @@ export const portfolioContent: Record<string, PortfolioContent> = {
     ],
     howItWorks: 'Pravidelně investujete do širokého akciového ETF (a menší části nemovitostí) a hlavně roky nic neprodáváte. Rozhoduje čas na trhu, ne časování trhu.',
     strengths: 'Nejvyšší očekávaný dlouhodobý výnos. Na horizontu 10+ let historicky poráží konzervativnější strategie díky složenému úročení akcií.',
-    weakness: 'Hluboké propady – v datech od {od} spadlo až o {maxPokles} ({obdobiPropadu}, {navrat}). Na krátký horizont a pro nervy, které propady neustojí, se nehodí.',
+    weakness: 'Hluboké propady – v datech od {od} spadlo až o {maxPoklesAbs} ({obdobiPropadu}, {navrat}). Na krátký horizont a pro nervy, které propady neustojí, se nehodí.',
   },
   'ray-dalio-all-weather': {
     intro: [

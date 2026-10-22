@@ -15,7 +15,7 @@ const VOLBY: { id: 'vse' | PortfolioRisk; label: string }[] = [
   { id: 'Agresivní', label: 'Chci co nejvíc růst' },
 ];
 
-export default function PortfolioVyber({ returns, historie }: { returns?: ReturnsMap; historie?: HistorieMap }) {
+export default function PortfolioVyber({ returns, datumy, historie }: { returns?: ReturnsMap; datumy?: Record<string, string | null>; historie?: HistorieMap }) {
   const [volba, setVolba] = useState<'vse' | PortfolioRisk>('vse');
   // ?povaha=klid|stred|rust – odkaz z průvodce /vyber-etf („Nechci velké propady“ → portfolia s dluhopisy).
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function PortfolioVyber({ returns, historie }: { returns?: Return
         })}
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
-        {vybrane.map((m) => <PortfolioCard key={m.id} model={m} returns={returns} historie={historie?.[m.slug]} />)}
+        {vybrane.map((m) => <PortfolioCard key={m.id} model={m} returns={returns} datumy={datumy} historie={historie?.[m.slug]} />)}
         {volba === 'vse' && (
           <Link href="/backtest" className="group flex flex-col justify-between rounded-xl border border-dashed border-slate-300 bg-white/60 p-5 hover:border-teal-300">
             <span>

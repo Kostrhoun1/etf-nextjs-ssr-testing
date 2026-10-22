@@ -193,7 +193,7 @@ export const portfolioModels: PortfolioModel[] = [
     slug: 'globalni-jadro-small-cap-value',
     name: 'Svět + malé firmy',
     kratkyNazev: 'Svět + malé firmy',
-    tagline: 'Pro pokročilé: daňově optimalizované světové jádro (85 %) a k němu jediný faktor, který přežije náklady — malé hodnotové firmy (15 %).',
+    tagline: 'Pro pokročilé: levné světové jádro ze tří fondů (85 %) a k němu jediný doplněk — malé hodnotové firmy (15 %).',
     risk: 'Agresivní',
     stocksPct: 100,
     horizon: 'od 12 let',
@@ -262,6 +262,8 @@ export interface BacktestConfig {
   nahrada?: string;
   /** Měnové riziko složek, které nejsou v korunách ani zajištěné (jedna věta do tooltipu). */
   menoveRiziko?: string;
+  /** Totéž portfolio BEZ satelitu (váhy přepočtené na 100 %) – pro poctivé srovnání „co dělá satelit“ ({cagrJadro}, kolo 8). */
+  srovnaniJadro?: BacktestItem[];
 }
 
 /* Start = první den dat fondu VT (index ftse_all_world, manifest: since 2008-06-26). Stejný start má preset v backtestu
@@ -284,6 +286,12 @@ export const PORTFOLIO_BACKTEST: Record<string, BacktestConfig> = {
     ],
     proxyNote: 'Malé hodnotové firmy (Avantis Global Small Cap Value) počítáme přes americké malé firmy (Russell 2000) – bez hodnotového zaměření a jen USA. Vyspělé trhy mimo USA přes index EAFE (bez Kanady). Výsledek je orientační.',
     nahrada: 'Historie počítá malé hodnotové firmy přes americké malé firmy (Russell 2000, bez hodnotového zaměření).',
+    // Jádro bez satelitu 54/22/9 → 63,5/25,9/10,6 %. Nezávisle (Yahoo × ČNB, 26. 6. 2008 → 21. 10. 2026): 11,90 % vs celé 11,85 %.
+    srovnaniJadro: [
+      { indexCode: 'sp500', weight: 54 / 85, ter: 0.0005 },
+      { indexCode: 'msci_eafe', weight: 22 / 85, ter: 0.0015 },
+      { indexCode: 'msci_em', weight: 9 / 85, ter: 0.0018 },
+    ],
   },
   'permanentni-portfolio': {
     start: START_VT,

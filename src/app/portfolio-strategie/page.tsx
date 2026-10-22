@@ -11,7 +11,8 @@ import PortfolioVyber from './PortfolioVyber';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
-import { getReturnsByIsins, getTotalETFCount } from '@/lib/etf-data';
+import { getTotalETFCount } from '@/lib/etf-data';
+import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
 import {
   TrendingUp, ShieldCheck,
   History, Activity, Search, Landmark, BookOpen, Trophy,
@@ -39,7 +40,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'Jak vybrat portfolio podle své povahy?',
-    a: 'Rozhodněte se podle toho, jak velký propad unesete. Konzervativní portfolia (Permanentní, All Weather) mají méně akcií a mírnější výkyvy; akciová portfolia rostla v historii nejvíc, ale propadala se nejhlouběji – skutečný největší pokles každého portfolia od roku 2008 vidíte přímo na kartě.',
+    a: 'Rozhodněte se podle toho, jak velký propad unesete. Konzervativní portfolia (Permanentní, All Weather) mají méně akcií a mírnější výkyvy; akciová portfolia rostla v historii nejvíc, ale propadala se nejhlouběji – skutečný největší pokles od června 2008 (v korunách) vidíte přímo na kartě – u všech kromě Dividendového, kde dlouhá data indexu chybí.',
   },
   {
     q: 'Jak často portfolio vyvažovat?',
@@ -58,9 +59,11 @@ const FAQ: { q: string; a: string }[] = [
 export default async function PortfolioStrategieDesignPreview() {
   // Reálné korunové výnosy (1R) složek – pro živý výnos na kartách (USP: koruna-first).
   const allIsins = [...new Set(portfolioModels.flatMap((m) => m.allocations.map((a) => a.isin)))];
-  const returnsRaw = await getReturnsByIsins(allIsins);
+  // Kolo 8: výnos 12 měsíců S DATEM (returns_as_of), zastaralý fond = „—“ (vynosyFonduSDatem) – dřív bez data.
+  const vynosy = await vynosyFonduSDatem(allIsins);
   const returns: Record<string, number | null> = {};
-  for (const isin of allIsins) returns[isin] = returnsRaw[isin]?.return_1y_czk ?? null;
+  const datumy: Record<string, string | null> = {};
+  for (const isin of allIsins) { returns[isin] = vynosy[isin]?.r1 ?? null; datumy[isin] = vynosy[isin]?.datum ?? null; }
   const etfCount = await getTotalETFCount();
 
   // Historie z backtestu (CAGR, max. pokles v Kč) – předpočet jednou za ISR render, stejné jádro jako /backtest.
@@ -160,10 +163,10 @@ export default async function PortfolioStrategieDesignPreview() {
         {/* 2. JÁDRO: výběr podle povahy + karty */}
         <section data-sekce="portfolia" className="pb-8">
           <p className="mb-3 text-xs text-slate-500">
-            Seřazeno podle největšího propadu v historii, od nejmenšího. Zhodnocení a max. pokles z backtestu v korunách
+            Seřazeno podle největšího propadu{historieOd ? ` od ${mr(historieOd)}` : ''}, od nejmenšího; portfolio bez historie je na konci. Zhodnocení a max. pokles z backtestu v korunách
             {historieOd && historieDo ? ` (${mr(historieOd)} – ${new Date(`${historieDo}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })})` : ''}, po poplatcích fondů; ≈ = část složení počítáme přes podobný index.
           </p>
-          <PortfolioVyber returns={returns} historie={historie} />
+          <PortfolioVyber returns={returns} datumy={datumy} historie={historie} />
         </section>
 
         {/* 5. Prolinkování na nástroje */}

@@ -24,8 +24,11 @@ import { getMetricsByIsins } from '@/lib/etf-data';
 import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
 import { titulek } from '@/lib/seoTitulek';
 
-/* Benchmark: 100% akciový S&P 500 (iShares Core S&P 500, CSP1). */
-const SP500_ISIN = 'IE00B5BMR087';
+/* Srovnání bez backtestu (Dividendové): akcie celého světa = Vanguard FTSE All-World (VWCE). Kolo 8 (22. 10. 2026):
+   dřív S&P 500, zatímco všechna ostatní portfolia se srovnávají s celým světem (backtest: VT, FTSE Global All Cap).
+   VT v datech fondů není (americký fond), VWCE je jeho nejbližší evropský protějšek. */
+const SVET_ISIN = 'IE00BK5BQT80';
+const SROVNANI_NAZEV = 'akcie celého světa (VWCE)';
 
 export const revalidate = 86400;
 
@@ -65,9 +68,13 @@ export default async function PortfolioDetailPreview(
   const content = getPortfolioContent(slug);
   const btConfig = PORTFOLIO_BACKTEST[slug];
   // Výchozí (Kč) backtest se počítá tady, jednou za ISR render – ne 2× v prohlížeči při každém zobrazení.
-  const [btPf, btBench] = btConfig
-    ? await Promise.all([predpocitejPortfolio(btConfig.items, btConfig.start), predpocitejPortfolio([BACKTEST_BENCHMARK], btConfig.start)])
-    : [null, null];
+  const [btPf, btBench, btJadro] = btConfig
+    ? await Promise.all([
+        predpocitejPortfolio(btConfig.items, btConfig.start),
+        predpocitejPortfolio([BACKTEST_BENCHMARK], btConfig.start),
+        btConfig.srovnaniJadro ? predpocitejPortfolio(btConfig.srovnaniJadro, btConfig.start) : Promise.resolve(null),
+      ])
+    : [null, null, null];
   const btInitial = btPf && btBench ? { pf: btPf, bench: btBench } : null;
   // Kurátorský max. pokles strategie (číslo z „do −15 %“).
   // Max. pokles: skutečný z backtestu (stejné období a měna jako srovnání), kurátorský odhad „do −40 %“ jen
@@ -98,7 +105,11 @@ export default async function PortfolioDetailPreview(
   const rok2022 = btPf?.returns.annualReturns.find((a) => a.year === 2022)?.return;
   const melciNezAkcie = btDD != null && benchDD != null && btDD > benchDD + 0.01;
   const doplnit = (t: string) => (melciNezAkcie ? t : t.replace('A mírnější propady než u čistých akcií: největší', 'Největší'))
+    .replace(/\{maxPoklesAbs\}/g, ddPf ? pctTxt(Math.abs(ddPf.depth)).replace('+', '') : '—')
     .replace(/\{maxPokles\}/g, pctTxt(ddPf?.depth))
+    .replace(/\{cagr\}/g, pctTxt(btPf?.summary.cagr))
+    .replace(/\{cagrAkcie\}/g, pctTxt(btBench?.summary.cagr))
+    .replace(/\{cagrJadro\}/g, pctTxt(btJadro?.summary.cagr))
     .replace(/\{obdobiPropadu\}/g, ddPf ? `vrchol ${mr(ddPf.startDate)} → dno ${mr(ddPf.troughDate)}` : '—')
     .replace(/\{navrat\}/g, navratTxt)
     .replace(/\{od\}/g, mr(btPf?.evolution[0]?.date))
@@ -110,12 +121,12 @@ export default async function PortfolioDetailPreview(
     ? new Date(`${btDo}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
     : null;
 
-  // Reálné metriky z DB pro složky portfolia + benchmark S&P 500.
+  // Reálné metriky z DB pro složky portfolia + srovnání s celým světem (VWCE).
   const isins = model.allocations.map((a) => a.isin);
-  const ret = await getMetricsByIsins([...isins, SP500_ISIN]);
-  const sp = ret[SP500_ISIN];
+  const ret = await getMetricsByIsins([...isins, SVET_ISIN]);
+  const sp = ret[SVET_ISIN];
   // Bez backtestu (Dividendové) = srovnání z dat fondů → datum, ke kterému data fondů platí (nejstarší ze složek).
-  const datumyFondu = btConfig ? [] : Object.values(await vynosyFonduSDatem([...isins, SP500_ISIN])).map((f) => f.datum).filter((d): d is string => !!d).sort();
+  const datumyFondu = btConfig ? [] : Object.values(await vynosyFonduSDatem([...isins, SVET_ISIN])).map((f) => f.datum).filter((d): d is string => !!d).sort();
   const dateStrFondy = datumyFondu[0]
     ? new Date(`${datumyFondu[0]}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
     : null;
@@ -164,7 +175,7 @@ export default async function PortfolioDetailPreview(
     return Math.sqrt(v);
   })();
 
-  // Srovnání se S&P 500 (jen když máme obě strany).
+  // Srovnání s celým světem (jen když máme obě strany).
   const cmp = (sp && (perf1y != null || pfVol != null)) ? {
     ret1y: { pf: perf1y, sp: sp.return_1y_czk },
     ret3y: { pf: perf3y, sp: sp.return_3y_czk },
@@ -181,13 +192,13 @@ export default async function PortfolioDetailPreview(
     if (!cmp) return '';
     const parts: string[] = [];
     if (cmp.vol.pf != null && cmp.vol.sp != null) {
-      parts.push(`Kolísavost tohoto portfolia je ${fmtVol(cmp.vol.pf)} oproti ${fmtVol(cmp.vol.sp)} u čistě akciového S&P 500 – ${cmp.vol.pf < cmp.vol.sp ? 'tedy klidnější průběh s menšími výkyvy' : 'srovnatelný průběh'}.`);
+      parts.push(`Kolísavost tohoto portfolia je ${fmtVol(cmp.vol.pf)} oproti ${fmtVol(cmp.vol.sp)} u ${SROVNANI_NAZEV} – ${cmp.vol.pf < cmp.vol.sp ? 'tedy klidnější průběh s menšími výkyvy' : 'srovnatelný průběh'}.`);
     }
     if (cmp.maxdd.pf != null && cmp.maxdd.sp != null) {
-      parts.push(`Nejhorší historický propad portfolia je zhruba ${fmtDD(cmp.maxdd.pf)} proti ${fmtDD(cmp.maxdd.sp)} ${ddZBacktestu ? `u 100% globálních akcií (od ${btOd}, v Kč)` : 'u S&P 500'} – ${cmp.maxdd.pf > cmp.maxdd.sp + 3 ? 'v krizích tedy ztrácí méně' : cmp.maxdd.pf < cmp.maxdd.sp - 3 ? 'toto portfolio tedy padá v krizích ještě hlouběji než samotný index' : 'propady jsou podobně hluboké jako u čistě akciového indexu'}.`);
+      parts.push(`Nejhorší historický propad portfolia je zhruba ${fmtDD(cmp.maxdd.pf)} proti ${fmtDD(cmp.maxdd.sp)} ${ddZBacktestu ? `u 100% globálních akcií (od ${btOd}, v Kč)` : `u ${SROVNANI_NAZEV}`} – ${cmp.maxdd.pf > cmp.maxdd.sp + 3 ? 'v krizích tedy ztrácí méně' : cmp.maxdd.pf < cmp.maxdd.sp - 3 ? 'toto portfolio tedy padá v krizích ještě hlouběji než samotný index' : 'propady jsou podobně hluboké jako u čistě akciového indexu'}.`);
     }
     if (cmp.ret1y.pf != null && cmp.ret1y.sp != null) {
-      parts.push(`Ve výnosu za poslední rok ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostává za' : 'vede nad'} S&P 500: ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)}.`);
+      parts.push(`Ve výnosu za poslední rok ${cmp.ret1y.pf < cmp.ret1y.sp ? 'zaostává za' : 'vede nad'} akciemi celého světa (VWCE): ${pct(cmp.ret1y.pf)} vs ${pct(cmp.ret1y.sp)}.`);
     }
     // Pravidlo č. 1: obecné tvrzení o diverzifikaci jen tam, kde ho data portfolia potvrzují
     // (test s uživateli 18. 10. 2026: akciové portfolio slibovalo „mělčí propady“ při propadu −33 % vs −32 %).
@@ -388,8 +399,8 @@ export default async function PortfolioDetailPreview(
           </section>
         ) : cmp ? (
           <section className="pb-8">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie USA (S&amp;P 500)</h2>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data fondů ve složení: jak si toto portfolio vede proti čistě akciovému indexu S&amp;P 500 – ve výnosu a kolísavosti{dateStrFondy ? ` (data k ${dateStrFondy})` : ''}.</p>
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-1">Portfolio vs 100&nbsp;% akcie celého světa</h2>
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">Reálná data fondů ve složení: jak si toto portfolio vede proti fondu akcií celého světa (VWCE, index FTSE All-World) – stejné srovnání jako u ostatních portfolií{dateStrFondy ? ` (data k ${dateStrFondy})` : ''}.</p>
             {BEZ_HISTORIE[slug] && <p className="-mt-2 mb-4 text-sm text-slate-600 leading-relaxed">Backtest od roku 2008 tu není. {BEZ_HISTORIE[slug]}</p>}
             <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5">
               {[
@@ -402,7 +413,7 @@ export default async function PortfolioDetailPreview(
                 const fmt = r.kind === 'ret' ? pct : r.kind === 'dd' ? fmtDD : fmtVol;
                 const rows = [
                   { who: 'Toto portfolio', v: r.pf as number, bar: 'bg-teal-600' },
-                  { who: 'Akcie USA (S&P 500)', v: r.sp as number, bar: 'bg-slate-400' },
+                  { who: 'Celý svět (VWCE)', v: r.sp as number, bar: 'bg-slate-400' },
                 ];
                 return (
                   <div key={i}>

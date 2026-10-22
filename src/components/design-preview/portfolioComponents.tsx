@@ -108,7 +108,7 @@ function HistorieMetriky({ h, bezHistorie }: { h: HistoriePortfolia | null | und
         </div>
         <div>
           <span className="block text-xs text-slate-500">
-            <InfoTip label={h ? `Největší propad hodnoty od vrcholu ke dnu v témže backtestu (${obdobi}, v Kč). Data začínají ${mesicRok(h.od)} – dřívější propady (např. 2007–08) nezachycují.${pozn}` : chybi}>Max. pokles od {h ? mesicRok(h.od) : '—'}</InfoTip>
+            <InfoTip label={h ? `Největší propad hodnoty od vrcholu ke dnu v témže backtestu (${obdobi}, v Kč). Data začínají ${mesicRok(h.od)} – dřívější propady (např. 2007–08) nezachycují.${pozn}` : chybi}>{h ? `Max. pokles od ${mesicRok(h.od)}` : 'Max. pokles'}</InfoTip>
           </span>
           <span className={`tabular-nums text-lg font-bold ${h ? 'text-slate-900' : 'text-slate-400'}`}>{h ? `${ap}${pctZnam(h.maxPokles * 100)}` : '—'}</span>
         </div>
@@ -118,8 +118,11 @@ function HistorieMetriky({ h, bezHistorie }: { h: HistoriePortfolia | null | und
 }
 
 /* ---------- Jedna karta portfolia: jedno hlavní tlačítko (Detail), backtest jako vedlejší odkaz ---------- */
-export function PortfolioCard({ model, returns, historie }: { model: PortfolioModel; returns?: ReturnsMap; historie?: HistoriePortfolia | null }) {
+export function PortfolioCard({ model, returns, datumy, historie }: { model: PortfolioModel; returns?: ReturnsMap; datumy?: Record<string, string | null>; historie?: HistoriePortfolia | null }) {
   const real1y = weighted1yCzk(model, returns);
+  // Den, ke kterému výnos 12 měsíců platí = nejstarší den výnosů ze složek (pravidlo č. 1: každé číslo má datum, kolo 8).
+  const dny = model.allocations.map((a) => datumy?.[a.isin] ?? null);
+  const den12m = real1y != null && dny.every((d) => d) ? (dny as string[]).sort()[0] : null;
   const bt = historie?.odkaz ?? backtestOdkaz(model.slug);
   return (
     <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 sm:p-5 transition-colors hover:border-teal-300"
@@ -139,7 +142,7 @@ export function PortfolioCard({ model, returns, historie }: { model: PortfolioMo
         <div className="border-t border-slate-100 pt-3">
           <HistorieMetriky h={historie} bezHistorie={BEZ_HISTORIE[model.slug]} />
           <p className="mt-2 text-xs text-slate-500">
-            <InfoTip label="Vážený průměr korunových výnosů ETF ve složení za posledních 12 měsíců, bez rebalancování. Když některému fondu data chybí, číslo neukazujeme.">Za 12 měs. v Kč</InfoTip>{' '}
+            <InfoTip label="Vážený průměr korunových výnosů ETF ve složení za posledních 12 měsíců, bez rebalancování. Když některému fondu data chybí, číslo neukazujeme.">{den12m ? `Za 12 měs. do ${Number(den12m.slice(8, 10))}. ${Number(den12m.slice(5, 7))}. v Kč` : 'Za 12 měs. v Kč'}</InfoTip>{' '}
             <span className={`font-semibold tabular-nums ${real1y == null ? 'text-slate-400' : real1y >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{real1y == null ? '—' : pctZnam(real1y)}</span>
           </p>
         </div>
