@@ -52,6 +52,13 @@ export const FAKTORY_DEF: FaktorDef[] = [
 ];
 
 export const POCATECNI = 100_000;
+/**
+ * První den reálného ETF u prodloužených řad = kotva zpětného chodu v scripts/backtest/build_factor_extensions.py
+ * (ANCHORS: MTUM 2013-04-18, QUAL 2013-07-18). Manifest má v `splicedFrom` jen měsíc; dny před kotvou jsou ještě akademické.
+ */
+export const PRVNI_DEN_ETF: Record<string, string> = { us_momentum: '2013-04-18', us_quality: '2013-07-18' };
+/** Rozdíl ročního výnosu (desetinně), pod kterým u prodloužené řady nerozhodujeme „porazil/neporazil“. */
+export const NEJISTOTA_PRODLOUZENI = 0.003;
 export const MESICNI_VKLAD = 5_000;
 
 export interface Bod { datum: string; hodnota: number }
@@ -62,7 +69,12 @@ export interface Propad {
   navrat: string | null;    // den návratu na vrchol, null = dosud ne
   mesicuOdVrcholu: number;  // vrchol → návrat (nebo → konec dat, když se nevrátil)
 }
-export interface Krize { key: string; nazev: string; pokles: number; navratMesicu: number | null; sp: { pokles: number; navratMesicu: number | null } | null }
+export interface Krize {
+  key: string; nazev: string; pokles: number; navratMesicu: number | null;
+  sp: { pokles: number; navratMesicu: number | null } | null;
+  /** Postavení mezi faktory, které tuto krizi v datech mají (doplní nactiFaktory). */
+  mezi: { pocet: number; nejmelci: boolean; nejhlubsi: boolean; nejrychlejsi: boolean; nejpomalejsi: boolean } | null;
+}
 export interface Klouzave { roky: number; prumer: number; nejhorsi: number; nejlepsi: number; podilKladnych: number; pocet: number }
 export interface RokVynos { rok: number; f: number; s: number | null; cely: boolean }
 
@@ -74,6 +86,16 @@ export interface FaktorVysledek {
   konecna: number; spKonecna: number;
   cagr: number; spCagr: number;
   porazil: boolean;         // faktor skončil výš než S&P 500 na stejném okně
+  /**
+   * Výsledek pro TEXTY: u řad prodloužených akademickými daty (momentum, quality) je rozdíl CAGR pod NEJISTOTA_PRODLOUZENI
+   * menší než nejistota kalibrace (nezávislý přepočet 22. 10. 2026: quality −0,09 p. b. z DB vs. +0,07 p. b. při kalibraci
+   * na celý překryv) → „nerozhodně“, ne „neporazil“. U řad čistě z ETF rozhoduje konečná hodnota.
+   */
+  vysledek: 'porazil' | 'neporazil' | 'nerozhodne';
+  /** Jen éra reálného ETF (u prodloužených řad) – čistě tržní data, stejné okno pro oba. */
+  jenEtf: { od: string; cagr: number; spCagr: number } | null;
+  /** Totéž v USD – pro srovnání „v dolarech vs. v korunách“ (kurz přidává kolísání). */
+  usd: { volatilita: number; spVolatilita: number; maxPropad: number; spMaxPropad: number } | null;
   volatilita: number; spVolatilita: number;
   maxPropad: Propad; spMaxPropad: Propad;
   rocni: RokVynos[];
@@ -94,7 +116,11 @@ export interface Rocenka {
   prohry: Record<FaktorSlug, number[]>;  // roky, kdy byl nejhorší
   /** Roky, kdy byl kladný jediný faktor. */
   jedinyKladny: { rok: number; slug: FaktorSlug; vynos: number }[];
+  /** Dělená první/poslední místa (shoda na zobrazenou přesnost) – započtena všem. */
+  remizy: { rok: number; typ: 'nejlepsi' | 'nejhorsi'; slugy: FaktorSlug[] }[];
 }
+/** Pod tímto rozdílem (desetinně) jsou dva roční výnosy na stránce stejné číslo. */
+export const SHODA = 0.0005;
 
 export interface ValueGrowth {
   od: string; do: string;
@@ -120,16 +146,19 @@ export interface FaktoryVysledek {
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-async function beh(indexCode: string, od: Date, doDne: Date, vklady = false): Promise<BacktestResult> {
-  return runBacktest({
+type Beh = BacktestResult & { marketNav: TimeSeriesPoint[] };
+async function beh(indexCode: string, od: Date, doDne: Date, vklady = false, mena: 'CZK' | 'USD' = 'CZK'): Promise<Beh> {
+  const r = await runBacktest({
     portfolio: [{ isin: indexCode, name: indexCode, weight: 1, ter: 0, indexCode }],
     startDate: od,
     endDate: doDne,
     initialAmount: POCATECNI,
     rebalancingStrategy: 'yearly',
-    currency: 'CZK',
+    currency: mena,
     ...(vklady ? { contributions: { amount: MESICNI_VKLAD, frequency: 'monthly' as const } } : {}),
   } as BacktestInput);
+  if (!r.marketNav || r.marketNav.length < 2) throw new Error(`${indexCode}: prázdná řada`);
+  return r as Beh;
 }
 
 /** Poslední bod každého měsíce – pro grafy (~300 bodů místo ~6 600). */
@@ -142,7 +171,7 @@ function mesicne(points: TimeSeriesPoint[]): Bod[] {
   return out;
 }
 
-function propad(r: BacktestResult): Propad {
+function propad(r: Beh): Propad {
   const m = r.risk.maxDrawdown;
   return {
     hloubka: m.depth,
@@ -178,6 +207,13 @@ async function spocitejFaktor(def: FaktorDef): Promise<FaktorVysledek | null> {
   }
 
   const [dcaF, dcaS] = await Promise.all([beh(def.indexCode, prvni, konec, true), beh('sp500', prvni, konec, true)]).catch(() => [null, null]);
+  const [usdF, usdS] = await Promise.all([beh(def.indexCode, prvni, konec, false, 'USD'), beh('sp500', prvni, konec, false, 'USD')]).catch(() => [null, null]);
+  let jenEtf: FaktorVysledek['jenEtf'] = null;
+  const etfOd = ind.splicedFrom ? PRVNI_DEN_ETF[def.indexCode] ?? ind.splicedFrom : null;
+  if (etfOd) {
+    const [eF, eS] = await Promise.all([beh(def.indexCode, new Date(etfOd), konec), beh('sp500', new Date(etfOd), konec)]).catch(() => [null, null]);
+    if (eF && eS && eF.marketNav[0].date.getTime() === eS.marketNav[0].date.getTime()) jenEtf = { od: iso(eF.marketNav[0].date), cagr: eF.summary.cagr, spCagr: eS.summary.cagr };
+  }
 
   const navF = fac.marketNav, navS = spx.marketNav;
   const rokOd = navF[0].date.getUTCFullYear(), rokDo = navF[navF.length - 1].date.getUTCFullYear();
@@ -192,7 +228,7 @@ async function spocitejFaktor(def: FaktorDef): Promise<FaktorVysledek | null> {
   const krizeS = new Map(calculateStressPeriods(navS).map((k) => [k.key, k]));
   const krize: Krize[] = calculateStressPeriods(navF).map((k) => {
     const s = krizeS.get(k.key);
-    return { key: k.key, nazev: k.name, pokles: k.drop, navratMesicu: k.recoveryMonths, sp: s ? { pokles: s.drop, navratMesicu: s.recoveryMonths } : null };
+    return { key: k.key, nazev: k.name, pokles: k.drop, navratMesicu: k.recoveryMonths, sp: s ? { pokles: s.drop, navratMesicu: s.recoveryMonths } : null, mezi: null };
   });
 
   return {
@@ -205,6 +241,10 @@ async function spocitejFaktor(def: FaktorDef): Promise<FaktorVysledek | null> {
     cagr: fac.summary.cagr,
     spCagr: spx.summary.cagr,
     porazil: navF[navF.length - 1].value > navS[navS.length - 1].value,
+    vysledek: ind.splicedFrom && Math.abs(fac.summary.cagr - spx.summary.cagr) < NEJISTOTA_PRODLOUZENI ? 'nerozhodne'
+      : navF[navF.length - 1].value > navS[navS.length - 1].value ? 'porazil' : 'neporazil',
+    jenEtf,
+    usd: usdF && usdS ? { volatilita: usdF.summary.standardDeviation, spVolatilita: usdS.summary.standardDeviation, maxPropad: usdF.risk.maxDrawdown.depth, spMaxPropad: usdS.risk.maxDrawdown.depth } : null,
     volatilita: fac.summary.standardDeviation,
     spVolatilita: spx.summary.standardDeviation,
     maxPropad: propad(fac),
@@ -212,14 +252,15 @@ async function spocitejFaktor(def: FaktorDef): Promise<FaktorVysledek | null> {
     rocni,
     nejlepsiRok: nejlepsi ? { rok: nejlepsi.rok, vynos: nejlepsi.f } : null,
     nejhorsiRok: nejhorsi ? { rok: nejhorsi.rok, vynos: nejhorsi.f } : null,
-    klouzave: calculateRollingReturns(navF).map((k) => ({ roky: k.years, prumer: k.average, nejhorsi: k.low, nejlepsi: k.high, podilKladnych: k.positiveShare, pocet: k.count })),
+    // Horizont s méně než 12 okny (např. jediné 15leté okno) neukazujeme – „průměr / nejhorší / nejlepší“ z jednoho čísla klame.
+    klouzave: calculateRollingReturns(navF).filter((k) => k.count >= 12).map((k) => ({ roky: k.years, prumer: k.average, nejhorsi: k.low, nejlepsi: k.high, podilKladnych: k.positiveShare, pocet: k.count })),
     krize,
     dca: dcaF && dcaS ? {
       vlozeno: dcaF.summary.amountInvested,
       konecna: dcaF.evolution[dcaF.evolution.length - 1].value,
       spKonecna: dcaS.evolution[dcaS.evolution.length - 1].value,
     } : null,
-    etfOd: ind.splicedFrom ?? null,
+    etfOd,
     graf: { fac: mesicne(navF), spx: mesicne(navS) },
   };
 }
@@ -246,14 +287,19 @@ function sestavRocenku(f: Record<FaktorSlug, FaktorVysledek>): Rocenka | null {
   const vyhry = Object.fromEntries(slugy.map((s) => [s, [] as number[]])) as Record<FaktorSlug, number[]>;
   const prohry = Object.fromEntries(slugy.map((s) => [s, [] as number[]])) as Record<FaktorSlug, number[]>;
   const jedinyKladny: Rocenka['jedinyKladny'] = [];
+  const remizy: Rocenka['remizy'] = [];
   for (const r of roky) {
-    const serazene = [...slugy].sort((a, b) => r.f[b] - r.f[a]);
-    vyhry[serazene[0]].push(r.rok);
-    prohry[serazene[serazene.length - 1]].push(r.rok);
+    // Shoda na zobrazenou přesnost (0,1 p. b.) = dělené místo – na stránce by „−18,1 % vs. −18,1 %“ jako vítěz/poražený klamalo.
+    const max = Math.max(...slugy.map((s) => r.f[s])), min = Math.min(...slugy.map((s) => r.f[s]));
+    const nej = slugy.filter((s) => max - r.f[s] < SHODA), naj = slugy.filter((s) => r.f[s] - min < SHODA);
+    nej.forEach((s) => vyhry[s].push(r.rok));
+    naj.forEach((s) => prohry[s].push(r.rok));
+    if (nej.length > 1) remizy.push({ rok: r.rok, typ: 'nejlepsi', slugy: nej });
+    if (naj.length > 1) remizy.push({ rok: r.rok, typ: 'nejhorsi', slugy: naj });
     const kladne = slugy.filter((s) => r.f[s] > 0);
     if (kladne.length === 1) jedinyKladny.push({ rok: r.rok, slug: kladne[0], vynos: r.f[kladne[0]] });
   }
-  return { odRoku, doRoku: roky[roky.length - 1].rok, roky, vyhry, prohry, jedinyKladny };
+  return { odRoku, doRoku: roky[roky.length - 1].rok, roky, vyhry, prohry, jedinyKladny, remizy };
 }
 
 /** Value vs. growth vs. S&P 500 od startu řad Russell (květen 2000 = vrchol dot-com bubliny). */
@@ -263,7 +309,7 @@ async function spocitejValueGrowth(): Promise<ValueGrowth | null> {
   const [v0, g0, s0] = await Promise.all([beh('us_value', start, dnes), beh('us_growth', start, dnes), beh('sp500', start, dnes)]);
   const prvni = Math.max(v0.marketNav[0].date.getTime(), g0.marketNav[0].date.getTime(), s0.marketNav[0].date.getTime());
   const konec = Math.min(...[v0, g0, s0].map((r) => r.marketNav[r.marketNav.length - 1].date.getTime()));
-  const zarovnej = async (r: BacktestResult, kod: string) =>
+  const zarovnej = async (r: Beh, kod: string): Promise<Beh> =>
     r.marketNav[0].date.getTime() === prvni && r.marketNav[r.marketNav.length - 1].date.getTime() === konec ? r : beh(kod, new Date(prvni), new Date(konec));
   const [v, g, s] = await Promise.all([zarovnej(v0, 'us_value'), zarovnej(g0, 'us_growth'), zarovnej(s0, 'sp500')]);
   const gPodle = new Map(g.marketNav.map((p) => [p.date.getTime(), p.value]));
@@ -301,6 +347,22 @@ export const nactiFaktory = cache(async (): Promise<FaktoryVysledek> => {
   const faktory: Partial<Record<FaktorSlug, FaktorVysledek>> = {};
   vysledky.forEach((v, i) => { if (v) faktory[FAKTORY_DEF[i].slug] = v; });
   const kompletni = FAKTORY_DEF.every((d) => faktory[d.slug]);
+  // Postavení v krizích mezi faktory (jen kde má krizi v datech aspoň 3 faktory) – tvrzení „nejrychlejší z faktorů“ jen z dat.
+  for (const key of new Set(Object.values(faktory).flatMap((f) => f!.krize.map((k) => k.key)))) {
+    const vKrizi = Object.values(faktory).map((f) => f!.krize.find((k) => k.key === key)).filter((k): k is Krize => !!k);
+    if (vKrizi.length < 3) continue;
+    const poklesy = vKrizi.map((k) => k.pokles);
+    const navraty = vKrizi.map((k) => k.navratMesicu).filter((n): n is number => n != null);
+    for (const k of vKrizi) {
+      k.mezi = {
+        pocet: vKrizi.length,
+        nejmelci: k.pokles === Math.max(...poklesy) && poklesy.filter((p) => p === k.pokles).length === 1,
+        nejhlubsi: k.pokles === Math.min(...poklesy) && poklesy.filter((p) => p === k.pokles).length === 1,
+        nejrychlejsi: k.navratMesicu != null && navraty.length === vKrizi.length && k.navratMesicu === Math.min(...navraty) && navraty.filter((n) => n === k.navratMesicu).length === 1,
+        nejpomalejsi: k.navratMesicu != null && navraty.length === vKrizi.length && k.navratMesicu === Math.max(...navraty) && navraty.filter((n) => n === k.navratMesicu).length === 1,
+      };
+    }
+  }
   const konce = Object.values(faktory).map((v) => v!.do).sort();
   const valueGrowth = await spocitejValueGrowth().catch((e) => { console.error('[faktory] value/growth selhal:', e); return null; });
   return {
@@ -313,8 +375,27 @@ export const nactiFaktory = cache(async (): Promise<FaktoryVysledek> => {
   };
 });
 
+/**
+ * Metodika prodloužených řad (momentum a quality před vznikem ETF) – podle scripts/backtest/data/README.md
+ * a manifestu indexes.ts. Momentum NENÍ kalibrované (v překryvu s MTUM běží o ~0,7 p. b. ročně pod ETF),
+ * quality JE kalibrované (−1,89 % ročně, aby CAGR v překryvu seděl na QUAL). Dřív stránka psala u obou
+ * „kalibrovanými“ – u momenta nepravda (kolo 8).
+ */
+export const PRODLOUZENI: Partial<Record<FaktorSlug, { portfolio: string; kalibrace: string; korelace: string }>> = {
+  momentum: {
+    portfolio: 'velké americké firmy s nejvyšším momentem, sloupec BIG HiPRIOR',
+    kalibrace: 'bez kalibrace – v překryvu s ETF běží akademická řada zhruba o 0,7 p. b. ročně níž (konzervativní směr)',
+    korelace: '0,96',
+  },
+  quality: {
+    portfolio: 'horních 30 % firem podle provozní ziskovosti, sloupec Hi 30',
+    kalibrace: 'kalibrováno −1,89 % ročně, aby výnos v překryvu odpovídal ETF (akademická řada je bez poplatků a přestřelovala)',
+    korelace: '0,98',
+  },
+};
+
 /** Faktory, které porazily S&P 500 na stejném okně (v pořadí FAKTORY_DEF). */
-export const porazily = (v: FaktoryVysledek) => FAKTORY_DEF.map((d) => v.faktory[d.slug]).filter((f): f is FaktorVysledek => !!f && f.porazil);
+export const porazily = (v: FaktoryVysledek) => FAKTORY_DEF.map((d) => v.faktory[d.slug]).filter((f): f is FaktorVysledek => !!f && f.vysledek === 'porazil');
 
 /** Pořadí faktoru podle kolísavosti (1 = nejdivočejší). */
 export const poradiVolatility = (v: FaktoryVysledek, slug: FaktorSlug) => {
