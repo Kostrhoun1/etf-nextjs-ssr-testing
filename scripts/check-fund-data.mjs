@@ -1371,7 +1371,7 @@ const main = async () => {
         const karty = v.split(/href="\/etf\//).slice(1).map((k) => ({ isin: k.slice(0, 12), text: dec(k) }));
         const velky = karty.find((k) => /Největší/.test(k.text));
         const levny = karty.find((k) => /Nejnižší poplatek|Nejlevnější/.test(k.text));
-        kOvereni.push({ slug, popisek, velky: velky?.isin, levny: levny?.isin, r1Rozc: radky.get(slug)?.r1 ?? null });
+        kOvereni.push({ slug, popisek, datPopisku, velky: velky?.isin, levny: levny?.isin, r1Rozc: radky.get(slug)?.r1 ?? null });
       }
       const dupT = [...titulky].filter(([, s]) => s.length > 1).map(([k, s]) => `„${k}“: ${s.join(', ')}`);
       const dupP = [...popisky].filter(([, s]) => s.length > 1).map(([k, s]) => `„${k.slice(0, 60)}…“: ${s.join(', ')}`);
@@ -1380,7 +1380,7 @@ const main = async () => {
       const isiny = [...new Set(kOvereni.flatMap((k) => [k.velky, k.levny]).filter(Boolean))];
       const db = new Map();
       for (let i = 0; i < isiny.length; i += 100) {
-        const r = await fetch(`${URL_DB}?select=isin,ter_numeric,fund_size_numeric,return_1y_czk&isin=in.(${isiny.slice(i, i + 100).join(',')})`, hlav);
+        const r = await fetch(`${URL_DB}?select=isin,ter_numeric,fund_size_numeric,return_1y_czk,returns_as_of&isin=in.(${isiny.slice(i, i + 100).join(',')})`, hlav);
         if (!r.ok) throw new Error(`Supabase HTTP ${r.status}`);
         for (const f of await r.json()) db.set(f.isin, f);
       }
@@ -1390,13 +1390,18 @@ const main = async () => {
         const ter = k.popisek.match(/Nejnižší TER(?: nad \d+ mil\. €)? má \S+ \(([\d,]+) %\)/)?.[1] ?? k.popisek.match(/nejlevnější(?: nad \d+ mil\. €)? je \S+(?: \([^)]*\))?, TER ([\d,]+) %/)?.[1];
         if (ter && L) { overeno++; if (Math.abs(cislo(ter) - Number(L.ter_numeric)) > 0.0051) chyby.push(`${k.slug}: popisek TER ${ter} %, DB ${L.ter_numeric} % (${k.levny})`); }
         const vel = k.popisek.match(/Největší(?: a nejlevnější(?: nad \d+ mil\. €)?)? je \S+ \(([\d,]+) (mld|mil)\. €\)/);
-        if (vel && V) {
+        const stejnyDen = !k.datPopisku || !V?.returns_as_of || (([y, m, d]) => `${+d}. ${+m}. ${y}`)(V.returns_as_of.split('-')) === k.datPopisku;
+        if (vel && V && stejnyDen) {
           overeno++;
           const mil = cislo(vel[1]) * (vel[2] === 'mld' ? 1000 : 1);
           if (Math.abs(mil - Number(V.fund_size_numeric)) > (vel[2] === 'mld' ? 51 : 1)) chyby.push(`${k.slug}: popisek velikost ${vel[1]} ${vel[2]}. €, DB ${V.fund_size_numeric} mil. € (${k.velky})`);
         }
         const r1 = k.popisek.match(/za 12 měsíců v Kč ([+−-][\d,]+) %/)?.[1];
-        if (r1 && V) {
+        // Výnos se mění každý den: stránka z ISR cache (žebříčky 1 den) nese „Data k D“ a výnos k D. Porovnávat jen
+        // se stejným dnem v DB – jinak planý poplach den po stažení nových dat (22. 10. 2026: 47 falešných nálezů).
+        const denDb = V?.returns_as_of ? (([y, m, d]) => `${+d}. ${+m}. ${y}`)(V.returns_as_of.split('-')) : null;
+        if (r1 && V && k.datPopisku && denDb !== k.datPopisku) varuj.push(`${k.slug}: popisek výnos k ${k.datPopisku}, DB už k ${denDb ?? '?'} – nesrovnávám`);
+        else if (r1 && V) {
           overeno++;
           if (Math.abs(cislo(r1) - Number(V.return_1y_czk)) > 0.051) chyby.push(`${k.slug}: popisek výnos ${r1} %, DB ${V.return_1y_czk} % (${k.velky})`);
           if (k.r1Rozc != null && Math.abs(cislo(r1) - k.r1Rozc) > 0.051) varuj.push(`${k.slug}: popisek výnos ${r1} %, rozcestník ${k.r1Rozc} %`);

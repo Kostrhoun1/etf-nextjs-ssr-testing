@@ -47,10 +47,12 @@ async function checkBacktest(page) {
     await page.goto(BASE + '/backtest', { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(1500);
     // klikni první hotové portfolio (preset), pak hlavní tlačítko
-    const preset = page.getByRole('button', { name: /All-Weather|S&P 500|All-World|60\/40/i }).first();
-    if (await preset.count()) await preset.click();
-    const run = page.getByRole('button', { name: /Otestovat na historii|Spustit backtest|Počítám/i }).first();
-    await run.click();
+    // Od /backtest „config-first“ (PR #67) se počítá hned po volbě předvolby – tlačítko spuštění už není.
+    const preset = page.getByRole('button', { name: /^(60\/40|S&P 500|All Weather|Celý svět)$/i }).first();
+    if (!(await preset.count())) return fail(name, 'na stránce není žádná předvolba portfolia');
+    await preset.click();
+    const run = page.getByRole('button', { name: /Otestovat na historii|Spustit backtest/i }).first();
+    if (await run.count()) await run.click();
     // počkej na výsledek NEBO chybu
     await page.waitForTimeout(6000);
     const body = await page.evaluate(() => document.body.innerText);
@@ -67,6 +69,8 @@ async function checkBacktest(page) {
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
+  // Monitoring nesmí kazit analytiku: GA i vlastní měření (/api/ev) blokovat.
+  await page.route(/googletagmanager\.com|google-analytics\.com|\/api\/ev(\?|$)/, (r) => r.abort());
   page.setDefaultTimeout(30000);
   for (const p of ['/', '/backtest', '/srovnani', '/fire', '/dane-z-etf', '/zebricky']) {
     await checkPage(page, p);
