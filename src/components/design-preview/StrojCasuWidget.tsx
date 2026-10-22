@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import CisloInput from '@/components/CisloInput';
+import CisloInput, { CisloHlaska, type CisloStav } from '@/components/CisloInput';
 import Link from 'next/link';
 import { ArrowRight, Share2, Check, History, Minus, Plus } from 'lucide-react';
 import { STROJ_PRESETY, spocitejStroj, vlozenoVDnesnichCenach, slozeniProStart, type StrojRada } from '@/lib/strojCasuVypocet';
@@ -80,6 +80,13 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
   const [mesicneV, setMesicne] = useState<number | null>(5000);
   const [narazV, setNaraz] = useState<number | null>(0);
   const mesicne = mesicneV ?? 0, naraz = narazV ?? 0;
+  // S7 (audit nástrojů 22. 10. 2026): při psaní „2 000 000“ (nad max.) se dřív počítalo s 0 a po Enteru se
+  // tiše ořízlo na 1 000 000. Teď: mimo rozsah / neplatné číslo → žádný výsledek („—“) a viditelná hláška;
+  // ořez po opuštění pole s hláškou „Upraveno do povoleného rozsahu“.
+  const [stavMes, setStavMes] = useState<CisloStav>('ok');
+  const [stavNar, setStavNar] = useState<CisloStav>('ok');
+  const spatne = (st: CisloStav) => st === 'mimo' || st === 'necele' || st === 'nejasne' || st === 'neplatne';
+  const vstupNeplatny = spatne(stavMes) || spatne(stavNar);
   const [od, setOd] = useState(2010);
   const [minule, setMinule] = useState<Ulozeno | null>(null);
   const [pripraveno, setPripraveno] = useState(false); // až po přečtení URL/uloženého scénáře
@@ -116,13 +123,13 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
 
   const prazdne = mesicne === 0 && naraz === 0;
   const vysledek = useMemo(
-    () => (rada && !prazdne ? spocitejStroj(rada, `${rokStartu}-01`, mesicne, naraz) : null),
-    [rada, rokStartu, mesicne, naraz, prazdne],
+    () => (rada && !prazdne && !vstupNeplatny ? spocitejStroj(rada, `${rokStartu}-01`, mesicne, naraz) : null),
+    [rada, rokStartu, mesicne, naraz, prazdne, vstupNeplatny],
   );
 
   const vlozenoReal = useMemo(
-    () => (rada && !prazdne ? vlozenoVDnesnichCenach(rada, `${rokStartu}-01`, mesicne, naraz) : null),
-    [rada, rokStartu, mesicne, naraz, prazdne],
+    () => (rada && !prazdne && !vstupNeplatny ? vlozenoVDnesnichCenach(rada, `${rokStartu}-01`, mesicne, naraz) : null),
+    [rada, rokStartu, mesicne, naraz, prazdne, vstupNeplatny],
   );
 
   // 2) URL odpovídá scénáři (sdílení) + uložení pro „od minulé návštěvy“ – až po obnovení.
@@ -200,16 +207,18 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
             <div>
               <label htmlFor="sc-mesicne" className="text-sm font-medium text-slate-700">Měsíčně</label>
               <div className="relative mt-1.5">
-                <CisloInput id="sc-mesicne" value={mesicneV} onValue={setMesicne} min={0} max={1_000_000} placeholder="0" className={pole} />
+                <CisloInput id="sc-mesicne" value={mesicneV} onValue={setMesicne} onStav={setStavMes} min={0} max={1_000_000} placeholder="0" className={pole} aria-invalid={spatne(stavMes) || undefined} />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">Kč</span>
               </div>
+              <CisloHlaska stav={stavMes} rozsah="0–1 000 000 Kč" />
             </div>
             <div>
               <label htmlFor="sc-naraz" className="text-sm font-medium text-slate-700">Na začátku</label>
               <div className="relative mt-1.5">
-                <CisloInput id="sc-naraz" value={narazV} onValue={setNaraz} min={0} max={100_000_000} placeholder="0" className={pole} />
+                <CisloInput id="sc-naraz" value={narazV} onValue={setNaraz} onStav={setStavNar} min={0} max={100_000_000} placeholder="0" className={pole} aria-invalid={spatne(stavNar) || undefined} />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">Kč</span>
               </div>
+              <CisloHlaska stav={stavNar} rozsah="0–100 000 000 Kč" />
             </div>
           </div>
 
@@ -241,7 +250,9 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
         {/* Výsledek – skrytý, dokud se nepřečte URL (jinak by příjemce sdíleného odkazu na chvíli
             viděl výchozí číslo místo poslaného) */}
         <div className={`min-w-0 ${pripraveno ? '' : 'invisible'}`}>
-          {prazdne || !vysledek ? (
+          {vstupNeplatny ? (
+            <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600" data-vysledek-chybi><span className="font-bold text-slate-400">—</span> Opravte částku – výsledek se dopočítá hned.</p>
+          ) : prazdne || !vysledek ? (
             <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">Zadejte měsíční nebo jednorázovou částku.</p>
           ) : (
             <>

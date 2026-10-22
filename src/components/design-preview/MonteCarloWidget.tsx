@@ -22,38 +22,23 @@ import {
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { CisloPole } from '@/components/CisloInput';
+import { MC_PREDPOKLADY, type McAktivum } from '@/lib/monteCarloPredpoklady';
 
 /**
  * Interaktivní jádro Monte Carlo simulátoru portfolia – redesign.
  *
- * Výpočetní logika (model aktiv, korelační matice, Choleskyho dekompozice,
- * generování měsíčních výnosů, běh simulací a výpočet percentilů) je převzata
- * 1:1 z ověřené utility `src/utils/monteCarloUtils.ts` (funkce
- * `runMonteCarloSimulation`, konstanty `ASSETS`, `ASSET_KEYS`,
- * `CORRELATION_MATRIX`) a typů `src/types/monteCarlo.ts`. Měněn je POUZE
- * vizuál (teal/slate, design systém, graf přes recharts). Finanční logiku
- * neměnit.
- *
- * JEDINÁ funkční odchylka oproti originálu: zdroj náhody `Math.random()` je
- * nahrazen DETERMINISTICKÝM generátorem se semínkem (Mulberry32). Důvod: aby
- * byly výsledky napříč spuštěními konzistentní a aby případný prerender
- * nepadal na nedeterminismu. Statistika (Box–Muller, korelace, percentily)
- * zůstává totožná.
+ * Výpočet (korelační matice, Choleskyho dekompozice, měsíční log-normální výnosy, percentily) je převzatý
+ * z původní utility monteCarloUtils.ts (soubor už v repu není). ZMĚNY:
+ *  - zdroj náhody je DETERMINISTICKÝ generátor se semínkem (Mulberry32) – stejné zadání ⇒ stejný výsledek,
+ *  - audit nástrojů 22. 10. 2026 (V3): výnosy, kolísání a korelace aktiv už nejsou natvrdo bez zdroje, ale
+ *    z historie amerických ETF (src/lib/monteCarloPredpoklady.ts – období, zdroj, datum, kontrola
+ *    scripts/monte-carlo-predpoklady.mjs). Třídy aktiv bez vlastních dat a bez váhy v portfoliích
+ *    (US malé firmy, Kanada, high-yield dluhopisy) byly odebrány – nic nepočítaly,
+ *  - Box–Muller chráněný proti u = 0 (log 0 = −∞), výsledky zaokrouhlené na 2 platné číslice (S22, N6).
  */
 
-// ===== Typy (1:1 z src/types/monteCarlo.ts) =====
-type AssetClass =
-  | 'us_large'
-  | 'us_small'
-  | 'emerging'
-  | 'intl_dev'
-  | 'canada'
-  | 'reits'
-  | 'us_high_yield'
-  | 'us_quality_bond'
-  | 'intl_bond'
-  | 'gold'
-  | 'cash';
+// ===== Typy =====
+type AssetClass = McAktivum;
 
 type AssetAllocation = Record<AssetClass, number>;
 
@@ -67,41 +52,14 @@ interface SimulationResult {
   mean: number;
 }
 
-// ===== VÝPOČET 1:1 z src/utils/monteCarloUtils.ts – NEMĚNIT (kromě zdroje náhody) =====
+// ===== VÝPOČET (model aktiv z historie ETF, src/lib/monteCarloPredpoklady.ts) =====
 
-// Roční výnos a volatilita aktiv
-const ASSETS: Record<AssetClass, { label: string; annualReturn: number; volatility: number }> = {
-  us_large: { label: 'US velké akcie', annualReturn: 0.086, volatility: 0.168 },
-  us_small: { label: 'US malé akcie', annualReturn: 0.076, volatility: 0.205 },
-  emerging: { label: 'Akcie rozvíjejících se trhů', annualReturn: 0.073, volatility: 0.231 },
-  intl_dev: { label: 'Rozvinuté zahraniční akcie', annualReturn: 0.062, volatility: 0.194 },
-  canada: { label: 'Kanadské akcie', annualReturn: 0.06, volatility: 0.172 },
-  reits: { label: 'REITs (nemovitosti)', annualReturn: 0.058, volatility: 0.187 },
-  us_high_yield: { label: 'US vysoce výnosné dluhopisy', annualReturn: 0.048, volatility: 0.089 },
-  us_quality_bond: { label: 'US vysokokvalitní dluhopisy', annualReturn: 0.042, volatility: 0.054 },
-  intl_bond: { label: 'Mezinárodní dluhopisy', annualReturn: 0.026, volatility: 0.108 },
-  gold: { label: 'Zlato', annualReturn: 0.023, volatility: 0.162 },
-  cash: { label: 'Hotovost (státní pokladniční poukázky)', annualReturn: 0.004, volatility: 0.015 },
-};
+// Roční výnos (CAGR) a kolísání aktiv – z historie, se zdrojem a datem.
+const ASSETS = MC_PREDPOKLADY.aktiva;
 
-const ASSET_KEYS: AssetClass[] = [
-  'us_large', 'us_small', 'intl_dev', 'emerging', 'canada',
-  'us_quality_bond', 'us_high_yield', 'intl_bond', 'reits', 'gold', 'cash',
-];
+const ASSET_KEYS: AssetClass[] = MC_PREDPOKLADY.poradi;
 
-const CORRELATION_MATRIX: number[][] = [
-  /*us_large*/        [1, 0.85, 0.78, 0.65, 0.74, 0.15, 0.45, 0.25, 0.65, 0.05, -0.05],
-  /*us_small*/        [0.85, 1, 0.72, 0.7, 0.68, 0.1, 0.5, 0.2, 0.7, 0, -0.1],
-  /*intl_dev*/        [0.78, 0.72, 1, 0.8, 0.82, 0.25, 0.4, 0.45, 0.55, 0.15, 0],
-  /*emerging*/        [0.65, 0.7, 0.8, 1, 0.6, 0.2, 0.35, 0.3, 0.5, 0.1, 0.05],
-  /*canada*/          [0.74, 0.68, 0.82, 0.6, 1, 0.22, 0.42, 0.35, 0.58, 0.12, 0.02],
-  /*us_quality_bond*/ [0.15, 0.1, 0.25, 0.2, 0.22, 1, 0.65, 0.55, 0.2, 0.3, 0.35],
-  /*us_high_yield*/   [0.45, 0.5, 0.4, 0.35, 0.42, 0.65, 1, 0.45, 0.55, 0.15, 0.2],
-  /*intl_bond*/       [0.25, 0.2, 0.45, 0.3, 0.35, 0.55, 0.45, 1, 0.3, 0.25, 0.3],
-  /*reits*/           [0.65, 0.7, 0.55, 0.5, 0.58, 0.2, 0.55, 0.3, 1, 0.15, -0.1],
-  /*gold*/            [0.05, 0, 0.15, 0.1, 0.12, 0.3, 0.15, 0.25, 0.15, 1, 0.2],
-  /*cash*/            [-0.05, -0.1, 0, 0.05, 0.02, 0.35, 0.2, 0.3, -0.1, 0.2, 1],
-];
+const CORRELATION_MATRIX: number[][] = MC_PREDPOKLADY.korelace;
 
 function choleskyDecomposition(matrix: number[][]): number[][] {
   const n = matrix.length;
@@ -134,8 +92,8 @@ function createRng(seed: number): () => number {
 function generateCorrelatedStandardNormals(rng: () => number): number[] {
   const n = ASSET_KEYS.length;
   const z: number[] = Array.from({ length: n }, () => {
-    // Box–Muller pro N(0,1)
-    const u = rng();
+    // Box–Muller pro N(0,1); rng() je z [0, 1) → 1 − rng() z (0, 1], log(0) = −∞ nenastane (N6).
+    const u = 1 - rng();
     const v = rng();
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   });
@@ -220,8 +178,8 @@ const PRESETS: { id: string; name: string; desc: string; allocation: AssetAlloca
     name: '100 % akcie',
     desc: 'Růstové, kolísavé',
     allocation: {
-      us_large: 60, us_small: 0, emerging: 10, intl_dev: 30, canada: 0,
-      reits: 0, us_high_yield: 0, us_quality_bond: 0, intl_bond: 0, gold: 0, cash: 0,
+      us_large: 60, emerging: 10, intl_dev: 30,
+      reits: 0, us_quality_bond: 0, intl_bond: 0, gold: 0, cash: 0,
     },
   },
   {
@@ -229,8 +187,8 @@ const PRESETS: { id: string; name: string; desc: string; allocation: AssetAlloca
     name: '60 / 40',
     desc: 'Akcie a dluhopisy',
     allocation: {
-      us_large: 40, us_small: 0, emerging: 0, intl_dev: 20, canada: 0,
-      reits: 0, us_high_yield: 0, us_quality_bond: 30, intl_bond: 10, gold: 0, cash: 0,
+      us_large: 40, emerging: 0, intl_dev: 20,
+      reits: 0, us_quality_bond: 30, intl_bond: 10, gold: 0, cash: 0,
     },
   },
   {
@@ -238,8 +196,8 @@ const PRESETS: { id: string; name: string; desc: string; allocation: AssetAlloca
     name: 'Opatrné',
     desc: 'Klidnější průběh',
     allocation: {
-      us_large: 25, us_small: 0, emerging: 0, intl_dev: 10, canada: 0,
-      reits: 0, us_high_yield: 0, us_quality_bond: 45, intl_bond: 10, gold: 5, cash: 5,
+      us_large: 25, emerging: 0, intl_dev: 10,
+      reits: 0, us_quality_bond: 45, intl_bond: 10, gold: 5, cash: 5,
     },
   },
   {
@@ -249,8 +207,8 @@ const PRESETS: { id: string; name: string; desc: string; allocation: AssetAlloca
     allocation: {
       // Dalio: 30 akcie, 40 dlouhé + 15 střednědobé dluhopisy, 7,5 zlato + 7,5 komodity. Komodity
       // tu nejsou → jejich podíl jde do zlata. Dřív zlato 7 % = součet 92 % → simulace nešla spustit.
-      us_large: 30, us_small: 0, emerging: 0, intl_dev: 0, canada: 0,
-      reits: 0, us_high_yield: 0, us_quality_bond: 40, intl_bond: 15, gold: 15, cash: 0,
+      us_large: 30, emerging: 0, intl_dev: 0,
+      reits: 0, us_quality_bond: 40, intl_bond: 15, gold: 15, cash: 0,
     },
   },
 ];
@@ -268,9 +226,18 @@ const fmtCZK = (amount: number) =>
     maximumFractionDigits: 0,
   }).format(amount);
 
-/* Výsledky náhodné simulace zaokrouhlujeme na tisíce – „2 826 294 Kč“ budilo falešnou přesnost
-   (revize AD 22. 10. 2026). Vklady (zadané uživatelem) zůstávají přesné přes fmtCZK. */
-const fmtTis = (amount: number) => fmtCZK(Math.round(amount / 1000) * 1000);
+/* Výsledky náhodné simulace zaokrouhlujeme na 2 PLATNÉ ČÍSLICE (audit nástrojů 22. 10. 2026, S22):
+   při 600–1 000 scénářích se 95. percentil mezi semínky liší o 3–6 %, „50 446 000 Kč“ i „50 446 tis.“
+   byla falešná přesnost. 2 826 294 → „2,8 mil. Kč“, 936 512 → „940 000 Kč“. Vklady (zadané uživatelem)
+   zůstávají přesné přes fmtCZK. */
+const fmtTis = (amount: number) => {
+  if (!Number.isFinite(amount) || amount <= 0) return fmtCZK(0);
+  const rad = Math.pow(10, Math.floor(Math.log10(amount)) - 1);
+  const v = Math.round(amount / rad) * rad;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}\u00a0mil.\u00a0Kč`;
+  return fmtCZK(v);
+};
+const pct = (x: number) => `${(x * 100).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
 
 /* Popisky osy: nezlomitelné mezery (U+00A0) – recharts jinak „1,5 mil. Kč“ láme na dva řádky. */
 const fmtCompact = (v: number) => {
@@ -565,6 +532,37 @@ export default function MonteCarloWidget() {
           amerických tříd aktiv v dolarech (USD). Částky v Kč tak odpovídají situaci, kdy by se kurz USD/CZK za celé období nezměnil –
           skutečný výsledek v korunách může být vyšší i nižší.
         </p>
+        {/* Předpoklady se zdrojem, obdobím a datem (audit nástrojů 22. 10. 2026, V3). */}
+        <details className="mt-3 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-600" data-qa="mc-predpoklady">
+          <summary className="cursor-pointer list-none px-3 py-2.5 min-h-[44px] flex items-center leading-snug">
+            Předpoklady z historie {MC_PREDPOKLADY.obdobi}, data k {MC_PREDPOKLADY.dataK} – zobrazit výnosy a kolísání
+          </summary>
+          <div className="px-3 pb-3">
+            <table className="w-full tabular-nums">
+              <thead>
+                <tr className="text-slate-500">
+                  <th className="text-left font-medium py-1">Aktivum (ETF)</th>
+                  <th className="text-right font-medium py-1">Výnos ročně</th>
+                  <th className="text-right font-medium py-1">Kolísání</th>
+                </tr>
+              </thead>
+              <tbody>
+                {EDITABLE_KEYS.map((k) => (
+                  <tr key={k} className="border-t border-slate-200">
+                    <td className="py-1 pr-2">{ASSETS[k].label} ({ASSETS[k].etf})</td>
+                    <td className="py-1 text-right">{pct(ASSETS[k].annualReturn)}</td>
+                    <td className="py-1 text-right">{pct(ASSETS[k].volatility)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-2 leading-relaxed">
+              Výnos = průměrné roční zhodnocení (CAGR) ETF v dolarech včetně dividend, kolísání a vzájemné korelace z měsíčních
+              výnosů téhož období. Zdroj: {MC_PREDPOKLADY.zdroj}. Období obsahuje krizi 2008 i silný růst amerických akcií –
+              minulost nezaručuje budoucnost.
+            </p>
+          </div>
+        </details>
 
         {/* Počet simulací */}
         <div className="mt-4">
@@ -641,7 +639,7 @@ export default function MonteCarloWidget() {
                     <p className="text-sm text-slate-500">
                       Šance dosáhnout {fmtCZK(ranWith.goal)} za {ranWith.years} {ranWith.years === 1 ? 'rok' : ranWith.years >= 2 && ranWith.years <= 4 ? 'roky' : 'let'}
                     </p>
-                    <p className="text-2xl font-bold text-slate-900 tabular-nums">
+                    <p className="text-2xl font-bold text-slate-900 tabular-nums" data-qa="mc-sance">
                       {ranWith.probGoal.toFixed(0)} %
                     </p>
                   </div>
@@ -675,7 +673,7 @@ export default function MonteCarloWidget() {
                   </InfoTip>
                 </p>
               </div>
-              <p className="text-xl font-bold text-slate-900 tabular-nums">
+              <p className="text-xl font-bold text-slate-900 tabular-nums" data-qa="mc-p5">
                 {fmtTis(finalRow.percentile5)}
               </p>
             </div>
@@ -690,7 +688,7 @@ export default function MonteCarloWidget() {
                   </InfoTip>
                 </p>
               </div>
-              <p className="text-xl font-bold text-teal-800 tabular-nums">
+              <p className="text-xl font-bold text-teal-800 tabular-nums" data-qa="mc-p50">
                 {fmtTis(finalRow.percentile50)}
               </p>
             </div>
@@ -705,7 +703,7 @@ export default function MonteCarloWidget() {
                   </InfoTip>
                 </p>
               </div>
-              <p className="text-xl font-bold text-emerald-700 tabular-nums">
+              <p className="text-xl font-bold text-emerald-700 tabular-nums" data-qa="mc-p95">
                 {fmtTis(finalRow.percentile95)}
               </p>
             </div>
@@ -825,7 +823,7 @@ export default function MonteCarloWidget() {
             <p className="mt-3 text-xs text-slate-500 leading-relaxed">
               Červená čára je pesimistický scénář: jen 5 % simulací dopadlo hůř. Najetím myší (nebo tapnutím na mobilu)
               zobrazíte hodnoty pro daný rok ve všech pásmech. Hodnoty jsou nominální, bez inflace, daní, poplatků
-              a bez vlivu kurzu koruny (výnosy aktiv v USD), zaokrouhlené na tisíce.
+              a bez vlivu kurzu koruny (výnosy aktiv v USD), zaokrouhlené na 2 platné číslice – víc přesnosti náhodná simulace nedává.
             </p>
           </div>
 
@@ -834,12 +832,19 @@ export default function MonteCarloWidget() {
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
               <Sparkles className="w-4 h-4" /> Co si z toho odnést
             </p>
+            {/* N8: „skončí nad 0 Kč“ při samých nulách nedávalo smysl → bez vkladů vlastní věta. */}
             <p className="mt-3 text-sm md:text-base text-teal-50 leading-relaxed">
-              Celkem vložíte {fmtCZK(totalInvested)}. V polovině scénářů portfolio za {ranWith.years}{' '}
-              {ranWith.years === 1 ? 'rok' : ranWith.years >= 2 && ranWith.years <= 4 ? 'roky' : 'let'} skončí nad{' '}
-              <strong className="font-semibold">{fmtTis(finalRow.percentile50)}</strong>,
-              ale skutečný výsledek může být kdekoli v rámci pásma – budoucnost nikdo nezná. Proto se
-              díváme na rozsah, ne na jediné číslo.
+              {totalInvested <= 0 ? (
+                <>Bez počáteční investice a vkladů zůstane portfolio na 0 Kč – zadejte částku, kterou chcete investovat.</>
+              ) : (
+                <>
+                  Celkem vložíte {fmtCZK(totalInvested)}. Za {ranWith.years}{' '}
+                  {ranWith.years === 1 ? 'rok' : ranWith.years >= 2 && ranWith.years <= 4 ? 'roky' : 'let'} skončila polovina scénářů nad
+                  {' '}<strong className="font-semibold">{fmtTis(finalRow.percentile50)}</strong> a polovina pod,
+                  skutečný výsledek může být kdekoli v rámci pásma – budoucnost nikdo nezná. Proto se
+                  díváme na rozsah, ne na jediné číslo.
+                </>
+              )}
             </p>
           </div>
 

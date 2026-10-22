@@ -142,6 +142,8 @@ interface FireRange {
   band: FireBandPoint[];
   halfAge: number | null;       // věk, kdy medián dosáhne 50 % cíle
   firstYearAge: number | null;  // věk, kdy medián pokryje 1 rok výdajů
+  podilDosazeno: number;        // podíl simulací, které cíle do 50 let dosáhly (0–1)
+  sims: number;
 }
 
 /* Monte Carlo v REÁLNÝCH korunách (dnešní kupní síla): reálný výnos = historický reálný výnos v Kč,
@@ -163,9 +165,14 @@ function computeFireRange(params: {
   const { currentAge, currentSavings, monthlySavings, monthlyExpensesInFire,
     inflationRate, investmentStrategy, growContributions, events } = params;
   const infl = inflationRate / 100;
-  const vol = getPortfolioParameters(investmentStrategy).volatilita;
-  const rReal = getPortfolioParameters(investmentStrategy).realnyVynos / 100; // historický reálný výnos v Kč
-  const mMean = Math.pow(1 + rReal, 1 / 12) - 1;
+  const vol = getPortfolioParameters(investmentStrategy).volatilita; // reálné roční kolísání (log. výnosy)
+  const rReal = getPortfolioParameters(investmentStrategy).realnyVynos / 100; // historický reálný CAGR v Kč
+  /* GEOMETRICKÝ (lognormální) model – audit nástrojů 22. 10. 2026, V2. rReal je CAGR (geometrický průměr),
+     proto měsíční růstový faktor = exp(μ + σ·Z) s μ = ln(1 + rReal)/12 a σ = roční kolísání/√12: medián
+     dráhy pak roste přesně o rReal ročně. Dřív se (1 + rReal)^(1/12) − 1 bral jako ARITMETICKÝ průměr
+     normálního výnosu → medián rostl zhruba o σ²/2 pomaleji (60/40: ~4,2 % místo 4,6 %) a věk FIRE vycházel
+     o 1–3 roky později. Nezávisle ověřeno (numpy, 100 000 cest): medián CAGR = rReal ± 0,02 p. b. */
+  const mLog = Math.log(1 + rReal) / 12;
   const mVol = vol / Math.sqrt(12);
   const annualExpenses = monthlyExpensesInFire * 12;
   const targetReal = annualExpenses * 25;
@@ -192,7 +199,7 @@ function computeFireRange(params: {
           else pv -= ev.amount; // oneoffExpense
         }
       }
-      pv *= (1 + randNormal(mMean, mVol, rng));
+      pv *= Math.exp(randNormal(mLog, mVol, rng));
       if (pv < 0) pv = 0;
       if (reached === null && pv >= targetReal) reached = m;
       if (m % 12 === 0) perYear[m / 12].push(pv);
@@ -219,6 +226,7 @@ function computeFireRange(params: {
   return {
     fastYears: norm(qYears(0.10)), medYears: norm(qYears(0.50)), slowYears: norm(qYears(0.90)),
     currentAge, targetReal, band, halfAge, firstYearAge,
+    podilDosazeno: yearsReached.filter((m) => m < MONTHS).length / sims, sims,
   };
 }
 
@@ -352,7 +360,9 @@ export default function FireKalkulackaWidget() {
   const slowAge = range && range.slowYears != null ? range.currentAge + range.slowYears : null;
   const konecHorizontu = range ? range.currentAge + 50 : null;
   /** „za ~12 let“; 0 → „do roka“; null (v horizontu 50 let nedosaženo) → „ani za 50 let“. */
-  const zaLet = (y: number | null) => (y == null ? 'ani za 50 let' : y === 0 ? 'do roka' : `za ~${y} let`);
+  const zaLet = (y: number | null) => (y == null ? 'ani za 50 let' : y === 0 ? 'do roka' : `za ~${y} ${y === 1 ? 'rok' : y <= 4 ? 'roky' : 'let'}`);
+  /** Podíl simulací s dosaženým cílem: „méně než 1 %“ místo „0 %“, jinak celá procenta. */
+  const podilText = range ? (range.podilDosazeno > 0 && range.podilDosazeno < 0.01 ? 'méně než 1 %' : `${Math.round(range.podilDosazeno * 100)} %`) : '';
   const predpoklad = getPortfolioParameters(investmentStrategy);
 
   return (
@@ -526,7 +536,12 @@ export default function FireKalkulackaWidget() {
           <div className="flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
             <div className="text-sm text-amber-900/80">
-              <p className="font-semibold text-amber-800">Při těchto vstupech nezávislosti ani za 50 let nedosáhnete (do {konecHorizontu} let věku)</p>
+              {/* S19 (audit 22. 10. 2026): „ani za 50 let nedosáhnete“ se dřív ukázalo, i když ~10 % simulací cíle dosáhlo. */}
+              <p className="font-semibold text-amber-800" data-qa="fire-nedosazeno">
+                {range.podilDosazeno === 0
+                  ? <>Při těchto vstupech nezávislosti do 50 let (do {konecHorizontu} let věku) nedosáhnete v žádné z {range.sims} simulací</>
+                  : <>Do 50 let (do {konecHorizontu} let věku) dosáhnete nezávislosti jen v {podilText} simulací{fastAge != null ? <>; když se trhu daří (příznivější desetina simulací), kolem {fastAge} let</> : null}</>}
+              </p>
               <p className="mt-1">
                 Zkuste zvýšit měsíční spoření, snížit cílové výdaje nebo zvolit strategii s vyšším podílem akcií.
                 Cílová částka (
@@ -573,23 +588,23 @@ export default function FireKalkulackaWidget() {
             <InfoTip label="Simulujeme stovky možných vývojů trhu (kolísání nahoru i dolů). V akumulaci portfolio cíle skoro vždy nakonec dosáhne – nejistota je hlavně KDY, ne jestli.">
               <span className="text-teal-50 underline decoration-dotted"> proč rozsah?</span>
             </InfoTip>
-            {' '}– v polovině případů jste v cíli do {medAge} let, {slowAge == null ? <>ale v horší desetině případů ani za 50 let</> : <>ve většině do {slowAge}</>}.
+            {' '}– v polovině případů jste v cíli do {medAge} let, {slowAge == null ? <>ale v horší desetině případů ani za 50 let</> : <>v 9 z 10 případů do {slowAge}</>}.
           </p>
           {/* Tři čísla: dařilo / obvykle / nedařilo */}
           <div className="mt-4 grid grid-cols-3 gap-2.5">
             <div className="rounded-lg bg-white/10 px-3 py-2.5">
               <p className="text-[11px] text-teal-100 leading-tight">Když se trhu dařilo</p>
-              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{fastAge} let</p>
+              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5" data-qa="fire-fast">{fastAge} let</p>
               <p className="text-[11px] text-teal-200">{zaLet(range.fastYears)}</p>
             </div>
             <div className="rounded-lg bg-white/[0.18] ring-1 ring-white/25 px-3 py-2.5">
-              <p className="text-[11px] text-teal-50 leading-tight">Nejčastěji</p>
-              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{medAge} let</p>
+              <p className="text-[11px] text-teal-50 leading-tight">Obvykle (medián)</p>
+              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5" data-qa="fire-med">{medAge} let</p>
               <p className="text-[11px] text-teal-100">{zaLet(range.medYears)}</p>
             </div>
             <div className="rounded-lg bg-white/10 px-3 py-2.5">
               <p className="text-[11px] text-teal-100 leading-tight">Když se nedařilo</p>
-              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{slowAge != null ? `${slowAge} let` : '—'}</p>
+              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5" data-qa="fire-slow">{slowAge != null ? `${slowAge} let` : '—'}</p>
               <p className="text-[11px] text-teal-200">{slowAge != null ? zaLet(range.slowYears) : `ani do ${konecHorizontu} let`}</p>
             </div>
           </div>
@@ -644,7 +659,7 @@ export default function FireKalkulackaWidget() {
           Vývoj majetku v čase
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-xs text-slate-600">
-          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-1 rounded-full bg-teal-600" /> Střední (nejpravděpodobnější) dráha</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-1 rounded-full bg-teal-600" /> Střední dráha (medián simulací)</span>
           <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-2.5 rounded-sm bg-teal-600/15 border border-teal-600/20" /> Pás možností (kolísání trhu)</span>
           <span className="flex items-center gap-1.5"><span className="inline-block w-3.5 h-0 border-t-2 border-dashed border-slate-400" /> FIRE cíl</span>
         </div>
@@ -676,7 +691,7 @@ export default function FireKalkulackaWidget() {
                   return (
                     <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
                       <div className="font-semibold mb-0.5">Věk {p.age} let</div>
-                      <div>Obvykle: <span className="font-medium tabular-nums">{fmtCZK(p.mid)}</span></div>
+                      <div>Medián: <span className="font-medium tabular-nums">{fmtCZK(p.mid)}</span></div>
                       <div className="text-slate-300">Rozpětí {fmtCompact(p.low)} – {fmtCompact(p.high)}</div>
                     </div>
                   );
@@ -695,7 +710,7 @@ export default function FireKalkulackaWidget() {
         </div>
 
         <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-          Tyrkysová čára je nejpravděpodobnější vývoj, světlý pás ukazuje rozpětí podle toho, jak se povede trhu. Kde pás protne čárkovanou čáru cíle, tam se pohybuje věk dosažení nezávislosti. Vše v dnešní kupní síle.
+          Tyrkysová čára je medián – polovina simulací skončila výš, polovina níž. Světlý pás (10.–90. percentil) ukazuje rozpětí podle toho, jak se povede trhu. Kde pás protne čárkovanou čáru cíle, tam se pohybuje věk dosažení nezávislosti. Vše v dnešní kupní síle.
         </p>
       </div>
       )}

@@ -6,17 +6,29 @@ import InfoTip from './InfoTip';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 
 /**
- * Interaktivní jádro kalkulačky čisté mzdy 2026 – PRESKINOVANÁ verze (design systém teal/slate).
+ * Interaktivní jádro kalkulačky čisté mzdy 2026 (design systém teal/slate).
  *
- * VÝPOČETNÍ LOGIKA A DAŇOVÉ KONSTANTY JSOU 1:1 PŘEVZATY ze zdroje:
- *   src/utils/netSalaryCalculations.ts  (calculateNetSalary, řádky 32–160)
- * Měněn je POUZE vizuál. Sazby, slevy ani vzorce neměnit – chybná daň = kritická chyba.
+ * Logika původně z netSalaryCalculations.ts (soubor už v repu není – N17). Audit nástrojů 22. 10. 2026
+ * doplnil zákonné zaokrouhlení (N14), minimální vyměřovací základ zdravotního pojištění (S24), hranici
+ * vyplacení daňového bonusu 50 Kč (N13), přesné štítky (V11, N12) a stejný základ procent (S23).
+ * Chybná daň = kritická chyba – každá změna sazeb jen se zdrojem a regresním případem v scripts/qa-kalkulacky.mjs.
+ *
+ * ZÁKONNÁ PRAVIDLA (ověřeno 22. 10. 2026):
+ *  - základ zálohy na daň: do 100 Kč na celé koruny nahoru, nad 100 Kč na celé STOKORUNY nahoru;
+ *    záloha = 15 % do 3× průměrné mzdy (146 901 Kč měsíčně) + 23 % z části nad; záloha na celé koruny nahoru
+ *    (§ 38h odst. 1–3 zákona 586/1992 Sb., ZDP),
+ *  - měsíční daňový bonus se vyplácí, jen když činí alespoň 50 Kč, a jen při příjmu ≥ ½ minimální mzdy (§ 35d odst. 4 ZDP),
+ *  - sociální pojištění zaměstnance 7,1 % (6,5 % důchodové + 0,6 % nemocenské), pracující starobní důchodce
+ *    sleva 6,5 p. b. → 0,6 %; pojistné na celé koruny nahoru (§ 7 zákona 589/1992 Sb.),
+ *  - zdravotní: 13,5 % z vyměřovacího základu na celé koruny nahoru, zaměstnanec třetinu (zaokrouhleno nahoru),
+ *    zaměstnavatel zbytek (VZP „Výpočet pojistného“; Práce a mzda: základ 22 880 → 3 089 = 1 030 + 2 059),
+ *  - minimální vyměřovací základ zdravotního = minimální mzda (2026: 22 400 Kč); při nižší mzdě zaměstnanec
+ *    doplácí 13,5 % z rozdílu (§ 3 odst. 7 a § 4 zákona 592/1992 Sb.; VZP „Kdy se provádí doplatek“), pokud
+ *    nespadá do výjimky (např. státní pojištěnec – student, poživatel důchodu, rodič na rodičovské; osoba ZTP/P).
  */
 
-/* ===== KONSTANTY 2026 – ZKOPÍROVÁNO 1:1 z src/utils/netSalaryCalculations.ts ===== */
+/* ===== KONSTANTY 2026 ===== */
 const SOCIAL_INSURANCE_RATE = 0.071; // 7,1 % (6,5 % důchodové + 0,6 % nemocenské)
-const HEALTH_INSURANCE_RATE = 0.045; // 4,5 %
-const PENSIONER_HEALTH_INSURANCE_RATE = 0.045; // 4,5 % pro důchodce (zůstává)
 // Pracující starobní důchodce: sleva na pojistném 6,5 % (důchodová část) → platí jen 0,6 % nemocenské.
 // Dřív 0 % (audit výpočtů 17. 10. 2026; ověřeno MPSV/ČSSZ: 7,1 % = 6,5 % důchodové + 0,6 % nemocenské).
 const PENSIONER_SOCIAL_DISCOUNT = 0.065;
@@ -29,6 +41,11 @@ const AVERAGE_SALARY_2026 = 48967; // Kč (průměrná mzda pro daňové účely
 const HIGH_TAX_THRESHOLD_MONTHLY = AVERAGE_SALARY_2026 * 36 / 12; // 146 901 Kč měsíčně
 
 const MONTHLY_TAX_CREDIT = 2570; // Kč
+const MIN_WAGE_2026 = 22400; // Kč – minimální mzda 2026 = minimální vyměřovací základ zdravotního pojištění
+const HEALTH_TOTAL_RATE = 0.135; // 13,5 % zdravotní celkem (zaměstnanec ⅓, zaměstnavatel ⅔)
+const MIN_TAX_BONUS = 50; // Kč – měsíční daňový bonus pod 50 Kč se nevyplácí (§ 35d odst. 4 ZDP)
+/** Zaokrouhlení na celé koruny nahoru (s tolerancí plovoucí čárky: 0,135 × 20 000 = 2 700,0000000000005). */
+const nahoru = (x: number) => Math.ceil(x - 1e-9);
 const CHILD_TAX_CREDIT_FIRST = 1267; // Kč za 1. dítě
 const CHILD_TAX_CREDIT_SECOND = 1860; // Kč za 2. dítě
 const CHILD_TAX_CREDIT_THIRD_PLUS = 2320; // Kč za 3. a další dítě
@@ -42,7 +59,6 @@ const EMPLOYER_SOCIAL_INSURANCE_RATE = 0.248; // 24,8 %
 // (ve skutečnosti se platí plně, dokud roční úhrn nedosáhne stropu, pak nic).
 const MAX_SOCIAL_BASE_ANNUAL_2026 = 48 * AVERAGE_SALARY_2026; // 2 350 416 Kč
 const MAX_SOCIAL_BASE_MONTHLY = MAX_SOCIAL_BASE_ANNUAL_2026 / 12; // 195 868 Kč
-const EMPLOYER_HEALTH_INSURANCE_RATE = 0.09; // 9 %
 
 interface NetSalaryParams {
   grossSalary: number;
@@ -50,6 +66,8 @@ interface NetSalaryParams {
   hasChildren: boolean;
   numberOfChildren: number;
   hasDisability: boolean;
+  /** Na minimální vyměřovací základ zdravotního pojištění se vztahuje výjimka (student, důchodce, ZTP/P…). */
+  minZakladVyjimka: boolean;
 }
 
 interface NetSalaryData {
@@ -69,6 +87,12 @@ interface NetSalaryData {
   employerHealthInsurance: number;
   /** Hrubá nad stropem sociálního pojištění → měsíční částky jsou průměr za rok. */
   socialCapped: boolean;
+  /** Doplatek zdravotního pojištění do minimálního vyměřovacího základu (hradí zaměstnanec). */
+  doplatekZdravotni: number;
+  /** Zaokrouhlený základ pro výpočet zálohy (celé stokoruny nahoru). */
+  zakladZalohy: number;
+  /** Bonus vyšel kladný, ale pod 50 Kč → nevyplácí se. */
+  bonusPodMinimem: number;
   taxEffectiveRate: number;
   breakdown: {
     monthlyTaxCredit: number;
@@ -78,46 +102,37 @@ interface NetSalaryData {
   };
 }
 
-/* calculateNetSalary – 1:1 z netSalaryCalculations.ts (jen bez student. slevy, která je tam vždy 0). */
 function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
-  const { grossSalary, isPensioner, hasChildren, numberOfChildren, hasDisability } = params;
+  const { grossSalary, isPensioner, hasChildren, numberOfChildren, hasDisability, minZakladVyjimka } = params;
 
-  // Výpočet pojistného – sociální jen do stropu (maximální vyměřovací základ), zdravotní bez stropu.
-  let socialInsurance: number;
-  let healthInsurance: number;
+  // Sociální pojištění – jen do stropu (maximální vyměřovací základ, měsíčně průměr za rok), na koruny nahoru.
   const socialBase = Math.min(grossSalary, MAX_SOCIAL_BASE_MONTHLY);
+  const socialRate = isPensioner ? SOCIAL_INSURANCE_RATE - PENSIONER_SOCIAL_DISCOUNT : SOCIAL_INSURANCE_RATE;
+  const socialInsurance = nahoru(socialBase * socialRate);
 
-  if (isPensioner) {
-    // Pracující důchodci – 0,6 % sociální (sleva 6,5 %), 4,5 % zdravotní
-    socialInsurance = socialBase * (SOCIAL_INSURANCE_RATE - PENSIONER_SOCIAL_DISCOUNT);
-    healthInsurance = grossSalary * PENSIONER_HEALTH_INSURANCE_RATE;
-  } else {
-    socialInsurance = socialBase * SOCIAL_INSURANCE_RATE;
-    healthInsurance = grossSalary * HEALTH_INSURANCE_RATE;
-  }
+  // Zdravotní – 13,5 % celkem na koruny nahoru, zaměstnanec třetinu (nahoru), zaměstnavatel zbytek. Bez stropu.
+  const zdravotniCelkem = nahoru(grossSalary * HEALTH_TOTAL_RATE);
+  const zdravotniZamestnanec = nahoru(zdravotniCelkem / 3);
+  const employerHealthInsurance = zdravotniCelkem - zdravotniZamestnanec;
+  // Pod minimální mzdou: zaměstnanec doplácí 13,5 % z rozdílu do minimálního základu (pokud nemá výjimku;
+  // poživatel důchodu je státní pojištěnec → výjimka automaticky).
+  const doplatekZdravotni = !minZakladVyjimka && !isPensioner && grossSalary < MIN_WAGE_2026
+    ? nahoru(MIN_WAGE_2026 * HEALTH_TOTAL_RATE) - zdravotniCelkem
+    : 0;
+  const healthInsurance = zdravotniZamestnanec + doplatekZdravotni;
 
   const totalInsurance = socialInsurance + healthInsurance;
 
-  // Určení daňové sazby
-  const annualGross = grossSalary * 12;
-  const annualThreshold = HIGH_TAX_THRESHOLD_MONTHLY * 12; // Převod na roční limit
-  const taxRate = annualGross > annualThreshold ? INCOME_TAX_RATE_HIGH : INCOME_TAX_RATE_BASIC;
-
-  // Výpočet daně z příjmu (počítá se z hrubé mzdy)
-  let incomeTax = 0;
-  if (annualGross > annualThreshold) {
-    const basicTaxBase = annualThreshold;
-    const highTaxBase = annualGross - annualThreshold;
-    const annualTax = basicTaxBase * INCOME_TAX_RATE_BASIC + highTaxBase * INCOME_TAX_RATE_HIGH;
-    incomeTax = annualTax / 12; // Převod na měsíční daň
-  } else {
-    incomeTax = grossSalary * INCOME_TAX_RATE_BASIC;
-  }
+  // Záloha na daň (§ 38h ZDP): základ na stokoruny nahoru, 15 % / 23 % nad 3× průměrnou mzdu, na koruny nahoru.
+  const zakladZalohy = grossSalary <= 100 ? nahoru(grossSalary) : Math.ceil(grossSalary / 100 - 1e-9) * 100;
+  const incomeTax = nahoru(
+    Math.min(zakladZalohy, HIGH_TAX_THRESHOLD_MONTHLY) * INCOME_TAX_RATE_BASIC +
+    Math.max(0, zakladZalohy - HIGH_TAX_THRESHOLD_MONTHLY) * INCOME_TAX_RATE_HIGH,
+  );
+  const taxRate = zakladZalohy > HIGH_TAX_THRESHOLD_MONTHLY ? INCOME_TAX_RATE_HIGH : INCOME_TAX_RATE_BASIC;
 
   // Slevy na dani
   const monthlyTaxCredit = MONTHLY_TAX_CREDIT;
-
-  // Výpočet slevy na děti (progresivní)
   let childTaxCredit = 0;
   if (hasChildren && numberOfChildren > 0) {
     for (let i = 1; i <= numberOfChildren; i++) {
@@ -126,45 +141,34 @@ function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
       else childTaxCredit += CHILD_TAX_CREDIT_THIRD_PLUS;
     }
   }
-
   const disabilityTaxCredit = hasDisability ? DISABILITY_TAX_CREDIT_1_2_MONTHLY : 0;
-
   const totalTaxCredits = monthlyTaxCredit + childTaxCredit + disabilityTaxCredit;
 
   // Pořadí podle zákona: sleva na poplatníka a invaliditu sníží daň nejvýš na nulu; zvýhodnění na děti
-  // se odečte potom a co přebývá, vyplatí se jako DAŇOVÝ BONUS (dřív se zahodil: hrubá 25 000 Kč
-  // a 2 děti → čistá 22 100 místo 24 047 Kč; audit výpočtů 17. 10. 2026).
-  const daňPoSlevách = Math.max(0, incomeTax - monthlyTaxCredit - disabilityTaxCredit);
-  const poDetech = daňPoSlevách - childTaxCredit;
+  // se odečte potom a co přebývá, je DAŇOVÝ BONUS – vyplatí se při příjmu ≥ ½ minimální mzdy a jen
+  // když činí aspoň 50 Kč (§ 35d odst. 4 ZDP; dřív se vyplácelo i 12 Kč – N13).
+  const danPoSlevach = Math.max(0, incomeTax - monthlyTaxCredit - disabilityTaxCredit);
+  const poDetech = danPoSlevach - childTaxCredit;
   const netTax = Math.max(0, poDetech);
-  const taxBonus = poDetech < 0 && grossSalary >= CHILD_BONUS_MIN_INCOME ? -poDetech : 0;
+  const naBonus = poDetech < 0 && grossSalary >= CHILD_BONUS_MIN_INCOME ? -poDetech : 0;
+  const taxBonus = naBonus >= MIN_TAX_BONUS ? naBonus : 0;
+  const bonusPodMinimem = naBonus > 0 && naBonus < MIN_TAX_BONUS ? naBonus : 0;
 
-  // Čistá mzda
   const netSalary = grossSalary - totalInsurance - netTax + taxBonus;
 
   // Náklady zaměstnavatele
-  const employerSocialInsurance = socialBase * EMPLOYER_SOCIAL_INSURANCE_RATE;
-  const employerHealthInsurance = grossSalary * EMPLOYER_HEALTH_INSURANCE_RATE;
+  const employerSocialInsurance = nahoru(socialBase * EMPLOYER_SOCIAL_INSURANCE_RATE);
   const employerCosts = grossSalary + employerSocialInsurance + employerHealthInsurance;
 
-  // Efektivní daňová sazba
-  const taxEffectiveRate = (totalInsurance + netTax - taxBonus) / grossSalary;
+  // Podíl pojistného a daně na hrubé mzdě – BEZ bonusu (stejný základ jako částka „pojistné + daň“, S23).
+  const taxEffectiveRate = (totalInsurance + netTax) / grossSalary;
 
   return {
-    grossSalary,
-    socialInsurance,
-    healthInsurance,
-    totalInsurance,
-    incomeTax,
-    taxRate,
-    taxDeductions: totalTaxCredits,
-    netTax,
-    taxBonus,
-    netSalary,
-    employerCosts,
-    employerSocialInsurance,
-    employerHealthInsurance,
+    grossSalary, socialInsurance, healthInsurance, totalInsurance, incomeTax, taxRate,
+    taxDeductions: totalTaxCredits, netTax, taxBonus, netSalary, employerCosts,
+    employerSocialInsurance, employerHealthInsurance,
     socialCapped: grossSalary > MAX_SOCIAL_BASE_MONTHLY,
+    doplatekZdravotni, zakladZalohy, bonusPodMinimem,
     taxEffectiveRate,
     breakdown: { monthlyTaxCredit, childTaxCredit, disabilityTaxCredit, totalTaxCredits },
   };
@@ -222,6 +226,7 @@ export default function CistyPlatWidget() {
   const [hasChildren, setHasChildren] = useState<boolean>(false);
   const [numberOfChildren, setNumberOfChildren] = useState<number | null>(1);
   const [hasDisability, setHasDisability] = useState<boolean>(false);
+  const [minZakladVyjimka, setMinZakladVyjimka] = useState<boolean>(false);
 
   // Výsledek jen z vyplněných polí – prázdná hrubá mzda = „—“, ne čistá mzda 0 Kč.
   const vstupyOk = grossSalary != null && grossSalary > 0 && (!hasChildren || numberOfChildren != null);
@@ -233,12 +238,13 @@ export default function CistyPlatWidget() {
         hasChildren,
         numberOfChildren: hasChildren ? numberOfChildren ?? 0 : 0,
         hasDisability,
+        minZakladVyjimka,
       }),
-    [vstupyOk, grossSalary, isPensioner, hasChildren, numberOfChildren, hasDisability],
+    [vstupyOk, grossSalary, isPensioner, hasChildren, numberOfChildren, hasDisability, minZakladVyjimka],
   );
 
   const netShare = data && data.grossSalary > 0 ? (data.netSalary / data.grossSalary) * 100 : 0;
-  const belowMinWage = grossSalary != null && grossSalary > 0 && grossSalary < 22400;
+  const belowMinWage = grossSalary != null && grossSalary > 0 && grossSalary < MIN_WAGE_2026;
 
   return (
     <div className="space-y-4">
@@ -269,7 +275,7 @@ export default function CistyPlatWidget() {
               />
               <span className="inline-flex items-center gap-0.5">
                 Pracující
-                <InfoTip label="Pracující starobní důchodci mají slevu na důchodovém pojištění – z 6,5 % platí 0 %, zůstává jen 0,6 % nemocenské. V kalkulačce počítáme sociální pojištění 0 %, zdravotní 4,5 %.">
+                <InfoTip label="Pracující starobní důchodci mají slevu na pojistném 6,5 % (důchodová část) – ze 7,1 % tak platí jen 0,6 % nemocenské. V kalkulačce počítáme sociální pojištění 0,6 %, zdravotní 4,5 %. Jako poživatelé důchodu nemusí dorovnávat zdravotní pojištění do minimální mzdy.">
                   důchodce
                 </InfoTip>
               </span>
@@ -314,10 +320,28 @@ export default function CistyPlatWidget() {
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <div className="flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-              <p className="text-sm text-amber-900/80">
-                Zadaná hrubá mzda je pod minimální mzdou pro rok 2026 (22 400 Kč). Výpočet
-                je orientační – u příjmu pod minimální mzdou platí zvláštní pravidla.
-              </p>
+              <div className="text-sm text-amber-900/80">
+                <p>
+                  Hrubá mzda je pod minimální mzdou 2026 (22 400 Kč). Zdravotní pojištění se pak platí aspoň z minimální
+                  mzdy: rozdíl 13,5 % z (22 400 Kč − hrubá mzda) doplácí zaměstnanec, pokud nespadá do výjimky.
+                  {isPensioner && ' Pracující důchodce výjimku má (je státní pojištěnec).'}
+                </p>
+                {!isPensioner && (
+                  <label className="mt-2 flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="min-vyjimka"
+                      checked={minZakladVyjimka}
+                      onChange={(e) => setMinZakladVyjimka(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-200"
+                    />
+                    <span>
+                      Mám výjimku z minimálního základu (např. student, rodič na rodičovské, státní pojištěnec, osoba se
+                      zdravotním postižením, další zaměstnání nebo podnikání do součtu nad minimum)
+                    </span>
+                  </label>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -336,16 +360,16 @@ export default function CistyPlatWidget() {
             <p className="text-sm text-teal-100">Čistá mzda měsíčně{data.socialCapped ? ' (průměr za rok)' : ''}</p>
             <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1" data-qa="cista-mzda">{fmtCZK(data.netSalary)}</p>
             <p className="text-xs text-teal-200 mt-1">
-              {netShare.toFixed(1).replace('.', ',')} % z hrubé mzdy
+              {netShare.toFixed(1).replace('.', ',')} % z hrubé mzdy{data.taxBonus > 0 ? ' (včetně daňového bonusu)' : ''}
             </p>
           </div>
           <div className="sm:border-l sm:border-white/15 sm:pl-5">
             <p className="text-sm text-teal-100">Celkové odvody</p>
-            <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1">
+            <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1" data-qa="odvody">
               {fmtCZK(data.totalInsurance + data.netTax)}
             </p>
-            <p className="text-xs text-teal-200 mt-1">
-              pojistné + daň, {fmtPct(data.taxEffectiveRate)} z hrubé
+            <p className="text-xs text-teal-200 mt-1" data-qa="odvody-pct">
+              pojistné + daň, {fmtPct(data.taxEffectiveRate)} z hrubé{data.taxBonus > 0 ? `; daňový bonus +${fmtCZK(data.taxBonus)} navíc` : ''}
             </p>
           </div>
           <div className="sm:border-l sm:border-white/15 sm:pl-5">
@@ -390,13 +414,19 @@ export default function CistyPlatWidget() {
           </div>
           <dl className="space-y-2.5 text-sm">
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-600">Sociální pojištění ({isPensioner ? '0' : '7,1'} %)</dt>
-              <dd className="font-semibold text-slate-900 tabular-nums">{fmtCZK(data.socialInsurance)}</dd>
+              <dt className="text-slate-600" data-qa="soc-stitek">Sociální pojištění ({isPensioner ? '0,6' : '7,1'} %)</dt>
+              <dd className="font-semibold text-slate-900 tabular-nums" data-qa="soc">{fmtCZK(data.socialInsurance)}</dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-slate-600">Zdravotní pojištění (4,5 %)</dt>
-              <dd className="font-semibold text-slate-900 tabular-nums">{fmtCZK(data.healthInsurance)}</dd>
+              <dd className="font-semibold text-slate-900 tabular-nums" data-qa="zdr">{fmtCZK(data.healthInsurance - data.doplatekZdravotni)}</dd>
             </div>
+            {data.doplatekZdravotni > 0 && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-slate-600">Doplatek zdravotního do minimální mzdy (13,5 % z rozdílu)</dt>
+                <dd className="font-semibold text-slate-900 tabular-nums" data-qa="doplatek">{fmtCZK(data.doplatekZdravotni)}</dd>
+              </div>
+            )}
             <div className="flex justify-between gap-3 border-t border-slate-100 pt-2.5">
               <dt className="font-medium text-slate-900">Celkem pojistné</dt>
               <dd className="font-bold text-amber-600 tabular-nums">{fmtCZK(data.totalInsurance)}</dd>
@@ -414,8 +444,18 @@ export default function CistyPlatWidget() {
           </div>
           <dl className="space-y-2.5 text-sm">
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-600">Daňová sazba</dt>
-              <dd className="font-semibold text-slate-900 tabular-nums">{fmtPct(data.taxRate)}</dd>
+              <dt className="text-slate-600">
+                <InfoTip label="Záloha na daň: 15 % ze základu do 3násobku průměrné mzdy (146 901 Kč měsíčně v roce 2026), 23 % z části nad ním. Základ se zaokrouhluje na celé stokoruny nahoru, záloha na celé koruny nahoru (§ 38h zákona o daních z příjmů).">
+                  Sazba daně
+                </InfoTip>
+              </dt>
+              <dd className="font-semibold text-slate-900 tabular-nums text-right" data-qa="sazba">
+                {data.taxRate > INCOME_TAX_RATE_BASIC ? '15 % + 23 % nad 146 901 Kč' : '15 %'}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-slate-600">Základ daně (na stokoruny nahoru)</dt>
+              <dd className="font-semibold text-slate-900 tabular-nums">{fmtCZK(data.zakladZalohy)}</dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-slate-600">Daň před slevami</dt>
@@ -436,8 +476,14 @@ export default function CistyPlatWidget() {
             {data.taxBonus > 0 && (
               <div className="flex justify-between gap-3">
                 <dt className="font-medium text-slate-900">Daňový bonus na děti</dt>
-                <dd className="font-bold text-emerald-700 tabular-nums">+{fmtCZK(data.taxBonus)}</dd>
+                <dd className="font-bold text-emerald-700 tabular-nums" data-qa="bonus">+{fmtCZK(data.taxBonus)}</dd>
               </div>
+            )}
+            {data.bonusPodMinimem > 0 && (
+              <p className="text-xs text-slate-500 leading-snug" data-qa="bonus-pod-50">
+                Daňový bonus by činil {fmtCZK(data.bonusPodMinimem)} – měsíční bonus pod 50 Kč se nevyplácí
+                (§ 35d odst. 4 zákona o daních z příjmů).
+              </p>
             )}
           </dl>
         </div>
@@ -487,7 +533,7 @@ export default function CistyPlatWidget() {
           </span>
           <h3 className="font-semibold text-slate-900">
             Kolik vaše místo stojí{' '}
-            <InfoTip label="Tzv. superhrubá mzda byla zrušena v roce 2021, ale zaměstnavatel za vás stále platí pojistné navíc nad rámec hrubé mzdy: 24,8 % na sociální a 9 % na zdravotní pojištění.">
+            <InfoTip label="Tzv. superhrubá mzda byla zrušena v roce 2021, ale zaměstnavatel za vás stále platí pojistné navíc nad rámec hrubé mzdy: 24,8 % na sociální a 9 % na zdravotní pojištění (přesně dvě třetiny z 13,5 %, zaokrouhleno).">
               zaměstnavatele
             </InfoTip>
           </h3>

@@ -29,7 +29,8 @@ export default async function NouzovaRezervaPreview() {
   const faqs = [
     {
       q: 'Kolik měsíců výdajů má nouzová rezerva pokrýt?',
-      a: 'Závisí na vaší situaci. Pro stabilní zaměstnání bez závazků bývá dostatečná rezerva na 3 měsíce výdajů, pro většinu lidí s rodinou nebo hypotékou spíš 6 měsíců a pro OSVČ či nestabilní příjmy 9–12 měsíců. Kalkulačka výše vychází ze základu podle stability zaměstnání a podle dalších rizikových faktorů ho navyšuje (maximálně na 12 měsíců).',
+      // Sjednoceno s kalkulačkou (audit nástrojů 22. 10. 2026, V12): pravidlo REZERVA_PRAVIDLO v NouzovaRezervaWidget.tsx.
+      a: 'Závisí na vaší situaci. Kalkulačka výše počítá podle našeho redakčního pravidla: zaměstnanec 3 měsíce výdajů, OSVČ a práce na dohody 6 měsíců. Za každý rizikový faktor přidá měsíc (středně stabilní práce, nestabilní práce dva, smlouva na dobu určitou, pravidelné splátky, jediný příjem ve větší domácnosti, věk 50+, základní vzdělání), u zaměstnance nejvýš na 6 měsíců, u OSVČ nejvýš na 12. Domácnost se dvěma a více osobami a pravidelnými splátkami má rezervu nejméně na 6 měsíců. Jde o rozumný odhad, ne výsledek studie.',
     },
     {
       q: 'Z jakých výdajů se rezerva počítá?',
@@ -124,18 +125,18 @@ export default async function NouzovaRezervaPreview() {
               {/* Mini-vysvětlení tří doporučených velikostí */}
               <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Stabilní příjem</p>
-                  <p className="text-lg font-bold tabular-nums">3 měsíce</p>
-                  <p className="text-xs text-slate-400">minimální rezerva</p>
+                  <p className="text-xs text-slate-400">Zaměstnanec</p>
+                  <p className="text-lg font-bold tabular-nums">3–6 měsíců</p>
+                  <p className="text-xs text-slate-400">podle rizik</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">Rodina, hypotéka</p>
-                  <p className="text-lg font-bold tabular-nums">6 měsíců</p>
-                  <p className="text-xs text-slate-400">standardní rezerva</p>
+                  <p className="text-xs text-slate-400">Rodina se splátkami</p>
+                  <p className="text-lg font-bold tabular-nums">aspoň 6 měsíců</p>
+                  <p className="text-xs text-slate-400">vyšší závazky</p>
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
-                  <p className="text-xs text-slate-400">OSVČ, nestabilní příjem</p>
-                  <p className="text-lg font-bold tabular-nums text-emerald-400">9–12 měsíců</p>
+                  <p className="text-xs text-slate-400">OSVČ, dohody</p>
+                  <p className="text-lg font-bold tabular-nums text-emerald-400">6–12 měsíců</p>
                   <p className="text-xs text-slate-400">vyšší rezerva</p>
                 </div>
               </div>
@@ -178,12 +179,15 @@ export default async function NouzovaRezervaPreview() {
 
         {/* JAK SE VELIKOST POČÍTÁ – edukace vetkaná */}
         <section className="pb-10">
-          <SectionHead title="Jak kalkulačka velikost počítá" desc="Žádná magie – jednoduché pravidlo, které pak doladí vaše rizikové faktory." />
+          <SectionHead title="Jak kalkulačka velikost počítá" desc="Žádná magie – naše jednoduché redakční pravidlo, ne výsledek studie." />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+            {/* Sjednoceno s widgetem a FAQ (audit nástrojů 22. 10. 2026, V12/S26): REZERVA_PRAVIDLO v NouzovaRezervaWidget.tsx. */}
             <p className="text-sm text-slate-600 leading-relaxed">
-              Základ určuje <strong className="text-slate-900">stabilita zaměstnání</strong> (stabilní 3 měsíce, středně
-              stabilní 6, nestabilní 9). Podle rizikových faktorů (typ smlouvy, věk, vzdělání, druhý příjem, dluhy, počet osob)
-              se pak rezerva navýší o 30 % při středním riziku a o 60 % při vysokém. Výsledek je vždy mezi 3 a 12 měsíci výdajů.
+              Základ určuje <strong className="text-slate-900">typ příjmu</strong>: zaměstnanec 3 měsíce výdajů, OSVČ a práce
+              na dohody 6 měsíců. Za každý rizikový faktor přidáme měsíc – středně stabilní práce (nestabilní dva), smlouva na
+              dobu určitou, pravidelné splátky, jediný příjem v domácnosti se 3 a více osobami, věk 50+ a základní vzdělání.
+              Zaměstnanec má nejvýš 6 měsíců, OSVČ nejvýš 12; domácnost se dvěma a více osobami a pravidelnými splátkami
+              nejméně 6 měsíců.
             </p>
 
           </div>
@@ -322,7 +326,7 @@ export default async function NouzovaRezervaPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Předpoklady: základ 3/6/9 měsíců dle stability, navýšení o riziko (max. 12 měsíců), pouze nezbytné výdaje. Aktualizováno {upraveno}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Předpoklady: zaměstnanec 3–6 měsíců, OSVČ 6–12 měsíců, +1 měsíc za rizikový faktor (redakční pravidlo), pouze nezbytné výdaje. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Kalkulačka má vzdělávací charakter a pracuje s modelovými předpoklady – nezohledňuje inflaci, daně ani specifické životní situace. Nepředstavuje investiční ani finanční doporučení.</p>
             </div>
           </div>

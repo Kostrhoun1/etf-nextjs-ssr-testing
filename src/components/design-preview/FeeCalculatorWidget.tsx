@@ -19,6 +19,8 @@ const fmtCZK = (amount: number) =>
     maximumFractionDigits: 0,
   }).format(amount);
 
+/** Skloňování let (audit nástrojů 22. 10. 2026, N1: dřív „za 1 let“): 1 rok, 2–4 roky, 5+ let. */
+const let_ = (n: number) => (n === 1 ? 'rok' : n >= 2 && n <= 4 ? 'roky' : 'let');
 /* Modelové výsledky (stálý výnos, desítky let) zaokrouhlujeme na tisíce – „4 416 696 Kč“ budilo
    dojem přesnosti, kterou model nemá (revize AD 22. 10. 2026). */
 const fmtTis = (amount: number) => fmtCZK(Math.round(amount / 1000) * 1000);
@@ -89,7 +91,7 @@ function FeeChart({ etf, active, years, etfTER, activeTER }: { etf: number[]; ac
           <text x={X(n - 1) - 6} y={Y(etf[n - 1]) - 7} textAnchor="end" fontSize="12" fontWeight="600" fill="#0d9488">{fmtCompact(etf[n - 1])}{NB}Kč</text>
           <text x={X(n - 1) - 6} y={Y(active[n - 1]) + 14} textAnchor="end" fontSize="12" fill="#64748b">{fmtCompact(active[n - 1])}{NB}Kč</text>
           {yearTicks.map((t) => (
-            <text key={t} x={Math.min(Math.max(X(t), padL + 14), W - padR - 14)} y={H - 6} textAnchor="middle" fontSize="11" fill="#94a3b8">{t}{NB}let</text>
+            <text key={t} x={Math.min(Math.max(X(t), padL + 14), W - padR - 14)} y={H - 6} textAnchor="middle" fontSize="11" fill="#94a3b8">{t}{NB}{let_(t)}</text>
           ))}
           {/* hover */}
           {hi != null && (
@@ -305,7 +307,7 @@ export default function FeeCalculatorWidget() {
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Vývoj hodnoty portfolia v čase</p>
           <FeeChart etf={etfSeries} active={activeSeries} years={investmentPeriod} etfTER={etfTER} activeTER={activeTER} />
           <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-            Obě křivky mají stejný vklad i tržní výnos – rozevírají se jen kvůli rozdílnému poplatku. Tyrkysová plocha mezi nimi je to, o co budete mít za {investmentPeriod} let méně – zaplacené poplatky i zhodnocení, o které vás připravily.
+            Obě křivky mají stejný vklad i tržní výnos – rozevírají se jen kvůli rozdílnému poplatku. Tyrkysová plocha mezi nimi je to, o co budete mít za {investmentPeriod} {let_(investmentPeriod)} méně – zaplacené poplatky i zhodnocení, o které vás připravily.
           </p>
         </div>
       )}
@@ -332,7 +334,7 @@ export default function FeeCalculatorWidget() {
       ) : (
         <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">
           <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
-            <Sparkles className="w-4 h-4" /> Výsledek za {investmentPeriod} let
+            <Sparkles className="w-4 h-4" /> Výsledek za {investmentPeriod} {let_(investmentPeriod)}
           </p>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
@@ -348,7 +350,7 @@ export default function FeeCalculatorWidget() {
           </div>
           <p className="mt-4 text-sm text-teal-50 leading-relaxed border-t border-white/15 pt-4">
             Stejný vklad i stejný výnos trhu. Jediný rozdíl je roční poplatek (TER){' '}
-            {etfTER.toLocaleString('cs-CZ')} % vs. {activeTER.toLocaleString('cs-CZ')} % – a přesto dělá za {investmentPeriod} let{' '}
+            {etfTER.toLocaleString('cs-CZ')} % vs. {activeTER.toLocaleString('cs-CZ')} % – a přesto dělá za {investmentPeriod} {let_(investmentPeriod)}{' '}
             <strong className="font-semibold">{fmtTis(valueDifference)}</strong>. To je síla složeného úročení poplatku.
           </p>
         </div>
