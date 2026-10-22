@@ -27,8 +27,11 @@ const UKAZKOVE_FONDY: Record<string, { acc: string; dist: string }> = {
 
 /* Max. propad z backtestu ke KAŽDÉMU výsledku (revize 19. 10. 2026: „Zvládnu střední výkyvy + USA“ → 100 % S&P 500
    bez zmínky o propadu). Řada = index z manifestu, který kategorii odpovídá; kde v datech není (technologie, ESG),
-   propad neuvádíme a ukážeme srovnání s nejbližším širokým trhem – viditelně jako „pro srovnání“. Start = nejdřív
-   1/2000 (od té doby máme kurzy koruny), jinak první den dat indexu. */
+   propad neuvádíme a ukážeme srovnání s nejbližším širokým trhem – viditelně jako „pro srovnání“.
+   SPOLEČNÝ START (audit nástrojů 22. 10. 2026, K1 – kritická): dřív měl každý typ vlastní start (svět 6/2008, USA 1/2000,
+   Evropa 3/2005, dividendy 11/2006) → kvíz srovnával −32,1 % světa s −71,7 % USA, přitom S&P 500 od 6/2008 má −32,0 %.
+   Teď všechny kategorie počítají od NEJPOZDĚJŠÍHO začátku dat (= první den fondu VT, 26. 6. 2008), stejně jako modelová
+   portfolia. Delší historii (dot-com 2000–2002) ukazujeme zvlášť a s vlastním obdobím jen jako fakt o délce propadu. */
 const PROPAD_KATEGORIE: Record<string, { kod: string; nazev: string; jenSrovnani?: string }> = {
   world: { kod: 'ftse_all_world', nazev: 'akcie celého světa (fond VT)' },
   usa: { kod: 'sp500', nazev: 'S&P 500 (fond SPY)' },
@@ -63,7 +66,9 @@ export default async function VyberEtfPage() {
 
   // Max. propad každé kategorie – stejné jádro jako /backtest (předpočet, Kč, 100 000 Kč, bez vkladů).
   const kody = [...new Set(Object.values(PROPAD_KATEGORIE).map((x) => x.kod))];
-  const startKodu = (kod: string) => { const s = INDEX_BY_CODE[kod]?.since ?? '2000-01-03'; return s < '2000-01-03' ? '2000-01-03' : s; };
+  // K1: JEDEN start pro všechny = nejpozdější začátek dat (nejdřív 1/2000, od té doby máme kurzy koruny).
+  const spolecnyStart = kody.map((kod) => INDEX_BY_CODE[kod]?.since ?? '2000-01-03').reduce((a, b) => (a > b ? a : b), '2000-01-03');
+  const startKodu = (kod: string) => { void kod; return spolecnyStart; };
   const vypocty = await Promise.all(kody.map((kod) => predpocitejPortfolio([{ indexCode: kod, weight: 1, ter: 0 }], startKodu(kod))));
   // SEO audit 6b: řada dluhopisů 1–3 roky (monthly v manifestu) měla poslední bod s dnešním datem zapsaný během
   // obchodního dne (= včerejší závěr) → kvíz psal „Backtest 1/2008 – 20. 10.“, ostatní „– 19. 10.“. Všechny výsledky
@@ -77,6 +82,18 @@ export default async function VyberEtfPage() {
     }));
   }
   const propadKodu = Object.fromEntries(kody.map((kod, i) => [kod, vypocty[i]]));
+  /* Délka propadu na DELŠÍ historii (V15, audit 22. 10. 2026): „3–10 let + USA“ ukazovalo 100 % akcie bez varování,
+     že S&P 500 se v korunách po roce 2000 vracel na vrchol přes 13 let. Fakt s VLASTNÍM obdobím (od 1/2000), ne do
+     srovnání kategorií. Konec = společný konec ostatních výsledků. */
+  const dlouha = await predpocitejPortfolio([{ indexCode: 'sp500', weight: 1, ter: 0 }], '2000-01-03', 'CZK', spolecnyKonec ?? undefined);
+  const dlouhyPropad: PropadKategorie | null = dlouha && dlouha.evolution.length > 1 ? {
+    nazev: 'S&P 500 (fond SPY)', maxPokles: dlouha.risk.maxDrawdown.depth, vrchol: dlouha.risk.maxDrawdown.startDate ?? null,
+    dno: dlouha.risk.maxDrawdown.troughDate, navrat: dlouha.risk.maxDrawdown.recovered && dlouha.risk.maxDrawdown.endDate ? dlouha.risk.maxDrawdown.endDate : null,
+    od: dlouha.evolution[0].date.slice(0, 10), do: dlouha.evolution[dlouha.evolution.length - 1].date.slice(0, 10),
+  } : null;
+  const kontrolaHistorie = dlouha && dlouhyPropad
+    ? `/backtest?slozeni=sp500:100&start=2000-01-03&amount=100000&contrib=none&vyvazovani=yearly&do=${dlouhyPropad.do}|${dlouha.summary.cagr}|${dlouha.summary.netAssetValue}|${dlouha.kurzyDo ?? ''}`
+    : null;
   const propady: Record<string, PropadKategorie | null> = Object.fromEntries(Object.entries(PROPAD_KATEGORIE).map(([k, def]) => {
     const r = propadKodu[def.kod];
     const ev = r?.evolution ?? [];
@@ -94,14 +111,18 @@ export default async function VyberEtfPage() {
     const q = `slozeni=${kod}:100&start=${startKodu(kod)}&amount=100000&contrib=none&vyvazovani=yearly&do=${ev[ev.length - 1].date.slice(0, 10)}`;
     return [`/backtest?${q}|${r.summary.cagr}|${r.summary.netAssetValue}|${r.kurzyDo ?? ''}`];
   });
-  // „Chci hlavně klid“ = konzervativní modelová portfolia, historie ze stejného předpočtu jako /portfolio-strategie.
+  /* „Chci hlavně klid“ = konzervativní modelová portfolia; „Zvládnu střední výkyvy“ = umírněná (s menší částí dluhopisů,
+     V15: dřív odpověď „střední“ nic neměnila – vracela totéž co „velké výkyvy“). Historie ze stejného předpočtu jako
+     /portfolio-strategie, start = první den VT (stejný jako u propadů kategorií). */
   const klidna = portfolioModels.filter((m) => m.risk === 'Konzervativní' && PORTFOLIO_BACKTEST[m.slug]);
-  const start = klidna[0] ? PORTFOLIO_BACKTEST[klidna[0].slug].start : null;
+  const umirnena = portfolioModels.filter((m) => m.risk === 'Umírněné' && PORTFOLIO_BACKTEST[m.slug]);
+  const sDluhopisy = [...klidna, ...umirnena];
+  const start = sDluhopisy[0] ? PORTFOLIO_BACKTEST[sDluhopisy[0].slug].start : null;
   const [vysledky, bench] = await Promise.all([
-    Promise.all(klidna.map((m) => predpocitejPortfolio(PORTFOLIO_BACKTEST[m.slug].items, PORTFOLIO_BACKTEST[m.slug].start))),
+    Promise.all(sDluhopisy.map((m) => predpocitejPortfolio(PORTFOLIO_BACKTEST[m.slug].items, PORTFOLIO_BACKTEST[m.slug].start))),
     start ? predpocitejPortfolio([BACKTEST_BENCHMARK], start) : Promise.resolve(null),
   ]);
-  const portfoliaKlid: PortfolioKlid[] = klidna.flatMap((m, i) => {
+  const naKartu = (m: (typeof sDluhopisy)[number], i: number): PortfolioKlid[] => {
     const r = vysledky[i];
     const ev = r?.evolution ?? [];
     return r && ev.length > 1 ? [{
@@ -109,8 +130,10 @@ export default async function VyberEtfPage() {
       vrchol: r.risk.maxDrawdown.startDate ?? null, dno: r.risk.maxDrawdown.troughDate,
       od: ev[0].date.slice(0, 10), do: ev[ev.length - 1].date.slice(0, 10), nahrada: PORTFOLIO_BACKTEST[m.slug].nahrada,
     }] : [];
-  });
-  for (const [i, m] of klidna.entries()) {
+  };
+  const portfoliaKlid: PortfolioKlid[] = klidna.flatMap((m, i) => naKartu(m, i));
+  const portfoliaUmirnena: PortfolioKlid[] = umirnena.flatMap((m, i) => naKartu(m, klidna.length + i));
+  for (const [i, m] of sDluhopisy.entries()) {
     const r = vysledky[i]; const ev = r?.evolution ?? [];
     const odkaz = r && ev.length > 1 ? backtestOdkaz(m.slug, ev[ev.length - 1].date.slice(0, 10)) : null;
     if (r && odkaz) kontroly.push(`${odkaz}|${r.summary.cagr}|${r.summary.netAssetValue}|${r.kurzyDo ?? ''}`);
@@ -147,7 +170,11 @@ export default async function VyberEtfPage() {
         </nav>
 
         {/* Kontrolní údaje pro denní kontrolu dat – čísla výsledků musí sedět s živým backtestem (kolo5 A). */}
-        <div hidden>{kontroly.map((k) => <span key={k} data-kontrola-backtest={k} />)}</div>
+        <div hidden>
+          {kontroly.map((k) => <span key={k} data-kontrola-backtest={k} />)}
+          {/* Fakt o délce propadu na delší historii (vlastní období, mimo srovnání kategorií) – kontrola zvlášť. */}
+          {kontrolaHistorie && <span data-kontrola-backtest-historie={kontrolaHistorie} />}
+        </div>
         <section id="kviz-uvod" className="pb-6">
           <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700"><Sparkles className="w-3.5 h-3.5" /> Průvodce výběrem</span>
           <h1 className="mt-3 text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Který ETF si vybrat?</h1>
@@ -162,7 +189,7 @@ export default async function VyberEtfPage() {
           </div>
         </section>
 
-        <EtfSelector fondy={fondy} portfoliaKlid={portfoliaKlid} akcie={akcie} propady={propady} />
+        <EtfSelector fondy={fondy} portfoliaKlid={portfoliaKlid} portfoliaUmirnena={portfoliaUmirnena} akcie={akcie} propady={propady} dlouhyPropad={dlouhyPropad} />
 
         {/* Serverem vykreslený popis průvodce (SEO audit 20. 10. 2026: v HTML bylo 77 slov, kvíz se vykreslí až v prohlížeči).
             Otázky a kategorie ze stejných dat jako kvíz (vyberEtfData.ts). Popis faktů, ne doporučení. */}
@@ -193,9 +220,11 @@ export default async function VyberEtfPage() {
           </ul>
           <p>
             Při horizontu kratším než 3 roky ukáže průvodce dluhopisové ETF s upozorněním, že i ty v korunách kolísají.
-            Když nechcete velké propady, uvidíte nejdřív modelová portfolia s dluhopisy s jejich historií z backtestu
-            a akciové ETF až jako druhou možnost. U každého výsledku je vysvětlený rozdíl mezi akumulační a distribuční třídou
-            a jak se v Česku daní.
+            Když nechcete velké propady, uvidíte nejdřív konzervativní modelová portfolia s dluhopisy, při středních výkyvech
+            umírněná portfolia s menší částí dluhopisů – obojí s historií z backtestu – a akciové ETF až jako druhou možnost.
+            Při horizontu 3–10 let ukáže, jak dlouho v minulosti trval návrat akcií na předchozí vrchol. Největší propady všech
+            typů fondů počítá ze stejného období, aby šly porovnat. U každého výsledku je vysvětlený rozdíl mezi akumulační
+            a distribuční třídou a jak se v Česku daní.
           </p>
           <p className="text-sm text-slate-500">
             Jde o vzdělávací nástroj, ne investiční poradenství. Odkud čísla pocházejí, popisuje{' '}
