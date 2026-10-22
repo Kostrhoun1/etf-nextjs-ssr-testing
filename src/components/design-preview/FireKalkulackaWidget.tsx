@@ -5,7 +5,9 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-import { TrendingUp, AlertTriangle, Sparkles, Flame, ChevronUp, ChevronDown } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Sparkles, Flame, ChevronDown } from 'lucide-react';
+import CisloInput, { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import { FIRE_PREDPOKLADY } from '@/lib/firePredpoklady';
 import InfoTip from '@/components/design-preview/InfoTip';
 
 /**
@@ -20,25 +22,15 @@ import InfoTip from '@/components/design-preview/InfoTip';
 
 type Strategy = 'conservative' | 'moderate' | 'aggressive';
 
-// ===== 1:1 z retirementCalculations.ts (getPortfolioParameters) – NEMĚNIT =====
-const getPortfolioParameters = (strategy: Strategy) => {
-  switch (strategy) {
-    case 'conservative':
-      return { expectedReturn: 7.7, volatility: 0.065, stockAllocation: 0.30, bondAllocation: 0.70 };
-    case 'moderate':
-      return { expectedReturn: 8.8, volatility: 0.105, stockAllocation: 0.60, bondAllocation: 0.40 };
-    case 'aggressive':
-      return { expectedReturn: 9.8, volatility: 0.136, stockAllocation: 0.80, bondAllocation: 0.20 };
-    default:
-      return { expectedReturn: 8.8, volatility: 0.105, stockAllocation: 0.60, bondAllocation: 0.40 };
-  }
-};
+/* Předpoklady výnosů (historicky v Kč, se zdrojem a datem): src/lib/firePredpoklady.ts */
+const getPortfolioParameters = (strategy: Strategy) =>
+  FIRE_PREDPOKLADY.strategie[strategy] ?? FIRE_PREDPOKLADY.strategie.moderate;
 
-/* Očekávaný (nominální) roční výnos strategie. FIRE ukazuje očekávanou střední
+/* Očekávaný NOMINÁLNÍ roční výnos strategie při zadané inflaci. FIRE ukazuje očekávanou střední
    dráhu – nejistotu a výkyvy záměrně řeší samostatná Monte Carlo simulace, ne
    pseudonáhodný ornament. Proto tu žádný „Math.sin“ ani umělá volatilita nejsou. */
-const expectedAnnualReturn = (strategy: Strategy): number =>
-  getPortfolioParameters(strategy).expectedReturn / 100;
+const expectedAnnualReturn = (strategy: Strategy, inflationRate: number): number =>
+  (1 + getPortfolioParameters(strategy).realnyVynos / 100) * (1 + inflationRate / 100) - 1;
 
 interface FirePoint {
   year: number;
@@ -76,7 +68,7 @@ function computeFire(params: {
   } = params;
 
   const yearlyInflation = inflationRate / 100;
-  const r = expectedAnnualReturn(investmentStrategy);
+  const r = expectedAnnualReturn(investmentStrategy, inflationRate);
   const annualExpensesInFire = monthlyExpensesInFire * 12;
   const fireTarget = annualExpensesInFire * 25; // 4% pravidlo
 
@@ -152,7 +144,7 @@ interface FireRange {
   firstYearAge: number | null;  // věk, kdy medián pokryje 1 rok výdajů
 }
 
-/* Monte Carlo v REÁLNÝCH korunách (dnešní kupní síla): reálný výnos = (1+nom)/(1+infl)-1,
+/* Monte Carlo v REÁLNÝCH korunách (dnešní kupní síla): reálný výnos = historický reálný výnos v Kč,
    měsíční kroky s kolísáním, cíl je konstantní (25× ročních výdajů dnes). Vrací rozsah LET
    do cíle (10./50./90. percentil) + pás hodnot pro graf. Nejistota akumulace = KDY, ne JESTLI. */
 /* Volitelné „životní události“ na časové ose (v dnešních korunách):
@@ -160,6 +152,8 @@ interface FireRange {
    dodatečný měsíční příjem (přivýdělek) do roku N. Modelujeme je v reálných korunách. */
 type LifeEventType = 'oneoffExpense' | 'oneoffIncome' | 'monthlyIncome';
 interface LifeEvent { id: number; type: LifeEventType; amount: number; year: number }
+/** Událost tak, jak je ve formuláři – částka/rok mohou být prázdné (pak výsledek „—“). */
+interface LifeEventVstup { id: number; type: LifeEventType; amount: number | null; year: number | null }
 
 function computeFireRange(params: {
   currentAge: number; currentSavings: number; monthlySavings: number;
@@ -169,9 +163,8 @@ function computeFireRange(params: {
   const { currentAge, currentSavings, monthlySavings, monthlyExpensesInFire,
     inflationRate, investmentStrategy, growContributions, events } = params;
   const infl = inflationRate / 100;
-  const rNom = getPortfolioParameters(investmentStrategy).expectedReturn / 100;
-  const vol = getPortfolioParameters(investmentStrategy).volatility;
-  const rReal = (1 + rNom) / (1 + infl) - 1;
+  const vol = getPortfolioParameters(investmentStrategy).volatilita;
+  const rReal = getPortfolioParameters(investmentStrategy).realnyVynos / 100; // historický reálný výnos v Kč
   const mMean = Math.pow(1 + rReal, 1 / 12) - 1;
   const mVol = vol / Math.sqrt(12);
   const annualExpenses = monthlyExpensesInFire * 12;
@@ -234,59 +227,27 @@ const fmtCZK = (amount: number) =>
     style: 'currency', currency: 'CZK', minimumFractionDigits: 0, maximumFractionDigits: 0,
   }).format(amount);
 
+/* Popisky osy: nezlomitelná mezera (U+00A0) – recharts jinak „1,5 mil.“ láme na dva řádky. */
 const fmtCompact = (v: number) => {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')} mil.`;
-  if (v >= 1_000) return `${Math.round(v / 1000)} tis.`;
+  if (v >= 10_000_000) return `${Math.round(v / 1_000_000)}\u00a0mil.`;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')}\u00a0mil.`;
+  if (v >= 1_000) return `${Math.round(v / 1000)}\u00a0tis.`;
   return `${Math.round(v)}`;
 };
 
-function NumberField({
-  id, label, value, onChange, step, min, max, suffix, hint,
-}: {
-  id: string; label: React.ReactNode; value: number; onChange: (v: number) => void;
-  step?: string; min?: number; max?: number; suffix?: string; hint?: string;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm text-slate-600 mb-1">{label}</label>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="decimal"
-          step={step}
-          min={min}
-          max={max}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-          {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
-          {(() => { const sN = parseFloat(step ?? '1') || 1; const cl = (v: number) => { if (min != null && v < min) v = min; if (max != null && v > max) v = max; return Number(v.toFixed(6)); }; return (
-          <div className="flex flex-col">
-            <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => onChange(cl(value + sN))} className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300"><ChevronUp className="w-3.5 h-3.5" /></button>
-            <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => onChange(cl(value - sN))} className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px"><ChevronDown className="w-3.5 h-3.5" /></button>
-          </div> ); })()}
-        </div>
-      </div>
-      {hint && <p className="mt-1 text-xs text-slate-400 leading-snug">{hint}</p>}
-    </div>
-  );
-}
-
-const STRATEGIES: { value: Strategy; label: string; sub: string }[] = [
-  { value: 'conservative', label: 'Konzervativní', sub: '30 % akcie / 70 % dluhopisy' },
-  { value: 'moderate', label: 'Vyvážená', sub: '60 % akcie / 40 % dluhopisy' },
-  { value: 'aggressive', label: 'Agresivní', sub: '80 % akcie / 20 % dluhopisy' },
+/* `kratce` jde do <option> – celý text „Vyvážená – 60 % akcie / 40 % dluhopisy“ se na mobilu nevešel. */
+const STRATEGIES: { value: Strategy; label: string; kratce: string; sub: string }[] = [
+  { value: 'conservative', label: 'Konzervativní', kratce: '30/70', sub: '30 % akcie / 70 % dluhopisy' },
+  { value: 'moderate', label: 'Vyvážená', kratce: '60/40', sub: '60 % akcie / 40 % dluhopisy' },
+  { value: 'aggressive', label: 'Agresivní', kratce: '80/20', sub: '80 % akcie / 20 % dluhopisy' },
 ];
 
 /* Uložení plánu jen v prohlížeči uživatele (localStorage) – žádný účet, žádný server,
    žádné osobní finanční údaje u nás. Vrátí se ke svým číslům při další návštěvě. */
 const STORAGE_KEY = 'etf-fire-plan-v1';
 interface SavedPlan {
-  currentAge: number; monthlyExpensesInFire: number; currentSavings: number; monthlySavings: number;
-  inflationRate: number; investmentStrategy: Strategy; growContributions: boolean; events: LifeEvent[];
+  currentAge: number | null; monthlyExpensesInFire: number | null; currentSavings: number | null; monthlySavings: number | null;
+  inflationRate: number | null; investmentStrategy: Strategy; growContributions: boolean; events: LifeEventVstup[];
 }
 function loadPlan(): Partial<SavedPlan> | null {
   if (typeof window === 'undefined') return null;
@@ -294,34 +255,48 @@ function loadPlan(): Partial<SavedPlan> | null {
 }
 
 export default function FireKalkulackaWidget() {
-  const [currentAge, setCurrentAge] = useState(30);
-  const [monthlyExpensesInFire, setMonthlyExpensesInFire] = useState(40000);
-  const [currentSavings, setCurrentSavings] = useState(500000);
-  const [monthlySavings, setMonthlySavings] = useState(15000);
-  const [inflationRate, setInflationRate] = useState(2.5);
+  // null = prázdné / nedopsané pole → výsledek „—“ (nikdy tichá 0 nebo ořez během psaní).
+  const [currentAge, setCurrentAge] = useState<number | null>(30);
+  const [monthlyExpensesInFire, setMonthlyExpensesInFire] = useState<number | null>(40000);
+  const [currentSavings, setCurrentSavings] = useState<number | null>(500000);
+  const [monthlySavings, setMonthlySavings] = useState<number | null>(15000);
+  const [inflationRate, setInflationRate] = useState<number | null>(2.5);
   const [investmentStrategy, setInvestmentStrategy] = useState<Strategy>('moderate');
   const [growContributions, setGrowContributions] = useState(true);
-  const [events, setEvents] = useState<LifeEvent[]>([]);
+  const [events, setEvents] = useState<LifeEventVstup[]>([]);
+
+  const vstupyOk = currentAge != null && monthlyExpensesInFire != null && monthlyExpensesInFire > 0 &&
+    currentSavings != null && monthlySavings != null && inflationRate != null &&
+    events.every((e) => e.amount != null && e.year != null);
+  const chybi = [
+    currentAge == null && 'věk',
+    (monthlyExpensesInFire == null || monthlyExpensesInFire <= 0) && 'měsíční výdaje',
+    currentSavings == null && 'současné úspory (i 0)',
+    monthlySavings == null && 'měsíční spoření (i 0)',
+    inflationRate == null && 'inflaci',
+    !events.every((e) => e.amount != null && e.year != null) && 'částku a rok u životních událostí',
+  ].filter(Boolean).join(', ');
 
   const result = useMemo(
-    () => computeFire({
-      currentAge, currentSavings, monthlySavings,
-      monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions,
+    () => !vstupyOk ? null : computeFire({
+      currentAge: currentAge!, currentSavings: currentSavings!, monthlySavings: monthlySavings!,
+      monthlyExpensesInFire: monthlyExpensesInFire!, inflationRate: inflationRate!, investmentStrategy, growContributions,
     }),
-    [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions],
+    [vstupyOk, currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions],
   );
 
   // Monte Carlo rozsah (kolísání trhu) – nejistota akumulace je „kdy“, ne „jestli“.
   const range = useMemo(
-    () => computeFireRange({
-      currentAge, currentSavings, monthlySavings,
-      monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions, events,
+    () => !vstupyOk ? null : computeFireRange({
+      currentAge: currentAge!, currentSavings: currentSavings!, monthlySavings: monthlySavings!,
+      monthlyExpensesInFire: monthlyExpensesInFire!, inflationRate: inflationRate!, investmentStrategy, growContributions,
+      events: events as LifeEvent[],
     }),
-    [currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions, events],
+    [vstupyOk, currentAge, currentSavings, monthlySavings, monthlyExpensesInFire, inflationRate, investmentStrategy, growContributions, events],
   );
 
   const addEvent = () => setEvents((p) => [...p, { id: (p.length ? p[p.length - 1].id : 0) + 1, type: 'oneoffExpense', amount: 300000, year: 5 }]);
-  const updateEvent = (id: number, patch: Partial<LifeEvent>) => setEvents((p) => p.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const updateEvent = (id: number, patch: Partial<LifeEventVstup>) => setEvents((p) => p.map((e) => (e.id === id ? { ...e, ...patch } : e)));
   const removeEvent = (id: number) => setEvents((p) => p.filter((e) => e.id !== id));
 
   // Načtení uloženého plánu AŽ po mountu (jinak hydration mismatch server vs. klient).
@@ -334,7 +309,7 @@ export default function FireKalkulackaWidget() {
       if (typeof p.currentSavings === 'number') setCurrentSavings(p.currentSavings);
       if (typeof p.monthlySavings === 'number') setMonthlySavings(p.monthlySavings);
       if (typeof p.inflationRate === 'number') setInflationRate(p.inflationRate);
-      if (p.investmentStrategy) setInvestmentStrategy(p.investmentStrategy);
+      if (p.investmentStrategy && ['conservative', 'moderate', 'aggressive'].includes(p.investmentStrategy)) setInvestmentStrategy(p.investmentStrategy);
       if (typeof p.growContributions === 'boolean') setGrowContributions(p.growContributions);
       if (Array.isArray(p.events)) setEvents(p.events);
     }
@@ -360,18 +335,25 @@ export default function FireKalkulackaWidget() {
   // Graf: pás jistoty (10.–90. percentil) kolem střední (mediánové) dráhy, v dnešních korunách.
   // Ořízneme do „když se nedařilo“ + kontext, jinak do 50 let.
   const chartData = useMemo(() => {
+    if (!range) return [];
     const horizon = range.slowYears != null ? range.slowYears + 3 : 40;
     return range.band.slice(0, Math.max(2, Math.min(range.band.length, horizon + 1)))
       .map((b) => ({ age: b.age, low: b.low, bandHeight: Math.max(0, b.high - b.low), mid: b.mid, high: b.high, targetReal: b.targetReal }));
   }, [range]);
 
-  const warnExpenses = monthlyExpensesInFire < 10000;
-  const warnInflation = inflationRate < 0 || inflationRate > 10;
-  const warnNoFire = range.medYears === null;
+  const warnExpenses = monthlyExpensesInFire != null && monthlyExpensesInFire > 0 && monthlyExpensesInFire < 10000;
+  const warnInflation = inflationRate != null && (inflationRate < 0 || inflationRate > 10);
+  const warnNoFire = range != null && range.medYears === null;
+  // Úspory už teď pokrývají 25násobek ročních výdajů → žádné „mezi 30 a 30 lety, za ~0 let“.
+  const uzMate = range != null && currentSavings != null && currentSavings >= range.targetReal;
   // Věky dosažení z Monte Carlo rozsahu (nejistota je „kdy“, ne „jestli“).
-  const fastAge = range.fastYears != null ? range.currentAge + range.fastYears : null;
-  const medAge = range.medYears != null ? range.currentAge + range.medYears : null;
-  const slowAge = range.slowYears != null ? range.currentAge + range.slowYears : null;
+  const fastAge = range && range.fastYears != null ? range.currentAge + range.fastYears : null;
+  const medAge = range && range.medYears != null ? range.currentAge + range.medYears : null;
+  const slowAge = range && range.slowYears != null ? range.currentAge + range.slowYears : null;
+  const konecHorizontu = range ? range.currentAge + 50 : null;
+  /** „za ~12 let“; 0 → „do roka“; null (v horizontu 50 let nedosaženo) → „ani za 50 let“. */
+  const zaLet = (y: number | null) => (y == null ? 'ani za 50 let' : y === 0 ? 'do roka' : `za ~${y} let`);
+  const predpoklad = getPortfolioParameters(investmentStrategy);
 
   return (
     <div className="space-y-4">
@@ -382,17 +364,17 @@ export default function FireKalkulackaWidget() {
           {hydrated && (
             <span className="flex items-center gap-2 text-xs text-slate-400">
               <span className="hidden sm:inline">Plán se ukládá u vás v prohlížeči</span>
-              <button type="button" onClick={resetPlan} className="text-slate-500 hover:text-red-600 underline decoration-dotted">Vymazat</button>
+              <button type="button" onClick={resetPlan} className="min-h-[44px] px-1 text-slate-500 hover:text-red-600 underline decoration-dotted">Vymazat</button>
             </span>
           )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <NumberField
-            id="age" label="Současný věk" value={currentAge} min={18} max={80} suffix="let"
-            onChange={(v) => setCurrentAge(Math.max(18, Math.min(80, v)))}
+          <CisloPole
+            id="age" label="Současný věk" value={currentAge} min={18} max={80} suffix="let" tisice={false}
+            onChange={setCurrentAge}
           />
-          <NumberField
+          <CisloPole
             id="expenses"
             label={
               <span className="inline-flex items-center gap-1">
@@ -402,27 +384,27 @@ export default function FireKalkulackaWidget() {
                 </InfoTip>
               </span>
             }
-            value={monthlyExpensesInFire} min={5000} step="1000" suffix="Kč"
+            value={monthlyExpensesInFire} min={0} max={1000000} step="1000" suffix="Kč"
             hint="V dnešních cenách"
-            onChange={(v) => setMonthlyExpensesInFire(Math.max(0, v))}
+            onChange={setMonthlyExpensesInFire}
           />
-          <NumberField
-            id="savings" label="Současné úspory / portfolio" value={currentSavings} min={0} step="10000" suffix="Kč"
-            onChange={(v) => setCurrentSavings(Math.max(0, v))}
+          <CisloPole
+            id="savings" label="Současné úspory / portfolio" value={currentSavings} min={0} max={500000000} step="10000" suffix="Kč"
+            onChange={setCurrentSavings}
           />
-          <NumberField
-            id="monthly" label="Měsíční spoření / investice" value={monthlySavings} min={0} step="1000" suffix="Kč"
-            onChange={(v) => setMonthlySavings(Math.max(0, v))}
+          <CisloPole
+            id="monthly" label="Měsíční spoření / investice" value={monthlySavings} min={0} max={10000000} step="1000" suffix="Kč"
+            onChange={setMonthlySavings}
           />
-          <NumberField
+          <CisloPole
             id="inflation" label="Roční inflace" value={inflationRate} min={0} max={10} step="0.1" suffix="%"
-            onChange={(v) => setInflationRate(Math.max(0, Math.min(10, v)))}
+            onChange={setInflationRate}
           />
           <div>
             <label htmlFor="strategy" className="block text-sm text-slate-600 mb-1">
               <span className="inline-flex items-center gap-1">
                 Investiční strategie
-                <InfoTip label="Skladba portfolia akcie/dluhopisy. Agresivnější = vyšší očekávaný výnos, ale i vyšší výkyvy. Výnosy vychází z historických dat 1995–2024.">
+                <InfoTip label={`Skladba portfolia akcie/dluhopisy. Očekávaný výnos = historický výnos v korunách: akcie celého světa (${FIRE_PREDPOKLADY.akcie}) a státní dluhopisy eurozóny (${FIRE_PREDPOKLADY.dluhopisy}), ${FIRE_PREDPOKLADY.obdobi}, roční rebalancování, data k ${FIRE_PREDPOKLADY.dataK}. Minulost nezaručuje budoucnost.`}>
                   <span className="sr-only">akcie a dluhopisy</span>
                 </InfoTip>
               </span>
@@ -431,14 +413,16 @@ export default function FireKalkulackaWidget() {
               id="strategy"
               value={investmentStrategy}
               onChange={(e) => setInvestmentStrategy(e.target.value as Strategy)}
-              className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+              className="vyber w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
             >
               {STRATEGIES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label} – {s.sub}</option>
+                <option key={s.value} value={s.value}>{s.label} ({s.kratce})</option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-slate-400 leading-snug">
-              Očekávaný výnos {getPortfolioParameters(investmentStrategy).expectedReturn.toLocaleString('cs-CZ')} % p.a. (nominálně) – cílová částka se navyšuje o inflaci zvlášť.
+            <p className="mt-1 text-xs text-slate-500 leading-snug" data-qa="fire-predpoklad">
+              {STRATEGIES.find((s) => s.value === investmentStrategy)?.sub}: počítáme s výnosem{' '}
+              <strong className="font-semibold text-slate-700">{predpoklad.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} % ročně nad inflaci</strong>{' '}
+              – historický výnos v Kč po inflaci {FIRE_PREDPOKLADY.obdobi}, data k {FIRE_PREDPOKLADY.dataK}.
             </p>
           </div>
         </div>
@@ -488,18 +472,20 @@ export default function FireKalkulackaWidget() {
             <div key={ev.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/50 p-2.5">
               <select
                 value={ev.type}
+                aria-label="Typ události"
                 onChange={(e) => updateEvent(ev.id, { type: e.target.value as LifeEventType })}
-                className="min-h-[40px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+                className="vyber min-h-[44px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-base sm:text-sm text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
               >
                 <option value="oneoffExpense">Jednorázový výdaj</option>
                 <option value="oneoffIncome">Jednorázový příliv (dědictví…)</option>
                 <option value="monthlyIncome">Měsíční přivýdělek</option>
               </select>
               <div className="relative">
-                <input
-                  type="number" inputMode="numeric" min={0} step={10000} value={ev.amount}
-                  onChange={(e) => updateEvent(ev.id, { amount: Math.max(0, Number(e.target.value)) })}
-                  className="w-32 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-2.5 pr-14 py-1.5 text-right text-sm text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                <CisloInput
+                  aria-label="Částka události"
+                  min={0} max={500000000} value={ev.amount}
+                  onValue={(v) => updateEvent(ev.id, { amount: v })}
+                  className="w-36 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-2.5 pr-14 py-1.5 text-right text-base sm:text-sm text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
                 />
                 <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">
                   Kč{ev.type === 'monthlyIncome' ? '/měs' : ''}
@@ -507,39 +493,42 @@ export default function FireKalkulackaWidget() {
               </div>
               <span className="text-xs text-slate-500">{ev.type === 'monthlyIncome' ? 'do roku' : 'v roce'}</span>
               <div className="relative">
-                <input
-                  type="number" inputMode="numeric" min={1} max={50} value={ev.year}
-                  onChange={(e) => updateEvent(ev.id, { year: Math.max(1, Math.min(50, Number(e.target.value))) })}
-                  className="w-16 min-h-[40px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-right text-sm text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                <CisloInput
+                  aria-label="Za kolik let"
+                  min={1} max={50} value={ev.year} tisice={false}
+                  onValue={(v) => updateEvent(ev.id, { year: v })}
+                  className="w-16 min-h-[44px] rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-right text-base sm:text-sm text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
                 />
               </div>
               <button
                 onClick={() => removeEvent(ev.id)} aria-label="Odebrat událost"
-                className="ml-auto flex items-center justify-center w-8 h-8 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="ml-auto flex items-center justify-center w-11 h-11 shrink-0 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
               >×</button>
             </div>
           ))}
           <button
             onClick={addEvent}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:bg-teal-50/40 transition-colors"
+            className="inline-flex items-center gap-1.5 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-teal-300 hover:bg-teal-50/40 transition-colors"
           >
             + Přidat událost
           </button>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Částky zadávejte v dnešních cenách; rok = za kolik let od teď. Události se promítnou do rozsahu i grafu výše.
+            Částky zadávejte v dnešních cenách; rok = za kolik let od teď (1–50). Události se promítnou do rozsahu i grafu výše.
           </p>
         </div>
       </details>
 
       {/* Výsledkový panel */}
-      {warnNoFire ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 md:p-6">
+      {!range || !result ? (
+        <VysledekChybi co={chybi || undefined} />
+      ) : warnNoFire ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 md:p-6" data-qa="fire-vysledek">
           <div className="flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
             <div className="text-sm text-amber-900/80">
-              <p className="font-semibold text-amber-800">Při těchto vstupech nezávislosti do 50 let nedosáhnete</p>
+              <p className="font-semibold text-amber-800">Při těchto vstupech nezávislosti ani za 50 let nedosáhnete (do {konecHorizontu} let věku)</p>
               <p className="mt-1">
-                Zkuste zvýšit měsíční spoření, snížit cílové výdaje nebo zvolit agresivnější strategii.
+                Zkuste zvýšit měsíční spoření, snížit cílové výdaje nebo zvolit strategii s vyšším podílem akcií.
                 Cílová částka (
                 <InfoTip label="Pravidlo 4 % (Trinity Study): v amerických datech výběr 4 % ročně obvykle vydržel 30 let; na českých datech při nešťastném začátku (2000–2002) nevydržel. Odpovídá 25násobku ročních výdajů.">
                   pravidlo 4 %
@@ -549,38 +538,59 @@ export default function FireKalkulackaWidget() {
             </div>
           </div>
         </div>
-      ) : (
-        <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">
+      ) : uzMate ? (
+        <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7" data-qa="fire-vysledek">
           <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
             <Sparkles className="w-4 h-4" /> Váš výsledek
           </p>
-          {/* Headline = rozsah věku (nejistota akumulace je „kdy“, ne „jestli“) */}
           <p className="mt-3 text-2xl md:text-3xl font-bold leading-tight text-balance">
-            Nezávislosti dosáhnete nejspíš <span className="whitespace-nowrap">mezi {fastAge} a {slowAge} lety</span>, obvykle kolem {medAge}.
+            Cíl už máte: úspory {fmtCZK(currentSavings ?? 0)} pokrývají 25násobek ročních výdajů.
+          </p>
+          <p className="mt-1.5 text-sm text-teal-100 leading-relaxed">
+            Cílová částka podle pravidla 4 % je {fmtCZK(range.targetReal)} (v dnešní kupní síle); výběr 4 % ročně dává {fmtCZK(range.targetReal * 0.04 / 12)} měsíčně.
+            Na českých datech to ale není záruka – podívejte se, jak by{' '}
+            <a href="/pravidlo-4-procent" className="underline decoration-dotted text-teal-50">pravidlo 4 % dopadlo v korunách</a>.
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7" data-qa="fire-vysledek">
+          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
+            <Sparkles className="w-4 h-4" /> Váš výsledek
+          </p>
+          {/* Headline = rozsah věku (nejistota akumulace je „kdy“, ne „jestli“). Když pesimistická
+              cesta do 50 let nedojde, dřív se tu ukázalo „mezi 62 a lety“ (null v textu). */}
+          <p className="mt-3 text-2xl md:text-3xl font-bold leading-tight text-balance">
+            {slowAge == null ? (
+              <>Nezávislosti dosáhnete obvykle kolem {medAge} let; když se trhu nedaří, ani do {konecHorizontu} let.</>
+            ) : fastAge === slowAge ? (
+              <>Nezávislosti dosáhnete nejspíš kolem {medAge} let.</>
+            ) : (
+              <>Nezávislosti dosáhnete nejspíš <span className="whitespace-nowrap">mezi {fastAge} a {slowAge} lety</span>, obvykle kolem {medAge}.</>
+            )}
           </p>
           <p className="mt-1.5 text-sm text-teal-100 leading-relaxed">
             Podle 600 simulací s kolísáním trhu
             <InfoTip label="Simulujeme stovky možných vývojů trhu (kolísání nahoru i dolů). V akumulaci portfolio cíle skoro vždy nakonec dosáhne – nejistota je hlavně KDY, ne jestli.">
               <span className="text-teal-50 underline decoration-dotted"> proč rozsah?</span>
             </InfoTip>
-            {' '}– v polovině případů jste v cíli do {medAge} let, ve většině do {slowAge}.
+            {' '}– v polovině případů jste v cíli do {medAge} let, {slowAge == null ? <>ale v horší desetině případů ani za 50 let</> : <>ve většině do {slowAge}</>}.
           </p>
           {/* Tři čísla: dařilo / obvykle / nedařilo */}
           <div className="mt-4 grid grid-cols-3 gap-2.5">
             <div className="rounded-lg bg-white/10 px-3 py-2.5">
               <p className="text-[11px] text-teal-100 leading-tight">Když se trhu dařilo</p>
               <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{fastAge} let</p>
-              <p className="text-[11px] text-teal-200">za ~{range.fastYears} let</p>
+              <p className="text-[11px] text-teal-200">{zaLet(range.fastYears)}</p>
             </div>
             <div className="rounded-lg bg-white/[0.18] ring-1 ring-white/25 px-3 py-2.5">
               <p className="text-[11px] text-teal-50 leading-tight">Nejčastěji</p>
               <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{medAge} let</p>
-              <p className="text-[11px] text-teal-100">za ~{range.medYears} let</p>
+              <p className="text-[11px] text-teal-100">{zaLet(range.medYears)}</p>
             </div>
             <div className="rounded-lg bg-white/10 px-3 py-2.5">
               <p className="text-[11px] text-teal-100 leading-tight">Když se nedařilo</p>
-              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{slowAge} let</p>
-              <p className="text-[11px] text-teal-200">za ~{range.slowYears} let</p>
+              <p className="text-xl md:text-2xl font-bold tabular-nums mt-0.5">{slowAge != null ? `${slowAge} let` : '—'}</p>
+              <p className="text-[11px] text-teal-200">{slowAge != null ? zaLet(range.slowYears) : `ani do ${konecHorizontu} let`}</p>
             </div>
           </div>
           {/* Sekundárně: cílová částka + měsíční příjem */}
@@ -608,7 +618,7 @@ export default function FireKalkulackaWidget() {
       )}
 
       {/* Milníky na cestě (z mediánové dráhy) – jen ty budoucí (věk > současný) */}
-      {!warnNoFire && ((range.firstYearAge != null && range.firstYearAge > range.currentAge) || (range.halfAge != null && range.halfAge > range.currentAge)) && (
+      {range && !warnNoFire && !uzMate && ((range.firstYearAge != null && range.firstYearAge > range.currentAge) || (range.halfAge != null && range.halfAge > range.currentAge)) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {range.firstYearAge != null && range.firstYearAge > range.currentAge && (
             <div className="rounded-lg border border-slate-200 bg-white p-4 flex items-start gap-3">
@@ -628,6 +638,7 @@ export default function FireKalkulackaWidget() {
       )}
 
       {/* Graf vývoje majetku */}
+      {range && (
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">
           Vývoj majetku v čase
@@ -654,7 +665,7 @@ export default function FireKalkulackaWidget() {
                 tick={{ fontSize: 11, fill: '#94a3b8' }}
                 tickLine={false}
                 axisLine={false}
-                width={52}
+                width={64}
                 tickFormatter={(v: number) => fmtCompact(v)}
               />
               <Tooltip
@@ -687,6 +698,7 @@ export default function FireKalkulackaWidget() {
           Tyrkysová čára je nejpravděpodobnější vývoj, světlý pás ukazuje rozpětí podle toho, jak se povede trhu. Kde pás protne čárkovanou čáru cíle, tam se pohybuje věk dosažení nezávislosti. Vše v dnešní kupní síle.
         </p>
       </div>
+      )}
 
     </div>
   );

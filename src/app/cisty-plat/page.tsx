@@ -218,15 +218,15 @@ export default async function CistyPlatPreview() {
               Čistá mzda je výchozí bod pro rozpočet. Část, která vám po výdajích zůstane, můžete
               dlouhodobě zhodnocovat – třeba pravidelným nákupem levných{' '}
               <InfoTip label="Burzovně obchodované fondy sledující index – jedním nákupem koupíte stovky firem najednou, s nízkým ročním poplatkem.">ETF</InfoTip>.
-              Kolik z toho udělá za desítky let složené úročení, ukáže investiční kalkulačka.
+              Nejdřív si ale odložte nouzovou rezervu na pár měsíců výdajů. Kolik z pravidelné investice udělá za desítky let složené úročení, ukáže investiční kalkulačka.
             </p>
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {([
+                ['/nouzova-rezerva', 'Nejdřív nouzová rezerva', Wallet],
+                ['/kolik-investovat-mesicne', 'Kolik investovat měsíčně', BadgePercent],
                 ['/investicni-kalkulacka', 'Investiční kalkulačka', TrendingUp],
                 ['/kalkulacka', 'Kalkulačka poplatků ETF', Scale],
                 ['/pruvodce', 'Co jsou ETF', BookOpen],
-                ['/kde-koupit', 'Kde koupit ETF', Landmark],
-                ['/srovnani', 'Srovnání ETF', Scale],
                 ['/kalkulacky', 'Další kalkulačky', Calculator],
               ] as [string, string, typeof TrendingUp][]).map(([href, label, Icon]) => (
                 <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">

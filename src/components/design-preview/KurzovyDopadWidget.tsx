@@ -12,8 +12,9 @@ import {
   Cell,
   ResponsiveContainer,
 } from 'recharts';
-import { DollarSign, TrendingUp, Coins, ShieldAlert, AlertTriangle, Sparkles , ChevronUp, ChevronDown } from 'lucide-react';
+import { DollarSign, Coins, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 
 /**
  * Interaktivní jádro kalkulačky kurzového dopadu (vliv kurzu USD/CZK a EUR/CZK
@@ -34,14 +35,25 @@ const fmtCZK = (amount: number) =>
     maximumFractionDigits: 0,
   }).format(amount);
 
-const fmtCompact = (v: number) => {
+const MINUS = '\u2212'; // typografické minus „−“ (ne spojovník „-“)
+const NB = '\u00a0';
+/* Popisky osy odchylek: se znaménkem a nezlomitelnou mezerou („+120 tis.“, „−80 tis.“). */
+const fmtOsa = (v: number) => {
   const abs = Math.abs(v);
-  if (abs >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')} mil.`;
-  if (abs >= 1_000) return `${Math.round(v / 1000)} tis.`;
-  return `${Math.round(v)}`;
+  const z = v > 0 ? '+' : v < 0 ? MINUS : '';
+  if (abs >= 1_000_000) return `${z}${(abs / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}${NB}mil.`;
+  if (abs >= 1_000) return `${z}${Math.round(abs / 1000).toLocaleString('cs-CZ')}${NB}tis.`;
+  return `${z}${Math.round(abs)}`;
 };
-
-const fmtPct = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2).replace('.', ',')} %`;
+/** České procento se znaménkem: „+12,0 %“, „−8,0 %“, „0,0 %“ (dřív „-8,00 %“). */
+const fmtPct = (value: number) => {
+  const r = Math.round(value * 10) / 10;
+  const z = r > 0 ? '+' : r < 0 ? MINUS : '';
+  return `${z}${Math.abs(r).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}${NB}%`;
+};
+/** České procento bez znaménka („60,0 %“ místo „60.0 %“). */
+const fmtP1 = (value: number) => `${value.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}${NB}%`;
+const fmtDelta = (v: number) => (Math.round(v) === 0 ? fmtCZK(0) : `${v > 0 ? '+' : MINUS}${fmtCZK(Math.abs(v))}`);
 
 // ===== TYPY 1:1 z src/utils/currencyImpactCalculations.ts =====
 interface CurrencyScenario {
@@ -49,7 +61,6 @@ interface CurrencyScenario {
   description: string;
   usdCzkChange: number;
   eurCzkChange: number;
-  probability: number;
   portfolioImpact: number;
   portfolioValueCzk: number;
 }
@@ -93,13 +104,14 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
   const unhedgedUsd = usdValue;
   const unhedgedEur = eurValue;
 
+  // Ilustrační scénáře „co kdyby“ – NE předpověď. Dřív u nich byly pravděpodobnosti 20/15/20/15/30 %
+  // natvrdo bez zdroje (revize AD 22. 10. 2026) → odstraněny; nikde je nepublikujeme.
   const scenarios: CurrencyScenario[] = [
     {
       name: 'Oslabení koruny',
       description: 'Koruna oslabí vůči dolaru o 12 %, vůči euru o 8 % (ekonomická nejistota).',
       usdCzkChange: 12,
       eurCzkChange: 8,
-      probability: 20,
       portfolioImpact: 0,
       portfolioValueCzk: 0,
     },
@@ -108,7 +120,6 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
       description: 'Koruna posílí vůči dolaru o 8 %, vůči euru o 5 % (zásah ČNB).',
       usdCzkChange: -8,
       eurCzkChange: -5,
-      probability: 15,
       portfolioImpact: 0,
       portfolioValueCzk: 0,
     },
@@ -117,7 +128,6 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
       description: 'Dolar posílí o 15 %, euro oslabí o 3 % (přísnější Fed).',
       usdCzkChange: 15,
       eurCzkChange: -3,
-      probability: 20,
       portfolioImpact: 0,
       portfolioValueCzk: 0,
     },
@@ -126,16 +136,14 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
       description: 'Dolar oslabí o 10 %, euro posílí o 4 % (uvolněnější Fed).',
       usdCzkChange: -10,
       eurCzkChange: 4,
-      probability: 15,
       portfolioImpact: 0,
       portfolioValueCzk: 0,
     },
     {
       name: 'Stabilita',
-      description: 'Kurzy oscilují v úzkém pásmu ±3 %.',
+      description: 'Kurzy se do konce období vrátí tam, kde jsou dnes (průběžně kolísají v pásmu ±3 %).',
       usdCzkChange: 0,
       eurCzkChange: 0,
-      probability: 30,
       portfolioImpact: 0,
       portfolioValueCzk: 0,
     },
@@ -214,61 +222,11 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
 }
 // ===== KONEC převzaté logiky =====
 
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-  step,
-  min,
-  max,
-  suffix,
-}: {
-  id: string;
-  label: React.ReactNode;
-  value: number;
-  onChange: (v: number) => void;
-  step?: string;
-  min?: number;
-  max?: number;
-  suffix?: string;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm text-slate-600 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="decimal"
-          step={step}
-          min={min}
-          max={max}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-          {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
-          {(() => { const sN = parseFloat(step ?? '1') || 1; const cl = (v: number) => { if (min != null && v < min) v = min; if (max != null && v > max) v = max; return Number(v.toFixed(6)); }; return (
-          <div className="flex flex-col">
-            <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => onChange(cl(value + sN))} className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300"><ChevronUp className="w-3.5 h-3.5" /></button>
-            <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => onChange(cl(value - sN))} className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px"><ChevronDown className="w-3.5 h-3.5" /></button>
-          </div> ); })()}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 type ChartDatum = {
   name: string;
   description: string;
   usdCzkChange: number;
   eurCzkChange: number;
-  probability: number;
   impactPct: number;
   valueCzk: number;
   delta: number;
@@ -286,6 +244,7 @@ function ChartTooltip({
   if (!active || !payload || payload.length === 0) return null;
   const d = payload[0].payload;
   const positive = d.delta >= 0;
+  const nula = Math.round(d.delta) === 0;
   return (
     <div className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg max-w-[15rem]">
       <div className="font-semibold mb-1">{d.name}</div>
@@ -294,8 +253,8 @@ function ChartTooltip({
         <span className="inline-block w-2 h-2 rounded-full bg-teal-400" /> Hodnota v Kč:{' '}
         <span className="font-medium tabular-nums">{fmtCZK(d.valueCzk)}</span>
       </div>
-      <div className={`mt-1 pt-1 border-t border-white/15 ${positive ? 'text-emerald-300' : 'text-red-300'}`}>
-        Změna oproti dnešku: <span className="font-semibold tabular-nums">{fmtCZK(d.delta)}</span> ({fmtPct(d.impactPct)})
+      <div className={`mt-1 pt-1 border-t border-white/15 ${nula ? 'text-slate-300' : positive ? 'text-emerald-300' : 'text-red-300'}`}>
+        Změna oproti dnešku: <span className="font-semibold tabular-nums">{fmtDelta(d.delta)}</span> ({fmtPct(d.impactPct)})
       </div>
       <div className="mt-1 text-slate-400">Výchozí hodnota: {fmtCZK(baseValue)}</div>
     </div>
@@ -304,10 +263,14 @@ function ChartTooltip({
 
 export default function KurzovyDopadWidget() {
   // Výchozí hodnoty 1:1 z původní komponenty CurrencyImpactAnalyzer.tsx
-  const [portfolioValue, setPortfolioValue] = useState<number>(1_000_000);
-  const [usdAllocation, setUsdAllocation] = useState<number>(60);
-  const [eurAllocation, setEurAllocation] = useState<number>(30);
-  const [czkAllocation, setCzkAllocation] = useState<number>(10);
+  // null = prázdné / nedopsané pole → výsledek „—“. „60,5“ = 60,5 % (dřív 605 → ořez na 100 %).
+  const [portfolioValueV, setPortfolioValue] = useState<number | null>(1_000_000);
+  const [usdAllocationV, setUsdAllocation] = useState<number | null>(60);
+  const [eurAllocationV, setEurAllocation] = useState<number | null>(30);
+  const [czkAllocationV, setCzkAllocation] = useState<number | null>(10);
+  const vstupyOk = portfolioValueV != null && usdAllocationV != null && eurAllocationV != null && czkAllocationV != null;
+  const portfolioValue = portfolioValueV ?? 0, usdAllocation = usdAllocationV ?? 0,
+    eurAllocation = eurAllocationV ?? 0, czkAllocation = czkAllocationV ?? 0;
   const [currentUsdCzk, setCurrentUsdCzk] = useState<number>(23.5);
   const [currentEurCzk, setCurrentEurCzk] = useState<number>(25.2);
 
@@ -336,7 +299,7 @@ export default function KurzovyDopadWidget() {
   const eurPct = totalPortfolio > 0 ? (results.currentExposure.unhedgedEur / totalPortfolio) * 100 : 0;
   const czkPct = totalPortfolio > 0 ? (results.currentExposure.czkAmount / totalPortfolio) * 100 : 0;
 
-  const hasValue = portfolioValue > 0;
+  const hasValue = vstupyOk && portfolioValue > 0 && totalAllocation > 0;
 
   // Data pro graf: scénáře seřazené dle dopadu kurzu na korunovou hodnotu
   const chartData = useMemo<ChartDatum[]>(() => {
@@ -346,7 +309,6 @@ export default function KurzovyDopadWidget() {
         description: s.description,
         usdCzkChange: s.usdCzkChange,
         eurCzkChange: s.eurCzkChange,
-        probability: s.probability,
         impactPct: s.portfolioImpact,
         valueCzk: s.portfolioValueCzk,
         delta: s.portfolioValueCzk - portfolioValue,
@@ -368,14 +330,14 @@ export default function KurzovyDopadWidget() {
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">Parametry portfolia</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <NumberField
+          <CisloPole
             id="portfolio"
             label="Hodnota portfolia"
-            value={portfolioValue}
+            value={portfolioValueV}
             min={0}
             max={1_000_000_000}
             step="50000"
-            onChange={(v) => setPortfolioValue(Math.max(0, v))}
+            onChange={setPortfolioValue}
             suffix="Kč"
           />
         </div>
@@ -384,31 +346,34 @@ export default function KurzovyDopadWidget() {
           Měnová expozice portfolia
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <NumberField
+          <CisloPole
             id="usdAlloc"
             label="Dolarová (USD) část"
-            value={usdAllocation}
+            value={usdAllocationV}
             min={0}
             max={100}
-            onChange={(v) => setUsdAllocation(Math.max(0, Math.min(100, v)))}
+            desetinna
+            onChange={setUsdAllocation}
             suffix="%"
           />
-          <NumberField
+          <CisloPole
             id="eurAlloc"
             label="Eurová (EUR) část"
-            value={eurAllocation}
+            value={eurAllocationV}
             min={0}
             max={100}
-            onChange={(v) => setEurAllocation(Math.max(0, Math.min(100, v)))}
+            desetinna
+            onChange={setEurAllocation}
             suffix="%"
           />
-          <NumberField
+          <CisloPole
             id="czkAlloc"
             label="Korunová (CZK) část"
-            value={czkAllocation}
+            value={czkAllocationV}
             min={0}
             max={100}
-            onChange={(v) => setCzkAllocation(Math.max(0, Math.min(100, v)))}
+            desetinna
+            onChange={setCzkAllocation}
             suffix="%"
           />
         </div>
@@ -429,7 +394,7 @@ export default function KurzovyDopadWidget() {
         <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 px-4 py-2.5">
           <span className="text-sm text-slate-600">Součet expozice</span>
           <span className={`text-sm font-bold tabular-nums ${isAllocationValid ? 'text-emerald-600' : 'text-red-600'}`}>
-            {totalAllocation.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} %
+            {vstupyOk ? fmtP1(totalAllocation) : '—'}
           </span>
         </div>
         {!isAllocationValid && (
@@ -438,6 +403,8 @@ export default function KurzovyDopadWidget() {
           </p>
         )}
       </div>
+
+      {!hasValue && <VysledekChybi co={!vstupyOk ? undefined : 'hodnotu portfolia a expozici'} />}
 
       {/* Souhrn expozice */}
       {hasValue && (
@@ -452,7 +419,7 @@ export default function KurzovyDopadWidget() {
             <p className="text-xl font-bold text-slate-900 tabular-nums">
               {fmtCZK(results.currentExposure.unhedgedUsd)}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5 tabular-nums">{usdPct.toFixed(1)} % portfolia</p>
+            <p className="text-xs text-slate-500 mt-0.5 tabular-nums">{fmtP1(usdPct)} portfolia</p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -464,7 +431,7 @@ export default function KurzovyDopadWidget() {
             <p className="text-xl font-bold text-slate-900 tabular-nums">
               {fmtCZK(results.currentExposure.unhedgedEur)}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5 tabular-nums">{eurPct.toFixed(1)} % portfolia</p>
+            <p className="text-xs text-slate-500 mt-0.5 tabular-nums">{fmtP1(eurPct)} portfolia</p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -477,8 +444,8 @@ export default function KurzovyDopadWidget() {
                 </InfoTip>
               </p>
             </div>
-            <p className="text-xl font-bold text-slate-900 tabular-nums">{exposurePct.toFixed(1)} %</p>
-            <p className="text-xs text-slate-500 mt-0.5 tabular-nums">korunová část {czkPct.toFixed(1)} %</p>
+            <p className="text-xl font-bold text-slate-900 tabular-nums">{fmtP1(exposurePct)}</p>
+            <p className="text-xs text-slate-500 mt-0.5 tabular-nums">korunová část {fmtP1(czkPct)}</p>
           </div>
         </div>
       )}
@@ -490,9 +457,9 @@ export default function KurzovyDopadWidget() {
             Korunový výnos v různých kurzových scénářích
           </p>
           <p className="text-sm text-slate-600 leading-relaxed mb-4">
-            Výnos samotných ETF necháváme stranou – sloupce ukazují <strong className="text-slate-900">jen dopad pohybu
-            kurzu</strong> na hodnotu portfolia v přepočtu na koruny. Tečkovaná čára je dnešní hodnota{' '}
-            {fmtCZK(portfolioValue)}.
+            Výnos samotných ETF necháváme stranou – sloupce ukazují <strong className="text-slate-900">jen o kolik korun
+            se změní hodnota portfolia kvůli kurzu</strong>: nahoru = přibude, dolů = ubude. Nulová čára je dnešní hodnota{' '}
+            {fmtCZK(portfolioValue)}. Scénáře jsou ilustrační „co kdyby“, ne předpověď.
           </p>
           <div className="w-full h-72 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -506,34 +473,30 @@ export default function KurzovyDopadWidget() {
                   interval={0}
                 />
                 <YAxis
-                  tickFormatter={(v) => fmtCompact(Number(v))}
+                  tickFormatter={(v) => fmtOsa(Number(v))}
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
                   tickLine={false}
                   axisLine={false}
-                  width={56}
-                  domain={['dataMin - dataMin * 0.02', 'dataMax + dataMax * 0.02']}
+                  width={64}
+                  allowDecimals={false}
+                  domain={[(min: number) => Math.min(0, min), (max: number) => Math.max(0, max)]}
                 />
                 <Tooltip
                   cursor={{ fill: 'rgba(15, 118, 110, 0.06)' }}
                   content={<ChartTooltip baseValue={portfolioValue} />}
                 />
-                <ReferenceLine
-                  y={portfolioValue}
-                  stroke="#94a3b8"
-                  strokeDasharray="4 4"
-                  strokeWidth={1.5}
-                />
-                <Bar dataKey="valueCzk" radius={[4, 4, 0, 0]} maxBarSize={64}>
+                <ReferenceLine y={0} stroke="#64748b" strokeWidth={1.5} />
+                <Bar dataKey="delta" maxBarSize={64} minPointSize={2}>
                   {chartData.map((d) => (
-                    <Cell key={d.name} fill={d.delta >= 0 ? '#0d9488' : '#dc2626'} />
+                    <Cell key={d.name} fill={Math.round(d.delta) === 0 ? '#94a3b8' : d.delta > 0 ? '#0d9488' : '#dc2626'} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
           <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-            Tyrkysové sloupce = kurz vaší korunové hodnotě pomohl, červené = uškodil. Najetím (nebo tapnutím na mobilu)
-            zobrazíte přesné hodnoty v korunách a popis scénáře.
+            Tyrkysové sloupce = kurz vaší korunové hodnotě pomohl, červené = uškodil, šedá = beze změny. Najetím (nebo tapnutím
+            na mobilu) zobrazíte přesné hodnoty v korunách a popis scénáře.
           </p>
         </div>
       )}
@@ -546,7 +509,7 @@ export default function KurzovyDopadWidget() {
           </p>
           <div className="space-y-2.5">
             {chartData.map((s) => {
-              const positive = s.impactPct >= 0;
+              const barva = (v: number) => (Math.abs(v) < 0.05 ? 'text-slate-600' : v > 0 ? 'text-emerald-600' : 'text-red-600');
               return (
                 <div
                   key={s.name}
@@ -557,31 +520,28 @@ export default function KurzovyDopadWidget() {
                       <p className="font-semibold text-slate-900 text-sm">{s.name}</p>
                       <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{s.description}</p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 tabular-nums">
-                      {s.probability} %
-                    </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     <div>
-                      <p className="text-xs text-slate-400">USD/CZK</p>
+                      <p className="text-xs text-slate-400">Kurz USD/CZK</p>
                       <p
-                        className={`text-sm font-semibold tabular-nums ${s.usdCzkChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+                        className={`text-sm font-semibold tabular-nums ${barva(s.usdCzkChange)}`}
                       >
                         {fmtPct(s.usdCzkChange)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">EUR/CZK</p>
+                      <p className="text-xs text-slate-400">Kurz EUR/CZK</p>
                       <p
-                        className={`text-sm font-semibold tabular-nums ${s.eurCzkChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+                        className={`text-sm font-semibold tabular-nums ${barva(s.eurCzkChange)}`}
                       >
                         {fmtPct(s.eurCzkChange)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">Dopad na výnos</p>
+                      <p className="text-xs text-slate-400">Dopad na hodnotu</p>
                       <p
-                        className={`text-sm font-semibold tabular-nums ${positive ? 'text-emerald-600' : 'text-red-600'}`}
+                        className={`text-sm font-semibold tabular-nums ${barva(s.impactPct)}`}
                       >
                         {fmtPct(s.impactPct)}
                       </p>
@@ -607,13 +567,13 @@ export default function KurzovyDopadWidget() {
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <p className="text-sm text-teal-100">Kurzová expozice</p>
-              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1">{exposurePct.toFixed(1)} %</p>
+              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1">{fmtP1(exposurePct)}</p>
               <p className="text-xs text-teal-200 mt-1">část portfolia citlivá na kurz</p>
             </div>
             <div className="sm:border-l sm:border-white/15 sm:pl-5">
               <p className="text-sm text-teal-100">Kolísavost z kurzu</p>
               <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1">
-                {results.riskMetrics.portfolioVolatility.toFixed(1)} %
+                {fmtP1(results.riskMetrics.portfolioVolatility)}
               </p>
               <p className="text-xs text-teal-200 mt-1">roční výkyv hodnoty jen kvůli kurzu (odhad)</p>
             </div>
