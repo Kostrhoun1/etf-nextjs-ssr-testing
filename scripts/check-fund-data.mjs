@@ -2571,6 +2571,15 @@ const main = async () => {
   }
   // --- konec kolo7 data ---
 
+  // ── GA jen produkce (22. 10. 2026) ──
+  // Testy na localhostu a náhledy *.vercel.app se počítaly v GA jako noví uživatelé (19. 10.: 120 ze 146).
+  // Komponenta smí načíst GA jen na ostré doméně – statická kontrola zdrojáku.
+  {
+    const src = readFileSync(new URL('../src/components/GoogleAnalytics.tsx', import.meta.url), 'utf8');
+    if (!/GA_HOSTY\.includes\(window\.location\.hostname\)/.test(src) || !/if \(!ostry\) return null/.test(src))
+      poplach.push({ co: 'GoogleAnalytics.tsx nehlídá doménu – testy a náhledy by se počítaly do návštěvnosti', ukazka: [] });
+  }
+
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
   const radky = [`# Kontrola dat fondů`, '', souhrn, ''];
@@ -2585,3 +2594,4 @@ const main = async () => {
 };
 
 main().catch((e) => { console.error('❌', e.message); process.exit(1); });
+
