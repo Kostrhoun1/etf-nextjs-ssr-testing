@@ -12,7 +12,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
    Revize 19. 10. 2026: u KAŽDÉHO výsledku max. propad z backtestu s obdobím, příklad fondu podle volby Acc/Dist,
    volba regionu se promítne i do výsledku „portfolia s dluhopisy“, přesné daňové věty, na mobilu posun na otázku. */
 
-import { QUESTIONS, CATS, type Answers } from './vyberEtfData';
+import { QUESTIONS, CATS, recommend, type Answers } from './vyberEtfData';
 
 /** Ukázkový fond kategorie se skutečným výnosem v Kč a datem (z /vyber-etf/page.tsx, data fondu). */
 export interface UkazkaFondu { isin: string; nazev: string; ticker: string | null; r5: number | null; datum: string | null }
@@ -31,14 +31,25 @@ const pct = (v: number, d = 1) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs
 const mesRok = (iso: string) => `${Number(iso.slice(5, 7))}/${iso.slice(0, 4)}`;
 const den = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
-function recommend(a: Answers): { key: string; klid: boolean; caution?: string } {
-  if (a.horizon === 'short') {
-    return { key: 'bonds', klid: false, caution: 'Na horizont kratší než 3 roky jsou akciové ETF riskantní – trh může být zrovna dole, až budete peníze potřebovat. I dluhopisy kolísají – v korunách i kvůli kurzu eura (viz propad výše); jistotu dává spíš spořicí účet.' };
-  }
-  const klid = a.risk === 'low';
-  const key = a.focus && CATS[a.focus] ? a.focus : 'world';
-  const caution = !klid && key === 'tech' ? 'Technologie jsou volatilnější než celý trh – obvykle doplněk k širokému základu, ne jediný fond.' : undefined;
-  return { key, klid, caution };
+const TEXT_KRATKY = 'Na horizont kratší než 3 roky jsou akciové ETF riskantní – trh může být zrovna dole, až budete peníze potřebovat. I dluhopisy kolísají – v korunách i kvůli kurzu eura (viz propad výše); jistotu dává spíš spořicí účet.';
+const TEXT_TECH = 'Technologie jsou volatilnější než celý trh – obvykle doplněk k širokému základu, ne jediný fond.';
+const TEXT_PRIJEM = 'Zvolili jste pravidelný příjem i reinvestování dividend – to si odporuje: akumulační (Acc) fond dividendy nevyplácí, příjem z něj vznikne jen prodejem podílů. Výplaty dividend na účet dávají distribuční (Dist) třídy (daň 15 %).';
+/** Délka propadu z delší historie (vlastní období) – fakt, ne předpověď. */
+function textStredniHorizont(p: PropadKategorie | null | undefined, portfoliaVidet: boolean): string {
+  const zaklad = 'Horizont 3–10 let je na akcie krátký, hlavně když je blíž 3 než 10 letům: po velkém propadu trval návrat na předchozí vrchol i déle.';
+  if (!p?.vrchol) return `${zaklad} Kdo by peníze potřeboval dřív, prodával by se ztrátou.`;
+  const mesice = (a: string, b: string) => (Number(b.slice(0, 4)) - Number(a.slice(0, 4))) * 12 + Number(b.slice(5, 7)) - Number(a.slice(5, 7));
+  // „po 13 letech a 10 měsících“ / „po 1 roce a 1 měsíci“ (7. pád).
+  const trvani = (m: number) => {
+    const r = Math.floor(m / 12), z = m % 12;
+    const roky = r === 1 ? '1 roce' : `${r} letech`;
+    const mes = z === 1 ? '1 měsíci' : `${z} měsících`;
+    return r === 0 ? mes : z === 0 ? roky : `${roky} a ${mes}`;
+  };
+  const kdy = p.navrat
+    ? `na vrchol se vrátil až ${mesRok(p.navrat)}, tedy po ${trvani(mesice(p.vrchol, p.navrat))} od vrcholu ${mesRok(p.vrchol)}`
+    : `od vrcholu ${mesRok(p.vrchol)} se na něj do ${den(p.do)} nevrátil`;
+  return `${zaklad} Příklad z historie: ${p.nazev} v korunách (data od ${mesRok(p.od)}) spadl o ${pct(p.maxPokles * 100)} a ${kdy}. Kdo by peníze potřeboval uprostřed, prodával by se ztrátou. ${portfoliaVidet ? 'Portfolia s dluhopisy výše klesala méně, ale také kolísala.' : 'Mírnější propady měla v historii portfolia s dluhopisy (modelová portfolia).'}`;
 }
 
 /* Daně (ověřeno 2026, paměť dane-etf-fakta): dividendy z distribučních fondů 15 %; zisk z prodeje osvobozen po 3 letech
@@ -78,17 +89,21 @@ function PropadRadek({ p }: { p?: PropadKategorie | null }) {
         {p.jenSrovnani && <>{p.jenSrovnani} Pro srovnání: </>}
         {p.jenSrovnani ? 'největší propad' : 'Největší propad'} – {p.nazev}:{' '}
         <strong className="tabular-nums text-red-700">{pct(p.maxPokles * 100)}</strong> v Kč ({obdobi}).{' '}
-        <span className="text-slate-500">Backtest {mesRok(p.od)} – {den(p.do)}, po poplatcích fondu.</span>
+        <span className="text-slate-500">Backtest {mesRok(p.od)} – {den(p.do)}, po poplatcích fondu. Všechny typy fondů počítáme od stejného dne (první den dat celosvětového fondu), aby šly propady porovnat – starší krize (2000–2002, začátek krize 2007–2008) v tomto období nejsou.</span>
       </span>
     </div>
   );
 }
 
-export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = null, propady = {} }: {
+export default function EtfSelector({ fondy = {}, portfoliaKlid = [], portfoliaUmirnena = [], akcie = null, propady = {}, dlouhyPropad = null }: {
   fondy?: Record<string, { acc?: UkazkaFondu; dist?: UkazkaFondu }>; portfoliaKlid?: PortfolioKlid[];
+  /** Umírněná modelová portfolia (60/40, Nobelovo) – výsledek pro „Zvládnu střední výkyvy“. */
+  portfoliaUmirnena?: PortfolioKlid[];
   /** 100 % akcie celého světa (VT) ve stejném backtestu – pro srovnání propadu. */
   akcie?: { cagr: number; maxPokles: number } | null;
   propady?: Record<string, PropadKategorie | null>;
+  /** Největší propad S&P 500 v Kč na delší historii (od 1/2000) – fakt pro horizont 3–10 let. */
+  dlouhyPropad?: PropadKategorie | null;
 }) {
   const [step, setStep] = useState(0);
   const [a, setA] = useState<Answers>({});
@@ -140,7 +155,9 @@ export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = nu
 
   const rec = recommend(a);
   const cat = CATS[rec.key];
-  const klid = rec.klid && portfoliaKlid.length > 0;
+  const seznamPortfolii = rec.portfolia === 'konzervativni' ? portfoliaKlid : rec.portfolia === 'umirnena' ? portfoliaUmirnena : [];
+  const klid = seznamPortfolii.length > 0;
+  const upozorneni = rec.upozorneni.map((u) => u === 'kratky' ? TEXT_KRATKY : u === 'tech' ? TEXT_TECH : u === 'prijem-reinvestice' ? TEXT_PRIJEM : textStredniHorizont(dlouhyPropad, klid));
   const t = trida(a.payout);
   const fond = fondy[rec.key]?.[t];
   // Akciová část modelových portfolií s dluhopisy je světový fond – konkrétní fond „pro začátek“ (ve zvolené třídě).
@@ -151,9 +168,12 @@ export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = nu
     <div ref={kartaRef} className="scroll-mt-20 rounded-2xl border border-teal-200 bg-white overflow-hidden">
       <div className="bg-slate-900 text-white px-6 py-6 md:px-8">
         <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-300"><Sparkles className="w-4 h-4" /> Podle vašich odpovědí</span>
-        {klid ? (<>
+        {klid && rec.portfolia === 'konzervativni' ? (<>
           <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">Portfolia s dluhopisy</h2>
           <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Když nechcete velké propady, odpovídají vám spíš <strong className="text-white">portfolia, kde akcie tvoří menšinu</strong> a zbytek hlavně dluhopisy a zlato. Propadům se nevyhnou, ale bývají mělčí.</p>
+        </>) : klid ? (<>
+          <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">Akcie s částí dluhopisů</h2>
+          <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Střední výkyvy odpovídají spíš <strong className="text-white">portfoliím, kde akcie tvoří většinu a zbytek jsou dluhopisy</strong>. V historii klesala méně než čisté akcie, ale i jejich propady byly znatelné.</p>
         </>) : (<>
           <h2 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight">{cat.label}</h2>
           <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">Vašim odpovědím odpovídají <strong className="text-white">{cat.vVete}</strong> – {cat.why}.</p>
@@ -163,7 +183,7 @@ export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = nu
         {klid && (
           <section className="space-y-3">
             <ul className="grid gap-2.5 sm:grid-cols-2">
-              {portfoliaKlid.map((p) => (
+              {seznamPortfolii.map((p) => (
                 <li key={p.slug} className="rounded-xl border border-slate-200 p-4">
                   <Link href={`/portfolio-strategie/${p.slug}`} className="font-semibold text-slate-900 hover:text-teal-700">{p.nazev}</Link>
                   <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -183,8 +203,8 @@ export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = nu
                 : <>Akciová část těchto portfolií je celosvětová, ne <strong>{CATS[focus].vVete}</strong> – jeden region nebo téma samo o sobě kolísá víc než celý svět. {CATS[focus].label} najdete níže jako druhou možnost.</>}
             </p>
             <FondRadek f={svetovyFond} uvod="Konkrétní fond pro začátek – akciovou část těchto portfolií tvoří světový fond, například" />
-            <Link href="/portfolio-strategie?povaha=klid" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-teal-700 px-5 text-sm font-semibold text-white hover:bg-teal-800">
-              <Scale className="w-4 h-4" /> Modelová portfolia „Chci hlavně klid“ <ArrowRight className="w-4 h-4" />
+            <Link href={rec.portfolia === 'konzervativni' ? '/portfolio-strategie?povaha=klid' : '/portfolio-strategie'} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-teal-700 px-5 text-sm font-semibold text-white hover:bg-teal-800">
+              <Scale className="w-4 h-4" /> {rec.portfolia === 'konzervativni' ? 'Modelová portfolia „Chci hlavně klid“' : 'Všechna modelová portfolia'} <ArrowRight className="w-4 h-4" />
             </Link>
             {akcie && <p className="text-xs text-slate-500">Pro srovnání: 100&nbsp;% akcie celého světa (fond VT) ve stejném backtestu {pct(akcie.cagr * 100)} ročně, max. pokles {pct(akcie.maxPokles * 100)}.</p>}
           </section>
@@ -203,11 +223,11 @@ export default function EtfSelector({ fondy = {}, portfoliaKlid = [], akcie = nu
           <PropadRadek p={propady[rec.key]} />
         </>)}
 
-        {rec.caution && (
-          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900/90 leading-relaxed">
-            <Info className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" /> <span>{rec.caution}</span>
+        {upozorneni.map((u) => (
+          <div key={u} data-upozorneni-kviz className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900/90 leading-relaxed">
+            <Info className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" /> <span>{u}</span>
           </div>
-        )}
+        ))}
         <div className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
           <Wallet className="w-4 h-4 mt-0.5 shrink-0 text-teal-700" /> <span>{payoutNote(a.payout)}</span>
         </div>

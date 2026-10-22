@@ -95,8 +95,12 @@ používá `resampleMonthEnd`. Není to nepřesnost — zdrojová denní data ma
 na začátku měsíce (splice denního ETF a měsíčního zdroje; např. `ftse_all_world` 2008-10-01 =
 23.09 mezi 29.39 a 27.40), které denní σ×√252 nafukovaly (All-World 13 % → 31 %). Month-end sampling
 je zahodí. **Nevracet na denní „kvůli přesnosti"** — reintrodukuje to bug. Drawdown už jede stejně.
-Od 17. 10. 2026 je engine při čtení vynechává (`bezVadnychTicku` v engine.ts: víkendy a 1. den v měsíci v denních úsecích) – NEodstraňovat, jinak se vrátí chybné výsledky backtestů začínajících 1. dne v měsíci. Zbývá úklid: vyčistit vadné ticky přímo v `index_historical_data` (integrity check je nechytá –
-hlídá ocas/díry/počty, ne odlehlé hodnoty).
+Od 17. 10. 2026 je engine při čtení vynechával (víkendy a 1. den v měsíci). **Opraveno 22. 10. 2026 (audit nástrojů, S9):**
+úklid 18. 10. vadné body z DB odstranil a všech ~2 900 zbylých bodů 1. dne v měsíci sedí s Yahoo – plošné vynechání tak
+zahazovalo SKUTEČNÁ data (60/40: dno 1. 3. 2023, max. pokles −20,5 % místo −20,7 %; start 1. v měsíci posunutý o den).
+Dřívější tvrzení „vynechání i správného bodu je neškodné“ NEPLATILO. `bezVadnychTicku` teď v denních úsecích vynechává JEN
+body v nepracovní dny všech burz zdrojových fondů (so, ne, 1. 1., 25. 12.). Odlehlé body podle velikosti výkyvu NEFILTROVAT:
+skutečné dny (1. 4. 2020, 13. 11. 2008 EEM +13 %/−10 %) vypadají stejně. Čistotu DB hlídá check-fund-data (audit backtest).
 
 ## Data fondů a žebříčky (audit dat 17. 10. 2026)
 
@@ -955,3 +959,37 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
 - **„Aktualizováno 23. října 2026“** u stránek upravených v tomto auditu (redakce.ts) – datum úpravy textu.
 - Hlídá `scripts/check-fund-data.mjs`, blok `audit texty` (+ kolo6 bod 7). Před nasazením (produkce bez `data-priklad-vzorec`
   na /pruvodce) jdou nálezy jen do varování.
+
+## Backtest a kvíz – audit nástrojů (22. 10. 2026)
+
+- **Pod 1 rok se výnos NEanualizuje** (V8, zásada GIPS): API pošle `summary.cagr = null`, widget ukáže „Za období +x %“
+  (celkový výnos, `celkovyVynos`), XIRR se skryje. Kolísavost, Sharpe, Sortino a VaR jsou „—“ při méně než 12 měsíčních
+  výnosech (`MIN_MESICU_RIZIKA`). Reálný výnos pod rok se nepočítá. Nevracet „aby tam bylo číslo“ – 7 týdnů dávalo „40,8 % ročně“.
+- **Součet vah: odchylka do 0,01 p. b. se normalizuje, větší = 400** (V9). Engine (runBacktest) navíc váhy sám normalizuje
+  a při odchylce > 0,01 p. b. hodí výjimku – i serverové předpočty. Dřív prošlo 99–101 % bez normalizace (CAGR 10,14 % místo 10,70 %).
+- **Bez počátečního vkladu jde pravidelný vklad i první den** (S8). S počátečním vkladem první den ne – počáteční vklad JE
+  investicí prvního měsíce. 0 + 5 000 Kč/měs. od 1/2005 = vloženo 1 310 000 Kč (dřív 1 305 000). Klientská rekonstrukce
+  vkladů (zhodnoceniVkladu.ts → XIRR, čára „vloženo“) dělá totéž.
+- **Sharpe a Sortino standardně z měsíčních výnosů nad bezrizikovou sazbou MĚNY výpočtu** (S10, N11): CZK = ČNB 2T repo,
+  EUR = EONIA (do 9/2019) / €STR, USD = efektivní fed funds; měsíční průměry v `src/lib/backtest/bezrizikovaSazba.ts`
+  (generátor `scripts/backtest/generuj-cpi-a-sazby.py`). Sharpe = průměr(r − rf) / výběrová σ(r − rf) × √12, Sortino =
+  průměr(r − rf) × 12 / downside odchylka pod rf. Dřív (CAGR − 2 %)/σ s 2 % i pro USD/EUR. Ověřeno nezávisle (Python z holých
+  dat): S&P 500 Kč 2005–10/2026 Sharpe 0,648 (web 0,646), USD 0,66, EUR 0,70.
+- **VaR 95 % z MĚSÍČNÍCH výnosů** (μ×12 − 1,65σ×√12, stejné výnosy jako kolísavost) + v nápovědě kolik ročních oken v datech
+  pod VaR opravdu spadlo (`podilPodVaR`, N10). Dřív z denních výnosů a text „horší jen v 1 roce z 20“ (empiricky 2–9 % oken).
+- **API `returns.monthlyReturns`, `horizons` a Monte Carlo jsou z MĚSÍČNÍ řady** (S11; první bod + konce měsíců). Dřív z denní
+  („1 rok“ = 12 obchodních dní). Pole se v UI nepoužívají, ale API je veřejné – opraveno, ne smazáno.
+- **TER model: historie = poplatek ZDROJOVÉHO fondu, ne fondu k nákupu** (S12). Fond k nákupu (proxyEtf, např. EIMI 0,18 %)
+  se do výpočtu nepromítá; u složky se ukazuje „historie z fondu EEM · jeho TER 0,72 % je ve výsledku“ a zvlášť řádek
+  „Poplatek v historii“ (vážený sourceTer; „—“, když ho u některé složky nemáme). Přepočet na fond k nákupu = vyhledat konkrétní fond.
+- **Inflace: CPI ČSÚ měsíčně od 1/1996** (S18): CEN0101B do 2014, CEN0101E od 2015, báze 2015 = 100. Starý odhad z ročních
+  průměrů měl roky 2000–2002 posunuté (2000: 2,4 % místo 3,9 %). Mění reálné výnosy od 2000 a měsíce vyčerpání na
+  /pravidlo-4-procent (S&P 500 start 2002: 2/2020 → 1/2021, shodně s nezávislým přepočtem auditu). Měsíce teď platí.
+- **Kvíz /vyber-etf: propady všech kategorií ze STEJNÉHO období** (K1) = od nejpozdějšího začátku dat (VT, 26. 6. 2008), stejně
+  jako modelová portfolia. Starší krize (dot-com) proto v těchto číslech nejsou – výslovně to píšeme. Delší historie se ukazuje
+  zvlášť jen jako fakt o DÉLCE propadu s vlastním obdobím (S&P 500 v Kč od 1/2000: −71,7 %, návrat po 14 letech a 3 měsících),
+  kontrolní údaj `data-kontrola-backtest-historie` (mimo srovnávací `data-kontrola-backtest`).
+- **Kvíz: riziko → typ výsledku** (V15): „Nechci velké propady“ → konzervativní portfolia, „Zvládnu střední výkyvy“ → umírněná
+  (60/40, Nobelovo), „velké výkyvy“ → akciový typ. Horizont 3–10 let → vždy upozornění s fakty o délce propadu (bez doporučení).
+  „Chci pravidelný příjem“ + „Reinvestovat“ → upozornění na rozpor (S17). Pravidla = čistá funkce `recommend` ve vyberEtfData.ts;
+  check-fund-data testuje všech 162 kombinací.

@@ -311,22 +311,33 @@ async function nactiVseStrankovane<R>(
 }
 
 /**
- * VADNÉ TICKY v index_historical_data (audit 17. 10. 2026, pravidlo č. 1).
- * Body datované o VÍKENDU a 1. DNE V MĚSÍCI pocházejí ze starého měsíčního zdroje s jinou úrovní
- * ceny (jiné očištění o dividendy): odchylka od sousedních dnů 3,6–4,1 % proti 0,9 % u běžných dnů.
- * S&P 500 má 1. 1. 2010 cenu 79,95 mezi 83,17 a 84,58 → backtest od 1. 1. 2010 ukazoval o 3,9 % víc.
- * Loader je nemaže (upsert, nikdy delete), proto se vynechávají PŘI ČTENÍ – jen v úsecích s denními
- * daty (soused do 5 dnů na obě strany); řady a období jen s měsíčními daty zůstávají celé. Vynechání
- * i správného bodu je neškodné: ceny jsou úrovně, výnos mezi zbylými body se nemění.
- * Úklid přímo v DB = rozhodnutí majitele (PLAN-OPRAV-2026-10.md).
+ * BODY V DNECH, KDY SE NEOBCHODUJE (audit 17. 10. 2026, upraveno auditem 22. 10. 2026 – S9).
+ *
+ * Do 18. 10. 2026 byly v index_historical_data body ze starého měsíčního zdroje s jinou úrovní ceny (jiné
+ * očištění o dividendy) – o VÍKENDECH a 1. DNE V MĚSÍCI (např. S&P 500 1. 1. 2010: 79,95 mezi 83,17 a 84,58).
+ * Engine proto 1. den v měsíci i víkendy v denních úsecích plošně vynechával.
+ *
+ * Úklid 18. 10. 2026 (sync-indexes `uklid=true`, 3 591 řádků) je z databáze odstranil: víkendové řádky 2 871 → 0
+ * a všech ~2 900 zbylých bodů 1. dne v měsíci v 16 indexech backtestu sedí s Yahoo adj. close (ověřeno
+ * 22. 10. 2026, odchylka < 0,3 %). Plošné vynechání 1. dne tak zahazovalo SKUTEČNÁ data: 60/40 mělo dno
+ * 1. 3. 2023 a ukazovalo max. pokles −20,5 % místo −20,7 %; start 1. v měsíci se posouval o den.
+ * Tvrzení „vynechání i správného bodu je neškodné“ neplatilo – mění propady i den startu.
+ *
+ * Teď se v denních úsecích vynechávají JEN body ve dnech, kdy žádná z burz zdrojových fondů (NYSE/Nasdaq,
+ * Xetra, Euronext, LSE) neobchoduje: sobota, neděle, 1. ledna a 25. prosince. Takový bod nemůže být denní
+ * závěr fondu. Velikostí výkyvu odlehlé body poznat NEJDE – skutečné dny 1. 4. 2020 (−4,4 % a +3,3 %) nebo
+ * 13. 11. 2008 (EEM +13 % a −10 %) vypadají stejně jako vadné ticky. Čistotu dat proto hlídá denní kontrola
+ * (check-fund-data.mjs, audit backtest: žádné body v nepracovní dny, 60/40 max. pokles proti nezávislé řadě).
+ * Měsíční řady (`monthly` v manifestu) a měsíční úseky zůstávají celé (konce měsíců bývají o víkendu).
  */
 function bezVadnychTicku(indexCode: string, body: Array<{ date: Date; closePrice: number }>) {
   if (INDEX_BY_CODE[indexCode]?.monthly) return body
   const DEN = 864e5
   return body.filter((b, i) => {
     const dow = b.date.getUTCDay()
-    const podezrely = dow === 0 || dow === 6 || b.date.getUTCDate() === 1
-    if (!podezrely) return true
+    const m = b.date.getUTCMonth(), d = b.date.getUTCDate()
+    const neobchodni = dow === 0 || dow === 6 || (m === 0 && d === 1) || (m === 11 && d === 25)
+    if (!neobchodni) return true
     const pred = body[i - 1], po = body[i + 1]
     const denniUsek = pred && po && b.date.getTime() - pred.date.getTime() <= 5 * DEN && po.date.getTime() - b.date.getTime() <= 5 * DEN
     return !denniUsek
@@ -504,11 +515,9 @@ function simulateETFFromIndex(
  */
 function shouldContribute(
   date: Date,
-  prevDate: Date | null,
+  prevDate: Date,
   frequency: 'monthly' | 'quarterly' | 'yearly'
 ): boolean {
-  if (!prevDate) return false // No contribution on first day (initial amount handles it)
-
   const month = date.getMonth()
   const prevMonth = prevDate.getMonth()
   const year = date.getFullYear()
@@ -636,9 +645,12 @@ function combinePortfolio(
       marketNavValue = marketNavValue * (prevTotalValue > 0 ? portfolioValue / prevTotalValue : vahovyRust)
     }
 
-    // Add recurring contribution if applicable
-    if (contributions && contributions.amount > 0 && prevDate) {
-      if (shouldContribute(date, prevDate, contributions.frequency)) {
+    // Add recurring contribution if applicable.
+    // PRVNÍ DEN (audit 22. 10. 2026, S8): bez počátečního vkladu se pravidelný vklad investuje hned první den
+    // (0 + 5 000 Kč měsíčně od 1/2005 dávalo „vloženo 1 305 000“ místo 1 310 000 – první měsíc chyběl).
+    // S počátečním vkladem první den ne: počáteční vklad JE investice prvního dne/měsíce (beze změny).
+    if (contributions && contributions.amount > 0) {
+      if (prevDate ? shouldContribute(date, prevDate, contributions.frequency) : !(initialAmount > 0)) {
         const contributionAmount = contributions.amount
         totalContributed += contributionAmount
 
@@ -726,7 +738,12 @@ function shouldRebalance(
  * Run a complete backtest for a portfolio
  */
 export async function runBacktest(input: BacktestInput): Promise<BacktestResult> {
-  const { portfolio, startDate, endDate, initialAmount, rebalancingStrategy, contributions, currency } = input
+  const { startDate, endDate, initialAmount, rebalancingStrategy, contributions, currency } = input
+  // Váhy musí dát 100 % (V9, audit 22. 10. 2026): jinak by combinePortfolio při každém vyvážení tiše „ztrácel“
+  // chybějící část. Odchylka do 0,01 p. b. = zaokrouhlení → normalizace; větší = chyba volajícího (výjimka, „—“).
+  const soucetVah = input.portfolio.reduce((a, p) => a + (p.weight > 0 ? p.weight : 0), 0)
+  if (!(Math.abs(soucetVah - 1) <= 1e-4)) throw new Error(`Váhy složek dávají ${soucetVah}, ne 1`)
+  const portfolio = input.portfolio.map((p) => ({ ...p, weight: p.weight > 0 ? p.weight / soucetVah : p.weight }))
 
   // FX kurzy pro per-index konverzi do cílové měny (načíst jen když je potřeba).
   // Týden navíc před startem kvůli forward-fillu prvního bodu (kurz z předchozího business dne).
@@ -808,7 +825,7 @@ export async function runBacktest(input: BacktestInput): Promise<BacktestResult>
   // Výnos a riziko počítáme z market-only NAV (bez vkladů) – time-weighted, jako PortfolioVisualizer.
   // Reálná hodnota s vklady zůstává v `evolution` (graf) + v netAssetValue/amountInvested.
   const realFinalValue = evolution[evolution.length - 1].value
-  const summary = calculateSummary(marketNav, realFinalValue, totalContributed)
+  const summary = calculateSummary(marketNav, realFinalValue, totalContributed, currency)
   const returns = calculateReturnsAnalysis(marketNav)
   const risk = calculateRiskAnalysis(marketNav)
   const horizons = calculateHorizonAnalysis(marketNav)
@@ -846,7 +863,8 @@ function calculateInflationImpact(
   const endDate = marketNav[marketNav.length - 1].date
   const factor = inflationFactor(startDate, endDate)
   const years = yearsBetween(startDate, endDate)
-  if (factor == null || factor <= 0 || years <= 0) return undefined
+  // Pod rok se reálný výnos neanualizuje (V8) – UI ho pak neukáže.
+  if (factor == null || factor <= 0 || years < 1) return undefined
 
   const startNav = marketNav[0].value
   const endNav = marketNav[marketNav.length - 1].value
@@ -869,7 +887,8 @@ export async function runBacktestWithForecasts(
 ): Promise<BacktestResult> {
   const result = await runBacktest(input)
 
-  // Calculate Monte Carlo based on historical stats
+  // Monte Carlo z MĚSÍČNÍCH výnosů (S11: returns.monthlyReturns jsou od 22. 10. 2026 opravdu měsíční,
+  // dřív denní → prognóza „po měsících“ běžela s denním průměrem a odchylkou).
   const monthlyReturns = result.returns.monthlyReturns.map((r) => r.return)
   const monthlyMean = mean(monthlyReturns)
   const monthlyStdDev = standardDeviation(monthlyReturns)

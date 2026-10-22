@@ -117,6 +117,10 @@ const AVAILABLE_INDEXES = BACKTEST_INDEX_CODES.map((code) => {
     isin: ucits ? i.proxyEtf!.isin : '',
     etfName: ucits ? i.proxyEtf!.name : '',
     ter: ucits ? i.proxyEtf!.ter : 0,
+    /* Z jakého fondu je HISTORIE a jaký poplatek v ní je (audit 22. 10. 2026, S12): fond k nákupu (např. EIMI 0,18 %)
+       není fond, z jehož cen je historie (EEM 0,72 %) – výsledek tedy obsahuje poplatek ZDROJOVÉHO fondu. */
+    zdrojTicker: i.ticker,
+    zdrojTer: i.sourceTer ?? null,
   };
 });
 
@@ -214,14 +218,20 @@ interface DrawdownPeriod {
 }
 export interface BacktestResult {
   evolution: Array<{ date: string; value: number }>;
-  summary: { amountInvested: number; netAssetValue: number; cagr: number; standardDeviation: number; sharpeRatio: number; sortinoRatio: number };
+  /** cagr = null pod 1 rok (neanualizujeme, V8); riziko = null pod 12 měsíčních výnosů (audit 22. 10. 2026). */
+  summary: {
+    amountInvested: number; netAssetValue: number; cagr: number | null; standardDeviation: number | null;
+    sharpeRatio: number | null; sortinoRatio: number | null; obdobiLet?: number; celkovyVynos?: number;
+  };
   returns: { annualReturns: Array<{ year: number; return: number }> };
   /** Reálné zhodnocení po české inflaci (ČSÚ). Chybí, když období leží mimo CPI řadu. */
   inflation?: { nominalCAGR: number; realCAGR: number; inflationRate: number };
   risk: {
     maxDrawdown: DrawdownPeriod;
     allDrawdowns?: DrawdownPeriod[];
-    valueAtRisk95: number;
+    valueAtRisk95: number | null;
+    /** Kolik klouzavých ročních oken v datech skončilo pod VaR (N10). */
+    podilPodVaR?: { podil: number; oken: number } | null;
   };
   stressPeriods?: Array<{ key: string; name: string; startDate: string; troughDate: string; drop: number; recoveryMonths: number | null }>;
   drawdownSeries?: Array<{ date: string; drawdown: number }>;
@@ -360,6 +370,14 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const bezVkladu = !(initialAmount > 0) && !(contributionFrequency !== 'none' && contributionAmount > 0);
   // Vážený roční poplatek portfolia (TER) – kolik ročně stojí držení celého portfolia.
   const weightedTER = selectedETFs.reduce((sum, etf) => sum + (etf.weight / 100) * etf.ter, 0);
+  /* Poplatek, který je v HISTORII (zdrojové fondy, manifest sourceTer) – S12, audit 22. 10. 2026. Konkrétní fond
+     z vyhledávání se přepočítává na svůj poplatek (feeOverride) → u něj je v historii jeho TER. null = u některé
+     složky poplatek zdroje neznáme. */
+  const weightedTERHistorie = selectedETFs.reduce<number | null>((sum, etf) => {
+    if (sum == null) return null;
+    const t = etf.fond ? etf.ter : AVAILABLE_INDEXES.find((i) => i.indexCode === etf.indexCode)?.zdrojTer;
+    return t == null ? null : sum + (etf.weight / 100) * t;
+  }, 0);
 
   const applyPreset = (presetId: string) => {
     const preset = PRESET_PORTFOLIOS.find((p) => p.id === presetId);
@@ -695,7 +713,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   /* Roční zhodnocení VAŠICH vkladů (XIRR) – jen když se pravidelně vkládalo. Srovnatelné s kalkulačkou se
      stálým výnosem; CAGR výše je časově vážený výnos portfolia (nezávisí na tom, kdy jste vkládali). */
   const irr = useMemo(() => {
-    if (!result || !popisVysledku || !(popisVysledku.vklad > 0)) return null;
+    // Pod rok se nic neanualizuje (V8) – XIRR ze 7 týdnů dával „39,7 % ročně“.
+    if (!result || !popisVysledku || !(popisVysledku.vklad > 0) || result.summary.cagr == null) return null;
     return zhodnoceniVkladu(result.evolution, popisVysledku.pocatecni, popisVysledku.vklad, popisVysledku.frekvence, result.summary.amountInvested);
   }, [result, popisVysledku]);
   const maVlozeno = chartData.length > 0 && chartData[0].vlozeno != null;
@@ -994,16 +1013,26 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                 {/* Klíčové ukazatele – tři, ne čtyři: konečná hodnota je velké číslo nahoře */}
                 <div className="mt-4 grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 pt-4">
                   <div className="pr-2 sm:pr-3">
+                    {result.summary.cagr == null ? (<>
+                      {/* Pod 1 rok NEanualizujeme (audit 22. 10. 2026, V8; zásada GIPS): celkový výnos za období. */}
+                      <p className="text-xs text-slate-500 flex items-center gap-0.5">
+                        Za období
+                        <InfoTip label="Období je kratší než rok, proto ukazujeme celkový (časově vážený) výnos za celé období, ne roční tempo. Přepočet na rok by z pár týdnů dělal zavádějící čísla."><span className="sr-only">vysvětlení</span></InfoTip>
+                      </p>
+                      <p className={`mt-0.5 text-lg md:text-xl font-bold tabular-nums ${(result.summary.celkovyVynos ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtPct(result.summary.celkovyVynos == null ? null : result.summary.celkovyVynos * 100)}</p>
+                      <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">celkem, pod rok neanualizujeme</p>
+                    </>) : (<>
                     <p className="text-xs text-slate-500 flex items-center gap-0.5">
                       <span className="sm:hidden">Ročně</span><span className="hidden sm:inline">Roční zhodnocení</span>
-                      <InfoTip label="Časově vážený výnos portfolia (CAGR): průměrné roční tempo se složeným úročením, očištěné od toho, kdy a kolik jste vkládali. U portfolia z více složek ho vklady mohou nepatrně ovlivnit, protože se rozdělují podle cílových vah. Nominálně = v korunách, jak je vidíte na účtu."><span className="sr-only">vysvětlení</span></InfoTip>
+                      <InfoTip label={`Časově vážený výnos portfolia (CAGR): průměrné roční tempo se složeným úročením, očištěné od toho, kdy a kolik jste vkládali. U portfolia z více složek ho vklady mohou nepatrně ovlivnit, protože se rozdělují podle cílových vah. Nominálně = bez očištění o inflaci, ${resultCurrency === 'CZK' ? 'v korunách, jak je vidíte na účtu' : resultCurrency === 'EUR' ? 'v eurech, jak by je viděl investor s účtem v eurech' : 'v dolarech, jak by je viděl investor s účtem v dolarech'}.`}><span className="sr-only">vysvětlení</span></InfoTip>
                     </p>
                     <p className={`mt-0.5 text-lg md:text-xl font-bold tabular-nums ${result.summary.cagr >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtPct(result.summary.cagr * 100)}</p>
                     <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">
                       {!showRealReturn ? 'průměrně za rok'
                         : result.inflation ? `${fmtPct(result.inflation.realCAGR * 100)} po inflaci`
-                          : resultCurrency !== 'CZK' ? 'po inflaci jen v Kč' : 'inflace až od 1999'}
+                          : resultCurrency !== 'CZK' ? 'po inflaci jen v Kč' : 'inflace až od 1996'}
                     </p>
+                    </>)}
                   </div>
                   <div className="px-2 sm:px-3">
                     <p className="text-xs text-slate-500 flex items-center gap-0.5">
@@ -1018,8 +1047,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                       Kolísavost
                       <InfoTip label="Volatilita – jak silně hodnota kolísá nahoru a dolů (roční směrodatná odchylka z měsíčních výnosů). Vyšší číslo = divočejší jízda."><span className="sr-only">vysvětlení</span></InfoTip>
                     </p>
-                    <p className="mt-0.5 text-lg md:text-xl font-bold tabular-nums text-slate-900">{fmtPct(result.summary.standardDeviation * 100)}</p>
-                    <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">ročně</p>
+                    <p className="mt-0.5 text-lg md:text-xl font-bold tabular-nums text-slate-900">{fmtPct(result.summary.standardDeviation == null ? null : result.summary.standardDeviation * 100)}</p>
+                    <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">{result.summary.standardDeviation == null ? 'z méně než 12 měsíců nelze' : 'ročně'}</p>
                   </div>
                 </div>
                 <p className="mt-4 text-xs text-slate-500 leading-relaxed">
@@ -1142,6 +1171,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                         {etf.name
                           ? <>fond k nákupu: {etf.name} · TER {fmtPct(etf.ter * 100, 2)}</>
                           : <>fond k nákupu: — <span className="text-slate-400">(evropský fond na tento index nemáme)</span></>}
+                        {(() => {
+                          const z = AVAILABLE_INDEXES.find((i) => i.indexCode === etf.indexCode);
+                          return z ? <span className="block text-slate-400">historie z fondu {z.zdrojTicker}{z.zdrojTer != null ? ` · jeho TER ${fmtPct(z.zdrojTer * 100, 2)} je ve výsledku` : ''}</span> : null;
+                        })()}
                       </span>
                     </>)}
                   </div>
@@ -1224,11 +1257,17 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
               <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
                 <span className="text-xs text-slate-600 flex items-center gap-1">
                   Průměrný poplatek fondů k nákupu (TER)
-                  <InfoTip label="Vážený průměr poplatků (TER) uvedených fondů k nákupu – kolik by ročně stálo držení. Výpočet ho znovu neodečítá: historická data jsou ceny skutečných zdrojových fondů a jejich poplatek už obsahují. U vyhledaného konkrétního fondu výpočet data přepočítá na jeho poplatek.">
+                  <InfoTip label="Vážený průměr poplatků (TER) uvedených fondů k nákupu – kolik by ročně stálo držení. Výsledek ale počítá s poplatky ZDROJOVÝCH fondů, z jejichž cen je historie (řádek níže): ty jsou v datech už započtené a výpočet nic dalšího neodečítá ani nepřičítá. Fond k nákupu může být levnější i dražší (např. rozvíjející se trhy: historie z EEM 0,72 %, fond k nákupu 0,18 %). U vyhledaného konkrétního fondu výpočet data přepočítá na jeho poplatek.">
                     <span className="sr-only">vysvětlení</span>
                   </InfoTip>
                 </span>
                 <span className="text-sm font-semibold tabular-nums text-slate-900">{fmtPct(weightedTER * 100, 2)}</span>
+              </div>
+            )}
+            {selectedETFs.length > 0 && (
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-xs text-slate-500">Poplatek v historii (zdrojové fondy, ve výsledku)</span>
+                <span className="text-xs font-medium tabular-nums text-slate-600">{fmtPct(weightedTERHistorie == null ? null : weightedTERHistorie * 100, 2)}</span>
               </div>
             )}
             </>)}
@@ -1655,8 +1694,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
           {(() => {
             const s = result.summary;
             const dd = Math.abs(result.risk.maxDrawdown.depth);
-            const calmar = dd > 0 ? s.cagr / dd : null;
-            const fmt2 = (v: number) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const calmar = dd > 0 && s.cagr != null ? s.cagr / dd : null;
+            const fmt2 = (v: number | null) => (v == null || !Number.isFinite(v) ? '—' : v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace('-', '−'));
+            const rfPopis = resultCurrency === 'CZK' ? '2T repo sazbě ČNB' : resultCurrency === 'EUR' ? 'sazbě EONIA / €STR' : 'sazbě fed funds';
+            const vp = result.risk.podilPodVaR;
             return (
               <details data-sekce="backtest-pokrocile" className="group rounded-xl border border-slate-200 bg-white">
                 <summary className="flex items-center justify-between gap-3 px-4 md:px-6 py-4 cursor-pointer list-none min-h-[52px]">
@@ -1670,12 +1711,12 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <MetricCard
                       icon={Activity}
-                      label={<>Sharpe <InfoTip label="Kolik výnosu jste dostali za každou jednotku kolísání (nad bezrizikovou sazbou 2 %). Vyšší číslo = líp zaplaceno za podstoupené nervy."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      label={<>Sharpe <InfoTip label={`Kolik výnosu nad bezrizikovou sazbou jste dostali za každou jednotku kolísání. Standardní výpočet z měsíčních výnosů: průměrný měsíční výnos nad sazbou daného měsíce (podle ${rfPopis}, v měně výpočtu) děleno jeho směrodatnou odchylkou, krát √12. Vyšší číslo = líp zaplaceno za podstoupené nervy.`}><span className="sr-only">vysvětlení</span></InfoTip></>}
                       value={fmt2(s.sharpeRatio)} hint="výnos vs. kolísání" tone="neutral"
                     />
                     <MetricCard
                       icon={Activity}
-                      label={<>Sortino <InfoTip label="Jako Sharpe, ale trestá jen propady (ty, co bolí), ne výkyvy nahoru. Vyšší = lepší."><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      label={<>Sortino <InfoTip label={`Jako Sharpe, ale trestá jen měsíce pod bezrizikovou sazbou (podle ${rfPopis}), ne výkyvy nahoru: roční výnos nad sazbou děleno odchylkou jen těch slabších měsíců. Vyšší = lepší.`}><span className="sr-only">vysvětlení</span></InfoTip></>}
                       value={fmt2(s.sortinoRatio)} hint="výnos vs. propady" tone="neutral"
                     />
                     <MetricCard
@@ -1685,8 +1726,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     />
                     <MetricCard
                       icon={TrendingDown}
-                      label={<>VaR 95 % <InfoTip label="Value at Risk – zhruba nejhorší rok, který je běžné čekat. Horší nastane jen asi v 1 roce z 20."><span className="sr-only">vysvětlení</span></InfoTip></>}
-                      value={fmtPct(result.risk.valueAtRisk95 * 100)} hint="odhad špatného roku" tone="neg"
+                      label={<>VaR 95 % <InfoTip label={`Value at Risk – odhad špatného roku z průměru a kolísavosti měsíčních výnosů (normální rozdělení): horší rok by měl přijít asi v 1 roce z 20. Skutečné trhy mají víc extrémů${vp ? ` – v datech tohoto backtestu pod tuto hranici spadlo ${fmtPct(vp.podil * 100, 1)} z ${vp.oken.toLocaleString('cs-CZ')} klouzavých ročních období` : ''}.`}><span className="sr-only">vysvětlení</span></InfoTip></>}
+                      value={fmtPct(result.risk.valueAtRisk95 == null ? null : result.risk.valueAtRisk95 * 100)} hint={vp ? `odhad špatného roku · v datech ${fmtPct(vp.podil * 100, 0)} let horších` : 'odhad špatného roku'} tone="neg"
                     />
                   </div>
 
@@ -1879,20 +1920,22 @@ function ComparisonBlock({
   }, [portfolios]);
 
   // Řádky tabulky: hodnota + směr „co je lepší“ (pro zvýraznění nejlepšího sloupce).
+  const proc = (v: number | null | undefined) => (v == null ? NaN : v * 100); // null (pod rok / < 12 měsíců) → „—“
   const rows: { label: React.ReactNode; values: number[]; fmt: (v: number) => string; better: 'high' | 'low' }[] = [
     { label: 'Konečná hodnota', values: portfolios.map((p) => p.result.summary.netAssetValue), fmt: (v) => fmtMoney(v, currency), better: 'high' },
-    { label: 'Roční zhodnocení (CAGR)', values: portfolios.map((p) => p.result.summary.cagr * 100), fmt: (v) => fmtPct(v), better: 'high' },
+    { label: 'Roční zhodnocení (CAGR)', values: portfolios.map((p) => proc(p.result.summary.cagr)), fmt: (v) => fmtPct(v), better: 'high' },
     { label: 'Max. pokles', values: portfolios.map((p) => p.result.risk.maxDrawdown.depth * 100), fmt: (v) => fmtPct(v), better: 'high' },
-    { label: 'Kolísavost', values: portfolios.map((p) => p.result.summary.standardDeviation * 100), fmt: (v) => fmtPct(v), better: 'low' },
-    { label: 'Sharpe', values: portfolios.map((p) => p.result.summary.sharpeRatio), fmt: (v) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), better: 'high' },
+    { label: 'Kolísavost', values: portfolios.map((p) => proc(p.result.summary.standardDeviation)), fmt: (v) => fmtPct(v), better: 'low' },
+    { label: 'Sharpe', values: portfolios.map((p) => p.result.summary.sharpeRatio ?? NaN), fmt: (v) => v.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), better: 'high' },
     { label: 'Nejlepší celý rok', values: portfolios.map((p) => bestYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
     { label: 'Nejhorší celý rok', values: portfolios.map((p) => worstYearPct(p.result)), fmt: (v) => fmtPct(v), better: 'high' },
   ];
 
   const bestIndex = (values: number[], better: 'high' | 'low') => {
-    let idx = 0;
-    for (let i = 1; i < values.length; i++) {
-      if (better === 'high' ? values[i] > values[idx] : values[i] < values[idx]) idx = i;
+    let idx = -1;
+    for (let i = 0; i < values.length; i++) {
+      if (!Number.isFinite(values[i])) continue;
+      if (idx < 0 || (better === 'high' ? values[i] > values[idx] : values[i] < values[idx])) idx = i;
     }
     return idx;
   };
