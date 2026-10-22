@@ -16,7 +16,7 @@
  *
  * Exit kód 0 = vše OK, 1 = aspoň jeden problém (vhodné pro cron/alert).
  */
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 const BASE = (process.env.BASE_URL || 'https://etfpruvodce.cz').replace(/\/$/, '');
 const ERROR_TEXT = /nepodařilo|cyclic|circular structure|Application error|Something went wrong/i;
@@ -49,8 +49,11 @@ async function checkBacktest(page) {
     // klikni první hotové portfolio (preset), pak hlavní tlačítko
     const preset = page.getByRole('button', { name: /All-Weather|S&P 500|All-World|60\/40/i }).first();
     if (await preset.count()) await preset.click();
-    const run = page.getByRole('button', { name: /Otestovat na historii|Spustit backtest|Počítám/i }).first();
-    await run.click();
+    // Od revize 18. 10. 2026 se preset spouští sám a tlačítko „Otestovat na historii“ je jen, když je co počítat
+    // → klikat jen když existuje (dřív tu test 30 s čekal na neexistující tlačítko a běh se rušil na timeoutu).
+    await page.waitForTimeout(1000);
+    const run = page.getByRole('button', { name: /Otestovat na historii|Spustit backtest/i }).first();
+    if (await run.count()) await run.click();
     // počkej na výsledek NEBO chybu
     await page.waitForTimeout(6000);
     const body = await page.evaluate(() => document.body.innerText);
@@ -64,6 +67,40 @@ async function checkBacktest(page) {
   }
 }
 
+// Mobilní hledání v hlavičce (kolo 7, 22. 10. 2026): na mobilu lupa otevřela pole, ale našeptávač se neukázal
+// a Enter/„Hledat“ nikam nevedly („Form submission canceled because the form is not connected“). Desktop fungoval,
+// takže to nikdo neviděl. Test: telefon 390×844 s dotykem → lupa → „VWCE“ → návrh s ISIN → Enter → /srovnani?q=VWCE.
+async function checkMobilniHledani(browserType, engine) {
+  const name = `MOBIL hledání (${engine})`;
+  let b;
+  try {
+    b = await browserType.launch();
+  } catch (e) {
+    if (engine === 'webkit') return ok(`${name} – přeskočeno, WebKit není nainstalovaný`);
+    return fail(name, String(e).slice(0, 140));
+  }
+  try {
+    const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: engine === 'chromium' });
+    const page = await ctx.newPage();
+    page.setDefaultTimeout(30000);
+    await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(1500);
+    await page.getByRole('button', { name: 'Hledat ETF' }).tap();
+    const input = page.getByPlaceholder('Název, ISIN nebo ticker…');
+    await input.fill('VWCE');
+    const navrh = page.locator('[data-testid="mobil-naseptavac"]').getByText('IE00BK5BQT80');
+    try { await navrh.first().waitFor({ timeout: 10000 }); } catch { await ctx.close(); return fail(name, 'našeptávač neukázal VWCE (IE00BK5BQT80)'); }
+    await input.press('Enter');
+    try { await page.waitForURL(/\/srovnani\?q=VWCE/, { timeout: 15000 }); } catch { await ctx.close(); return fail(name, 'Enter nevede na /srovnani?q=VWCE'); }
+    await ctx.close();
+    ok(name);
+  } catch (e) {
+    fail(name, String(e).slice(0, 140));
+  } finally {
+    await b.close();
+  }
+}
+
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
@@ -73,6 +110,8 @@ async function checkBacktest(page) {
   }
   await checkBacktest(page);
   await browser.close();
+  await checkMobilniHledani(chromium, 'chromium');
+  await checkMobilniHledani(webkit, 'webkit');
 
   const failed = results.filter((r) => !r.ok);
   const stamp = new Date().toISOString();

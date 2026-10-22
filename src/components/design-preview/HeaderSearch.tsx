@@ -10,7 +10,11 @@ import type { TridaFondu } from '@/lib/nazevFondu';
 
 /* Živý našeptávač ETF v hlavičce – při psaní rovnou nabízí fondy (název/ISIN/ticker),
    klik nebo Enter otevře detail fondu; „Zobrazit vše“ pošle dotaz do screeneru.
-   Ovládání i klávesnicí (šipky, Enter, Esc). Skryté na úzkých obrazovkách. */
+   Ovládání i klávesnicí (šipky, Enter, Esc).
+   Dvě varianty: `desktop` (v hlavičce od lg) a `mobil` (v rozbalovacím panelu MobileMenu pod 1024 px).
+   Kolo 7 (22. 10. 2026): mobil dřív měl vlastní <form>, který se při odeslání odpojil z DOM (onSubmit zavřel panel
+   dřív, než prohlížeč formulář odeslal → „Form submission canceled because the form is not connected“) a neměl
+   našeptávač vůbec. Teď obě varianty sdílejí jednu logiku a navigují přes router (žádné nativní odeslání). */
 
 interface Result {
   isin: string;
@@ -21,7 +25,15 @@ interface Result {
   trida?: TridaFondu | null;
 }
 
-export default function HeaderSearch() {
+interface Props {
+  /** `mobil` = velké pole + tlačítko „Hledat“ + výsledky pod polem (v panelu MobileMenu). */
+  varianta?: 'desktop' | 'mobil';
+  /** Zavolá se po přechodu na výsledek (MobileMenu tím zavře panel). */
+  onHotovo?: () => void;
+}
+
+export default function HeaderSearch({ varianta = 'desktop', onHotovo }: Props = {}) {
+  const mobil = varianta === 'mobil';
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
   const [kategorie, setKategorie] = useState<{ href: string; label: string; typ?: string }[]>([]); // české hledání → žebříčky
@@ -30,6 +42,12 @@ export default function HeaderSearch() {
   const [active, setActive] = useState(-1); // -1 = žádná položka (Enter → screener)
   const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Mobil: po otevření panelu rovnou kurzor do pole (ušetří další klepnutí).
+  useEffect(() => {
+    if (mobil) inputRef.current?.focus();
+  }, [mobil]);
 
   // Zavři dropdown při kliknutí mimo.
   useEffect(() => {
@@ -74,13 +92,17 @@ export default function HeaderSearch() {
     if (!term) return;
     setOpen(false);
     router.push(`/srovnani?q=${encodeURIComponent(term)}`);
-  }, [query, router]);
+    onHotovo?.();
+  }, [query, router, onHotovo]);
 
   const goToEtf = useCallback((isin: string) => {
     setOpen(false);
     setQuery('');
     router.push(`/etf/${isin}`);
-  }, [router]);
+    onHotovo?.();
+  }, [router, onHotovo]);
+
+  const zavritPoOdkazu = () => { setOpen(false); onHotovo?.(); };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
@@ -98,33 +120,60 @@ export default function HeaderSearch() {
     }
   };
 
+  const pole = (
+    <input
+      ref={inputRef}
+      type="search"
+      role="combobox"
+      enterKeyHint="search"
+      aria-expanded={open}
+      aria-autocomplete="list"
+      aria-label={mobil ? 'Hledat ETF' : 'Hledat ETF podle názvu, ISIN nebo tickeru'}
+      placeholder={mobil ? 'Název, ISIN nebo ticker…' : 'Hledat ETF…'}
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      onKeyDown={onKeyDown}
+      onFocus={() => { if (results.length) setOpen(true); }}
+      className={mobil
+        ? 'flex-1 min-w-0 bg-transparent text-base text-slate-700 placeholder:text-slate-400 outline-none'
+        : 'w-36 xl:w-44 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none'}
+    />
+  );
+
   return (
-    <div ref={boxRef} className="relative hidden lg:block">
-      <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 h-9 focus-within:border-teal-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100 transition-colors">
-        <Search className="w-4 h-4 text-slate-400 shrink-0" />
-        <input
-          type="search"
-          role="combobox"
-          aria-expanded={open}
-          aria-autocomplete="list"
-          aria-label="Hledat ETF podle názvu, ISIN nebo tickeru"
-          placeholder="Hledat ETF…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={onKeyDown}
-          onFocus={() => { if (results.length) setOpen(true); }}
-          className="w-36 xl:w-44 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none"
-        />
-        {loading && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin shrink-0" />}
-      </div>
+    <div ref={boxRef} className={mobil ? 'relative' : 'relative hidden lg:block'}>
+      {mobil ? (
+        // Žádný nativní <form action> – odeslání řeší router (viz komentář nahoře). <form> zůstává kvůli klávese „Hledat“ na klávesnici telefonu.
+        <form role="search" onSubmit={(e) => { e.preventDefault(); goToScreener(); }}>
+          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 h-12 focus-within:border-teal-400 focus-within:bg-white transition-colors">
+            <Search className="w-4 h-4 text-slate-400 shrink-0" />
+            {pole}
+            {loading && <Loader2 className="w-4 h-4 text-slate-400 animate-spin shrink-0" />}
+            <button type="submit" className="shrink-0 rounded-md bg-teal-700 px-3 py-1.5 text-sm font-medium text-white active:bg-teal-800">
+              Hledat
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 h-9 focus-within:border-teal-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100 transition-colors">
+          <Search className="w-4 h-4 text-slate-400 shrink-0" />
+          {pole}
+          {loading && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin shrink-0" />}
+        </div>
+      )}
 
       {open && (results.length > 0 || (query.trim().length >= 2 && !loading)) && (
-        <div className="absolute right-0 top-full mt-1.5 w-[26rem] max-w-[80vw] rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50">
+        <div
+          data-testid={mobil ? 'mobil-naseptavac' : 'naseptavac'}
+          className={mobil
+            ? 'mt-2 rounded-xl border border-slate-200 bg-white overflow-hidden'
+            : 'absolute right-0 top-full mt-1.5 w-[26rem] max-w-[80vw] rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50'}
+        >
           {kategorie.length > 0 && (
             <ul className="border-b border-slate-100 py-1" aria-label="Žebříčky">
               {kategorie.map((k) => (
                 <li key={k.href}>
-                  <Link href={k.href} onClick={() => setOpen(false)} className="flex items-center justify-between gap-2 px-3.5 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50">
+                  <Link href={k.href} onClick={zavritPoOdkazu} className="flex items-center justify-between gap-2 px-3.5 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50">
                     {k.typ === 'pruvodce' ? k.label : `Žebříček: ${k.label}`} <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   </Link>
                 </li>
@@ -132,7 +181,7 @@ export default function HeaderSearch() {
             </ul>
           )}
           {results.length > 0 ? (
-            <ul className="max-h-[70vh] overflow-y-auto py-1">
+            <ul className={`${mobil ? 'max-h-[55vh]' : 'max-h-[70vh]'} overflow-y-auto overscroll-contain py-1`}>
               {results.map((r, i) => (
                 <li key={r.isin}>
                   <button
@@ -158,7 +207,7 @@ export default function HeaderSearch() {
             kategorie.length === 0 && (
               <div className="px-3.5 py-3 text-sm text-slate-500">
                 Žádný fond neodpovídá „{query.trim()}“.{' '}
-                <Link href="/zebricky" onClick={() => setOpen(false)} className="font-medium text-teal-700 hover:underline">Žebříčky podle trhu</Link>
+                <Link href="/zebricky" onClick={zavritPoOdkazu} className="font-medium text-teal-700 hover:underline">Žebříčky podle trhu</Link>
               </div>
             )
           )}
