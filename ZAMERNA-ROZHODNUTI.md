@@ -760,3 +760,20 @@ Zdravotní pojištění strop nemá. Přestane platit 1. 1. 2027 (nová průměr
 
 **Hypotéka: změna ceny nemovitosti už nepřepisuje výši úvěru na 80 %** – během psaní to mazalo zadaný úvěr.
 Úvěr nad cenou = varování.
+
+## Faktorové ETF – kolo 8 (22. 10. 2026)
+
+Všechna čísla sekce /faktorove-etf se počítají z backtest enginu (src/lib/faktory/vypocet.ts), žádné natvrdo. Co vypadá divně:
+- **Quality „zhruba jako index“, ne „neporazil“.** U řad prodloužených akademickými daty (momentum, quality) je rozdíl ročního
+  výnosu pod 0,3 p. b. (`NEJISTOTA_PRODLOUZENI`) menší než nejistota kalibrace: nezávislý přepočet 22. 10. dal quality
+  −0,09 p. b. (kalibrace −1,89 %/rok z DB) i +0,07 p. b. (kalibrace na celý překryv −1,63 %/rok). Do počtu „porazil index“ se nepočítá.
+- **Ročenka začíná 2014, i když min. volatilita má data od 2011** – jen celé roky, kdy VŠECH šest faktorů běží na reálném ETF
+  (MTUM od 18. 4. 2013, QUAL od 18. 7. 2013). Neprodlužovat dozadu akademickou řadou.
+- **Shoda na zobrazenou přesnost = dělené místo** (`SHODA`, 0,05 p. b.): 2022 small cap a quality −18,1 % – obě červeně,
+  obě započtené jako nejhorší a stránka to napíše. Dřív by jedna vypadala jako „vítěz“ o setinu.
+- **Value a small cap mají S&P 500 od 26. 5. 2000, momentum a quality od 31. 12. 1999** – každý řádek má vlastní okno
+  (S&P 500 vždy přesně na oknu faktoru). Proto se „S&P 500 stejné okno“ v řádcích liší. Záměr, ne chyba.
+- **Fondy „na stejný index“ = podle `index_name` v DB** (src/lib/faktory/fondy.ts); na americký FTSE High Dividend Yield (VYM)
+  UCITS ETF neexistuje → stránka to přizná a ukáže nejbližší s jinou metodikou. Světové MSCI World verze až jako „jiný index“.
+- **Klouzavé okno s méně než 12 obdobími se neukazuje** (min. volatilita by měla 15 let = 1 okno, průměr = minimum = maximum).
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo8 faktory` (statická kontrola zdrojů + živá konzistence tvrzení s čísly).

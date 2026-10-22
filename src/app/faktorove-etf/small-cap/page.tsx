@@ -1,48 +1,54 @@
-import { Metadata } from 'next';
-import { ogImage } from '@/lib/ogImage';
-import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import FactorDetail, { faktorMetadata, vyctiRoky, type FactorConfig, type Kontext } from '@/components/design-preview/FactorDetail';
+import { poradiVolatility } from '@/lib/faktory/vypocet';
+import { pct, pctBez, pb, den, ter } from '@/lib/faktory/format';
 import { titulek } from '@/lib/seoTitulek';
 
+// Kolo 8 (22. 10. 2026): žádné číslo natvrdo – vše z dat přes Kontext (src/lib/faktory/vypocet.ts).
+// Dřív „malé firmy porazily index“ a „od 2014 nevyhrály ani jednou“ – obojí vyvrátila vlastní data (ročenka: 2016).
 export const revalidate = 86400;
-export const metadata: Metadata = {
-  title: titulek('Small cap: malé firmy v korunách od roku 2000 (analýza)'),
-  description:
-    'Malé firmy porazily od roku 2000 S&P 500 – o desetiny procenta a za cenu nejdivočejší jízdy. Klouzavá okna, krize, pravidelné vklady a proč prémie slábne.',
-  alternates: { canonical: '/faktorove-etf/small-cap' },
-  openGraph: {
-    title: 'Small cap: nejdivočejší jízda za nejmenší prémii',
-    description:
-      'Od 2000 jediný faktor nad indexem (+5,9 vs +5,6 % v Kč) – ale s propadem −63 % a rokem +74 % i −40 %. Kompletní rozbor.',
-    url: 'https://etfpruvodce.cz/faktorove-etf/small-cap',
-    images: [ogImage({ title: 'Small cap: nejdivočejší jízda za nejmenší prémii', eyebrow: 'Faktorová analýza · v korunách', stat: '+5,9 % vs +5,6 %', statLabel: 'malé firmy vs S&P 500 od roku 2000' })],
-    type: 'article',
-  },
-};
+
+const nejdivocejsi = (k: Kontext) => k.vse.kompletni && poradiVolatility(k.vse, 'small-cap') === 1;
+const terMin = (k: Kontext) => { const t = (k.fondy?.stejny ?? []).map((f) => f.ter).filter((x): x is number => x != null); return t.length ? Math.min(...t) : null; };
+const jedenRok = (k: Kontext) => k.f.klouzave.find((r) => r.roky === 1) ?? null;
 
 const cfg: FactorConfig = {
   slug: 'small-cap',
-  indexCode: 'us_small_cap',
-  ter: 0.0035,
-  dataStart: '2000-05-26',
-  shortName: 'Small cap',
   badge: 'Faktorová analýza 3/6 · small cap',
-  h1: 'Small cap: nejdivočejší jízda za nejmenší prémii',
-  lead: (
-    <>
-      Malé firmy rostou rychleji než korporace – a jejich akcie by proto měly dlouhodobě vydělávat víc.
-      V korunách od roku 2000 to <strong className="text-white">těsně platí: +5,9 % ročně proti +5,6 % u
-      S&P 500</strong>. Otázka je, jestli desetiny procenta stojí za rok, kdy portfolio umí udělat +74 %
-      i −40 %.
-    </>
-  ),
-  dataRange: 'Denní data 2000–2026, v Kč, po TER',
+  h1: (k) => {
+    const jizda = k && nejdivocejsi(k) ? 'nejdivočejší jízda' : 'divoká jízda';
+    if (!k) return 'Small cap: malé firmy v korunách';
+    return k.f.vysledek === 'porazil' ? `Small cap: ${jizda} za malou prémii` : `Small cap: ${jizda} bez prémie`;
+  },
+  meta: (k) => {
+    const h = cfg.h1(k);
+    if (!k) return { title: titulek('Small cap: malé firmy v korunách (analýza)'), description: 'Malé firmy v korunách na denních datech: výnos proti S&P 500 na stejném okně, klouzavá okna, krize a pravidelné vklady – živě z našeho backtestu.', ogTitle: h, ogDescription: 'Malé firmy v korunách na denních datech.' };
+    const f = k.f;
+    return {
+      title: titulek(`Small cap: malé firmy v korunách od ${den(f.od)} (analýza)`),
+      description: `Malé firmy (Russell 2000) od ${den(f.od)} v Kč: ${pct(f.cagr)} ročně vs. ${pct(f.spCagr)} u S&P 500 na stejném okně – index ${f.vysledek === 'porazil' ? 'porazily' : 'neporazily'}. Okna, krize, vklady.`,
+      ogTitle: h,
+      ogDescription: `Od ${den(f.od)} v korunách: ${pct(f.cagr)} ročně vs. ${pct(f.spCagr)} u S&P 500, propad ${pct(f.maxPropad.hloubka)} (data k ${den(f.do)}).`,
+      stat: `${pct(f.cagr)} vs ${pct(f.spCagr)}`,
+      statLabel: `malé firmy vs S&P 500 od ${den(f.od)}`,
+    };
+  },
+  lead: (k) => {
+    const j = jedenRok(k);
+    return (
+      <>
+        Malé firmy rostou rychleji než korporace – a jejich akcie by proto měly dlouhodobě vydělávat víc.
+        V korunách od {den(k.f.od)} to <strong className="text-white">{k.f.vysledek === 'porazil' ? 'platí' : 'neplatí'}: {pct(k.f.cagr)} ročně
+        proti {pct(k.f.spCagr)} u S&P 500</strong> na stejném okně.
+        {j ? <> A to za cenu jízdy, kdy jednoleté období umělo skončit {pct(j.nejhorsi)} i {pct(j.nejlepsi)}.</> : null}
+      </>
+    );
+  },
   howTitle: 'Jak size faktor funguje',
   howParagraphs: [
     <>
-      Size faktor drží <strong>menší veřejně obchodované firmy</strong> – v našich datech index Russell 2000
-      (americké firmy zhruba od 1. do 8. miliardy dolarů), v UCITS verzi MSCI World Small Cap. Malé firmy mají
-      víc prostoru růst, častěji se stávají cílem akvizic a analytici je sledují méně – trh je tedy oceňuje
-      s většími chybami.
+      Size faktor drží <strong>menší veřejně obchodované firmy</strong> – v našich datech americký index
+      Russell 2000 (zhruba dva tisíce menších amerických firem). Malé firmy mají víc prostoru růst, častěji se
+      stávají cílem akvizic a analytici je sledují méně – trh je tedy oceňuje s většími chybami.
     </>,
     <>
       Akademicky jde o druhý nejstarší faktor: Rolf Banz popsal size prémii už v roce 1981 a Fama s Frenchem
@@ -51,55 +57,26 @@ const cfg: FactorConfig = {
       vyarbitrážoval, a v posledních letech drží spíš v kombinaci s kvalitou (malé ziskové firmy).
     </>,
   ],
-  numbersTitle: 'Small cap v korunách (květen 2000 – červenec 2026)',
-  numbersDesc: 'Jednorázových 100 000 Kč, po poplatcích (TER 0,35 %), kurz den po dni.',
-  statCards: [
-    { big: '444 000 Kč', text: 'ze 100 000 Kč za 26 let (+5,9 % ročně) proti 419 tis. (+5,6 %) u S&P 500 na stejném okně. Kromě momenta jediný faktor nad indexem.' },
-    { big: '+44,2 %', text: 'nejlepší rok (2013) – a jednoleté okno umělo i +74 %. Nejvyšší kolísavost ze všech faktorů (±25 %).' },
-    { big: '−63,2 %', text: 'nejhlubší propad (od září 2000). Od vrcholu zpět na vrchol to trvalo 152 měsíců – přes 12 let.' },
-  ],
-  dcaText: (
-    <>
-      <strong className="text-slate-900">S pravidelnými vklady:</strong> kdo od května 2000 vložil 100 000 Kč
-      a přidával 5 000 Kč měsíčně, vložil celkem 1 670 000 Kč – a dnes by měl{' '}
-      <strong className="text-slate-900">přibližně 6 190 000 Kč</strong>.
-    </>
-  ),
-  rolling: [
-    { yrs: '1 rok', avg: '+7,3 %', low: '−40,4 %', high: '+74,2 %', pos: '62 %' },
-    { yrs: '5 let', avg: '+6,8 %', low: '−10,6 %', high: '+23,1 %', pos: '75 %' },
-    { yrs: '10 let', avg: '+7,9 %', low: '−4,9 %', high: '+16,3 %', pos: '88 %' },
-    { yrs: '15 let', avg: '+8,1 %', low: '+2,5 %', high: '+13,5 %', pos: '100 %' },
-  ],
-  rollingNote: (
-    <>
-      Roční rozptyl od −40 % do +74 % je nejširší ze všech faktorů – small cap je čistá esence akciového
-      rizika. Jistotu kladného výsledku daly až horizonty 15 let (nejhorší case +2,5 % ročně).
-    </>
-  ),
-  crises: [
-    { name: 'Finanční krize 2008', drop: '−53 %', note: 'návrat 35 měsíců od dna – malé firmy padly hluboko, ale zotavily se rychleji než value' },
-    { name: 'COVID krach (2020)', drop: '−37 %', note: 'návrat 8 měsíců od dna – nejhlubší covidový propad z faktorů, pak raketové zotavení' },
-    { name: 'Medvědí trh 2022', drop: '−21 %', note: 'návrat 20 měsíců od dna – vyšší sazby dopadají na zadlužené malé firmy nejvíc' },
-  ],
+  krizePoznamky: {
+    gfc: 'Malé firmy jsou citlivé na úvěrové podmínky a recesi.',
+    covid: 'Po panice přišlo raketové zotavení.',
+    bear2022: 'Vyšší sazby dopadají na zadlužené malé firmy nejvíc.',
+  },
   riskTitle: 'Hlavní riziko: platíte plnou volatilitu za nejistou prémii',
   riskDesc: 'Size je nejslabší z klasických prémií – a nejdražší na nervy.',
-  riskBody: (
+  riskBody: (k) => (
     <>
-      Od roku 2014 malé firmy <strong className="text-slate-900">nevyhrály v naší ročence ani jednou</strong> a
-      za velkými firmami zaostávaly skoro celé desetiletí – éře megakorporací a indexových toků malé firmy
-      nesvědčí. Prémie +0,3 procentního bodu z 26 let se snadno ztratí ve vyšším TER (0,35 %) a jednom
-      špatně načasovaném prodeji. Pokud small cap, pak s vědomím, že kupujete hlavně vyšší riziko – prémie
-      je bonus, ne jistota.
-    </>
-  ),
-  etfs: [
-    { name: 'iShares MSCI World Small Cap', isin: 'IE00BF4RFH31', ter: '0,35 %' },
-  ],
-  etfNote: (
-    <>
-      Pozn.: backtest výše běží na americkém Russell 2000 (nejdelší řada, od 2000); světová UCITS verze drží
-      malé firmy z vyspělých trhů celého světa.
+      {k.rocenka && k.vyhry && k.prohry && (
+        <>
+          V ročence faktorů {k.rocenka.odRoku}–{k.rocenka.doRoku} byly malé firmy nejlepší ze šesti{' '}
+          <strong className="text-slate-900">{k.vyhry.length}× z {k.rocenka.roky.length} let</strong>{k.vyhry.length ? ` (${vyctiRoky(k.vyhry)})` : ''} a nejhorší {k.prohry.length}×{k.prohry.length ? ` (${vyctiRoky(k.prohry)})` : ''} –
+          éře megakorporací a indexových toků malé firmy nesvědčí.{' '}
+        </>
+      )}
+      Za celé okno {k.f.vysledek === 'porazil' ? `vedly o ${pb(k.f.cagr - k.f.spCagr)} ročně` : `zaostaly o ${pb(k.f.cagr - k.f.spCagr)} ročně`}
+      {nejdivocejsi(k) ? ' při nejvyšší kolísavosti ze všech šesti faktorů' : ''} (kolísavost {pctBez(k.f.volatilita)} vs. {pctBez(k.f.spVolatilita)} u S&P 500).
+      {terMin(k) != null && k.terSp && <> UCITS ETF na Russell 2000 stojí od {ter(terMin(k))} ročně, nejlevnější velký S&P 500 ETF {ter(k.terSp.ter)}.</>}
+      {' '}Pokud small cap, pak s vědomím, že kupujete hlavně vyšší riziko – prémie je bonus, ne jistota.
     </>
   ),
   faqs: [
@@ -109,7 +86,7 @@ const cfg: FactorConfig = {
     },
     {
       q: 'Platí size prémie ještě dnes?',
-      a: 'Sporné. Od publikace v roce 1981 znatelně zeslábla a poslední dekáda patřila megakorporacím. Novější výzkum ukazuje, že prémie drží hlavně u malých ZISKOVÝCH firem – čistý size index bez filtru kvality táhnou dolů ztrátové firmy.',
+      a: (k) => `Sporné. Od publikace v roce 1981 znatelně zeslábla a poslední dekády patřily megakorporacím – v našich korunových datech od ${den(k.f.od)} malé firmy index ${k.f.vysledek === 'porazil' ? 'porazily jen těsně' : 'neporazily'} (${pct(k.f.cagr)} vs. ${pct(k.f.spCagr)} ročně). Novější výzkum ukazuje, že prémie drží hlavně u malých ZISKOVÝCH firem – čistý size index bez filtru kvality táhnou dolů ztrátové firmy.`,
     },
     {
       q: 'Small cap, nebo emerging markets? Obojí je „rizikovější doplněk“.',
@@ -117,19 +94,29 @@ const cfg: FactorConfig = {
     },
     {
       q: 'Kolik small cap do portfolia?',
-      a: 'Obvyklá praxe je 10–20 % akciové složky. Zajímavost: světový index s malými firmami (MSCI ACWI IMI) jich drží přirozeně ~11 % – kdo chce malé firmy „podle trhu“, stačí mu široký IMI index bez samostatného ETF.',
+      a: 'Obvyklá praxe je 10–20 % akciové složky. Kdo chce malé firmy jen „podle trhu“, nepotřebuje samostatné ETF – široký index typu IMI (velké, střední i malé firmy) je drží přirozeně podle jejich váhy.',
+    },
+    {
+      q: 'Jak small cap koupím v Česku?',
+      a: (k) => {
+        const h = k.fondy?.stejny[0];
+        const s = k.fondy?.svetove[0];
+        return `${h ? `Na stejný americký index jako naše data (Russell 2000) je největší ${h.nazev} (ISIN ${h.isin}, TER ${ter(h.ter)}).` : 'UCITS ETF na americký Russell 2000 najdete ve srovnávači.'}${s ? ` Světová verze ${s.nazev} drží malé firmy z vyspělých trhů celého světa – jiný index, jiný výsledek.` : ''}`;
+      },
     },
     {
       q: 'Proč se vaše čísla liší od amerických studií?',
-      a: 'Počítáme v korunách (včetně kurzu USD/CZK), po TER a na reálném ETF. A od roku 2000, což je pro small cap příznivý start (dot-com bublina byla v malých firmách menší než v technologických obrech).',
+      a: 'Počítáme v korunách (včetně kurzu USD/CZK) z kurzů reálného ETF s jeho poplatkem v ceně. Akademické studie bývají v dolarech, bez poplatků a na delší historii.',
     },
   ],
   related: [
     ['/faktorove-etf', 'Přehled všech šesti faktorů'],
     ['/faktorove-etf/value', 'Value: faktor, který testuje trpělivost'],
-    ['/faktorove-etf/momentum', 'Momentum: jediný faktor, který porazil index'],
+    ['/faktorove-etf/momentum', 'Momentum: rozbor v korunách'],
   ],
 };
+
+export const generateMetadata = () => faktorMetadata(cfg);
 
 export default function Page() {
   return <FactorDetail cfg={cfg} />;

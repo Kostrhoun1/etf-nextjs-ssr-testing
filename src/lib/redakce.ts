@@ -18,14 +18,14 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   '/jak-dlouho-v-minusu': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
   '/pravidlo-4-procent': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
   '/co-rikaji-data': { publikovano: '2026-10-17', upraveno: '2026-10-21' }, // 21. 10.: karta Korunového stroje času
-  '/faktorove-etf': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
+  '/faktorove-etf': { publikovano: '2026-07-13', upraveno: '2026-10-22' }, // kolo 8: čísla z dat, fondy na stejný index
   // Detaily faktorů sdílí šablonu FactorDetail (poslední úprava výpočtů 17. 10. 2026).
-  '/faktorove-etf/value': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
-  '/faktorove-etf/small-cap': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
-  '/faktorove-etf/dividendove-akcie': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
-  '/faktorove-etf/minimalni-volatilita': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
-  '/faktorove-etf/momentum': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
-  '/faktorove-etf/quality': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
+  '/faktorove-etf/value': { publikovano: '2026-07-13', upraveno: '2026-10-22' },
+  '/faktorove-etf/small-cap': { publikovano: '2026-07-13', upraveno: '2026-10-22' },
+  '/faktorove-etf/dividendove-akcie': { publikovano: '2026-07-13', upraveno: '2026-10-22' },
+  '/faktorove-etf/minimalni-volatilita': { publikovano: '2026-07-13', upraveno: '2026-10-22' },
+  '/faktorove-etf/momentum': { publikovano: '2026-07-13', upraveno: '2026-10-22' },
+  '/faktorove-etf/quality': { publikovano: '2026-07-13', upraveno: '2026-10-22' },
   // Modelová portfolia: šablona portfolio-strategie/[slug] (první verze 3. 7. 2026, poslední úprava 19. 10. 2026).
   '/portfolio-strategie': { publikovano: '2025-10-01', upraveno: '2026-10-19' },
   '/portfolio-strategie/*': { publikovano: '2026-07-03', upraveno: '2026-10-19' },

@@ -1,47 +1,50 @@
-import { Metadata } from 'next';
-import { ogImage } from '@/lib/ogImage';
-import FactorDetail, { FactorConfig } from '@/components/design-preview/FactorDetail';
+import FactorDetail, { faktorMetadata, type FactorConfig, type Kontext } from '@/components/design-preview/FactorDetail';
+import { pct, pb, den, ter } from '@/lib/faktory/format';
 import { titulek } from '@/lib/seoTitulek';
 
+// Kolo 8 (22. 10. 2026): žádné číslo natvrdo – vše z dat přes Kontext (src/lib/faktory/vypocet.ts).
+// Pozn.: UCITS ETF na americký FTSE High Dividend Yield (index dat, VYM) neexistuje – stránka to přizná a ukáže nejbližší.
 export const revalidate = 86400;
-export const metadata: Metadata = {
-  title: titulek('Dividendové ETF: psychologie vs. matematika (analýza v Kč)'),
-  description:
-    'Dividendové akcie jsou nejoblíbenější „faktor“ – a matematicky nejslabší: od 2006 v Kč 8,9 % ročně proti 10,7 % u S&P 500. V roce 2022 ale jako jediné vydělaly.',
-  alternates: { canonical: '/faktorove-etf/dividendove-akcie' },
-  openGraph: {
-    title: 'Dividendové akcie: psychologie vs. matematika',
-    description:
-      'Od 2006 zaostaly za indexem o 1,8 p. b. ročně – ale v roce 2022 jako jediné vydělaly. A české daně z dividend ten rozdíl ještě prohlubují.',
-    url: 'https://etfpruvodce.cz/faktorove-etf/dividendove-akcie',
-    images: [ogImage({ title: 'Dividendové akcie: psychologie vs. matematika', eyebrow: 'Faktorová analýza · v korunách', stat: '+2,3 %', statLabel: 'jediný kladný faktor v roce 2022' })],
-    type: 'article',
-  },
-};
+
+/** Roky ročenky, kdy byly dividendy jediný kladný faktor. */
+const jedine = (k: Kontext) => (k.rocenka?.jedinyKladny ?? []).filter((x) => x.slug === 'dividendove-akcie');
+const gfc = (k: Kontext) => k.f.krize.find((c) => c.key === 'gfc') ?? null;
 
 const cfg: FactorConfig = {
   slug: 'dividendove-akcie',
-  indexCode: 'us_dividend',
-  ter: 0.0029,
-  dataStart: '2006-11-16',
-  shortName: 'Dividendy',
   badge: 'Faktorová analýza 6/6 · dividendy',
-  h1: 'Dividendové akcie: psychologie vs. matematika',
-  lead: (
-    <>
-      Pravidelný příjem z dividend je psychologicky nejpřitažlivější investiční myšlenka – a matematicky
-      jedna z nejslabších. <strong className="text-white">V korunách od 2006: 8,9 % ročně proti 10,7 % u
-      S&P 500.</strong> Jenže pak přišel rok 2022, kdy dividendové akcie jako jediné vydělaly. A pro českého
-      investora je tu ještě daňový háček, o kterém se nemluví.
-    </>
-  ),
-  dataRange: 'Denní data 2006–2026, v Kč, po TER',
+  h1: () => 'Dividendové akcie: psychologie vs. matematika',
+  meta: (k) => {
+    const h = 'Dividendové akcie: psychologie vs. matematika';
+    if (!k) return { title: titulek('Dividendové ETF: psychologie vs. matematika (analýza v Kč)'), description: 'Dividendové akcie jsou nejoblíbenější „faktor“. Analýza v korunách na denních datech: výnos proti S&P 500, krize a daně – živě z backtestu.', ogTitle: h, ogDescription: 'Dividendové akcie v korunách na denních datech.' };
+    const f = k.f;
+    const j = jedine(k)[0];
+    return {
+      title: titulek('Dividendové ETF: psychologie vs. matematika (analýza v Kč)'),
+      description: `Dividendové akcie v Kč od ${den(f.od)}: ${pct(f.cagr)} ročně proti ${pct(f.spCagr)} u S&P 500.${j ? ` V roce ${j.rok} ale jako jediný faktor vydělaly.` : ''} Krize, daně a klouzavá okna.`,
+      ogTitle: h,
+      ogDescription: `Od ${den(f.od)} ${f.cagr < f.spCagr ? 'zaostaly' : 'vedly'} o ${pb(f.cagr - f.spCagr)} ročně za S&P 500${j ? ` – v roce ${j.rok} ale jako jediné vydělaly (${pct(j.vynos)})` : ''}. Data k ${den(f.do)}.`,
+      ...(j ? { stat: pct(j.vynos), statLabel: `jediný kladný faktor v roce ${j.rok}` } : { stat: `${pct(f.cagr)} vs ${pct(f.spCagr)}`, statLabel: `dividendy vs S&P 500 od ${den(f.od)}` }),
+    };
+  },
+  lead: (k) => {
+    const j = jedine(k)[0];
+    return (
+      <>
+        Pravidelný příjem z dividend je psychologicky nejpřitažlivější investiční myšlenka – a matematicky
+        jedna z nejslabších. <strong className="text-white">V korunách od {den(k.f.od)}: {pct(k.f.cagr)} ročně proti {pct(k.f.spCagr)} u
+        S&P 500.</strong>
+        {j ? <> Jenže pak přišel rok {j.rok}, kdy dividendové akcie jako jediný ze šesti faktorů vydělaly ({pct(j.vynos)}).</> : null}
+        {' '}A pro českého investora je tu ještě daňový háček, o kterém se nemluví.
+      </>
+    );
+  },
   howTitle: 'Jak dividendový „faktor“ funguje',
   howParagraphs: [
     <>
-      Dividendové indexy (u nás nejběžněji FTSE All-World High Dividend Yield) drží firmy s{' '}
-      <strong>nadprůměrným dividendovým výnosem</strong> – typicky banky, energetiku, telekomunikace, spotřební
-      zboží. Ze světového indexu tak vypadne většina technologií, které dividendy neplatí.
+      Dividendové indexy drží firmy s <strong>nadprůměrným dividendovým výnosem</strong> – typicky banky,
+      energetiku, telekomunikace, spotřební zboží. Naše data běží na americkém FTSE High Dividend Yield (ETF VYM);
+      z indexu tak vypadne většina technologií, které dividendy neplatí.
     </>,
     <>
       Tady je důležitá poctivost: <strong>dividenda sama o sobě není výnos navíc</strong>. V den výplaty klesne
@@ -55,61 +58,26 @@ const cfg: FactorConfig = {
       opustíte.
     </>,
   ],
-  numbersTitle: 'Dividendové akcie v korunách (listopad 2006 – červenec 2026)',
-  numbersDesc: 'Jednorázových 100 000 Kč, po poplatcích (TER 0,29 %), kurz den po dni, dividendy reinvestované.',
-  statCards: [
-    { big: '532 000 Kč', text: 'ze 100 000 Kč za 20 let (+8,9 % ročně). S&P 500 dal za stejné období 739 000 Kč (+10,7 %) – rozdíl 1,8 p. b. ročně.' },
-    { big: '+2,3 %', text: 'rok 2022 – jediný kladný faktor v roce, kdy vše ostatní padalo. Návrat od dna zpět na vrchol za 2 měsíce.' },
-    { big: '−55,3 %', text: 'nejhlubší propad (finanční krize 2008 – dividendové indexy byly plné bank). Od vrcholu zpět na vrchol to trvalo 62 měsíců.' },
-  ],
-  dcaText: (
-    <>
-      <strong className="text-slate-900">S pravidelnými vklady:</strong> kdo od listopadu 2006 vložil 100 000 Kč
-      a přidával 5 000 Kč měsíčně, vložil celkem 1 280 000 Kč – a dnes by měl{' '}
-      <strong className="text-slate-900">přibližně 4 866 000 Kč</strong>.
-    </>
-  ),
-  rolling: [
-    { yrs: '1 rok', avg: '+10,2 %', low: '−41,8 %', high: '+43,0 %', pos: '75 %' },
-    { yrs: '5 let', avg: '+12,1 %', low: '−2,3 %', high: '+23,5 %', pos: '95 %' },
-    { yrs: '10 let', avg: '+11,9 %', low: '+7,6 %', high: '+16,5 %', pos: '100 %' },
-    { yrs: '15 let', avg: '+11,8 %', low: '+8,2 %', high: '+14,5 %', pos: '100 %' },
-  ],
-  rollingNote: (
-    <>
-      Dlouhodobá stabilita je slušná: desetiletá okna nikdy pod +7,6 % ročně. Rozdíl proti indexu dělá hlavně
-      složení – bez technologií se v posledních dekádách vyhrát nedalo.
-    </>
-  ),
-  crises: [
-    { name: 'Finanční krize 2008', drop: '−52 %', note: 'návrat 38 měsíců od dna – „bezpečné dividendovky“ byly plné bank, epicentra krize' },
-    { name: 'COVID krach (2020)', drop: '−28 %', note: 'návrat 12 měsíců od dna – řada firem dividendy seškrtala přesně ve chvíli, kdy je investoři čekali' },
-    { name: 'Medvědí trh 2022', drop: '−11 %', note: 'návrat 2 měsíce od dna – hvězdný rok: energetika a banky vydělávaly, zatímco technologie padaly' },
-  ],
+  numbersNote: 'Dividendy jsou reinvestované (daň z nich backtest nepočítá).',
+  krizePoznamky: {
+    gfc: '„Bezpečné dividendovky“ byly plné bank, epicentra krize.',
+    covid: 'Řada firem dividendy seškrtala přesně ve chvíli, kdy je investoři čekali.',
+    bear2022: 'Energetika a banky vydělávaly, zatímco technologie padaly.',
+  },
   riskTitle: 'Český daňový háček: dividendy se daní hned',
-  riskDesc: 'Unikátní pohled pro investora v ČR – tohle v zahraničních srovnáních nenajdete.',
-  riskBody: (
+  riskDesc: 'Pohled pro investora v ČR – tohle v zahraničních srovnáních nenajdete.',
+  riskBody: (k) => (
     <>
       Dividendy z irských ETF se v Česku <strong className="text-slate-900">daní 15 % v roce výplaty</strong> –
-      bez ohledu na tříletý časový test, který jinak dělá ETF daňově výhodné. U distribuční verze (VHYL) tak
-      každý rok odevzdáte část výnosu státu, zatímco akumulační světový index nezdaníte vůbec (do prodeje,
-      a po 3 letech často vůbec). Náš backtest daně nepočítá – reálný rozdíl proti indexu je pro českého
-      investora <strong className="text-slate-900">ještě větší než uvedených 1,8 p. b.</strong> Pokud dividendové
+      bez ohledu na tříletý časový test, který jinak dělá ETF daňově výhodné. U distribuční verze tak
+      každý rok odevzdáte část výnosu státu, zatímco akumulační fond do prodeje nezdaníte (a po 3 letech
+      držení často vůbec). Náš backtest daně nepočítá – reálný rozdíl proti indexu je pro českého
+      investora <strong className="text-slate-900">ještě větší než {pb(k.f.cagr - k.f.spCagr)} ročně</strong>. Pokud dividendové
       ETF, zvažte akumulační variantu – psychologický efekt „chodí mi příjem“ tím ale ztratíte, což byl často
       hlavní důvod nákupu.
     </>
   ),
-  etfs: [
-    { name: 'Vanguard FTSE All-World High Dividend Yield (Dist)', isin: 'IE00B8GKDB10', ter: '0,29 %' },
-    { name: 'Vanguard FTSE All-World High Dividend Yield (Acc)', isin: 'IE00BK5BR626', ter: '0,29 %' },
-  ],
-  etfNote: (
-    <>
-      Pozn.: backtest výše běží na americké dividendové řadě (od 2006, dividendy reinvestované); VHYL drží
-      vysokodividendové firmy celého světa. Acc verze dividendy reinvestuje uvnitř fondu – daňově výhodnější
-      pro ČR.
-    </>
-  ),
+  dataNote: 'UCITS ETF na přesně tento americký index neexistuje; nejbližší americké fondy mají jiná pravidla výběru (kvalita, ESG filtry).',
   faqs: [
     {
       q: 'Chci žít z dividend. Není to celý smysl investování?',
@@ -117,15 +85,26 @@ const cfg: FactorConfig = {
     },
     {
       q: 'Nejsou dividendové firmy bezpečnější?',
-      a: 'Ne automaticky. V roce 2008 spadly dividendové indexy hlouběji než trh (−52 %), protože byly plné bank. Vysoký dividendový výnos je někdy varování – „dividendová past“, kdy cena spadla, protože byznys upadá, a škrt dividendy teprve přijde.',
+      a: (k) => {
+        const g = gfc(k);
+        return `Ne automaticky.${g && g.sp ? ` Ve finanční krizi 2008 spadly v našich datech o ${pct(g.pokles)} (S&P 500 ${pct(g.sp.pokles)}), protože byly plné bank.` : ''} Vysoký dividendový výnos je někdy varování – „dividendová past“, kdy cena spadla, protože byznys upadá, a škrt dividendy teprve přijde.`;
+      },
     },
     {
-      q: 'Proč tedy dividendovky v roce 2022 vydělaly?',
-      a: 'Rostoucí sazby přecenily růstové akcie (vzdálené zisky ztratily hodnotu), zatímco energetika a banky – páteř dividendových indexů – z vyšších sazeb a cen energií profitovaly. Je to ilustrace, k čemu dividendový faktor reálně je: diverzifikace stylu, ne vyšší výnos.',
+      q: 'Jak dopadly dividendovky v roce 2022 – a proč?',
+      a: (k) => `${(() => { const r = k.f.rocni.find((x) => x.rok === 2022 && x.s != null); return r ? `V korunách ${pct(r.f)}, S&P 500 ${pct(r.s)}. ` : ''; })()}Rostoucí sazby přecenily růstové akcie (vzdálené zisky ztratily hodnotu), zatímco energetika a banky – páteř dividendových indexů – z vyšších sazeb a cen energií profitovaly. Je to ilustrace, k čemu dividendový faktor reálně je: diverzifikace stylu, ne vyšší výnos.`,
     },
     {
       q: 'Distribuční, nebo akumulační verze?',
       a: 'Pro fázi budování majetku v ČR jednoznačně akumulační (žádná průběžná daň, automatická reinvestice). Distribuční dává smysl až v rentě – a i tam zvažte, zda není efektivnější prodávat akumulační po časovém testu.',
+    },
+    {
+      q: 'Jak dividendové akcie koupím v Česku?',
+      a: (k) => {
+        const n = k.fondy?.nejblizsi[0];
+        const s = k.fondy?.svetove;
+        return `UCITS ETF na americký index FTSE High Dividend Yield (naše data) neexistuje.${n ? ` Nejbližší americký je ${n.nazev} (ISIN ${n.isin}, TER ${ter(n.ter)}) – s jinými pravidly výběru.` : ''}${s && s.length ? ` Nejrozšířenější je světová verze ${s[0].nazev} (${s.map((x) => x.isin).join(', ')}) – jiný index, jiný výsledek.` : ''}`;
+      },
     },
     {
       q: 'Jak vysoký dividendový výnos je podezřelý?',
@@ -138,6 +117,8 @@ const cfg: FactorConfig = {
     ['/akumulacni-vs-distribucni-etf', 'Akumulační vs. distribuční ETF'],
   ],
 };
+
+export const generateMetadata = () => faktorMetadata(cfg);
 
 export default function Page() {
   return <FactorDetail cfg={cfg} />;

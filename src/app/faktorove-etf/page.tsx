@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { ogImage } from '@/lib/ogImage';
 import Link from 'next/link';
 import AutorBox from '@/components/design-preview/AutorBox';
-import { FAKTORY } from '@/components/design-preview/FactorDetail';
+import { FAKTORY, vyctiRoky } from '@/components/design-preview/FactorDetail';
 import { clanekSchema, upravenoDlouze } from '@/lib/redakce';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
@@ -15,96 +15,97 @@ import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
+import { nactiFaktory, porazily, FAKTORY_DEF, POCATECNI, PRODLOUZENI, SHODA, type FaktoryVysledek, type FaktorVysledek, type FaktorSlug } from '@/lib/faktory/vypocet';
+import { nactiFondyFaktoru, nactiTerSp500 } from '@/lib/faktory/fondy';
+import { pct, pctBez, pb, kc, kcKratce, den, mesic, ter } from '@/lib/faktory/format';
 
+/*
+ * KOLO 8 (22. 10. 2026, pravidlo č. 1): stránka už nemá ŽÁDNÉ číslo natvrdo. Dřív tabulka i karty pocházely
+ * z 13. 7. 2026 (před opravou dvojího TER), „S&P 500 stejné období“ nesedělo s oknem faktoru (value „419 tis.“)
+ * a tvrzení „2 ze 6 porazily index“ / „každý faktor byl aspoň jednou nejlepší“ vyvracela vlastní ročenka.
+ * Teď vše z backtest enginu (src/lib/faktory/vypocet.ts) a tvrzení z dat. Kontrola: check-fund-data.mjs „kolo8 faktory“.
+ */
 export const revalidate = 86400;
-export const metadata: Metadata = {
-  title: titulek('Faktorové ETF: co skutečně říkají data (v korunách)'),
-  description:
-    'Value, momentum, quality, small cap, minimální volatilita a dividendy: co slibuje výzkum a jak faktory dopadly v korunách na datech od roku 2000 – s UCITS ETF.',
-  alternates: { canonical: '/faktorove-etf' },
-  openGraph: {
-    title: 'Faktorové ETF: co skutečně říkají data (v korunách)',
-    description:
-      'Šest faktorů přepočtených do Kč na denních datech. Spoiler: od roku 2000 porazily index jen dva. Poctivý rozbor včetně konkrétních UCITS ETF.',
-    url: 'https://etfpruvodce.cz/faktorove-etf',
-    images: [ogImage({ title: 'Faktorové ETF: co skutečně říkají data', eyebrow: 'Datový rozbor · v korunách', stat: '2 ze 6', statLabel: 'faktorů porazilo S&P 500 (od 2000, v Kč)' })],
-    type: 'article',
-  },
-};
+
+const vysledekText = (f: FaktorVysledek) => (f.vysledek === 'porazil' ? 'porazil index' : f.vysledek === 'nerozhodne' ? 'zhruba jako index' : 'neporazil index');
+
+/** „jen momentum“, „momentum a value“, „žádný“ */
+const vycetFaktoru = (fs: FaktorVysledek[]) =>
+  fs.length === 0 ? 'žádný' : fs.length === 1 ? `jen ${fs[0].def.kratce.toLowerCase()}` : `${fs.slice(0, -1).map((f) => f.def.kratce.toLowerCase()).join(', ')} a ${fs[fs.length - 1].def.kratce.toLowerCase()}`;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const v = await nactiFaktory().catch(() => null);
+  const p = v?.kompletni ? porazily(v) : null;
+  const titul = 'Faktorové ETF: co skutečně říkají data (v korunách)';
+  return {
+    title: titulek(titul),
+    description: 'Value, momentum, quality, small cap, min. volatilita a dividendy: co slibuje výzkum a jak faktory dopadly v Kč proti S&P 500 na stejném okně – s UCITS ETF.',
+    alternates: { canonical: '/faktorove-etf' },
+    openGraph: {
+      title: titul,
+      description: p
+        ? `Šest faktorů přepočtených do Kč na denních datech, každý proti S&P 500 na stejném okně. Index porazil ${vycetFaktoru(p)} (data k ${den(v!.dataDo!)}).`
+        : 'Šest faktorů přepočtených do Kč na denních datech, každý proti S&P 500 na stejném okně.',
+      url: 'https://etfpruvodce.cz/faktorove-etf',
+      images: [ogImage({
+        title: 'Faktorové ETF: co skutečně říkají data',
+        eyebrow: 'Datový rozbor · v korunách',
+        ...(p ? { stat: `${p.length} ze 6`, statLabel: 'faktorů porazilo S&P 500 na stejném okně (v Kč)' } : {}),
+      })],
+      type: 'article',
+    },
+  };
+}
 
 export default async function FaktoroveEtf() {
-  const upraveno = upravenoDlouze('/faktorove-etf'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
+  const upraveno = upravenoDlouze('/faktorove-etf'); // datum úpravy TEXTU (redakce.ts), ne den dat
+  const [v, fondy, terSp] = await Promise.all([
+    nactiFaktory().catch((e) => { console.error('[faktory] výpočet selhal:', e); return null as FaktoryVysledek | null; }),
+    nactiFondyFaktoru().catch(() => null),
+    nactiTerSp500().catch(() => null),
+  ]);
+  const radky = FAKTORY_DEF.map((d) => ({ def: d, f: v?.faktory[d.slug] ?? null }));
+  const vitezove = v?.kompletni ? porazily(v) : null;
+  const roc = v?.rocenka ?? null;
+  const vg = v?.valueGrowth ?? null;
+  const minVol = v?.faktory['minimalni-volatilita'];
+  const nejmelciPropad = v?.kompletni ? Object.values(v.faktory).map((f) => f!).sort((a, b) => b.maxPropad.hloubka - a.maxPropad.hloubka)[0] : null;
+  const stara = v?.dataOd ? (Date.now() - new Date(v.dataOd).getTime()) / 864e5 > 7 : false;
 
-  // Čísla z našeho backtest enginu (denní data, v Kč, po TER, roční rebalance).
-  // Každý faktor od začátku svých dat + S&P 500 na STEJNÉM okně (férové srovnání).
-  const factors = [
-    { name: 'Value (hodnotové akcie)', od: '2000', nav: '398 tis.', cagr: '+5,4 %', dd: '−64 %', spNav: '419 tis.', spCagr: '+5,6 %', beat: false,
-      what: 'Levné firmy vůči účetní hodnotě a ziskům. Nejstarší „prémiový“ faktor (Fama–French).', href: '/faktorove-etf/value' },
-    { name: 'Small cap (malé firmy)', od: '2000', nav: '444 tis.', cagr: '+5,9 %', dd: '−63 %', spNav: '419 tis.', spCagr: '+5,6 %', beat: true,
-      what: 'Menší firmy s vyšším růstovým potenciálem – a vyšším rizikem.', href: '/faktorove-etf/small-cap' },
-    { name: 'Dividendové akcie', od: '2006', nav: '532 tis.', cagr: '+8,9 %', dd: '−55 %', spNav: '739 tis.', spCagr: '+10,7 %', beat: false,
-      what: 'Firmy s vysokou dividendou. Psychologicky příjemné, matematicky žádná záruka.', href: '/faktorove-etf/dividendove-akcie' },
-    { name: 'Minimální volatilita', od: '2011', nav: '572 tis.', cagr: '+12,6 %', dd: '−26 %', spNav: '936 tis.', spCagr: '+16,4 %', beat: false,
-      what: 'Akcie s nejmenším kolísáním. Slibuje klidnější jízdu za cenu nižšího výnosu.', href: '/faktorove-etf/minimalni-volatilita' },
-    { name: 'Momentum', od: '2000', nav: '770 tis.', cagr: '+8,0 %', dd: '−61 %', spNav: '487 tis.', spCagr: '+6,2 %', beat: true,
-      what: 'Akcie, kterým se dařilo v posledním roce. Nejsilnější faktor posledního desetiletí.', href: '/faktorove-etf/momentum' },
-    { name: 'Quality (kvalitní firmy)', od: '2000', nav: '448 tis.', cagr: '+5,8 %', dd: '−68 %', spNav: '487 tis.', spCagr: '+6,2 %', beat: false,
-      what: 'Ziskové firmy s nízkým dluhem a stabilními maržemi.', href: '/faktorove-etf/quality' },
-  ];
+  // Ročenka – odvozená tvrzení
+  const kratce = (s: FaktorSlug) => FAKTORY_DEF.find((d) => d.slug === s)!.kratce;
+  const nejcastejsi = roc ? FAKTORY_DEF.map((d) => ({ s: d.slug, n: roc.vyhry[d.slug].length })).sort((a, b) => b.n - a.n)[0] : null;
+  const nikdyNejlepsi = roc ? FAKTORY_DEF.filter((d) => roc.vyhry[d.slug].length === 0).map((d) => d.kratce) : [];
+  const nikdyNejhorsi = roc ? FAKTORY_DEF.filter((d) => roc.prohry[d.slug].length === 0).map((d) => d.kratce) : [];
 
-  // Faktorová ročenka: roční výnosy v Kč (z backtest enginu, po TER, kurz den po dni).
-  // Pořadí sloupců: [value, small cap, dividendy, min. volatilita, momentum, quality, S&P 500]
-  const rocenka: { y: number; v: number[] }[] = [
-    { y: 2014, v: [29.7, 20.2, 30.0, 33.2, 31.3, 27.5, 30.2] },
-    { y: 2015, v: [4.1, 3.4, 8.6, 14.2, 18.0, 14.3, 9.9] },
-    { y: 2016, v: [20.8, 25.1, 20.5, 13.8, 8.2, 12.0, 15.6] },
-    { y: 2017, v: [-6.0, -5.2, -3.6, -1.5, 13.9, 1.3, 1.0] },
-    { y: 2018, v: [-3.6, -6.5, -1.0, 6.6, 3.5, -0.8, 0.6] },
-    { y: 2019, v: [26.7, 25.8, 24.5, 28.2, 27.8, 34.5, 32.0] },
-    { y: 2020, v: [-3.1, 13.1, -4.6, -0.4, 22.5, 10.4, 11.8] },
-    { y: 2021, v: [27.9, 17.1, 29.1, 23.7, 16.1, 29.9, 32.0] },
-    { y: 2022, v: [-5.2, -18.4, 2.3, -7.0, -16.0, -18.3, -15.8] },
-    { y: 2023, v: [9.9, 15.2, 5.2, 8.9, 7.7, 29.2, 24.8] },
-    { y: 2024, v: [23.4, 20.3, 27.0, 25.0, 43.6, 32.2, 35.2] },
-    { y: 2025, v: [-1.8, -4.5, -2.1, -8.7, 3.7, -4.4, 0.1] },
-  ];
-  const rocenkaCols = ['Value', 'Small cap', 'Dividendy', 'Min. vol.', 'Momentum', 'Quality', 'S&P 500'];
-  const fmtR = (v: number) => `${v > 0 ? '+' : ''}${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  // Náklady: TER UCITS ETF na tytéž americké indexy (z DB) vs. nejlevnější velký S&P 500 ETF
+  const terFaktoru = fondy ? Object.values(fondy).flatMap((x) => x.stejny.map((f) => f.ter)).filter((t): t is number => t != null) : [];
 
-  const etfs = [
-    ['Value', 'iShares Edge MSCI World Value Factor', 'IE00BP3QZB59', '0,25 %'],
-    ['Small cap', 'iShares MSCI World Small Cap', 'IE00BF4RFH31', '0,35 %'],
-    ['Dividendy', 'Vanguard FTSE All-World High Dividend Yield', 'IE00B8GKDB10', '0,29 %'],
-    ['Min. volatilita', 'iShares Edge MSCI World Minimum Volatility', 'IE00B8FHGS14', '0,30 %'],
-    ['Momentum', 'iShares Edge MSCI World Momentum Factor', 'IE00BP3QZ825', '0,25 %'],
-    ['Quality', 'iShares Edge MSCI World Quality Factor', 'IE00BP3QZ601', '0,25 %'],
-  ] as [string, string, string, string][];
-
-  const faqs = [
+  const faqs: { q: string; a: string }[] = [
     {
       q: 'Co je faktorové investování?',
       a: 'Investování do skupin akcií se společnou vlastností (levné, malé, rostoucí cenou, kvalitní…), u kterých akademický výzkum historicky naměřil vyšší výnos nebo nižší riziko než u celého trhu. Základ položili ekonomové Fama a French v 90. letech. Faktorové ETF tato pravidla automatizují.',
     },
-    {
+    ...(vitezove && v ? [{
       q: 'Funguje to? Porazím s faktory trh?',
-      a: 'Na dlouhých akademických datech faktory prémii měly. V praxi je to slabší: v našem korunovém přepočtu od roku 2000 porazily S&P 500 jen momentum (+8,0 vs +6,2 % ročně) a těsně malé firmy – quality, value, dividendy i min. volatilita zaostaly. A faktory umí i dekádu zaostávat; kdo je kupuje, musí to vydržet.',
-    },
+      a: `Na dlouhých akademických datech faktory prémii měly. V praxi je to slabší: v našem korunovém přepočtu (každý faktor proti S&P 500 na přesně stejném okně, data k ${den(v.dataDo!)}) porazil index ${vycetFaktoru(vitezove)}${vitezove.length ? ` (${vitezove.map((f) => `${f.def.kratce.toLowerCase()} ${pct(f.cagr)} vs. ${pct(f.spCagr)} ročně`).join('; ')})` : ''}. Ostatní zaostaly nebo skončily zhruba jako index. A faktory umí i dekádu zaostávat; kdo je kupuje, musí to vydržet.`,
+    }] : []),
     {
       q: 'Proč se výsledky liší od amerických studií?',
-      a: 'Tři důvody: (1) studie často měří teoretické portfolio bez poplatků, my počítáme reálné ETF po TER; (2) my přepočítáváme do korun, takže výsledek zahrnuje i pohyb kurzu; (3) prémii, kterou všichni znají, trh částečně „vyarbitrážuje“ – po objevení bývají faktory slabší.',
+      a: 'Tři důvody: (1) studie často měří teoretické portfolio bez poplatků, my počítáme z kurzů reálných ETF s poplatkem v ceně; (2) přepočítáváme do korun, takže výsledek zahrnuje i pohyb kurzu; (3) prémii, kterou všichni znají, trh částečně „vyarbitrážuje“ – po objevení bývají faktory slabší.',
     },
     {
       q: 'Mám faktorové ETF vůbec kupovat?',
       a: 'Pro většinu investorů je základní široký index (celý svět nebo S&P 500) jednodušší a historicky srovnatelně dobrý. Faktory dávají smysl jako menší doplněk (např. 10–20 % portfolia) pro toho, kdo jim rozumí, věří evidenci a udrží je i v letech, kdy zaostávají. Rozhodně ne jako náhrada základu.',
     },
     {
-      q: 'Jaký je rozdíl mezi daty v backtestu a UCITS ETF v tabulce?',
-      a: 'Nejdelší dostupné denní řady jsou z amerických faktorových ETF (od 2000), evropské UCITS verze jsou mladší (většinou od 2014). V backtestu proto testujete americké faktorové řady; v tabulce doporučujeme evropské UCITS ekvivalenty, které v ČR reálně koupíte. Metodiky indexů se mírně liší.',
+      q: 'Jaký je rozdíl mezi daty a UCITS ETF v tabulce?',
+      a: 'Naše data jsou AMERICKÉ faktorové indexy (Russell 1000 Value, Russell 2000, MSCI USA…) – nejdelší dostupné denní řady. Proto v tabulce nejdřív uvádíme UCITS ETF na tentýž americký index, které v ČR koupíte. Světové verze (MSCI World) sledují jiný index a čísla z této stránky pro ně neplatí.',
     },
-    {
+    ...(roc && nejcastejsi ? [{
       q: 'Který faktor je „nejlepší“?',
-      a: 'Žádný není nejlepší napořád – vedou se střídavě. Momentum táhlo posledních 10 let, value zase 2000–2007. Pokud faktory, tak spíš kombinaci (multifaktor), a hlavně: levně, dlouhodobě a bez přebíhání podle posledního roku.',
-    },
+      a: `Žádný není nejlepší napořád – vedou se střídavě. V ročence ${roc.odRoku}–${roc.doRoku} vyhrál nejčastěji ${kratce(nejcastejsi.s).toLowerCase()} (${nejcastejsi.n}× z ${roc.roky.length} let)${nikdyNejlepsi.length ? `, ${nikdyNejlepsi.join(' ani ').toLowerCase()} nebyl nejlepší ani jednou` : ''}. Pokud faktory, tak spíš kombinaci (multifaktor), a hlavně: levně, dlouhodobě a bez přebíhání podle posledního roku.`,
+    }] : []),
   ];
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -119,6 +120,7 @@ export default async function FaktoroveEtf() {
       { '@type': 'ListItem', position: 2, name: 'Faktorové ETF', item: 'https://etfpruvodce.cz/faktorove-etf' },
     ],
   };
+  const okno = (f: FaktorVysledek) => `${den(f.od)} – ${den(f.do)}`;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -155,10 +157,15 @@ export default async function FaktoroveEtf() {
             <h1 className="mt-3 text-2xl md:text-4xl font-bold tracking-tight leading-tight max-w-3xl">
               Faktorové ETF: co skutečně říkají data
             </h1>
-            <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
+            <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl" data-sekce="faktory-hero">
               Value, momentum, quality, malé firmy… Faktorové investování slibuje porazit trh vědecky. Přepočítali
-              jsme šest faktorů do korun na reálných denních datech – a výsledek je střízlivější, než říká marketing:{' '}
-              <strong className="text-white">z šesti faktorů porazil S&P 500 dlouhodobě jen momentum</strong> (a těsně malé firmy).
+              jsme šest faktorů do korun na reálných denních datech – každý proti S&P 500 na přesně stejném okně.
+              {vitezove && (
+                <>
+                  {' '}Výsledek je střízlivější, než říká marketing:{' '}
+                  <strong className="text-white" data-porazily={vitezove.map((f) => f.def.slug).join(',')}>ze šesti faktorů porazil S&P 500 {vycetFaktoru(vitezove)}</strong>.
+                </>
+              )}
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
@@ -172,12 +179,17 @@ export default async function FaktoroveEtf() {
               </Link>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Denní data od 2000, v Kč, po TER</span>
+              <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Denní data amerických faktorových indexů, v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Vzdělávací a nezávislé</span>
-              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
+              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Text upraven {upraveno}</span>
+              {v?.dataDo && <span data-faktor-data-k={v.dataDo}>Data k {den(v.dataDo)}</span>}
             </div>
           </div>
         </section>
+
+        {stara && v?.dataOd && (
+          <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 max-w-3xl text-sm text-amber-900">Pozor: poslední data jsou k {den(v.dataOd)} – starší než týden. Čísla platí k tomuto dni.</p>
+        )}
 
         {/* 1. CO TO JE */}
         <section className="pb-10">
@@ -200,175 +212,232 @@ export default async function FaktoroveEtf() {
         </section>
 
         {/* 2. TABULKA FAKTORŮ */}
-        <section className="pb-10">
-          <SectionHead title="Šest faktorů v korunách – proti S&P 500 na stejném období" desc="Jednorázových 100 000 Kč, každý faktor od začátku svých dat. Po poplatcích, kurz den po dni." />
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="w-full text-sm min-w-[720px]">
+        <section className="pb-10" data-sekce="faktory-tabulka">
+          <SectionHead
+            title="Šest faktorů v korunách – proti S&P 500 na stejném okně"
+            desc={`Jednorázových ${kc(POCATECNI)}, každý faktor od prvního dne svých dat; S&P 500 vždy od stejného dne do stejného dne. Kurz den po dni, poplatek fondu v ceně.`}
+          />
+          {/* Desktop: tabulka */}
+          <div className="hidden md:block rounded-lg border border-slate-200 bg-white">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
                   <th className="px-4 py-3">Faktor</th>
-                  <th className="px-4 py-3">Data od</th>
-                  <th className="px-4 py-3 text-right">Ze 100 tis. Kč</th>
+                  <th className="px-4 py-3">Okno</th>
+                  <th className="px-4 py-3 text-right">Z {kcKratce(POCATECNI)}</th>
                   <th className="px-4 py-3 text-right">Ročně</th>
-                  <th className="px-4 py-3 text-right">Propad</th>
-                  <th className="px-4 py-3 text-right">S&P 500 stejné období</th>
+                  <th className="px-4 py-3 text-right">Max. propad</th>
+                  <th className="px-4 py-3 text-right">S&P 500 stejné okno</th>
                 </tr>
               </thead>
               <tbody className="tabular-nums">
-                {factors.map((f) => (
-                  <tr key={f.name} className="border-b border-slate-100 last:border-0">
+                {radky.map(({ def, f }) => (
+                  <tr key={def.slug} className="border-b border-slate-100 last:border-0" data-faktor={def.slug} {...(f ? { 'data-od': f.od, 'data-do': f.do, 'data-konecna': Math.round(f.konecna), 'data-sp-konecna': Math.round(f.spKonecna), 'data-vysledek': f.vysledek } : {})}>
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-900">
-                        {'href' in f && f.href ? (
-                          <Link href={f.href as string} className="text-teal-700 underline decoration-teal-300 hover:decoration-teal-600">{f.name}</Link>
-                        ) : f.name}
-                        {' '}{f.beat && <span className="ml-1 rounded bg-teal-100 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700 align-middle">porazil index</span>}
+                        <Link href={`/faktorove-etf/${def.slug}`} className="text-teal-700 underline decoration-teal-300 hover:decoration-teal-600">{def.nazev}</Link>
+                        {f && <span className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold align-middle ${f.vysledek === 'porazil' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-600'}`}>{vysledekText(f)}</span>}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">{f.what}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{def.popis} Index {def.indexDat}.</p>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{f.od}</td>
-                    <td className="px-4 py-3 text-right font-medium text-slate-900">{f.nav}</td>
-                    <td className="px-4 py-3 text-right text-slate-700">{f.cagr}</td>
-                    <td className="px-4 py-3 text-right text-rose-600">{f.dd}</td>
-                    <td className="px-4 py-3 text-right text-slate-500">{f.spNav} ({f.spCagr})</td>
+                    <td className="px-4 py-3 text-slate-600 text-xs whitespace-nowrap">{f ? okno(f) : '—'}</td>
+                    <td className="px-4 py-3 text-right font-medium text-slate-900 whitespace-nowrap">{f ? kcKratce(f.konecna) : '—'}</td>
+                    <td className="px-4 py-3 text-right text-slate-700">{f ? pct(f.cagr) : '—'}</td>
+                    <td className="px-4 py-3 text-right text-rose-600">{f ? pct(f.maxPropad.hloubka) : '—'}</td>
+                    <td className="px-4 py-3 text-right text-slate-500 whitespace-nowrap">{f ? <>{kcKratce(f.spKonecna)} ({pct(f.spCagr)})</> : '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {/* Mobil: karty – žádný skrytý sloupec */}
+          <ul className="md:hidden grid gap-3">
+            {radky.map(({ def, f }) => (
+              <li key={def.slug} className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <Link href={`/faktorove-etf/${def.slug}`} className="font-semibold text-teal-700 underline decoration-teal-300">{def.nazev}</Link>
+                  {f && <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${f.vysledek === 'porazil' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-600'}`}>{vysledekText(f)}</span>}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">{def.popis}</p>
+                {f ? (
+                  <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-sm tabular-nums">
+                    <dt className="text-slate-500">Okno</dt><dd className="text-right text-slate-700 text-xs">{okno(f)}</dd>
+                    <dt className="text-slate-500">Z {kcKratce(POCATECNI)}</dt><dd className="text-right font-medium text-slate-900">{kcKratce(f.konecna)}</dd>
+                    <dt className="text-slate-500">Ročně</dt><dd className="text-right text-slate-700">{pct(f.cagr)}</dd>
+                    <dt className="text-slate-500">Max. propad</dt><dd className="text-right text-rose-600">{pct(f.maxPropad.hloubka)}</dd>
+                    <dt className="text-slate-500">S&P 500 stejné okno</dt><dd className="text-right text-slate-500">{kcKratce(f.spKonecna)} ({pct(f.spCagr)})</dd>
+                  </dl>
+                ) : <p className="mt-2 text-sm text-slate-500">Čísla se teď nepodařilo spočítat – raději „—“ než stará.</p>}
+              </li>
+            ))}
+          </ul>
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Pozn. k datům: řady momentum a quality jsou před vznikem ETF (2013) prodlouženy akademickými denními portfolii z Kenneth R. French Data Library, napojenými na ETF a kalibrovanými na jeho chování v překryvu (korelace 0,96–0,98) – metodika je popsaná v repozitáři. Čtěte po řádcích, ne mezi řádky: index od roku 2000 porazily jen momentum (+8,0 % vs. +6,2 %) a těsně malé firmy –
-            všechno ostatní zaostalo. Minimální volatilita splnila slib nižšího kolísání (propad −26 %),
-            ale stála skoro 4 procentní body výnosu ročně.
+            {vitezove && <>Čtěte po řádcích, ne mezi řádky: index na stejném okně porazil {vycetFaktoru(vitezove)}. </>}
+            {minVol && nejmelciPropad?.def.slug === 'minimalni-volatilita' && (
+              <>Minimální volatilita splnila slib nejmělčího propadu ({pct(minVol.maxPropad.hloubka)}), ale stála {pb(minVol.cagr - minVol.spCagr)} výnosu ročně. </>
+            )}
+            Okna se liší podle toho, odkdy data faktoru existují – proto má každý řádek vlastní S&P 500.
+            Řady momentum a quality jsou před vznikem ETF prodlouženy akademickými denními portfolii z Kenneth R. French
+            Data Library: momentum {PRODLOUZENI.momentum?.kalibrace}; quality {PRODLOUZENI.quality?.kalibrace}. Proto u nich
+            malý rozdíl proti indexu hodnotíme jako „zhruba jako index“.
           </p>
         </section>
 
         {/* 2b. FAKTOROVÁ ROČENKA */}
-        <section className="pb-10">
-          <SectionHead title="Faktorová ročenka 2014–2025" desc="Roční výnosy v Kč, po poplatcích. Nejlepší faktor roku zeleně, nejhorší červeně – všimněte si, jak se vedení střídá." />
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="w-full text-sm min-w-[760px]">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-3 py-3">Rok</th>
-                  {rocenkaCols.map((c, i) => (
-                    <th key={c} className={`px-3 py-3 text-right ${i === rocenkaCols.length - 1 ? 'text-slate-400' : ''}`}>{c}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="tabular-nums">
-                {rocenka.map(({ y, v }) => {
-                  const factorVals = v.slice(0, 6); // S&P 500 je reference, nesoutěží
-                  const max = Math.max(...factorVals);
-                  const min = Math.min(...factorVals);
-                  return (
-                    <tr key={y} className="border-b border-slate-100 last:border-0">
-                      <td className="px-3 py-2 font-medium text-slate-700">{y}</td>
-                      {v.map((val, i) => {
-                        const isSp = i === 6;
-                        const cls = isSp
-                          ? 'text-slate-400'
-                          : val === max
-                            ? 'bg-teal-50 text-teal-800 font-semibold'
-                            : val === min
-                              ? 'bg-rose-50 text-rose-700'
-                              : val < 0 ? 'text-rose-600' : 'text-slate-700';
-                        return <td key={i} className={`px-3 py-2 text-right ${cls}`}>{fmtR(val)}</td>;
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            {([
-              ['5× z 12 let', 'vyhrálo momentum – nejčastější vítěz. Ale i ono umí propadnout (−16 % v 2022).'],
-              ['Každý faktor', 'byl aspoň jednou nejlepší i nejhorší. Vedení se střídá bez varování – přebíhání podle loňska nefunguje.'],
-              ['2022: dividendy +2,3 %', 'jediný kladný faktor v roce, kdy vše ostatní padalo. Diverzifikace mezi faktory má smysl víc než výběr „toho pravého“.'],
-            ] as [string, string][]).map(([big, d]) => (
-              <div key={big} className="rounded-lg border border-slate-200 bg-white p-4">
-                <p className="font-bold text-teal-700">{big}</p>
-                <p className="text-sm text-slate-600 mt-1 leading-relaxed">{d}</p>
+        {roc && (
+          <section className="pb-10" data-sekce="faktory-rocenka">
+            <SectionHead
+              title={`Faktorová ročenka ${roc.odRoku}–${roc.doRoku}`}
+              desc="Roční výnosy v Kč za celé kalendářní roky, kdy už všech šest faktorů běží na reálných ETF. Nejlepší faktor roku zeleně, nejhorší červeně."
+            />
+            <p className="mb-2 text-xs text-slate-500 md:hidden" aria-hidden="true">Tabulku posuňte do strany →</p>
+            <div className="relative overflow-x-auto rounded-lg border border-slate-200 bg-white">
+              <table className="w-full text-sm min-w-[680px]">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <th className="sticky left-0 z-10 bg-white px-3 py-3 shadow-[1px_0_0_#e2e8f0]">Rok</th>
+                    {FAKTORY_DEF.map((d) => <th key={d.slug} className="px-3 py-3 text-right">{d.kratce}</th>)}
+                    <th className="px-3 py-3 text-right text-slate-400">S&P 500</th>
+                  </tr>
+                </thead>
+                <tbody className="tabular-nums">
+                  {roc.roky.map(({ rok, f, sp }) => {
+                    const max = Math.max(...Object.values(f));
+                    const min = Math.min(...Object.values(f));
+                    // shoda na zobrazenou přesnost = dělené místo, zvýrazní se obě hodnoty (src/lib/faktory/vypocet.ts SHODA)
+                    return (
+                      <tr key={rok} className="border-b border-slate-100 last:border-0">
+                        <td className="sticky left-0 z-10 bg-white px-3 py-2 font-medium text-slate-700 shadow-[1px_0_0_#e2e8f0]">{rok}</td>
+                        {FAKTORY_DEF.map((d) => {
+                          const val = f[d.slug];
+                          const cls = max - val < SHODA ? 'bg-teal-50 text-teal-800 font-semibold' : val - min < SHODA ? 'bg-rose-50 text-rose-700' : val < 0 ? 'text-rose-600' : 'text-slate-700';
+                          return <td key={d.slug} className={`px-3 py-2 text-right ${cls}`}>{pct(val)}</td>;
+                        })}
+                        <td className="px-3 py-2 text-right text-slate-400">{pct(sp)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              {nejcastejsi && (
+                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                  <p className="font-bold text-teal-700">{nejcastejsi.n}× z {roc.roky.length} let</p>
+                  <p className="text-sm text-slate-600 mt-1 leading-relaxed">vyhrálo {kratce(nejcastejsi.s).toLowerCase()} – nejčastější vítěz ({vyctiRoky(roc.vyhry[nejcastejsi.s])}).</p>
+                </div>
+              )}
+              <div className="rounded-lg border border-slate-200 bg-white p-4">
+                <p className="font-bold text-teal-700">Vedení se střídá</p>
+                <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                  {nikdyNejlepsi.length ? <>{nikdyNejlepsi.join(', ')} nebyl{nikdyNejlepsi.length > 1 ? 'y' : ''} nejlepší ani jednou, </> : <>Každý faktor byl aspoň jednou nejlepší, </>}
+                  {nikdyNejhorsi.length ? <>{nikdyNejhorsi.join(', ')} ani jednou nejhorší. </> : <>každý faktor byl aspoň jednou nejhorší. </>}
+                  {roc.remizy.map((x) => <span key={`${x.rok}${x.typ}`}>V roce {x.rok} se o {x.typ === 'nejlepsi' ? 'první' : 'poslední'} místo dělily {x.slugy.map((s) => kratce(s).toLowerCase()).join(' a ')}. </span>)}
+                  Přebíhání podle loňska nefunguje.
+                </p>
               </div>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-slate-500 leading-relaxed max-w-3xl">
-            Výnosy v korunách – zahrnují tedy i pohyb kurzu (proto se mohou lišit od dolarových tabulek; např. 2017
-            koruna prudce posílila a smazala dolarové zisky). Rok 2014 je první celý rok, kdy existují data všech
-            šesti faktorů. S&P 500 uvádíme šedě jako referenci.
-          </p>
-        </section>
+              {roc.jedinyKladny.length > 0 && (
+                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                  <p className="font-bold text-teal-700">{roc.jedinyKladny.map((x) => `${x.rok}: ${kratce(x.slug).toLowerCase()} ${pct(x.vynos)}`).join(' · ')}</p>
+                  <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                    {roc.jedinyKladny.length === 1 ? 'jediný kladný faktor roku' : 'jediné kladné faktory svých let'}, kdy všechno ostatní padalo. Diverzifikace mezi faktory má smysl víc než výběr „toho pravého“.
+                  </p>
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-xs text-slate-500 leading-relaxed max-w-3xl">
+              Výnosy v korunách – zahrnují tedy i pohyb kurzu (proto se mohou lišit od dolarových tabulek). Ročenka začíná
+              prvním celým rokem, kdy všech šest faktorů běží na reálném ETF (momentum a quality až od roku 2013).
+              S&P 500 uvádíme šedě jako referenci.
+            </p>
+          </section>
+        )}
 
-        {/* 3. VALUE VS GROWTH OD 2000 */}
-        <section className="pb-10">
-          <SectionHead title="Poučení z roku 2000: value vs. growth" desc="Kdo koupil na vrcholu dot-com bubliny, čekal na odpověď 26 let." />
-          <div className="grid gap-3 sm:grid-cols-3">
-            {([
-              ['398 tis. Kč', 'value (hodnotové akcie) – prvních 7 let jasně vedly, pak 15 let zaostávaly.'],
-              ['423 tis. Kč', 'growth (růstové akcie) – po dot-com krachu propad v Kč až −81 %, dohnaly to až po 2010.'],
-              ['419 tis. Kč', 'S&P 500 – celý trh skončil… přesně mezi nimi.'],
-            ] as [string, string][]).map(([big, d]) => (
-              <div key={big} className="rounded-lg border border-slate-200 bg-white p-5">
-                <p className="text-2xl font-bold text-teal-700 tabular-nums">{big}</p>
-                <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{d}</p>
+        {/* 3. VALUE VS GROWTH */}
+        {vg && (
+          <section className="pb-10" data-sekce="value-growth">
+            <SectionHead title="Poučení z bubliny: value vs. growth" desc={`Start ${den(vg.od)} (krátce po vrcholu dot-com bubliny), stav k ${den(vg.do)}, ze ${kc(POCATECNI)}.`} />
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-slate-200 bg-white p-5">
+                <p className="text-2xl font-bold text-teal-700 tabular-nums">{kc(vg.value)}</p>
+                <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">value (hodnotové akcie) – největší náskok před growth v {mesic(vg.vrcholNaskoku.datum)} (o {pctBez(vg.vrcholNaskoku.naskok, 0)}), pak ho postupně ztrácely.</p>
               </div>
-            ))}
-          </div>
-          <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Za 26 let od vrcholu bubliny se rozdíl mezi „levnými“ a „drahými“ akciemi v korunách prakticky smazal –
-            ale po cestě se vedení několikrát prohodilo, vždy na roky. To je hlavní lekce faktorů:{' '}
-            <strong className="text-slate-700">fungují v dekádách, ne v letech</strong> – a většina investorů je
-            vzdá přesně ve chvíli, kdy zaostávají.
-          </p>
-        </section>
+              <div className="rounded-lg border border-slate-200 bg-white p-5">
+                <p className="text-2xl font-bold text-teal-700 tabular-nums">{kc(vg.growth)}</p>
+                <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">growth (růstové akcie) – po dot-com krachu propad v Kč až {pct(vg.growthPropad)}{vg.growthDohnal ? `; náskok value dohnaly až v ${mesic(vg.growthDohnal)}` : ''}.</p>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-white p-5">
+                <p className="text-2xl font-bold text-teal-700 tabular-nums">{kc(vg.sp)}</p>
+                <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                  S&P 500 (celý trh) – {vg.sp > Math.max(vg.value, vg.growth) ? 'skončil nad oběma styly' : vg.sp < Math.min(vg.value, vg.growth) ? 'skončil pod oběma styly' : 'skončil mezi nimi'}.
+                </p>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
+              Za čtvrtstoletí od bubliny se rozdíl mezi „levnými“ a „drahými“ akciemi v korunách {Math.abs(vg.value / vg.growth - 1) < 0.05 ? 'prakticky smazal' : `ustálil na ${pctBez(Math.abs(vg.value / vg.growth - 1), 0)} ve prospěch ${vg.value > vg.growth ? 'value' : 'growth'}`} –
+              ale po cestě se vedení prohodilo, vždy na roky. To je hlavní lekce faktorů:{' '}
+              <strong className="text-slate-700">fungují v dekádách, ne v letech</strong> – a většina investorů je
+              vzdá přesně ve chvíli, kdy zaostávají.
+            </p>
+          </section>
+        )}
 
         {/* 4. VAROVÁNÍ */}
         <section className="pb-10">
           <SectionHead title="Tři poctivá varování" desc="Než faktorům propadnete." />
           <div className="grid gap-3 sm:grid-cols-3">
-            {([
-              ['Dekáda zaostávání je normální', 'Value zaostávalo za trhem prakticky celá 2010s. Kdo nevydrží 10 let podprůměru, faktorům jen zaplatí vyšší TER a nervy.', AlertTriangle],
-              ['Prémii sežraly poplatky a sláva', 'Faktorové ETF stojí 0,25–0,35 % (vs. 0,03–0,07 % u indexu) a známou prémii trh částečně vyarbitrážoval. Rozdíl je pak menší, než ukazují studie.', Scale],
-              ['Základ portfolia to není', 'Faktor je koření, ne jídlo. Základem zůstává široký levný index – faktory případně jako menší, vědomý doplněk.', ShieldCheck],
-            ] as [string, string, typeof AlertTriangle][]).map(([t, d, Icon]) => (
-              <div key={t} className="rounded-lg border border-amber-200 bg-amber-50/40 p-5">
-                <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-700 mb-3"><Icon className="w-4.5 h-4.5" /></span>
-                <p className="font-semibold text-slate-900 text-sm">{t}</p>
-                <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{d}</p>
-              </div>
-            ))}
+            <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-5">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-700 mb-3"><AlertTriangle className="w-4.5 h-4.5" /></span>
+              <p className="font-semibold text-slate-900 text-sm">Dekáda zaostávání je normální</p>
+              <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                {vg ? <>Value v letech 2010–2019 zaostal za S&P 500 v {vg.value2010s.zaostal} z {vg.value2010s.let} let. </> : null}
+                Kdo nevydrží roky podprůměru, faktorům jen zaplatí vyšší poplatek a nervy.
+              </p>
+            </div>
+            <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-5">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-700 mb-3"><Scale className="w-4.5 h-4.5" /></span>
+              <p className="font-semibold text-slate-900 text-sm">Prémii ukrojí poplatky a sláva</p>
+              <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                {terFaktoru.length && terSp ? <>UCITS ETF na americké faktorové indexy stojí {ter(Math.min(...terFaktoru))}–{ter(Math.max(...terFaktoru))} ročně, nejlevnější velký S&P 500 ETF {ter(terSp.ter)}. </> : null}
+                Známou prémii trh navíc částečně vyarbitrážoval – rozdíl je pak menší, než ukazují studie.
+              </p>
+            </div>
+            <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-5">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-700 mb-3"><ShieldCheck className="w-4.5 h-4.5" /></span>
+              <p className="font-semibold text-slate-900 text-sm">Základ portfolia to není</p>
+              <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">Faktor je koření, ne jídlo. Základem zůstává široký levný index – faktory případně jako menší, vědomý doplněk.</p>
+            </div>
           </div>
         </section>
 
         {/* 5. KONKRÉTNÍ ETF */}
-        <section className="pb-10">
-          <SectionHead title="Faktorové UCITS ETF dostupné v Česku" desc="Celosvětové faktorové verze od velkých správců. Detaily a srovnání najdete v našem srovnávači." />
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="w-full text-sm min-w-[640px]">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-4 py-3">Faktor</th>
-                  <th className="px-4 py-3">ETF</th>
-                  <th className="px-4 py-3">ISIN</th>
-                  <th className="px-4 py-3 text-right">TER</th>
-                </tr>
-              </thead>
-              <tbody>
-                {etfs.map(([f, name, isin, ter]) => (
-                  <tr key={isin} className="border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-2.5 font-medium text-slate-900">{f}</td>
-                    <td className="px-4 py-2.5 text-slate-700">{name}</td>
-                    <td className="px-4 py-2.5"><Link href={`/etf/${isin}`} className="text-teal-700 hover:underline tabular-nums">{isin}</Link></td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{ter}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <section className="pb-10" data-sekce="faktory-fondy">
+          <SectionHead title="Faktorové UCITS ETF dostupné v Česku" desc="Nejdřív fond na tentýž americký index, na kterém běží čísla výše; světová verze je jiný index s jiným výsledkem." />
+          <ul className="grid gap-3 md:grid-cols-2">
+            {FAKTORY_DEF.map((d) => {
+              const x = fondy?.[d.slug];
+              const hlavni = x?.stejny[0] ?? null;
+              const nejblizsi = !hlavni ? x?.nejblizsi[0] ?? null : null;
+              const svet = x?.svetove[0] ?? null;
+              return (
+                <li key={d.slug} className="rounded-lg border border-slate-200 bg-white p-4">
+                  <p className="font-semibold text-slate-900">{d.nazev}</p>
+                  <p className="text-xs text-slate-500">Data: {d.indexDat}</p>
+                  <div className="mt-2 text-sm">
+                    {hlavni ? (
+                      <p><span className="text-xs font-semibold uppercase tracking-wide text-teal-700">Stejný index: </span><Link href={`/etf/${hlavni.isin}`} className="text-teal-700 hover:underline">{hlavni.nazev}</Link> <span className="tabular-nums text-slate-600">· TER {ter(hlavni.ter)}</span>{hlavni.poznamka && <span className="text-slate-500"> ({hlavni.poznamka})</span>}{x && x.stejny.length > 1 && <span className="text-slate-500"> (+ další {x.stejny.length - 1} na detailu faktoru)</span>}</p>
+                    ) : nejblizsi ? (
+                      <p><span className="text-xs font-semibold uppercase tracking-wide text-amber-700">Na tento index UCITS ETF není, nejbližší (jiná metodika): </span><Link href={`/etf/${nejblizsi.isin}`} className="text-teal-700 hover:underline">{nejblizsi.nazev}</Link> <span className="tabular-nums text-slate-600">· TER {ter(nejblizsi.ter)}</span></p>
+                    ) : <p className="text-slate-500">Fond na tentýž index: —</p>}
+                    {svet && <p className="mt-1.5 text-slate-600"><span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Světová verze (jiný index): </span><Link href={`/etf/${svet.isin}`} className="text-teal-700 hover:underline">{svet.nazev}</Link> <span className="tabular-nums">· TER {ter(svet.ter)}</span></p>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {!fondy && <p className="mt-3 text-sm text-slate-500">Údaje o fondech se teď nepodařilo načíst.</p>}
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Pozn.: nejdelší denní řady pro backtest pocházejí z amerických faktorových ETF (od roku 2000); evropské
-            UCITS verze v tabulce jsou mladší, ale v ČR je reálně koupíte. Metodiky se mírně liší.
+            TER a velikost z naší databáze fondů (stejná data jako srovnávač); jen fondy s čerstvými daty a bez měnového zajištění.
           </p>
         </section>
 
@@ -396,7 +465,7 @@ export default async function FaktoroveEtf() {
           <div className="rounded-2xl bg-slate-900 text-white px-6 py-7 md:px-9 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p className="text-lg font-semibold">Otestujte si faktory sami</p>
-              <p className="text-sm text-slate-300 mt-1">Value, momentum, quality i další jsou nově v backtestu – na denních datech, v korunách.</p>
+              <p className="text-sm text-slate-300 mt-1">Value, momentum, quality i další jsou v backtestu – na denních datech, v korunách.</p>
             </div>
             <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-5 py-3 text-sm font-medium text-white hover:bg-teal-800 transition-colors whitespace-nowrap">
               <Calculator className="w-4 h-4" /> Spustit backtest

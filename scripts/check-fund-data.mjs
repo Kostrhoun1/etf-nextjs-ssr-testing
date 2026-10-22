@@ -3118,6 +3118,7 @@ const main = async () => {
   }
   // --- konec kolo7 srovnavac ---
   await kontrolaKolo7Mobil(poplach, varovani); // blok „kolo7 mobil“ – definice na konci souboru
+  await kontrolaKolo8Faktory(poplach, varovani); // blok „kolo8 faktory“ – definice na konci souboru
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
@@ -3214,3 +3215,133 @@ async function kontrolaKolo7Mobil(poplach, varovani) {
   }
 }
 // --- konec kolo7 mobil ---
+
+// --- kolo8 faktory --- (22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+// Sekce /faktorove-etf měla čísla natvrdo z 13. 7. 2026 (před opravou dvojího TER), „S&P 500 stejné období“ na jiném okně
+// než faktor (value „419 tis.“) a tvrzení, která vyvracela vlastní ročenka („2 ze 6 porazily index“, „každý faktor byl
+// aspoň jednou nejlepší“, quality „2× z 12“, small cap „od 2014 ani jednou“). Teď vše z enginu (src/lib/faktory/vypocet.ts).
+// 1) STATICKY: ve zdrojích sekce nesmí být natvrdo procenta, částky ani počty výher (výsledky patří do dat).
+// 2) ŽIVĚ: „porazil / neporazil index“ sedí s čísly na stránce, S&P 500 má stejné okno jako faktor, přehled = detail,
+//    tvrzení ročenky (kolikrát kdo vyhrál, kdo nikdy) sedí s tabulkou, typografie (minus, ne „case“), bez pevné šířky tabulek.
+// Značka nasazení: data-sekce="faktory-tabulka" na /faktorove-etf; bez ní se živé nálezy hlásí jen jako varování.
+async function kontrolaKolo8Faktory(poplach, varovani) {
+  const chyby = [];
+  const staticke = [];
+  try {
+    // 1) Statická kontrola zdrojů (bez komentářů a odkazů).
+    const soubory = [];
+    const projdi = (d) => { for (const n of readdirSync(d)) { const p = `${d}/${n}`; if (statSync(p).isDirectory()) projdi(p); else if (/\.tsx?$/.test(n)) soubory.push(p); } };
+    projdi('src/app/faktorove-etf');
+    soubory.push('src/components/design-preview/FactorDetail.tsx');
+    const ZAKAZANE = [
+      [/[+−-]\s?\d+(?:,\d+)?\s?%/, 'procento se znaménkem'],
+      [/\d+,\d+\s?%/, 'desetinné procento'],
+      [/\d+\s?tis\./, '„tis.“'],
+      [/\d{1,3}(?:[\s ]\d{3})+\s?Kč/, 'částka v Kč'],
+      [/\d+\s?×\s?z\s?\d+/, 'počet výher „N× z M“'],
+      [/\d+(?:,\d+)?\s?p\.\s?b\./, 'procentní body'],
+      [/\b\d+\s+ze?\s+\d+\s+(?:let|faktorů)/, '„N z M let/faktorů“'],
+      [/\b(?:dva|dvě|tři)\s+ze\s+šesti\b/i, 'počet faktorů napevno'],
+      [/Nejhorší case|Nejlepší case/, 'anglicismus „case“'],
+    ];
+    for (const s of soubory) {
+      const zdroj = readFileSync(s, 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, ' ')
+        .replace(/^\s*\/\/.*$/gm, ' ')
+        .replace(/\s\/\/ .*$/gm, ' ')
+        .replace(/href=\{?['"`][^'"`]*['"`]\}?/g, ' ')
+        .replace(/\['\/[^']*',/g, ' ');
+      zdroj.split('\n').forEach((r, i) => { for (const [re, co] of ZAKAZANE) { const m = r.match(re); if (m) staticke.push(`${s}:${i + 1} ${co}: „${m[0]}“`); } });
+    }
+
+    // 2) Živá kontrola.
+    const vem = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return { status: r.status, html: (await r.text()).replace(/<!-- -->/g, '') }; } catch { return { status: 0, html: '' }; } };
+    const text = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ')
+      .replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&nbsp;| |⁠/g, ' ').replace(/\s+/g, ' ');
+    const attr = (tag, a) => tag.match(new RegExp(`${a}="([^"]*)"`))?.[1] ?? null;
+    const hub = await vem('/faktorove-etf');
+    if (hub.status !== 200) throw new Error(`/faktorove-etf HTTP ${hub.status}`);
+    const nasazeno = /data-sekce="faktory-tabulka"/.test(hub.html);
+    if (nasazeno) {
+      const ht = text(hub.html);
+      const radky = [...hub.html.matchAll(/<tr[^>]*data-faktor="([a-z-]+)"[^>]*>([\s\S]*?)<\/tr>/g)].map((m) => ({
+        slug: m[1], tag: m[0].slice(0, m[0].indexOf('>') + 1), obsah: text(m[2]),
+      })).map((r) => ({ ...r, od: attr(r.tag, 'data-od'), do: attr(r.tag, 'data-do'), k: Number(attr(r.tag, 'data-konecna')), s: Number(attr(r.tag, 'data-sp-konecna')), v: attr(r.tag, 'data-vysledek') }));
+      if (radky.length !== 6) chyby.push(`/faktorove-etf: v tabulce ${radky.length} faktorů (čekáno 6)`);
+      for (const r of radky) {
+        if (!r.v) { chyby.push(`/faktorove-etf ${r.slug}: čísla se nespočítala („—“)`); continue; }
+        if (r.v === 'porazil' && !(r.k > r.s)) chyby.push(`/faktorove-etf ${r.slug}: „porazil index“, ale ${r.k} ≤ S&P 500 ${r.s}`);
+        if (r.v === 'neporazil' && r.k > r.s) chyby.push(`/faktorove-etf ${r.slug}: „neporazil index“, ale ${r.k} > S&P 500 ${r.s}`);
+        const stitek = r.v === 'porazil' ? 'porazil index' : r.v === 'nerozhodne' ? 'zhruba jako index' : 'neporazil index';
+        if (!r.obsah.includes(stitek)) chyby.push(`/faktorove-etf ${r.slug}: štítek nesedí s výsledkem (${r.v})`);
+      }
+      // Stejné okno = stejný S&P 500 (value a small cap mají stejný start – musí mít i stejný S&P 500).
+      const podleOkna = new Map();
+      for (const r of radky.filter((x) => x.od)) {
+        const kl = `${r.od}|${r.do}`;
+        if (podleOkna.has(kl) && podleOkna.get(kl) !== r.s) chyby.push(`/faktorove-etf: stejné okno ${kl}, ale různý S&P 500 (${podleOkna.get(kl)} vs ${r.s})`);
+        podleOkna.set(kl, r.s);
+      }
+      if (new Set(radky.map((r) => r.do)).size > 1) chyby.push(`/faktorove-etf: faktory končí různými dny (${[...new Set(radky.map((r) => r.do))].join(', ')})`);
+      // Hero a OG obrázek: kdo porazil index = řádky s „porazil“.
+      const porazily = radky.filter((r) => r.v === 'porazil').map((r) => r.slug).sort();
+      const hero = hub.html.match(/data-porazily="([^"]*)"/)?.[1];
+      if (hero != null && hero.split(',').filter(Boolean).sort().join(',') !== porazily.join(',')) chyby.push(`/faktorove-etf: hero „porazil index“ (${hero}) ≠ tabulka (${porazily.join(',')})`);
+      const og = decodeURIComponent((hub.html.match(/<meta property="og:image" content="([^"]*)"/)?.[1] ?? '').replace(/&amp;/g, '&').replace(/\+/g, ' '));
+      const ogN = og.match(/stat=(\d+) ze 6/)?.[1];
+      if (ogN != null && Number(ogN) !== porazily.length) chyby.push(`/faktorove-etf: OG obrázek „${ogN} ze 6“, tabulka ${porazily.length}`);
+      // Ročenka: přepočet vítězů z tabulky (shoda na zobrazenou přesnost = dělené místo).
+      const rocSek = hub.html.match(/data-sekce="faktory-rocenka"[\s\S]*?<\/section>/)?.[0] ?? '';
+      const hlav = [...(rocSek.match(/<thead[\s\S]*?<\/thead>/)?.[0] ?? '').matchAll(/<th[^>]*>([\s\S]*?)<\/th>/g)].map((m) => text(m[1]).trim());
+      const roky = [...(rocSek.match(/<tbody[\s\S]*?<\/tbody>/)?.[0] ?? '').matchAll(/<tr[\s\S]*?<\/tr>/g)].map((m) => [...m[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => text(x[1]).trim()));
+      const cis = (s) => Number(s.replace('−', '-').replace('+', '').replace(',', '.').replace(/\s?%/, ''));
+      if (roky.length >= 3 && hlav.length === 8) {
+        const vyhry = new Map(hlav.slice(1, 7).map((h) => [h, 0]));
+        for (const r of roky) {
+          const v = r.slice(1, 7).map(cis);
+          const max = Math.max(...v);
+          v.forEach((x, i) => { if (x === max) vyhry.set(hlav[i + 1], vyhry.get(hlav[i + 1]) + 1); });
+        }
+        const rt = text(rocSek);
+        const m = rt.match(/(\d+)× z (\d+) let vyhrálo (\S+(?: \S+)?) –/);
+        if (m) {
+          const kdo = [...vyhry.keys()].find((h) => h.toLowerCase() === m[3].toLowerCase());
+          if (Number(m[2]) !== roky.length) chyby.push(`/faktorove-etf ročenka: „z ${m[2]} let“, tabulka má ${roky.length} let`);
+          if (!kdo || vyhry.get(kdo) !== Number(m[1])) chyby.push(`/faktorove-etf ročenka: „${m[1]}× vyhrálo ${m[3]}“, z tabulky ${kdo ? vyhry.get(kdo) : '?'}×`);
+          if (kdo && Math.max(...vyhry.values()) > vyhry.get(kdo)) chyby.push(`/faktorove-etf ročenka: „${m[3]} nejčastější vítěz“, ale z tabulky víc vyhrál jiný faktor`);
+        } else chyby.push('/faktorove-etf ročenka: chybí věta „N× z M let vyhrálo …“');
+        const nikdy = [...vyhry].filter(([, n]) => n === 0).map(([h]) => h);
+        if (/Každý faktor byl aspoň jednou nejlepší/.test(rt) && nikdy.length) chyby.push(`/faktorove-etf ročenka: „každý faktor byl aspoň jednou nejlepší“, ale ${nikdy.join(', ')} nikdy`);
+        for (const h of nikdy) if (!new RegExp(`${h}[^.]*nebyl[a-z]? nejlepší ani jednou`).test(rt)) chyby.push(`/faktorove-etf ročenka: ${h} nikdy nevyhrál, text to neříká`);
+      } else chyby.push(`/faktorove-etf: ročenku nejde přečíst (${roky.length} let, ${hlav.length} sloupců)`);
+      if (/[\s(]-\d+,\d\s?%/.test(ht)) chyby.push('/faktorove-etf: záporné číslo se spojovníkem místo minus');
+
+      // Detaily: stejné okno a čísla jako v přehledu, slovo „porazil/neporazil“ sedí s čísly.
+      for (const r of radky) {
+        const d = await vem(`/faktorove-etf/${r.slug}`);
+        if (d.status !== 200) { chyby.push(`/faktorove-etf/${r.slug}: HTTP ${d.status}`); continue; }
+        const tag = d.html.match(/<section[^>]*data-sekce="faktor-cisla"[^>]*>/)?.[0];
+        if (!tag) { chyby.push(`/faktorove-etf/${r.slug}: chybí blok čísel (data-sekce="faktor-cisla")`); continue; }
+        const k = Number(attr(tag, 'data-konecna')), s = Number(attr(tag, 'data-sp-konecna')), v = attr(tag, 'data-vysledek');
+        if (attr(tag, 'data-od') !== r.od || attr(tag, 'data-do') !== r.do) chyby.push(`/faktorove-etf/${r.slug}: jiné okno než v přehledu (${attr(tag, 'data-od')}–${attr(tag, 'data-do')} vs ${r.od}–${r.do})`);
+        if (Math.abs(k / r.k - 1) > 0.005 || Math.abs(s / r.s - 1) > 0.005) chyby.push(`/faktorove-etf/${r.slug}: jiná čísla než v přehledu (${k}/${s} vs ${r.k}/${r.s})`);
+        if (v !== r.v) chyby.push(`/faktorove-etf/${r.slug}: výsledek „${v}“ vs přehled „${r.v}“`);
+        const dt = text(d.html);
+        const veta = dt.match(/index (porazil|neporazil)\b/)?.[1];
+        if (v === 'porazil' && veta === 'neporazil') chyby.push(`/faktorove-etf/${r.slug}: text „neporazil“, čísla ${k} > ${s}`);
+        if (v === 'neporazil' && veta === 'porazil') chyby.push(`/faktorove-etf/${r.slug}: text „porazil“, čísla ${k} ≤ ${s}`);
+        if (/Nejhorší case|Nejlepší case/.test(dt)) chyby.push(`/faktorove-etf/${r.slug}: „Nejhorší/Nejlepší case“`);
+        if (/[\s(]-\d+,\d\s?%/.test(dt)) chyby.push(`/faktorove-etf/${r.slug}: záporné číslo se spojovníkem místo minus`);
+        if (/min-w-\[(?:5[2-9]|[6-9]\d)\dpx\]/.test(d.html.match(/<main[\s\S]*?<\/main>/)?.[0] ?? '')) chyby.push(`/faktorove-etf/${r.slug}: tabulka s pevnou min. šířkou (na mobilu skryté sloupce)`);
+        if (!/data-sekce="faktor-fondy"/.test(d.html)) chyby.push(`/faktorove-etf/${r.slug}: chybí blok fondů na stejný index`);
+        if (!/Data k \d/.test(dt)) chyby.push(`/faktorove-etf/${r.slug}: chybí „Data k …“`);
+      }
+    }
+    if (staticke.length) poplach.push({ co: `Faktorové ETF (kolo 8): natvrdo zapsaná čísla/tvrzení ve zdrojích sekce: ${staticke.length}`, ukazka: staticke.slice(0, 10) });
+    if (chyby.length) (nasazeno ? poplach : varovani).push({ co: `Faktorové ETF (kolo 8)${nasazeno ? '' : ' – produkce ještě bez oprav'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 12) });
+    if (!nasazeno) varovani.push({ co: 'Faktorové ETF (kolo 8): produkce ještě nemá stránky počítané z dat – živá kontrola přeskočena', ukazka: [] });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu kolo8 faktory se nepodařilo provést: ${e.message}`, ukazka: [...staticke, ...chyby].slice(0, 5) });
+  }
+}
+// --- konec kolo8 faktory ---
