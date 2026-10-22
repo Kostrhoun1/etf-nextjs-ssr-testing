@@ -229,7 +229,11 @@ export function topIndexesForCategory(
 ): { info: IndexInfo; count: number }[] {
   // Index fondu stejnou funkcí jako srovnávač (indexFonduLabel): `index_name` je u ~3 000 fondů prázdný
   // nebo useknutý → index se pozná i z názvu fondu (revize 18. 10. 2026: „MSCI ACWI 6 z 24“, ve skutečnosti 14).
-  const byKey = new Map<string, { info: IndexInfo; count: number }>();
+  // Kolo 8: počítají se VŠECHNY indexy (i bez popisu) a ukazují se jen ty, které jsou opravdu mezi `limit` nejčastějšími
+  // a mají aspoň MIN_PODIL fondů. Dřív se řadily jen indexy s popisem → u amerických ETF vyšel jako „4. index“ Nasdaq CTA
+  // Cybersecurity se 2 fondy z 275 (nejčastější indexy bez popisu se přeskočily).
+  const MIN_PODIL = 0.03;
+  const byKey = new Map<string, { info: IndexInfo | null; count: number }>();
   for (const e of etfs) {
     const label = indexFonduLabel(e);
     if (!label) continue;
@@ -240,13 +244,12 @@ export function topIndexesForCategory(
       existing.count += 1;
       continue;
     }
-    const info = getIndexInfo(label);
-    if (info) byKey.set(key, { info, count: 1 });
+    byKey.set(key, { info: getIndexInfo(label), count: 1 });
   }
   return [...byKey.values()]
-    .filter((x) => x.count >= 2)
     .sort((a, b) => b.count - a.count)
-    .slice(0, limit);
+    .slice(0, limit)
+    .filter((x): x is { info: IndexInfo; count: number } => x.info != null && x.count >= 2 && x.count >= MIN_PODIL * etfs.length);
 }
 
 /* ── DLUHOPISY PO RODINÁCH INDEXŮ (kolo 6, 20. 10. 2026) ──

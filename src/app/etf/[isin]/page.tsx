@@ -26,8 +26,9 @@ import { canonicalIndexLabel, indexFonduLabel } from '@/utils/indexNormalization
 import { isHeadFund } from '@/lib/etf-head';
 import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
-import { nactiTrhy, odlehleIsiny } from '@/lib/trhy';
-import { duvodNeovereni } from '@/lib/vynosNeovereny';
+import { nactiTrhy, odlehleIsiny, tridyVynosNesedi } from '@/lib/trhy';
+import { vynosTridText } from '@/lib/tridyFondu';
+import { duvodNeovereni, rizikoSkokem } from '@/lib/vynosNeovereny';
 import { TRHY } from '@/data/trhyDvojcata';
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { kanonickaDvojice, dvojiceFondu, kuratorskaProIsiny } from '@/lib/pairs';
@@ -442,7 +443,9 @@ export default async function ETFDetailPreview(
   const trhOdlehly = (await nactiTrhy())?.find((r) => r.odlehle.some((f) => f.isin === etf.isin)) ?? null;
   // Ověřená chyba zdroje (NEOVERENE_VYNOSY, src/lib/vynosNeovereny.ts – HASH skok −97 %, EWG2 šum, I50D chybí dividenda):
   // výnosy za období „—“ stejně jako u odlehlého (kolo 8). `vynosySkryte` = jediná podmínka pro skrytí na detailu.
-  const duvodB = duvodNeovereni(etf.isin);
+  // Kolo 8: výnos třídy nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts `vynosTridNesedi`) → také „—“ s důvodem.
+  const tridaNesedi = (await tridyVynosNesedi()).get(etf.isin);
+  const duvodB = duvodNeovereni(etf.isin) ?? (tridaNesedi ? vynosTridText(tridaNesedi, tridaNesedi.tickery) : null);
   const vynosySkryte = trhOdlehly != null || duvodB != null;
   const souper = podobne.find((f) => f.primary_ticker && TICKER_OK.test(f.primary_ticker));
   // Odkaz rovnou na KANONICKOU adresu dvojice (src/lib/pairs.ts) – dřív primární tickery v pořadí „tento vs. soupeř“,
@@ -464,7 +467,9 @@ export default async function ETFDetailPreview(
   const divYield = num(r.current_dividend_yield_numeric as number);
   // Kolísavost/pokles, které nesedí s jinou třídou téhož fondu (chyba zdroje – SPSA vs SPYI), → „—“.
   const nesediRiziko = await rizikoNesediFondu(etf as unknown as Parameters<typeof rizikoNesediFondu>[0]);
-  const skryj = (pole: string, v: number | null) => (nesediRiziko.includes(pole as never) ? null : v);
+  // Kolo 8: skok v řadě zdroje (NEOVERENE_VYNOSY druh 'skok', HASH) zkreslí i kolísavost a pokles → „—“ u všech.
+  const rizikoSkok = rizikoSkokem(etf.isin);
+  const skryj = (pole: string, v: number | null) => (rizikoSkok || nesediRiziko.includes(pole as never) ? null : v);
   const vol1 = skryj('volatility_1y', num(etf.volatility_1y));
   const vol3 = skryj('volatility_3y', num(etf.volatility_3y));
   const vol5 = skryj('volatility_5y', num(etf.volatility_5y));
@@ -659,7 +664,7 @@ export default async function ETFDetailPreview(
   // Výnos / riziko stojí na výnosu za období → u fondu s výnosem mimo trh také „—“ (kolo 6b, stejně jako porovnání).
   const rr = vynosySkryte ? { y1: null, y3: null, y5: null }
     : { y1: sharpe, y3: vol3 == null ? null : num(r.return_per_risk_3y as number), y5: vol5 == null ? null : num(r.return_per_risk_5y as number) };
-  const ddMax = num(r.max_drawdown_inception as number);
+  const ddMax = rizikoSkok ? null : num(r.max_drawdown_inception as number);
   const f1 = (v: number | null) => procenta(v, 1, false);
   const f2 = (v: number | null) => (v == null ? '—' : cislo(v, 2));
   const prikladRR = !vynosySkryte && eur.y1 != null && vol1 != null && sharpe != null ? ` Za poslední rok: ${f1(eur.y1)} ÷ ${f1(vol1)} = ${f2(sharpe)}.` : '';
@@ -1135,7 +1140,8 @@ export default async function ETFDetailPreview(
             {rizikoPrazdne ? (
               // Nový fond / zdroj riziko neuvádí: jedna poznámka místo tabulky s 9 pomlčkami (kolo 6).
               <p data-riziko-prazdne className="lg:col-span-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 leading-relaxed">
-                {novyFond ? 'Kolísavost a propady za 1, 3 a 5 let zatím nejsou – fond je na trhu kratší dobu než rok.' : 'Kolísavost a propady za 1, 3 a 5 let zdroj dat u tohoto fondu neuvádí.'}
+                {rizikoSkok ? 'Kolísavost a propady neuvádíme: v denních cenách u zdroje dat je skok, který cena na burze nemá, a ten by je zkreslil (chyba dat, ne pohyb trhu).'
+                  : novyFond ? 'Kolísavost a propady za 1, 3 a 5 let zatím nejsou – fond je na trhu kratší dobu než rok.' : 'Kolísavost a propady za 1, 3 a 5 let zdroj dat u tohoto fondu neuvádí.'}
               </p>
             ) : (
             <div className="lg:col-span-3 rounded-xl border border-slate-200 bg-white overflow-hidden">

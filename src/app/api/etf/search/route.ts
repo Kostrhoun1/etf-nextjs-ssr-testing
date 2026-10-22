@@ -8,12 +8,10 @@ import { tridaFondu, kratkyNazevFondu } from '@/lib/nazevFondu';
 import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { unstable_cache } from 'next/cache';
 import { odlehleIsiny } from '@/lib/trhy';
-import { TRHY } from '@/data/trhyDvojcata';
 import { NEOVERENE_ISINY } from '@/lib/vynosNeovereny';
 
-/* Výnos mimo svůj trh (src/lib/vynosNeovereny.ts) – v našeptávači taky bez čísla (kolo 6b). Dotaz na trhy jen když
-   výsledek obsahuje fond některého trhu, a sdílený přes datovou cache (1 h) – ne dotaz na každé hledání. */
-const ISINY_TRHU = new Set(TRHY.flatMap((t) => t.isins));
+/* Výnos mimo svůj trh (src/lib/vynosNeovereny.ts) – v našeptávači taky bez čísla (kolo 6b), sdílený přes datovou cache
+   (1 h) – ne dotaz na každé hledání. */
 const odlehleCache = unstable_cache(async () => [...(await odlehleIsiny())], ['odlehle-isiny'], { revalidate: 3600 });
 
 // slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší ETF na zlato).
@@ -85,9 +83,9 @@ export async function GET(request: NextRequest) {
       .filter((x) => !presna || x.s !== 3)
       .sort((a, b) => b.s - a.s || (Number(b.row.fund_size_numeric) || 0) - (Number(a.row.fund_size_numeric) || 0))
       .slice(0, 8);
-    const odlehle = vybrane.some(({ row }) => ISINY_TRHU.has(String(row.isin)))
-      ? new Set(await odlehleCache().catch(() => [] as string[]))
-      : new Set<string>();
+    // Kolo 8: seznam zahrnuje i třídy, jejichž výnos nesedí s jinou třídou téhož fondu (kdekoli v nabídce) – načte se
+    // vždy, ale z datové cache (1 h), takže dotaz do DB je nejvýš jednou za hodinu, ne na každé hledání.
+    const odlehle = vybrane.length ? new Set(await odlehleCache().catch(() => [] as string[])) : new Set<string>();
     const ranked = vybrane
       .map(({ row }) => ({
         isin: row.isin,

@@ -1,10 +1,10 @@
 import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase';
-import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
-import { CERSTVOST_DNI } from '@/lib/etf-data';
+import { zobrazovanyTicker, platnyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
+import { CERSTVOST_DNI, nabidkaOd } from '@/lib/etf-data';
 import { nejcastejsiDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
-import { RIZIKO_POLE, klicTridy, type RizikoPole } from '@/lib/tridyFondu';
+import { RIZIKO_POLE, klicTridy, vynosTridNesedi, type RizikoPole, type VynosTridNesedi } from '@/lib/tridyFondu';
 import { sNeoverenymi } from '@/lib/vynosNeovereny';
 
 /* Výpočet pro homepage sekci „Nejlevnější, největší a nejvýkonnější ETF podle trhu“.
@@ -150,7 +150,40 @@ export const odlehleZTrhu = (trhy: RadekTrhu[] | null) => sNeoverenymi((trhy ?? 
 /** ISINy fondů s výnosem mimo svůj trh (> ODLEHLA_PB od mediánu) – JEDEN seznam pro detail, žebříčky, srovnávač
  *  i porovnání (src/lib/vynosNeovereny.ts). Stojí na `nactiTrhy` (React cache) → na stránce, která trhy už načítá,
  *  žádný dotaz navíc. Chyba dotazu = prázdná množina (stejně jako dřív detail). */
-export const odlehleIsiny = cache(async (): Promise<Set<string>> => odlehleZTrhu(await nactiTrhy()));
+export const odlehleIsiny = cache(async (): Promise<Set<string>> => {
+  const [trhy, tridy] = await Promise.all([nactiTrhy(), tridyVynosNesedi()]);
+  return new Set([...odlehleZTrhu(trhy), ...tridy.keys()]);
+});
+
+/**
+ * VÝNOS TŘÍDY NESEDÍ S JINOU TŘÍDOU TÉHOŽ FONDU (kolo 8, src/lib/tridyFondu.ts `vynosTridNesedi`). Potřebuje celou
+ * nabídku (sourozenci + kotva indexu) → jeden lehký dotaz (10 sloupců, ~5 200 řádků po 1 000) na render, React cache.
+ * NE unstable_cache: kratší revalidate by zkrátil ISR interval stránek (detail 30 dní) – viz src/lib/backtest/engine.ts.
+ * Srovnávač (getScreenerRows) počítá totéž ze svých řádků bez dotazu navíc. Chyba dotazu = prázdná mapa (jako dřív).
+ */
+export type TridaVynosNesedi = VynosTridNesedi & { tickery: string[] };
+export const tridyVynosNesedi = cache(async (): Promise<Map<string, TridaVynosNesedi>> => {
+  try {
+    const radky: Record<string, unknown>[] = [];
+    for (let od = 0; od < 20000; od += 1000) {
+      const { data, error } = await supabaseAdmin.from('etf_funds')
+        .select('isin, name, fund_provider, primary_ticker, returns_as_of, index_name, is_leveraged, return_1y, return_3y, return_5y')
+        .gte('scraping_date', nabidkaOd()).not('name', 'is', null).order('isin').range(od, od + 999);
+      if (error || !data) return new Map();
+      radky.push(...(data as Record<string, unknown>[]));
+      if (data.length < 1000) break;
+    }
+    return tridyZRadku(radky);
+  } catch {
+    return new Map();
+  }
+});
+/** Čistý výpočet (sdílí getScreenerRows): ISIN → období, třídy a jejich tickery. */
+export function tridyZRadku(radky: Record<string, unknown>[]): Map<string, TridaVynosNesedi> {
+  const m = vynosTridNesedi(radky as unknown as Parameters<typeof vynosTridNesedi>[0]);
+  const ticker = new Map(radky.map((r) => [String(r.isin), platnyTicker(r.primary_ticker as string | null) ?? String(r.isin)]));
+  return new Map([...m].map(([i, z]) => [i, { ...z, tickery: z.proti.map((p) => ticker.get(p) ?? p) }]));
+}
 
 /**
  * KOTVA RIZIKA (kolo 6b, 21. 10. 2026): medián kolísavosti/poklesu ostatních fondů na STEJNÝ trh (ruční seznamy

@@ -724,3 +724,51 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
   nejlepsi-etf/[slug]/page.tsx – titulek a popisek dál src/lib/zebrickySeo.ts (`odpovedZebricku` se na stránce nepoužívá).
 - **Název fondu v tabulce žebříčku nekončí tickerem** (ticker je v řádku pod ním); rozsah „0‑1yr“ s nezlomitelnou pomlčkou.
 - Hlídá `scripts/check-fund-data.mjs`, blok `kolo7 srovnavac`.
+
+## Kolo 8 – neověřené výnosy, třídy fondů, kategorie žebříčků (22. 10. 2026)
+
+- **Seznam ověřených chyb zdroje (`NEOVERENE_VYNOSY`) platí na CELÉM webu** – `odlehleZTrhu` (src/lib/trhy.ts) vrací
+  odlehlé ∪ seznam, takže srovnávač (`_vynX`), žebříčky, porovnání, dvojice, podobné fondy i hledání ukazují „—“; detail
+  fondu ukazuje konkrétní důvod (`duvodNeovereni`). Nový druh **'burza'** = výnos nesedí s burzou ani s jinou třídou
+  a třídy mají výnosy k různým dnům (pravidlo tříd je nechytí): USAC 1R +5,4 % (burza USAC.PA +18,7 %, Dist LYYB +17,8 %),
+  LYSM 3R +274 % (Acc LSMC +302 %, CHIP.MI +302 %), XAD6 5R +108 % (XAD6.MI +142 %).
+- **Skok v řadě zdroje skrývá i kolísavost a max. pokles** (druh 'skok', `rizikoSkokem`): HASH ukazoval kolísavost 105,8 %
+  a pokles −98 % – burza nic takového nemá. Rizika u těchto fondů „—“ s vysvětlením, ne čísla ze zkažené řady.
+- **VHYL × VGWE: kolísavost a pokles ukazuje VHYL, „—“ jen VGWE** (`OVERENA_TRIDA` v src/lib/tridyFondu.ts; ověřeno
+  přepočtem z řady i Yahoo VHYL.AS 8,72 / 10,72 %). Nevracet „—“ u obou.
+- **Výnosy tříd téhož fondu se musí shodovat** (`vynosTridNesedi`, src/lib/tridyFondu.ts). Výnosy webu jsou S REINVESTICÍ
+  dividend, proto rozdíl akumulační a distribuční třídy „≈ vyplacená dividenda“ NENÍ legitimní – je to dividenda, kterou
+  zdroj v řadě nemá (ověřeno burzou: QDVV, EYED, 36B1, JGHD, LCVB, LHKG). Zadání kola 8 to chtělo vyloučit jako legitimní;
+  nezávislé ověření (Yahoo adjclose) ukázalo opak, platí pravidlo č. 1. Práh = poměr růstu (1+a)/(1+b) − 1: 1R 1,5 %,
+  3R 3 %, 5R 5 % (u +300 % by p. b. byly šum); jen třídy ke STEJNÉMU returns_as_of, bez zajištěných a pákových.
+  Chybná třída = všechny výnosy za období „—“ (vadná řada v jednom období není důvěryhodná ani v ostatních).
+  Spor dvou tříd rozhoduje `OVERENY_VYNOS_TRIDY` (ručně ověřeno burzou), pak kotva indexu (medián ≥ 3 jiných fondů na stejný
+  index_name ke stejnému dni), jinak „—“ u obou (QYLU/QYLE 3R obě vedle burzy, HSKD/HBKS, INGB/CEB6, USCBC/USCBD).
+  22. 10. 2026 skryto 21 tříd: PRAR, PRAJ, SMIA, SPIA, CHDIVA, CHSRIA, XAD5, QDVV, EYED, 36B1, JGHD, LCVB, LHKG + obě
+  třídy u QYLU/QYLE, HSKD/HBKS, INGB/CEB6, USCBC/USCBD (CHSRI ověřená, zůstává).
+- **Rozdíl tříd, který má i burza, je skutečnost** (`ROZDIL_TRID_SKUTECNY`): BNP Energy & Metals Enhanced Roll GSDE vs EMEH
+  (GSCE.MI +39,3 %, EMEH.PA +31,1 %), UBS CMCI Oil USD vs CHF (CHF třída je zajištěná, název to neříká; poměr burza 1,071 =
+  DB 1,073), iShares Europe Min Vol EUN0 vs IS0H (burza +12,5 % vs +9,2 % + div. 0,9 %). Neskrývat.
+- **Xtrackers MSCI Pacific ex Japan 1C/1D (DXS6/DXPJ) 1R +9–10 % vs ostatní fondy na MSCI Pacific ex Japan +16 % je
+  skutečnost** – burza XPXJ.MI +10,04 %, DXPJ.DE +8,73 %, iShares CSPXJ.MI +15,55 % (20. 10. 2025→2026). Neopravovat.
+  Stejně XDEX 3R +83,7 % (burza +83,5 %) proti ostatním EM ex China.
+- **Kategorie žebříčků (src/lib/etf-data.ts):** americké = „US“ jen jako celé slovo (`nameMatches` – Postgres `~*`
+  `\mUS\M`), vyřazení celých slov (`nameExcludeMatches`: Global – kromě emitenta „Global X“, World, Europe, Latin,
+  Emerging, EM, Asia, Japan, UK, Mining…) a zaměření ze zdroje (`focusExcludes`: World, Europe, Emerging…); ilike
+  podřetězce chytaly „PLUS “, „Focus “ a „Latin“ v „Accumu-lating“. Vypadlo 27 fondů (S&P Global Mining, Dow Jones Global
+  Titans 50, Latin America ×6, S&P Eurozone Climate ×2, S&P Europe ex UK, S&P Select Frontier, HSBC PLUS World ×2, Nordea
+  Global ×3, VIX futures, US Medical Devices, kyberbezpečnost ×2…), přibyly 4 fondy na Dow Jones Industrial Average
+  (americký index 30 firem – „Industrial“ se tu vyřazuje jen jako sektor „Industrials“). Průmyslové bez DJIA, AI
+  a technologické bez „AI Enhanced/Optimized“ (kvantové fondy na celý trh), komoditní bez krypta (Cryptocurrencies).
+- **„Nejvýkonnější“ chybí i na nejlevnejsi-etf, akumulačních a distribučních** (BEZ_VYKONU) – výběr podle poplatku/třídy,
+  vyhrávaly polovodiče +296 % a Staked Solana +303,8 %.
+- **„Co v kategorii je“ = jen indexy, které jsou opravdu mezi 4 nejčastějšími (počítají se i indexy bez popisu) a mají
+  aspoň 3 % fondů** – dřív se přeskakovaly indexy bez popisu (americké: Nasdaq CTA Cybersecurity 2 z 275 jako 4. index).
+- **Odpověď nahoře na 5 hlavních žebříčcích se liší podle záměru** (`zamerZebricku`, ZAMER v src/lib/zebrickySeo.ts):
+  2026 = napříč třídami aktiv, S&P 500 = index + poplatek, americké = medián výnosu, akumulační = reinvestice, nejlevnější
+  = od nejnižšího TER. Stále nejvýš 2 věty a jeden práh.
+- **Payload žebříčku:** rychlé odkazy jsou prosté `<a>` se stylem na rodiči (dřív `<Link>` s 12 třídami u každého ze
+  267 odkazů – v HTML i RSC), výnosy v datech tabulky zaokrouhlené na zobrazenou přesnost (1 desetinné místo, jako
+  srovnávač), prázdné příznaky (null/false) se neposílají. Měny se na klientu NEdopočítávají – přepočet kurzem by se lišil
+  od výnosu v Kč z DB.
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo8 zebricky` (A kategorie, B třídy, C detail neověřených, D texty a velikost).
