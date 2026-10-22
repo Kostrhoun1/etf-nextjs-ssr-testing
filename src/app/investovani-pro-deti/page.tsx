@@ -16,6 +16,20 @@ import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky
 
 export const revalidate = 86400;
 
+/* Budoucí hodnota pravidelného měsíčního vkladu (spořicí anuita). */
+// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně“ bylo opravdu 7 % ročně. Dřív r/12
+// = 7,23 % ročně (audit výpočtů 17. 10. 2026; stejně jako investiční kalkulačka).
+const mesicni = (annual: number) => Math.pow(1 + annual, 1 / 12) - 1;
+const fv = (pmt: number, annual: number, years: number) => {
+  const r = mesicni(annual), n = years * 12;
+  return pmt * ((Math.pow(1 + r, n) - 1) / r);
+};
+
+// Modelový PŘEDPOKLAD nominálního výnosu p.a. (zaokrouhlený), ne změřený historický průměr – skutečné výnosy v Kč podle
+// období ukazuje /kolik-vydelaly-etf (audit nástrojů 22. 10. 2026, S1). Vklad vždy na KONCI měsíce (S3).
+const RATE = 0.07;
+const kcRound = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
+
 export const metadata: Metadata = {
   title: titulek('Investování pro děti: kolik naspoříte do 18 let (ETF, v Kč)'),
   description:
@@ -30,25 +44,24 @@ export const metadata: Metadata = {
       ogImage({
         title: 'Investování pro děti: kolik naspoříte do 18 let',
         eyebrow: 'Vzdělávací pilíř',
-        stat: '420 918 Kč', // = fv(1000, 7 %, 18 let) – při změně modelu přepočítat
-        statLabel: '1 000 Kč měsíčně od narození do 18 let',
+        stat: kcRound(fv(1000, RATE, 18)), // počítá se z modelu (audit 22. 10. 2026, N5: dřív natvrdo)
+        statLabel: '1 000 Kč měsíčně od narození do 18 let (model 7 % ročně)',
       }),
     ],
     type: 'article',
   },
 };
 
-/* Budoucí hodnota pravidelného měsíčního vkladu (spořicí anuita). */
-// Měsíční sazba EFEKTIVNÍ: (1 + r)^(1/12) − 1, aby „7 % ročně“ bylo opravdu 7 % ročně. Dřív r/12
-// = 7,23 % ročně (audit výpočtů 17. 10. 2026; stejně jako investiční kalkulačka).
-const mesicni = (annual: number) => Math.pow(1 + annual, 1 / 12) - 1;
-const fv = (pmt: number, annual: number, years: number) => {
-  const r = mesicni(annual), n = years * 12;
-  return pmt * ((Math.pow(1 + r, n) - 1) / r);
-};
-
-const RATE = 0.07; // modelový nominální výnos p.a. (dlouhodobý průměr širokého akciového indexu)
 const MONTHLY = [500, 1000, 2000, 3000];
+
+/* Slovní podíl („zhruba třetina“) z čísla – audit 22. 10. 2026 (V5): natvrdo psané „ani ne třetina“ neplatilo (35,2 %). */
+const ZLOMKY: [number, string][] = [[1 / 5, 'pětina'], [1 / 4, 'čtvrtina'], [1 / 3, 'třetina'], [2 / 5, 'dvě pětiny'], [1 / 2, 'polovina']];
+function slovniPodil(podil: number): string {
+  const [hodnota, slovo] = ZLOMKY.reduce((a, b) => (Math.abs(b[0] - podil) < Math.abs(a[0] - podil) ? b : a));
+  const pct = `${Math.round(podil * 100)}\u00a0%`;
+  if (Math.abs(hodnota - podil) < 0.005) return `${slovo} výsledku (${pct})`;
+  return `${podil < hodnota ? 'necelá' : 'zhruba'} ${slovo} výsledku (${pct})`;
+}
 /* Kdy začnete → kolik let do osmnáctin. */
 const STARTS: { label: string; years: number }[] = [
   { label: 'Od narození', years: 18 },
@@ -60,7 +73,6 @@ const kc = (v: number) =>
   v >= 1_000_000
     ? `${(v / 1_000_000).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
     : `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
-const kcRound = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
 const pct = (v: number | null) =>
   v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(1).replace('.', ',')} %`;
 const ter = (v: number | null) => (v == null ? '—' : `${v.toFixed(2).replace('.', ',')} %`);
@@ -83,6 +95,8 @@ export default async function InvestovaniProDeti() {
 
   const at18 = fv(1000, RATE, 18);
   const contributed18 = 1000 * 12 * 18;
+  const pozdni = fv(1000, RATE, 9); // start v 9 letech = polovina z 18 let
+  const podilPozde = pozdni / at18;
 
   const faqs = [
     {
@@ -211,7 +225,7 @@ export default async function InvestovaniProDeti() {
         <section className="pb-10">
           <SectionHead
             title="Kolik naspoříte do osmnáctin"
-            desc="Budoucí hodnota pravidelného měsíčního vkladu při modelovém výnosu 7 % ročně, podle toho, kdy začnete. Nominálně, před inflací."
+            desc="Budoucí hodnota pravidelného měsíčního vkladu (vždy na konci měsíce) při modelovém výnosu 7 % ročně, podle toho, kdy začnete. Nominálně, před inflací."
           />
           <ResponzivniTabulka
             popis="Kolik naspoříte do osmnáctin podle začátku spoření"
@@ -229,11 +243,19 @@ export default async function InvestovaniProDeti() {
             <Clock className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
             <p className="text-sm text-slate-700 leading-relaxed">
               Odklad je drahý. Kdo posílá 1 000 Kč měsíčně <strong>od narození</strong>, má v osmnácti{' '}
-              <strong>{kcRound(fv(1000, RATE, 18))}</strong>. Kdo se stejnou částkou začne{' '}
-              <strong>až v devíti letech</strong>, má jen <strong>{kcRound(fv(1000, RATE, 9))}</strong> – polovina času,
-              ale ani ne třetina výsledku. Vklad roste lineárně, výnos exponenciálně.
+              <strong>{kcRound(at18)}</strong>. Kdo se stejnou částkou začne{' '}
+              <strong>až v devíti letech</strong>, má jen <strong data-pozde={Math.round(pozdni)} data-vcas={Math.round(at18)}>{kcRound(pozdni)}</strong> – polovina času,
+              ale jen {slovniPodil(podilPozde)}. Vklad roste lineárně, výnos exponenciálně.
             </p>
           </div>
+          <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
+            <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
+            Výnos 7 % ročně je <strong className="text-slate-700">modelový předpoklad</strong> (zaokrouhlený, před inflací), ne zaručený
+            ani změřený průměr. Skutečný historický výnos v korunách se podle zvoleného období a indexu liší o několik
+            procentních bodů ročně – s daty k dnešnímu dni ho ukazuje{' '}
+            <Link href="/kolik-vydelaly-etf" className="text-teal-700 hover:underline">Kolik vydělaly ETF</Link> (celý svět od 7/2008,
+            S&amp;P 500 od 1/2000).
+          </p>
         </section>
 
         {/* 2. NA ČÍ JMÉNO – jádro pilíře */}
@@ -382,7 +404,7 @@ export default async function InvestovaniProDeti() {
             {/* Kolo 8: tabulka fondů měla 736 px → sdílená responzivní tabulka. */}
             <ResponzivniTabulka
               popis="Široké světové ETF – parametry a výnos v korunách"
-              sloupce={[{ nazev: 'Fond' }, { nazev: 'Index', zarovnani: 'left' }, { nazev: 'TER' }, { nazev: 'Velikost' }, { nazev: '5 let (Kč)', nazevKarta: 'Výnos za 5 let (Kč)' }]}
+              sloupce={[{ nazev: 'Fond' }, { nazev: 'Index', zarovnani: 'left' }, { nazev: 'TER' }, { nazev: 'Velikost' }, { nazev: '5 let celkem (Kč)', nazevKarta: 'Výnos za 5 let celkem (Kč)' }]}
               radky={funds.map((f) => ({
                 key: f.isin,
                 bunky: bunky(
@@ -405,7 +427,7 @@ export default async function InvestovaniProDeti() {
             />
             <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
               <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-              {datumDat && <>Data k {datumDat}. </>}Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
+              {datumDat && <>Data k {datumDat}. </>}Výnos za 5 let je celkový (kumulativní) za celé období v korunách, ne roční průměr. Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
               Hlavní volba není mezi značkami, ale mezi indexy: jen vyspělé trhy (MSCI World) vs. celý svět včetně
               rozvíjejících se trhů (FTSE All-World, MSCI ACWI). Rozdíl rozebírá{' '}
               <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
@@ -474,7 +496,7 @@ export default async function InvestovaniProDeti() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., nominálně před inflací a daněmi) a mají vzdělávací charakter. Nejde o investiční, daňové ani právní poradenství a skutečné výnosy se liší. Daňová a právní pravidla se mění – ověřte si aktuální stav. Aktualizováno {upraveno}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (předpoklad 7 % p.a., vklad na konci měsíce, nominálně před inflací a daněmi) a mají vzdělávací charakter. Nejde o investiční, daňové ani právní poradenství a skutečné výnosy se liší. Daňová a právní pravidla se mění – ověřte si aktuální stav. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

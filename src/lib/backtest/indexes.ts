@@ -29,7 +29,13 @@ export interface IndexDef {
   name: string
   /** Zařazení — určuje záložku v přehledu trhů. */
   group: IndexGroup
-  /** Reprezentativní ETF pro transparentnost v nástroji („asset class → přes proxy ETF · TER x %“). */
+  /**
+   * Fond K NÁKUPU (evropský UCITS) ukazovaný v nástroji u třídy aktiv. NENÍ to fond, z jehož cen je historie –
+   * ta je z `ticker` a obsahuje JEHO poplatek (`sourceTer`). TER proxyEtf se do výpočtu NEpromítá (TER model,
+   * audit 22. 10. 2026, S12): např. msci_em = historie EEM (0,72 %), k nákupu EIMI (0,18 %, index MSCI EM IMI);
+   * gold = historie GLD (0,40 %), k nákupu IGLN (0,12 %). Nástroj proto u složky ukazuje OBA poplatky a zvlášť
+   * „Poplatek v historii“. Výsledek s poplatkem fondu k nákupu dá vyhledání konkrétního fondu (feeOverride).
+   */
   proxyEtf?: { isin: string; name: string; ter: number }
   /** Odkdy data reálně jsou (pro poctivé upozornění v UI). */
   since: string

@@ -111,7 +111,7 @@ export default async function Metodika() {
             <li><strong>Směnné kurzy pro výnosy fondů</strong>: kurz EUR/CZK České národní banky (denní kurz devizového trhu), kurz EUR/USD Evropské centrální banky.</li>
             <li><strong>Historie indexů</strong> (backtest, datové články): denní ceny s reinvesticí dividend fondů, které daný index sledují (například SPY pro S&amp;P 500 nebo VT pro akcie celého světa), ze služby Yahoo Finance. U každého indexu je ve výsledku uvedeno, z jakého fondu řada pochází.</li>
             <li><strong>Kurzy pro backtest</strong>: denní kurzy Evropské centrální banky.</li>
-            <li><strong>Inflace</strong>: index spotřebitelských cen Českého statistického úřadu – měsíčně od roku 2015, starší roky z průměrné roční míry inflace.</li>
+            <li><strong>Inflace</strong>: index spotřebitelských cen Českého statistického úřadu – měsíčně od ledna 1996 (řady CEN0101B a od 2015 CEN0101E).</li>
             <li><strong>Poplatky brokerů</strong>: oficiální ceníky a dokumenty brokerů. U srovnání je uvedeno, ke kterému dni jsme ceníky ověřili.</li>
           </ul>
         </Sekce>

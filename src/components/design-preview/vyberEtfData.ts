@@ -56,3 +56,22 @@ export const CATS: Record<string, { slug: string; label: string; vVete: string; 
   bonds: { slug: 'nejlepsi-dluhopisove-etf', label: 'Dluhopisové ETF', vVete: 'dluhopisové ETF', why: 'nižší kolísavost než akcie – kratší horizont a nižší riziko' },
 };
 
+/** Které modelové portfolio s dluhopisy je PRVNÍ výsledek: „Nechci velké propady“ → konzervativní, „Zvládnu střední
+ *  výkyvy“ → umírněná (V15, audit 22. 10. 2026: střední riziko dřív nic neměnilo), „velké výkyvy“ → žádné (akciový typ). */
+export type PortfoliaVysledku = 'konzervativni' | 'umirnena' | null;
+export type Upozorneni = 'kratky' | 'stredni-horizont' | 'tech' | 'prijem-reinvestice';
+
+/** Pravidla průvodce – čistá funkce (test všech 162 kombinací odpovědí: scripts/check-fund-data.mjs, audit backtest).
+ *  Jen fakta o riziku, žádné doporučení. */
+export function recommend(a: Answers): { key: string; portfolia: PortfoliaVysledku; upozorneni: Upozorneni[] } {
+  const upozorneni: Upozorneni[] = [];
+  // S17: „Chci pravidelný příjem“ + „Reinvestovat“ si odporují – akumulační fond nic nevyplácí.
+  if (a.focus === 'dividends' && a.payout === 'acc') upozorneni.push('prijem-reinvestice');
+  if (a.horizon === 'short') return { key: 'bonds', portfolia: null, upozorneni: ['kratky', ...upozorneni] };
+  const portfolia: PortfoliaVysledku = a.risk === 'low' ? 'konzervativni' : a.risk === 'mid' ? 'umirnena' : null;
+  const key = a.focus && CATS[a.focus] ? a.focus : 'world';
+  // V15: horizont 3–10 let – akcie se po propadu vracely na vrchol i déle než celý tento horizont.
+  if (a.horizon === 'mid') upozorneni.unshift('stredni-horizont');
+  if (key === 'tech') upozorneni.push('tech');
+  return { key, portfolia, upozorneni };
+}

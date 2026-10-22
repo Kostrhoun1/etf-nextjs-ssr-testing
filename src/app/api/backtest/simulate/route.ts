@@ -7,6 +7,8 @@ import { INDEX_BY_CODE } from '@/lib/backtest/indexes'
    Vercelu přímá cesta k vyčerpání Fluid CPU. Zjištěno 17. 10. 2026. */
 const MAX_SLOZEK = 15
 const MAX_LET_PROGNOZY = 50
+/** Povolená odchylka součtu vah od 1 (= 0,01 procentního bodu, přesnost formuláře backtestu). */
+const TOLERANCE_VAH = 1e-4
 
 /** Chyby enginu (anglicky) → česky a s radou, co změnit. Ostatní obecně – nevracet interní detaily. */
 function srozumitelne(e: unknown): string {
@@ -60,14 +62,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Alespoň jedna složka musí mít nenulovou váhu.' }, { status: 400 })
     }
 
-    // Validate weights sum to 1
+    // Součet vah = 100 % (audit 22. 10. 2026, V9). Dřív prošlo cokoli v 99–101 % BEZ normalizace: váha 0,995 tiše
+    // „ztratila“ 0,5 % portfolia při každém vyvážení (S&P 500 od 2005: CAGR 10,14 % místo 10,70 %).
+    // ROZHODNUTÍ: mimo ±0,01 procentního bodu (TOLERANCE_VAH) → 400; uvnitř se váhy NORMALIZUJÍ na přesně 1
+    // (zbytky plovoucí čárky typu 7,5 + 7,5 + … a zaokrouhlení formuláře na setiny procenta). Výsledek pak
+    // vždy odpovídá portfoliu, jehož váhy dávají 100 %.
     const totalWeight = body.portfolio.reduce((sum, item) => sum + item.weight, 0)
-    if (Math.abs(totalWeight - 1) > 0.01) {
+    if (Math.abs(totalWeight - 1) > TOLERANCE_VAH) {
       return NextResponse.json(
-        { error: `Váhy složek musí dát dohromady 100 % (teď ${Math.round(totalWeight * 100)} %).` },
+        { error: `Váhy složek musí dát dohromady 100 % (teď ${(totalWeight * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 4 })} %).` },
         { status: 400 }
       )
     }
+    body.portfolio = body.portfolio.map((item) => ({ ...item, weight: item.weight / totalWeight }))
 
     const serializedResult = await simulateAndSerialize(body)
     return NextResponse.json(serializedResult)

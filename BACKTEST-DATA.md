@@ -104,6 +104,8 @@ odstaven je *jen* ten yfinance job na indexy.
 | **`sourceTer` zatím nevyplněn** — pole v manifestu existuje, hodnoty (poplatky zdrojových fondů) chybí | Popisky „přes fond X, TER Y %" a pokročilé „zrušit poplatek" zatím nefungují | Čeká na ověření TER z oficiálních zdrojů. Do té doby default = data beze změny (správně). |
 | **`us_dividend` bez přesného ETF** — zdroj FTSE High Dividend, evropský ETF na tento index neexistuje | Nabízíme „nejbližší" US high-dividend (Xtrackers MSCI USA) | Přiznáno v názvu i poznámce. |
 | **3 eurové dluhopisy s neověřeným původem** — `eur_govt_bond_1_3y`, `_3_7y`, `_15_30y` | Data se nedají obnovit ani aktualizovat | `managed: false`, loader se jich nedotkne |
+| ~~**Vadné ticky (víkendy, 1. den v měsíci) ze starého měsíčního zdroje**~~ | ~~backtest od 1. dne v měsíci o ~4 % vedle~~ | ✅ Úklid v DB 18. 10. 2026; engine od 22. 10. 2026 vynechává jen body v nepracovní dny (so, ne, 1. 1., 25. 12.), 1. den v měsíci už ne (zahazoval skutečná data – 60/40 dno 1. 3. 2023). Hlídá check-fund-data (audit backtest). |
+| CPI a bezriziková sazba nejsou v DB | data v kódu (`inflation.ts`, `bezrizikovaSazba.ts`) | Generátor `scripts/backtest/generuj-cpi-a-sazby.py` (ČSÚ CEN0101B/E, ČNB 2T repo, ECB EONIA/€STR, FRED FEDFUNDS) – spouštět měsíčně; stáří hlídá check-fund-data. |
 | **Momentum – US: splice bez kalibrace** (Ken French US do 2013, ETF po) | Předřadá historie běží ~0,7 pb/rok pod ETF | Konzervativní směr, přiznáno v poznámce |
 
 ---

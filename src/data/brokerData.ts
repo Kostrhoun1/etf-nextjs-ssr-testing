@@ -1,11 +1,19 @@
 import { Broker, CenikNakupu } from '../types/broker/index';
 
 /** Kdy byly poplatky a tvrzení níže naposledy OVĚŘENY u oficiálních ceníků brokerů (pravidlo č. 1).
- *  Zdroje 18. 10. 2026: DEGIRO Přehled poplatků (1. 1. 2026), XTB tabulka poplatků (20. 10. 2026),
- *  Fio Ceník (od 1. 7. 2026), Trading 212 Terms + helpcentre (13. 10. 2026), IBKR pricing (Germany),
- *  Portu Sazebník (od 1. 9. 2026). Denní kontrola (scripts/check-fund-data.mjs) varuje po 90 dnech –
- *  XTB vydává sazebník zhruba každý měsíc. Po novém ověření datum aktualizuj. */
-export const CENIKY_OVERENY = '2026-10-18';
+ *  Ověřeno 22. 10. 2026 (audit nákladů, všechny ceníky staženy ten den z oficiálních webů):
+ *   - DEGIRO: Přehled poplatků (degiro.cz/data/pdf/cs/Prehled_poplatku.pdf, „Rates from 01-01-2026“),
+ *   - XTB: Tabulka poplatků a provizí ze dne 20. 10. 2026 (xtb.com/cz/soubory/tabulkapoplatkuaprovizi20102026.pdf;
+ *     nejnovější v seznamu na xtb.com/cz/obchodni-podminky),
+ *   - Fio: Ceník základních služeb (fio.cz/docs/cz/C_zaklad.pdf, vyhlášen 29. 5. 2026, účinnost 1. 7. 2026),
+ *   - Trading 212: centrum nápovědy „What are the fees in the Invest, ISAs, and SIPP?“ a „What is the FX fee?“
+ *     (datum platnosti neuvádí),
+ *   - IBKR Ireland: commissions-stocks-europe (Německo), commissions-spot-currencies a Xetra (IBIS) Fees
+ *     (datum platnosti neuvádí),
+ *   - Portu: Sazebník služeb (účinnost od 1. 9. 2026) + Pravidla programu Slevy pro dlouhodobé investory (od 23. 4. 2025).
+ *  Denní kontrola (scripts/check-fund-data.mjs) varuje po 90 dnech a hlásí POPLACH, když XTB vydá tabulku poplatků
+ *  novější než toto datum (blok „audit naklady“). Po novém ověření datum aktualizuj. */
+export const CENIKY_OVERENY = '2026-10-22';
 /** „18. října 2026“ – pro texty „ceník ověřen …“ na stránkách brokerů (jediný zdroj data, ne editorial-check). */
 export const cenikyOverenyStr = new Date(`${CENIKY_OVERENY}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 export const cenikyOverenyIso = CENIKY_OVERENY;
@@ -26,14 +34,18 @@ export const brokers: Broker[] = [
     // (Přehled poplatků, Rates from 01-01-2026, ověřeno 22. 10. 2026).
     ochrana: { hotovost: '100 000 EUR (pojištění vkladů, flatexDEGIRO Bank)', cennePapiry: '90 % ztráty, max. 20 000 EUR (německý EdB)' },
     prevodVen: '20 EUR za každou pozici + externí náklady',
-    // ETF Selection: 0 EUR provize + 1 EUR manipulační poplatek; ostatní ETF 3 EUR celkem. Směna CZK/EUR zdarma.
-    // Připojení k burze: 2,50 EUR ročně za každou zahraniční burzu, nejvýš 0,25 % hodnoty účtu; NEúčtuje se u ETF
-    // Selection a pražské burzy (Přehled poplatků degiro.cz/data/pdf/cs/Prehled_poplatku.pdf, str. 10, ověřeno
-    // 18. 10. 2026 – ZAMERNA-ROZHODNUTI.md). Roční náklad na /kde-koupit proto rozlišuje ETF Selection (bez poplatku
-    // za burzu) a ostatní ETF („+ až 2,5 EUR“ – přesná výše závisí na hodnotě účtu).
-    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 1 }], smena: { procento: 0, minUsd: 0 }, ostatniEtfEur: 3, burzaRocneMaxEur: 2.5, pozn: 'ETF Selection; ostatní ETF 3 EUR', smenaPozn: 'CZK/EUR zdarma' },
-    etfFee: '1 EUR (ETF Selection), 3 EUR (ostatní ETF)',
-    managementFee: '0 EUR (u ETF mimo ETF Selection připojení k burze až 2,5 EUR ročně)',
+    // Přehled poplatků (degiro.cz/data/pdf/cs/Prehled_poplatku.pdf, Rates from 01-01-2026, ověřeno 22. 10. 2026):
+    //  - str. 4 ETF: „ETF Selection 0,00 €“, pozn. 1 „ETF kótované na burze Tradegate“ → ETF Selection = nákup na
+    //    TRADEGATE, ne na Xetře (audit 22. 10. 2026, S15). „Ostatní burzy 2,00 €“; str. 7 manipulační poplatek 1,00 € →
+    //    ETF Selection 1 EUR, ostatní (např. Xetra) 3 EUR celkem.
+    //  - str. 8: AutoFX 0,25 %, pozn. 2 „Veškeré převody mezi EUR a CZK jsou zdarma“.
+    //  - str. 10: 2,50 € ročně za každou zahraniční burzu (max. 0,25 % max. hodnoty účtu v roce); pozn. 1 neúčtuje se
+    //    u pražské burzy a ETF Selection; pozn. 2 „Tento poplatek bude rovněž účtován za připojení k CNX, burze používané
+    //    pro směnu měn.“ Výjimku pro bezplatnou směnu CZK/EUR ceník NEuvádí → u každého nákupu z korun počítáme
+    //    „+ až 2,5 EUR ročně za CNX“ jako horní mez (ZAMERNA-ROZHODNUTI.md, audit 22. 10. 2026).
+    nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 1 }], burzaNakupu: 'Tradegate', smena: { procento: 0, minUsd: 0 }, ostatniEtfEur: 3, burzaRocneMaxEur: 2.5, cnxRocneMaxEur: 2.5, pozn: 'ETF Selection na burze Tradegate; ostatní ETF 3 EUR', smenaPozn: 'CZK/EUR zdarma' },
+    etfFee: '1 EUR (ETF Selection na Tradegate), 3 EUR (ostatní ETF)',
+    managementFee: '0 EUR (připojení k CNX pro směnu měn až 2,5 EUR ročně, u ETF mimo ETF Selection i k burze až 2,5 EUR ročně)',
     fxFee: 'CZK/EUR zdarma, ostatní 0,25 %',
     fractional: false,
     // Ověřeno 18. a znovu 19. 10. 2026 (degiro.cz/helpdesk/contact): „our Service Desk is not available in Czech, but we're
@@ -48,7 +60,8 @@ export const brokers: Broker[] = [
     customerSupport: 'Telefon Po–Pá 8–22, e-mail (anglicky)',
     specialFeatures: ['Core ETF selection', 'Dividend reinvestment', 'Tax reports'],
     pros: [
-      'ETF Selection za 0 EUR komise (200+ fondů)',
+      // Dřív „(200+ fondů)“ – počet ceník neuvádí; ETF Selection = ETF kótované na Tradegate (Přehled poplatků, str. 4).
+      'ETF Selection (ETF na burze Tradegate) za 0 EUR provize',
       'Pouze 1 EUR manipulační poplatek',
       'Bezplatná konverze CZK/EUR',
       'Široká nabídka UCITS ETF',
@@ -66,7 +79,7 @@ export const brokers: Broker[] = [
     logo: '/lovable-uploads/a7162820-5478-4cd8-9bfd-fd04b80a42ff.png',
     description: 'Polský broker kótovaný na varšavské burze (licence KNF, v ČR organizační složka), ETF bez provize do 100 000 EUR měsíčně a česká podpora v pracovní dny.',
     web: 'https://www.xtb.com/cz',
-    cenik: { url: 'https://www.xtb.com/cz/ucet-a-poplatky', nazev: 'Tabulka poplatků a provizí', platnost: 'ze dne 20. 10. 2026' },
+    cenik: { url: 'https://www.xtb.com/cz/soubory/tabulkapoplatkuaprovizi20102026.pdf', nazev: 'Tabulka poplatků a provizí (PDF)', platnost: 'ze dne 20. 10. 2026' },
     regulation: 'KNF (PL), v ČR organizační složka pod dohledem ČNB',
     protection: 'max. 20 100 EUR (polský systém náhrad KDPW)',
     // Garanční (kompenzační) systémy dle směrnice 97/9/ES kryjí peníze i cenné papíry klienta společným limitem.
@@ -77,6 +90,9 @@ export const brokers: Broker[] = [
     // právně XTB ve svěřenské správě pro klienta (VOP čl. 7.70) – zda je kryje systém náhrad, dokumenty neuvádějí.
     ochrana: { hotovost: 'max. 20 100 EUR – společný limit s cennými papíry', cennePapiry: 'max. 20 100 EUR (polský systém KDPW: 100 % do 3 000 EUR, nad to 90 %)' },
     // 0 % do 100 000 EUR objemu měsíčně (nad limit 0,2 %, min. 10 EUR); směna CZK→EUR 0,5 %.
+    // Směna při obchodu 0,5 % (Tabulka ze dne 20. 10. 2026, část 2, pozn. 2: „0,5% přirážce na vrcholu kurzu“);
+    // 0,8 % o víkendu platí jen pro převod mezi peněžními účty v různých měnách (část 1, pozn. 5). Vklad kartou ZDARMA,
+    // přes PayU 0,77 % (vklad v CZK) – dřív web psal „kartou 0,77 % / 0,70 %“ podle tabulky z 30. 9. 2026 (audit V14).
     nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.5, minUsd: 0 }, pozn: 'do 100 000 EUR objemu měsíčně' },
     etfFee: 'Akcie a ETF 0 % do 100 000 EUR/měs., nad limit 0,2 % (min. 10 EUR)',
     // Tabulka poplatků a provizí XTB CZ (xtb.com/cz/soubory/tabulkapoplatkuaprovizi20102026.pdf, ověřeno 22. 10. 2026),
@@ -120,13 +136,14 @@ export const brokers: Broker[] = [
     web: 'https://www.fio.cz/investice',
     // Ceník základních služeb (fio.cz/docs/cz/C_zaklad.pdf): účinnost 1. 7. 2026; převod IN z Xetry k jinému obchodníkovi
     // 25 EUR za ISIN (část N), ověřeno 22. 10. 2026.
-    cenik: { url: 'https://www.fio.cz/o-nas/dokumenty-ceniky/ceniky-sazebniky', nazev: 'Ceník základních služeb', platnost: 'od 1. 7. 2026' },
+    cenik: { url: 'https://www.fio.cz/docs/cz/C_zaklad.pdf', nazev: 'Ceník základních služeb (PDF)', platnost: 'od 1. 7. 2026' },
     prevodVen: '25 EUR za každý ISIN (fondy z Xetry)',
     regulation: 'ČNB (CZ)',
     protection: '100 000 EUR (hotovost, FPV), 90 %, max. 20 000 EUR (cenné papíry, GFOCP)',
     // Garanční fond OCP: náhrada 90 % nevydaného majetku, nejvýš 20 000 EUR (gfo.cz, ověřeno 22. 10. 2026).
     ochrana: { hotovost: '100 000 EUR (Fond pojištění vkladů)', cennePapiry: '90 % ztráty, max. 20 000 EUR (Garanční fond OCP)' },
-    // Ceník od 1. 7. 2026, XETRA: 3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR, nad 0,15 % (min. 6,95 EUR).
+    // Ceník od 1. 7. 2026, část (E) XETRA (ověřeno 22. 10. 2026): 3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR,
+    // nad 3 000 EUR „0,15 % z objemu, min. € 6,95“ (minimum platí až do přibližně 4 633 EUR – proto ho uvádíme i v poznámce).
     // Směna bez poplatku, náklad je v kurzu banky – výši spreadu neznáme → smena: null („—“).
     nakup: {
       pasma: [
@@ -135,7 +152,7 @@ export const brokers: Broker[] = [
         { doEur: null, procento: 0.15, minEur: 6.95, pevneEur: 0 },
       ],
       smena: null,
-      pozn: 'do 1 400 EUR; 4,95 EUR do 3 000 EUR, pak 0,15 %',
+      pozn: 'do 1 400 EUR; 4,95 EUR do 3 000 EUR, pak 0,15 % (min. 6,95 EUR)',
       smenaPozn: 'v kurzu banky, výši ceník neuvádí',
     },
     etfFee: '3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR, nad 0,15 % (min. 6,95 EUR) – Xetra; české ETF 0,29–0,35 %',
@@ -169,7 +186,10 @@ export const brokers: Broker[] = [
     logo: '/lovable-uploads/25c6d816-7993-40c3-abe2-e21c45cc239d.png',
     description: 'Zcela bezpoplatkový broker s moderní mobilní aplikací, frakčním investováním a AutoInvest funkcí.',
     web: 'https://www.trading212.com',
-    cenik: { url: 'https://www.trading212.com/en/terms/invest', nazev: 'Terms and fees (Invest)' },
+    // Ceník = centrum nápovědy (trading212.com/terms blokuje stažení ochranou proti botům). Ověřeno 22. 10. 2026:
+    // „FX fee: 0.15%, Trading commission: Free, Custody Fee: Free“ (článek 11471996799517) a „spot exchange rate
+    // + 0.15% FX fee“ (článek 360018909758).
+    cenik: { url: 'https://helpcentre.trading212.com/hc/en-us/articles/11471996799517-What-are-the-fees-in-the-Invest-ISAs-and-SIPP', nazev: 'Fees in the Invest account (centrum nápovědy)' },
     // Ověřeno 22. 10. 2026 v centru nápovědy Trading 212: „What are the supported countries?“ (helpcentre.trading212.com/
     // hc/en-us/articles/12933782261917) řadí Česko pod Trading 212 Markets Ltd. (CySEC 398/21); zároveň „custody migration
     // from Trading 212 Markets Ltd. to Trading 212 EU GmbH“ (článek 38272842804765) – úschova cenných papírů se přesouvá
@@ -223,13 +243,29 @@ export const brokers: Broker[] = [
     regulation: 'CBI (IE) pro CZ klienty, SEC (US)',
     protection: '90 % ztráty, max. 20 000 EUR (ICCL, IE); SIPC jen US entita', // interactivebrokers.ie/en/general/security-investor-protection.php, ověřeno 18. 10. 2026
     ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC jen US entita' },
-    // Tiered: 0,05 % z objemu, min. 1,25 EUR + poplatky burzy; směna 0,002 %, min. 2 USD.
-    nakup: { pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0 }], plusBurza: true, smena: { procento: 0.002, minUsd: 2 }, smenaNajednou: true, pozn: '+ poplatky burzy (plán Tiered)', smenaPozn: 'stačí jednou za větší částku' },
-    etfFee: 'Xetra: 0,05 % (min. 1,25 EUR) + poplatky burzy (plán Tiered), v plánu Fixed min. 3 EUR',
+    // Ověřeno 22. 10. 2026 na interactivebrokers.ie:
+    //  - commissions-stocks-europe (Germany): Tiered 0,05 % z objemu, min. 1,25 EUR, max. 29 EUR za pokyn + poplatky
+    //    třetích stran; Fixed (SmartRouting) 0,05 %, min. 3 EUR, poplatky třetích stran v ceně. Spodní hranice = Tiered.
+    //    (LSE Tiered min. 1 GBP – počítáme nákup v EUR na Xetře.)
+    //  - accounts/fees/IBIS-StkFees.php (Xetra): vypořádání 0,02 EUR + 0,0008 % z objemu a regulační poplatek 0,01 EUR
+    //    za obchod → započítáno (tretiStrany). Poplatek burzy u ETF „Retail“ 0,004 % (min. 0,50 EUR), ale „waived for
+    //    Retail Orders executed on Xetra when Xetra is selected according to Best Execution Policy“ → může být 0, proto
+    //    ho nezapočítáváme a součet je „od“ (plusBurza).
+    //  - commissions-spot-currencies: ruční směna 0,20 bp = 0,002 %, min. 2 USD; automatická konverze při nákupu bez
+    //    provize, IB „typically add or subtract (at its discretion) 0.03%“ v kurzu, bez minima. Dřív web počítal jen
+    //    ruční směnu → „od 74 Kč“ za 2 000 Kč nebyla spodní hranice (audit 22. 10. 2026, V13). Teď levnější z obou.
+    nakup: {
+      pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0, maxEur: 29 }],
+      tretiStrany: { pevneEur: 0.03, procento: 0.0008 },
+      plusBurza: true,
+      smena: { procento: 0.002, minUsd: 2, autoProcento: 0.03 },
+      smenaNajednou: true,
+      pozn: '+ vypořádání; poplatek burzy jen někdy (plán Tiered)',
+      smenaPozn: 'ruční směna se vyplatí u velkých částek',
+    },
+    etfFee: 'Xetra: 0,05 % (min. 1,25 EUR) + vypořádání a poplatky burzy (plán Tiered), v plánu Fixed min. 3 EUR',
     managementFee: '0 EUR',
-    // interactivebrokers.ie/en/pricing/commissions-spot-currencies.php (ověřeno 22. 10. 2026): ruční směna 0,20 bp = 0,002 %,
-    // min. 2 USD; automatická konverze při nákupu bez provize, ale +0,03 % v kurzu.
-    fxFee: '0,002 % (min. 2 USD za směnu)',
+    fxFee: '0,03 % při automatické směně, ručně 0,002 % (min. 2 USD za směnu)',
     fractional: true,
     czSupport: false,
     czDividends: '35 %',
@@ -268,6 +304,8 @@ export const brokers: Broker[] = [
     // Garanční fond OCP 90 %, max. 20 000 EUR – Portu „Informace o garančním fondu obchodníků s cennými papíry“ (ověřeno 22. 10. 2026).
     ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (Garanční fond OCP)' },
     etfFee: '0,24–1 % ročně (dle částky)',
+    // Ověřeno 22. 10. 2026 (Sazebník od 1. 9. 2026): rozsah platí pro Klasický účet; Účet Portu <26 má sazby poloviční
+    // (0,50–0,20 %), Dětský 0,25 %, Důchodový 0,30 %. Řetězec „ (dle objemu a fixace)“ odřezává brokerUI → neměnit.
     managementFee: '0,24–1 % ročně (dle objemu a fixace)',
     // Sazebník služeb Portu, účinnost od 1. 9. 2026 (portu.cz/smluvni-dokumentace → „Sazebník služeb Portu“, ověřeno
     // 22. 10. 2026): Klasický účet 1,00 % do 0,5 mil. Kč, 0,80 % 0,5–1 mil., 0,60 % 1–5 mil., 0,40 % nad 5 mil.; sazba platí
@@ -326,22 +364,36 @@ export interface NakladNakupu {
   celkemKc: number | null;
   /** K provizi se ještě připočítávají poplatky burzy (neznámá výše). */
   plusBurza: boolean;
+  /** Směna je levnější automaticky při nákupu (IBKR +0,03 % v kurzu, bez minima) než ručně (0,002 %, min. 2 USD). */
+  smenaAuto: boolean;
 }
 
-/** Poplatek za pokyn v EUR podle pásma ceníku. */
+/** Poplatek za pokyn v EUR podle pásma ceníku (+ jisté poplatky třetích stran, např. vypořádání u IBKR). */
 export function provizeEur(c: CenikNakupu, objemEur: number): number {
   const p = c.pasma.find((x) => x.doEur == null || objemEur <= x.doEur) ?? c.pasma[c.pasma.length - 1];
-  return Math.max(p.pevneEur + (p.procento / 100) * objemEur, p.minEur);
+  const provize = Math.min(Math.max(p.pevneEur + (p.procento / 100) * objemEur, p.minEur), p.maxEur ?? Infinity);
+  const treti = c.tretiStrany ? c.tretiStrany.pevneEur + (c.tretiStrany.procento / 100) * objemEur : 0;
+  return provize + treti;
 }
 
-/** Náklad jednoho nákupu ETF (Xetra, EUR) za `castkaKc` korun: poplatek za nákup + směna CZK→EUR. */
+/** Směna CZK→EUR za `castkaKc`: ruční (procento, min. v USD) nebo automatická při nákupu (bez minima) – levnější. */
+function smenaZaCastku(s: NonNullable<CenikNakupu['smena']>, castkaKc: number, k: Kurzy): { kc: number; auto: boolean } {
+  const rucne = Math.max((s.procento / 100) * castkaKc, s.minUsd * k.usdCzk);
+  const auto = s.autoProcento != null ? (s.autoProcento / 100) * castkaKc : Infinity;
+  return auto < rucne ? { kc: auto, auto: true } : { kc: rucne, auto: false };
+}
+
+/** Náklad jednoho nákupu ETF (EUR; Xetra, u DEGIRO ETF Selection Tradegate) za `castkaKc` korun:
+ *  poplatek za nákup + směna CZK→EUR. */
 export function nakladNakupu(b: Broker, castkaKc: number, k: Kurzy): NakladNakupu | null {
   if (!b.nakup) return null;
   const provizeKc = provizeEur(b.nakup, castkaKc / k.eurCzk) * k.eurCzk;
   const s = b.nakup.smena;
-  const smenaKc = s == null ? null : Math.max((s.procento / 100) * castkaKc, s.minUsd * k.usdCzk);
-  return { provizeKc, smenaKc, celkemKc: smenaKc == null ? null : provizeKc + smenaKc, plusBurza: !!b.nakup.plusBurza };
+  const sm = s == null ? null : smenaZaCastku(s, castkaKc, k);
+  const smenaKc = sm ? sm.kc : null;
+  return { provizeKc, smenaKc, celkemKc: smenaKc == null ? null : provizeKc + smenaKc, plusBurza: !!b.nakup.plusBurza, smenaAuto: !!sm?.auto };
 }
+
 
 /* ---------- Příklad nákupu: zaokrouhlené části a součet = součet ZOBRAZENÝCH částí ----------
    Kolo 8 (22. 10. 2026): IBKR ukazoval „od 74 Kč“ a v poznámce „30 Kč + 43 Kč“ (= 73) – součet se zaokrouhloval
@@ -370,6 +422,9 @@ export function rocniPoplatekRobo(b: Broker, hodnotaKc: number, slevaPct = 0): {
 const nbsp = ' ';
 const cislo = (v: number) => v.toLocaleString('cs-CZ', { maximumFractionDigits: 3 });
 
+/** Burza, pro kterou platí poplatek za nákup: Xetra, u DEGIRO ETF Selection Tradegate (Přehled poplatků, str. 4). */
+export const burzaNakupu = (b: Broker) => b.nakup?.burzaNakupu ?? 'Xetra';
+
 /** „0 EUR“, „1 EUR“, „0,05 %, min. 1,25 EUR“, „od 3,95 EUR“; null = broker nemá ceník nákupu (robo-poradce). */
 export function popisPoplatku(b: Broker): string | null {
   const c = b.nakup;
@@ -381,12 +436,15 @@ export function popisPoplatku(b: Broker): string | null {
 }
 
 /** Směna CZK→EUR: „0 %“, „0,5 %“, „0,002 %, min. 2 USD“; „—“ = výši neznáme (Fio: náklad je v kurzu banky). */
-export function popisSmeny(b: Broker): string | null {
+export function popisSmeny(b: Broker): string | null { // IBKR: „0,03 % automaticky; ručně 0,002 %, min. 2 USD“
   const c = b.nakup;
   if (!c) return null;
   if (c.smena == null) return '—';
   const z = `${cislo(c.smena.procento)}${nbsp}%`;
-  return c.smena.minUsd > 0 ? `${z}, min.${nbsp}${cislo(c.smena.minUsd)}${nbsp}USD` : z;
+  const rucne = c.smena.minUsd > 0 ? `${z}, min.${nbsp}${cislo(c.smena.minUsd)}${nbsp}USD` : z;
+  // IBKR (audit 22. 10. 2026): automatická směna při nákupu 0,03 % bez minima, nebo ruční 0,002 %, min. 2 USD.
+  // Automatická první – kontrola kolo6 (check-fund-data) bere první procento jako spodní hranici.
+  return c.smena.autoProcento != null ? `${cislo(c.smena.autoProcento)}${nbsp}% automaticky; ručně ${rucne}` : rucne;
 }
 
 /** Min. vklad jednotně: „bez minima“ místo „0 EUR / 0 Kč / 0 USD“. */
@@ -420,54 +478,81 @@ export function ochranaPapiru(b: Broker): { v: string; pozn?: string } {
 /* ---------- Roční náklad (12 nákupů) – JEDNOTNĚ s texty u brokerů ----------
    Revize kola 4: IBKR text říká „směnu stačí udělat jednou“, ale roční součet počítal směnu 12× → u vícměnového
    účtu (smenaNajednou) se počítá JEDNA směna celé roční částky. DEGIRO: ETF Selection bez poplatku za burzu,
-   ostatní ETF 3 EUR za nákup + až 2,5 EUR ročně za burzu (ověřeno v Přehledu poplatků, viz ZAMERNA-ROZHODNUTI.md). */
+   ostatní ETF 3 EUR za nákup + až 2,5 EUR ročně za burzu (ověřeno v Přehledu poplatků, viz ZAMERNA-ROZHODNUTI.md).
+   Audit 22. 10. 2026: IBKR směna = levnější ze dvou cest – automatická u každého nákupu (0,03 %, bez minima), nebo
+   jedna ruční směna celé roční částky (0,002 %, min. 2 USD). DEGIRO: + až 2,5 EUR ročně za připojení k CNX. */
 export interface NakladRocne {
   /** Součet za rok; null = některou složku neznáme (Fio směna). */
   celkemKc: number | null;
   /** 12 × poplatek za nákup (spodní hranice, když celkem neznáme). */
   provizeKc: number;
-  /** Směna se počítá jednou za rok (vícměnový účet). */
+  /** Směna jednou ručně za celý rok (vícměnový účet) – vyšlo levněji než automatická u každého nákupu. */
   smenaJednou: boolean;
+  /** Směna automaticky při každém nákupu (IBKR 0,03 % bez minima) – vyšlo levněji než jedna ruční směna. */
+  smenaAuto: boolean;
   /** ETF mimo zvýhodněný výběr (DEGIRO): součet za rok bez poplatku za burzu + jeho strop. */
   ostatni?: { celkemKc: number; burzaMaxKc: number };
+  /** Horní mez ročního poplatku za připojení k burze pro směnu měn (DEGIRO CNX) – v celkemKc NENÍ. */
+  cnxMaxKc?: number;
 }
 export function nakladRocne(b: Broker, castkaKc: number, k: Kurzy): NakladRocne | null {
   const c = b.nakup;
   const n = nakladNakupu(b, castkaKc, k);
   if (!c || !n) return null;
   const provizeKc = 12 * n.provizeKc;
-  const smenaJednou = !!c.smenaNajednou && c.smena != null;
-  const smenaKc = c.smena == null ? null
-    : smenaJednou ? Math.max((c.smena.procento / 100) * castkaKc * 12, c.smena.minUsd * k.usdCzk)
-    : 12 * (n.smenaKc ?? 0);
+  const s = c.smena;
+  const kazdy = 12 * (n.smenaKc ?? 0); // směna u každého nákupu (levnější cesta pro jeden nákup)
+  const jednou = s != null && c.smenaNajednou ? Math.max((s.procento / 100) * castkaKc * 12, s.minUsd * k.usdCzk) : Infinity;
+  const smenaJednou = jednou < kazdy;
+  const smenaKc = s == null ? null : Math.min(kazdy, jednou);
   const ostatni = c.ostatniEtfEur != null && smenaKc != null
     ? { celkemKc: 12 * c.ostatniEtfEur * k.eurCzk + smenaKc, burzaMaxKc: (c.burzaRocneMaxEur ?? 0) * k.eurCzk }
     : undefined;
-  return { celkemKc: smenaKc == null ? null : provizeKc + smenaKc, provizeKc, smenaJednou, ostatni };
+  const cnxMaxKc = c.cnxRocneMaxEur != null ? c.cnxRocneMaxEur * k.eurCzk : undefined;
+  return { celkemKc: smenaKc == null ? null : provizeKc + smenaKc, provizeKc, smenaJednou, smenaAuto: !smenaJednou && n.smenaAuto, ostatni, cnxMaxKc };
 }
 
-/** Nejlevnější nákup podle částky (úseky „do X Kč broker A, nad X Kč broker B“) – pro hero /kde-koupit.
- *  Kandidáti = brokeři se známým součtem; vítěz platí jen tehdy, když je levnější i než spodní hranice brokerů
- *  s neznámou složkou (Fio směna, IBKR poplatky burzy). Jinak úsek bez vítěze (b = null). Krok 100 Kč. */
+/** Vítěz pro jednu částku: nejlevnější broker se známým součtem, pokud je levnější i než spodní hranice brokerů
+ *  s neznámou složkou (Fio směna, IBKR poplatek burzy); jinak null. */
+function vitezPro(a: number, k: Kurzy): Broker | null {
+  let vitez: Broker | null = null;
+  let min = Infinity;
+  let spodniOstatnich = Infinity;
+  for (const b of brokeriAbecedne) {
+    const n = nakladNakupu(b, a, k);
+    if (!n) continue;
+    if (n.celkemKc != null && !n.plusBurza) {
+      if (n.celkemKc < min) { min = n.celkemKc; vitez = b; }
+    } else {
+      spodniOstatnich = Math.min(spodniOstatnich, n.celkemKc ?? n.provizeKc);
+    }
+  }
+  return min > spodniOstatnich ? null : vitez;
+}
+
+/** Nejlevnější nákup podle částky (úseky „do X Kč broker A, od Y Kč broker B“) – pro hero /kde-koupit.
+ *  Úseky najde krok 100 Kč, HRANICE se pak dopočítají půlením intervalu na stejných vzorcích (nakladNakupu) na celé
+ *  koruny: `odKc` = první celá koruna, kde vítězí nový broker, `doKc` předchozího úseku = o korunu méně.
+ *  Audit 22. 10. 2026 (S14): hero tvrdil „nad 16 100 Kč DEGIRO“, kalkulačka pro 16 150 Kč ukázala Trading 212 –
+ *  skutečná hranice je 1 EUR / 0,15 % = 16 177 Kč (kurz 24,265). Hlídá check-fund-data.mjs (blok „audit naklady“). */
 export function nejlevnejsiPodleCastky(k: Kurzy, odKc = 100, doKc = 1_000_000, krok = 100): { b: Broker | null; odKc: number; doKc: number }[] {
   const useky: { b: Broker | null; odKc: number; doKc: number }[] = [];
   for (let a = odKc; a <= doKc; a += krok) {
-    let vitez: Broker | null = null;
-    let min = Infinity;
-    let spodniOstatnich = Infinity;
-    for (const b of brokeriAbecedne) {
-      const n = nakladNakupu(b, a, k);
-      if (!n) continue;
-      if (n.celkemKc != null && !n.plusBurza) {
-        if (n.celkemKc < min) { min = n.celkemKc; vitez = b; }
-      } else {
-        spodniOstatnich = Math.min(spodniOstatnich, n.celkemKc ?? n.provizeKc);
-      }
-    }
-    if (min > spodniOstatnich) vitez = null;
+    const vitez = vitezPro(a, k);
     const posl = useky[useky.length - 1];
     if (posl && posl.b?.id === vitez?.id) posl.doKc = a;
     else useky.push({ b: vitez, odKc: a, doKc: a });
+  }
+  // Zpřesnění hranic: mezi posl.doKc (vítěz A) a dalsi.odKc (vítěz B) najdi první celou korunu s vítězem B.
+  for (let i = 1; i < useky.length; i++) {
+    const pred = useky[i - 1], dalsi = useky[i];
+    let lo = pred.doKc, hi = dalsi.odKc; // lo: vítěz pred.b, hi: vítěz dalsi.b
+    while (hi - lo > 1) {
+      const m = Math.floor((lo + hi) / 2);
+      if (vitezPro(m, k)?.id === dalsi.b?.id) hi = m; else lo = m;
+    }
+    dalsi.odKc = hi;
+    pred.doKc = hi - 1;
   }
   return useky;
 }

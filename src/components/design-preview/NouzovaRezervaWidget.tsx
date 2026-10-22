@@ -14,16 +14,23 @@ import {
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 
 /**
- * Interaktivní jádro kalkulačky nouzové rezervy – PRESKINOVANÁ verze.
- * Výpočetní logika je 1:1 převzata z src/utils/emergencyFundCalculations.ts
- * (calculateEmergencyFund) – měněn je POUZE vizuál (teal/slate, karty design systému).
- * Logiku neměnit.
+ * Interaktivní jádro kalkulačky nouzové rezervy.
+ *
+ * POČET MĚSÍCŮ = REDAKČNÍ PRAVIDLO (audit nástrojů 22. 10. 2026, V12 + S26; rozhodnutí vedoucího):
+ * dřív body rizika × násobek 1,0/1,3/1,6 bez zdroje → OSVČ i rodina se splátkami dostaly 3,9 měsíce,
+ * zatímco FAQ stránky slibovalo 9–12 měsíců, resp. „spíš 6“. Teď jedno pravidlo, stejné ve widgetu, ve FAQ
+ * i v rozbalovacím „Jak počítáme“ (REZERVA_PRAVIDLO níže) – rozumný odhad, ne vědecký zdroj:
+ *   zaměstnanec 3 měsíce (nejvýš 6), OSVČ / dohody 6 měsíců (nejvýš 12),
+ *   +1 měsíc za každý rizikový faktor (středně stabilní práce +1, nestabilní +2, smlouva na dobu určitou,
+ *   pravidelné splátky, jediný příjem v domácnosti se 3+ osobami, věk 50+, základní vzdělání),
+ *   domácnost se 2+ osobami a pravidelnými splátkami nejméně 6 měsíců.
+ * Původní logika z emergencyFundCalculations.ts (soubor už v repu není). Hlídá scripts/qa-kalkulacky.mjs.
  */
 
 /* ===== TYPY 1:1 z emergencyFundCalculations.ts ===== */
 type JobStability = 'stable' | 'moderate' | 'unstable';
 type ContractType = 'permanent' | 'fixed_term' | 'freelance';
-type AgeGroup = 'young' | 'middle' | 'senior';
+type AgeGroup = 'middle' | 'senior';
 type Education = 'basic' | 'high_school' | 'university';
 type RiskLevel = 'low' | 'medium' | 'high';
 type PriorityLevel = 'critical' | 'high' | 'moderate' | 'sufficient';
@@ -69,6 +76,13 @@ const mesiceSlovo = (n: number) => {
 };
 const mesice = (n: number) => `${(Math.round(n * 10) / 10).toLocaleString('cs-CZ')} ${mesiceSlovo(n)}`;
 
+/** Redakční pravidlo počtu měsíců (zveřejněné ve widgetu „Jak počítáme“ a ve FAQ stránky). */
+const REZERVA_PRAVIDLO = {
+  zamestnanec: { zaklad: 3, max: 6 },
+  osvc: { zaklad: 6, max: 12 },
+  rodinaSeSplatkamiMin: 6,
+} as const;
+
 function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData {
   const {
     monthlyExpenses,
@@ -83,59 +97,23 @@ function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData 
     education,
   } = params;
 
-  // Základní výpočet podle stability zaměstnání
-  let baseMonths: number;
-  switch (jobStability) {
-    case 'stable':
-      baseMonths = 3;
-      break;
-    case 'moderate':
-      baseMonths = 6;
-      break;
-    case 'unstable':
-      baseMonths = 9;
-      break;
-  }
+  const typ = contractType === 'freelance' ? REZERVA_PRAVIDLO.osvc : REZERVA_PRAVIDLO.zamestnanec;
+  const baseMonths = typ.zaklad;
 
-  // Bodové hodnocení rizika
-  let riskPoints = 0;
-  if (jobStability === 'moderate') riskPoints += 1;
-  if (jobStability === 'unstable') riskPoints += 2;
-  if (contractType === 'fixed_term') riskPoints += 1;
-  if (contractType === 'freelance') riskPoints += 2;
-  if (ageGroup === 'senior') riskPoints += 1;
-  if (ageGroup === 'young') riskPoints -= 1;
-  if (education === 'basic') riskPoints += 1;
-  if (education === 'university') riskPoints -= 1;
-  if (!hasSecondIncome) riskPoints += 1;
-  if (hasDebt) riskPoints += 1;
-  if (familySize > 2) riskPoints += familySize - 2;
+  // +1 měsíc za každý rizikový faktor (nestabilní práce +2).
+  let pridano = 0;
+  if (jobStability === 'moderate') pridano += 1;
+  if (jobStability === 'unstable') pridano += 2;
+  if (contractType === 'fixed_term') pridano += 1;
+  if (hasDebt) pridano += 1;
+  if (!hasSecondIncome && familySize >= 3) pridano += 1;
+  if (ageGroup === 'senior') pridano += 1;
+  if (education === 'basic') pridano += 1;
 
-  // Kategorizace celkového rizika
-  let riskLevel: RiskLevel;
-  if (riskPoints <= 1) riskLevel = 'low';
-  else if (riskPoints <= 4) riskLevel = 'medium';
-  else riskLevel = 'high';
+  let recommendedMonths = Math.min(typ.max, baseMonths + pridano);
+  if (hasDebt && familySize >= 2) recommendedMonths = Math.max(recommendedMonths, REZERVA_PRAVIDLO.rodinaSeSplatkamiMin);
 
-  // Finální multiplikátor na základě kategorie rizika
-  let riskMultiplier: number;
-  switch (riskLevel) {
-    case 'low':
-      riskMultiplier = 1.0;
-      break;
-    case 'medium':
-      riskMultiplier = 1.3;
-      break;
-    case 'high':
-      riskMultiplier = 1.6;
-      break;
-  }
-
-  const familyMultiplier = 1;
-
-  // Finální výpočet
-  const adjustedMonths = baseMonths * riskMultiplier * familyMultiplier;
-  const recommendedMonths = Math.max(3, Math.min(12, adjustedMonths)); // Min 3, max 12 měsíců
+  const riskLevel: RiskLevel = pridano === 0 ? 'low' : pridano <= 2 ? 'medium' : 'high';
   const recommendedAmount = monthlyExpenses * recommendedMonths;
 
   // Současné pokrytí
@@ -164,12 +142,13 @@ function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData 
     phase3: { target: phase3Target, timeline: zbyva(phase3Target) },
   };
 
-  // Priorita spoření
+  // Priorita spoření. „Dostatečná“ JEN když nic nechybí (S25: dřív „Dostatečná rezerva“ vedle
+  // „Zbývá dospořit 52 000 Kč“ – stačilo 80 % cíle).
   let priorityLevel: PriorityLevel;
-  if (currentCoverage < 1) priorityLevel = 'critical';
+  if (shortfall === 0) priorityLevel = 'sufficient';
+  else if (currentCoverage < 1) priorityLevel = 'critical';
   else if (currentCoverage < 3) priorityLevel = 'high';
-  else if (currentCoverage < recommendedMonths * 0.8) priorityLevel = 'moderate';
-  else priorityLevel = 'sufficient';
+  else priorityLevel = 'moderate';
 
   return {
     recommendedAmount,
@@ -180,7 +159,7 @@ function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData 
     riskLevel,
     priorityLevel,
     baseAmount: monthlyExpenses * baseMonths,
-    riskAdjustment: monthlyExpenses * baseMonths * (riskMultiplier - 1),
+    riskAdjustment: monthlyExpenses * (recommendedMonths - baseMonths),
     savingStrategy,
   };
 }
@@ -262,7 +241,7 @@ const PRIORITY_META: Record<
 > = {
   critical: { text: 'Kritická priorita', desc: 'Začněte spořit co nejdříve.', tone: 'red' },
   high: { text: 'Vysoká priorita', desc: 'Rezerva by měla být vyšší.', tone: 'amber' },
-  moderate: { text: 'Střední priorita', desc: 'Jste na dobré cestě.', tone: 'teal' },
+  moderate: { text: 'Střední priorita', desc: 'Jste na dobré cestě, ještě kus chybí.', tone: 'teal' },
   sufficient: { text: 'Dostatečná rezerva', desc: 'Máte dobře vybudovanou rezervu.', tone: 'emerald' },
 };
 
@@ -420,9 +399,8 @@ export default function NouzovaRezervaWidget() {
             value={ageGroup}
             onChange={setAgeGroup}
             options={[
-              { value: 'young', label: '20–35 let' },
-              { value: 'middle', label: '36–50 let' },
-              { value: 'senior', label: '50+ let' },
+              { value: 'middle', label: 'Do 49 let' },
+              { value: 'senior', label: '50 let a více' },
             ]}
           />
           <SelectField
@@ -446,11 +424,35 @@ export default function NouzovaRezervaWidget() {
           />
           <ToggleField
             id="debt"
-            label="Mám dluhy (hypotéka, úvěr)"
+            label="Mám pravidelné splátky"
             checked={hasDebt}
             onChange={setHasDebt}
           />
         </div>
+
+        {/* S26: pravidlo počtu měsíců veřejně – redakční odhad, ne vědecký zdroj. */}
+        <details className="mt-3 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-600" data-qa="nouzova-pravidlo">
+          <summary className="cursor-pointer list-none px-3 py-2.5 min-h-[44px] flex items-center text-slate-700">
+            Jak počítáme počet měsíců (naše redakční pravidlo)
+          </summary>
+          <div className="px-3 pb-3 space-y-1.5 leading-relaxed">
+            <p>
+              Základ: zaměstnanec {REZERVA_PRAVIDLO.zamestnanec.zaklad} měsíce výdajů (nejvýš {REZERVA_PRAVIDLO.zamestnanec.max}),
+              OSVČ a práce na dohody {REZERVA_PRAVIDLO.osvc.zaklad} měsíců (nejvýš {REZERVA_PRAVIDLO.osvc.max}) – příjem kolísá a bez nemocenské.
+            </p>
+            <p>
+              +1 měsíc za každý faktor: středně stabilní práce (nestabilní +2), smlouva na dobu určitou, pravidelné splátky,
+              jediný příjem v domácnosti se 3 a více osobami, věk 50+ a základní vzdělání (hledání nové práce obvykle trvá déle).
+            </p>
+            <p>
+              Domácnost se 2 a více osobami a pravidelnými splátkami: nejméně {REZERVA_PRAVIDLO.rodinaSeSplatkamiMin} měsíců.
+            </p>
+            <p className="text-xs text-slate-500">
+              Je to rozumný odhad podle běžných doporučení (3–6 měsíců u zaměstnanců, víc u OSVČ), ne výsledek studie.
+              Upravte ho podle sebe.
+            </p>
+          </div>
+        </details>
 
         {warnExpenses && (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">

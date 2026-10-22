@@ -29,9 +29,10 @@ export function FondHero({ children }: { children: ReactNode }) {
         <span className="whitespace-nowrap tabular-nums text-slate-400">ISIN {fond.isin}</span>
       </p>
       <p className="mt-2 text-sm leading-relaxed text-slate-300">
+        {/* U DEGIRO ETF Selection = nákup na Tradegate (Přehled poplatků DEGIRO, ověřeno 22. 10. 2026). */}
         {fond.xetra && fond.ticker
-          ? `Na burze Xetra se obchoduje pod tickerem ${fond.ticker}; náklady níže počítáme pro nákup na Xetře. `
-          : 'V našich datech fond nemá listing na Xetře – náklady níže počítáme pro nákup na Xetře, jinde se mohou lišit. '}
+          ? `Na burze Xetra se obchoduje pod tickerem ${fond.ticker}; náklady níže počítáme pro nákup na Xetře (u DEGIRO ETF Selection na burze Tradegate). `
+          : 'V našich datech fond nemá listing na Xetře – náklady níže počítáme pro nákup na Xetře (u DEGIRO ETF Selection na burze Tradegate), jinde se mohou lišit. '}
         Zda konkrétní broker tento fond nabízí, si ověřte v jeho aplikaci – nabídky se mění.
       </p>
     </div>

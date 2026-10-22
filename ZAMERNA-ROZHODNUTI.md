@@ -95,8 +95,12 @@ používá `resampleMonthEnd`. Není to nepřesnost — zdrojová denní data ma
 na začátku měsíce (splice denního ETF a měsíčního zdroje; např. `ftse_all_world` 2008-10-01 =
 23.09 mezi 29.39 a 27.40), které denní σ×√252 nafukovaly (All-World 13 % → 31 %). Month-end sampling
 je zahodí. **Nevracet na denní „kvůli přesnosti"** — reintrodukuje to bug. Drawdown už jede stejně.
-Od 17. 10. 2026 je engine při čtení vynechává (`bezVadnychTicku` v engine.ts: víkendy a 1. den v měsíci v denních úsecích) – NEodstraňovat, jinak se vrátí chybné výsledky backtestů začínajících 1. dne v měsíci. Zbývá úklid: vyčistit vadné ticky přímo v `index_historical_data` (integrity check je nechytá –
-hlídá ocas/díry/počty, ne odlehlé hodnoty).
+Od 17. 10. 2026 je engine při čtení vynechával (víkendy a 1. den v měsíci). **Opraveno 22. 10. 2026 (audit nástrojů, S9):**
+úklid 18. 10. vadné body z DB odstranil a všech ~2 900 zbylých bodů 1. dne v měsíci sedí s Yahoo – plošné vynechání tak
+zahazovalo SKUTEČNÁ data (60/40: dno 1. 3. 2023, max. pokles −20,5 % místo −20,7 %; start 1. v měsíci posunutý o den).
+Dřívější tvrzení „vynechání i správného bodu je neškodné“ NEPLATILO. `bezVadnychTicku` teď v denních úsecích vynechává JEN
+body v nepracovní dny všech burz zdrojových fondů (so, ne, 1. 1., 25. 12.). Odlehlé body podle velikosti výkyvu NEFILTROVAT:
+skutečné dny (1. 4. 2020, 13. 11. 2008 EEM +13 %/−10 %) vypadají stejně. Čistotu DB hlídá check-fund-data (audit backtest).
 
 ## Data fondů a žebříčky (audit dat 17. 10. 2026)
 
@@ -331,6 +335,26 @@ a ostatní ETF jako „12 × 3 EUR + až 2,5 EUR za burzu“ – horní mez, ne 
 stačí udělat jednou; „za nákup“ dál počítá směnu při každém nákupu. Nevymýšlet odhady, dokud nejsou ověřené
 u oficiálního ceníku. Shodu poplatku a směny mezi /kde-koupit, /srovnani-brokeru
 a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
+
+**Audit nákladů 22. 10. 2026 – co se změnilo (a vypadá to divně):**
+- **IBKR směna = levnější ze dvou cest** (commissions-spot-currencies): automatická konverze při nákupu „typically
+  0.03%“ v kurzu BEZ minima, nebo ruční 0,002 % s min. 2 USD. Za nákup i za rok se bere levnější (rok: automatická
+  u každého nákupu, nebo jedna ruční směna celé roční částky). Proto je u malých částek „za rok“ = 12 × „za nákup“
+  (dřív kontrola hlásila chybu) – správně. Za 2 000 Kč „od 32 Kč“ (dřív „od 74 Kč“, nebyla spodní hranice).
+- **IBKR vypořádání a regulační poplatek se započítávají** (Xetra (IBIS) Fees je od 22. 10. 2026 dostupná): 0,02 EUR
+  + 0,0008 % a 0,01 EUR za obchod. Poplatek burzy Xetra u ETF (0,004 %, min. 0,50 EUR) se NEzapočítává – IBKR ho
+  u retailových pokynů směrovaných podle best execution neúčtuje → součet zůstává „od“. Výše nahoře (odstavec o 403) neplatí.
+- **DEGIRO ETF Selection = ETF kótovaná na burze Tradegate** (Přehled poplatků, str. 4, pozn. 1), ne nákup na Xetře.
+  Na Xetře stojí nákup 3 EUR + připojení k burze. Na stránkách „Nákup ETF (Tradegate)“ u DEGIRO je záměr.
+- **DEGIRO „+ až 2,5 EUR ročně za CNX“ u ETF Selection i ostatních ETF** (str. 10, pozn. 2: poplatek „bude rovněž
+  účtován za připojení k CNX, burze používané pro směnu měn“). Výjimku pro bezplatnou směnu CZK/EUR ceník neuvádí →
+  ukazujeme jako horní mez vedle ročního součtu (data-za-rok ho NEobsahuje). Neodstraňovat, dokud DEGIRO písemně
+  nepotvrdí, že se u CZK/EUR neúčtuje (pak opravit + tento bod).
+- **„Nejlevnější do 16 176 Kč / od 16 177 Kč“** – hranice na celé koruny půlením na vzorcích (`nejlevnejsiPodleCastky`),
+  ne krokem 100 Kč; mění se s kurzem ČNB (1 EUR / 0,15 %).
+- **DEGIRO a Fio „jen celé kusy“** bez ceny kusu: cenu kusu v databázi nemáme (`etf_funds.current_price` = 0) → jen
+  věta, žádné číslo.
+Hlídá blok „audit naklady“ v `check-fund-data.mjs` (nezávislý vzorec z ceníků + XTB: novější tabulka poplatků → poplach).
 - **Stejný výnos v Kč na 4 desetinná místa u různých tříd/fondů (SXR8 = IUSA = VUSA 1R 21,7501 %; VWCE = VWRL),
   18. 10. 2026:** není chyba. Zdroj (justETF) dává výnos v EUR na 2 desetinná místa a ty jsou u fondů na stejný
   index se stejným TER shodné (21,70 %); Kč se počítá z EUR stejným kurzem ČNB → shodný výsledek. VUAA (21,59 %) se liší.
@@ -426,7 +450,11 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **DEGIRO – česká podpora „Ne“, i když má český web.** degiro.cz/helpdesk/contact: „our Service Desk is not available
   in Czech“. Na webu proto „web česky, podpora jen anglicky“.
 - **DEGIRO u konkrétního fondu (/kde-koupit?isin=…) ukazuje dvě sazby** (ETF Selection 1 EUR / mimo 3 EUR) a nemá
-  štítek „nejlevnější“: seznam ETF Selection ověřený nemáme. Neopravovat na jednu sazbu.
+  štítek „nejlevnější“: seznam ETF Selection ověřený nemáme. Neopravovat na jednu sazbu. (22. 10. 2026: ETF Selection =
+  ETF kótovaná na Tradegate; naše data burz fondu Tradegate nemají spolehlivě, proto dál dvě sazby.)
+- **Trading 212 – ceník ověřen 22. 10. 2026 v centru nápovědy** (helpcentre.trading212.com, články 11471996799517 a
+  360018909758: „FX fee: 0.15%, Trading commission: Free“; „spot exchange rate + 0.15% FX fee“). trading212.com/terms
+  dál blokuje stažení.
 
 ## Backtest, předpočty a kvíz – kolo 5 A (19. 10. 2026)
 
@@ -733,12 +761,15 @@ i tečku a mezery v tisících, hodnotu posílá jen platnou a v rozsahu; ořez 
 s viditelnou hláškou „Upraveno do povoleného rozsahu“. Dokud pole není platné, kalkulačka ukáže „—“ / „Doplňte …“
 (nouzová rezerva ani FIRE bez vstupu nevydají žádný verdikt). **Nevracet `type="number"` s `Number(e.target.value)`**
 – smazání „2“ dělalo „0“ a další číslice se přilepila („10“ osob, věk „1831“ → 80, sazba „4,9“ → 49 %).
-Výjimka `prazdne={0}`: stroj času, backtest a náklady u brokerů mají u částek zástupný text „0“ a prázdné = žádný vklad.
+Prázdné = žádný vklad (zástupný text „0“) jen tam, kde to dává smysl: backtest přes vlastnost `prazdne={0}` (`#bt-initial`,
+`#bt-contrib`), stroj času bez ní – stav pole je `null` a widget ho počítá jako 0 (`mesicneV ?? 0`), obě částky 0 → „Zadejte
+částku“. Kalkulačka nákladů u brokerů `prazdne` NEPOUŽÍVÁ: prázdné / neplatné pole = „Zadejte částku od 100 do 1 000 000 Kč“.
+(Opraveno 22. 10. 2026 – dřív tu stálo, že `prazdne={0}` mají všechny tři; ověřeno grepem, používá ho jen BacktestWidget.)
 Kontrola: `scripts/qa-kalkulacky.mjs` (WebKit 390 px, vyprázdní pole, napíše hodnotu, ověří výsledek).
 
 **FIRE kalkulačka – předpoklady výnosů jsou REÁLNÉ (po inflaci) historické výnosy v Kč, ne 7,7/8,8/9,8 %.**
 `src/lib/firePredpoklady.ts`: konzervativní 30/70 = 2,0 %, vyvážená 60/40 = 4,6 %, agresivní 80/20 = 6,2 % ročně
-nad inflaci; kolísání 6,9 / 8,8 / 10,7 %. Složení jako modelové portfolio 60/40 (Vanguard FTSE All-World +
+nad inflaci; kolísání REÁLNÉ 7,6 / 9,2 / 11,0 % (do auditu nástrojů 22. 10. 2026 nominální 6,9 / 8,8 / 10,7 % – viz níže). Složení jako modelové portfolio 60/40 (Vanguard FTSE All-World +
 Xtrackers Eurozone Government Bond), roční rebalancování, nejdelší společné období 7/2008–9/2026 (VT existuje
 od 6/2008), inflace ČSÚ. Proč: staré nominální sazby bez zdroje dávaly portfoliu s 60 % dluhopisů víc, než web
 jinde uvádí pro čisté akcie. Kalkulačka počítá v dnešních korunách: nominální výnos = (1 + reálný) × (1 + zadaná
@@ -747,7 +778,8 @@ a 11 % a dluhopisy eurozóny v nich ztrácely – je to skutečnost, ne chyba. O
 × kurzy ČNB, inflace Eurostat HICP + ČSÚ): `scripts/overeni-fire-predpoklady.mjs` – reálně 2,00 / 4,55 / 6,14 %.
 Přestane platit: při aktualizaci období (pak přepočítat enginem a spustit ověřovací skript).
 
-**Monte Carlo počítá s DOLAROVÝMI výnosy amerických tříd aktiv – bez kurzu koruny, a tak to i píše.**
+**Monte Carlo počítá s DOLAROVÝMI výnosy amerických ETF – bez kurzu koruny, a tak to i píše.** Předpoklady od 22. 10. 2026
+z historie ETF (sekce „Audit nástrojů – kalkulačky“).
 Dřív stránka tvrdila „výsledky v korunách“. Převod do Kč (kurzová vrstva) zatím není ověřený → nepublikujeme.
 Výsledky simulace zaokrouhlené na tisíce.
 
@@ -760,6 +792,51 @@ Zdravotní pojištění strop nemá. Přestane platit 1. 1. 2027 (nová průměr
 
 **Hypotéka: změna ceny nemovitosti už nepřepisuje výši úvěru na 80 %** – během psaní to mazalo zadaný úvěr.
 Úvěr nad cenou = varování.
+
+## Audit nástrojů – kalkulačky (22. 10. 2026)
+
+Nezávislý auditní tým (zlaté případy, Python z holých dat) našel chyby v kalkulačkách. Co vypadá divně, ale je záměr:
+
+- **Tečka/čárka po 3 číslicích = tisíce v polích pro celá čísla** (`rozborCisla` v `src/components/CisloInput.tsx`, V1):
+  „15.000“ = 15 000, „1.000.000“ = 1 000 000, „1,000“ = 1 000. Dřív „15.000“ → 15 Kč, „1.000.000“ → prázdné.
+  Desetinné číslo v poli pro celá čísla („2,5“ osoby, „5000,5“ Kč) = CHYBA s hláškou „Zadejte celé číslo“ a výsledek „—“,
+  žádné tiché zaokrouhlení (dřív „2,5“ → 3). V DESETINNÝCH polích (%, sazba) je „1.000“ nejednoznačné: když pole nepřipouští
+  ≥ 1 000 (max < 1 000 – dnes všechna procentní pole), bere se jako 1,000 = 1; jinak hláška „nejednoznačné“. Dvě a víc
+  skupin („1.000.000“) = vždy tisíce; „1.000,5“ / „1,000.5“ = poslední znak je desetinný. Výjimka: pole s `prazdne={0}`
+  (backtest) neplatný text smaže a počítá s 0 – pole pak ukazuje zástupnou „0“, takže výpočet odpovídá tomu, co je vidět.
+  Hlídá `scripts/qa-kalkulacky.mjs` (WebKit i Chromium, 390 px, dotyk).
+- **FIRE simulace je GEOMETRICKÁ (log-normální)** (V2): měsíční růst = exp(N(ln(1 + r)/12, σ/√12)), r = historický reálný
+  CAGR → medián dráhy roste přesně o r (numpy 100 000 cest: 4,609 % při r = 4,6 %). Dřív se (1 + r)^(1/12) − 1 bral jako
+  aritmetický průměr → medián o ~σ²/2 nižší a věk FIRE o 1–3 roky později (výchozí 58/67 → teď 52/57/65). Kolísání je
+  REÁLNÉ (měsíční log výnosy po inflaci × √12) 7,6 / 9,2 / 11,0 % – simulace běží v dnešních korunách; nominální 6,9 / 8,7 /
+  10,6 % je nižší, protože měsíční inflace kolísání přidává. Ověřuje `scripts/overeni-fire-predpoklady.mjs`.
+- **FIRE: „nedosáhnete“ jen když cíle nedosáhne ŽÁDNÁ simulace** (S19). Když ho dosáhne menšina, píšeme „jen v X % simulací“.
+  „Obvykle (medián)“ místo „Nejčastěji“ (medián není nejčastější hodnota).
+- **Monte Carlo: výnosy, kolísání a korelace z historie ETF 11/2007–9/2026** (V3, `src/lib/monteCarloPredpoklady.ts`):
+  SPY 10,8 %, EFA 4,2 %, EEM 3,1 %, AGG 2,7 %, BWX 0,3 %, VNQ 5,4 %, GLD 8,7 %, BIL 1,3 % (CAGR v USD s dividendami).
+  **Vypadá to divně** (rozvíjející se trhy 3 %, zlato skoro jako akcie, mezinárodní dluhopisy ~0 %) – je to skutečná historie
+  tohoto období, ne chyba. Období je nejdelší společné (BWX od 10/2007). Třídy bez dat a bez váhy v portfoliích (US malé
+  firmy, Kanada, high-yield) odebrány. Výsledky na 2 platné číslice (S22: p95 se při 600 scénářích mění o 3–6 %).
+  Kontrola: `scripts/monte-carlo-predpoklady.mjs` (Yahoo, týdně v CI). Kotvy: S&P 500 TR 10,90 %, T-bill (FRED TB3MS) 1,43 %.
+- **Kurzový dopad: kolísavost z kurzů ČNB 1/1999–9/2026** (V7, `src/lib/kurzovaKolisavost.ts`): USD/CZK 11,35 %, EUR/CZK
+  5,14 %, korelace 0,61 (měsíční log změny × √12). Posledních 10 let je koruna klidnější (9,2 / 4,2 %) – bereme nejdelší
+  období, je to uvedené u čísla. Kontrola: `scripts/kurzovy-dopad-predpoklady.mjs`. Scénáře jsou okamžitá změna kurzu
+  bez horizontu (je to napsané). Věta „pravidelné nákupy kurzové riziko zmírňují“ odstraněna (S27): průměrují jen kurz
+  nákupu, na už nakoupenou část působí kurz dál.
+- **Čistý plat počítá se zákonným zaokrouhlením** (N14): základ zálohy na stokoruny nahoru, záloha a pojistné na koruny
+  nahoru, zdravotní 13,5 % nahoru a zaměstnanec třetinu nahoru – proto se čísla mohou o pár korun lišit od „hladkých“
+  kalkulaček. Pod minimální mzdou (22 400 Kč) zaměstnanec doplácí 13,5 % z rozdílu (S24), pokud nezaškrtne výjimku
+  (student, rodič na rodičovské, státní pojištěnec, ZTP…); pracující důchodce výjimku má automaticky. Daňový bonus pod
+  50 Kč měsíčně se nevyplácí (§ 35d odst. 4 ZDP, N13). „Pojistné + daň, X % z hrubé“ je BEZ bonusu (bonus zvlášť, S23).
+  Štítek pracujícího důchodce „0,6 %“ (V11). Přestane platit 1. 1. 2027 (nová průměrná a minimální mzda).
+- **Nouzová rezerva = redakční pravidlo, ne vědecký zdroj** (V12, S26 – rozhodnutí vedoucího): zaměstnanec 3 měsíce (nejvýš 6),
+  OSVČ / dohody 6 (nejvýš 12), +1 měsíc za faktor (středně stabilní práce, nestabilní +2, doba určitá, pravidelné splátky,
+  jediný příjem v domácnosti se 3+ osobami, 50+, základní vzdělání), 2+ osoby a splátky ≥ 6 měsíců. Stejně ve widgetu
+  („Jak počítáme“), ve FAQ i v sekci stránky. „Dostatečná rezerva“ jen když nic nechybí (S25). Popisek „Mám pravidelné
+  splátky“ (redakční hranice – bez témat úvěrů). Zlatý případ osobni-24 vychází dál 12 měsíců.
+- **Investiční kalkulačka: výsledky modelu na tisíce** (N2), vklady přesně; „vloženo + výnos“ = zobrazená hodnota.
+  Zlaté případy investicni-* proto s tolerancí ±500 Kč (dřív ±1 Kč). Prázdný výnos/daň = „—“, ne „0 %“ (S6).
+- **Stroj času: částka nad maximum = hláška a žádný výsledek** (S7), po opuštění pole ořez s hláškou.
 
 ## Faktorové ETF – kolo 8 (22. 10. 2026)
 
@@ -883,3 +960,85 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   srovnávač), prázdné příznaky (null/false) se neposílají. Měny se na klientu NEdopočítávají – přepočet kurzem by se lišil
   od výnosu v Kč z DB.
 - Hlídá `scripts/check-fund-data.mjs`, blok `kolo8 zebricky` (A kategorie, B třídy, C detail neověřených, D texty a velikost).
+
+## Texty a statické výpočty na stránkách – audit nástrojů (22.–23. 10. 2026)
+
+- **Poplatek fondu se strhává z hodnoty fondu: čistý výnos = (1 + r)(1 − TER) − 1, NE r − TER** – /pruvodce (příklad
+  poplatků, `vynosPoPoplatku` v src/lib/prikladPoplatku.ts) i /kalkulacka. 10 000 Kč měsíčně, 20 let, 7 %, TER 0,2 / 1,8 %:
+  4 953 725 / 4 091 260 Kč, rozdíl 862 465 Kč (dřív 4 962 000 / 4 149 000 / 813 000). Kontrola v check-fund-data (kolo6 bod 7)
+  dřív kopírovala chybu webu (0,068 / 0,052 = kruh) – teď nezávislé konstanty 0,06786 / 0,05074 (1,07 × 0,998 − 1, 1,07 × 0,982 − 1).
+- **„7 % ročně“ na /kolik-investovat-mesicne, /dip, /investovani-pro-deti, /pruvodce je MODELOVÝ PŘEDPOKLAD, ne „historický
+  průměr“.** Skutečné výnosy v Kč závisí na období (k 21. 10. 2026: celý svět/VT od 2. 7. 2008 11,1 % ročně, S&P 500 od 1/2000
+  6,3 % ročně – /kolik-vydelaly-etf, počítá se z dat, nezávisle ověřeno 21. 10.). Stránky na ně odkazují, čísla nepíší natvrdo
+  (zastarala by). Neměnit zpět na „dlouhodobý průměr“.
+- **/fire „roky do FIRE“ počítá s reálným výnosem FIRE kalkulačky (vyvážené 60/40, 4,6 %) importem `FIRE_PREDPOKLADY`**,
+  ne opisem. Dřív „~5 % reálně“ bez zdroje. 50 % úspor → ~17 let, 20 % → ~38 let (víc než dvakrát), 70 % → ~9 let.
+- **Dvě různá „60/40“ jsou záměr, ale musí být pojmenovaná:** FIRE kalkulačka, /fire a modelové portfolio 60/40 = VWCE/VT +
+  státní dluhopisy eurozóny (Xtrackers XGLE, `eur_govt_bond`); stroj času a /pravidlo-4-procent = VT + americké dluhopisy
+  (iShares AGG, `us_aggregate_bond`, data od 10/2003). Texty na /pravidlo-4-procent, /fire-kalkulacka a popis presetu ve
+  stroji času (src/lib/strojCasuVypocet.ts) to říkají výslovně. Sjednocení dat = rozhodnutí majitele (otevřené).
+- **Časování vkladu ve statických tabulkách = konec měsíce** (/kolik-investovat-mesicne, /investovani-pro-deti, /pruvodce,
+  hero /kalkulacka; /dip a /fire na konci roku) a stránky to píší. Investiční kalkulačka a stroj času vkládají na začátku
+  měsíce (widgety – sjednocení navrženo, neprovedeno).
+- **Pravidlo 4 % na /kolik-investovat-mesicne má výhradu a sloupec 3,5 %**: v Kč by u startů 2000–2002 z čistě akciového
+  portfolia peníze došly a u startu 2000 ani 3,5 % a 3 % (S&P 500 3 % došly 9/2017, celý svět 10/2018; /pravidlo-4-procent,
+  data k 22. 10. 2026). Sloupec 3,5 % NENÍ „bezpečná“ sazba – text to říká.
+- **/investovani-pro-deti: věta o odkladu se generuje z čísel** (`slovniPodil`): 148 291 / 420 918 = 35,2 % → „zhruba třetina
+  výsledku (35 %)“, dřív natvrdo „ani ne třetina“. OG obrázek bere částku z výpočtu.
+- **Sloupec „5 let celkem (Kč)“ na /dip a /investovani-pro-deti je kumulativní** výnos (return_5y_czk), ne roční průměr – napsáno
+  v záhlaví i v poznámce pod tabulkou.
+- **Odpočet úroků z hypotéky: 150 000 Kč ročně za domácnost** (§ 15 odst. 4 ZDP, https://www.zakonyprolidi.cz/cs/1992-586,
+  znění 1. 8.–31. 12. 2026, ověřeno 22. 10. 2026); **300 000 Kč jen u bydlení pořízeného před 1. 1. 2021** (zákon č. 386/2020 Sb.,
+  čl. IV body 3–4, přechodná ustanovení na téže stránce). Úspora při 15 %: 22 500 Kč (u starých případů 45 000 Kč).
+- **Daně na /kalkulacka:** časový test 3 roky (§ 4 odst. 1 písm. u) ZDP) platí pro každý nákup zvlášť; hodnotový test = úhrn
+  příjmů z prodeje cenných papírů do 100 000 Kč za rok (§ 4 odst. 1 písm. t) ZDP; počítá se tržba, ne zisk). Ověřeno na
+  zakonyprolidi.cz 22. 10. 2026.
+- **DCA (/dca-vs-jednorazova) – čísla Vanguardu jsou rozdíly KONEČNÉ hodnoty, ne roční výnos** (ověřeno v PDF 22. 10. 2026):
+  Vanguard 2023, Finlay & Zorn, „Cost averaging: Invest now or temporarily hold your cash?“
+  (https://corporate.vanguard.com/content/dam/corp/research/pdf/cost_averaging_invest_now_or_temporarily_hold_your_cash.pdf):
+  str. 5 – 60/40, rozložení do 3 měsíců, po 1 roce LS o 1,8 % víc (109 360 vs 107 453 USD); str. 3 – MSCI World 1976–2022, LS
+  poráží CA v 68 %, CA poráží hotovost v 69 %. Vanguard 2012, Shtekhman/Tasopoulos/Wimmer, „Dollar-cost averaging just means
+  taking risk later“, červenec 2012 (původní PDF na vanguard.com už PDF nevrací; text ověřen z kopie originálu
+  https://indexacapital.files.wordpress.com/2017/07/dollar-cost-averaging-just-means-taking-risk-later-vanguard-2012.pdf):
+  str. 3 – USA, LSI poráží 36měsíční DCA v ~90 % desetiletých období; str. 4 – 60/40, 12 měsíců, po 10 letech +2,3 % (UK 2,2 %,
+  AU 1,3 %).
+- **Monte Carlo neumí výběry z renty** (jen vklady) – /fire ho nenabízí jako „pravděpodobnost úspěchu renty“ a /monte-carlo
+  nemá kartu „předčasný důchod / načasování propadů“. Výnosy aktiv v simulátoru se na stránce jmenují „modelové
+  (předpokládané)“, ne „historické“ (V3 – čísla nemají doložený zdroj; oprava čísel je ve widgetu).
+- **„Aktualizováno 23. října 2026“** u stránek upravených v tomto auditu (redakce.ts) – datum úpravy textu.
+- Hlídá `scripts/check-fund-data.mjs`, blok `audit texty` (+ kolo6 bod 7). Před nasazením (produkce bez `data-priklad-vzorec`
+  na /pruvodce) jdou nálezy jen do varování.
+
+## Backtest a kvíz – audit nástrojů (22. 10. 2026)
+
+- **Pod 1 rok se výnos NEanualizuje** (V8, zásada GIPS): API pošle `summary.cagr = null`, widget ukáže „Za období +x %“
+  (celkový výnos, `celkovyVynos`), XIRR se skryje. Kolísavost, Sharpe, Sortino a VaR jsou „—“ při méně než 12 měsíčních
+  výnosech (`MIN_MESICU_RIZIKA`). Reálný výnos pod rok se nepočítá. Nevracet „aby tam bylo číslo“ – 7 týdnů dávalo „40,8 % ročně“.
+- **Součet vah: odchylka do 0,01 p. b. se normalizuje, větší = 400** (V9). Engine (runBacktest) navíc váhy sám normalizuje
+  a při odchylce > 0,01 p. b. hodí výjimku – i serverové předpočty. Dřív prošlo 99–101 % bez normalizace (CAGR 10,14 % místo 10,70 %).
+- **Bez počátečního vkladu jde pravidelný vklad i první den** (S8). S počátečním vkladem první den ne – počáteční vklad JE
+  investicí prvního měsíce. 0 + 5 000 Kč/měs. od 1/2005 = vloženo 1 310 000 Kč (dřív 1 305 000). Klientská rekonstrukce
+  vkladů (zhodnoceniVkladu.ts → XIRR, čára „vloženo“) dělá totéž.
+- **Sharpe a Sortino standardně z měsíčních výnosů nad bezrizikovou sazbou MĚNY výpočtu** (S10, N11): CZK = ČNB 2T repo,
+  EUR = EONIA (do 9/2019) / €STR, USD = efektivní fed funds; měsíční průměry v `src/lib/backtest/bezrizikovaSazba.ts`
+  (generátor `scripts/backtest/generuj-cpi-a-sazby.py`). Sharpe = průměr(r − rf) / výběrová σ(r − rf) × √12, Sortino =
+  průměr(r − rf) × 12 / downside odchylka pod rf. Dřív (CAGR − 2 %)/σ s 2 % i pro USD/EUR. Ověřeno nezávisle (Python z holých
+  dat): S&P 500 Kč 2005–10/2026 Sharpe 0,648 (web 0,646), USD 0,66, EUR 0,70.
+- **VaR 95 % z MĚSÍČNÍCH výnosů** (μ×12 − 1,65σ×√12, stejné výnosy jako kolísavost) + v nápovědě kolik ročních oken v datech
+  pod VaR opravdu spadlo (`podilPodVaR`, N10). Dřív z denních výnosů a text „horší jen v 1 roce z 20“ (empiricky 2–9 % oken).
+- **API `returns.monthlyReturns`, `horizons` a Monte Carlo jsou z MĚSÍČNÍ řady** (S11; první bod + konce měsíců). Dřív z denní
+  („1 rok“ = 12 obchodních dní). Pole se v UI nepoužívají, ale API je veřejné – opraveno, ne smazáno.
+- **TER model: historie = poplatek ZDROJOVÉHO fondu, ne fondu k nákupu** (S12). Fond k nákupu (proxyEtf, např. EIMI 0,18 %)
+  se do výpočtu nepromítá; u složky se ukazuje „historie z fondu EEM · jeho TER 0,72 % je ve výsledku“ a zvlášť řádek
+  „Poplatek v historii“ (vážený sourceTer; „—“, když ho u některé složky nemáme). Přepočet na fond k nákupu = vyhledat konkrétní fond.
+- **Inflace: CPI ČSÚ měsíčně od 1/1996** (S18): CEN0101B do 2014, CEN0101E od 2015, báze 2015 = 100. Starý odhad z ročních
+  průměrů měl roky 2000–2002 posunuté (2000: 2,4 % místo 3,9 %). Mění reálné výnosy od 2000 a měsíce vyčerpání na
+  /pravidlo-4-procent (S&P 500 start 2002: 2/2020 → 1/2021, shodně s nezávislým přepočtem auditu). Měsíce teď platí.
+- **Kvíz /vyber-etf: propady všech kategorií ze STEJNÉHO období** (K1) = od nejpozdějšího začátku dat (VT, 26. 6. 2008), stejně
+  jako modelová portfolia. Starší krize (dot-com) proto v těchto číslech nejsou – výslovně to píšeme. Delší historie se ukazuje
+  zvlášť jen jako fakt o DÉLCE propadu s vlastním obdobím (S&P 500 v Kč od 1/2000: −71,7 %, návrat po 14 letech a 3 měsících),
+  kontrolní údaj `data-kontrola-backtest-historie` (mimo srovnávací `data-kontrola-backtest`).
+- **Kvíz: riziko → typ výsledku** (V15): „Nechci velké propady“ → konzervativní portfolia, „Zvládnu střední výkyvy“ → umírněná
+  (60/40, Nobelovo), „velké výkyvy“ → akciový typ. Horizont 3–10 let → vždy upozornění s fakty o délce propadu (bez doporučení).
+  „Chci pravidelný příjem“ + „Reinvestovat“ → upozornění na rozpor (S17). Pravidla = čistá funkce `recommend` ve vyberEtfData.ts;
+  check-fund-data testuje všech 162 kombinací.

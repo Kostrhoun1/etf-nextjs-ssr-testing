@@ -86,10 +86,19 @@ export interface HorizonAnalysis {
 export interface BacktestSummary {
   amountInvested: number
   netAssetValue: number
-  cagr: number // Compound Annual Growth Rate
-  standardDeviation: number // Annualized
-  sharpeRatio: number
-  sortinoRatio: number // like Sharpe, but only downside deviation
+  /** CAGR. POZOR: pod 1 rok (obdobiLet < 1) je anualizace zavádějící – API ho pak posílá jako null (V8). */
+  cagr: number
+  standardDeviation: number // Annualized (z měsíčních výnosů); pod 12 měsíčních výnosů nevypovídá
+  /** Standardní Sharpe z měsíčních výnosů nad bezrizikovou sazbou měny; null = nelze (bez měny / < 12 měsíců). */
+  sharpeRatio: number | null
+  /** Sortino s cílovým výnosem = bezriziková sazba (čitatel i jmenovatel); null = nelze. */
+  sortinoRatio: number | null
+  /** Délka období v letech (365,25 dne). */
+  obdobiLet: number
+  /** Celkový time-weighted výnos za období (desetinně), bez anualizace. */
+  celkovyVynos: number
+  /** Počet celých měsíčních výnosů (konce měsíců), ze kterých je riziko. */
+  mesicnichVynosu: number
 }
 
 export interface BacktestReturns {
@@ -109,7 +118,10 @@ export interface BacktestRisk {
   maxDrawdown: DrawdownPeriod
   longestDrawdown: DrawdownPeriod
   deepestDrawdown: DrawdownPeriod
-  valueAtRisk95: number // e.g., -0.204 for -20.4%
+  /** Parametrický VaR 95 % za rok z měsíčních výnosů (např. −0,204); null = méně než 12 měsíčních výnosů. */
+  valueAtRisk95: number | null
+  /** Kolik klouzavých ročních oken v datech skončilo pod VaR (podíl 0–1) a z kolika oken. */
+  podilPodVaR: { podil: number; oken: number } | null
   allDrawdowns: DrawdownPeriod[]
 }
 

@@ -18,7 +18,7 @@ import { porovnejNejlevnejsi } from '@/lib/trhy';
 import { detectHedging } from '@/utils/hedgingDetection';
 import { distKind } from '@/utils/distribution';
 
-import { hodnotaVkladu, PRIKLAD_POPLATKU } from '@/lib/prikladPoplatku';
+import { hodnotaVkladu, vynosPoPoplatku, PRIKLAD_POPLATKU } from '@/lib/prikladPoplatku';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
@@ -67,11 +67,13 @@ export default async function GuidePreview() {
     : null;
 
   // Modelový příklad poplatků – počítá se, ne natvrdo (kolo 6: r/12 dávalo 5 085 000 / 4 207 000 Kč).
+  // Audit 22. 10. 2026 (V4): poplatek se strhává z hodnoty fondu → (1 + r)(1 − TER) − 1, ne r − TER (dřív rozdíl 813 000 Kč).
   const P = PRIKLAD_POPLATKU;
-  const hodnotaLevny = hodnotaVkladu(P.mesicne, P.let, P.hrubyVynos - P.terLevny);
-  const hodnotaDrahy = hodnotaVkladu(P.mesicne, P.let, P.hrubyVynos - P.terDrahy);
+  const hodnotaLevny = hodnotaVkladu(P.mesicne, P.let, vynosPoPoplatku(P.hrubyVynos, P.terLevny));
+  const hodnotaDrahy = hodnotaVkladu(P.mesicne, P.let, vynosPoPoplatku(P.hrubyVynos, P.terDrahy));
   const tisice = (v: number) => `${(Math.round(v / 1000) * 1000).toLocaleString('cs-CZ')}\u00a0Kč`;
   const procento = (v: number) => `${(v * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}\u00a0%`;
+  const procento3 = (v: number) => `${(v * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}\u00a0%`;
 
   /* ---------- Tři ukázkové široké fondy pro začátečníka (živá data) ---------- */
   const pool = [...featured.bySize, ...featured.byRating, ...featured.lowCost];
@@ -608,7 +610,7 @@ export default async function GuidePreview() {
             <div className="mt-4 grid sm:grid-cols-2 gap-3">
               <div className="rounded-lg border border-teal-200 bg-teal-50/50 p-4">
                 <p className="text-xs font-medium text-teal-800">Levný ETF – TER {procento(P.terLevny)}</p>
-                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900" data-priklad-levny={Math.round(hodnotaLevny)}>≈ {tisice(hodnotaLevny)}</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-slate-900" data-priklad-levny={Math.round(hodnotaLevny)} data-priklad-vzorec="(1+r)(1-ter)-1">≈ {tisice(hodnotaLevny)}</p>
                 <p className="text-xs text-slate-500 mt-0.5">hodnota po 20 letech</p>
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -622,8 +624,10 @@ export default async function GuidePreview() {
               méně na účtu. Rozdíl {procento(P.terLevny)} vs {procento(P.terDrahy)} ročně vypadá malý, ale za 20–30 let ukrojí značnou část výnosu.
             </p>
             <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-              Ilustrační výpočet za zjednodušených předpokladů (konstantní výnos 7 % minus poplatek, měsíční úročení
-              odpovídající roční sazbě, bez daní a poplatků brokera). Na
+              Ilustrační výpočet za zjednodušených předpokladů: konstantní hrubé zhodnocení 7 % ročně, poplatek se strhává
+              z hodnoty fondu (výnos po poplatku = 1,07 × (1 − TER) − 1, tedy {procento3(vynosPoPoplatku(P.hrubyVynos, P.terLevny))} a{' '}
+              {procento3(vynosPoPoplatku(P.hrubyVynos, P.terDrahy))} ročně), měsíční úročení odpovídající roční sazbě, vklad na konci
+              měsíce, bez daní a poplatků brokera. Výnos 7 % je modelový předpoklad, ne zaručený ani změřený výnos. Na
               vlastní částku si dopad spočítejte v{' '}
               <Link href="/kalkulacka" className="text-teal-700 hover:underline font-medium">
                 kalkulačce poplatků ETF

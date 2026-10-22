@@ -204,6 +204,9 @@ export default async function KolikVydelalyEtf() {
   const datum = denText(d.posledniDen);
   const start = denText(d.prvniDen); // skutečný první den řady (2. 7. 2008), ne předpoklad
   const vkladu = Math.round(d.dca.vlozeno / 5000);
+  // Měsíc prvního vkladu = první den dat (bez počátečního vkladu jde první vklad hned první den – audit S8, 22. 10. 2026).
+  const MES_GEN = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+  const odVkladu = `${MES_GEN[Number(d.prvniDen.slice(5, 7)) - 1]} ${d.prvniDen.slice(0, 4)}`;
   const roky = Math.round(d.svet.roky);
   const okno = (r: number) => d.okna.find((o) => o.roky === r) ?? null;
   const o1 = okno(1), o10 = okno(10);
@@ -338,7 +341,7 @@ export default async function KolikVydelalyEtf() {
             { co: `Akcie celého světa (fond VT) – roční zhodnocení od ${start}`, hodnota: pctBez(d.svet.cagr), pozn: 'v Kč, po poplatcích fondu, před daní' },
             { co: `100 000 Kč vložených ${start}`, hodnota: kc(d.svet.konec), pozn: `${nasobekText(d.svet.nasobek)} vkladu` },
             { co: 'Nejhlubší propad v korunách', hodnota: pctBez(d.svet.maxPokles), pozn: `${mesRok(prvniPropad.od)} → ${mesRok(prvniPropad.dno)}` },
-            { co: `5 000 Kč měsíčně (${vkladu} vkladů od srpna 2008)`, hodnota: kc(d.dca.hodnota), pozn: `vloženo ${kc(d.dca.vlozeno)}` },
+            { co: `5 000 Kč měsíčně (${vkladu} vkladů od ${odVkladu})`, hodnota: kc(d.dca.hodnota), pozn: `vloženo ${kc(d.dca.vlozeno)}` },
             { co: `S&P 500 (USA) – roční zhodnocení od ${start}`, hodnota: pctBez(sp.cagr), pozn: 'v Kč, fond SPY' },
           ]}
           zdroje={[
@@ -550,7 +553,7 @@ export default async function KolikVydelalyEtf() {
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 border border-slate-200 mb-3"><Repeat className="w-5 h-5" /></span>
               <p className="text-xs uppercase tracking-wide text-slate-500">Celkem vloženo</p>
               <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">{kc(d.dca.vlozeno)}</p>
-              <p className="text-sm text-slate-500 mt-0.5">{vkladu}× 5 000 Kč, měsíčně od srpna 2008</p>
+              <p className="text-sm text-slate-500 mt-0.5">{vkladu}× 5 000 Kč, měsíčně od {odVkladu}</p>
             </div>
             <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-5">
               <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200 mb-3"><Sprout className="w-5 h-5" /></span>

@@ -42,7 +42,15 @@ const need = (target: number, annual: number, years: number) => {
   return target / ((Math.pow(1 + r, n) - 1) / r);
 };
 
-const RATE = 0.07; // modelový nominální výnos p.a.
+// Modelový PŘEDPOKLAD nominálního výnosu p.a. (zaokrouhlený), ne změřený historický průměr – skutečné výnosy v Kč podle
+// období ukazuje /kolik-vydelaly-etf (audit nástrojů 22. 10. 2026, S1). Vklad vždy na KONCI měsíce (S3).
+const RATE = 0.07;
+/* Pravidlo 4 % = 25× roční výdaje = 300× měsíční. Opatrnější výběr 3,5 % (≈ 28,6× ročních výdajů) – audit 22. 10. 2026 (S2):
+   v korunách by u startů 2000–2002 z čistě akciového portfolia 4 % nevydržela a u startu 2000 ani 3,5 % a 3 %
+   (/pravidlo-4-procent, data k 22. 10. 2026: S&P 500 3 % došly 9/2017, celý svět 3 % 10/2018). */
+const VYBER = 0.04;
+const VYBER_OPATRNE = 0.035;
+const naRentu = (mesicne: number, vyber: number) => (mesicne * 12) / vyber;
 const MONTHLY = [1000, 3000, 5000, 10000];
 const HORIZONS = [10, 20, 30];
 
@@ -52,6 +60,7 @@ const kc = (v: number) =>
     ? `${(v / 1_000_000).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
     : `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
 const kcRound = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
+const mil = (v: number) => `${(v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mil. Kč`;
 
 export default async function KolikInvestovat() {
   const upraveno = upravenoDlouze('/kolik-investovat-mesicne'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
@@ -63,11 +72,11 @@ export default async function KolikInvestovat() {
     },
     {
       q: 'S jakým výnosem mám počítat u ETF?',
-      a: 'Široký akciový index historicky vynášel dlouhodobě zhruba 7 % ročně nominálně (před inflací). Není to záruka – trh kolísá a jednotlivé roky mohou být hluboko v mínusu i výrazně v plusu. Proto počítáme s modelovým průměrem a v kalkulačce si můžete zkusit i opatrnější 5 % nebo optimističtější 9 %.',
+      a: 'Tabulky na této stránce počítají s modelovým předpokladem 7 % ročně nominálně (zaokrouhleně, před inflací) – není to změřený ani zaručený průměr. Skutečný historický výnos v korunách se podle zvoleného období a indexu liší o několik procentních bodů ročně; s daty k dnešku ho ukazuje článek Kolik vydělaly ETF (celý svět od 7/2008, S&P 500 od 1/2000). Trh navíc kolísá a jednotlivé roky mohou být hluboko v mínusu i výrazně v plusu. Proto níže ukazujeme i opatrnější 5 % a optimističtější 9 % a v investiční kalkulačce si zadáte vlastní výnos.',
     },
     {
       q: 'Jsou ta čísla po zdanění a inflaci?',
-      a: 'Ne – tabulky ukazují nominální hodnotu před inflací a bez daní. Reálná kupní síla bude nižší (milion za 30 let koupí méně než dnes). Na druhou stranu při držbě ETF déle než 3 roky je zisk z prodeje v Česku za splnění podmínek osvobozen od daně. Reálnou (inflací očištěnou) hodnotu si přepnete v naší kalkulačce.',
+      a: 'Ne – tabulky ukazují nominální hodnotu před inflací a bez daní. Reálná kupní síla bude nižší (milion za 30 let koupí méně než dnes). Na druhou stranu při držbě ETF déle než 3 roky je zisk z prodeje v Česku za splnění podmínek osvobozen od daně. Investiční kalkulačka pod výsledkem ukáže i přibližnou hodnotu v dnešních cenách (při inflaci 2 % ročně, cíl ČNB).',
     },
     {
       q: 'Je lepší investovat pravidelně, nebo jednorázově?',
@@ -75,7 +84,7 @@ export default async function KolikInvestovat() {
     },
     {
       q: 'Kolik potřebuji naspořit na rentu?',
-      a: `Podle pravidla 4 % zhruba 25násobek ročních výdajů (300násobek měsíčních). Renta 20 000 Kč měsíčně tak vyžaduje kolem 6 milionů Kč, renta 30 000 Kč kolem 9 milionů. Detailně to řešíme v průvodci FIRE a ve FIRE kalkulačce.`,
+      a: `Podle pravidla 4 % zhruba 25násobek ročních výdajů (300násobek měsíčních). Renta 20 000 Kč měsíčně tak vyžaduje kolem ${mil(naRentu(20000, VYBER))}, renta 30 000 Kč kolem ${mil(naRentu(30000, VYBER))}. Pravidlo ale pochází z amerických dat v dolarech: v korunách by u startů v letech 2000–2002 z čistě akciového portfolia peníze došly (rozbor v článku Pravidlo 4 % v korunách). Opatrnější výběr 3,5 % ročně znamená zhruba 29násobek ročních výdajů – pro rentu 20 000 Kč kolem ${mil(naRentu(20000, VYBER_OPATRNE))}; ani ten ale u startu v roce 2000 v korunách nevydržel. Detailně to řešíme v průvodci FIRE a ve FIRE kalkulačce.`,
     },
   ];
   const faqSchema = {
@@ -131,7 +140,7 @@ export default async function KolikInvestovat() {
               Kolik investovat měsíčně, abyste měli milion (nebo rentu)?
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
-              Kolik reálně naspoříte pravidelným vkladem do ETF – <strong className="text-white">v korunách</strong> pro 10, 20 i 30 let.
+              Kolik naspoříte pravidelným vkladem do ETF – <strong className="text-white">v korunách</strong> pro 10, 20 i 30 let.
               Příklad: na první milion stačí <strong className="text-white">~{Math.round(need(1_000_000, RATE, 30)).toLocaleString('cs-CZ')} Kč měsíčně</strong>,
               když investujete 30 let při modelovém výnosu ~7 % ročně (nominálně, před inflací).
             </p>
@@ -159,19 +168,21 @@ export default async function KolikInvestovat() {
               chci mít – a za jak dlouho?</strong> Zbytek je aritmetika, kterou za vás odpracuje složené úročení.
             </p>
             <p>
-              Počítáme s modelovým výnosem <strong className="text-slate-900">7 % ročně</strong> (dlouhodobý historický
-              průměr širokého akciového indexu, před inflací) a s pravidelným měsíčním vkladem, který reinvestujete.
-              Všechno v korunách.
+              Počítáme s modelovým předpokladem <strong className="text-slate-900">7 % ročně</strong> (zaokrouhlený nominální
+              výnos před inflací – ne změřený ani zaručený průměr) a s pravidelným měsíčním vkladem na konci každého měsíce,
+              který reinvestujete. Všechno v korunách. Kolik ETF skutečně vydělaly v různých obdobích, ukazuje{' '}
+              <Link href="/kolik-vydelaly-etf" className="text-teal-700 hover:underline">Kolik vydělaly ETF</Link> (celý svět od 7/2008,
+              S&amp;P 500 od 1/2000, data k dnešku).
             </p>
           </div>
         </section>
 
         {/* 1. TABULKA: kolik naspořím */}
         <section className="pb-10">
-          <SectionHead title="Kolik naspoříte měsíčním vkladem" desc="Budoucí hodnota pravidelné investice při 7 % ročně. Vidíte, jak čas dělá většinu práce – vklad roste lineárně, ale výsledek exponenciálně." />
+          <SectionHead title="Kolik naspoříte měsíčním vkladem" desc="Budoucí hodnota pravidelné investice (vklad na konci každého měsíce) při modelových 7 % ročně. Vidíte, jak čas dělá většinu práce – vklad roste lineárně, ale výsledek exponenciálně." />
           {/* Kolo 8: na mobilu byly sloupce „Za 30 let“ a „Vloženo“ mimo obrazovku → sdílená responzivní tabulka (karty). */}
           <ResponzivniTabulka
-            popis="Kolik naspoříte měsíčním vkladem při 7 % ročně"
+            popis="Kolik naspoříte měsíčním vkladem (na konci měsíce) při modelových 7 % ročně"
             sloupce={[{ nazev: 'Měsíčně' }, ...HORIZONS.map((y) => ({ nazev: `Za ${y} let` })), { nazev: 'Vloženo (30 let)', nazevKarta: 'Vloženo za 30 let' }]}
             radky={MONTHLY.map((pmt) => ({
               key: String(pmt),
@@ -221,7 +232,7 @@ export default async function KolikInvestovat() {
               <div key={a} className={`rounded-lg border bg-white p-5 text-center ${a === RATE ? 'border-teal-300 ring-1 ring-teal-100' : 'border-slate-200'}`}>
                 <p className="text-xs text-slate-500 uppercase tracking-wide">{(a * 100).toLocaleString('cs-CZ')} % ročně</p>
                 <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">{kc(fv(5000, a, 30))}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{a === RATE ? 'náš modelový průměr' : a < RATE ? 'opatrnější' : 'optimističtější'}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{a === RATE ? 'náš modelový předpoklad' : a < RATE ? 'opatrnější' : 'optimističtější'}</p>
               </div>
             ))}
           </div>
@@ -234,15 +245,27 @@ export default async function KolikInvestovat() {
 
         {/* 4. OD MILIONU K RENTĚ */}
         <section className="pb-10">
-          <SectionHead title="Od milionu k rentě" desc="Milion je milník, ne cíl. Kolik potřebujete, aby vás portfolio uživilo – podle pravidla 4 % (25násobek ročních výdajů)." />
+          <SectionHead title="Od milionu k rentě" desc="Milion je milník, ne cíl. Kolik potřebujete, aby vás portfolio uživilo – podle pravidla 4 % (25násobek ročních výdajů) a opatrněji při výběru 3,5 %." />
           <ResponzivniTabulka
             popis="Kolik naspořit na měsíční rentu podle pravidla 4 %"
-            sloupce={[{ nazev: 'Chci rentu měsíčně' }, { nazev: 'Potřebuji naspořit' }]}
+            sloupce={[{ nazev: 'Chci rentu měsíčně' }, { nazev: 'Pravidlo 4 % (300×)', nazevKarta: 'Výběr 4\u00a0%' }, { nazev: 'Opatrněji 3,5 %', nazevKarta: 'Výběr 3,5\u00a0%' }]}
             radky={[15000, 20000, 30000, 40000].map((m) => ({
               key: String(m),
-              bunky: bunky(<span className="tabular-nums">{m.toLocaleString('cs-CZ')} Kč měsíčně</span>, <span className="font-semibold text-teal-700">{kc(m * 300)}</span>),
+              bunky: bunky(
+                <span className="tabular-nums">{m.toLocaleString('cs-CZ')} Kč měsíčně</span>,
+                <span className="font-semibold text-teal-700">{kc(naRentu(m, VYBER))}</span>,
+                <span className="text-slate-700">{kc(naRentu(m, VYBER_OPATRNE))}</span>,
+              ),
             }))}
           />
+          <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl" data-vyhrada-4-procenta>
+            <AlertTriangle className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
+            Pravidlo 4 % pochází z amerických dat v dolarech a není to záruka. V korunách by u startů v letech 2000–2002
+            z čistě akciového portfolia peníze došly a u startu v roce 2000 by nevydržel ani výběr 3,5 % či 3 % – rozbor
+            podle roku startu najdete v článku{' '}
+            <Link href="/pravidlo-4-procent" className="text-teal-700 hover:underline">Pravidlo 4 % v korunách</Link>. Sloupec
+            s výběrem 3,5 % ukazuje, o kolik víc je potřeba naspořit při opatrnějším plánu; ani to není záruka.
+          </p>
           <div className="mt-4">
             <Link href="/fire" className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
               Celý průvodce cestou k rentě: FIRE a finanční nezávislost <ArrowRight className="w-4 h-4" />
@@ -255,7 +278,7 @@ export default async function KolikInvestovat() {
           <SectionHead title="Tři věci, které tabulky nezohledňují" desc="Ať nejsou čekání zbytečně růžová. Poctivě k tomu, co realitu mění." />
           <div className="grid gap-3 sm:grid-cols-3">
             {([
-              [AlertTriangle, 'Inflace', 'Milion za 30 let koupí méně než dnes. Reálná (inflací očištěná) hodnota je nižší – v kalkulačce ji přepnete.'],
+              [AlertTriangle, 'Inflace', 'Milion za 30 let koupí méně než dnes. Reálná (inflací očištěná) hodnota je nižší – investiční kalkulačka ji ukáže v dnešních cenách.'],
               [Scale, 'Kolísání trhu', 'Výnos není lineárních 7 % každý rok. Přijdou i hluboké propady; klíčové je nepanikařit a vydržet.'],
               [Coins, 'Daně', 'Dobrá zpráva: při držbě ETF déle než 3 roky je zisk z prodeje v Česku za splnění podmínek osvobozen.'],
             ] as [typeof AlertTriangle, string, string][]).map(([Icon, t, d]) => (
@@ -269,7 +292,7 @@ export default async function KolikInvestovat() {
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Víc o zdanění v průvodci <Link href="/dane-z-etf" className="text-teal-700 hover:underline">Daně z ETF</Link>,
-            reálnou vs. nominální hodnotu si přepnete v <Link href="/investicni-kalkulacka" className="text-teal-700 hover:underline">investiční kalkulačce</Link>.
+            hodnotu v dnešních cenách (při inflaci 2 % ročně) ukáže <Link href="/investicni-kalkulacka" className="text-teal-700 hover:underline">investiční kalkulačka</Link>.
             Kolik ETF reálně vydělaly v minulosti (v Kč) rozebírá <Link href="/kolik-vydelaly-etf" className="text-teal-700 hover:underline">Kolik vydělaly akcie</Link>.
           </p>
         </section>

@@ -16,6 +16,7 @@ import type {
   BacktestRisk,
   MonteCarloResult,
 } from './types'
+import { mesicniSazba, type MenaSazby } from './bezrizikovaSazba'
 
 // ============================================================
 // BASIC STATISTICS
@@ -193,6 +194,18 @@ export function resampleMonthEnd(series: TimeSeriesPoint[]): TimeSeriesPoint[] {
   return [...byMonth.values()]
 }
 
+/**
+ * Měsíční řada = PRVNÍ bod + konec každého měsíce. Na rozdíl od resampleMonthEnd nezahodí začátek období,
+ * takže součin měsíčních výnosů = celý výnos období (roční výnosy vycházejí stejně jako z denní řady).
+ * PROČ (audit nástrojů 22. 10. 2026, S11): „měsíční“ výnosy, horizonty a Monte Carlo v API se dřív počítaly
+ * z DENNÍ řady – „1 rok“ = 12 obchodních dní, „kladných měsíců“ = kladných dní.
+ */
+export function mesicniRada(series: TimeSeriesPoint[]): TimeSeriesPoint[] {
+  if (series.length === 0) return []
+  const konce = resampleMonthEnd(series)
+  return konce[0] === series[0] ? konce : [series[0], ...konce]
+}
+
 export function periodsPerYear(evolution: TimeSeriesPoint[]): number {
   if (evolution.length < 2) return 12
   const years = yearsBetween(evolution[0].date, evolution[evolution.length - 1].date)
@@ -319,28 +332,36 @@ export function calculateSharpeRatio(
 }
 
 /**
- * Calculate Value at Risk (95%) using variance-covariance method
+ * Value at Risk (95 %), parametrický odhad za ROK z MĚSÍČNÍCH výnosů:
  *
- * VaR(95%) = μ_annual - 1.65 × σ_annual
+ *   VaR(95 %) = μ_měsíc × 12 − 1,65 × σ_měsíc × √12
  *
- * Where:
- * - μ_annual = mean step return × periodsPerYear
- * - σ_annual = step std dev × √periodsPerYear
- * - 1.65 is the z-score for 95% confidence (one-tailed)
- *
- * periodsPerYear odvozeno z dat (denní řada ~252), ne napevno 12.
+ * = hranice, pod kterou by při normálním rozdělení skončil roční výsledek asi v 1 roce z 20. Skutečné výnosy
+ * normální nejsou – kolik ročních oken pod hranici v datech opravdu spadlo, vrací `podilPodVaR`
+ * (audit 22. 10. 2026, N10: empiricky 1,9–8,7 % oken podle portfolia).
+ * Z měsíčních výnosů jako kolísavost (riziko se počítá měsíčně – ZAMERNA-ROZHODNUTI.md). Méně než 12 měsíčních
+ * výnosů → null (z pár měsíců roční riziko odhadnout nejde – V8).
  */
-export function calculateVaR95(stepReturns: number[], periodsPerYear: number = 12): number {
-  if (stepReturns.length === 0) return 0
-
-  const stepMean = mean(stepReturns)
-  const stepStd = standardDeviation(stepReturns)
-
-  const annualMean = stepMean * periodsPerYear
-  const annualStd = stepStd * Math.sqrt(periodsPerYear)
-
-  return annualMean - 1.65 * annualStd
+export function calculateVaR95(monthlyReturns: number[]): number | null {
+  if (monthlyReturns.length < MIN_MESICU_RIZIKA) return null
+  return mean(monthlyReturns) * 12 - 1.65 * standardDeviation(monthlyReturns) * Math.sqrt(12)
 }
+
+/** Podíl klouzavých ročních oken (konce měsíců) s výnosem pod VaR. null = méně než 1 okno. */
+export function podilPodVaR(nav: TimeSeriesPoint[], valueAtRisk: number | null): { podil: number; oken: number } | null {
+  if (valueAtRisk == null) return null
+  const m = resampleMonthEnd(nav)
+  let pod = 0, oken = 0
+  for (let i = 0; i + 12 < m.length; i++) {
+    if (!(m[i].value > 0)) continue
+    oken++
+    if (m[i + 12].value / m[i].value - 1 < valueAtRisk) pod++
+  }
+  return oken > 0 ? { podil: pod / oken, oken } : null
+}
+
+/** Pod tolik měsíčních výnosů se kolísavost, Sharpe, Sortino ani VaR neukazují (V8, audit 22. 10. 2026). */
+export const MIN_MESICU_RIZIKA = 12
 
 /**
  * Calculate all drawdown periods
@@ -448,9 +469,11 @@ export function getLongestDrawdown(
  * For each period length, calculate how many rolling periods had positive returns
  */
 export function calculateHorizonAnalysis(
-  evolution: TimeSeriesPoint[],
+  nav: TimeSeriesPoint[],
   maxYears: number = 10
 ): HorizonAnalysis[] {
+  // Okna po MĚSÍCÍCH (S11): dřív se z denní řady bralo „12 kroků“ = 12 obchodních dní.
+  const evolution = mesicniRada(nav)
   const results: HorizonAnalysis[] = []
 
   for (let years = 1; years <= maxYears; years++) {
@@ -499,7 +522,7 @@ export function calculateHorizonAnalysis(
  * Generate random number from normal distribution using Box-Muller transform
  */
 function randomNormal(mean: number, stdDev: number): number {
-  const u1 = Math.random()
+  const u1 = 1 - Math.random() // (0, 1] – log(0) by dal nekonečno
   const u2 = Math.random()
   const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
   return z0 * stdDev + mean
@@ -599,13 +622,25 @@ export function yearsBetween(start: Date, end: Date): number {
 // ============================================================
 
 /**
- * Calculate complete summary metrics
+ * Souhrnné metriky.
+ *
+ * KRATŠÍ NEŽ ROK (audit 22. 10. 2026, V8): CAGR se z období kratšího než rok NEanualizuje – start 1. 9. 2026
+ * dával „40,8 % ročně“ ze 4,5 % za 7 týdnů. Engine CAGR spočítá vždy (interní použití), ale vrací `obdobiLet`
+ * a `celkovyVynos`; API (simulate.ts) pod rok pošle cagr = null a UI ukáže celkový výnos za období (GIPS).
+ * Kolísavost, Sharpe, Sortino a VaR vyžadují aspoň MIN_MESICU_RIZIKA (12) měsíčních výnosů, jinak null / „—“.
+ *
+ * SHARPE A SORTINO (audit 22. 10. 2026, S10 + N11) – standardní definice z měsíčních výnosů:
+ *   e_t = r_t − rf_t   (rf_t = bezriziková sazba TÉHOŽ měsíce v MĚNĚ výpočtu, bezrizikovaSazba.ts)
+ *   Sharpe  = průměr(e) / směr. odchylka(e) × √12            (výběrová odchylka, n − 1)
+ *   Sortino = průměr(e) × 12 / [√(Σ min(e_t, 0)² / n) × √12]  (cílový výnos = rf v čitateli I jmenovateli)
+ * Dřív (CAGR − 2 %) / σ s pevnými 2 % i pro USD a EUR a „propady pod nulou“ ve jmenovateli Sortina (smíšené).
+ * Bez měny (nativní jednotky dat) nebo bez sazby k datu → null.
  */
 export function calculateSummary(
   marketNav: TimeSeriesPoint[],   // time-weighted NAV bez vkladů (pro výnos/riziko)
   realFinalValue: number,          // reálná konečná hodnota (s vklady) – jen k zobrazení
   totalContributed: number,        // reálně vložené peníze
-  riskFreeRate: number = 0.02 // ~2 % = přibližný vážený průměr české bezrizikové sazby (ČNB 2W repo) 2008–2026; výnosy jsou v Kč, proto CZK sazba, ne Euribor
+  mena?: MenaSazby,
 ): BacktestSummary {
   if (marketNav.length < 2) {
     return {
@@ -613,8 +648,11 @@ export function calculateSummary(
       netAssetValue: realFinalValue,
       cagr: 0,
       standardDeviation: 0,
-      sharpeRatio: 0,
-      sortinoRatio: 0,
+      sharpeRatio: null,
+      sortinoRatio: null,
+      obdobiLet: 0,
+      celkovyVynos: 0,
+      mesicnichVynosu: 0,
     }
   }
 
@@ -622,27 +660,30 @@ export function calculateSummary(
   const endNav = marketNav[marketNav.length - 1].value
   const years = yearsBetween(marketNav[0].date, marketNav[marketNav.length - 1].date)
 
-  // Riziko (σ, Sharpe, Sortino) počítáme z MĚSÍČNÍCH výnosů (month-end resample), ne z denní
-  // řady. Důvod: zdrojová denní data mají ojedinělé vadné ticky na začátku měsíce (splice
-  // denního ETF a měsíčního zdroje), které denní σ×√252 nafukovaly (~13 % → 31 % u All-World).
-  // Month-end sampling je zahodí (bere poslední den měsíce) a je to i standardní metodika –
-  // stejně už počítá drawdown (resampleMonthEnd). CAGR zůstává z krajních bodů denní řady.
+  // Riziko (σ, Sharpe, Sortino) počítáme z MĚSÍČNÍCH výnosů (konce měsíců), ne z denní řady – standardní
+  // metodika a stejně jako drawdown graf (ZAMERNA-ROZHODNUTI.md). CAGR zůstává z krajních bodů denní řady.
   const monthlyReturns = calculateMonthlyReturns(resampleMonthEnd(marketNav))
-  const monthlyReturnValues = monthlyReturns.map((r) => r.return)
+  const r = monthlyReturns.map((x) => x.return)
 
   const cagr = calculateCAGR(startNav, endNav, years) // time-weighted výnos strategie (bez vkladů)
-  const stepStdDev = standardDeviation(monthlyReturnValues)
+  const stepStdDev = standardDeviation(r)
   // Anualizace podle SKUTEČNÉ frekvence dat (měsíční ~12/rok).
-  const ppy = years > 0 ? monthlyReturnValues.length / years : 12
+  const ppy = years > 0 ? r.length / years : 12
   const annualStdDev = stepStdDev * Math.sqrt(ppy)
-  const sharpe = calculateSharpeRatio(cagr, riskFreeRate, annualStdDev)
 
-  // Sortino: jako Sharpe, ale v riziku jen ZÁPORNÉ kroky (downside deviation).
-  // Suma čtverců záporných / VŠECHNY kroky (standardní def.), anualizace stejnou frekvencí.
-  const downsideSq = monthlyReturnValues.reduce((a, r) => a + (r < 0 ? r * r : 0), 0)
-  const downsideStep = monthlyReturnValues.length > 0 ? Math.sqrt(downsideSq / monthlyReturnValues.length) : 0
-  const annualDownside = downsideStep * Math.sqrt(ppy)
-  const sortino = annualDownside > 0 ? (cagr - riskFreeRate) / annualDownside : 0
+  let sharpe: number | null = null
+  let sortino: number | null = null
+  if (mena && r.length >= MIN_MESICU_RIZIKA) {
+    const rf = monthlyReturns.map((x) => mesicniSazba(mena, x.date))
+    if (rf.every((v): v is number => v != null)) {
+      const e = r.map((v, i) => v - (rf[i] as number))
+      const m = mean(e)
+      const sdVyber = Math.sqrt(e.reduce((a, v) => a + (v - m) ** 2, 0) / (e.length - 1))
+      sharpe = sdVyber > 0 ? (m / sdVyber) * Math.sqrt(12) : null
+      const dd = Math.sqrt(e.reduce((a, v) => a + (v < 0 ? v * v : 0), 0) / e.length) * Math.sqrt(12)
+      sortino = dd > 0 ? (m * 12) / dd : null
+    }
+  }
 
   return {
     amountInvested: totalContributed,
@@ -651,16 +692,21 @@ export function calculateSummary(
     standardDeviation: annualStdDev,
     sharpeRatio: sharpe,
     sortinoRatio: sortino,
+    obdobiLet: years,
+    celkovyVynos: startNav > 0 ? endNav / startNav - 1 : 0,
+    mesicnichVynosu: r.length,
   }
 }
 
 /**
- * Calculate complete returns analysis
+ * Výnosy po MĚSÍCÍCH a letech z time-weighted NAV.
+ * Měsíční výnosy = z měsíční řady (první bod + konce měsíců, S11) – první měsíc je od startu do konce měsíce.
+ * Roční výnosy = složené měsíční = totéž jako z denní řady (součin se teleskopicky krátí).
  */
 export function calculateReturnsAnalysis(
-  evolution: TimeSeriesPoint[]
+  nav: TimeSeriesPoint[]
 ): BacktestReturns {
-  const monthlyReturns = calculateMonthlyReturns(evolution)
+  const monthlyReturns = calculateMonthlyReturns(mesicniRada(nav))
   const annualReturns = calculateAnnualReturns(monthlyReturns)
 
   const positiveMonths = monthlyReturns.filter((r) => r.return > 0).length
@@ -681,13 +727,12 @@ export function calculateReturnsAnalysis(
 }
 
 /**
- * Calculate complete risk analysis
+ * Riziko: propady z DENNÍ řady (nejhlubší bod), VaR z měsíčních výnosů (konce měsíců).
  */
 export function calculateRiskAnalysis(
   evolution: TimeSeriesPoint[]
 ): BacktestRisk {
-  const monthlyReturns = calculateMonthlyReturns(evolution)
-  const monthlyReturnValues = monthlyReturns.map((r) => r.return)
+  const monthlyReturnValues = calculateMonthlyReturns(resampleMonthEnd(evolution)).map((r) => r.return)
 
   const allDrawdowns = calculateDrawdowns(evolution)
   const deepestDrawdown = getDeepestDrawdown(allDrawdowns)
@@ -702,11 +747,13 @@ export function calculateRiskAnalysis(
     recovered: true,
   }
 
+  const valueAtRisk95 = calculateVaR95(monthlyReturnValues)
   return {
     allDrawdowns,
     maxDrawdown: deepestDrawdown || defaultDrawdown,
     deepestDrawdown: deepestDrawdown || defaultDrawdown,
     longestDrawdown: longestDrawdown || defaultDrawdown,
-    valueAtRisk95: calculateVaR95(monthlyReturnValues, periodsPerYear(evolution)),
+    valueAtRisk95,
+    podilPodVaR: podilPodVaR(evolution, valueAtRisk95),
   }
 }

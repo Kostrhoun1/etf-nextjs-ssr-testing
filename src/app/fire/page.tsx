@@ -11,6 +11,7 @@ import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
 import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
+import { FIRE_PREDPOKLADY } from '@/lib/firePredpoklady';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -39,8 +40,12 @@ const TARGET_ROWS: { monthly: number; note: string }[] = [
 /* Roky do FIRE podle míry úspor – SPOČÍTANÉ jednou funkcí (kolo 8: ručně psaná tabulka měla u 70 % „~8,5 roku“,
    metodou stránky vychází 8,8). Model: start od nuly, příjem 1, úspora s ročně (na konci roku), reálný výnos r,
    cíl = 25× roční výdaje (1 − s). s·((1+r)^n − 1)/r = 25(1 − s) → n = ln(1 + 25(1 − s)·r/s) / ln(1 + r).
-   Ověřeno ručně: 10 % → 51,4; 20 % → 36,7; 50 % → 16,6; 70 % → 8,8 roku. */
-function rokyDoFire(miraUspor: number, realnyVynos = 0.05, nasobek = 25): number {
+   Reálný výnos = STEJNÝ předpoklad jako FIRE kalkulačka (vyvážené 60/40, src/lib/firePredpoklady.ts – import, ne opis);
+   audit nástrojů 22. 10. 2026 (S1): dřív „~5 % reálně“ bez zdroje. Ověřeno ručně při 4,6 %: 10 % → 54,0; 20 % → 38,3;
+   50 % → 17,0; 70 % → 8,9 roku. */
+const REALNY_VYNOS = FIRE_PREDPOKLADY.strategie.moderate.realnyVynos / 100;
+const fmtPct = (v: number) => `${(v * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })}\u00a0%`;
+function rokyDoFire(miraUspor: number, realnyVynos = REALNY_VYNOS, nasobek = 25): number {
   const s = miraUspor / 100;
   return Math.log(1 + (nasobek * (1 - s) * realnyVynos) / s) / Math.log(1 + realnyVynos);
 }
@@ -50,6 +55,7 @@ const fmtRoky = (n: number) => {
   return `~${t} ${Number.isInteger(v) ? (v >= 5 ? 'let' : v === 1 ? 'rok' : 'roky') : 'roku'}`;
 };
 const SAVINGS_ROWS: { rate: number; years: string }[] = [10, 20, 30, 40, 50, 60, 70].map((rate) => ({ rate, years: fmtRoky(rokyDoFire(rate)) }));
+const ROKY_50 = rokyDoFire(50), ROKY_20 = rokyDoFire(20);
 /* Hero: jedno konkrétní číslo v Kč (běžná domácnost z TARGET_ROWS). */
 const HERO_MESICNE = 35000;
 
@@ -110,7 +116,8 @@ export default async function FireHub() {
     { href: '/fire-kalkulacka', label: 'FIRE kalkulačka', desc: 'Rok dosažení a cílová částka v Kč', icon: Flame },
     { href: '/investicni-kalkulacka', label: 'Investiční kalkulačka', desc: 'Kolik naroste pravidelné spoření', icon: TrendingUp },
     { href: '/nouzova-rezerva', label: 'Nouzová rezerva', desc: 'Polštář, než začnete investovat', icon: ShieldCheck },
-    { href: '/monte-carlo', label: 'Monte Carlo', desc: 'Pravděpodobnost úspěchu renty', icon: LineChart },
+    // Audit 22. 10. 2026 (S21): Monte Carlo simuluje jen spoření (vklady), výběry z renty neumí.
+    { href: '/monte-carlo', label: 'Monte Carlo', desc: 'Pravděpodobnost, že naspoříte cílovou částku', icon: LineChart },
     { href: '/backtest', label: 'Backtest portfolia', desc: 'Jak by strategie prošla krizemi', icon: Scale },
     { href: '/kurzovy-dopad', label: 'Kurzový dopad', desc: 'Vliv kurzu koruny na výnos', icon: Coins },
   ];
@@ -267,9 +274,14 @@ export default async function FireHub() {
             </div>
             <div className="text-[15px] text-slate-600 leading-relaxed space-y-3">
               <p>
-                Tabulka předpokládá spoření <strong className="text-slate-900">od nuly</strong>, průměrný{' '}
-                <strong className="text-slate-900">reálný výnos ~5 % ročně</strong> a cíl ve výši 25násobku výdajů. Kdo
-                odkládá polovinu příjmu, je u cíle zhruba za 17 let; kdo pětinu, potřebuje skoro dvakrát tak dlouho.
+                Tabulka předpokládá spoření <strong className="text-slate-900">od nuly</strong> (vklad na konci roku), průměrný{' '}
+                <strong className="text-slate-900" data-fire-realny-vynos={REALNY_VYNOS}>reálný výnos {fmtPct(REALNY_VYNOS)} ročně</strong> a cíl
+                ve výši 25násobku výdajů. Výnos je stejný předpoklad jako ve{' '}
+                <Link href="/fire-kalkulacka" className="text-teal-700 hover:underline">FIRE kalkulačce</Link> u vyvážené strategie:
+                historický výnos po inflaci v korunách za {FIRE_PREDPOKLADY.obdobi} – 60 % akcie celého světa ({FIRE_PREDPOKLADY.akcie}),
+                40 % státní dluhopisy eurozóny ({FIRE_PREDPOKLADY.dluhopisy}), data k {FIRE_PREDPOKLADY.dataK}. Kdo odkládá polovinu
+                příjmu, je u cíle zhruba za {fmtRoky(ROKY_50).replace('~', '')}; kdo pětinu, potřebuje{' '}
+                {ROKY_20 / ROKY_50 >= 2 ? 'víc než dvakrát' : 'skoro dvakrát'} tak dlouho ({fmtRoky(ROKY_20).replace('~', '')}).
               </p>
               <p>
                 Proč tak velký rozdíl? Vyšší míra úspor zároveň <em>snižuje výdaje</em> (potřebujete menší cílovou částku)

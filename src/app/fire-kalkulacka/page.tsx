@@ -44,7 +44,7 @@ export default async function FireKalkulackaPreview() {
     },
     {
       q: 'Jak je v kalkulačce zohledněna inflace?',
-      a: 'Měsíční výdaje zadáváte v dnešních cenách. Kalkulačka cílovou částku každý rok automaticky navyšuje o zadanou míru inflace, takže nemusíte odhadovat budoucí ceny – stačí říct, kolik byste potřebovali dnes.',
+      a: 'Měsíční výdaje zadáváte v dnešních cenách. Kalkulačka cílovou částku každý rok automaticky navyšuje o zadanou míru inflace, takže nemusíte odhadovat budoucí ceny – stačí říct, kolik byste potřebovali dnes. Volitelně můžete o inflaci navyšovat i měsíční spoření (jako když mzda roste s cenami); bez toho reálná hodnota vkladu každý rok klesá.',
     },
     {
       q: 'Jaké portfolio je pro cestu k nezávislosti vhodné?',
@@ -236,7 +236,7 @@ export default async function FireKalkulackaPreview() {
             <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-slate-600">
               {[
                 ['Cílová částka', '25× ročních výdajů (pravidlo 4 %).'],
-                ['Strategie a výnosy', `Reálně (po inflaci): konzervativní 30/70 ${S.conservative.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} %, vyvážená 60/40 ${S.moderate.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} %, agresivní 80/20 ${S.aggressive.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} % ročně – historický výnos v Kč ${FIRE_PREDPOKLADY.obdobi} (akcie celého světa + státní dluhopisy eurozóny, inflace ČSÚ), data k ${FIRE_PREDPOKLADY.dataK}.`],
+                ['Strategie a výnosy', `Reálně (po inflaci): konzervativní 30/70 ${S.conservative.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} %, vyvážená 60/40 ${S.moderate.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} %, agresivní 80/20 ${S.aggressive.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} % ročně – historický výnos v Kč ${FIRE_PREDPOKLADY.obdobi} (akcie celého světa ${FIRE_PREDPOKLADY.akcie} + státní dluhopisy eurozóny ${FIRE_PREDPOKLADY.dluhopisy}, inflace ČSÚ), data k ${FIRE_PREDPOKLADY.dataK}. Jiné 60/40 než v článku Pravidlo 4 % v korunách – tam jsou dluhopisy americké (fond AGG).`],
                 ['Inflace', 'Cíl se každý rok navyšuje o zadanou míru inflace; výdaje zadáváte v dnešních cenách.'],
                 ['Horizont', 'Výpočet sleduje vývoj portfolia až 50 let dopředu.'],
                 ['Daně', 'Nezahrnuje daň z výnosů (u ETF v ČR po 3 letech osvobozeno).'],

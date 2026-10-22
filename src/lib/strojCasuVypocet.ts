@@ -39,7 +39,8 @@ export const STROJ_PRESETY: StrojPreset[] = [
   },
   {
     id: 'vyvazene', nazev: 'Vyvážené 60/40', nazev2p: 'vyváženého portfolia 60/40',
-    popis: '60 % akcie celého světa (fond VT, před 7/2008 aproximace), 40 % dluhopisy – klidnější průběh za cenu nižšího výnosu.',
+    // Audit 22. 10. 2026 (S20): dluhopisy = AGG (americké), jiné 60/40 než modelové portfolio a FIRE kalkulačka (XGLE, eurozóna).
+    popis: '60 % akcie celého světa (fond VT, před 7/2008 aproximace), 40 % americké dluhopisy (fond AGG) – klidnější průběh za cenu nižšího výnosu.',
     slozeni: [
       { indexCode: 'sp500', weight: 0.36 }, { indexCode: 'world_ex_us', weight: 0.24 },
       { indexCode: 'us_aggregate_bond', weight: 0.4 },

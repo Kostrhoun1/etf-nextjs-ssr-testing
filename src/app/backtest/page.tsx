@@ -62,7 +62,7 @@ async function predpocitejVychozi(): Promise<BacktestResult | null> {
       summary: r.summary,
       returns: { annualReturns: r.returns.annualReturns },
       inflation: r.inflation,
-      risk: { maxDrawdown: r.risk.maxDrawdown, allDrawdowns: nejhlubsi, valueAtRisk95: r.risk.valueAtRisk95 },
+      risk: { maxDrawdown: r.risk.maxDrawdown, allDrawdowns: nejhlubsi, valueAtRisk95: r.risk.valueAtRisk95, podilPodVaR: r.risk.podilPodVaR },
       stressPeriods: r.stressPeriods,
       drawdownSeries: r.drawdownSeries,
       rollingReturns: r.rollingReturns,
