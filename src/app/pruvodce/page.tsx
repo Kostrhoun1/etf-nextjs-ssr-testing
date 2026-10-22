@@ -839,8 +839,8 @@ export default async function GuidePreview() {
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Autor ETF průvodce.cz. Edukační obsah píšeme srozumitelně a nezávisle, na základě veřejných dat – bez
-                  placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>
