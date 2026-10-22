@@ -220,7 +220,7 @@ export default async function SrovnaniPreview() {
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Rozdíly v kostce</h2>
           <p className="mt-1 text-sm text-slate-500">Oba fondy jsou akumulační a irské – výplatou dividend ani daněmi se neliší. Liší se tím, do čeho investují.</p>
           <div className="mt-4 grid gap-4 lg:grid-cols-5">
-            <div className="lg:col-span-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div className="lg:col-span-3 self-start overflow-hidden rounded-xl border border-slate-200 bg-white">{/* self-start: karta se neroztahuje na výšku sloupce „Pro koho který“ (kolo 7 – prázdné místo dole) */}
               <table className="w-full text-[13px] sm:text-sm">
                 <thead>
                   <tr className="bg-slate-50 text-xs text-slate-500">

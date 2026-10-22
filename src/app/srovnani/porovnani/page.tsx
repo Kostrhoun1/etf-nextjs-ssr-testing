@@ -6,7 +6,7 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import { Database } from 'lucide-react';
 import { TrendingUp, ArrowLeft, ArrowRight, Search, Scale, Plus, Check } from 'lucide-react';
 import { getComparisonETFsByIsins, getETFsByIsins } from '@/lib/etf-data';
-import { HLAVNI_DVOJICE, POPISKY_DVOJIC } from '@/lib/pairs';
+import { HLAVNI_DVOJICE, POPISKY_DVOJIC, poradiPodleDvojice } from '@/lib/pairs';
 import { kratkyNazevFondu } from '@/lib/nazevFondu';
 import PorovnaniTable from '@/components/design-preview/PorovnaniTable';
 import PorovnaniGraf from '@/components/design-preview/PorovnaniGraf';
@@ -114,7 +114,7 @@ export default async function PorovnaniPreview(
   { searchParams }: { searchParams: Promise<{ isins?: string }> },
 ) {
   const { isins } = await searchParams;
-  const list = (isins ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 4);
+  const list = poradiPodleDvojice((isins ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 4)); // kurátorská dvojice → pořadí (a barvy) jako na její stránce
   const etfs = await getComparisonETFsByIsins(list);
 
   // Každé číslo má datum (pravidlo č. 1). 21. 10. 2026: „Data k“ = nejčastější den VÝNOSŮ porovnávaných fondů

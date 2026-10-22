@@ -329,7 +329,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
           if (t === 'Distribuční') { const c = CETNOST.find(([re]) => re.test(e.distribution_frequency ?? ''))?.[1]; return `${VYPLATA_DIST}${c ? `, ${c}` : ''}`; }
           return <span className="text-slate-400">—</span>;
         } },
-        { label: <InfoTip label="Fyzická = fond drží cenné papíry indexu (nebo fyzický kov). Syntetická = výnos indexu dodává protistrana swapem; „unfunded“ = fond drží vlastní koš cenných papírů a jeho výnos za výnos indexu směňuje.">Replikace</InfoTip>, cell: (e) => replLabel(e.replication) },
+        { label: <InfoTip label="Fyzická = fond drží cenné papíry indexu (nebo fyzický kov). Syntetická = výnos indexu dodává protistrana swapem; „unfunded“ = fond drží vlastní koš cenných papírů a jeho výnos za výnos indexu směňuje.">Způsob replikace</InfoTip>, cell: (e) => replLabel(e.replication) },
         { label: <InfoTip label="Zajištěná třída tlumí vliv kurzu (např. USD/EUR) za poplatek – její výnos se proto liší od nezajištěné třídy stejného indexu.">Měnové zajištění</InfoTip>, cell: (e) => { const h = detectHedging(e.name); return h.isHedged ? (h.hedgedCurrency ? `Zajištěno do ${h.hedgedCurrency}` : 'Zajištěno') : 'Nezajištěno'; } },
         { label: 'Domicil', cell: (e) => dom(e.fund_domicile) },
         { label: 'Právní struktura', cell: (e) => str(raw(e).legal_structure) ?? '—' },
