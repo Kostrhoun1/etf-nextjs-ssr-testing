@@ -59,7 +59,8 @@ o 0,2–0,9 p. b. vedle (SXR8 19. 10.: 743,07 → 739,32). Výpočet: etf-astro 
 chart API, RELATIVE_CHANGE – ne MARKET_VALUE, ta má u levných fondů chybu zaokrouhlení až 0,1 p. b.).
 - Fondy se zpožděnou řadou u zdroje (ESEA, PSP5, S5USAS, WSPX…) mají VLASTNÍ, starší den – web ho u nich ukazuje
   („výnosy k 16. 10. 2026“). „Data k“ stránky = nejčastější `returns_as_of` (src/lib/datumVynosu.ts).
-- Fond pozadu o víc než 3 pracovní dny není v mediánech, kartě „Nejvýkonnější“ ani v součtech portfolií (jiné období).
+- Fond pozadu o víc než 3 pracovní dny není v mediánech ani v součtech portfolií (jiné období). Karta „Nejvýkonnější“ a medián
+  na žebříčku berou od kola 7 jen fondy PŘESNĚ ke dni „Data k …“ stránky (viz Srovnávač a žebříčky – kolo 7).
 - Selže-li chart API, jsou výnosy za období `null` („—“) – NIKDY náhrada z HTML profilu (ten je předběžný). Kalendářní roky
   (2021–2025) dál z profilu: jsou uzavřené a sedí.
 - „Od vzniku“ (return_inception) se počítá z téže řady (= profil zdroje). Dřív parser četl „+2,141.66%“ jako 2,141 %.
@@ -149,7 +150,7 @@ naše vlastní skóre ze scraperu (etf-astro/scraper/etf_rating.py) – „podle
 než 3 fondy). Roční momentum u indexových kategorií je šum (revize 18. 10. 2026). Nejnižší poplatek
 ignoruje TER 0 % (u akcií/dluhopisů chyba zdroje, u Xetra-Gold apod. náklady mimo TER).
 **U indexových žebříčků (S&P 500, MSCI World, Nasdaq-100, celý svět, DAX, STOXX 600, FTSE 100, zlato,
-stříbro, bitcoin – `INDEXOVE` v nejlepsi-etf/[slug]/page.tsx) karta „Nejvýkonnější“ ZÁMĚRNĚ CHYBÍ** –
+stříbro, bitcoin a od kola 7 i Emerging markets – `INDEXOVE` v nejlepsi-etf/[slug]/page.tsx) karta „Nejvýkonnější“ ZÁMĚRNĚ CHYBÍ** –
 fondy mají stejný podklad, rozdíl 1–2 p. b. je šum tříd a poplatků. Místo ní neutrální „Jak vybrat mezi
 fondy na stejný index“ (TER, velikost, Acc/Dist, kde koupit). Jinde karta ukazuje pravidlo výběru a medián;
 práh velikosti karet je 100 mil. € a karty se počítají z CELÉ kategorie (`getVyberKarty`, kolo 6) – ne z 300 fondů
@@ -608,3 +609,33 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Titulek > 65 znaků → bez „| ETF průvodce.cz“** (`titulek()` v src/lib/seoTitulek.ts), stejně jako u žebříčků a detailů.
 - **Organization schema: „Největší český průvodce ETF fondy“ ZŮSTÁVÁ** (rozhodnutí majitele 18. 10., viz výše) i přes
   doporučení auditu 6b; odstraněna jen „Jedinečná databáze ETF pro české investory“.
+
+## Srovnávač a žebříčky – kolo 7 (revize pokročilého testera, 22. 10. 2026)
+
+- **Řazení podle výnosu (srovnávač i žebříčky, desktop i mobil) dává fondy s výnosy k JINÉMU dni než většina na konec pod
+  šedý oddělovač „Výnosy k jinému dni – nesrovnatelné pořadí“.** Není to chyba řazení: fondy s posunutou řadou u zdroje (S&P 500:
+  WSPX, SPTG, SPTD, PSP5, S5USAS, ESEA k 16.–19. 10.) jinak vedly 1R/3R, přitom ve stejném okně je rozdíl ~1 p. b. Platí i pro
+  fondy o den NOVĚJŠÍ (21. 10.). ScreenerUI.tsx (`_dv`), TabulkaFondu.tsx (`vynosyK`).
+- **Karta „Nejvýkonnější“ a medián na žebříčku = jen fondy s `returns_as_of` = den „Data k …“ stránky** (dřív stačilo ≤ 3 prac. dny).
+- **Štítek dne výnosů: šedý „k 16. 10.“ = 1–3 pracovní dny jinak (běžné, ~19 % fondů), jantarový „výnosy k …“ jen > 3 pracovní dny
+  pozadu** (`_dvP`, vynosyPozadu). Nedělat zase všechno jantarově.
+- **Emerging markets je indexový žebříček (bez „Nejvýkonnější“, s „Jak vybrat“).** Vyhrávaly jiné trhy a metodiky (84X0 EM ex-China
+  +91,6 %, Value faktor, ESG, Islamic); mezi fondy na MSCI EM / EM IMI / FTSE EM je rozdíl jen šum tříd.
+- **Varianty „ex-…“ (EM ex-China, Eastern Europe ex Russia…) se nevybírají na žádnou kartu** (Největší/Nejlevnější/Nejvýkonnější) – jiný
+  trh než kategorie. Výjimky (`EX_NA_KARTACH`): široké seznamy a Asie a Pacifik (MSCI Pacific ex Japan je tam hlavní index). V tabulce zůstávají.
+- **TER 0 % (Xetra-Gold, EUWAX Gold, CoinShares Staked ETH/SOL…) = „0,00 %*“ s poznámkou „náklady mimo TER“ a v řazení podle TER
+  NA KONCI** (srovnávač, žebříčky, detail). Číslo je podle zdroje pravdivé, ale „zdarma“ to není (rozpětí cen, podíl ze stakingu).
+  U akcií a dluhopisů je TER 0 chyba zdroje → „—“ (beze změny).
+- **Srovnávač: při výběru indexu nebo celého trhu jsou měnově zajištěné třídy ve výchozím stavu SKRYTÉ** (stejně jako žebříček;
+  vedle počtu „bez N měnově zajištěných tříd · zobrazit“, v nabídce indexů přepínač). Bez výběru indexu (celý seznam, hledání tickeru)
+  se ukazují všechny se štítkem „zajištěno do …“ – jinak by hledání IUSE nic nenašlo. Výchozí stav = `zajisteni` 'auto' (není v URL).
+- **Hledání ve srovnávači vyžaduje VŠECHNA slova dotazu** (doslova, přes český výraz, nebo jako část víceslovného výrazu); výplňová
+  slova („celý“, „ETF“, „trhy“) se nevyžadují. Dřív „iShares USD Treasury“ = 949 fondů (stačilo „iShares“), teď 39. Našeptávač
+  (/api/etf/search) má vlastní relevanci – beze změny.
+- **Tabulka srovnávače plave (sticky hlavička, bez overflow) až od xl (1 280 px)**; má nejméně ~1 080 px a obsah stránky je 1 120 px.
+  Pod xl se posouvá do strany a sloupec „Porovnat“ drží u pravého okraje (sticky, podklad = podklad řádku). Nevracet na lg.
+- **Odpověď nahoře na žebříčku = nejvýš 2 věty** (den + počet + největší; nejlevnější), práh karet (100 mil. €) ve vysvětlivce (i),
+  ne ve větě. Počet fondů na stránce 2× (odpověď + věta nad tabulkou); čip ukazuje jen práh. Funkce `odpovedNahore` v
+  nejlepsi-etf/[slug]/page.tsx – titulek a popisek dál src/lib/zebrickySeo.ts (`odpovedZebricku` se na stránce nepoužívá).
+- **Název fondu v tabulce žebříčku nekončí tickerem** (ticker je v řádku pod ním); rozsah „0‑1yr“ s nezlomitelnou pomlčkou.
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo7 srovnavac`.
