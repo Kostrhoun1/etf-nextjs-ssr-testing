@@ -3117,6 +3117,7 @@ const main = async () => {
     }
   }
   // --- konec kolo7 srovnavac ---
+  await kontrolaKolo7Mobil(poplach, varovani); // blok „kolo7 mobil“ – definice na konci souboru
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
@@ -3133,3 +3134,83 @@ const main = async () => {
 
 main().catch((e) => { console.error('❌', e.message); process.exit(1); });
 
+// --- kolo7 mobil --- (22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+// Mobilní layout a drobnosti v článcích. Vlastní funkční test mobilního hledání (našeptávač + Enter, Chromium i WebKit)
+// je v prohlížeči: scripts/prod-smoke.mjs („MOBIL hledání“) – tady jen to, co jde poznat z HTML a zdrojů.
+// Značka nasazení: panel poplatků na /infografiky (data-infografika="ter"); bez ní jen varování.
+async function kontrolaKolo7Mobil(poplach, varovani) {
+  const chyby = [];
+  try {
+    const vem = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return { status: r.status, html: (await r.text()).replace(/<!-- -->/g, '') }; } catch { return { status: 0, html: '' }; } };
+    const text = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|\u00a0|\u2060/g, ' ').replace(/\s+/g, ' ');
+    const cesty = ['/infografiky', '/pruvodce', '/kolik-vydelaly-etf', '/jak-zacit', '/kalkulacky', '/metodika', '/srovnani/vwce-vs-cspx',
+      '/srovnani/porovnani?isins=IE00B5BMR087,IE00BK5BQT80'];
+    const S = new Map(await Promise.all(cesty.map(async (c) => [c, await vem(c)])));
+    const H = (c) => S.get(c)?.html ?? '';
+    const T = (c) => text(H(c));
+    const nasazeno = /data-infografika="ter"/.test(H('/infografiky'));
+    for (const [c, { status }] of S) if (status !== 200) chyby.push(`${c}: HTTP ${status}`);
+
+    // a) Zbloudilé JSX proměnné v textu („…riziko ztráty. 2026“ na /pruvodce) a literál „{year}“.
+    for (const c of cesty) if (/\{\s*year\s*\}/.test(T(c))) chyby.push(`${c}: v textu je „{year}“`);
+    if (/riziko ztráty\.\s*\d{4}/.test(T('/pruvodce'))) chyby.push('/pruvodce: za upozorněním „riziko ztráty.“ visí letopočet');
+
+    // b) /kolik-vydelaly-etf: grafy bez pevné min. šířky (na mobilu useknuté), gramatika, začátek dat.
+    const kv = H('/kolik-vydelaly-etf'), kvt = T('/kolik-vydelaly-etf');
+    if (/min-w-\[5[26]0px\]/.test(kv)) chyby.push('/kolik-vydelaly-etf: graf s min-w 520/560 px (na mobilu se nevejde)');
+    if (/\b[234] ztrátových|\b1 ztrátových|\b[234] kladných/.test(kvt)) chyby.push('/kolik-vydelaly-etf: „3 ztrátových“ (má být „3 ztrátové“)');
+    if (/pod vkladem (leden|únor|březen|duben|květen|červen|červenec|srpen|září|říjen|listopad|prosinec) \d{4}/.test(kvt)) chyby.push('/kolik-vydelaly-etf: „pod vkladem červenec 2014“ (má být „v červenci 2014“)');
+    if (/Na 10 letech/.test(kvt)) chyby.push('/kolik-vydelaly-etf: „Na 10 letech“');
+    if (/od 1\. 7\., /.test(kvt)) chyby.push('/kolik-vydelaly-etf: neúplný rok „od 1. 7.“ – data začínají jindy (start z dat)');
+    if (/\d+ měs\.(?! od vrcholu)/.test(kvt.replace(/\(počítáno od vrcholu\)/g, ''))) chyby.push('/kolik-vydelaly-etf: doba návratu bez „od vrcholu“');
+    if (/rounded-2xl bg-slate-900 text-white/.test(kv)) chyby.push('/kolik-vydelaly-etf: tmavé hero – rodina „Co říkají data“ má světlé');
+
+    // c) Drobnosti v textech a rozcestníku.
+    if (/podhoubí/.test(T('/jak-zacit'))) chyby.push('/jak-zacit: „podhoubí“');
+    for (const h of ['/stroj-casu', '/kolik-investovat-mesicne']) if (!H('/kalkulacky').includes(`href="${h}"`)) chyby.push(`/kalkulacky: chybí odkaz na ${h}`);
+    // Datum úpravy textu /metodika (věcná změna 21. 10. 2026) – AutorBox „aktualizováno <time dateTime=…>“.
+    const metUpr = H('/metodika').match(/aktualizováno <time dateTime="(\d{4}-\d{2}-\d{2})"/)?.[1];
+    if (!metUpr || metUpr < '2026-10-21') chyby.push(`/metodika: datum úpravy ${metUpr ?? 'chybí'} – text se věcně změnil 21. 10. 2026 (src/lib/redakce.ts)`);
+
+    // d) Porovnání a dvojice: patička zdroje, skloňování stáří, sjednocené názvy metrik.
+    const por = T('/srovnani/porovnani?isins=IE00B5BMR087,IE00BK5BQT80');
+    if (!/Data fondů: justETF · kurzy ČNB · data k \d/.test(por)) chyby.push('/srovnani/porovnani: chybí patička „Data fondů: justETF · kurzy ČNB · data k …“');
+    for (const c of ['/srovnani/porovnani?isins=IE00B5BMR087,IE00BK5BQT80', '/srovnani/vwce-vs-cspx']) {
+      const t = T(c);
+      if (/(?<![Dd]o )\b[234] let\b/.test(t)) chyby.push(`${c}: „2–4 let“ (má být „roky“)`);
+      if (/let na trhu|Domicil \(sídlo fondu\)|Kolísavost \(1 rok, v EUR\)/.test(t)) chyby.push(`${c}: starý název metriky (sjednoceno s porovnáním)`);
+    }
+    if (/>Replikace</.test(H('/srovnani/porovnani?isins=IE00B5BMR087,IE00BK5BQT80'))) chyby.push('/srovnani/porovnani: „Replikace“ místo „Způsob replikace“');
+    // Pořadí (a tím barvy) kurátorské dvojice: SXR8,VWCE → VWCE první jako na /srovnani/vwce-vs-cspx.
+    const iV = por.indexOf('VWCE'), iS = por.indexOf('SXR8');
+    if (iV < 0 || iS < 0 || iV > iS) chyby.push('/srovnani/porovnani?isins=SXR8,VWCE: pořadí fondů neodpovídá stránce dvojice (jiné barvy)');
+
+    // e) Infografiky: panel poplatků konzistentní, heatmapa s tickery, bez zrušených bloků.
+    const inf = H('/infografiky'), inft = T('/infografiky');
+    const infMain = text(inf.match(/<main[\s\S]*?<\/main>/)?.[0] ?? ''); // bez patičky (ta má vlastní „Kde koupit ETF“)
+    if (/Co která infografika ukazuje/.test(inft)) chyby.push('/infografiky: blok „Co která infografika ukazuje“ (odstraněn)');
+    if ((infMain.match(/Kde koupit ETF/g) ?? []).length > 1) chyby.push('/infografiky: duplicitní „Kde koupit ETF“');
+    if (/>Nemovitosti</.test(inf)) chyby.push('/infografiky: „Nemovitosti“ – žebříček se jmenuje „Realitní“');
+    if (nasazeno) {
+      const pocet = Number(inf.match(/data-ter-pocet="(\d+)"/)?.[1] ?? 0);
+      const blok = inf.match(/data-ter-pocet="\d+"[\s\S]*?<\/ul>/)?.[0] ?? '';
+      const chipy = (blok.match(/href="\/etf\//g) ?? []).length;
+      if (!pocet || pocet !== chipy) chyby.push(`/infografiky: „nejnižší TER má ${pocet} fondů“, vypsáno ${chipy}`);
+      const dlazdice = (inf.match(/class="group rounded-lg border px-3 py-3[^"]*" href="\/nejlepsi-etf\//g) ?? []).length;
+      if (dlazdice < 12) chyby.push(`/infografiky: heatmapa má jen ${dlazdice} dlaždic (čekáme 16)`);
+      if (!/výnos největšího fondu žebříčku \(ticker pod číslem\) za 12 měsíců v Kč, k \d/.test(inft)) chyby.push('/infografiky: heatmapa bez data výnosů');
+    }
+
+    // f) Zdroj: osa grafu porovnání s levým okrajem podle popisku (dřív 40 px uřízlo „−“ u „−100 %“).
+    const graf = readFileSync('src/components/design-preview/PorovnaniGraf.tsx', 'utf8');
+    if (/const m = \{ l: 40,/.test(graf)) chyby.push('PorovnaniGraf.tsx: pevný levý okraj 40 px (uřízne znaménko)');
+    // Mobilní hledání: MobileMenu musí používat sdílený HeaderSearch (ne vlastní <form action>, který se odpojoval z DOM).
+    const mm = readFileSync('src/components/design-preview/MobileMenu.tsx', 'utf8');
+    if (/<form[^>]*action=/.test(mm) || !/HeaderSearch varianta="mobil"/.test(mm)) chyby.push('MobileMenu.tsx: mobilní hledání bez HeaderSearch (varianta mobil) – vrací se nefunkční formulář');
+
+    if (chyby.length) (nasazeno ? poplach : varovani).push({ co: `Mobil a texty (kolo 7)${nasazeno ? '' : ' – produkce ještě bez oprav (před nasazením)'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 15) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu kolo7 mobil se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+  }
+}
+// --- konec kolo7 mobil ---

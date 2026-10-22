@@ -6,7 +6,7 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import {
   TrendingUp, ArrowRight, Calculator, Percent, Coins, Dice5, History,
   Flame, ShieldAlert, Receipt, Home, Landmark, LineChart, BarChart3,
-  PieChart, BookOpen, Wallet,
+  PieChart, BookOpen, Wallet, Clock, Target,
 } from 'lucide-react';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getTotalETFCount } from '@/lib/etf-data';
@@ -68,6 +68,14 @@ const GROUPS: Group[] = [
         detail: 'Složíte portfolio z indexů a nastavíte vklady a vyvažování. Spočítá vývoj v korunách na skutečných historických datech – roční zhodnocení, největší propady a kolísavost.',
         icon: History,
       },
+      // Kolo 7 (22. 10. 2026): v rozcestníku chyběl.
+      {
+        href: '/stroj-casu',
+        title: 'Korunový stroj času',
+        desc: 'Kolik byste dnes měli, kdybyste začali investovat dřív.',
+        detail: 'Zvolíte měsíční vklad a rok začátku (např. 2000, 2010 nebo 2020). Spočítá, kolik by pravidelné investice měly dnes v korunách – na skutečných historických datech včetně krizí.',
+        icon: Clock,
+      },
     ],
   },
   {
@@ -88,6 +96,14 @@ const GROUPS: Group[] = [
         desc: 'Kdy a s jakým majetkem dosáhnete finanční nezávislosti.',
         detail: 'Zadáte věk, úspory, měsíční investice, inflaci a strategii. Spočítá, kdy a s jakým majetkem byste mohli žít z výnosů, i s jednorázovými výdaji nebo příjmy.',
         icon: Flame,
+      },
+      // Kolo 7 (22. 10. 2026): v rozcestníku chyběla.
+      {
+        href: '/kolik-investovat-mesicne',
+        title: 'Kolik investovat měsíčně',
+        desc: 'Kolik měsíčně na první milion nebo na rentu.',
+        detail: 'Ukáže, kolik naspoříte pravidelným měsíčním vkladem do ETF za 10, 20 a 30 let v korunách a jaký vklad potřebujete na milion nebo na rentu.',
+        icon: Target,
       },
       {
         href: '/nouzova-rezerva',

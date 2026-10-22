@@ -42,7 +42,6 @@ export default async function GuidePreview() {
   const dateStr = datumDat?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null;
   const upraveno = upravenoDlouze('/pruvodce'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
   const dataDen = datumDat?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }) ?? null;
-  const year = today.getFullYear();
 
   /* ---------- Živé metriky do hero (vše z DB, nic ručně psaného) ---------- */
   // Bez čísla raději „—“ než vymyšlený odhad (kolo 6: dřív tichý fallback „4 800“).
@@ -291,19 +290,20 @@ export default async function GuidePreview() {
 
               {/* Živé metriky z DB */}
               <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+                {/* Kolo 7: na mobilu 3 úzké sloupce → px-3 a text-base (dřív „+19,7 %“ přetékalo dlaždici, 74 vs 63 px). */}
+                <div className="min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 md:px-4 py-3">
                   <p className="text-xs text-slate-400">Fondů v databázi</p>
-                  <p className="text-lg font-bold tabular-nums">{countLabel}</p>
+                  <p className="text-base sm:text-lg font-bold tabular-nums whitespace-nowrap">{countLabel}</p>
                   <p className="text-xs text-slate-400">z čeho vybíráme</p>
                 </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+                <div className="min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 md:px-4 py-3">
                   <p className="text-xs text-slate-400">Nejnižší TER</p>
-                  <p className="text-lg font-bold tabular-nums">{ter(lowestTerEtf?.ter_numeric ?? null)}</p>
+                  <p className="text-base sm:text-lg font-bold tabular-nums whitespace-nowrap">{ter(lowestTerEtf?.ter_numeric ?? null)}</p>
                   <p className="text-xs text-slate-400">{lowestTicker ?? 'ročně'}{stejnyTer > 0 ? ` a ${stejnyTer} dalších` : ''}</p>
                 </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+                <div className="min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 md:px-4 py-3">
                   <p className="text-xs text-slate-400">Výnos za 1 rok</p>
-                  <p className={`text-lg font-bold tabular-nums ${(medianPerf ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pct(medianPerf)}</p>
+                  <p className={`text-base sm:text-lg font-bold tabular-nums whitespace-nowrap ${(medianPerf ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pct(medianPerf)}</p>
                   <p className="text-xs text-slate-400">medián, v Kč</p>
                 </div>
                 {/* Kolo 6: definice a datum čísel v dlaždicích (dřív „Medián 1R – velké fondy“ bez data). */}
@@ -846,7 +846,7 @@ export default async function GuidePreview() {
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
               <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: justETF, S&amp;P Dow Jones Indices, ČNB, vlastní databáze. Aktualizováno {upraveno}.</p>
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy. Investice do ETF nesou riziko ztráty. {year}</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy. Investice do ETF nesou riziko ztráty.</p>
             </div>
           </div>
         </section>
