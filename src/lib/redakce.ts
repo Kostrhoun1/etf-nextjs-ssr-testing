@@ -17,7 +17,7 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   '/sp500-nebo-cely-svet': { publikovano: '2026-10-17', upraveno: '2026-10-19' },
   '/jak-dlouho-v-minusu': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
   '/pravidlo-4-procent': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
-  '/co-rikaji-data': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
+  '/co-rikaji-data': { publikovano: '2026-10-17', upraveno: '2026-10-21' }, // 21. 10.: karta Korunového stroje času
   '/faktorove-etf': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
   // Detaily faktorů sdílí šablonu FactorDetail (poslední úprava výpočtů 17. 10. 2026).
   '/faktorove-etf/value': { publikovano: '2026-07-13', upraveno: '2026-10-17' },
@@ -29,9 +29,9 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   // Modelová portfolia: šablona portfolio-strategie/[slug] (první verze 3. 7. 2026, poslední úprava 19. 10. 2026).
   '/portfolio-strategie': { publikovano: '2025-10-01', upraveno: '2026-10-19' },
   '/portfolio-strategie/*': { publikovano: '2026-07-03', upraveno: '2026-10-19' },
-  '/kde-koupit': { publikovano: '2026-07-03', upraveno: '2026-10-19' },
+  '/kde-koupit': { publikovano: '2026-07-03', upraveno: '2026-10-20' }, // 20. 10.: odpověď nahoře (nejlevnější nákup za 2 000 Kč)
   '/srovnani/vwce-vs-cspx': { publikovano: '2026-07-03', upraveno: '2026-10-20' },
-  '/metodika': { publikovano: '2026-10-20', upraveno: '2026-10-20' },
+  '/metodika': { publikovano: '2026-10-20', upraveno: '2026-10-21' }, // 21. 10.: „Data k“ = den konečných výnosů, ≥ 2 prac. dny (c8169fa)
   // Statické průvodce a nástroje (SEO audit 6b, 21. 10. 2026): „Aktualizováno“ = datum úpravy TEXTU odsud, ne den dat
   // fondů (ten se posouval denně a tvrdil čerstvou úpravu, která neproběhla). První/poslední commit souboru stránky.
   '/dane-z-etf': { publikovano: '2026-07-06', upraveno: '2026-10-21' },
