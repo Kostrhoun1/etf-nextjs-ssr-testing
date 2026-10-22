@@ -1649,9 +1649,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   },
   'nejlepsi-zlato-etf': {
     slug: 'nejlepsi-zlato-etf',
-    title: 'Nejlepší zlato ETF',
+    title: 'Nejlepší ETF na zlato', // SEO audit kola 7: „zlato ETF“ není česky (slug zůstává)
     description: 'Top ETF fondy na zlato',
-    metaDescription: 'Nejlepší zlato ETF fondy - přehled ETF a ETC na fyzické zlato.',
+    metaDescription: 'Nejlepší ETF na zlato – přehled ETF a ETC na fyzické zlato.',
     filters: {
       category: 'Komodity',
       nameContains: ['Gold', 'Zlato'],

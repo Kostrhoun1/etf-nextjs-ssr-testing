@@ -116,9 +116,12 @@ export default async function AuthorSchema() {
   };
 
   // Organization schema - ETF průvodce.cz
+  // SEO audit kola 7 (22. 10. 2026): Organization a WebSite jsou SAMOSTATNÉ uzly (dřív jeden uzel s @type
+  // ["Organization","WebSite"] – validátory pak u WebSite hlásily pole organizace a naopak).
+  // „Největší český průvodce ETF fondy“ v description/sloganu ZŮSTÁVÁ – rozhodnutí majitele 18. 10. 2026 (ZAMERNA-ROZHODNUTI.md).
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": ["Organization", "WebSite"],
+    "@type": "Organization",
     "@id": "https://etfpruvodce.cz/#organization",
     "name": "ETF průvodce.cz",
     "legalName": "ETF průvodce.cz",
@@ -167,6 +170,25 @@ export default async function AuthorSchema() {
     "slogan": "Největší český průvodce ETF fondy"
   };
 
+  // WebSite – vyhledávání = srovnávač s ?q= (ScreenerUI si parametr čte z window.location, stránka zůstává statická).
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://etfpruvodce.cz/#website",
+    "name": "ETF průvodce.cz",
+    "url": "https://etfpruvodce.cz",
+    "inLanguage": "cs-CZ",
+    "publisher": { "@id": "https://etfpruvodce.cz/#organization" },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://etfpruvodce.cz/srovnani?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <>
       {/* Author/Person schema */}
@@ -179,6 +201,12 @@ export default async function AuthorSchema() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+
+      {/* WebSite schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
     </>
   );

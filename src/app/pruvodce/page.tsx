@@ -217,7 +217,7 @@ export default async function GuidePreview() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Co jsou ETF', item: 'https://etfpruvodce.cz/co-jsou-etf' },
+      { '@type': 'ListItem', position: 2, name: 'Co jsou ETF', item: 'https://etfpruvodce.cz/pruvodce' },
     ],
   };
 
@@ -811,6 +811,12 @@ export default async function GuidePreview() {
               ['/kde-koupit', 'Kde koupit ETF', Landmark],
               ['/kalkulacka', 'Kalkulačka poplatků', Calculator],
               ['/kolik-vydelaly-etf', 'Kolik ETF vydělaly', TrendingUp],
+              // SEO audit kola 7: slabě prolinkované stránky (1–4 příchozí odkazy); 12 položek = mřížka 2 i 3 sloupce bez díry.
+              ['/etf-vs-akcie', 'ETF, nebo jednotlivé akcie?', Wallet],
+              ['/sp500-nebo-cely-svet', 'S&P 500, nebo celý svět?', Globe],
+              ['/portfolio-strategie', 'Modelová portfolia', Banknote],
+              ['/pravidlo-4-procent', 'Pravidlo 4 % v korunách', Calculator],
+              ['/infografiky', 'Infografiky ETF', TrendingUp],
             ] as [string, string, typeof Globe][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>

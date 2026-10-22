@@ -608,3 +608,29 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Titulek > 65 znaků → bez „| ETF průvodce.cz“** (`titulek()` v src/lib/seoTitulek.ts), stejně jako u žebříčků a detailů.
 - **Organization schema: „Největší český průvodce ETF fondy“ ZŮSTÁVÁ** (rozhodnutí majitele 18. 10., viz výše) i přes
   doporučení auditu 6b; odstraněna jen „Jedinečná databáze ETF pro české investory“.
+
+## SEO/LLM audit kola 7 (22. 10. 2026)
+
+- **„Největší český průvodce ETF fondy“ v Organization ZŮSTÁVÁ i po auditu kola 7** (třetí audit, který ho chce pryč) –
+  rozhodnutí majitele 18. 10. platí, dokud ho majitel nezmění. Odstraněn jen DRUHÝ uzel Organization na /o-nas se stejným
+  @id a jiným tvrzením („Největší srovnávač ETF pro české investory“) – dva různé popisy jedné entity.
+- **Organization a WebSite jsou samostatné uzly** (src/components/SEO/AuthorSchema.tsx); WebSite má SearchAction na
+  `/srovnani?q=` (ScreenerUI čte `q` z window.location – stránka zůstává statická, viz komentář v srovnani/page.tsx).
+- **Dvojice srovnání – pravidlo pořadí:** kurátorský alias (`vwce-vs-eunl`) = 200 + canonical na hlavní dvojici
+  (`vwce-vs-iwda`), jeho obrácené pořadí (`eunl-vs-vwce`) = 301 ROVNOU na hlavní dvojici (ne na alias – žádný řetěz
+  přesměrování). Obojí končí na stejné kanonické adrese; že alias sám nepřesměrovává, je záměr kola 6 (viz výše).
+- **Popisky pěti žebříčků se záměrně liší podle záměru stránky** (`ZAMER` v src/lib/zebrickySeo.ts): nejlepsi-etf-2026 =
+  tři největší fondy, nejlevnejsi = nejnižší TER (počet fondů s minimem + první tři podle pravidla karty), sp500 = index,
+  americke = medián výnosu trhu, akumulacni = třída. Dřív měly všechny stejné jádro „Nejnižší TER má SPYL… Největší je SXR8…“.
+  Nevracet na společnou šablonu. Hlídá check-fund-data.mjs, blok `kolo7 seo` (žádná věta popisku ve dvou z pěti).
+- **„Klíčová čísla k {datum}“ na hlavních žebříčcích** (2026, S&P 500, MSCI World, celý svět; `KLICOVA_CISLA_ZEBRICKY`) –
+  stejná data jako popisek a odpověď nahoře, chybějící hodnota = řádek vynechán. Medián výnosu jen u indexových žebříčků
+  (fondy na stejný index; u smíšeného „2026“ by medián akcií, dluhopisů a zlata nic neznamenal).
+  Nezávisle ověřeno 22. 10. 2026: SXR8 za 12 měsíců v Kč +20,1 % (Xetra SXR8.DE 617,40 → 741,34 € = +20,07 %, ČNB EUR
+  24,295 → 24,325 → +20,2 % v Kč; web z NAV +20,13 %), medián S&P 500 za 3 roky v Kč +75,0 % (26 fondů, přepočet z holé DB
+  vlastním filtrem 75,03 %), SC0J TER 0,05 % (DB i profil justETF).
+- **Sitemap lastmod:** datové stránky = den dat, a když ho nejde načíst, lastmod CHYBÍ (dřív tichý „dnes“); redakční
+  stránky = `upraveno` z src/lib/redakce.ts. /srovnani-brokeru má vlastní záznam (ceníky ověřeny 18. 10., text 19. 10.) –
+  při změně ceníků posunout `upraveno` i `CENIKY_OVERENY` (kontrola hlídá, že úprava není starší než ověření ceníků).
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo7 seo` (URL v JSON-LD vrací 200, FAQ viditelné, uzly schema, lastmod,
+  popisky, klíčová čísla proti DB, prolinkování, pravidlo dvojic).

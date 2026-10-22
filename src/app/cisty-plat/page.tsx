@@ -65,7 +65,7 @@ export default async function CistyPlatPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Kalkulačka čisté mzdy 2026', item: 'https://etfpruvodce.cz/kalkulacky/cisty-plat-2026' },
+      { '@type': 'ListItem', position: 3, name: 'Kalkulačka čisté mzdy 2026', item: 'https://etfpruvodce.cz/cisty-plat' },
     ],
   };
 

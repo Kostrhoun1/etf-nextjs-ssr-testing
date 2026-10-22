@@ -2444,6 +2444,168 @@ const main = async () => {
   }
   // --- konec kolo6b seo obsah ---
 
+  // --- kolo7 seo --- (SEO/LLM audit kola 7, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+  // Před nasazením (produkce má ještě Organization a WebSite v jednom uzlu) se nálezy hlásí jako varování.
+  {
+    const chyby = [];
+    try {
+      const vem = async (cesta, pokus = 0) => {
+        try {
+          const r = await fetch(`${WEB_URL}${cesta}`, { redirect: 'manual' });
+          const html = r.status === 200 ? (await r.text()).replace(/<!-- -->/g, '') : (await r.body?.cancel(), '');
+          return { status: r.status, loc: r.headers.get('location'), html };
+        } catch { return pokus < 1 ? vem(cesta, pokus + 1) : { status: 0, loc: null, html: '' }; } // 1 opakování (síť)
+      };
+      const dek = (s) => s.replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      const norm = (s) => s.replace(/[  ]/g, ' ').replace(/\s+/g, ' ').trim();
+      const ld = (h) => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => { try { return JSON.parse(m[1]); } catch { return { __chyba: true }; } }).flatMap((x) => (Array.isArray(x) ? x : [x]));
+      const text = (h) => norm(dek(h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ')));
+      const typy = (x) => [].concat(x?.['@type'] ?? []);
+      const ORG = 'https://etfpruvodce.cz/#organization';
+      const AUTOR = 'https://etfpruvodce.cz/o-nas#tomas-kostrhoun';
+      // Všechny URL našeho webu v JSON-LD (bez kotvy #…, bez šablon {…}).
+      const urlVLd = (o, out = new Set()) => {
+        if (typeof o === 'string') { if (/^https:\/\/etfpruvodce\.cz(\/|$)/.test(o) && !o.includes('{')) out.add(o.replace(/^https:\/\/etfpruvodce\.cz/, '').replace(/#.*$/, '') || '/'); }
+        else if (o && typeof o === 'object') for (const v of Object.values(o)) urlVLd(v, out);
+        return out;
+      };
+
+      // Stránky ze sitemapy (mimo detaily fondů) + 3 detaily z hlavy.
+      const sm = (await vem('/sitemap.xml')).html;
+      const polozky = [...sm.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((m) => ({
+        cesta: m[1].match(/<loc>https?:\/\/[^/<]+([^<]*)<\/loc>/)?.[1] || '/',
+        lastmod: m[1].match(/<lastmod>([^<]*)<\/lastmod>/)?.[1] ?? null,
+      }));
+      if (polozky.length < 100) throw new Error(`sitemapa má jen ${polozky.length} URL`);
+      const stranky = [...polozky.filter((p) => !p.cesta.startsWith('/etf/')).map((p) => p.cesta), ...polozky.filter((p) => p.cesta.startsWith('/etf/')).slice(0, 3).map((p) => p.cesta)];
+      const nacteno = new Map();
+      for (let i = 0; i < stranky.length; i += 6) await Promise.all(stranky.slice(i, i + 6).map(async (c) => nacteno.set(c, await vem(c))));
+      const H = (c) => nacteno.get(c)?.html ?? '';
+      const nasazeno = ld(H('/')).some((x) => x['@type'] === 'WebSite');
+
+      // 1) URL v JSON-LD musí vracet 200 (dřív /jak-zacit-investovat-do-etf 404, /kalkulacky/kurzovy-dopad 404, 308 na
+      //    /co-jsou-etf a /kalkulacky/*). Detaily fondů se neověřují dotazem na web (ISR zápisy ocasu) – stačí, že fond je v DB.
+      //    Stránky ze sitemapy samy nesmí přesměrovávat.
+      const cile = new Map();
+      for (const [c, { status, loc, html }] of nacteno) {
+        if (status !== 200) { chyby.push(`${c}: sitemapa → HTTP ${status}${loc ? ` → ${loc}` : ''}`); continue; }
+        const L = ld(html);
+        if (L.some((x) => x.__chyba)) chyby.push(`${c}: nevalidní JSON v JSON-LD`);
+        for (const u of urlVLd(L)) cile.set(u, [...(cile.get(u) ?? []), c]);
+      }
+      const isiny = new Set(fondy.map((f) => f.isin));
+      const overit = [];
+      for (const [u, z] of cile) {
+        const m = u.match(/^\/etf\/([A-Z0-9]{12})$/);
+        if (m) { if (!isiny.has(m[1])) chyby.push(`JSON-LD: ${u} – fond není v DB (z ${z.slice(0, 2).join(', ')})`); continue; }
+        if (!u.startsWith('/api/og')) overit.push(u); // OG obrázky se generují – neověřujeme (CPU)
+      }
+      for (let i = 0; i < overit.length; i += 6) {
+        await Promise.all(overit.slice(i, i + 6).map(async (u) => {
+          const r = nacteno.get(u) ?? await vem(u);
+          if (r.status !== 200) chyby.push(`JSON-LD: ${u} → HTTP ${r.status}${r.loc ? ` → ${r.loc}` : ''} (z ${cile.get(u).slice(0, 2).join(', ')})`);
+        }));
+      }
+
+      // 2) FAQPage jen s otázkami, které jsou na stránce vidět (dřív /vyber-etf: FAQ jen v JSON-LD).
+      for (const [c] of nacteno) {
+        const t = text(H(c));
+        for (const x of ld(H(c))) if (x['@type'] === 'FAQPage') for (const q of x.mainEntity ?? []) {
+          if (!t.includes(norm(q.name ?? ''))) chyby.push(`${c}: otázka z FAQPage není na stránce vidět („${q.name}“)`);
+        }
+      }
+
+      // 3) Organization a WebSite jako samostatné uzly; WebSite se SearchAction na srovnávač; Organization s @id
+      //    …/#organization právě jednou na stránce (/o-nas dřív měla druhý uzel s jiným popisem).
+      const home = ld(H('/'));
+      if (home.some((x) => typy(x).includes('Organization') && typy(x).includes('WebSite'))) chyby.push('/: Organization a WebSite v jednom uzlu (@type pole) – mají být samostatné');
+      const ws = home.find((x) => x['@type'] === 'WebSite');
+      if (!ws || ws.publisher?.['@id'] !== ORG || !/^https:\/\/etfpruvodce\.cz\/srovnani\?q=\{search_term_string\}$/.test(ws.potentialAction?.target?.urlTemplate ?? '')) chyby.push('/: WebSite bez publisher …/#organization nebo SearchAction na /srovnani?q={search_term_string}');
+      for (const c of ['/', '/o-nas']) {
+        const n = ld(H(c)).filter((x) => typy(x).includes('Organization') && x['@id'] === ORG).length;
+        if (n !== 1) chyby.push(`${c}: ${n}× uzel Organization s @id …/#organization (má být 1)`);
+      }
+
+      // 4) /o-nas: AboutPage + ProfilePage, hlavní entita = autor (Person @id, LinkedIn).
+      const onas = ld(H('/o-nas')).find((x) => typy(x).includes('ProfilePage'));
+      if (!onas || !typy(onas).includes('AboutPage') || onas.mainEntity?.['@id'] !== AUTOR || !(onas.mainEntity?.sameAs ?? []).includes('https://www.linkedin.com/in/tomas-kostrhoun-b34a6831')) chyby.push('/o-nas: chybí AboutPage + ProfilePage s autorem (Person @id, LinkedIn)');
+
+      // 5) Article: datum úpravy z redakce.ts (ne den dat fondů), obrázek, autor a vydavatel přes @id.
+      const redakce = readFileSync('src/lib/redakce.ts', 'utf8');
+      const upravy = Object.fromEntries([...redakce.matchAll(/'(\/[^']*)': \{ publikovano: '(\d{4}-\d{2}-\d{2})', upraveno: '(\d{4}-\d{2}-\d{2})' \}/g)].map((m) => [m[1], { pub: m[2], upr: m[3] }]));
+      const ceniky = readFileSync('src/data/brokerData.ts', 'utf8').match(/CENIKY_OVERENY = '(\d{4}-\d{2}-\d{2})'/)?.[1];
+      const sb = ld(H('/srovnani-brokeru')).find((x) => x['@type'] === 'Article');
+      if (!sb || sb.dateModified !== upravy['/srovnani-brokeru']?.upr) chyby.push(`/srovnani-brokeru: Article dateModified ${sb?.dateModified} ≠ redakce.ts ${upravy['/srovnani-brokeru']?.upr}`);
+      if (sb && ceniky && sb.dateModified < ceniky) chyby.push(`/srovnani-brokeru: dateModified ${sb.dateModified} je starší než ověření ceníků ${ceniky} – posuňte upraveno v redakce.ts`);
+      for (const c of ['/srovnani-brokeru', '/srovnani/vwce-vs-cspx']) {
+        const a = ld(H(c)).find((x) => x['@type'] === 'Article');
+        if (!a?.image?.url || a.author?.['@id'] !== AUTOR || a.publisher?.['@id'] !== ORG) chyby.push(`${c}: Article bez image / author @id / publisher @id`);
+      }
+
+      // 6) Sitemapa: lastmod redakčních stránek = datum úpravy z redakce.ts; nikdy v budoucnosti; bez tichého „dnes“
+      //    (dřív getDataDate(today) – při výpadku DB měly datové stránky lastmod = den generování).
+      const zitra = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+      const DATOVE = /^(\/|\/srovnani|\/zebricky|\/nejlepsi-etf\/.*|\/srovnani\/[a-z0-9]+-vs-[a-z0-9]+)$/;
+      for (const p of polozky) {
+        if (p.lastmod && p.lastmod.slice(0, 10) >= zitra) chyby.push(`sitemap: ${p.cesta} lastmod v budoucnosti (${p.lastmod})`);
+        const u = upravy[p.cesta] ?? (p.cesta.startsWith('/portfolio-strategie/') ? upravy['/portfolio-strategie/*'] : p.cesta.startsWith('/recenze/') ? upravy['/recenze/*'] : null);
+        if (!u) continue;
+        if (!p.lastmod) chyby.push(`sitemap: ${p.cesta} bez lastmod (datum úpravy je v redakce.ts)`);
+        else if (DATOVE.test(p.cesta) ? p.lastmod.slice(0, 10) < u.upr : p.lastmod.slice(0, 10) !== u.upr) chyby.push(`sitemap: ${p.cesta} lastmod ${p.lastmod.slice(0, 10)} ≠ redakce.ts ${u.upr}`);
+      }
+
+      // 7) Žebříčky s dřív stejným jádrem popisku – žádná věta popisku (mimo „Data k …“) se nesmí opakovat ve dvou z nich.
+      //    Každý popisek nese datum dat. „Nejlepší zlato ETF“ → „Nejlepší ETF na zlato“.
+      const PET = ['nejlepsi-etf-2026', 'nejlepsi-sp500-etf', 'nejlepsi-americke-etf', 'nejlepsi-akumulacni-etf', 'nejlevnejsi-etf'].map((s) => `/nejlepsi-etf/${s}`);
+      const vety = new Map();
+      for (const c of PET) {
+        const d = norm(dek(H(c).match(/<meta name="description" content="([^"]*)"/)?.[1] ?? ''));
+        if (!/Data k \d{1,2}\. \d{1,2}\. \d{4}\./.test(d)) chyby.push(`${c}: popisek bez „Data k …“ („${d.slice(0, 60)}…“)`);
+        for (const v of d.replace(/Data k \d{1,2}\. \d{1,2}\. \d{4}\./, '').split(/(?<=\.)\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/)) if (v.trim()) vety.set(v.trim(), [...(vety.get(v.trim()) ?? []), c]);
+      }
+      for (const [v, cs] of vety) if (cs.length > 1) chyby.push(`Stejná věta v popisku ${cs.length} žebříčků („${v.slice(0, 60)}“): ${cs.join(', ')}`);
+      if (!/<h1[^>]*>\s*Nejlepší ETF na zlato\s*<\/h1>/.test(H('/nejlepsi-etf/nejlepsi-zlato-etf'))) chyby.push('/nejlepsi-etf/nejlepsi-zlato-etf: H1 není „Nejlepší ETF na zlato“');
+
+      // 8) GEO: „Klíčová čísla k {datum}“ na hlavních žebříčcích; největší fond S&P 500 = surová DB (CSPX/SXR8).
+      for (const s of ['nejlepsi-etf-2026', 'nejlepsi-sp500-etf', 'nejlepsi-msci-world-etf', 'nejlepsi-celosvetove-etf']) {
+        const h = H(`/nejlepsi-etf/${s}`);
+        if (!/data-sekce="klicova-cisla"/.test(h) || !/Klíčová čísla k \d{1,2}\. \d{1,2}\. \d{4}/.test(text(h))) chyby.push(`/nejlepsi-etf/${s}: chybí „Klíčová čísla k [datum]“`);
+      }
+      const kcSp = text(H('/nejlepsi-etf/nejlepsi-sp500-etf').match(/<section data-sekce="klicova-cisla"[\s\S]*?<\/section>/)?.[0] ?? '');
+      const velWeb = kcSp.match(/Největší fond (\d+,\d) mld\. €/)?.[1];
+      const cspx = await fetch(`${URL_DB}?select=fund_size_numeric&isin=eq.IE00B5BMR087`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+      const velDb = cspx?.[0]?.fund_size_numeric != null ? (cspx[0].fund_size_numeric / 1000).toFixed(1).replace('.', ',') : null;
+      if (kcSp && (!velWeb || velWeb !== velDb)) chyby.push(`/nejlepsi-etf/nejlepsi-sp500-etf: Klíčová čísla – největší fond ${velWeb} mld. € ≠ DB ${velDb} mld. €`);
+
+      // 9) Prolinkování slabě odkazovaných stránek (dřív 1–4 příchozí odkazy): počet různých stránek ze sitemapy s odkazem.
+      const odkazyNa = new Map();
+      for (const [c] of nacteno) for (const m of H(c).matchAll(/href="(\/[^"#?]*)/g)) {
+        const k = m[1].replace(/\/$/, '') || '/';
+        if (k !== c) odkazyNa.set(k, (odkazyNa.get(k) ?? new Set()).add(c));
+      }
+      const MIN_ODKAZU = { '/infografiky': 4, '/etf-vs-akcie': 4, '/cisty-plat': 3, '/sp500-nebo-cely-svet': 5, '/pravidlo-4-procent': 5 };
+      for (const p of polozky) if (/^\/portfolio-strategie\/[^/]+$/.test(p.cesta)) MIN_ODKAZU[p.cesta] = 5;
+      for (const [k, min] of Object.entries(MIN_ODKAZU)) {
+        const n = odkazyNa.get(k)?.size ?? 0;
+        if (n < min) chyby.push(`${k}: jen ${n} stránek ze sitemapy na ni odkazuje (min. ${min})`);
+      }
+
+      // 10) Dvojice srovnání – jedno pravidlo pořadí (src/lib/pairs.ts, middleware): kurátorský alias (vwce-vs-eunl) = 200
+      //     s canonical na hlavní dvojici; obrácené pořadí (eunl-vs-vwce) = 301 rovnou na TUTÉŽ hlavní dvojici.
+      const alias = await vem('/srovnani/vwce-vs-eunl');
+      const obraceny = await vem('/srovnani/eunl-vs-vwce');
+      const kanon = alias.html.match(/<link rel="canonical" href="([^"]*)"/)?.[1] ?? '';
+      if (alias.status !== 200 || !kanon.endsWith('/srovnani/vwce-vs-iwda') || ![301, 308].includes(obraceny.status) || !(obraceny.loc ?? '').endsWith('/srovnani/vwce-vs-iwda')) {
+        chyby.push(`Dvojice: vwce-vs-eunl ${alias.status} canonical ${kanon || '—'}, eunl-vs-vwce ${obraceny.status} → ${obraceny.loc ?? '—'} (obojí má končit na /srovnani/vwce-vs-iwda)`);
+      }
+
+      if (chyby.length) (nasazeno ? poplach : varovani).push({ co: `SEO kolo 7${nasazeno ? '' : ' – produkce ještě bez oprav (před nasazením)'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 20) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu SEO kola 7 se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+    }
+  }
+  // --- konec kolo7 seo ---
+
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
   const radky = [`# Kontrola dat fondů`, '', souhrn, ''];

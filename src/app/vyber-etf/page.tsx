@@ -11,6 +11,7 @@ import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { predpocitejPortfolio } from '@/lib/backtest/predpocet';
 import { vynosyFonduSDatem } from '@/lib/vynosyFonduSDatem';
 import { titulek } from '@/lib/seoTitulek';
+import { FaqSeznam } from '@/components/design-preview/brokerUI';
 
 /* Ukázkový fond každé kategorie výsledku – velký, běžně dostupný fond; výnos za 5 let v Kč z dat fondu s datem.
    Akumulační i distribuční třída: příklad se vybírá podle odpovědi „Co s dividendami?“ (revize 19. 10. 2026:
@@ -38,6 +39,18 @@ const PROPAD_KATEGORIE: Record<string, { kod: string; nazev: string; jenSrovnani
   esg: { kod: 'ftse_all_world', nazev: 'akcie celého světa (fond VT)', jenSrovnani: 'Řadu ESG indexu v datech nemáme, propad ESG fondů proto neuvádíme.' },
   bonds: { kod: 'eur_govt_bond_1_3y', nazev: 'státní dluhopisy eurozóny 1–3 roky (fond iShares € Govt Bond 1-3yr)' },
 };
+
+/* Časté dotazy – viditelné na stránce (sbalovací) i ve FAQPage. Fakta bez čísel, která by stárla. */
+const FAQ = [
+  {
+    q: 'Jak si vybrat správný ETF?',
+    a: 'Vyjděte z investičního horizontu (jak dlouho nebudete peníze potřebovat), z toho, jak velký propad unesete, a z cíle (růst, nebo pravidelný příjem). Průvodce podle odpovědí ukáže, které typy ETF a modelová portfolia odpovídají – se skutečnými výnosy v korunách.',
+  },
+  {
+    q: 'Je lepší celosvětový ETF, nebo S&P 500?',
+    a: 'Celosvětový ETF (např. FTSE All-World) dává nejširší rozložení bez nutnosti hádat region. S&P 500 je koncentrovaná sázka na 500 největších amerických firem, obvykle s nižšími poplatky, ale 100 % v USA. Celosvětový fond rozkládá riziko do více zemí.',
+  },
+] as const;
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -117,12 +130,10 @@ export default async function VyberEtfPage() {
   }
   const akcie = bench ? { cagr: bench.summary.cagr, maxPokles: bench.risk.maxDrawdown.depth } : null;
 
+  // FAQ je vidět i na stránce (SEO audit kola 7: FAQPage bez viditelných otázek = porušení pravidel Googlu).
   const faqSchema = {
     '@context': 'https://schema.org', '@type': 'FAQPage',
-    mainEntity: [
-      { '@type': 'Question', name: 'Jak si vybrat správný ETF?', acceptedAnswer: { '@type': 'Answer', text: 'Vyjděte z investičního horizontu (jak dlouho nebudete peníze potřebovat), z toho, jak velký propad unesete, a z cíle (růst, nebo pravidelný příjem). Průvodce podle odpovědí ukáže, které typy ETF a modelová portfolia odpovídají – se skutečnými výnosy v korunách.' } },
-      { '@type': 'Question', name: 'Je lepší celosvětový ETF, nebo S&P 500?', acceptedAnswer: { '@type': 'Answer', text: 'Celosvětový ETF (např. FTSE All-World) dává nejširší rozložení bez nutnosti hádat region. S&P 500 je koncentrovaná sázka na 500 největších amerických firem s nižšími poplatky, ale 100 % v USA. Celosvětový fond rozkládá riziko do více zemí.' } },
-    ],
+    mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   };
 
   return (
@@ -201,6 +212,17 @@ export default async function VyberEtfPage() {
             Jde o vzdělávací nástroj, ne investiční poradenství. Odkud čísla pocházejí, popisuje{' '}
             <Link href="/metodika" className="underline underline-offset-2 hover:text-slate-700">metodika</Link>; všechna portfolia
             najdete v <Link href="/portfolio-strategie" className="underline underline-offset-2 hover:text-slate-700">modelových portfoliích</Link>.
+          </p>
+        </section>
+
+        <section data-sekce="faq" className="mt-12">
+          <h2 className="mb-4 text-xl md:text-2xl font-bold tracking-tight text-slate-900">Časté dotazy</h2>
+          <FaqSeznam items={FAQ} />
+          <p className="mt-4 text-sm text-slate-600 leading-relaxed">
+            Jak si celý svět a S&amp;P 500 vedly v korunách, ukazuje článek{' '}
+            <Link href="/sp500-nebo-cely-svet" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">S&amp;P 500, nebo celý svět?</Link>;
+            proč fond místo jednotlivých akcií, vysvětluje{' '}
+            <Link href="/etf-vs-akcie" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">ETF vs. akcie</Link>.
           </p>
         </section>
       </main>

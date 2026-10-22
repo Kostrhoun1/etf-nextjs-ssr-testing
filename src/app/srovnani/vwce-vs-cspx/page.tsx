@@ -141,6 +141,10 @@ export default async function SrovnaniPreview() {
     // Autor, vydavatel a data ze src/lib/redakce.ts (SEO audit 20. 10. 2026: dřív dateModified = „dnes“, bez datePublished).
     author: autorSchema,
     publisher: vydavatelSchema,
+    // SEO audit kola 7: Article bez image. Stránka nemá vlastní openGraph → og:image = výchozí z layoutu (og-cover.jpg).
+    image: { '@type': 'ImageObject', url: 'https://etfpruvodce.cz/og-cover.jpg', width: 1200, height: 630 },
+    url: CANONICAL,
+    inLanguage: 'cs-CZ',
     datePublished: dataClanku('/srovnani/vwce-vs-cspx')?.publikovano,
     dateModified: datumUpravy('/srovnani/vwce-vs-cspx', denDat),
     about: [financialProduct(etf1), financialProduct(etf2)],
