@@ -284,10 +284,10 @@ export default async function InfografikyRozcestnik() {
 
           {/* „Kde koupit ETF“ je už v řádku odkazů výše – karta byla duplicitní (kolo 7). */}
           <div className="mt-6 grid sm:grid-cols-2 gap-4">
-            {[
+            {([
               [ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/o-nas'],
               [Star, '12+ let v českém bankovnictví', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/o-nas'],
-            ].map(([Icon, t, d, href]: any) => (
+            ] as [typeof Star, string, string, string][]).map(([Icon, t, d, href]) => (
               <Link
                 key={t}
                 href={href}

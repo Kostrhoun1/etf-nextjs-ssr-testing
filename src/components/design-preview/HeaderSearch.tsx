@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2, ArrowRight } from 'lucide-react';
@@ -43,6 +43,7 @@ export default function HeaderSearch({ varianta = 'desktop', onHotovo }: Props =
   const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const seznamId = useId();
 
   // Mobil: po otevření panelu rovnou kurzor do pole (ušetří další klepnutí).
   useEffect(() => {
@@ -127,6 +128,7 @@ export default function HeaderSearch({ varianta = 'desktop', onHotovo }: Props =
       role="combobox"
       enterKeyHint="search"
       aria-expanded={open}
+      aria-controls={seznamId}
       aria-autocomplete="list"
       aria-label={mobil ? 'Hledat ETF' : 'Hledat ETF podle názvu, ISIN nebo tickeru'}
       placeholder={mobil ? 'Název, ISIN nebo ticker…' : 'Hledat ETF…'}
@@ -164,6 +166,7 @@ export default function HeaderSearch({ varianta = 'desktop', onHotovo }: Props =
 
       {open && (results.length > 0 || (query.trim().length >= 2 && !loading)) && (
         <div
+          id={seznamId}
           data-testid={mobil ? 'mobil-naseptavac' : 'naseptavac'}
           className={mobil
             ? 'mt-2 rounded-xl border border-slate-200 bg-white overflow-hidden'
