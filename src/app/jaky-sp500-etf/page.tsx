@@ -384,6 +384,10 @@ export default async function JakySp500Etf() {
               ['/svetove-etf-indexy', 'Který světový index', 'S&P 500 vs MSCI World vs All-World', TrendingUp],
               ['/kolik-investovat-mesicne', 'Kolik investovat měsíčně', 'Cesta k milionu v Kč', Calculator],
               ['/kde-koupit', 'Kde koupit ETF', 'Přehled brokerů v ČR', Landmark],
+              // SEO audit kola 7: S&P 500 vs celý svět v korunách (slabě prolinkovaný článek z dat); 9 = mřížka 3 sloupce.
+              ['/sp500-nebo-cely-svet', 'S&P 500, nebo celý svět?', 'Co vydělalo víc v korunách od roku 2008', TrendingUp],
+              ['/etf-vs-akcie', 'ETF, nebo jednotlivé akcie?', 'Proč fond místo výběru firem', Wallet],
+              ['/portfolio-strategie/akciove-portfolio', 'Akciové portfolio', 'Modelové portfolio s historií v Kč', Calculator],
             ] as [string, string, string, typeof Wallet][]).map(([href, label, desc, Icon]) => (
               <Link key={href} href={href} className="group flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 text-teal-700 shrink-0 group-hover:bg-teal-100 transition-colors"><Icon className="w-4 h-4" /></span>

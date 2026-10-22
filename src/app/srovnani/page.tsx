@@ -23,7 +23,7 @@ const POPULAR_CATEGORIES: { label: string; slug: string; note: string }[] = [
   { label: 'Dluhopisové ETF', slug: 'nejlepsi-dluhopisove-etf', note: 'Stabilnější složka portfolia' },
   { label: 'Dividendové ETF', slug: 'nejlepsi-dividendove-etf', note: 'Pravidelný pasivní příjem' },
   { label: 'Emerging Markets ETF', slug: 'nejlepsi-emerging-markets-etf', note: 'Rozvíjející se trhy' },
-  { label: 'Zlato ETF', slug: 'nejlepsi-zlato-etf', note: 'Ochrana proti inflaci' },
+  { label: 'ETF na zlato', slug: 'nejlepsi-zlato-etf', note: 'Ochrana proti inflaci' },
   { label: 'Bitcoin ETF', slug: 'nejlepsi-bitcoin-etf', note: 'Kryptoměnová expozice' },
 ];
 

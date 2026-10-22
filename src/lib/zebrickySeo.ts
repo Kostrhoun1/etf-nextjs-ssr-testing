@@ -37,7 +37,26 @@ export interface DataZebricku {
   median: { hodnota: number; obdobi: '3y' | '1y'; pocet: number; bezVariant: boolean } | null;
   /** Práh karet (100 mil. €). */
   prahKaret: number;
+  /** Slug žebříčku – určuje záměr popisku a úvodní věty (ZAMER níže). */
+  slug?: string;
+  /** Tři největší fondy (bez švýcarských, stejně jako karty); `mimoCH` = nějaký větší švýcarský byl přeskočen. */
+  topVelikost?: { fondy: (FondSeo & { velikost: number })[]; mimoCH: boolean };
+  /** Tři nejlevnější podle pravidla karty (nad 100 mil. €, bez měnového zajištění). */
+  topTer?: (FondSeo & { ter: number })[];
 }
+
+/* Záměr stránky (SEO audit kola 7, 22. 10. 2026): pět žebříčků mělo stejné jádro popisku („Nejnižší TER má SPYL…
+   Největší je SXR8 (138,6 mld. €)…“) – nejlepsi-etf-2026, sp500, americke, akumulacni, nejlevnejsi. Každý teď vede
+   fakty, kvůli kterým stránka existuje: největší fondy / nejnižší TER / index / medián trhu / třída. Čísla dál jen
+   z dat stránky a s datem. Ostatní žebříčky beze změny (výchozí popisek). Hlídá check-fund-data.mjs, blok kolo7 seo. */
+type Zamer = 'nejvetsi' | 'nejlevnejsi' | 'index' | 'trh' | 'akumulacni';
+const ZAMER: Record<string, Zamer> = {
+  'nejlepsi-etf-2026': 'nejvetsi',
+  'nejlevnejsi-etf': 'nejlevnejsi',
+  'nejlepsi-sp500-etf': 'index',
+  'nejlepsi-americke-etf': 'trh',
+  'nejlepsi-akumulacni-etf': 'akumulacni',
+};
 
 const NB = ' ';
 const BRAND = ' | ETF průvodce.cz';
@@ -102,6 +121,52 @@ export function popisekZebricku(d: DataZebricku): string | null {
     const kdo = stejny && L ? `Největší a nejlevnější${levnyKde ? ` nad ${d.prahKaret}${NB}mil.${NB}€` : ''} je ${oznaceni(V)}${vel}, TER ${terText(L.ter)}` : `Největší${V.mimoCH ? ' mimo švýcarské fondy' : ''} je ${oznaceni(V)}${vel}`;
     return `${kdo}${r1 != null ? `, za 12 měsíců v Kč ${pctText(r1)}` : ''}.`;
   };
+  const zamer = d.slug ? ZAMER[d.slug] : undefined;
+  const n = `${pocet(d.celkem)} ${fondy1(d.celkem)}`;
+  const nadPrahem = `nad ${d.prah}${NB}mil.${NB}€`;
+  const tv = d.topVelikost?.fondy ?? [];
+  const seznamVel = (k: number, sVel: boolean) => tv.slice(0, k).map((f) => `${oznaceni(f)}${sVel ? ` ${velikostText(f.velikost)}` : ''}`).join(', ');
+  const tt = d.topTer ?? [];
+  const seznamTer = (k: number) => tt.slice(0, k).map((f) => `${oznaceni(f)} ${terText(f.ter)}`).join(', ');
+  const vlastni: string[][] = [];
+  if (zamer === 'nejvetsi' && tv.length >= 2) {
+    const mimo = d.topVelikost?.mimoCH ? ' (mimo švýcarské)' : '';
+    for (const k of [3, 2]) for (const sVel of [true, false]) {
+      vlastni.push([`Největší ETF podle majetku${mimo}: ${seznamVel(k, sVel)}.`, `Srovnání ${pocet(d.celkem)} ${fondy2(d.celkem)} ${nadPrahem} napříč akciemi, dluhopisy i komoditami.`, datum]);
+      vlastni.push([`Největší ETF podle majetku${mimo}: ${seznamVel(k, sVel)}.`, `${n} ${nadPrahem}, výnosy v Kč.`, datum]);
+    }
+  } else if (zamer === 'nejlevnejsi' && tt.length >= 2) {
+    // Stejné minimum má často víc fondů (0,03 % = desítka S&P 500 / MSCI USA) → počet + první tři podle pravidla karty.
+    const sMinimem = L ? L.stejnyTer + 1 : 0;
+    const jmena = (k: number) => { const j = tt.slice(0, k).map(oznaceni); return `${j.slice(0, -1).join(', ')} a ${j[j.length - 1]}`; };
+    if (L && sMinimem > 3 && tt.every((f) => f.ter === L.ter)) {
+      vlastni.push([`Nejnižší TER (${terText(L.ter)}) má ${pocet(sMinimem)} ${fondy1(sMinimem)} nad ${d.prahKaret}${NB}mil.${NB}€ bez měnového zajištění, mj. ${jmena(3)}.`, `Srovnání ${pocet(d.celkem)} ${fondy2(d.celkem)} od nejlevnějšího.`, datum]);
+      vlastni.push([`Nejnižší TER (${terText(L.ter)}) má ${pocet(sMinimem)} ${fondy1(sMinimem)} nad ${d.prahKaret}${NB}mil.${NB}€, mj. ${jmena(3)}.`, `${n} od nejlevnějšího.`, datum]);
+    }
+    for (const k of [3, 2]) {
+      vlastni.push([`Nejnižší roční poplatek (TER) nad ${d.prahKaret}${NB}mil.${NB}€: ${seznamTer(k)}.`, `Srovnání ${pocet(d.celkem)} ${fondy2(d.celkem)} od nejlevnějšího, s výnosy v Kč.`, datum]);
+      vlastni.push([`Nejnižší TER nad ${d.prahKaret}${NB}mil.${NB}€: ${seznamTer(k)}.`, `${n} od nejlevnějšího.`, datum]);
+    }
+  } else if (zamer === 'index') {
+    vlastni.push([`${n} na index S&P${NB}500 (500 velkých firem USA) ${nadPrahem}.`, levny, velky(true), datum].filter((x): x is string => !!x));
+    vlastni.push([`${n} na index S&P${NB}500 ${nadPrahem}.`, levny, velky(true), datum].filter((x): x is string => !!x));
+    vlastni.push([`${n} na index S&P${NB}500 ${nadPrahem}.`, levny, velky(false), datum].filter((x): x is string => !!x));
+  } else if (zamer === 'trh' && d.median) {
+    const obd = d.median.obdobi === '3y' ? 'za 3 roky' : 'za 12 měsíců';
+    const med = `Medián výnosu ${obd} v${NB}Kč ${pctText(d.median.hodnota)} (${pocet(d.median.pocet)} ${fondy1(d.median.pocet)} nad ${d.prahKaret}${NB}mil.${NB}€${d.median.bezVariant ? ' bez zajištěných a ESG tříd' : ''}).`;
+    const vel = V && V.velikost != null ? `Největší je ${oznaceni(V)} (${velikostText(V.velikost)}).` : null;
+    vlastni.push([`${n} na americké akcie ${nadPrahem}: široký trh, Nasdaq i sektory.`, med, vel, datum].filter((x): x is string => !!x));
+    vlastni.push([`${n} na americké akcie ${nadPrahem}.`, med, vel, datum].filter((x): x is string => !!x));
+    vlastni.push([`${n} na americké akcie ${nadPrahem}.`, med, datum]);
+  } else if (zamer === 'akumulacni' && tv.length >= 2) {
+    for (const k of [3, 2]) {
+      vlastni.push([`${n} ${nadPrahem}, které dividendy reinvestují místo výplaty.`, `Největší: ${seznamVel(k, false)}.`, 'Výnosy v Kč.', datum]);
+      vlastni.push([`${n} ${nadPrahem}, které dividendy reinvestují.`, `Největší: ${seznamVel(k, false)}.`, datum]);
+    }
+  }
+  const vlastniOk = vlastni.map((v) => v.filter(Boolean).join(' ')).find((v) => v.length <= POPISEK_MAX && v.length >= 100);
+  if (vlastniOk) return vlastniOk;
+
   const varianty = [
     [uvodDlouhy, levny, velky(true), datum],
     [uvodKratky, levny, velky(true), datum],
@@ -123,7 +188,17 @@ export function odpovedZebricku(d: DataZebricku): string[] {
   const den = datumText(d.datum);
   const vety: string[] = [];
   const sloveso = d.celkem === 1 ? 'je' : d.celkem <= 4 ? 'jsou' : 'je';
-  vety.push(`K${NB}${den} ${sloveso} v${NB}žebříčku ${pocet(d.celkem)} ${fondy1(d.celkem)} nad ${d.prah}${NB}mil.${NB}€.`);
+  const zamer = d.slug ? ZAMER[d.slug] : undefined;
+  const nn = `${pocet(d.celkem)} ${fondy1(d.celkem)} nad ${d.prah}${NB}mil.${NB}€`;
+  // Úvodní věta podle záměru stránky (kolo 7) – stejné číslo, jiná otázka, na kterou stránka odpovídá.
+  vety.push(
+    zamer === 'nejvetsi' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn} napříč akciemi, dluhopisy i komoditami, seřazených podle spravovaného majetku.`
+      : zamer === 'nejlevnejsi' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn}, seřazených od nejnižšího ročního poplatku (TER).`
+        : zamer === 'index' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${pocet(d.celkem)} ${fondy1(d.celkem)} na index S&P${NB}500 (500 velkých amerických firem) nad ${d.prah}${NB}mil.${NB}€.`
+          : zamer === 'trh' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn} na americké akcie – široký trh, Nasdaq i jednotlivá odvětví.`
+            : zamer === 'akumulacni' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn}, které dividendy nevyplácejí, ale reinvestují.`
+              : `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn}.`,
+  );
   const kDni = (f: FondSeo) => (f.datum && !stejnyDen(f.datum, d.datum) ? ` (data k${NB}${datumText(f.datum)})` : '');
   const jmeno = (f: FondSeo) => (f.ticker ? `${f.nazev} (${f.ticker})` : f.nazev) + kDni(f);
   const L = d.nejlevnejsi, V = d.nejvetsi;
@@ -151,4 +226,40 @@ export function odpovedZebricku(d: DataZebricku): string[] {
     vety.push(`Největší fond za posledních 12 měsíců vydělal v${NB}korunách ${pctText(V.r1Kc)}.`);
   }
   return vety;
+}
+
+/* „Klíčová čísla k {datum}“ na hlavních žebříčcích (GEO, SEO audit kola 7, 22. 10. 2026) – dřív jen na 4 pilířích.
+   Stejná čísla jako popisek a odpověď nahoře (DataZebricku = data stránky), vždy s datem; chybějící hodnota = řádek
+   vynechán (nikdy „—“ v citovatelné tabulce). Zdroje = poskytovatel indexu a kurzy ČNB (přepočet do Kč). */
+export const KLICOVA_CISLA_ZEBRICKY: Record<string, { index?: string; zdroje: { href: string; text: string }[] }> = {
+  'nejlepsi-etf-2026': { zdroje: [] },
+  'nejlepsi-sp500-etf': { index: 'S&P 500', zdroje: [{ href: 'https://www.spglobal.com/spdji/en/indices/equity/sp-500/', text: 'S&P Dow Jones Indices – S&P 500' }] },
+  'nejlepsi-msci-world-etf': { index: 'MSCI World', zdroje: [{ href: 'https://www.msci.com/indexes/index/990100', text: 'MSCI – MSCI World' }] },
+  'nejlepsi-celosvetove-etf': {
+    index: 'celý svět (FTSE All-World, MSCI ACWI…)',
+    zdroje: [
+      { href: 'https://www.lseg.com/en/ftse-russell/indices/global-equity-index-series', text: 'FTSE Russell – FTSE Global Equity Index Series' },
+      { href: 'https://www.msci.com/indexes/index/892400', text: 'MSCI – MSCI ACWI' },
+    ],
+  },
+};
+const CNB_KURZY = { href: 'https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/', text: 'ČNB – kurzy devizového trhu (přepočet do Kč)' };
+
+export function klicovaCislaZebricku(
+  d: DataZebricku,
+  medianTrhu: { hodnota: number; obdobi: '3y' | '1y'; pocet: number } | null,
+): { datum: string; radky: { co: string; hodnota: string; pozn?: string }[]; zdroje: { href: string; text: string }[] } | null {
+  const def = d.slug ? KLICOVA_CISLA_ZEBRICKY[d.slug] : undefined;
+  if (!def || !d.datum || d.celkem <= 0) return null;
+  const dalsich = (n: number) => (n === 1 ? 'další fond' : n <= 4 ? 'další fondy' : 'dalších fondů');
+  const radky: { co: string; hodnota: string; pozn?: string }[] = [];
+  radky.push({ co: def.index ? `Fondy na ${def.index} v žebříčku` : 'Fondy v žebříčku', hodnota: pocet(d.celkem), pozn: `spravovaný majetek nad ${d.prah}${NB}mil.${NB}€` });
+  const L = d.nejlevnejsi, V = d.nejvetsi;
+  if (L) radky.push({ co: 'Nejnižší roční poplatek (TER)', hodnota: terText(L.ter), pozn: `${oznaceni(L)} – fondy nad ${d.prahKaret}${NB}mil.${NB}€ bez měnového zajištění${L.stejnyTer > 0 ? `; stejný TER ${maji(L.stejnyTer)} ještě ${L.stejnyTer} ${dalsich(L.stejnyTer)}` : ''}` });
+  if (V && V.velikost != null) radky.push({ co: `Největší fond${V.mimoCH ? ' (mimo švýcarské)' : ''}`, hodnota: velikostText(V.velikost), pozn: `${oznaceni(V)} – ${V.nazev}` });
+  if (V && V.r1Kc != null && stejnyDen(V.datum, d.datum)) radky.push({ co: 'Výnos největšího fondu za 12 měsíců v Kč', hodnota: pctText(V.r1Kc), pozn: `${oznaceni(V)}, po poplatcích, před daní` });
+  if (def.index && medianTrhu && medianTrhu.pocet >= 3) {
+    radky.push({ co: `Medián výnosu ${medianTrhu.obdobi === '3y' ? 'za 3 roky' : 'za 12 měsíců'} v Kč`, hodnota: pctText(medianTrhu.hodnota), pozn: `${pocet(medianTrhu.pocet)} ${fondy1(medianTrhu.pocet)} nad ${d.prahKaret}${NB}mil.${NB}€ bez zajištěných a ESG tříd` });
+  }
+  return { datum: datumText(d.datum), radky, zdroje: [...def.zdroje, CNB_KURZY] };
 }

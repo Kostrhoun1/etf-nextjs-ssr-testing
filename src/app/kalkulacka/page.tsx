@@ -105,7 +105,7 @@ export default async function FeeCalculatorPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Kalkulačka poplatků ETF', item: 'https://etfpruvodce.cz/kalkulacky/kalkulacka-poplatku-etf' },
+      { '@type': 'ListItem', position: 3, name: 'Kalkulačka poplatků ETF', item: 'https://etfpruvodce.cz/kalkulacka' },
     ],
   };
 

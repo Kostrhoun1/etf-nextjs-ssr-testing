@@ -63,7 +63,7 @@ export default async function NouzovaRezervaPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Kalkulačka nouzové rezervy', item: 'https://etfpruvodce.cz/kalkulacky/nouzova-rezerva' },
+      { '@type': 'ListItem', position: 3, name: 'Kalkulačka nouzové rezervy', item: 'https://etfpruvodce.cz/nouzova-rezerva' },
     ],
   };
 
@@ -231,6 +231,11 @@ export default async function NouzovaRezervaPreview() {
             <Link href="/pruvodce" className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 font-medium text-sm">
               Až budete mít rezervu, podívejte se na ETF <ArrowRight className="w-4 h-4" />
             </Link>
+          </p>
+          {/* SEO audit kola 7: rezerva se počítá z čistých výdajů/příjmu → kalkulačka čisté mzdy (měla 2 příchozí odkazy). */}
+          <p className="mt-2 text-sm text-slate-600">
+            Nevíte přesně, kolik vám z hrubé mzdy zbude? Spočítá to{' '}
+            <Link href="/cisty-plat" className="font-medium text-teal-700 hover:underline">kalkulačka čisté mzdy 2026</Link>.
           </p>
         </section>
 

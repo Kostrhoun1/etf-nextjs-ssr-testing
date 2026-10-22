@@ -14,7 +14,8 @@ import {
   type ETFBasicInfo, getDataDatum, inceptionYear,
 } from '@/lib/etf-data';
 import { datumVynosu, jineDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
-import { titulekZebricku, popisekZebricku, odpovedZebricku, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
+import { titulekZebricku, popisekZebricku, odpovedZebricku, klicovaCislaZebricku, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
+import KlicovaCisla from '@/components/design-preview/KlicovaCisla';
 import { porovnejNejlevnejsi, odlehleIsiny } from '@/lib/trhy';
 import { bezOdlehlychVynosu, bezOdlehlehoVynosu } from '@/lib/vynosNeovereny';
 import { ter, money, shortName, nbsp, SectionHead, CompositionInfographic, CategoryIndexes, slozeniPouzitelne } from '@/components/design-preview/CategoryUI';
@@ -367,7 +368,23 @@ function dataSeo(z: Zebricek): DataZebricku {
     nejvetsi: V ? { ...fondSeo(V), velikost: num(V.fund_size_numeric), r1Kc: num(V.return_1y_czk), mimoCH: z.nejvetsiJeCH } : null,
     median: z.medianVykonu != null ? { hodnota: z.medianVykonu, obdobi: z.vykonObdobi, pocet: z.byPerf.length, bezVariant: !z.jeEsgKategorie } : null,
     prahKaret: PRAH_KARET,
+    // Kolo 7: podklady pro popisek podle záměru stránky (zebrickySeo.ts, ZAMER). Největší = z tabulky řazené podle
+    // velikosti (jen u takových žebříčků je pořadí úplné), bez švýcarských fondů jako karty; nejlevnější = pravidlo karty.
+    slug: z.cfg.slug,
+    topVelikost: z.cfg.sortBy === 'fund_size_numeric' ? {
+      fondy: z.bySize.filter((e) => !jeSvycarskyFond(e.isin, e.name)).slice(0, 3)
+        .map((e) => ({ ...fondSeo(e), velikost: num(e.fund_size_numeric)! })),
+      mimoCH: z.bySize.slice(0, 3).some((e) => jeSvycarskyFond(e.isin, e.name)),
+    } : undefined,
+    topTer: z.byTer.slice(0, 3).map((e) => ({ ...fondSeo(e), ter: e.ter_numeric! })),
   };
+}
+
+/** Samostatný blok „Klíčová čísla k {datum}“ (kolo 7): stejná data jako popisek a odpověď nahoře. */
+function KlicovaZebricku({ z }: { z: Zebricek }) {
+  const m = z.byPerf.length ? median(z.byPerf.map(z.hodnotaVykonu)) : null;
+  const k = klicovaCislaZebricku(dataSeo(z), m != null ? { hodnota: m, obdobi: z.vykonObdobi, pocet: z.byPerf.length } : null);
+  return k ? <KlicovaCisla datum={k.datum} radky={k.radky} zdroje={k.zdroje} /> : null;
 }
 
 export async function generateMetadata(
@@ -698,6 +715,9 @@ export default async function CategoryDetailPreview(
             </div>
           </section>
         )}
+
+        {/* KLÍČOVÁ ČÍSLA K DATU (GEO, SEO audit kola 7) – jen hlavní žebříčky (KLICOVA_CISLA_ZEBRICKY v zebrickySeo.ts). */}
+        <KlicovaZebricku z={z} />
 
         {/* NA CO SI DÁT POZOR – max. 3 krátké body, podrobnosti po rozbalení (dřív 9řádkové odstavce ve žlutém boxu) */}
         {rizika.length > 0 && (

@@ -288,6 +288,10 @@ export default async function ZebrickyPage() {
               { href: '/srovnani', label: 'Srovnávač ETF', desc: 'Vlastní filtry napříč všemi fondy.', icon: BarChart3 },
               { href: '/portfolio-strategie', label: 'Modelová portfolia', desc: 'Strategie složené z ETF.', icon: PieChart },
               { href: '/kde-koupit', label: 'Kde koupit ETF', desc: 'Brokeři dostupní v ČR.', icon: ShoppingCart },
+              // SEO audit kola 7: infografiky a články z dat měly 1–4 příchozí odkazy.
+              { href: '/infografiky', label: 'Infografiky ETF', desc: 'Velikost fondů, poplatky a tržní heatmapa.', icon: PieChart },
+              { href: '/sp500-nebo-cely-svet', label: 'S&P 500, nebo celý svět?', desc: 'Co vydělalo víc v korunách.', icon: BarChart3 },
+              { href: '/etf-vs-akcie', label: 'ETF, nebo akcie?', desc: 'Fond, nebo výběr jednotlivých firem.', icon: ShoppingCart },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><l.icon className="w-5 h-5" /></span>
