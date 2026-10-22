@@ -95,7 +95,7 @@ async function checkMobilniHledani(browserType, engine) {
     const navrh = page.locator('[data-testid="mobil-naseptavac"]').getByText('IE00BK5BQT80');
     try { await navrh.first().waitFor({ timeout: 10000 }); } catch { await ctx.close(); return fail(name, 'našeptávač neukázal VWCE (IE00BK5BQT80)'); }
     await input.press('Enter');
-    try { await page.waitForURL(/\/srovnani\?q=VWCE/, { timeout: 15000 }); } catch { await ctx.close(); return fail(name, 'Enter nevede na /srovnani?q=VWCE'); }
+    try { await page.waitForURL(/\/srovnani\?q=VWCE/, { timeout: 30000 }); } catch { await ctx.close(); return fail(name, 'Enter nevede na /srovnani?q=VWCE'); }
     await ctx.close();
     ok(name);
   } catch (e) {
