@@ -74,7 +74,7 @@ export default async function HowToStartPreview() {
       ),
       items: [
         { icon: Hourglass, text: <><strong>Krátký horizont</strong> (méně než 3–5 let): akciová ETF spíš ne – trh může zrovna být dole, když budete chtít vybrat.</> },
-        { icon: CalendarClock, text: <><strong>Dlouhý horizont</strong> (10+ let na penzi, na děti): ideální podhoubí pro pravidelné investování do širokých ETF.</> },
+        { icon: CalendarClock, text: <><strong>Dlouhý horizont</strong> (10+ let na penzi, na děti): ideální situace pro pravidelné investování do širokých ETF.</> },
       ],
     },
     {
@@ -245,7 +245,7 @@ export default async function HowToStartPreview() {
       position: i + 1,
       name: s.title,
       text: stepPlainText(s.title),
-      url: `https://etfpruvodce.cz/jak-zacit-investovat-do-etf#krok-${i + 1}`,
+      url: `https://etfpruvodce.cz/jak-zacit#krok-${i + 1}`,
     })),
   };
   const faqSchema = {
@@ -262,7 +262,7 @@ export default async function HowToStartPreview() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Jak začít investovat do ETF', item: 'https://etfpruvodce.cz/jak-zacit-investovat-do-etf' },
+      { '@type': 'ListItem', position: 2, name: 'Jak začít investovat do ETF', item: 'https://etfpruvodce.cz/jak-zacit' },
     ],
   };
 
@@ -468,6 +468,13 @@ export default async function HowToStartPreview() {
               ['/zebricky', 'Nejlepší ETF', ListChecks],
               ['/etf/IE00BK5BQT80', 'Ukázka detailu fondu (VWCE)', Globe],
               ['/kde-koupit', 'Kde koupit ETF', Landmark],
+              // SEO audit kola 7: slabě prolinkované stránky; 12 položek = mřížka 2 i 3 sloupce bez díry.
+              ['/vyber-etf', 'Který ETF vybrat (4 otázky)', Search],
+              ['/etf-vs-akcie', 'ETF, nebo jednotlivé akcie?', ListChecks],
+              ['/sp500-nebo-cely-svet', 'S&P 500, nebo celý svět?', Globe],
+              ['/kolik-investovat-mesicne', 'Kolik investovat měsíčně', Boxes],
+              ['/dane-z-etf', 'Daně z ETF', Landmark],
+              ['/infografiky', 'Infografiky ETF', BookOpen],
             ] as [string, string, typeof BookOpen][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>

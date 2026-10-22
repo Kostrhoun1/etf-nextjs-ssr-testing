@@ -15,7 +15,7 @@ import { TRHY } from '@/data/trhyDvojcata';
 const ISINY_TRHU = new Set(TRHY.flatMap((t) => t.isins));
 const odlehleCache = unstable_cache(async () => [...(await odlehleIsiny())], ['odlehle-isiny'], { revalidate: 3600 });
 
-// slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší zlato ETF).
+// slug → titulek žebříčku (pro české hledání: „zlato“ → žebříček Nejlepší ETF na zlato).
 const KATEGORIE: Record<string, string> = Object.fromEntries(Object.entries(categoryConfigs).map(([slug, c]) => [slug, c.title]));
 
 const TICKER_FIELDS = [

@@ -14,6 +14,7 @@ import { ogImage } from '@/lib/ogImage';
 import { ceskySektor } from '@/lib/preklady';
 import { titulek } from '@/lib/seoTitulek';
 import KlicovaCisla from '@/components/design-preview/KlicovaCisla';
+import { getDataDatum } from '@/lib/etf-data';
 
 /* Vlna 7 – obsah z dat v korunách. Česky hledaná otázka („s&p 500 nebo msci world“, našeptávač
    17. 10. 2026). Čísla se počítají při ISR (1× denně) stejným enginem jako backtest a jsou ověřená
@@ -47,6 +48,11 @@ const kc = (v: number) => `${Math.round(v).toLocaleString('cs-CZ')} Kč`;
 
 const MESICE1 = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 const mesicRok = (iso: string) => `${MESICE1[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
+// 6. pád („v prosinci 2014“) a 2. pád („do března 2009“) – kolo 7: dřív „vrátil až v období prosinec 2014“.
+const MESICE6 = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
+const MESICE2 = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+const vMesici = (iso: string) => `v ${MESICE6[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
+const doMesice = (iso: string) => `do ${MESICE2[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
 const tvar = (n: number, a: string, b: string, c: string) => (n === 1 ? a : n >= 2 && n <= 4 ? b : c);
 const dobaMes = (m: number | null) => {
   if (m === null) return 'dosud ne';
@@ -54,13 +60,23 @@ const dobaMes = (m: number | null) => {
   const r = Math.floor(m / 12), mm = m % 12;
   return [r ? `${r} ${tvar(r, 'rok', 'roky', 'let')}` : '', mm ? `${mm} ${tvar(mm, 'měsíc', 'měsíce', 'měsíců')}` : ''].filter(Boolean).join(' ');
 };
+/** Doba návratu VŽDY s výchozím bodem (kolo 7: „návrat“ bez „od vrcholu/od dna“ se četlo dvojím způsobem). */
+const navratOdVrcholu = (m: number | null) => (m === null ? 'zatím bez návratu na vrchol' : m < 1 ? 'zpět na vrcholu do měsíce od vrcholu' : `zpět na vrcholu za ${dobaMes(m)} od vrcholu`);
 // Sektory: sdílený slovník webu (src/lib/preklady.ts) – dřív vlastní kopie s jinými názvy než detail fondu.
 const ZEME_CS: Record<string, string> = { 'United States': 'USA', Japan: 'Japonsko', 'United Kingdom': 'Velká Británie', China: 'Čína', Taiwan: 'Tchaj-wan', Canada: 'Kanada', France: 'Francie', Germany: 'Německo', Switzerland: 'Švýcarsko', India: 'Indie', Ireland: 'Irsko' };
+
+/** „Složení fondů k …“ z holdings_as_of (kolo 7) – různé dny u dvou fondů vypíše zvlášť, neznámé datum přizná. */
+function slozeniK(f: { ticker: string; datum: string | null }[]): string {
+  const fmt = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ', { timeZone: 'UTC' });
+  const dny = [...new Set(f.map((x) => x.datum))];
+  if (dny.length === 1) return dny[0] ? `Složení fondů k ${fmt(dny[0])} (poslední zveřejnění emitenta).` : 'Datum složení neznáme (zdroj ho neuvádí).';
+  return `Složení ${f.map((x) => `${x.ticker} ${x.datum ? `k ${fmt(x.datum)}` : '(datum neznáme)'}`).join(', ')}.`;
+}
 
 function KrizeRadek({ k }: { k: Krize }) {
   const r = (id: string, mena: 'CZK' | 'USD') => k.rady.find((x) => x.id === id && x.mena === mena);
   const bunka = (x?: Krize['rady'][number]) => x ? (
-    <span><span className="text-red-700 tabular-nums">{pct(x.hloubka, 0)}</span><span className="block text-xs text-slate-500">návrat {dobaMes(x.mesicuDoNavratu)}</span></span>
+    <span><span className="text-red-700 tabular-nums">{pct(x.hloubka, 0)}</span><span className="block text-xs text-slate-500">{navratOdVrcholu(x.mesicuDoNavratu)}</span></span>
   ) : <span className="text-slate-400">—</span>;
   return (
     <tr className="align-top">
@@ -124,6 +140,7 @@ function OknaTabulka({ okna, souper }: { okna: Okna[]; souper: string }) {
 export default async function Sp500NeboSvet() {
   const d = await spoctiSp500NeboSvet();
   const h = await spoctiSp500NeboSvetHloubka();
+  const denFondu = await getDataDatum(); // „data k …“ u nejlevnějších fondů (kolo 7: dřív „data k dnešku“)
   const usaPodil = h?.slozeni.find((f) => f.isin === 'IE00BK5BQT80')?.zeme.find(([n]) => n === 'United States')?.[1].toLocaleString('cs-CZ', { maximumFractionDigits: 0 });
   // Chybějící data = výjimka: Next pak při ISR ponechá poslední dobrou verzi stránky (místo
   // „nepodařilo se načíst“ na celý den). Při buildu selže build – raději než nasadit prázdnou stránku.
@@ -175,7 +192,7 @@ export default async function Sp500NeboSvet() {
               <p className="font-semibold text-slate-900">Krátká odpověď</p>
               <p className="mt-1.5">
                 Od poloviny roku 2008 vydělal S&amp;P 500 v korunách <strong>{pct(sp.cagr)} ročně</strong>, akcie celého světa{' '}
-                <strong>{pct(sv.cagr)} ročně</strong>. Ze 100 000 Kč by bylo {kc(sp.konec)} proti {kc(sv.konec)}.
+                <strong>{pct(sv.cagr)} ročně</strong>. Ze 100 000 Kč by bylo {kc(sp.konec)} proti {kc(sv.konec)}.{' '}
                 {sp.cagr > sv.cagr ? 'Jenže' : 'A'} v dekádě <strong>2000–2009 ztrácel S&amp;P 500 v korunách {pct(Math.abs(d.dekada2000.sp500))} ročně</strong> a zbytek světa
                 na tom byl lépe. Která část světa povede příště, dopředu nikdo neví – proto evidence mluví spíš pro celý svět.
               </p>
@@ -238,7 +255,7 @@ export default async function Sp500NeboSvet() {
                   <strong>S&amp;P 500 proti celému světu (od 2008):</strong> S&amp;P 500 byl lepší{' '}
                   <strong>{d.okna10Svet.vyhra === d.okna10Svet.celkem ? `ve všech ${d.okna10Svet.celkem}` : `v ${d.okna10Svet.vyhra} z ${d.okna10Svet.celkem}`}</strong> desetiletých obdobích,
                   {d.okna10Svet.min > 0 ? <> o {pb(d.okna10Svet.min)} až {pb(d.okna10Svet.max)} ročně.</> : <> rozdíl od {pb(d.okna10Svet.min, true)} do {pb(d.okna10Svet.max, true)} ročně.</>}
-                  {d.okna10Svet.vyhra > d.okna10Svet.celkem / 2 && 'Tohle je ale jedna éra – éra amerických technologických firem.'}
+                  {d.okna10Svet.vyhra > d.okna10Svet.celkem / 2 && ' Tohle je ale jedna éra – éra amerických technologických firem.'}
                 </li>
                 <li className="rounded-lg border border-slate-200 bg-white p-4">
                   <strong>S&amp;P 500 proti světu mimo USA (od 2000):</strong> S&amp;P 500 byl lepší v{' '}
@@ -292,7 +309,7 @@ export default async function Sp500NeboSvet() {
                     </div>
                   ))}
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Složení fondů k {new Date(h.slozeni[0].datum).toLocaleDateString('cs-CZ', { timeZone: 'UTC' })}. Odvětví podle klasifikace zdroje dat, ne GICS – podíly se proto mohou lišit od údajů emitentů indexů.</p>
+                <p className="mt-2 text-xs text-slate-500" data-slozeni-k={h.slozeni.map((f) => f.datum ?? '').join(',')}>{slozeniK(h.slozeni)} Odvětví podle klasifikace zdroje dat, ne GICS – podíly se proto mohou lišit od údajů emitentů indexů.</p>
                 <p className="mt-3 text-[15px] text-slate-700 leading-relaxed">
                   Volba tedy není „USA, nebo ne“. Kdo kupuje celý svět, má v USA zhruba {h.slozeni[1].zeme.find(([n]) => n === 'United States')?.[1].toLocaleString('cs-CZ', { maximumFractionDigits: 0 }) ?? '60'} % peněz.
                   Rozhoduje, jestli zbytek – Japonsko, Evropa, Tchaj-wan, Indie a další – chcete mít, nebo ne.
@@ -340,7 +357,7 @@ export default async function Sp500NeboSvet() {
             <section className="mt-10">
               <h2 className="text-xl font-bold tracking-tight">Krize jedna po druhé</h2>
               <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">
-                Největší propad od vrcholu ke dnu a za jak dlouho se hodnota vrátila na původní vrchol. Celý svět (fond VT) má data až od poloviny
+                Největší propad od vrcholu ke dnu a za jak dlouho (počítáno od vrcholu) se hodnota vrátila na původní vrchol. Celý svět (fond VT) má data až od poloviny
                 roku 2008, pro starší krize proto ukazujeme i svět mimo USA.
               </p>
               <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -355,12 +372,13 @@ export default async function Sp500NeboSvet() {
               </div>
               <p className="mt-2 text-xs text-slate-500">Denní hodnoty s reinvesticí dividend. „Návrat“ = od vrcholu do dne, kdy hodnota poprvé znovu dosáhla vrcholu.</p>
               {(() => {
-                const dot = h.krize.find((k) => k.id === 'dotcom')?.rady.find((x) => x.id === 'sp' && x.mena === 'CZK');
+                // Kolo 7: nejhlubší propad za CELOU řadu od 2000 (z dat), ne jen dno okna 2000–2003 (−61 %) – stejně jako /kolik-vydelaly-etf.
+                const mp = h.maxPropadSpKc;
                 const cov = h.krize.find((k) => k.id === 'covid');
                 const covC = cov?.rady.find((x) => x.id === 'sp' && x.mena === 'CZK'), covU = cov?.rady.find((x) => x.id === 'sp' && x.mena === 'USD');
                 return (
                   <div className="mt-3 text-[15px] text-slate-700 leading-relaxed space-y-2">
-                    {dot && <p>Nejhůř dopadl S&amp;P 500 v korunách po splasknutí internetové bubliny: od vrcholu {mesicRok(dot.vrchol)} spadl o {pct(Math.abs(dot.hloubka), 0)} a na původní hodnotu se vrátil až {dot.navrat ? `v období ${mesicRok(dot.navrat)}` : '– dosud ne'}. Ke slabé americké burze se tehdy přidalo posilování koruny.</p>}
+                    {mp && <p data-max-propad-sp-kc={Math.round(mp.hloubka * 1000) / 10}>Nejhůř dopadl S&amp;P 500 v korunách od vrcholu {vMesici(mp.vrchol)}: {doMesice(mp.dno)} spadl o {pct(Math.abs(mp.hloubka), 0)} (nejhlubší propad v korunách od roku 2000){mp.vrchol < '2003-01-01' && mp.dno >= '2007-01-01' ? ' – nejdřív splaskla internetová bublina a k slabé americké burze se přidalo posilování koruny, pak přišla finanční krize' : ''}. Na původní vrchol se vrátil {mp.navrat ? <>až {vMesici(mp.navrat)} – {dobaMes(mp.mesicuDoNavratu)} od vrcholu</> : 'dosud ne'}.</p>}
                     {covC && covU && <p>Při covidu to bylo naopak: v dolarech spadl S&amp;P 500 o {pct(Math.abs(covU.hloubka), 0)}, v korunách jen o {pct(Math.abs(covC.hloubka), 0)} – koruna v panice oslabila a pád zmírnila.</p>}
                   </div>
                 );
@@ -406,7 +424,7 @@ export default async function Sp500NeboSvet() {
               <h2 className="text-xl font-bold tracking-tight text-slate-900">Kolísavost a souvislost</h2>
               <p>
                 Od poloviny roku 2008 kolísal S&amp;P 500 v korunách o {pct(h.kolisavost.sp)} ročně, celý svět o {pct(h.kolisavost.svet)} a svět mimo USA
-                o {pct(h.kolisavost.mimoUsa)} (směrodatná odchylka denních výnosů přepočtená na rok).
+                o {pct(h.kolisavost.mimoUsa)} (směrodatná odchylka měsíčních výnosů přepočtená na rok – stejně jako v backtestu).
                 {Math.abs(h.kolisavost.svet - h.kolisavost.sp) < 0.01
                   ? ' V korunách tedy kolísaly prakticky stejně – širší rozložení samo o sobě výkyvy znatelně nesnížilo.'
                   : h.kolisavost.svet < h.kolisavost.sp ? ' Celý svět kolísal méně – víc firem a víc měn se navzájem vyrovnává.' : ' Celý svět přitom kolísal víc než S&P 500.'}
@@ -422,7 +440,7 @@ export default async function Sp500NeboSvet() {
                 <h2 className="text-xl font-bold tracking-tight">Čím to koupit: nejlevnější velké fondy</h2>
                 <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">
                   Poplatek fondu (TER) se odečítá každý rok z výnosu. Rozdíl mezi nejlevnějším a dražším fondem na stejný index bývá desetiny procenta
-                  ročně – za 20 let to dělá znatelnou částku. Fondy nad 500 mil. € bez měnového zajištění, data k dnešku:
+                  ročně – za 20 let to dělá znatelnou částku. Fondy nad 500 mil. € bez měnového zajištění{denFondu ? `, data k ${denFondu.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' })}` : ''}:
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {([['S&P 500', h.levne.sp], ['Celý svět (FTSE All-World)', h.levne.svet]] as const).map(([nadpis, fondy]) => (
@@ -432,7 +450,7 @@ export default async function Sp500NeboSvet() {
                         {fondy.map((f) => (
                           <li key={f.isin} className="flex items-baseline justify-between gap-3 py-1.5">
                             <Link href={`/etf/${f.isin}`} className="min-w-0 truncate text-slate-800 hover:text-teal-700"><span className="font-medium">{f.ticker || f.isin}</span> <span className="text-slate-500">{f.dist === 'Distributing' ? 'distribuční' : f.dist === 'Accumulating' ? 'akumulační' : ''}</span></Link>
-                            <span className="shrink-0 tabular-nums text-slate-700">TER {pct(f.ter, 2)} · {f.velikostMld.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mld €</span>
+                            <span className="shrink-0 tabular-nums text-slate-700">TER {pct(f.ter, 2)} · {f.velikostMld.toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mld. €</span>
                           </li>
                         ))}
                       </ul>
@@ -494,8 +512,8 @@ export default async function Sp500NeboSvet() {
                 Data: ETF SPY (S&amp;P 500), VT (celý svět, index FTSE Global All Cap, od 6/2008) a fond VGTSX (svět mimo USA) – denní ceny s reinvesticí dividend,
                 po poplatcích fondů, před daní. Převod do korun denním kurzem. Ověřeno: roční výnosy S&amp;P 500 proti S&amp;P Dow Jones Indices
                 (±0,3 p. b.), VT proti publikovaným výnosům fondu (±0,1 p. b.), kurzy proti ČNB; propady v krizích v USD proti S&amp;P Dow Jones
-                Indices (2000–2002 −47 %, 2007–2009 −55 %, covid −34 %, 2022 −25 %). Kolísavost = směrodatná odchylka denních log-výnosů × √252,
-                korelace z měsíčních výnosů v Kč. Klouzavá období začínají každý měsíc, poslední rozběhlý měsíc se jako konec nepočítá.
+                Indices (2000–2002 −47 %, 2007–2009 −55 %, covid −34 %, 2022 −25 %). Kolísavost = směrodatná odchylka měsíčních výnosů přepočtená na rok (stejně jako backtest),
+                korelace z měsíčních výnosů v Kč. Výnosy „od 2008“ počítáme od 1. 7. 2008 (první den dat 2. 7. 2008). Klouzavá období začínají každý měsíc, poslední rozběhlý měsíc se jako konec nepočítá.
                 Složení a poplatky fondů: justETF (náš denní scraper). Minulé výnosy nezaručují budoucí.
               </p>
             </section>

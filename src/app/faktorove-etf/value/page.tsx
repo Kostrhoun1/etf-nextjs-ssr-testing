@@ -58,7 +58,7 @@ const cfg: FactorConfig = {
   statCards: [
     { big: '398 000 Kč', text: 'ze 100 000 Kč za 26 let (+5,4 % ročně). S&P 500 dal za stejné období 419 000 Kč (+5,6 %) – rozdíl se za čtvrt století prakticky smazal.' },
     { big: '+37,5 %', text: 'nejlepší rok (2013). V letech 2000–2007 value porážel růstové akcie rok za rokem.' },
-    { big: '−64,1 %', text: 'nejhlubší propad (od října 2000 přes finanční krizi). Návrat na vrchol trval 158 měsíců – přes 13 let.' },
+    { big: '−64,1 %', text: 'nejhlubší propad (od října 2000 přes finanční krizi). Od vrcholu zpět na vrchol to trvalo 158 měsíců – přes 13 let.' },
   ],
   dcaText: (
     <>
@@ -82,9 +82,9 @@ const cfg: FactorConfig = {
     </>
   ),
   crises: [
-    { name: 'Finanční krize 2008', drop: '−55 %', note: 'návrat 47 měsíců – banky, páteř value indexů, byly epicentrem krize' },
-    { name: 'COVID krach (2020)', drop: '−32 %', note: 'návrat 11 měsíců – „stará ekonomika“ padala hlouběji než technologie' },
-    { name: 'Medvědí trh 2022', drop: '−12 %', note: 'návrat 2 měsíce – nejmělčí propad ze všech akciových faktorů; levné akcie neměly z čeho padat' },
+    { name: 'Finanční krize 2008', drop: '−55 %', note: 'návrat 47 měsíců od dna – banky, páteř value indexů, byly epicentrem krize' },
+    { name: 'COVID krach (2020)', drop: '−32 %', note: 'návrat 11 měsíců od dna – „stará ekonomika“ padala hlouběji než technologie' },
+    { name: 'Medvědí trh 2022', drop: '−12 %', note: 'návrat 2 měsíce od dna – nejmělčí propad ze všech akciových faktorů; levné akcie neměly z čeho padat' },
   ],
   riskTitle: 'Hlavní riziko: čekání, které málokdo vydrží',
   riskDesc: 'Value neumírá potichu – umírá dlouho a veřejně.',

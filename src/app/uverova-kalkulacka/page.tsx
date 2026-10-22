@@ -62,7 +62,7 @@ export default async function UverovaKalkulackaPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Úvěrová kalkulačka', item: 'https://etfpruvodce.cz/kalkulacky/uverova-kalkulacka' },
+      { '@type': 'ListItem', position: 3, name: 'Úvěrová kalkulačka', item: 'https://etfpruvodce.cz/uverova-kalkulacka' },
     ],
   };
 

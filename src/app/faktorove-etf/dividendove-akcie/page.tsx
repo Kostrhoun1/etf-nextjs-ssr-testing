@@ -59,8 +59,8 @@ const cfg: FactorConfig = {
   numbersDesc: 'Jednorázových 100 000 Kč, po poplatcích (TER 0,29 %), kurz den po dni, dividendy reinvestované.',
   statCards: [
     { big: '532 000 Kč', text: 'ze 100 000 Kč za 20 let (+8,9 % ročně). S&P 500 dal za stejné období 739 000 Kč (+10,7 %) – rozdíl 1,8 p. b. ročně.' },
-    { big: '+2,3 %', text: 'rok 2022 – jediný kladný faktor v roce, kdy vše ostatní padalo. Návrat z propadu za 2 měsíce.' },
-    { big: '−55,3 %', text: 'nejhlubší propad (finanční krize 2008 – dividendové indexy byly plné bank). Návrat trval 62 měsíců.' },
+    { big: '+2,3 %', text: 'rok 2022 – jediný kladný faktor v roce, kdy vše ostatní padalo. Návrat od dna zpět na vrchol za 2 měsíce.' },
+    { big: '−55,3 %', text: 'nejhlubší propad (finanční krize 2008 – dividendové indexy byly plné bank). Od vrcholu zpět na vrchol to trvalo 62 měsíců.' },
   ],
   dcaText: (
     <>
@@ -82,9 +82,9 @@ const cfg: FactorConfig = {
     </>
   ),
   crises: [
-    { name: 'Finanční krize 2008', drop: '−52 %', note: 'návrat 38 měsíců – „bezpečné dividendovky“ byly plné bank, epicentra krize' },
-    { name: 'COVID krach (2020)', drop: '−28 %', note: 'návrat 12 měsíců – řada firem dividendy seškrtala přesně ve chvíli, kdy je investoři čekali' },
-    { name: 'Medvědí trh 2022', drop: '−11 %', note: 'návrat 2 měsíce – hvězdný rok: energetika a banky vydělávaly, zatímco technologie padaly' },
+    { name: 'Finanční krize 2008', drop: '−52 %', note: 'návrat 38 měsíců od dna – „bezpečné dividendovky“ byly plné bank, epicentra krize' },
+    { name: 'COVID krach (2020)', drop: '−28 %', note: 'návrat 12 měsíců od dna – řada firem dividendy seškrtala přesně ve chvíli, kdy je investoři čekali' },
+    { name: 'Medvědí trh 2022', drop: '−11 %', note: 'návrat 2 měsíce od dna – hvězdný rok: energetika a banky vydělávaly, zatímco technologie padaly' },
   ],
   riskTitle: 'Český daňový háček: dividendy se daní hned',
   riskDesc: 'Unikátní pohled pro investora v ČR – tohle v zahraničních srovnáních nenajdete.',

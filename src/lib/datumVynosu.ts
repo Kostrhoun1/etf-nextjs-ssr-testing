@@ -23,9 +23,34 @@ const poledne = (iso: string): Date | null => {
   return Number.isNaN(d.getTime()) ? null : d;
 };
 
-/** Den, ke kterému platí výnosy fondu (Date v 12:00 UTC, stejně jako datumCen), nebo null. */
+/** Výnosy za období (k returns_as_of). Kalendářní roky sem nepatří – jsou uzavřené a den výnosů se jich netýká. */
+const POLE_VYNOSU = ['return_1m', 'return_3m', 'return_6m', 'return_ytd', 'return_1y', 'return_3y', 'return_5y'];
+
+/**
+ * Má fond aspoň jeden výnos za období? true / false; null = objekt žádné pole výnosu nemá (volající předal jen data).
+ * Kolo 7 (22. 10. 2026): BTCW neměl jediný výnos (returns_as_of null), a přesto web psal „výnosy k 21. 10.“ (den
+ * stažení) nad samými „—“ a v porovnání „zdroj má jejich ceny se zpožděním: BTCW k 21. 10.“ – nepravda.
+ */
+export function maVynosyZaObdobi(r: SDatemVynosu | Record<string, unknown> | null | undefined): boolean | null {
+  if (!r) return null;
+  const o = r as Record<string, unknown>;
+  let znamePole = false;
+  for (const k of POLE_VYNOSU) {
+    for (const kk of [k, `${k}_czk`, `${k}_usd`]) {
+      if (!(kk in o)) continue;
+      znamePole = true;
+      const v = o[kk];
+      if (v != null && v !== '' && Number.isFinite(Number(v))) return true;
+    }
+  }
+  return znamePole ? false : null;
+}
+
+/** Den, ke kterému platí výnosy fondu (Date v 12:00 UTC, stejně jako datumCen), nebo null.
+ *  Fond bez jediného výnosu za období (všechna pole null) žádný „den výnosů“ nemá → null (kolo 7). */
 export function datumVynosu(r: SDatemVynosu | null | undefined): Date | null {
   if (!r) return null;
+  if (maVynosyZaObdobi(r) === false) return null;
   if (r.returns_as_of) {
     const d = poledne(String(r.returns_as_of));
     if (d) return d;
@@ -72,9 +97,10 @@ export function vynosyPozadu(r: SDatemVynosu | null | undefined, vetsina: Date |
   return pracovnichDniMezi(d, vetsina) > MAX_ZPOZDENI_PRAC_DNI;
 }
 
-/** Datum výnosů fondu jako text, ale jen když se liší od dne celé stránky (jinak null – nic navíc neukazovat). */
+/** Datum výnosů fondu jako text, ale jen když je STARŠÍ než den celé stránky (jinak null – nic navíc neukazovat).
+ *  Kolo 7: novější den není „zpoždění“ (texty u něj píšou „zdroj má ceny se zpožděním“) a fond bez výnosů datum nemá. */
 export function jineDatumVynosu(r: SDatemVynosu | null | undefined, stranka: Date | null | undefined): string | null {
   const d = datumVynosu(r);
-  if (!d || !stranka || d.toISOString().slice(0, 10) === stranka.toISOString().slice(0, 10)) return null;
+  if (!d || !stranka || d.toISOString().slice(0, 10) >= stranka.toISOString().slice(0, 10)) return null;
   return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }

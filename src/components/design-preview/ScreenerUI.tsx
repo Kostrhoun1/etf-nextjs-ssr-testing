@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { Fragment, useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal, X, Loader2, Download, Info, ChevronDown, Check } from 'lucide-react';
 import type { ScreenerRow, ScreenerOptions } from '@/lib/etf-data';
@@ -22,11 +22,21 @@ import { DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
+const vynosovyKlic = (k: SortKey) => k === 'ytd' || k === 'r1' || k === 'r3' || k === 'r5';
 
 const num = (v: number | null | undefined) => (v == null || Number.isNaN(v) ? null : Number(v));
 /* Jednotné formáty (src/lib/formatSrovnavac.ts): „−“, nezlomitelná mezera před %, „139,4 mld. €“.
    Velikost fondu je z justETF VŽDY v EUR (i u USD tříd) → vždy €. Viz PorovnaniTable. */
 const ter = (v: number | null) => terText(v);
+/* TER 0 % (kolo 7): zdroj ho uvádí u ETC a krypto ETP (Xetra-Gold, EUWAX Gold, CoinShares Staked…) – náklady nesou jinak
+   (rozpětí cen, odměny ze stakingu). V řazení podle TER jde na konec a ukazuje se „0,00 %*“ s poznámkou – ne jako „zdarma“.
+   U akcií a dluhopisů je TER 0 chyba zdroje a server ho posílá jako null („—“). */
+const TER_NULA_TEXT = 'TER 0 % neznamená, že je produkt zdarma – u ETC a krypto ETP platíte náklady mimo TER (např. v rozpětí nákupní a prodejní ceny nebo podílem z odměn ze stakingu). Podrobnosti uvádí emitent v dokumentu KID.';
+function TerBunka({ v }: { v: number | null }) {
+  if (v === 0) return <span data-ter-nula title={TER_NULA_TEXT} className="cursor-help">{ter(0)}<sup className="text-slate-400">*</sup></span>;
+  return <>{ter(v)}</>;
+}
+const terRazeni = (v: number | null) => (v === 0 ? null : v);
 const pct = (v: number | null) => procenta(v, 1, true);
 const pct1 = (v: number | null) => procenta(v, 1);
 const money = (v: number | null) => velikostText(v);
@@ -57,10 +67,20 @@ function Dividenda({ e }: { e: ScreenerRow }) {
 }
 
 /* Výnosy fondu platí k jinému dni než „Data k …“ stránky (zpožděná řada u zdroje, src/lib/datumVynosu.ts) →
-   u fondu jeho datum (pravidlo č. 1: každé číslo má datum). data-vynosy-k = značka pro kontrolu kolo6b. */
+   u fondu jeho datum (pravidlo č. 1: každé číslo má datum). data-vynosy-k = značka pro kontrolu kolo6b.
+   Kolo 7 (22. 10. 2026): jantarová (varování) byla u 19 % řádků, přitom 807 fondů je pozadu jen o 2 pracovní dny →
+   neutrální šedé malé „k 16. 10.“; jantarová jen u výrazně pozadu (> 3 pracovní dny, `_dvP`). Vysvětlení je
+   v „Co znamenají čísla?“ a v hlavičce sloupce (title na dotyku nefunguje). */
+const bezLetosnihoRoku = (d: string) => d.replace(new RegExp(`\\s*${new Date().getFullYear()}$`), '');
 function DatumVynosuChip({ e }: { e: ScreenerRow }) {
   if (!e._dv) return null;
-  return <span data-vynosy-k={e._dv} title={`Výnosy tohoto fondu platí k ${e._dv} – zdroj má jeho ceny se zpožděním.`} className="cursor-help whitespace-nowrap rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">výnosy k {e._dv}</span>;
+  const d = bezLetosnihoRoku(e._dv);
+  if (e._dvP) return <span data-vynosy-k={e._dv} data-vynosy-pozadu title={`Výnosy tohoto fondu platí k ${e._dv} – zdroj má jeho ceny o víc než 3 pracovní dny pozadu.`} className="cursor-help whitespace-nowrap rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">výnosy k {d}</span>;
+  return <span data-vynosy-k={e._dv} title={`Výnosy tohoto fondu platí k ${e._dv} (zdroj má jeho ceny o pár dní jinak než u většiny fondů).`} className="cursor-help whitespace-nowrap rounded bg-slate-100 px-1 text-[10px] font-medium text-slate-500">k {d}</span>;
+}
+/** Oddělovač při řazení podle výnosu: fondy s výnosy k jinému dni nejdou v pořadí srovnat s ostatními. */
+function OddelJinyDen() {
+  return <><strong className="font-semibold text-slate-800">Výnosy k jinému dni – nesrovnatelné pořadí.</strong> Fondy níže mají výnosy k jinému dni než ostatní (zdroj má jejich ceny posunuté, den je u fondu), proto je řadíme až sem.</>;
 }
 
 /* Kolísavost: „—“ i tam, kde údaj zdroje nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts, pravidlo č. 1). */
@@ -92,13 +112,13 @@ const FACTORS: { value: string; label: string; match: string[]; exclude?: string
 /* Vysvětlivky sloupců – JEDEN zdroj pro tooltip v hlavičce tabulky (desktop) i legendu u karet (mobil).
    Dřív byly jen v atributu title → na dotyku nefungovaly (revize 18. 10. 2026). */
 const VYSVETLIVKY: Record<string, string> = {
-  ter: 'TER = roční poplatek za správu fondu. Strhává se automaticky z hodnoty fondu, nikam ho neplatíte. Čím nižší, tím lépe.',
+  ter: 'TER = roční poplatek za správu fondu. Strhává se automaticky z hodnoty fondu, nikam ho neplatíte. Čím nižší, tím lépe. „0,00 %*“ = u ETC a krypto ETP jsou náklady mimo TER, proto jsou v řazení podle TER na konci.',
   size: 'Kolik peněz fond spravuje (v eurech). Větší fond = obvykle nižší náklady na obchodování a menší riziko, že ho emitent zruší.',
   ytd: 'Výnos od 1. ledna letošního roku do data dat, přepočtený do zvolené měny.',
-  r1: 'Výnos za posledních 12 měsíců, přepočtený do zvolené měny (v korunách včetně vlivu kurzu). Podtržená „—“ = výnos fondu se o víc než 1,5 p. b. liší od ostatních fondů na stejný trh (nejčastěji opožděná cena u zdroje dat), proto ho neukazujeme.',
+  r1: 'Výnos za posledních 12 měsíců, přepočtený do zvolené měny (v korunách včetně vlivu kurzu). Podtržená „—“ = výnos fondu se o víc než 1,5 p. b. liší od ostatních fondů na stejný trh (nejčastěji opožděná cena u zdroje dat), proto ho neukazujeme. Šedé „k 16. 10.“ u fondu = jeho výnosy platí k tomuto dni; při řazení podle výnosu jsou takové fondy až na konci.',
   r3: 'Výnos za poslední 3 roky celkem (ne za rok), přepočtený do zvolené měny.',
   r5: 'Výnos za posledních 5 let celkem (ne za rok), přepočtený do zvolené měny. Řekne o fondu víc než jeden rok.',
-  vol: 'Kolísavost (volatilita) za poslední rok, počítaná v eurech. Vyšší číslo = divočejší průběh, ne nutně horší fond. „—“ = údaj chybí nebo nesedí s jinou třídou téhož fondu.',
+  vol: 'Kolísavost (volatilita) za poslední rok, počítaná v eurech (EUR). Vyšší číslo = divočejší průběh, ne nutně horší fond. „—“ = údaj chybí nebo nesedí s jinou třídou téhož fondu.',
   div: 'Dividendový výnos = roční dividendy vůči ceně fondu. Akumulační (ACC) fondy dividendy nevyplácejí, reinvestují je uvnitř – proto „— (reinvestuje)“. Pomlčka = údaj chybí, u komodit a krypta = nevyplácí.',
   typ: 'Štítek u názvu: ACC (akumulační) dividendy reinvestuje uvnitř fondu, DIST (distribuční) je vyplácí na váš účet. „Zajištěno do EUR“ = třída fondu s měnovým zajištěním.',
 };
@@ -163,22 +183,25 @@ function HeadTip({ k, label }: { k: string; label: string }) {
 /* Skupiny sloupců (majitel 18. 10. 2026: „špatně se v tom čte“): svislá linka mezi skupinami Fond | parametry |
    výnosy | riziko a dividenda, výnosy jemně podbarvené (stejný tón jako jejich společný nadpis). */
 const SKUPINA = 'border-l border-slate-200';
+/* Sloupec „Porovnat“ drží u pravého okraje, když se tabulka posouvá do strany (md–xl). Podklad = STEJNÝ jako řádek
+   (bílá / proužek slate-50 / hover amber-50, vše plné barvy) – dřív v proužkovaných řádcích jiný podklad = šev. */
+const POROVNAT_SLOUPEC = 'sticky right-0 z-[1] shadow-[-8px_0_8px_-8px_rgba(15,23,42,0.18)] xl:shadow-none';
 const VYNOSY = 'bg-teal-50/40';
 
 /* Řaditelná hlavička sloupce (+ vysvětlivka vedle). Stav řazení dostává propy, aby mohla zůstat
    mimo tělo komponenty (stabilní identita = žádný zbytečný remount hlavičky). */
-function SortH({ k, children, right, wide, rowSpan, tip, cls = '', sortKey, sortDir, toggleSort }: {
-  k: SortKey; children: React.ReactNode; right?: boolean; wide?: boolean; rowSpan?: number; tip?: string; cls?: string;
+function SortH({ k, children, right, wide, rowSpan, tip, cls = '', sortKey, sortDir, toggleSort, label }: {
+  k: SortKey; children: React.ReactNode; right?: boolean; wide?: boolean; rowSpan?: number; tip?: string; cls?: string; label?: string;
   sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
 }) {
   return (
     <th rowSpan={rowSpan} aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`py-2 align-bottom font-medium whitespace-nowrap ${wide ? 'pl-3 pr-2 min-w-[17rem] w-[30%]' : 'px-2'} ${right ? 'text-right' : 'text-left'} ${cls}`}>
       <span className={`inline-flex items-center gap-0.5 ${right ? 'justify-end' : ''}`}>
-        <button onClick={() => toggleSort(k)} aria-label={`Seřadit podle: ${typeof children === 'string' ? children : k}`} className={`inline-flex items-center gap-1 hover:text-teal-700 ${sortKey === k ? 'text-teal-700' : ''}`}>
+        <button onClick={() => toggleSort(k)} aria-label={`Seřadit podle: ${label ?? (typeof children === 'string' ? children : k)}`} className={`inline-flex items-center gap-1 hover:text-teal-700 ${sortKey === k ? 'text-teal-700' : ''}`}>
           {children}
           {sortKey === k ? (sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-40" />}
         </button>
-        {tip && <HeadTip k={tip} label={typeof children === 'string' ? children : tip} />}
+        {tip && <HeadTip k={tip} label={label ?? (typeof children === 'string' ? children : tip)} />}
       </span>
     </th>
   );
@@ -313,13 +336,34 @@ const TRH_Z_DOTAZU: [RegExp, string][] = [
 
 /* Krátký název fondu: bez „UCITS ETF…“ a koncové závorky – stejně jako žebříčky (nejlepsi-etf/[slug]).
    Typ výplaty a měnové zajištění, které se tím z názvu ztratí, nesou štítky vedle. */
-const kratkyNazev = (n: string) => n.replace(/\s+UCITS\b.*$/i, '').replace(/\s+\([^()]*\)\s*$/, '').trim() || n;
+// Kolo 7: nezlomitelná pomlčka v rozsahu čísel („0‑1yr“) – „Bond 0-1yr“ se lámal na pomlčce.
+const kratkyNazev = (n: string) => (n.replace(/\s+UCITS\b.*$/i, '').replace(/\s+\([^()]*\)\s*$/, '').trim() || n).replace(/(\d)-(\d)/g, '$1\u2011$2');
+
+/* HLEDÁNÍ VŠECH SLOV (kolo 7, 22. 10. 2026): „iShares USD Treasury“ hlásilo „949 fondů“ – stačila shoda s JEDNÍM slovem
+   (přes slovník „ishares“ → všechny fondy iShares). Teď musí sedět KAŽDÉ slovo dotazu: doslova v názvu/ISIN/tickeru/
+   emitentovi, přes svůj český výraz („zlato“ → Gold), nebo je součástí víceslovného výrazu, který se v názvu našel
+   („umělá inteligence“ → Artificial Intelligence). Výplňová slova („celý“, „ETF“, „trhy“) se nevyžadují. */
+const VYPLNOVA = new Set(['cely', 'cela', 'cele', 'etf', 'etfs', 'etc', 'fond', 'fondy', 'fondu', 'ucits', 'na', 'a', 'i', 'v', 've', 's', 'se', 'z', 'do', 'the', 'trh', 'trhy', 'trhu']);
+interface SlovoDotazu { w: string; termy: string[] }
+function slovaDotazu(q: string): SlovoDotazu[] {
+  return bezDiakritiky(q).split(/[\s,;]+/).filter((w) => w && !VYPLNOVA.has(w))
+    .map((w) => ({ w, termy: anglickeTermy(w).map((t) => t.toLowerCase()) }));
+}
+function odpovidaDotazu(blob: string, blobBezDiakr: string, term: string, slova: SlovoDotazu[], termyCelku: string[]): boolean {
+  if (blob.includes(term)) return true;
+  if (!slova.length) return termyCelku.some((t) => blob.includes(t));
+  const celekVNazvu = termyCelku.filter((t) => blob.includes(t));
+  return slova.every(({ w, termy }) => blobBezDiakr.includes(w) || termy.some((t) => blob.includes(t))
+    || (w.length >= 4 && celekVNazvu.some((t) => t.includes(w.slice(0, 5)))));
+}
 
 /* Odvozené hodnoty (region/hedging/index/trh/fulltext) přicházejí PŘEDPOČÍTANÉ
    ze serveru (ScreenerRow._*), takže klient přes ~5 000 fondů nepouští žádné regexy. */
 interface Enriched {
   e: ScreenerRow;
   blob: string;
+  /** blob bez diakritiky (dotaz se porovnává bez diakritiky). */
+  blobA: string;
 }
 
 export default function ScreenerUI({
@@ -341,7 +385,9 @@ export default function ScreenerUI({
   const [indexSel, setIndexSel] = useState<string[]>([]);
   const [repl, setRepl] = useState('all');
   const [currency, setCurrency] = useState('all');
-  const [hedging, setHedging] = useState('all');
+  /* Měnové zajištění: 'auto' (výchozí) = při výběru indexu/trhu zajištěné třídy SKRYTÉ, jinak všechny (kolo 7: stejně
+     jako žebříček – „S&P 500“ vedly v řazení 3R třídy zajištěné do GBP/CHF/JPY). 'all' = výslovně i zajištěné. */
+  const [hedging, setHedging] = useState('auto');
   const [factor, setFactor] = useState('all');
   const [leveraged, setLeveraged] = useState(false);
   const [terMax, setTerMax] = useState<string>('');
@@ -462,7 +508,7 @@ export default function ScreenerUI({
     if (indexSel.length) p.set('index', indexSel.join('|'));
     put('replikace', repl, 'all');
     put('mena', currency, 'all');
-    put('zajisteni', hedging, 'all');
+    put('zajisteni', hedging, 'auto');
     put('styl', factor, 'all');
     if (leveraged) p.set('paka', '1');
     put('ter', terMax, '');
@@ -477,13 +523,17 @@ export default function ScreenerUI({
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
   }, [q, category, dist, region, indexSel, repl, currency, hedging, factor, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge, sortKey, sortDir]);
 
-  /* Měnové zajištění – jedna podmínka pro výsledek i pro počty v nabídce indexů. */
-  const hedgeOk = useCallback((e: ScreenerRow) => {
+  /* Měnové zajištění – jedna podmínka pro výsledek i pro počty v nabídce indexů. `sIndexem` = je vybraný index/trh
+     (v nabídce indexů se počítá „po kliknutí“, tedy vždy s indexem). */
+  const indexVybran = indexSel.length > 0;
+  const hedgeOkS = useCallback((e: ScreenerRow, sIndexem: boolean) => {
+    if (hedging === 'auto') return !sIndexem || e._hedge === 'unhedged';
     if (hedging === 'all') return true;
     if (hedging === 'unhedged') return e._hedge === 'unhedged';
     if (hedging === 'hedged') return e._hedge !== 'unhedged';
     return e._hedge === hedging;
   }, [hedging]);
+  const hedgeOk = useCallback((e: ScreenerRow) => hedgeOkS(e, indexVybran), [hedgeOkS, indexVybran]);
 
   /* Počty v nabídce indexů = kolik fondů po kliknutí uvidíte (páka a zajištění jako výsledek). Do načtení
      celé databáze počty ze serveru (stejná data, výchozí stav). */
@@ -492,33 +542,38 @@ export default function ScreenerUI({
     const trh = new Map<string, number>(), idx = new Map<string, number>();
     for (const e of rows) {
       if (!leveraged && e.is_leveraged) continue;
-      if (!hedgeOk(e)) continue;
+      if (!hedgeOkS(e, true)) continue;
       if (e._trh) trh.set(e._trh, (trh.get(e._trh) ?? 0) + 1);
       if (e._index) idx.set(e._index, (idx.get(e._index) ?? 0) + 1);
     }
     return { trh, idx };
-  }, [rows, full, leveraged, hedgeOk]);
+  }, [rows, full, leveraged, hedgeOkS]);
   const pocty: PoctyNabidky = {
-    trh: (id) => poctyMapy ? poctyMapy.trh.get(id) ?? 0 : (() => { const t = options.trhy.find((x) => x.id === id); return t ? (hedging === 'unhedged' ? t.countNezaj : t.count) : 0; })(),
+    trh: (id) => poctyMapy ? poctyMapy.trh.get(id) ?? 0 : (() => { const t = options.trhy.find((x) => x.id === id); return t ? (hedging === 'unhedged' || hedging === 'auto' ? t.countNezaj : t.count) : 0; })(),
     index: (label, i, g) => poctyMapy ? poctyMapy.idx.get(label) ?? 0 : g.counts?.[i],
   };
-  const vcZajist = hedging !== 'unhedged';
-  const setVcZajist = (v: boolean) => { setHedging(v ? 'all' : 'unhedged'); setShown(PAGE); };
+  // Přepínač „vč. měnově zajištěných“ v nabídce indexů: zaškrtnuto = výslovně i zajištěné; odškrtnutí vrací výchozí stav.
+  const vcZajist = hedging === 'all' || (hedging === 'auto' && !indexVybran) || (hedging !== 'auto' && hedging !== 'unhedged');
+  const setVcZajist = (v: boolean) => { setHedging(v ? 'all' : indexVybran ? 'auto' : 'unhedged'); setShown(PAGE); };
 
   // Celkový počet fondů v záhlaví stránky = výchozí výsledek z dat, která má klient (viz PocetFondu).
   useEffect(() => { if (full) nastavPocetFondu(rows.filter((r) => !r.is_leveraged).length); }, [full, rows]);
 
   // Fulltext se skládá jednou na načtená data (dřív hotový `_blob` ze serveru = +426 kB v payloadu).
   const enriched = useMemo<Enriched[]>(() =>
-    rows.map((e) => ({ e, blob: `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${e._tickers.join(' ')}`.toLowerCase() })), [rows]);
+    rows.map((e) => {
+      const blob = `${e.name} ${e.isin} ${e.fund_provider ?? ''} ${e._tickers.join(' ')}`.toLowerCase();
+      return { e, blob, blobA: bezDiakritiky(blob) };
+    }), [rows]);
 
   const term = q.trim().toLowerCase();
   // České výrazy a varianty zápisu („sp500“ → S&P 500, „zlato“ → Gold) – stejně jako našeptávač.
   const termy = useMemo(() => anglickeTermy(q), [q]);
+  const slova = useMemo(() => slovaDotazu(q), [q]);
 
   /* Filtrace ve dvou krocích: všechno KROMĚ kategorie → z toho počty v záložkách (sedí s výsledkem,
      revize 18. 10. 2026: „Vše 5 124“ vs. „Nalezeno 4 974“) → pak kategorie. Na měně (`cur`) nezávisí. */
-  const bezKategorie = useMemo(() => {
+  const { bezKategorie, skryteZajistene } = useMemo(() => {
     const termyL = termy.map((t) => t.toLowerCase());
     const terMaxN = desetinne(terMax);
     const sizeMinN = desetinne(sizeMin);
@@ -528,8 +583,11 @@ export default function ScreenerUI({
     const f = factor !== 'all' ? FACTORS.find((x) => x.value === factor) : undefined;
     const rok = new Date().getFullYear();
 
-    return enriched.filter(({ e, blob }) => {
-      if (term && !blob.includes(term) && !termyL.some((t) => blob.includes(t))) return false;
+    // Zajištěné třídy skryté jen výchozím stavem (hedging 'auto' + vybraný index) se počítají – věta „bez N … · zobrazit“.
+    const skryte: Enriched[] = [];
+    const vysledek = enriched.filter((x) => {
+      const { e, blob, blobA } = x;
+      if (term && !odpovidaDotazu(blob, blobA, term, slova, termyL)) return false;
       if (!leveraged && e.is_leveraged) return false;
       if (dist === 'acc' && e._dist !== 'acc') return false;
       if (dist === 'dist' && e._dist !== 'dist') return false;
@@ -537,7 +595,6 @@ export default function ScreenerUI({
       if (indexSel.length && !(indexy.has(e._index) || (e._trh != null && trhy.has(e._trh)))) return false;
       if (repl !== 'all' && e._repl !== repl) return false;
       if (currency !== 'all' && e.fund_currency !== currency) return false;
-      if (!hedgeOk(e)) return false;
       if (f) {
         if (!f.match.some((m) => blob.includes(m))) return false;
         if (f.exclude?.some((m) => blob.includes(m))) return false;
@@ -554,9 +611,15 @@ export default function ScreenerUI({
         if (e._year == null) return false;
         if (rok - e._year < Number(minAge)) return false;
       }
+      if (!hedgeOk(e)) {
+        if (hedging === 'auto') skryte.push(x);
+        return false;
+      }
       return true;
     });
-  }, [enriched, term, termy, dist, region, indexSel, repl, currency, hedgeOk, factor, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge]);
+    return { bezKategorie: vysledek, skryteZajistene: skryte };
+  }, [enriched, term, termy, slova, dist, region, indexSel, repl, currency, hedgeOk, hedging, factor, leveraged, terMax, sizeMin, divMin, domicile, provider, minAge]);
+  const pocetSkrytychZajistenych = category === 'all' ? skryteZajistene.length : skryteZajistene.filter(({ e }) => e.category === category).length;
 
   const catCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -574,7 +637,7 @@ export default function ScreenerUI({
       const o = e as unknown as Record<string, unknown>;
       switch (sortKey) {
         case 'name': return e.name?.toLowerCase() ?? '';
-        case 'ter': return num(e.ter_numeric);
+        case 'ter': return terRazeni(num(e.ter_numeric));
         case 'size': return num(e.fund_size_numeric);
         case 'ytd': return pickReturn(o, 'ytd', cur);
         case 'r1': return pickReturn(o, '1y', cur);
@@ -586,7 +649,11 @@ export default function ScreenerUI({
     };
     // Relevance hledání je stejná jako v našeptávači (src/lib/hledaniCz.ts) – „sp500“ dá CSPX/SXR8 nahoru.
     const list = filteredRows.map((r) => ({ r, s: term ? skoreHledani(term, termy, { isin: r.e.isin, name: r.e.name, tickers: r.e._tickers, index: r.e._index || null, zajisteno: r.e._hedge !== 'unhedged' }) : 0 }));
+    // Kolo 7 (D1): při řazení podle výnosu fondy s výnosy k JINÉMU dni (`_dv`) až na konec, pod oddělovač – jinak by
+    // vedly fondy se starším dnem (S&P 500: WSPX, SPTG… k 16. 10.), ačkoli ve stejném okně je rozdíl ~1 p. b.
+    const jinyDen = vynosovyKlic(sortKey);
     list.sort((A, B) => {
+      if (jinyDen && !!A.r.e._dv !== !!B.r.e._dv) return A.r.e._dv ? 1 : -1;
       if (term && A.s !== B.s) return B.s - A.s; // relevantnější nahoru, nezávisle na řazení sloupce
       const va = get(A.r.e), vb = get(B.r.e);
       if (va == null && vb == null) return 0;
@@ -597,6 +664,8 @@ export default function ScreenerUI({
     });
     return list.map((x) => x.r);
   }, [filteredRows, sortKey, sortDir, cur, term, termy]);
+  // Index prvního fondu s výnosy k jinému dni (jen při řazení podle výnosu) → oddělovač v tabulce i kartách.
+  const oddelJinyDen = vynosovyKlic(sortKey) ? filtered.findIndex(({ e }) => !!e._dv) : -1;
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -607,7 +676,7 @@ export default function ScreenerUI({
 
   const reset = () => {
     setQ(''); setCategory('all'); setDist('all'); setRegion('all'); setIndexSel([]);
-    setRepl('all'); setCurrency('all'); setHedging('all'); setFactor('all');
+    setRepl('all'); setCurrency('all'); setHedging('auto'); setFactor('all');
     setLeveraged(false); setTerMax(''); setSizeMin(''); setDivMin('');
     setDomicile('all'); setProvider('all'); setMinAge('all'); setShown(PAGE);
   };
@@ -621,7 +690,7 @@ export default function ScreenerUI({
     ...(factor !== 'all' ? [{ k: 'styl', label: FACTORS.find((f) => f.value === factor)?.label ?? factor, off: () => setFactor('all') }] : []),
     ...(repl !== 'all' ? [{ k: 'repl', label: `Replikace: ${repl}`, off: () => setRepl('all') }] : []),
     ...(currency !== 'all' ? [{ k: 'mena', label: `Měna fondu ${currency}`, off: () => setCurrency('all') }] : []),
-    ...(hedging !== 'all' ? [{ k: 'hedge', label: hedging === 'unhedged' ? 'Bez měnového zajištění' : hedging === 'hedged' ? 'Měnově zajištěné' : `Zajištěno do ${hedging.split('_')[0].toUpperCase()}`, off: () => setHedging('all') }] : []),
+    ...(hedging !== 'all' && hedging !== 'auto' ? [{ k: 'hedge', label: hedging === 'unhedged' ? 'Bez měnového zajištění' : hedging === 'hedged' ? 'Měnově zajištěné' : `Zajištěno do ${hedging.split('_')[0].toUpperCase()}`, off: () => setHedging('auto') }] : []),
     ...(terMax !== '' ? [{ k: 'ter', label: `TER do ${terMax.replace('.', ',')}\u00A0%`, off: () => setTerMax('') }] : []),
     ...(sizeMin !== '' ? [{ k: 'minvel', label: `Velikost od ${Number(sizeMin) >= 1000 ? `${(Number(sizeMin) / 1000).toLocaleString('cs-CZ')} mld.` : `${sizeMin} mil.`} €`, off: () => setSizeMin('') }] : []),
     ...(divMin !== '' ? [{ k: 'div', label: `Dividenda od ${divMin.replace('.', ',')}\u00A0%`, off: () => setDivMin('') }] : []),
@@ -756,7 +825,7 @@ export default function ScreenerUI({
               aria-label="Hledat fond podle názvu, ISIN, tickeru nebo poskytovatele"
               value={q}
               onChange={(e) => { setQ(e.target.value); setShown(PAGE); }}
-              placeholder="Hledat: VWCE, IE00B4L5Y983, sp500, zlato…"
+              placeholder="Hledat: VWCE, ISIN…"
               className="w-full h-11 md:h-10 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-[15px] md:text-sm text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
             />
           </div>
@@ -803,6 +872,13 @@ export default function ScreenerUI({
           <p className="text-sm text-slate-600" aria-live="polite">
             <span className="font-semibold text-slate-900 tabular-nums">{filtered.length.toLocaleString('cs-CZ')}</span> {filtered.length === 1 ? 'fond' : filtered.length >= 2 && filtered.length <= 4 ? 'fondy' : 'fondů'}
             {!leveraged && <span className="hidden sm:inline text-slate-400"> · bez pákových produktů</span>}
+            {/* Kolo 7: při výběru indexu jsou zajištěné třídy ve výchozím stavu skryté (jako žebříček) – je vidět kolik a jde je zapnout. */}
+            {pocetSkrytychZajistenych > 0 && (
+              <span data-skryte-zajistene={pocetSkrytychZajistenych} className="text-slate-500">
+                {' · '}bez {pocetSkrytychZajistenych.toLocaleString('cs-CZ')}{'\u00a0'}{pocetSkrytychZajistenych === 1 ? 'měnově zajištěné třídy' : 'měnově zajištěných tříd'}{' '}
+                <button type="button" onClick={() => { setHedging('all'); setShown(PAGE); }} className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">zobrazit</button>
+              </span>
+            )}
           </p>
         ) : (
           <p className="inline-flex items-center gap-2 text-sm text-slate-500"><Loader2 className="w-3.5 h-3.5 animate-spin text-teal-600" /> Načítám všechny fondy…</p>
@@ -824,11 +900,13 @@ export default function ScreenerUI({
       </div>
 
       {/* TABULKA – desktop */}
-      {/* Plovoucí hlavička (majitel 18. 10. 2026): sticky funguje jen bez overflow na předkovi → od lg (tabulka se vejde)
-          kontejner bez overflow-x-auto; md–lg (úzké okno) se dál posouvá do strany a hlavička neplave. */}
-      <div className="mt-2 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto lg:overflow-visible">
+      {/* Plovoucí hlavička (majitel 18. 10. 2026): sticky funguje jen bez overflow na předkovi → kontejner bez overflow-x-auto
+          až od xl (kolo 7: tabulka má nejméně ~1 080 px; obsah stránky je od 1 280 px široký 1 120 px, při 1 024–1 279 px se
+          dřív od lg usekla – sloupec Div. a tlačítka „Porovnat“ byla mimo dosah, body má overflow-x: clip). md–xl se tabulka
+          posouvá do strany (hlavička neplave) a sloupec „Porovnat“ drží u pravého okraje (sticky). */}
+      <div className="mt-2 hidden md:block rounded-xl border border-slate-200 bg-white overflow-x-auto xl:overflow-visible">
         <table ref={tabulkaRef} className="w-full min-w-[60rem] text-sm border-separate border-spacing-0">
-          <thead className={`${konecTabulky ? '' : 'lg:sticky'} lg:top-14 z-20 shadow-[0_1px_0_0_theme(colors.slate.200)]`}>
+          <thead className={`${konecTabulky ? '' : 'xl:sticky'} xl:top-14 z-20 shadow-[0_1px_0_0_theme(colors.slate.200)]`}>
             {/* Dvouřádková hlavička: měna výnosů jednou nad skupinou sloupců (explicitně, ale bez opakování). */}
             <tr className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide">
               <SortH k="name" wide rowSpan={2} tip="typ" cls="rounded-tl-xl" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Fond</SortH>
@@ -837,9 +915,10 @@ export default function ScreenerUI({
               <th colSpan={4} className="pt-2 px-2 text-center font-semibold normal-case tracking-normal text-xs text-teal-800 bg-teal-50 border-l border-slate-200">
                 <span className="block border-b border-slate-200 pb-1">Výnos v {cur === 'CZK' ? 'korunách' : cur === 'EUR' ? 'eurech' : 'dolarech'}</span>
               </th>
-              <SortH k="vol" right rowSpan={2} tip="vol" cls={SKUPINA} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Kolísavost (EUR)</SortH>
+              {/* Kolo 7: dvouřádkově – jednořádková hlavička (142 px) byla nejširší sloupec a tabulka se do 1 120 px nevešla. */}
+              <SortH k="vol" right rowSpan={2} tip="vol" label="Kolísavost (EUR)" cls={SKUPINA} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}><span className="text-right leading-tight">Kolísavost<br />(EUR)</span></SortH>
               <SortH k="div" right rowSpan={2} tip="div" sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Div.</SortH>
-              <th rowSpan={2} className="py-2.5 px-2 font-medium text-center rounded-tr-xl"><span className="sr-only">Porovnat</span></th>
+              <th rowSpan={2} className={`py-2.5 px-2 font-medium text-center rounded-tr-xl ${POROVNAT_SLOUPEC} bg-slate-50`}><span className="sr-only">Porovnat</span></th>
             </tr>
             <tr className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide">
               <SortH k="ytd" right tip="ytd" cls={`${SKUPINA} bg-teal-50 border-b border-slate-200`} sortKey={sortKey} sortDir={sortDir} toggleSort={toggleSort}>Letos</SortH>
@@ -849,13 +928,17 @@ export default function ScreenerUI({
             </tr>
           </thead>
           <tbody>
-            {filtered.slice(0, shown).map(({ e }) => {
+            {filtered.slice(0, shown).map(({ e }, i) => {
               const o = e as unknown as Record<string, unknown>;
               const ytd = pickReturn(o, 'ytd', cur), r1 = pickReturn(o, '1y', cur), r3 = pickReturn(o, '3y', cur), r5 = pickReturn(o, '5y', cur);
               const c = distChip(e._dist);
               const tk = platnyTicker(e.primary_ticker);
               return (
-                <tr key={e.isin} className="even:bg-slate-50 hover:bg-amber-50/50 transition-colors [&>td]:border-b [&>td]:border-slate-100 last:[&>td]:border-b-0">
+                <Fragment key={e.isin}>
+                {i === oddelJinyDen && (
+                  <tr data-jiny-den-oddel><td colSpan={10} className="border-y border-slate-200 bg-slate-100 px-3 py-2 text-xs leading-snug text-slate-600"><OddelJinyDen /></td></tr>
+                )}
+                <tr className="group even:bg-slate-50 hover:bg-amber-50 transition-colors [&>td]:border-b [&>td]:border-slate-100 last:[&>td]:border-b-0">
                   <td className="py-2.5 pl-3 pr-2">
                     <div className="flex items-center gap-2.5">
                       <EmitentLogo nazev={e.name} size={28} monogram={e.fund_provider ?? e.name} />
@@ -863,7 +946,8 @@ export default function ScreenerUI({
                         <Link href={`/etf/${e.isin}`} title={e.name} className="line-clamp-2 font-medium leading-snug text-slate-900 hover:text-teal-700">
                           {kratkyNazev(e.name)}
                         </Link>
-                        <span className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
+                        {/* flex-wrap (kolo 7): štítky se zalomí na další řádek – dřív whitespace-nowrap roztáhl tabulku na 1 173 px. */}
+                        <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
                           {/* Bez tickeru celý ISIN normálním písmem (dřív useknutý monospace „IE…ZB19“ = jako rozbitý export). */}
                           <span className={tk ? 'font-medium text-slate-600' : 'text-slate-500'}>{tk ?? e.isin}</span>
                           <span title={c.title} className={`inline-block text-[10px] font-medium px-1.5 py-px rounded-full ${c.cls}`}>{c.label}</span>
@@ -874,7 +958,7 @@ export default function ScreenerUI({
                       </div>
                     </div>
                   </td>
-                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-medium text-slate-800 ${SKUPINA}`}>{ter(num(e.ter_numeric))}</td>
+                  <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-medium text-slate-800 ${SKUPINA}`}><TerBunka v={num(e.ter_numeric)} /></td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600">{money(num(e.fund_size_numeric))}</td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${SKUPINA} ${barva(ytd)}`}>{vyn(e, ytd)}</td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${VYNOSY} ${barva(r1)}`}>{vyn(e, r1)}</td>
@@ -882,10 +966,11 @@ export default function ScreenerUI({
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap ${VYNOSY} ${barva(r5)}`}>{vyn(e, r5)}</td>
                   <td className={`py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600 ${SKUPINA}`}><Kolisavost e={e} /></td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap text-slate-600"><Dividenda e={e} /></td>
-                  <td className="py-2.5 pl-1 pr-2.5 text-right">
+                  <td className={`py-2.5 pl-1 pr-2.5 text-right ${POROVNAT_SLOUPEC} bg-white group-even:bg-slate-50 group-hover:bg-amber-50 transition-colors`}>
                     <CompareButton isin={e.isin} label={tk ?? e.name.slice(0, 8)} variant="row" />
                   </td>
                 </tr>
+                </Fragment>
               );
             })}
             {filtered.length === 0 && (
@@ -899,6 +984,10 @@ export default function ScreenerUI({
         </table>
       </div>
 
+      {filtered.slice(0, shown).some(({ e }) => num(e.ter_numeric) === 0) && (
+        <p data-ter-nula-poznamka className="mt-2 hidden md:block text-xs leading-snug text-slate-500"><sup>*</sup> {TER_NULA_TEXT} V řazení podle TER jsou proto na konci.</p>
+      )}
+
       {/* KARTY – mobil (stejná data jako tabulka) */}
       <div className="mt-2 md:hidden">
         <button type="button" onClick={() => setLegenda((l) => !l)} aria-expanded={legenda} className="mb-2 inline-flex items-center gap-1 text-xs font-medium text-teal-700">
@@ -907,6 +996,7 @@ export default function ScreenerUI({
         {legenda && (
           <dl className="mb-2 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 space-y-1.5">
             <div><dt className="inline font-semibold text-slate-800">1 rok, 5 let: </dt><dd className="inline">výnos celkem za dané období, přepočtený do {curLabel[cur] === 'Kč' ? 'korun (včetně vlivu kurzu)' : 'zvolené měny'}. Minulý výnos nezaručuje budoucí. Podtržená „—“ = výnos se o víc než 1,5 p. b. liší od ostatních fondů na stejný trh (nejčastěji opožděná cena u zdroje), proto ho neukazujeme.</dd></div>
+            <div><dt className="inline font-semibold text-slate-800">„k 16. 10.“ u fondu: </dt><dd className="inline">výnosy tohoto fondu platí k uvedenému dni, ne ke dni dat ostatních fondů (zdroj má jeho ceny posunuté); při řazení podle výnosu jsou proto až na konci.</dd></div>
             <div><dt className="inline font-semibold text-slate-800">TER: </dt><dd className="inline">{VYSVETLIVKY.ter}</dd></div>
             <div><dt className="inline font-semibold text-slate-800">Velikost: </dt><dd className="inline">{VYSVETLIVKY.size}</dd></div>
             <div><dt className="inline font-semibold text-slate-800">ACC / DIST: </dt><dd className="inline">{VYSVETLIVKY.typ}</dd></div>
@@ -914,13 +1004,17 @@ export default function ScreenerUI({
           </dl>
         )}
         <div className="space-y-2">
-          {filtered.slice(0, shown).map(({ e }) => {
+          {filtered.slice(0, shown).map(({ e }, i) => {
             const o = e as unknown as Record<string, unknown>;
             const r1 = pickReturn(o, '1y', cur), r5 = pickReturn(o, '5y', cur);
             const c = distChip(e._dist);
             const tk = platnyTicker(e.primary_ticker);
             return (
-              <div key={e.isin} className="rounded-xl border border-slate-200 bg-white p-3">
+              <Fragment key={e.isin}>
+              {i === oddelJinyDen && (
+                <p data-jiny-den-oddel className="rounded-lg bg-slate-100 px-3 py-2 text-xs leading-snug text-slate-600"><OddelJinyDen /></p>
+              )}
+              <div className="rounded-xl border border-slate-200 bg-white p-3">
                 <div className="flex items-start gap-2.5">
                   <EmitentLogo nazev={e.name} size={28} className="mt-0.5" monogram={e.fund_provider ?? e.name} />
                   <div className="min-w-0 flex-1">
@@ -939,17 +1033,18 @@ export default function ScreenerUI({
                 </div>
                 {/* Kolo 5: poslední sloupec podle obsahu – „139,4 mld. €“ přetékalo čtvrtinu karty o ~5 px. */}
                 <dl className="mt-2.5 grid grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-1.5 text-xs">
+                  {/* Kolo 7: měna u výnosu přímo v kartě („1 rok +20,1 %“ bez měny – patička „Výnosy v Kč“ je až pod seznamem). */}
                   <div>
-                    <dt className="text-slate-500">1 rok</dt>
+                    <dt className="text-slate-500 whitespace-nowrap">1 rok v {curLabel[cur]}</dt>
                     <dd className={`tabular-nums text-sm font-semibold whitespace-nowrap ${barva(r1)}`}>{vyn(e, r1)}</dd>
                   </div>
                   <div>
-                    <dt className="text-slate-500">5 let</dt>
+                    <dt className="text-slate-500 whitespace-nowrap">5 let v {curLabel[cur]}</dt>
                     <dd className={`tabular-nums text-sm font-semibold whitespace-nowrap ${barva(r5)}`}>{vyn(e, r5)}</dd>
                   </div>
                   <div>
                     <dt className="text-slate-500">TER</dt>
-                    <dd className="tabular-nums text-sm font-medium text-slate-800 whitespace-nowrap">{ter(num(e.ter_numeric))}</dd>
+                    <dd className="tabular-nums text-sm font-medium text-slate-800 whitespace-nowrap"><TerBunka v={num(e.ter_numeric)} /></dd>
                   </div>
                   <div className="text-right">
                     <dt className="text-slate-500">Velikost</dt>
@@ -957,10 +1052,14 @@ export default function ScreenerUI({
                   </div>
                 </dl>
               </div>
+              </Fragment>
             );
           })}
         </div>
         {filtered.length > 0 && <p className="mt-2 text-[11px] text-slate-400">Výnosy v {curLabel[cur]}.</p>}
+        {filtered.slice(0, shown).some(({ e }) => num(e.ter_numeric) === 0) && (
+          <p className="mt-1 text-[11px] leading-snug text-slate-500"><sup>*</sup> {TER_NULA_TEXT}</p>
+        )}
         {filtered.length === 0 && (
           <div className="rounded-lg border border-slate-200 bg-white py-10 text-center text-sm text-slate-500">
             {cekaNaData || !full

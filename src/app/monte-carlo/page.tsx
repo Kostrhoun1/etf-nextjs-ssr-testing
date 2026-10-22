@@ -63,7 +63,7 @@ export default async function MonteCarloPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Monte Carlo simulátor', item: 'https://etfpruvodce.cz/kalkulacky/monte-carlo-simulator' },
+      { '@type': 'ListItem', position: 3, name: 'Monte Carlo simulátor', item: 'https://etfpruvodce.cz/monte-carlo' },
     ],
   };
 

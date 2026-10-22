@@ -545,3 +545,19 @@ faze4 nasazena 19. 10. v 7:05 (viz výše).
   session zjistila (599faf7), že zdroj za den D zveřejní předběžnou hodnotu a během D+1 ji přepíše → scraper už bere
   výnosy k předposlednímu dni řady (`returns_as_of`) a web ukazuje jejich den. Návrh úpravy scraperu tím vyřešen;
   posun startu není potřeba, dokud kontrola „Výnosy za období nesedí…“ mlčí.
+
+## 21. 10. 2026 odpoledne – NASAZENO: kolo 6 + 6b (detaily, žebříčky, články, SEO/GEO) + nový výpočet výnosů
+
+- ✅ **Web** `vylepseni-stranek` (8ad9247) → main ~17:20, Vercel success. Produkce: check-fund-data jen známý poplach UBS EM
+  (12 m mimo trh); všechny nové kontroly (kolo6 detail/žebříčky/SEO, kolo6b, rada) čisté; Playwright Chromium + WebKit,
+  desktop + mobil, 23 stránek = 92/92 OK (GA i /api/ev v testu blokované); canonical, 301 (malé ISIN, obrácená dvojice),
+  robots /api, llms.txt, LinkedIn ověřeno curlem.
+- ✅ **Scraper (etf-astro main fc043ff):** výnosy za období z denní řady zdroje (chart API, RELATIVE_CHANGE) ke dni
+  `returns_as_of` = poslední pracovní den ≥ 2 pracovní dny před stažením a ne poslední bod řady (zdroj přepisuje předběžný
+  bod D během D+1 a během obchodování přidává průběžný bod dneška); kurzy ČNB/ECB k tomuto dni a k začátku okna; XETRA
+  vždy mezi burzami; páka podle indexu; `holdings_as_of`. Ruční běh 21. 10. 10:17–15:07 UTC: SXR8 YTD 18,46 % = konečná
+  hodnota zdroje k 19. 10.; 4 147 fondů k 19. 10., ~890 se zpožděnou řadou vlastní datum.
+- ✅ **Spouštění scraperu:** Supabase pg_cron út–pá 01:30 UTC, po 05:00 UTC; GitHub schedule jen záloha s hlídačem.
+- ✅ **GSC:** sitemap znovu odeslána 21. 10. (Google stáhl 04:34 UTC). ⏳ Bing Webmaster Tools (majitel).
+- **Hodnocení kontrolní revize 6b (před posledními opravami):** Markéta 8, AD-A 8–8,5, AD-B 7,5–8,5, SEO 7 / SEO+LLM 7,5,
+  Martin 6 (data – opraveno novým výpočtem výnosů). ⏳ Další kontrolní kolo po nasazení.

@@ -387,7 +387,7 @@ export default async function FactorDetail({ cfg }: { cfg: FactorConfig }) {
 
         {/* KRIZE */}
         <section className="pb-10">
-          <SectionHead title="Jak faktor snášel krize" desc="Velké propady v našem období – v korunách, od vrcholu ke dnu, a doba návratu." />
+          <SectionHead title="Jak faktor snášel krize" desc="Velké propady v našem období – v korunách, od vrcholu ke dnu, a doba návratu od dna zpět na předchozí vrchol." />
           <div className={`grid gap-3 ${cfg.crises.length >= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 max-w-3xl'}`}>
             {cfg.crises.map((c) => (
               <div key={c.name} className="rounded-lg border border-slate-200 bg-white p-5">
