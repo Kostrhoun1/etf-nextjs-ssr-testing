@@ -456,7 +456,7 @@ export default async function JakDlouhoVMinusu() {
               <p className="mt-1">
                 Měsíční hodnoty (konec měsíce) z ETF SPY (S&amp;P 500), VT (celý svět, index FTSE Global All Cap – od 7/2008; dříve, kdy fond nebyl,
                 aproximace 60 % S&amp;P 500 + 40 % fond VGTSX se světem mimo USA) a AGG (dluhopisy) – s reinvesticí dividend, po poplatcích fondů, před daní, převedeno do korun denním kurzem, roční vyvažování.
-                Nákup na začátku měsíce. Inflace: index spotřebitelských cen ČSÚ (měsíčně od 2015, dříve z ročních průměrů);
+                Nákup na začátku měsíce. Inflace: index spotřebitelských cen ČSÚ (měsíční řada od ledna 1996);
                 poslední zveřejněný měsíc je {kdy(CPI_LAST_MONTH)}, za další měsíce inflaci zatím nezapočítáváme. Propady uvnitř měsíce se neprojeví.
                 Ověřeno nezávisle z ročních výnosů S&amp;P 500 (S&amp;P Dow Jones Indices), kurzů ČNB a míry inflace ČSÚ.
                 Minulé výnosy nezaručují budoucí.
