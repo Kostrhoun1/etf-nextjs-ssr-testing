@@ -10,7 +10,8 @@ import AutorBox from '@/components/design-preview/AutorBox';
 import { clanekSchema, drobeckySchema } from '@/lib/redakce';
 import { ogImage } from '@/lib/ogImage';
 import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
-import { spoctiPodVodou, type PodVodouPreset, type DlouhoNad } from '@/lib/clanky/podVodou';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
+import { spoctiPodVodou, sAsponLety, type PodVodouPreset, type DlouhoNad } from '@/lib/clanky/podVodou';
 import { titulek } from '@/lib/seoTitulek';
 
 /* Vlna 7 – obsah z dat v korunách. Otázka, kterou si začínající investor klade po prvním propadu.
@@ -142,7 +143,7 @@ export default async function JakDlouhoVMinusu() {
   const spDca = sp?.pravidelne.find((x) => x.od === '2000-01');
   const jednorazove2007 = sp?.starty.find((x) => x.start === '2007-10');
   // „Nikdy pod vkladem“ jen u nákupů s aspoň 5 lety dat – u čerstvých nákupů to nic neříká (revize).
-  const spS5 = sp ? sp.starty.filter((_, i) => sp.starty.length - i >= 60) : [];
+  const spS5 = sp ? sAsponLety(sp.starty, sp.starty.length, 5) : [];
   const spNikdy5 = spS5.filter((x) => x.nominalne === 0).length;
 
   // Poznámky k číslům, kde investice byla dlouho nad vkladem a pak pod něj krátce spadla (přísná doba pak působí přehnaně).
@@ -156,7 +157,8 @@ export default async function JakDlouhoVMinusu() {
   }
   const znacka = (klic: string) => {
     const i = poznamky.findIndex((x) => x.klic === klic);
-    return i < 0 ? null : <sup className="ml-0.5 text-teal-700"><a href={`#pozn-${i + 1}`}>{i + 1}</a></sup>;
+    // Dotykový cíl aspoň 24 × 24 px (kolo 8: dřív 7 × 13 px).
+    return i < 0 ? null : <sup className="ml-0.5"><a href={`#pozn-${i + 1}`} aria-label={`Poznámka ${i + 1}`} className="inline-flex min-h-6 min-w-6 items-center justify-center rounded text-teal-700 underline underline-offset-2 hover:bg-teal-50">{i + 1}</a></sup>;
   };
 
   const faqs = d && sp && sv && spDca ? [
@@ -293,37 +295,31 @@ export default async function JakDlouhoVMinusu() {
               {[sp, sv, vy].map((p) => (
                 <div key={p.id} className="mt-4">
                   <h3 className="font-semibold text-slate-900">{p.nazev}{p.id === 'vyvazene' ? <span className="font-normal text-slate-500"> (od {od(p.od)})</span> : null}</h3>
-                  <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                    <table className="w-full text-xs sm:text-sm tabular-nums">
-                      <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                        <tr><th className="px-2 sm:px-3 py-2">Po</th><th className="px-2 sm:px-3 py-2 text-right">Naráz</th><th className="px-2 sm:px-3 py-2 text-right">Naráz, po inflaci</th><th className="px-2 sm:px-3 py-2 text-right">Pravidelně</th><th className="px-2 sm:px-3 py-2 text-right">Pravidelně, po inflaci</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {p.poLetech.map((q) => (
-                          <tr key={q.roky}>
-                            <td className="px-2 sm:px-3 py-1.5">{q.roky} {q.roky === 1 ? 'roce' : 'letech'} <span className="text-xs text-slate-500">({q.startu})</span></td>
-                            <td className="px-2 sm:px-3 py-1.5 text-right">{pct(q.nom)}</td>
-                            <td className="px-2 sm:px-3 py-1.5 text-right text-slate-600">{pct(q.real)}</td>
-                            <td className="px-2 sm:px-3 py-1.5 text-right">{pct(q.dcaNom)}</td>
-                            <td className="px-2 sm:px-3 py-1.5 text-right text-slate-600">{pct(q.dcaReal)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <ResponzivniTabulka
+                    className="mt-2"
+                    popis={`${p.nazev}: podíl nákupů pod vkladem po daném počtu let`}
+                    sloupce={[{ nazev: 'Doba držení' }, { nazev: 'Naráz' }, { nazev: 'Naráz, po inflaci' }, { nazev: 'Pravidelně' }, { nazev: 'Pravidelně, po inflaci' }]}
+                    radky={p.poLetech.map((q) => ({
+                      key: String(q.roky),
+                      bunky: bunky(
+                        <>Po {q.roky} {q.roky === 1 ? 'roce' : 'letech'} <span className="text-xs font-normal text-slate-500">({q.startu} nákupů)</span></>,
+                        pct(q.nom), pct(q.real), pct(q.dcaNom), pct(q.dcaReal),
+                      ),
+                    }))}
+                  />
                 </div>
               ))}
               <p className="mt-2 text-xs text-slate-500">Podíl měsíců nákupu, kdy byla hodnota po daném počtu let (na konci měsíce) pod vloženou částkou. V závorce počet měsíců nákupu, pro které už tolik let dat máme.</p>
               <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-[15px] text-slate-800 leading-relaxed">
                 <p className="font-semibold text-slate-900">Proč může být „po 5 letech“ horší než „po roce“</p>
                 <p className="mt-1">
-                  Naše data začínají v roce 2000 – těsně před dvěma velkými propady (2000–2002 a 2008) a v době, kdy koruna k dolaru silně posilovala.
+                  Naše data začínají v roce 2000 – těsně před dvěma velkými propady (2000–2002 a 2008) a v době, kdy koruna k dolaru silně posilovala.{' '}
                   {(() => {
                     const pod = sp.pet.filter(([, a]) => a > 0), poslRok = pod.at(-1)?.[0];
                     const v = pod.reduce((s2, [, a]) => s2 + a, 0), c = pod.reduce((s2, [, , b]) => s2 + b, 0);
                     return pod.length ? <>U S&amp;P 500 skončila po 5 letech v minusu {v} z {c} nákupů z let {pod[0][0]}–{poslRok}
                       {sp.pet.some(([y, a]) => y > poslRok! && a === 0) ? <> a žádný nákup z pozdějších let</> : null}. Tyhle starty táhnou celkový podíl nahoru.</> : null;
-                  })()}
+                  })()}{' '}
                   Neznamená to, že delší držení obecně škodí – po 15 letech {(sp.poLetech.find((q) => q.roky === 15)?.nom ?? 0) === 0 ? 'už nebyl v korunách v minusu žádný nákup S&P 500' : <>byl v korunách v minusu už jen {pct(sp.poLetech.find((q) => q.roky === 15)!.nom)} nákupů S&amp;P 500</>}.
                   Znamená to, že výsledek hodně záleží na tom, do jakého období se trefíte.
                 </p>
@@ -336,28 +332,25 @@ export default async function JakDlouhoVMinusu() {
                 Doba v minusu je jedna věc, hloubka druhá. Pro každý měsíc nákupu jsme našli nejnižší hodnotu, na kterou investice kdykoli později klesla
                 pod nákupní cenu (konce měsíců, v korunách):
               </p>
-              <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table className="w-full text-xs sm:text-sm tabular-nums">
-                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <tr><th className="px-3 py-2">Do čeho</th><th className="px-3 py-2 text-right">Typicky</th><th className="px-3 py-2 text-right">1 z 10 nákupů</th><th className="px-3 py-2 text-right">Nejhůř</th><th className="px-3 py-2 text-right">Pokles přes 20 %</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {[sp, sv, vy].map((p) => (
-                      <tr key={p.id}>
-                        <td className="px-3 py-2">{p.nazev}</td>
-                        <td className="px-3 py-2 text-right">{p.hloubka.median < 0 ? pct(p.hloubka.median) : 'nikdy pod'}</td>
-                        <td className="px-3 py-2 text-right">{pct(p.hloubka.p90)}</td>
-                        <td className="px-3 py-2 text-right text-red-700">{pct(p.hloubka.nejhorsi)} <span className="block text-xs text-slate-500">nákup {kdy(p.hloubka.nejhorsiStart)}</span></td>
-                        <td className="px-3 py-2 text-right">{pct(p.hloubka.podil20)} nákupů</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ResponzivniTabulka
+                className="mt-3"
+                popis="Jak hluboko investice po nákupu spadla pod nákupní cenu"
+                sloupce={[{ nazev: 'Do čeho' }, { nazev: 'Typicky' }, { nazev: '1 z 10 nákupů' }, { nazev: 'Nejhůř' }, { nazev: 'Pokles přes 20 %' }]}
+                radky={[sp, sv, vy].map((p) => ({
+                  key: p.id,
+                  bunky: bunky(
+                    p.nazev,
+                    p.hloubka.median < 0 ? pct(p.hloubka.median) : 'nikdy pod',
+                    pct(p.hloubka.p90),
+                    <span className="text-red-700">{pct(p.hloubka.nejhorsi)} <span className="block text-xs text-slate-500">nákup {kdy(p.hloubka.nejhorsiStart)}</span></span>,
+                    <>{pct(p.hloubka.podil20)} nákupů</>,
+                  ),
+                }))}
+              />
               <p className="mt-2 text-xs text-slate-500">„Typicky“ = medián, „1 z 10 nákupů“ = hloubka, kterou překonala desetina nejhorších nákupů. Jen nákupy, po kterých máme aspoň 5 let dat.</p>
               <p className="mt-3 text-[15px] text-slate-700 leading-relaxed">
                 Kdo do akcií vstupuje, měl by počítat s tím, že hodnota v nějaké chvíli spadne pod vklad – u S&amp;P 500 se to stalo
-                u {pct(1 - sp.nikdyPod / Math.max(1, sp.starty.length))} nákupů a u {pct(sp.hloubka.podil20)} nákupů to bylo o víc než pětinu.
+                u {pct(1 - spNikdy5 / Math.max(1, spS5.length))} nákupů s aspoň pěti lety dat a u {pct(sp.hloubka.podil20)} nákupů to bylo o víc než pětinu.
                 Vyvážené portfolio padalo méně: typicky o {pct(Math.abs(vy.hloubka.median))}, v nejhorším případě o {pct(Math.abs(vy.hloubka.nejhorsi))}.
               </p>
             </section>
@@ -365,23 +358,20 @@ export default async function JakDlouhoVMinusu() {
             <section className="mt-10">
               <h2 className="text-xl font-bold tracking-tight">Typická doba v minusu</h2>
               <p className="mt-1.5 text-[15px] text-slate-700 leading-relaxed">Jak dlouho byla investice pod vkladem (do posledního měsíce pod vkladem) – přes všechny nákupy, po kterých máme aspoň 10 let dat:</p>
-              <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <tr><th className="px-3 py-2">Do čeho</th><th className="px-3 py-2 text-right">Polovina nákupů nejvýš</th><th className="px-3 py-2 text-right">3 ze 4 nákupů nejvýš</th><th className="px-3 py-2 text-right">9 z 10 nákupů nejvýš</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {[sp, sv, vy].map((p) => (
-                      <tr key={p.id} className="align-top">
-                        <td className="px-3 py-2">{p.nazev} <span className="block text-xs text-slate-500">{p.doba.startu} nákupů</span></td>
-                        <td className="px-3 py-2 text-right">{doba(p.doba.median)}<span className="block text-xs text-slate-500">po inflaci {doba(p.doba.medianReal)}</span></td>
-                        <td className="px-3 py-2 text-right">{doba(p.doba.p75)}<span className="block text-xs text-slate-500">po inflaci {doba(p.doba.p75Real)}</span></td>
-                        <td className="px-3 py-2 text-right">{doba(p.doba.p90)}<span className="block text-xs text-slate-500">po inflaci {doba(p.doba.p90Real)}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ResponzivniTabulka
+                className="mt-3"
+                popis="Typická doba v minusu přes všechny nákupy s aspoň 10 lety dat"
+                sloupce={[{ nazev: 'Do čeho' }, { nazev: 'Polovina nákupů nejvýš' }, { nazev: '3 ze 4 nákupů nejvýš' }, { nazev: '9 z 10 nákupů nejvýš' }]}
+                radky={[sp, sv, vy].map((p) => ({
+                  key: p.id,
+                  bunky: bunky(
+                    <>{p.nazev} <span className="block text-xs font-normal text-slate-500">{p.doba.startu} nákupů</span></>,
+                    <>{doba(p.doba.median)}<span className="block text-xs text-slate-500">po inflaci {doba(p.doba.medianReal)}</span></>,
+                    <>{doba(p.doba.p75)}<span className="block text-xs text-slate-500">po inflaci {doba(p.doba.p75Real)}</span></>,
+                    <>{doba(p.doba.p90)}<span className="block text-xs text-slate-500">po inflaci {doba(p.doba.p90Real)}</span></>,
+                  ),
+                }))}
+              />
             </section>
 
             <section className="mt-8 text-[15px] text-slate-700 leading-relaxed space-y-3">

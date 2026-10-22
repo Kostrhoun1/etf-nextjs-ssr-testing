@@ -295,8 +295,8 @@ export default async function HypotecniKalkulackaPreview() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Kalkulačku stavíme nezávisle – výpočet vychází z ověřeného anuitního umořovacího modelu.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Kalkulačku stavíme nezávisle – výpočet vychází z ověřeného anuitního umořovacího modelu.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

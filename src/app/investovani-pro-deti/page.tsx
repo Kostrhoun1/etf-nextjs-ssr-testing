@@ -6,6 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, Gavel, LineChart, Landmark, AlertTriangle, Lock, Baby, Globe, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { getETFsByIsins, getETFCountLabel, getDataDatum } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
@@ -212,32 +213,18 @@ export default async function InvestovaniProDeti() {
             title="Kolik naspoříte do osmnáctin"
             desc="Budoucí hodnota pravidelného měsíčního vkladu při modelovém výnosu 7 % ročně, podle toho, kdy začnete. Nominálně, před inflací."
           />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[38rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Měsíčně</th>
-                  {STARTS.map((s) => (
-                    <th key={s.label} className="py-3 px-4 text-right font-medium">{s.label}</th>
-                  ))}
-                  <th className="py-3 px-4 text-right font-medium">Vloženo (od narození)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {MONTHLY.map((pmt) => (
-                  <tr key={pmt} className="border-b border-slate-100 last:border-0">
-                    <td className="py-3 px-4 font-semibold text-slate-900 tabular-nums">{pmt.toLocaleString('cs-CZ')} Kč</td>
-                    {STARTS.map((s) => (
-                      <td key={s.label} className="py-3 px-4 text-right tabular-nums font-medium text-teal-700">
-                        {kc(fv(pmt, RATE, s.years))}
-                      </td>
-                    ))}
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-400">{kcRound(pmt * 216)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponzivniTabulka
+            popis="Kolik naspoříte do osmnáctin podle začátku spoření"
+            sloupce={[{ nazev: 'Měsíčně' }, ...STARTS.map((st) => ({ nazev: st.label })), { nazev: 'Vloženo (od narození)' }]}
+            radky={MONTHLY.map((pmt) => ({
+              key: String(pmt),
+              bunky: bunky(
+                <span className="tabular-nums">{pmt.toLocaleString('cs-CZ')} Kč měsíčně</span>,
+                ...STARTS.map((st) => <span key={st.label} className="font-medium text-teal-700">{kc(fv(pmt, RATE, st.years))}</span>),
+                <span className="text-slate-500">{kcRound(pmt * 216)}</span>,
+              ),
+            }))}
+          />
           <div className="mt-4 flex items-start gap-3 rounded-lg border border-teal-100 bg-teal-50/50 p-4">
             <Clock className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
             <p className="text-sm text-slate-700 leading-relaxed">
@@ -392,41 +379,30 @@ export default async function InvestovaniProDeti() {
               title="Široké světové ETF pro osmnáctiletý horizont"
               desc="Při osmnáctiletém horizontu dává smysl široký světový index v akumulační třídě. Data z naší databáze – výnos v korunách, tak jak ho reálně uvidíte."
             />
-            <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-              <table className="w-full min-w-[46rem] text-sm">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                    <th className="py-3 px-4 text-left font-medium">Fond</th>
-                    <th className="py-3 px-4 text-left font-medium">Index</th>
-                    <th className="py-3 px-4 text-right font-medium">TER</th>
-                    <th className="py-3 px-4 text-right font-medium">Velikost</th>
-                    <th className="py-3 px-4 text-right font-medium">5 let (Kč)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {funds.map((f) => (
-                    <tr key={f.isin} className="border-b border-slate-100 last:border-0">
-                      <td className="py-3 px-4">
-                        <Link href={`/etf/${f.isin}`} className="font-medium text-slate-900 hover:text-teal-700">
-                          {platnyTicker(f.primary_ticker) ?? f.name}
-                        </Link>
-                        <span className="block text-xs text-slate-400 leading-relaxed">{f.name}</span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-600 text-xs">{f.index_name ?? '—'}</td>
-                      <td className="py-3 px-4 text-right tabular-nums text-slate-700">{ter(f.ter_numeric)}</td>
-                      <td className="py-3 px-4 text-right tabular-nums text-slate-500 text-xs">
-                        {f.fund_size_numeric == null
-                          ? '—'
-                          : f.fund_size_numeric >= 1000
-                            ? `${(f.fund_size_numeric / 1000).toFixed(1).replace('.', ',')} mld. €`
-                            : `${Math.round(f.fund_size_numeric)} mil €`}
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-medium text-teal-700">{pct(f.return_5y_czk)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {/* Kolo 8: tabulka fondů měla 736 px → sdílená responzivní tabulka. */}
+            <ResponzivniTabulka
+              popis="Široké světové ETF – parametry a výnos v korunách"
+              sloupce={[{ nazev: 'Fond' }, { nazev: 'Index', zarovnani: 'left' }, { nazev: 'TER' }, { nazev: 'Velikost' }, { nazev: '5 let (Kč)', nazevKarta: 'Výnos za 5 let (Kč)' }]}
+              radky={funds.map((f) => ({
+                key: f.isin,
+                bunky: bunky(
+                  <>
+                    <Link href={`/etf/${f.isin}`} className="font-medium text-slate-900 hover:text-teal-700">{platnyTicker(f.primary_ticker) ?? f.name}</Link>
+                    <span className="block text-xs font-normal text-slate-400 leading-relaxed">{f.name}</span>
+                  </>,
+                  <span className="text-xs text-slate-600">{f.index_name ?? '—'}</span>,
+                  ter(f.ter_numeric),
+                  <span className="text-xs text-slate-500">
+                    {f.fund_size_numeric == null
+                      ? '—'
+                      : f.fund_size_numeric >= 1000
+                        ? `${(f.fund_size_numeric / 1000).toFixed(1).replace('.', ',')} mld. €`
+                        : `${Math.round(f.fund_size_numeric)} mil €`}
+                  </span>,
+                  <span className="font-medium text-teal-700">{pct(f.return_5y_czk)}</span>,
+                ),
+              }))}
+            />
             <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
               <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
               {datumDat && <>Data k {datumDat}. </>}Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
@@ -492,8 +468,8 @@ export default async function InvestovaniProDeti() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

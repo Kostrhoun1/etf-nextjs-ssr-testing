@@ -181,8 +181,15 @@ function hloubka(rada: StrojRada): PodVodouPreset['hloubka'] {
   return { median: kvantil(d, 0.5), p90: kvantil(d, 0.1), nejhorsi: nej.d, nejhorsiStart: nej.start, podil20: d.filter((x) => x <= -0.2).length / d.length, startu: d.length };
 }
 
+/** Nákupy, po kterých máme aspoň `roky` let dat – JEDNA definice pro text i tabulky (kolo 8, 22. 10. 2026: text „Z 263
+ *  měsíců“ × tabulka „262“, „203“ × „202“ – tabulka po letech vynechává poslední, rozběhlý měsíc, text ne).
+ *  Konec okna = konec měsíce i + 12·roky − 1 a ten musí být před posledním (rozběhlým) měsícem: i + 12·roky − 1 < n − 1. */
+export function sAsponLety<T>(starty: T[], n: number, roky: number): T[] {
+  return starty.filter((_, i) => i + roky * 12 - 1 < n - 1);
+}
+
 function doba(starty: StartPodVodou[], n: number): PodVodouPreset['doba'] {
-  const s10 = starty.filter((_, i) => n - i >= 120);
+  const s10 = sAsponLety(starty, n, 10);
   const nom = s10.map((s, i) => s.nominalne ?? n - i), real = s10.map((s, i) => s.realne ?? n - i);
   return { median: kvantil(nom, 0.5), p75: kvantil(nom, 0.75), p90: kvantil(nom, 0.9), medianReal: kvantil(real, 0.5), p75Real: kvantil(real, 0.75), p90Real: kvantil(real, 0.9), startu: s10.length };
 }
@@ -203,7 +210,7 @@ async function spoctiPodVodouBezCache(): Promise<PodVodou | null> {
       const n = r.nav.length;
       const nejhorsi = (k: 'nominalne' | 'realne') =>
         starty.reduce((b, s, i) => (delka(s[k], n - i) > delka(b.s[k], n - b.i) ? { s, i } : b), { s: starty[0], i: 0 }).s;
-      const s10 = starty.filter((_, i) => n - i >= 120); // máme hodnotu po 10 letech (konec 120. měsíce)
+      const s10 = sAsponLety(starty, n, 10); // máme hodnotu po 10 letech (konec 120. měsíce)
       const pod10 = (k: 'nominalne' | 'realne') => s10.filter((s) => s[k] === null || s[k]! >= 120).map((s) => s.start);
       return {
         id: r.id,

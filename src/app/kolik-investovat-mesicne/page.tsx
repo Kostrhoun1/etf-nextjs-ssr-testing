@@ -10,6 +10,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -168,31 +169,22 @@ export default async function KolikInvestovat() {
         {/* 1. TABULKA: kolik naspořím */}
         <section className="pb-10">
           <SectionHead title="Kolik naspoříte měsíčním vkladem" desc="Budoucí hodnota pravidelné investice při 7 % ročně. Vidíte, jak čas dělá většinu práce – vklad roste lineárně, ale výsledek exponenciálně." />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[38rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Měsíčně</th>
-                  {HORIZONS.map((y) => <th key={y} className="py-3 px-4 text-right font-medium">Za {y} let</th>)}
-                  <th className="py-3 px-4 text-right font-medium">Vloženo (30 let)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {MONTHLY.map((pmt) => (
-                  <tr key={pmt} className="border-b border-slate-100 last:border-0">
-                    <td className="py-3 px-4 font-semibold text-slate-900 tabular-nums">{pmt.toLocaleString('cs-CZ')} Kč</td>
-                    {HORIZONS.map((y) => (
-                      <td key={y} className="py-3 px-4 text-right tabular-nums font-medium text-teal-700">{kc(fv(pmt, RATE, y))}</td>
-                    ))}
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-400">{kcRound(pmt * 360)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Kolo 8: na mobilu byly sloupce „Za 30 let“ a „Vloženo“ mimo obrazovku → sdílená responzivní tabulka (karty). */}
+          <ResponzivniTabulka
+            popis="Kolik naspoříte měsíčním vkladem při 7 % ročně"
+            sloupce={[{ nazev: 'Měsíčně' }, ...HORIZONS.map((y) => ({ nazev: `Za ${y} let` })), { nazev: 'Vloženo (30 let)', nazevKarta: 'Vloženo za 30 let' }]}
+            radky={MONTHLY.map((pmt) => ({
+              key: String(pmt),
+              bunky: bunky(
+                <span className="tabular-nums">{pmt.toLocaleString('cs-CZ')} Kč měsíčně</span>,
+                ...HORIZONS.map((y) => <span key={y} className="font-medium text-teal-700">{kc(fv(pmt, RATE, y))}</span>),
+                <span className="text-slate-500">{kcRound(pmt * 360)}</span>,
+              ),
+            }))}
+          />
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Všimněte si posledního sloupce: kdo 30 let posílá 5 000 Kč měsíčně, vloží 1,8 milionu – ale na účtu má{' '}
+            Porovnejte „Za 30 let“ a „Vloženo“: kdo 30 let posílá 5 000 Kč měsíčně, vloží 1,8 milionu – ale na účtu má{' '}
             <strong className="text-slate-700">{kc(fv(5000, RATE, 30))}</strong>. Ten rozdíl vydělaly výnosy z výnosů.
           </p>
         </section>
@@ -243,24 +235,14 @@ export default async function KolikInvestovat() {
         {/* 4. OD MILIONU K RENTĚ */}
         <section className="pb-10">
           <SectionHead title="Od milionu k rentě" desc="Milion je milník, ne cíl. Kolik potřebujete, aby vás portfolio uživilo – podle pravidla 4 % (25násobek ročních výdajů)." />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[28rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Chci rentu měsíčně</th>
-                  <th className="py-3 px-4 text-right font-medium">Potřebuji naspořit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[15000, 20000, 30000, 40000].map((m) => (
-                  <tr key={m} className="border-b border-slate-100 last:border-0">
-                    <td className="py-3 px-4 font-medium text-slate-800 tabular-nums">{m.toLocaleString('cs-CZ')} Kč</td>
-                    <td className="py-3 px-4 text-right tabular-nums font-semibold text-teal-700">{kc(m * 300)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponzivniTabulka
+            popis="Kolik naspořit na měsíční rentu podle pravidla 4 %"
+            sloupce={[{ nazev: 'Chci rentu měsíčně' }, { nazev: 'Potřebuji naspořit' }]}
+            radky={[15000, 20000, 30000, 40000].map((m) => ({
+              key: String(m),
+              bunky: bunky(<span className="tabular-nums">{m.toLocaleString('cs-CZ')} Kč měsíčně</span>, <span className="font-semibold text-teal-700">{kc(m * 300)}</span>),
+            }))}
+          />
           <div className="mt-4">
             <Link href="/fire" className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800">
               Celý průvodce cestou k rentě: FIRE a finanční nezávislost <ArrowRight className="w-4 h-4" />
@@ -352,8 +334,8 @@ export default async function KolikInvestovat() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

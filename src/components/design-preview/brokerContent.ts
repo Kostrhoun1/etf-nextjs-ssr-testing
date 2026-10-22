@@ -119,7 +119,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "XTB tak cílí na běžného retailového investora, který chce jednoduše a bez provizí nakupovat ETF v češtině, spíše než na profesionály hledající opce, futures nebo nejnižší možné náklady na velkých objemech."
     ],
     "feesText": [
-      "Samotný nákup ETF je u XTB bez provize do souhrnného objemu 100 000 EUR měsíčně, nad tento limit se účtuje 0,2 %. Většina retailových investorů se tak fakticky pohybuje v režimu 0 Kč za obchod. Reálné náklady českého investora ale tvoří hlavně měna: XTB vede účet nejčastěji v EUR nebo CZK a při obchodování ETF denominovaného v jiné měně provádí konverzi se spreadem 0,5 % nad tržním kurzem. Kdo posílá koruny a kupuje ETF v eurech nebo dolarech, zaplatí tuto konverzi na každém nákupu i při případném prodeji. Vklad bankovním (SEPA) převodem je zdarma, platba kartou ale stojí 0,77 % (CZK) nebo 0,70 % (EUR) — proto se vždy vyplatí posílat peníze převodem, ne kartou. Minimální vklad není žádný a poplatek za neaktivitu se neúčtuje po dobu 12 měsíců.",
+      "Samotný nákup ETF je u XTB bez provize do souhrnného objemu 100 000 EUR měsíčně, nad tento limit se účtuje 0,2 %. Většina retailových investorů se tak fakticky pohybuje v režimu 0 Kč za obchod. Reálné náklady českého investora ale tvoří hlavně měna: XTB vede účet nejčastěji v EUR nebo CZK a při obchodování ETF denominovaného v jiné měně provádí konverzi se spreadem 0,5 % nad tržním kurzem. Kdo posílá koruny a kupuje ETF v eurech nebo dolarech, zaplatí tuto konverzi na každém nákupu i při případném prodeji. Vklad bankovním (SEPA) převodem je zdarma, platba kartou ale stojí 0,77 % (CZK) nebo 0,70 % (EUR) — proto se vždy vyplatí posílat peníze převodem, ne kartou. Minimální vklad není žádný. Vedení účtu je zdarma; poplatek za neaktivitu 10 EUR měsíčně se účtuje, jen když zároveň rok (365 dní) neotevřete ani neuzavřete žádnou pozici a 90 dní nevložíte peníze (Tabulka poplatků a provizí ze dne 20. 10. 2026).",
       "U zdanění dividend je situace dvojí. U ETF a akcií z USA lze díky vyplněnému formuláři W-8BEN dosáhnout snížené srážky 15 % místo 30 %. Naopak u dividend z českých akcií drží XTB jako zahraniční broker srážku 35 % (nesnížených 15 %), což je citelná nevýhoda pro dividendové investory do českých titulů. Pro typického investora do širokých akumulačních ETF (např. celosvětové indexy) je ale zdanění dividend uvnitř fondu řešeno na úrovni fondu a tento problém se ho prakticky netýká."
     ],
     "faqs": [
@@ -204,7 +204,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Umožňuje Fio frakční (částečné) ETF?",
-        "a": "Ne. Fio nepodporuje frakční investování, vždy nakupujete celé kusy ETF. Pokud chcete investovat přesnou částku bez zbytku, sáhněte po brokerovi jako Trading 212 nebo Portu."
+        "a": "Ne. Fio nepodporuje frakční investování, vždy nakupujete celé kusy ETF. Pokud chcete investovat přesnou částku bez zbytku, sáhněte po brokerovi s nákupem části podílu (XTB, Trading 212, Interactive Brokers), případně po robo-poradci Portu."
       },
       {
         "q": "Kolik stojí měnová konverze při nákupu ETF v EUR nebo USD?",
@@ -221,7 +221,7 @@ export const brokerContent: Record<string, BrokerContent> = {
     ],
     "proKohoNe": [
       "Potřebujete podporu v češtině nebo po telefonu – jen anglický chat",
-      "Chcete hotovost pojištěnou jako vklad v bance – kryje ji kyperský fond ICF (společný limit max. 20 000 EUR)"
+      "Chcete hotovost pojištěnou jako vklad v bance – kryje ji garanční fond (90 %, max. 20 000 EUR, společně s cennými papíry)"
     ],
     "zalozeni": [
       {
@@ -239,12 +239,12 @@ export const brokerContent: Record<string, BrokerContent> = {
     ],
     "zalozeniZdroj": "https://helpcentre.trading212.com/hc/en-us/articles/35746373810205-Confirming-your-identity-and-tax-details-during-account-setup",
     "intro": [
-      "Trading 212 je britsko-kyperský broker založený v roce 2004, který se v Evropě proslavil modelem 0 % poplatků za nákup akcií a ETF. Pro české klienty vystupuje entita Trading 212 Markets Ltd. regulovaná kyperskou CySEC, na pozadí je i britská FCA.",
+      "Trading 212 je britsko-kyperský broker založený v roce 2004, který se v Evropě proslavil modelem 0 % poplatků za nákup akcií a ETF. České klienty podle centra nápovědy Trading 212 (ověřeno 22. 10. 2026) vede kyperská entita Trading 212 Markets Ltd. pod dohledem CySEC. Zároveň probíhá přesun úschovy cenných papírů pod německou Trading 212 EU GmbH (dohled BaFin, ochrana investorů EdW). Pod kterou entitou je váš účet, si ověřte přímo u brokera – ochrana je u obou 90 % ztráty, nejvýš 20 000 EUR.",
       "Od klasických brokerů typu DEGIRO nebo Fio se odlišuje důrazem na mobilní aplikaci, frakční investování (část podílu od 1 EUR) a funkce AutoInvest a Pies pro automatizované DCA spoření s automatickým rebalancováním. Pokročilou analytiku pro aktivní obchodování nemá."
     ],
     "feesText": [
       "Reálné náklady českého ETF investora u Trading 212 jsou velmi nízké. Za nákup i prodej akcií a ETF neplatíte žádnou provizi (0 %, bez limitu objemu), vklady i výběry jsou zdarma. Hlavním nákladem je měnová konverze: účet vedete typicky v EUR, takže při vkladu korun z české banky proběhne konverze CZK/EUR s přirážkou 0,15 %. Této konverzi se lze částečně vyhnout posíláním eur, případně vedením účtu přímo v EUR a nákupem ETF v původní měně.",
-      "Z daňového hlediska je zásadní volba správného ETF. U akumulačních (accumulating) ETF s domicilem v Irsku se dividenda reinvestuje uvnitř fondu a řeší se pouze zdanění při prodeji (v ČR lze využít časový nebo hodnotový test na osvobození). U distribučních ETF Trading 212 dividendy nezdaňuje sám a nesráží žádný vlastní poplatek za výplatu, ale u amerických akcií bez vyplněného formuláře W-8BEN hrozí srážka 30 % místo 15 %. Proto českým investorům obvykle dává největší smysl irský akumulační ETF (např. na index S&P 500 nebo celý svět), kde odpadá řešení 15 vs. 35 % srážkové daně z dividend a náklady se blíží nule."
+      "Z daňového hlediska je zásadní volba správného ETF. U akumulačních (accumulating) ETF s domicilem v Irsku se dividenda reinvestuje uvnitř fondu a řeší se pouze zdanění při prodeji (v ČR lze využít časový nebo hodnotový test na osvobození). U distribučních ETF Trading 212 dividendy nezdaňuje sám a nesráží žádný vlastní poplatek za výplatu, ale u amerických akcií bez vyplněného formuláře W-8BEN hrozí srážka 30 % místo 15 %. Proto českým investorům obvykle dává největší smysl irský akumulační ETF (např. na index S&P 500 nebo celý svět), kde odpadá řešení srážkové daně z vyplácených dividend a náklady se blíží nule."
     ],
     "faqs": [
       {
@@ -269,7 +269,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Lze převést ETF od jiného brokera na Trading 212?",
-        "a": "Trading 212 dlouhodobě nenabízí standardní příchozí převod cenných papírů (transfer in) jako DEGIRO nebo Interactive Brokers. V praxi se pozice u starého brokera prodají a prostředky se převedou jako hotovost, což může mít daňové důsledky. Před přechodem si tuto možnost ověřte přímo v podpoře."
+        "a": "Ano. Trading 212 nabízí převod akcií a ETF k sobě i k jinému brokerovi (portfolio transfer) a sám si za něj nic neúčtuje – poplatek může účtovat druhý broker. Převádějí se jen celé kusy, části podílu je nutné prodat (centrum nápovědy Trading 212, ověřeno 22. 10. 2026). Převod bez prodeje nepřerušuje tříletý časový test, prodej a nový nákup ano."
       }
     ]
   },
@@ -320,7 +320,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Kolik stojí konverze korun na dolary nebo eura?",
-        "a": "Směna stojí 0,002 % objemu, nejméně 2 USD za jednu směnu. Na účtu můžete držet hotovost ve více měnách – stačí směnit jednou větší částku a z ní nakupovat postupně, minimum 2 USD pak platíte jen jednou."
+        "a": "Směna stojí 0,002 % objemu, nejméně 2 USD za jednu směnu. Na účtu můžete držet hotovost ve více měnách – stačí směnit jednou větší částku a z ní nakupovat postupně, minimum 2 USD pak platíte jen jednou. Když koruny ručně nesměníte a necháte IBKR převést měnu automaticky při nákupu, minimum 2 USD neplatíte, ale IBKR přidá do kurzu 0,03 % (ceník IBKR Ireland, ověřeno 22. 10. 2026)."
       },
       {
         "q": "Je Interactive Brokers dostupný v češtině?",
@@ -368,8 +368,8 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Právě v tom spočívá zásadní odlišnost: Portu není nástroj pro výběr ETF, ale služba, která rozhodování přebírá za vás. To je jeho největší přednost i největší omezení zároveň. Kdo chce sám vybrat konkrétní fond (třeba VWCE nebo iShares Core MSCI World) a koupit ho na burze za pár korun, je u brokera lépe. Kdo se ale rozhodování a údržbě portfolia chce úplně vyhnout, dostane u Portu vše v češtině, s minimem vkladu 500 Kč a bez starostí o daně z prodejů uvnitř portfolia."
     ],
     "feesText": [
-      "Klíčové je pochopit, že Portu má zcela jinou nákladovou logiku než broker. Neplatíte poplatek za jednotlivý nákup ETF, ale roční správcovský poplatek z celého objemu portfolia – maximálně 1 % ročně, s klesající sazbou podle výše investice: 1 % do 500 000 Kč, 0,8 % do 1 milionu, 0,6 % do 5 milionů a 0,4 % nad 5 milionů. K tomu lze získat slevu za fixaci (závazek nevybírat) až 40 %, takže úplné minimum je 0,24 % ročně; běžné portfolio do půl milionu vyjde na 0,6–1 % podle délky fixace. Tento poplatek je all-inclusive: pokrývá automatický rebalancing i měnové konverze mezi CZK a měnou fondů, takže žádný samostatný FX poplatek (na rozdíl od XTB s 0,5 % nebo IBKR s 0,002 %) neřešíte. Vstupní ani výstupní poplatky Portu neúčtuje.",
-      "S rostoucím a hlavně dlouhodobě drženým majetkem se roční procento nasčítá do výrazně vyšších nákladů než u přímého nákupu jednoho akumulačního ETF u brokera. Na straně daní má Portu praktickou výhodu: dividendy z podkladových fondů podléhají srážkové dani jen 15 % (Portu je řeší přes český daňový režim), zatímco u DEGIRO nebo XTB může u některých ETF hrozit 35 % srážka. Pro dlouhodobého českého investora navíc platí, že zisk z prodeje po splnění tříletého časového testu (nebo do ročního limitu 100 000 Kč) je od daně z příjmů osvobozen."
+      "Klíčové je pochopit, že Portu má zcela jinou nákladovou logiku než broker. Neplatíte poplatek za jednotlivý nákup ETF, ale roční správcovský poplatek z celého objemu portfolia – maximálně 1 % ročně, s klesající sazbou podle výše investice: 1 % do 500 000 Kč, 0,8 % do 1 milionu, 0,6 % do 5 milionů a 0,4 % nad 5 milionů (sazba platí na celý majetek, Sazebník služeb od 1. 9. 2026). K tomu lze získat slevu za fixaci (závazek nevybírat) až 40 %, takže úplné minimum je 0,24 % ročně; běžné portfolio do půl milionu vyjde na 0,6–1 % podle délky fixace. Tento poplatek je all-inclusive: pokrývá automatický rebalancing i měnové konverze mezi CZK a měnou fondů, takže žádný samostatný FX poplatek (na rozdíl od XTB s 0,5 % nebo IBKR s 0,002 %) neřešíte. Vstupní ani výstupní poplatky Portu neúčtuje.",
+      "S rostoucím a hlavně dlouhodobě drženým majetkem se roční procento nasčítá do výrazně vyšších nákladů než u přímého nákupu jednoho akumulačního ETF u brokera. Na straně daní: z dividend českých akcií srazí Portu jako český obchodník 15 %, zahraniční brokeři se sběrným účtem (DEGIRO, XTB, IBKR) 35 %. U ETF v portfoliích se tento rozdíl neuplatní – 35% srážka se týká jen dividend českých firem. Pro dlouhodobého českého investora navíc platí, že zisk z prodeje po splnění tříletého časového testu (nebo do ročního limitu 100 000 Kč) je od daně z příjmů osvobozen."
     ],
     "faqs": [
       {
@@ -378,11 +378,11 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Kolik u Portu reálně zaplatím na poplatcích?",
-        "a": "Platíte roční správcovský poplatek z objemu portfolia: 1 % do 500 000 Kč, 0,8 % do 1 milionu, 0,6 % do 5 milionů a 0,4 % nad 5 milionů. Sleva za fixaci (závazek nevybírat) sazbu sníží až o 40 %, takže absolutní minimum je 0,24 % a běžné portfolio do půl milionu vyjde na 0,6–1 %. V poplatku je zahrnut rebalancing i měnová konverze. Vstupní ani výstupní poplatky nejsou. Pozor: procento se platí každý rok znovu z celé částky."
+        "a": "Platíte roční správcovský poplatek z objemu portfolia: 1 % do 500 000 Kč, 0,8 % do 1 milionu, 0,6 % do 5 milionů a 0,4 % nad 5 milionů. Sleva za fixaci (závazek nevybírat) sazbu sníží až o 40 %, takže absolutní minimum je 0,24 % a běžné portfolio do půl milionu vyjde na 0,6–1 %. V poplatku je zahrnut rebalancing i měnová konverze. Vstupní ani výstupní poplatky nejsou. Pozor: procento se platí každý rok znovu z celé částky. Příklad: při 100 000 Kč v portfoliu 1 000 Kč ročně (s 15letou fixací 600 Kč), při 750 000 Kč 6 000 Kč (s fixací 3 600 Kč); k tomu vnitřní poplatky ETF ve složení (Sazebník služeb Portu od 1. 9. 2026)."
       },
       {
         "q": "Jak jsou u Portu zdaněny dividendy a zisky?",
-        "a": "Dividendy z podkladových fondů podléhají srážkové dani 15 % (výhodnější než 35 % hrozících u některých ETF u zahraničních brokerů). Zisk z prodeje je pro fyzické osoby osvobozen po splnění tříletého časového testu nebo do ročního limitu příjmů z prodeje 100 000 Kč."
+        "a": "Z dividend českých akcií srazí Portu 15 % (zahraniční brokeři se sběrným účtem 35 %); dividend zahraničních ETF se tato 35% srážka netýká. Zisk z prodeje je pro fyzické osoby osvobozen po splnění tříletého časového testu nebo do ročního limitu příjmů z prodeje 100 000 Kč."
       },
       {
         "q": "Jaký je minimální vklad?",
@@ -390,7 +390,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Je Portu bezpečné a kdo za ním stojí?",
-        "a": "Portu provozuje česká společnost regulovaná ČNB, kterou v roce 2017 založila skupina WOOD & Company. Klientská aktiva jsou oddělena od majetku společnosti a kryta garančním fondem obchodníků s cennými papíry do 20 000 EUR."
+        "a": "Portu provozuje česká společnost regulovaná ČNB, kterou v roce 2017 založila skupina WOOD & Company. Klientská aktiva jsou oddělena od majetku společnosti. Kdyby při krachu něco chybělo, Garanční fond obchodníků s cennými papíry nahradí 90 % ztráty, nejvýš 20 000 EUR."
       },
       {
         "q": "Můžu si portfolio z Portu převést k jinému brokerovi?",

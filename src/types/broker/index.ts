@@ -16,6 +16,14 @@ export interface Broker {
   nakup?: CenikNakupu;
   etfFee: string;
   managementFee: string;
+  /** Oficiální ceník (URL) a od kdy platí verze, ze které máme čísla; platnost chybí = ceník datum neuvádí. */
+  cenik?: { url: string; nazev: string; platnost?: string };
+  /** Poplatek za převod cenných papírů k jinému brokerovi (z ceníku); chybí = neověřeno. */
+  prevodVen?: string;
+  /** Robo-poradce: roční sazba podle objemu (sazba platí na celý majetek, ne po pásmech) – Sazebník Portu. */
+  roboSazby?: { doKc: number | null; procento: number }[];
+  /** Robo-poradce: největší sleva za fixaci v % (Portu 15 let = 40 %). */
+  roboSlevaMax?: number;
   fxFee: string;
   fractional: boolean;
   czSupport: boolean;

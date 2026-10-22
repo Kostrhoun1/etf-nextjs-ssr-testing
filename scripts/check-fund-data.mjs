@@ -3119,6 +3119,7 @@ const main = async () => {
   // --- konec kolo7 srovnavac ---
   await kontrolaKolo7Mobil(poplach, varovani); // blok „kolo7 mobil“ – definice na konci souboru
   await kontrolaKolo8Faktory(poplach, varovani); // blok „kolo8 faktory“ – definice na konci souboru
+  await kontrolaKolo8Obsah(poplach, varovani); // blok „kolo8 obsah“ – definice na konci souboru
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
@@ -3345,3 +3346,105 @@ async function kontrolaKolo8Faktory(poplach, varovani) {
   }
 }
 // --- konec kolo8 faktory ---
+// --- kolo8 obsah --- (22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+// Věcné chyby a protimluvy v obsahu nalezené testery v kole 8. Z HTML a zdrojů:
+//   a) chybějící mezera za tečkou mezi JSX řádky („posilovala.U S&P 500“, „pořadí.O autorovi“),
+//   b) dvojí zápor „spadlo až o −33,3 %“ / „ztratilo −17,7 %“,
+//   c) tykání v nadpisech (h1–h3),
+//   d) součet nákladů brokerů: „Nákup za 2 000 Kč celkem“ = poplatek + směna (zaokrouhlené části; data-priklad),
+//   e) konkrétní opravené fakty (Korea MSCI/FTSE, VWCE ≠ Global All Cap, Trinity, Vanguard 2012, Bessembinder 2023,
+//      FIRE 70 % = 9 let, „Z N měsíců“ = tabulka, ochrana 90 % u garančních fondů, Trading 212 přesun, Portu…).
+// Značka nasazení: data-priklad na /recenze/xtb; bez ní jen varování (produkce ještě bez oprav).
+async function kontrolaKolo8Obsah(poplach, varovani) {
+  const chyby = [];
+  try {
+    const vem = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return { status: r.status, html: await r.text() }; } catch { return { status: 0, html: '' }; } };
+    // Text jako v prohlížeči: inline prvky (a, span, strong…) bez mezery, blokové a sousední boxy (</span><span>) s mezerou.
+    const INLINE = /<\/?(a|span|strong|em|b|i|sup|sub|abbr|time|code|small|mark|u|s)\b[^>]*>/g;
+    const text = (h) => h.replace(/<!-- -->/g, '').replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ')
+      .replace(/<(span|a)\b[^>]*class="[^"]*\b(block|flex|inline-flex|grid)\b[^"]*"[^>]*>/g, ' ').replace(/<\/(span|a)>\s*<(span|a)\b/g, ' <$2')
+      .replace(INLINE, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;| |⁠/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/\s+/g, ' ');
+    const brokeri = ['xtb', 'trading212', 'portu', 'ibkr', 'degiro', 'fio'];
+    const cesty = ['/svetove-etf-indexy', '/fire', '/dca-vs-jednorazova', '/jak-dlouho-v-minusu', '/menove-riziko-etf', '/akumulacni-vs-distribucni-etf',
+      '/etf-vs-akcie', '/kolik-investovat-mesicne', '/dip', '/investovani-pro-deti', '/o-nas', '/srovnani-brokeru', '/dane-z-etf', '/backtest',
+      '/portfolio-strategie', '/portfolio-strategie/globalni-jadro-small-cap-value', '/portfolio-strategie/dividendove-portfolio',
+      '/portfolio-strategie/permanentni-portfolio', '/portfolio-strategie/nobel-portfolio', '/portfolio-strategie/akciove-portfolio',
+      '/portfolio-strategie/portfolio-60-40', ...brokeri.map((b) => `/recenze/${b}`)];
+    const S = new Map(await Promise.all(cesty.map(async (c) => [c, await vem(c)])));
+    const H = (c) => S.get(c)?.html ?? '';
+    const T = (c) => text(H(c));
+    const nasazeno = /data-priklad="/.test(H('/recenze/xtb'));
+    for (const [c, { status }] of S) if (status !== 200) chyby.push(`${c}: HTTP ${status}`);
+
+    for (const c of cesty) {
+      const t = T(c);
+      // a) mezera za tečkou (zkratky typu „a.s.“ a domény jsou malým písmenem → regex je nechytá)
+      const tecka = t.match(/.{0,25}[a-zá-žů]\.[A-ZÁ-ŽŮ].{0,15}/);
+      if (tecka) chyby.push(`${c}: chybí mezera za tečkou – „${tecka[0].trim()}“`);
+      // b) dvojí zápor
+      const zapor = t.match(/.{0,25}\b(o|ztratil[aoy]?|ztráta|klesl[aoy]?) [−-] ?\d.{0,8}/);
+      if (zapor) chyby.push(`${c}: dvojí zápor – „${zapor[0].trim()}“`);
+      // c) tykání v nadpisech
+      for (const [, n] of H(c).matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/g)) {
+        const nt = text(n);
+        if (/(^|[^\p{L}])(tvůj|tvoje|tvá|tvého|tvém|tvým|tobě|tebe|máš|chceš|můžeš|spočítej|investuj|začni|zjisti)(?![\p{L}])/iu.test(nt)) chyby.push(`${c}: tykání v nadpisu „${nt.trim()}“`);
+      }
+    }
+
+    // d) součet nákladů v příkladu brokera = součet zobrazených částí
+    for (const b of brokeri.filter((x) => x !== 'portu')) {
+      const m = H(`/recenze/${b}`).match(/data-priklad="([^"]*)"/);
+      if (!m) { if (nasazeno) chyby.push(`/recenze/${b}: chybí data-priklad u „Nákup za 2 000 Kč“`); continue; }
+      const [celkem, provize, smena] = m[1].split('|').map((x) => (x === '' ? null : Number(x)));
+      if (celkem != null && smena != null && Math.abs(celkem - (provize + smena)) > 0.051) chyby.push(`/recenze/${b}: příklad nákupu ${celkem} Kč ≠ poplatek ${provize} + směna ${smena}`);
+    }
+    // statický test: recenze počítá součet z castiPrikladu (zaokrouhlené části), ne z nezaokrouhleného n.celkemKc
+    const rec = readFileSync('src/app/recenze/[broker]/page.tsx', 'utf8');
+    if (!/castiPrikladu\(n\)/.test(rec) || /kc\(n\.celkemKc\)/.test(rec)) chyby.push('recenze/[broker]/page.tsx: součet příkladu se nepočítá ze zaokrouhlených částí (castiPrikladu)');
+    const bd = readFileSync('src/data/brokerData.ts', 'utf8');
+    if (/Zahrnut v poplatku/.test(bd)) chyby.push('brokerData.ts: „Zahrnut v poplatku“ (má být „Zahrnuta“ – směna)');
+    for (const re of [/cennePapiry: 'max\. 20 000 EUR \(Garanční fond OCP\)'/, /cennePapiry: 'max\. 20 000 EUR \(německý/, /kyperský fond ICF\)'/])
+      if (re.test(bd)) chyby.push(`brokerData.ts: ochrana bez „90 %“ (${re.source.slice(0, 40)}…) – garanční fondy vyplácí 90 %, max. 20 000 EUR`);
+
+    // e) opravené fakty
+    const ind = T('/svetove-etf-indexy');
+    if (/prakticky VWCE/.test(ind)) chyby.push('/svetove-etf-indexy: „FTSE Global All Cap – prakticky VWCE“ (VWCE = FTSE All-World)');
+    if (/zařazuje Jižní Koreu do emerging/.test(ind) || !/Koreu řadí FTSE mezi rozvinuté/.test(ind)) chyby.push('/svetove-etf-indexy: Jižní Korea – MSCI ji řadí mezi rozvíjející se, FTSE mezi rozvinuté (factsheet MSCI ACWI, FTSE Country Classification 9/2026)');
+    if (!/k 30\. 9\. 2026/.test(ind)) chyby.push('/svetove-etf-indexy: počty firem a podíly USA bez data factsheetu');
+    const fire = T('/fire');
+    if (/globálních akcií a dluhopisů \(tzv\. Trinity/.test(fire)) chyby.push('/fire: Trinity Study = americké akcie a firemní dluhopisy, ne globální');
+    if (/70 % ~8,5 roku/.test(fire)) chyby.push('/fire: 70 % míra úspor „~8,5 roku“ (metodou stránky 8,8 → ~9 let)');
+    if (/tvůj plán|marketingových keců/.test(fire)) chyby.push('/fire: tykání / hovorový výraz');
+    if (/\+1,8 % ročně/.test(T('/dca-vs-jednorazova'))) chyby.push('/dca-vs-jednorazova: „+1,8 % ročně“ – Vanguard 2012 uvádí rozdíl konečných hodnot (USA 2,3 %), ne roční');
+    const jd = T('/jak-dlouho-v-minusu');
+    const zN = jd.match(/Z (\d+) měsíců nákupu, po kterých máme aspoň pět let dat/)?.[1];
+    const tab5 = jd.match(/5 letech \((\d+) nákupů\)/)?.[1];
+    if (zN && tab5 && zN !== tab5) chyby.push(`/jak-dlouho-v-minusu: text „Z ${zN} měsíců“ × tabulka po 5 letech „${tab5}“`);
+    if (/do velké míry vyruší|přes roky do velké míry vyrovnávají/.test(T('/menove-riziko-etf'))) chyby.push('/menove-riziko-etf: „měnové výkyvy se v čase vyruší“ – data to nepotvrzují');
+    if (/55 z 57 světových trhů/.test(T('/etf-vs-akcie'))) chyby.push('/etf-vs-akcie: „55 z 57 trhů“ – Bessembinder a kol. 2023: 55,2 % amerických a 57,4 % neamerických akcií');
+    const on = T('/o-nas');
+    if (/tučnými provizemi|Brokery i fondy řadíme výhradně/.test(on)) chyby.push('/o-nas: kritika prodejců / „brokery řadíme podle parametrů“ (brokeři jsou abecedně)');
+    if (/to je peníze/.test(T('/dip'))) chyby.push('/dip: „to je peníze navíc“');
+    const t212 = T('/recenze/trading212');
+    if (nasazeno && !/přesun/.test(t212)) chyby.push('/recenze/trading212: chybí upozornění na přesun pod Trading 212 EU GmbH (BaFin)');
+    const portu = T('/recenze/portu');
+    if (/35 % hrozících u některých ETF|u některých ETF hrozit 35/.test(portu)) chyby.push('/recenze/portu: 35% srážka se týká českých dividend, ne ETF');
+    if (/Trading 212 nebo Portu/.test(T('/recenze/fio'))) chyby.push('/recenze/fio: Portu jako broker (je robo-poradce)');
+    if (/neaktivitu se neúčtuje po dobu 12 měsíců/.test(T('/recenze/xtb'))) chyby.push('/recenze/xtb: poplatek za neaktivitu nejasně (10 EUR/měs. po 365 dnech bez obchodu a 90 dnech bez vkladu)');
+    const pf = T('/portfolio-strategie');
+    if (/Max\. pokles od —/.test(pf)) chyby.push('/portfolio-strategie: „Max. pokles od —“ u portfolia bez historie');
+    if (/Za 12 měs\. v Kč [+−]/.test(pf)) chyby.push('/portfolio-strategie: výnos 12 měsíců bez data');
+    if (/od roku 2008 vidíte přímo na kartě\./.test(pf)) chyby.push('/portfolio-strategie: FAQ tvrdí pokles od 2008 u každého portfolia (Dividendové historii nemá)');
+    if (/S&P 500/.test(T('/portfolio-strategie/dividendove-portfolio').match(/Portfolio vs[^.]{0,80}/)?.[0] ?? '')) chyby.push('/portfolio-strategie/dividendove-portfolio: srovnání se S&P 500 (ostatní portfolia s celým světem)');
+    const jadro = T('/portfolio-strategie/globalni-jadro-small-cap-value');
+    if (/kdyby šlo o vlastní/.test(jadro)) chyby.push('/portfolio-strategie/globalni-jadro…: „jak bychom sami stavěli … vlastní peníze“ (blízko doporučení)');
+    if (/44 let živé historie|front-runn|\bbp\b|cap-weight/.test(jadro)) chyby.push('/portfolio-strategie/globalni-jadro…: žargon nebo „44 let“ × DFSVX od 1993');
+    if (nasazeno && !/jádro bez satelitu by vydělalo [+−]?\d/.test(jadro)) chyby.push('/portfolio-strategie/globalni-jadro…: chybí srovnání s jádrem bez satelitu (náskok proti VT dělá váha USA)');
+    if (/globální dluhopisy \(25 %\)/.test(T('/portfolio-strategie/nobel-portfolio'))) chyby.push('/portfolio-strategie/nobel-portfolio: „globální dluhopisy“ – fond = státní dluhopisy eurozóny');
+
+    if (chyby.length) (nasazeno ? poplach : varovani).push({ co: `Obsah a fakta (kolo 8)${nasazeno ? '' : ' – produkce ještě bez oprav (před nasazením)'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 20) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu kolo8 obsah se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+  }
+}
+// --- konec kolo8 obsah ---

@@ -6,6 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Globe, Landmark, Scale, ShieldCheck, HelpCircle, Building2, Sprout, Layers, CheckCircle2, BookOpen, MapPin, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
@@ -27,8 +28,13 @@ export const metadata: Metadata = {
   },
 };
 
-/* Ověřeno u MSCI (index factsheets) a FTSE Russell/LSEG, stav 2026.
-   Počty firem a podíl USA jsou orientační – v čase se mění. */
+/* Počty firem, podíl USA a podíl EM = index factsheety k 30. 9. 2026 (ověřeno 22. 10. 2026):
+   MSCI World a ACWI: msci.com/documents/10199/178e6643-… a …/a71b65b5-… (Constituents, Country weights;
+   EM v ACWI = tržní kap. MSCI EM 12,28 bil. / ACWI 102,70 bil. USD). FTSE All-World (issueName=AWORLDS)
+   a FTSE Global All Cap (issueName=GEISLMS) na research.ftserussell.com – tabulka zemí a Index Characteristics;
+   FTSE Developed = sloupec „FTSE Developed“ ve factsheetu All-World (USA 65,90 / 95,22 bil. USD).
+   Při změně čísel posunout DATUM_INDEXU. */
+const DATUM_INDEXU = '30. 9. 2026';
 type Row = {
   index: string;
   dev: string;
@@ -41,12 +47,14 @@ type Row = {
   filter?: string; // kanonický label pro proklik do /srovnani?index=… (musí odpovídat datům)
 };
 const ROWS: Row[] = [
-  { index: 'S&P 500', dev: 'jen USA', em: 'ne', small: false, firms: '500', usa: '100 %', etf: 'CSPX, VUAA', filter: 'S&P 500' },
-  { index: 'MSCI World', dev: '23 rozvinutých zemí', em: 'ne', small: false, firms: '~1 300', usa: '~71 %', etf: 'IWDA, SWDA', filter: 'MSCI World' },
-  { index: 'FTSE Developed', dev: 'rozvinuté trhy', em: 'ne', small: false, firms: '~2 000', usa: '~70 %', etf: 'VHVG', filter: 'FTSE Developed World' },
-  { index: 'MSCI ACWI', dev: '23 rozvinutých', em: 'ano', emNote: '~12 %', small: false, firms: '~2 500', usa: '~63 %', etf: 'SSAC, ISAC', filter: 'MSCI ACWI' },
-  { index: 'FTSE All-World', dev: 'rozvinuté trhy', em: 'ano', emNote: '~10 %', small: false, firms: '~4 300', usa: '~60 %', etf: 'VWCE, VWRL', filter: 'FTSE All-World' },
-  { index: 'FTSE Global All Cap', dev: 'rozvinuté trhy', em: 'ano', emNote: '~10 %', small: true, firms: '~9 000', usa: '~60 %', etf: 'prakticky VWCE' },
+  { index: 'S&P 500', dev: 'jen USA', em: 'ne', small: false, firms: '500', usa: '100 %¹', etf: 'CSPX, VUAA', filter: 'S&P 500' },
+  { index: 'MSCI World', dev: '23 rozvinutých zemí', em: 'ne', small: false, firms: '1 249', usa: '72,9 %', etf: 'IWDA, SWDA', filter: 'MSCI World' },
+  { index: 'FTSE Developed', dev: 'rozvinuté trhy', em: 'ne', small: false, firms: '1 904', usa: '69,2 %', etf: 'VHVG', filter: 'FTSE Developed World' },
+  { index: 'MSCI ACWI', dev: '23 rozvinutých', em: 'ano', emNote: '12,0 %', small: false, firms: '2 414', usa: '64,2 %', etf: 'SSAC, ISAC', filter: 'MSCI ACWI' },
+  { index: 'FTSE All-World', dev: 'rozvinuté trhy', em: 'ano', emNote: '10,0 %', small: false, firms: '4 204', usa: '62,3 %', etf: 'VWCE, VWRL', filter: 'FTSE All-World' },
+  // VWCE NENÍ Global All Cap (je to FTSE All-World). UCITS fond na Global All Cap: Vanguard VALL/VGLA (IE000VAHT5T0)
+  // od 18. 8. 2026 (factsheet Vanguard); v USA fond VT (pro drobné investory v EU obvykle nedostupný – chybí KID).
+  { index: 'FTSE Global All Cap', dev: 'rozvinuté trhy', em: 'ano', small: true, firms: '10 222', usa: '62,4 %', etf: 'VALL/VGLA (od 8/2026), v USA VT' },
 ];
 
 export default async function SvetoveEtfIndexy() {
@@ -59,11 +67,11 @@ export default async function SvetoveEtfIndexy() {
     },
     {
       q: 'Jaký je rozdíl mezi MSCI World a FTSE All-World?',
-      a: 'MSCI World obsahuje jen rozvinuté trhy (~23 zemí, ~1 300 firem, žádné emerging markets). FTSE All-World přidává i rozvíjející se trhy – drží zhruba 4 300 firem z rozvinutých i emerging trhů. Zjednodušeně: FTSE All-World = MSCI World + emerging markets. Nejznámější ETF na FTSE All-World je VWCE, na MSCI World třeba IWDA.',
+      a: 'MSCI World obsahuje jen rozvinuté trhy (23 zemí, 1 249 firem k 30. 9. 2026, žádné emerging markets). FTSE All-World přidává i rozvíjející se trhy – drží 4 204 firem z rozvinutých i emerging trhů. Zjednodušeně: FTSE All-World = MSCI World + emerging markets. Nejznámější ETF na FTSE All-World je VWCE, na MSCI World třeba IWDA.',
     },
     {
       q: 'Je lepší MSCI ACWI, nebo FTSE All-World?',
-      a: 'Oba pokrývají rozvinuté i rozvíjející se trhy a jsou si velmi podobné. Liší se detailem: FTSE All-World drží víc firem (~4 300 vs ~2 500) a zařazuje Jižní Koreu do emerging trhů, zatímco MSCI ji řadí mezi rozvinuté. V praxi jde o drobné rozdíly – důležitější je nízký poplatek konkrétního ETF.',
+      a: 'Oba pokrývají rozvinuté i rozvíjející se trhy a jsou si velmi podobné. Liší se detailem: FTSE All-World drží víc firem (4 204 vs 2 414 k 30. 9. 2026) a Jižní Koreu řadí FTSE mezi rozvinuté trhy, zatímco MSCI mezi rozvíjející se (emerging). V praxi jde o drobné rozdíly – důležitější je nízký poplatek konkrétního ETF.',
     },
     {
       q: 'Stačí mi jen S&P 500, nebo mám jít do celého světa?',
@@ -71,7 +79,7 @@ export default async function SvetoveEtfIndexy() {
     },
     {
       q: 'Mám do portfolia zařadit emerging markets?',
-      a: 'Emerging markets přidávají diverzifikaci a expozici na rychle rostoucí ekonomiky, ale nesou vyšší riziko a v posledních letech zaostávaly za USA. V celosvětovém indexu tvoří jen ~10 %, takže portfoliem nezahýbou dramaticky. Kdo chce mít „celý svět“, volí index s emerging markets (ACWI / All-World); kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.',
+      a: 'Emerging markets přidávají diverzifikaci a expozici na rychle rostoucí ekonomiky, ale nesou vyšší riziko a v posledních letech zaostávaly za USA. V celosvětovém indexu tvoří jen 10–12 % (FTSE All-World 10,0 %, MSCI ACWI 12,0 % k 30. 9. 2026), takže portfoliem nezahýbou dramaticky. Kdo chce mít „celý svět“, volí index s emerging markets (ACWI / All-World); kdo věří hlavně rozvinutým trhům, zůstane u MSCI World.',
     },
     {
       q: 'Poznám podle názvu ETF, jaký index sleduje?',
@@ -197,47 +205,40 @@ export default async function SvetoveEtfIndexy() {
 
         {/* 2. SROVNÁVACÍ TABULKA */}
         <section id="tabulka" className="pb-10 scroll-mt-16">
-          <SectionHead title="Srovnávací tabulka indexů" desc="Od nejužšího (S&P 500) po nejširší (Global All Cap). Počty firem a podíl USA jsou orientační a v čase se mění." />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[46rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Index</th>
-                  <th className="py-3 px-4 text-left font-medium">Rozvinuté</th>
-                  <th className="py-3 px-4 text-center font-medium">Emerging</th>
-                  <th className="py-3 px-4 text-center font-medium">Small caps</th>
-                  <th className="py-3 px-4 text-right font-medium">Firem</th>
-                  <th className="py-3 px-4 text-right font-medium">Podíl USA</th>
-                  <th className="py-3 px-4 text-left font-medium">Příklad ETF</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ROWS.map((r) => (
-                  <tr key={r.index} className="border-b border-slate-100 last:border-0 align-top">
-                    <td className="py-3 px-4 font-semibold">
-                      {r.filter
-                        ? <Link href={`/srovnani?index=${encodeURIComponent(r.filter)}`} className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 hover:underline" title={`Zobrazit ${r.index} fondy ve srovnávači`}>{r.index}<ArrowRight className="w-3.5 h-3.5 opacity-60" /></Link>
-                        : <span className="text-slate-900">{r.index}</span>}
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">{r.dev}</td>
-                    <td className="py-3 px-4 text-center">
-                      {r.em === 'ano'
-                        ? <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">✓ {r.emNote && <span className="text-xs text-slate-400">{r.emNote}</span>}</span>
-                        : <span className="text-slate-300">✗</span>}
-                    </td>
-                    <td className="py-3 px-4 text-center">{r.small ? <span className="text-emerald-700 font-medium">✓</span> : <span className="text-slate-300">✗</span>}</td>
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-700">{r.firms}</td>
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-700">{r.usa}</td>
-                    <td className="py-3 px-4 text-slate-500 text-xs">{r.etf}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <SectionHead title="Srovnávací tabulka indexů" desc={`Od nejužšího (S&P 500) po nejširší (Global All Cap). Počty firem a podíly k ${DATUM_INDEXU} podle factsheetů MSCI a FTSE Russell – v čase se mění.`} />
+          <ResponzivniTabulka
+            popis="Srovnání světových akciových indexů"
+            tabulkaClassName="min-w-[46rem]"
+            sloupce={[
+              { nazev: 'Index' }, { nazev: 'Rozvinuté', zarovnani: 'left' }, { nazev: 'Emerging', zarovnani: 'center', nazevKarta: 'Rozvíjející se trhy' },
+              { nazev: 'Small caps', zarovnani: 'center', nazevKarta: 'Malé firmy' }, { nazev: 'Firem' }, { nazev: 'Podíl USA' }, { nazev: 'Příklad ETF', zarovnani: 'left' },
+            ]}
+            radky={ROWS.map((r) => ({
+              key: r.index,
+              bunky: bunky(
+                r.filter
+                  ? <Link href={`/srovnani?index=${encodeURIComponent(r.filter)}`} className="inline-flex items-center gap-1 font-semibold text-teal-700 hover:text-teal-800 hover:underline" title={`Zobrazit ${r.index} fondy ve srovnávači`}>{r.index}<ArrowRight className="w-3.5 h-3.5 opacity-60" /></Link>
+                  : <span className="font-semibold text-slate-900">{r.index}</span>,
+                <span className="text-slate-600">{r.dev}</span>,
+                r.em === 'ano'
+                  ? <span className="inline-flex items-center gap-1 font-medium text-emerald-700">✓ {r.emNote && <span className="text-xs text-slate-400">{r.emNote}</span>}</span>
+                  : <span className="text-slate-300">✗</span>,
+                r.small ? <span className="font-medium text-emerald-700">✓</span> : <span className="text-slate-300">✗</span>,
+                r.firms,
+                r.usa,
+                <span className="text-xs text-slate-500">{r.etf}</span>,
+              ),
+            }))}
+          />
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             <strong className="text-slate-700">Klikněte na název indexu</strong> → otevře se srovnávač s vyfiltrovanými
             fondy daného indexu (poplatky a výnosy v korunách). Tickery ETF jsou příklady nejznámějších fondů (existují i další).
+          </p>
+          <p className="mt-2 text-xs text-slate-500 leading-relaxed max-w-3xl">
+            ¹ Podle pravidel S&amp;P jsou všechny firmy v indexu americké (hlavní kotace v USA, většina majetku a tržeb v USA).
+            Několik z nich je ale právně registrovaných jinde – hlavně v Irsku (např. Linde, Accenture) –, proto data fondů
+            podle země sídla uvádějí u S&amp;P 500 USA kolem 97 % (tak to ukazuje i srovnání VWCE vs CSPX).
           </p>
         </section>
 
@@ -247,9 +248,9 @@ export default async function SvetoveEtfIndexy() {
           <div className="space-y-3">
             {([
               [Landmark, 'S&P 500 – jen USA', '500 největších amerických firem. Není to světový index, ale nejsledovanější akciový benchmark světa. Skvělá historická výkonnost, tažená technologiemi, ale veškerá expozice v jedné zemi a jedné měně. Příklady: CSPX, VUAA.'],
-              [Building2, 'MSCI World / FTSE Developed – rozvinuté trhy', 'Zhruba 23 vyspělých ekonomik (USA, Evropa, Japonsko, Kanada, Austrálie…), dohromady ~1 300–2 000 firem. Emerging markets NEobsahují. USA v nich váží kolem 70 %. Nejpopulárnější volba pro ty, kdo věří hlavně rozvinutému světu. Příklady: IWDA, SWDA, VHVG.'],
-              [Globe, 'MSCI ACWI / FTSE All-World – celý svět', 'Rozvinuté i rozvíjející se trhy v jednom fondu (~2 500–4 300 firem). Emerging markets tvoří zhruba 10–12 %. „Kup jeden fond a máš celý svět.“ Nejčastější volba pro pasivního dlouhodobého investora. Příklady: VWCE, VWRL (FTSE), SSAC/ISAC (MSCI).'],
-              [Layers, 'FTSE Global All Cap / MSCI ACWI IMI – úplně všechno', 'Rozvinuté + emerging + navíc malé firmy (small caps) – klidně přes 9 000 titulů. Nejúplnější záběr trhu. Rozdíl proti All-World je ale malý (small caps váží málo), proto většině stačí běžný all-world fond.'],
+              [Building2, 'MSCI World / FTSE Developed – rozvinuté trhy', 'Zhruba 23 vyspělých ekonomik (USA, Evropa, Japonsko, Kanada, Austrálie…), dohromady 1 249 (MSCI) a 1 904 (FTSE) firem. Emerging markets NEobsahují. USA v nich váží 69–73 % (k 30. 9. 2026). Nejpopulárnější volba pro ty, kdo věří hlavně rozvinutému světu. Příklady: IWDA, SWDA, VHVG.'],
+              [Globe, 'MSCI ACWI / FTSE All-World – celý svět', 'Rozvinuté i rozvíjející se trhy v jednom fondu (2 414 firem MSCI ACWI, 4 204 FTSE All-World k 30. 9. 2026). Emerging markets tvoří 10–12 %. „Kup jeden fond a máš celý svět.“ Nejčastější volba pro pasivního dlouhodobého investora. Příklady: VWCE, VWRL (FTSE), SSAC/ISAC (MSCI).'],
+              [Layers, 'FTSE Global All Cap / MSCI ACWI IMI – úplně všechno', 'Rozvinuté + emerging + navíc malé firmy (small caps) – FTSE Global All Cap 10 222 titulů k 30. 9. 2026, z toho malé firmy 8,7 % hodnoty indexu. Nejúplnější záběr trhu. Rozdíl proti All-World je ale malý, proto většině stačí běžný all-world fond. Příklady: VALL/VGLA (Vanguard, FTSE Global All Cap, od 8/2026), SPYI (MSCI ACWI IMI).'],
             ] as [typeof Globe, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-5">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 border border-slate-200 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -362,13 +363,13 @@ export default async function SvetoveEtfIndexy() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: MSCI (index factsheets), FTSE Russell / LSEG. Počty firem a podíl USA jsou orientační a v čase se mění. Aktualizováno {upraveno}.</p>
+              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: MSCI (index factsheets), FTSE Russell / LSEG. Počty firem a podíly k {DATUM_INDEXU}, v čase se mění. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací obsah, není investičním doporučením.</p>
             </div>
           </div>

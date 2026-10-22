@@ -35,7 +35,7 @@ const ordered = [...brokeriAbecedne, ...roboPoradci];
 const FAQ = [
   {
     q: 'Který broker je pro ETF nejbezpečnější?',
-    a: 'Bezpečnost stojí na regulaci a ochraně, a ta se liší podle typu majetku. Hotovost na účtu u bank (Fio, DEGIRO přes flatexDEGIRO Bank) kryje pojištění vkladů do 100 000 EUR. U ostatních (XTB, Trading 212, IBKR, Portu) kryje hotovost i cenné papíry garanční fond se společným limitem kolem 20 000 EUR. Samotná ETF jsou vedená odděleně od majetku brokera – garanční fond nastupuje, kdyby při krachu brokera chyběla. U IBKR pro české klienty platí irský systém ICCL (90 % ztráty, max. 20 000 EUR, společně pro hotovost i cenné papíry); americké SIPC se vztahuje jen na americkou entitu.',
+    a: 'Bezpečnost stojí na regulaci a ochraně, a ta se liší podle typu majetku. Hotovost na účtu u bank (Fio, DEGIRO přes flatexDEGIRO Bank) kryje pojištění vkladů do 100 000 EUR. U ostatních (XTB, Trading 212, IBKR, Portu) kryje hotovost i cenné papíry garanční fond se společným limitem: 90 % ztráty, nejvýš 20 000 EUR (XTB 100 % do 3 000 EUR a nad to 90 %, nejvýš 20 100 EUR). Cenné papíry u Fio a DEGIRO kryje garanční systém se stejným limitem (90 %, max. 20 000 EUR). Samotná ETF jsou vedená odděleně od majetku brokera – garanční fond nastupuje, kdyby při krachu brokera chyběla. U IBKR pro české klienty platí irský systém ICCL; americké SIPC se vztahuje jen na americkou entitu. U Trading 212 probíhá přesun z kyperské entity pod německou (BaFin) – ověřte u brokera, pod kterou je váš účet.',
   },
   {
     q: 'Jak se daní dividendy – 15 nebo 35 %?',

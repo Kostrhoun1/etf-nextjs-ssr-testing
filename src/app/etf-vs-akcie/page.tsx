@@ -169,7 +169,7 @@ export default async function EtfVsAkciePage() {
         <section className="pb-9">
           <div className="max-w-3xl text-[15px] text-slate-600 leading-relaxed space-y-3">
             <p>
-              „Proč bych platil poplatek fondu, když si můžu akcie vybrat sám?" To je jedna z nejčastějších otázek
+              „Proč bych platil poplatek fondu, když si můžu akcie vybrat sám?“ To je jedna z nejčastějších otázek
               začínajícího investora – a je úplně na místě. Rozdíl mezi <strong className="text-slate-900">koupí
               jednotlivé akcie</strong> a <strong className="text-slate-900">koupí ETF</strong> ale není o poplatku.
               Je o tom, jak je rozložené riziko a jak vypadá skutečné rozdělení výnosů na burze.
@@ -236,7 +236,9 @@ export default async function EtfVsAkciePage() {
               Klíčový důsledek: úspěch na burze <strong>nezáleží na průměrné firmě, ale na tom, jestli vlastníte
               ty vzácné vítěze</strong>. Index je má v sobě automaticky – když firma vyroste, roste i její váha
               v indexu. Kdo sází na pár vybraných akcií, má naopak velkou šanci, že se do těch 4 % netrefí. A není to
-              jen americká zvláštnost: ve 55 z 57 světových trhů zaostala za pokladničními poukázkami většina akcií.
+              jen americká zvláštnost: v letech 1990–2020 zaostalo za americkými pokladničními poukázkami 55,2 % amerických
+              a 57,4 % neamerických akcií (Bessembinder, Chen, Choi a Wei: Long-Term Shareholder Returns: Evidence from
+              64,000 Global Stocks, Financial Analysts Journal, 2023).
             </p>
           </div>
         </section>
@@ -437,8 +439,8 @@ export default async function EtfVsAkciePage() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

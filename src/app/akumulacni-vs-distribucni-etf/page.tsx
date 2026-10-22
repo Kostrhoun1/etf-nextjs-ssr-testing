@@ -6,6 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, HelpCircle, Repeat, Banknote, Percent, CheckCircle2, BookOpen, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
@@ -116,7 +117,7 @@ export default async function AccVsDist() {
               </Link>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Vše v Kč</span>
+              <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Daně podle českých pravidel</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
             </div>
@@ -162,49 +163,26 @@ export default async function AccVsDist() {
         {/* 2. SROVNÁVACÍ TABULKA */}
         <section className="pb-10">
           <SectionHead title="Srovnání bod po bodu" desc="Jak se obě třídy liší v tom, na čem investorovi reálně záleží." />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Hledisko</th>
-                  <th className="py-3 px-4 text-left font-medium">Akumulační (Acc)</th>
-                  <th className="py-3 px-4 text-left font-medium">Distribuční (Dist)</th>
-                </tr>
-              </thead>
-              <tbody className="[&_td]:py-3 [&_td]:px-4 [&_td]:align-top [&_tr]:border-b [&_tr]:border-slate-100">
-                <tr>
-                  <td className="font-medium text-slate-500">Dividendy</td>
-                  <td className="text-slate-800">Reinvestují se uvnitř fondu</td>
-                  <td className="text-slate-800">Vyplácejí se na účet</td>
-                </tr>
-                <tr>
-                  <td className="font-medium text-slate-500">Složené úročení</td>
-                  <td className="text-emerald-700 font-medium">Automatické, naplno</td>
-                  <td className="text-slate-800">Jen když dividendy sami reinvestujete</td>
-                </tr>
-                <tr>
-                  <td className="font-medium text-slate-500">Daně (ČR)</td>
-                  <td className="text-emerald-700 font-medium">Dividendy neřešíte každý rok</td>
-                  <td className="text-slate-800">Vyplacené dividendy daníte 15 %</td>
-                </tr>
-                <tr>
-                  <td className="font-medium text-slate-500">Pasivní příjem</td>
-                  <td className="text-slate-800">Ne (musíte prodat podíl)</td>
-                  <td className="text-emerald-700 font-medium">Ano, hotovost sama</td>
-                </tr>
-                <tr>
-                  <td className="font-medium text-slate-500">Administrativa</td>
-                  <td className="text-emerald-700 font-medium">Minimální</td>
-                  <td className="text-slate-800">Hlídání a danění výplat</td>
-                </tr>
-                <tr className="last:border-0">
-                  <td className="font-medium text-slate-500">Hodí se pro</td>
-                  <td className="text-slate-800">Fázi spoření a růstu</td>
-                  <td className="text-slate-800">Rentu a pasivní příjem</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          {/* Kolo 8: na mobilu byl sloupec „Distribuční“ uříznutý → sdílená responzivní tabulka (karty pod 640 px). */}
+          <ResponzivniTabulka
+            popis="Akumulační vs distribuční ETF – srovnání bod po bodu"
+            sloupce={[{ nazev: 'Hledisko' }, { nazev: 'Akumulační (Acc)', zarovnani: 'left' }, { nazev: 'Distribuční (Dist)', zarovnani: 'left' }]}
+            radky={([
+              ['Dividendy', 'Reinvestují se uvnitř fondu', 'Vyplácejí se na účet', 0],
+              ['Složené úročení', 'Automatické, naplno', 'Jen když dividendy sami reinvestujete', 1],
+              ['Daně (ČR)', 'Dividendy neřešíte každý rok', 'Vyplacené dividendy daníte 15 %', 1],
+              ['Pasivní příjem', 'Ne (musíte prodat podíl)', 'Ano, hotovost sama', 2],
+              ['Administrativa', 'Minimální', 'Hlídání a danění výplat', 1],
+              ['Hodí se pro', 'Fázi spoření a růstu', 'Rentu a pasivní příjem', 0],
+            ] as [string, string, string, 0 | 1 | 2][]).map(([h, acc, dist, lepsi]) => ({
+              key: h,
+              bunky: bunky(
+                <span className="text-slate-500">{h}</span>,
+                <span className={lepsi === 1 ? 'font-medium text-emerald-700' : 'text-slate-800'}>{acc}</span>,
+                <span className={lepsi === 2 ? 'font-medium text-emerald-700' : 'text-slate-800'}>{dist}</span>,
+              ),
+            }))}
+          />
         </section>
 
         {/* 3. DAŇOVÝ ÚHEL */}
@@ -310,8 +288,8 @@ export default async function AccVsDist() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle a nekomerčně – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>

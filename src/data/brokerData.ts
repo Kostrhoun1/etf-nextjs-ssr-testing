@@ -17,9 +17,15 @@ export const brokers: Broker[] = [
     logo: '/lovable-uploads/f9bacf3b-7b11-4c31-917d-e16803dc0887.png',
     description: 'Populární evropský broker s nízkými poplatky a širokou nabídkou ETF. Ideální pro nákladově uvědomělé investory.',
     web: 'https://www.degiro.cz',
+    cenik: { url: 'https://www.degiro.cz/data/pdf/cs/Prehled_poplatku.pdf', nazev: 'Přehled poplatků (PDF)', platnost: 'od 1. 1. 2026' },
     regulation: 'BaFin (DE), DNB/AFM (NL)',
-    protection: '100 000 EUR (DE), 20 000 EUR (investice)',
-    ochrana: { hotovost: '100 000 EUR (pojištění vkladů, flatexDEGIRO Bank)', cennePapiry: 'max. 20 000 EUR (německý kompenzační systém)' },
+    protection: '100 000 EUR (DE), 90 %, max. 20 000 EUR (investice)',
+    // Cenné papíry: EdB 90 % nároku, max. 20 000 EUR – degiro.de/ueber-degiro/impressum („Für den Anspruch auf Herausgabe
+    // von Wertpapieren ist der Entschädigungsanspruch auf 90% der Verbindlichkeiten und den Gegenwert von maximal 20.000 Euro
+    // begrenzt“), ověřeno 22. 10. 2026. Převod portfolia z DEGIRO 20 EUR za pozici + externí náklady, k DEGIRO zdarma
+    // (Přehled poplatků, Rates from 01-01-2026, ověřeno 22. 10. 2026).
+    ochrana: { hotovost: '100 000 EUR (pojištění vkladů, flatexDEGIRO Bank)', cennePapiry: '90 % ztráty, max. 20 000 EUR (německý EdB)' },
+    prevodVen: '20 EUR za každou pozici + externí náklady',
     // ETF Selection: 0 EUR provize + 1 EUR manipulační poplatek; ostatní ETF 3 EUR celkem. Směna CZK/EUR zdarma.
     // Připojení k burze: 2,50 EUR ročně za každou zahraniční burzu, nejvýš 0,25 % hodnoty účtu; NEúčtuje se u ETF
     // Selection a pražské burzy (Přehled poplatků degiro.cz/data/pdf/cs/Prehled_poplatku.pdf, str. 10, ověřeno
@@ -60,6 +66,7 @@ export const brokers: Broker[] = [
     logo: '/lovable-uploads/a7162820-5478-4cd8-9bfd-fd04b80a42ff.png',
     description: 'Polský broker kótovaný na varšavské burze (licence KNF, v ČR organizační složka), ETF bez provize do 100 000 EUR měsíčně a česká podpora v pracovní dny.',
     web: 'https://www.xtb.com/cz',
+    cenik: { url: 'https://www.xtb.com/cz/ucet-a-poplatky', nazev: 'Tabulka poplatků a provizí', platnost: 'ze dne 20. 10. 2026' },
     regulation: 'KNF (PL), v ČR organizační složka pod dohledem ČNB',
     protection: 'max. 20 100 EUR (polský systém náhrad KDPW)',
     // Garanční (kompenzační) systémy dle směrnice 97/9/ES kryjí peníze i cenné papíry klienta společným limitem.
@@ -72,7 +79,11 @@ export const brokers: Broker[] = [
     // 0 % do 100 000 EUR objemu měsíčně (nad limit 0,2 %, min. 10 EUR); směna CZK→EUR 0,5 %.
     nakup: { pasma: [{ doEur: null, procento: 0, minEur: 0, pevneEur: 0 }], smena: { procento: 0.5, minUsd: 0 }, pozn: 'do 100 000 EUR objemu měsíčně' },
     etfFee: 'Akcie a ETF 0 % do 100 000 EUR/měs., nad limit 0,2 % (min. 10 EUR)',
-    managementFee: '0 EUR',
+    // Tabulka poplatků a provizí XTB CZ (xtb.com/cz/soubory/tabulkapoplatkuaprovizi20102026.pdf, ověřeno 22. 10. 2026),
+    // pozn. 1: 10 EUR měsíčně, jen když zároveň 365 dní neotevřete ani neuzavřete pozici A 90 dní nevložíte peníze.
+    // Výstupní převod cenných papírů: 25 EUR za ISIN (ostatní trhy), Španělsko 0,1 % (min. 100 EUR).
+    managementFee: '0 EUR (10 EUR měsíčně, jen když rok neobchodujete a 90 dní nevložíte peníze)',
+    prevodVen: '25 EUR za každý ISIN',
     fxFee: '0,5 %',
     fractional: true,
     czSupport: true,
@@ -107,9 +118,14 @@ export const brokers: Broker[] = [
     logo: '/lovable-uploads/55aac89b-3834-421c-8689-34fb13fad2b1.png',
     description: 'Český broker s lokální podporou a srážkou z českých dividend 15 %.',
     web: 'https://www.fio.cz/investice',
+    // Ceník základních služeb (fio.cz/docs/cz/C_zaklad.pdf): účinnost 1. 7. 2026; převod IN z Xetry k jinému obchodníkovi
+    // 25 EUR za ISIN (část N), ověřeno 22. 10. 2026.
+    cenik: { url: 'https://www.fio.cz/o-nas/dokumenty-ceniky/ceniky-sazebniky', nazev: 'Ceník základních služeb', platnost: 'od 1. 7. 2026' },
+    prevodVen: '25 EUR za každý ISIN (fondy z Xetry)',
     regulation: 'ČNB (CZ)',
-    protection: '100 000 EUR (hotovost, FPV), 20 000 EUR (cenné papíry, GFOCP)',
-    ochrana: { hotovost: '100 000 EUR (Fond pojištění vkladů)', cennePapiry: 'max. 20 000 EUR (Garanční fond OCP)' },
+    protection: '100 000 EUR (hotovost, FPV), 90 %, max. 20 000 EUR (cenné papíry, GFOCP)',
+    // Garanční fond OCP: náhrada 90 % nevydaného majetku, nejvýš 20 000 EUR (gfo.cz, ověřeno 22. 10. 2026).
+    ochrana: { hotovost: '100 000 EUR (Fond pojištění vkladů)', cennePapiry: '90 % ztráty, max. 20 000 EUR (Garanční fond OCP)' },
     // Ceník od 1. 7. 2026, XETRA: 3,95 EUR do 1 400 EUR, 4,95 EUR do 3 000 EUR, nad 0,15 % (min. 6,95 EUR).
     // Směna bez poplatku, náklad je v kurzu banky – výši spreadu neznáme → smena: null („—“).
     nakup: {
@@ -153,9 +169,20 @@ export const brokers: Broker[] = [
     logo: '/lovable-uploads/25c6d816-7993-40c3-abe2-e21c45cc239d.png',
     description: 'Zcela bezpoplatkový broker s moderní mobilní aplikací, frakčním investováním a AutoInvest funkcí.',
     web: 'https://www.trading212.com',
-    regulation: 'CySEC (CY) pro CZ klienty, FCA (UK)',
-    protection: '20 000 EUR (ICF, Kypr)',
-    ochrana: { hotovost: 'max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: 'max. 20 000 EUR (kyperský fond ICF)' },
+    cenik: { url: 'https://www.trading212.com/en/terms/invest', nazev: 'Terms and fees (Invest)' },
+    // Ověřeno 22. 10. 2026 v centru nápovědy Trading 212: „What are the supported countries?“ (helpcentre.trading212.com/
+    // hc/en-us/articles/12933782261917) řadí Česko pod Trading 212 Markets Ltd. (CySEC 398/21); zároveň „custody migration
+    // from Trading 212 Markets Ltd. to Trading 212 EU GmbH“ (článek 38272842804765) – úschova cenných papírů se přesouvá
+    // pod německou entitu (BaFin 10109603). Kyperský ICF: náhrada „€20,000 or 90% of the covered Client's claim, whichever
+    // is lower“ (trading212.com/legal-documentation/cy/common/Investor-Compensation-Fund_EN.pdf); EU GmbH: EdW 90 %,
+    // max. 20 000 EUR (článek 24338008071581). Která entita platí pro konkrétní účet, nejde z veřejných stránek
+    // jednoznačně určit → web píše „probíhá přesun, ověřte u brokera“ (ZAMERNA-ROZHODNUTI.md, kolo 8).
+    regulation: 'CySEC (CY) pro CZ klienty, probíhá přesun pod BaFin (DE) – ověřte u brokera, FCA (UK)',
+    protection: '90 %, max. 20 000 EUR (ICF, Kypr; po přesunu EdW, DE)',
+    ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (kyperský ICF; po přesunu pod Trading 212 EU GmbH německý EdW, také 90 %, max. 20 000 EUR)' },
+    // „What is a portfolio transfer?“ (článek 16105401083805): převod akcií a ETF k/od jiného brokera i u Trading 212
+    // Markets Ltd., Trading 212 si neúčtuje nic; převádějí se jen celé kusy.
+    prevodVen: 'zdarma (jen celé kusy, části podílu je nutné prodat)',
     // 0 % provize; směna CZK→EUR 0,15 %. „O víkendu 0,5 %“ VYPUŠTĚNO 19. 10. 2026: oficiální zdroj se nepodařilo dohledat
     // (trading212.com/multi-currency i /terms blokují stažení ochranou proti botům) a Wise (wise.com/gb/blog/trading-212-fx-fees,
     // zdroje ověřeny 15. 7. 2026) uvádí, že se poplatek o víkendu nemění. 0,5 % platí u CFD účtu, ne u Invest.
@@ -192,6 +219,7 @@ export const brokers: Broker[] = [
     // Rok založení a počet účtů se v textech rozcházely (1977/1978, 1,5/2,7 mil.) → vypuštěno (revize 18. 10. 2026).
     description: 'Americký broker kótovaný na Nasdaq; české klienty obsluhuje irská entita. Profesionální řešení pro zkušené investory.',
     web: 'https://www.interactivebrokers.ie',
+    cenik: { url: 'https://www.interactivebrokers.ie/en/pricing/commissions-stocks.php?region=europe', nazev: 'Commissions – Stocks, ETFs (Europe)' },
     regulation: 'CBI (IE) pro CZ klienty, SEC (US)',
     protection: '90 % ztráty, max. 20 000 EUR (ICCL, IE); SIPC jen US entita', // interactivebrokers.ie/en/general/security-investor-protection.php, ověřeno 18. 10. 2026
     ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (irský ICCL); SIPC jen US entita' },
@@ -199,6 +227,8 @@ export const brokers: Broker[] = [
     nakup: { pasma: [{ doEur: null, procento: 0.05, minEur: 1.25, pevneEur: 0 }], plusBurza: true, smena: { procento: 0.002, minUsd: 2 }, smenaNajednou: true, pozn: '+ poplatky burzy (plán Tiered)', smenaPozn: 'stačí jednou za větší částku' },
     etfFee: 'Xetra: 0,05 % (min. 1,25 EUR) + poplatky burzy (plán Tiered), v plánu Fixed min. 3 EUR',
     managementFee: '0 EUR',
+    // interactivebrokers.ie/en/pricing/commissions-spot-currencies.php (ověřeno 22. 10. 2026): ruční směna 0,20 bp = 0,002 %,
+    // min. 2 USD; automatická konverze při nákupu bez provize, ale +0,03 % v kurzu.
     fxFee: '0,002 % (min. 2 USD za směnu)',
     fractional: true,
     czSupport: false,
@@ -232,12 +262,20 @@ export const brokers: Broker[] = [
     // „skóre“ v tabulce brokerů, ač nejde o brokera ke svépomocnému nákupu.
     robo: true,
     web: 'https://www.portu.cz',
+    cenik: { url: 'https://www.portu.cz/smluvni-dokumentace', nazev: 'Sazebník služeb Portu', platnost: 'od 1. 9. 2026' },
     regulation: 'ČNB (CZ)',
-    protection: '20 000 EUR (Garanční fond OCP)',
-    ochrana: { hotovost: 'max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: 'max. 20 000 EUR (Garanční fond OCP)' },
+    protection: '90 %, max. 20 000 EUR (Garanční fond OCP)',
+    // Garanční fond OCP 90 %, max. 20 000 EUR – Portu „Informace o garančním fondu obchodníků s cennými papíry“ (ověřeno 22. 10. 2026).
+    ochrana: { hotovost: '90 % ztráty, max. 20 000 EUR – společný limit s cennými papíry', cennePapiry: '90 % ztráty, max. 20 000 EUR (Garanční fond OCP)' },
     etfFee: '0,24–1 % ročně (dle částky)',
     managementFee: '0,24–1 % ročně (dle objemu a fixace)',
-    fxFee: 'Zahrnut v poplatku',
+    // Sazebník služeb Portu, účinnost od 1. 9. 2026 (portu.cz/smluvni-dokumentace → „Sazebník služeb Portu“, ověřeno
+    // 22. 10. 2026): Klasický účet 1,00 % do 0,5 mil. Kč, 0,80 % 0,5–1 mil., 0,60 % 1–5 mil., 0,40 % nad 5 mil.; sazba platí
+    // na CELÝ majetek. Sleva za fixaci (Pravidla programu Slevy pro dlouhodobé investory): 5 let 20 %, 7 let 25 %,
+    // 10 let 30 %, 15 let 40 % → minimum 0,4 × 0,6 = 0,24 %. „Konverze měn bez marže – V ceně“.
+    roboSazby: [{ doKc: 500_000, procento: 1 }, { doKc: 1_000_000, procento: 0.8 }, { doKc: 5_000_000, procento: 0.6 }, { doKc: null, procento: 0.4 }],
+    roboSlevaMax: 40,
+    fxFee: 'Zahrnuta v poplatku',
     fractional: true,
     czSupport: true,
     czDividends: '15 %',
@@ -303,6 +341,27 @@ export function nakladNakupu(b: Broker, castkaKc: number, k: Kurzy): NakladNakup
   const s = b.nakup.smena;
   const smenaKc = s == null ? null : Math.max((s.procento / 100) * castkaKc, s.minUsd * k.usdCzk);
   return { provizeKc, smenaKc, celkemKc: smenaKc == null ? null : provizeKc + smenaKc, plusBurza: !!b.nakup.plusBurza };
+}
+
+/* ---------- Příklad nákupu: zaokrouhlené části a součet = součet ZOBRAZENÝCH částí ----------
+   Kolo 8 (22. 10. 2026): IBKR ukazoval „od 74 Kč“ a v poznámce „30 Kč + 43 Kč“ (= 73) – součet se zaokrouhloval
+   z nezaokrouhlených částí. Teď: pod 10 Kč na desetiny, jinak na celé koruny, a celkem = součet zaokrouhlených částí.
+   Hlídá scripts/check-fund-data.mjs (blok kolo8 obsah – součet nákladů brokerů). */
+export function castiPrikladu(n: NakladNakupu): { provize: number; smena: number | null; celkem: number | null } {
+  const surovy = n.provizeKc + (n.smenaKc ?? 0);
+  const z = (v: number) => (surovy < 10 ? Math.round(v * 10) / 10 : Math.round(v));
+  const provize = z(n.provizeKc);
+  const smena = n.smenaKc == null ? null : z(n.smenaKc);
+  return { provize, smena, celkem: smena == null ? null : Math.round((provize + smena) * 10) / 10 };
+}
+
+/** Robo-poradce: roční poplatek v Kč z celé hodnoty portfolia (sazba podle objemu platí na CELÝ majetek).
+ *  `slevaPct` = sleva za fixaci (Portu 0–40 %). null = broker nemá sazby robo-poradce. */
+export function rocniPoplatekRobo(b: Broker, hodnotaKc: number, slevaPct = 0): { sazba: number; kc: number } | null {
+  const t = b.roboSazby?.find((x) => x.doKc == null || hodnotaKc <= x.doKc);
+  if (!t) return null;
+  const sazba = Math.round(t.procento * (1 - slevaPct / 100) * 1000) / 1000;
+  return { sazba, kc: Math.round((hodnotaKc * sazba) / 100) };
 }
 
 /* ---------- Krátké popisy ceníku – JEDINÉ znění pro /kde-koupit, /srovnani-brokeru i recenze ----------

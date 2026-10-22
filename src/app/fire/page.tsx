@@ -10,6 +10,7 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
 import SouvisejiciZebricky from '@/components/design-preview/SouvisejiciZebricky';
+import ResponzivniTabulka, { bunky } from '@/components/design-preview/ResponzivniTabulka';
 
 export const revalidate = 86400;
 export const metadata: Metadata = {
@@ -35,16 +36,22 @@ const TARGET_ROWS: { monthly: number; note: string }[] = [
   { monthly: 75000, note: 'štědrý „fat“ rozpočet' },
 ];
 
-/* Roky do FIRE podle míry úspor (start od nuly, ~5 % reálný výnos, cíl 25× výdaje). */
-const SAVINGS_ROWS: { rate: number; years: string }[] = [
-  { rate: 10, years: '~51 let' },
-  { rate: 20, years: '~37 let' },
-  { rate: 30, years: '~28 let' },
-  { rate: 40, years: '~22 let' },
-  { rate: 50, years: '~17 let' },
-  { rate: 60, years: '~12,5 roku' },
-  { rate: 70, years: '~8,5 roku' },
-];
+/* Roky do FIRE podle míry úspor – SPOČÍTANÉ jednou funkcí (kolo 8: ručně psaná tabulka měla u 70 % „~8,5 roku“,
+   metodou stránky vychází 8,8). Model: start od nuly, příjem 1, úspora s ročně (na konci roku), reálný výnos r,
+   cíl = 25× roční výdaje (1 − s). s·((1+r)^n − 1)/r = 25(1 − s) → n = ln(1 + 25(1 − s)·r/s) / ln(1 + r).
+   Ověřeno ručně: 10 % → 51,4; 20 % → 36,7; 50 % → 16,6; 70 % → 8,8 roku. */
+function rokyDoFire(miraUspor: number, realnyVynos = 0.05, nasobek = 25): number {
+  const s = miraUspor / 100;
+  return Math.log(1 + (nasobek * (1 - s) * realnyVynos) / s) / Math.log(1 + realnyVynos);
+}
+const fmtRoky = (n: number) => {
+  const v = n < 15 ? Math.round(n * 2) / 2 : Math.round(n); // pod 15 let na půl roku, jinak na celé roky
+  const t = v.toLocaleString('cs-CZ');
+  return `~${t} ${Number.isInteger(v) ? (v >= 5 ? 'let' : v === 1 ? 'rok' : 'roky') : 'roku'}`;
+};
+const SAVINGS_ROWS: { rate: number; years: string }[] = [10, 20, 30, 40, 50, 60, 70].map((rate) => ({ rate, years: fmtRoky(rokyDoFire(rate)) }));
+/* Hero: jedno konkrétní číslo v Kč (běžná domácnost z TARGET_ROWS). */
+const HERO_MESICNE = 35000;
 
 const czk = (v: number) => v.toLocaleString('cs-CZ');
 const mil = (v: number) => (v / 1_000_000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 });
@@ -145,9 +152,9 @@ export default async function FireHub() {
               FIRE a finanční nezávislost v Česku
             </h1>
             <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
-              Kolik reálně potřebujete naspořit, abyste mohli žít z výnosů – spočítáno{' '}
-              <strong className="text-white">v korunách</strong>, s českými daněmi a bez marketingových keců.
-              Kompletní průvodce od pravidla 4 % přes míru úspor až po roli ETF.
+              Při výdajích {czk(HERO_MESICNE)} Kč měsíčně potřebujete podle pravidla 4 % naspořit zhruba{' '}
+              <strong className="text-white">{mil(HERO_MESICNE * 300)} mil. Kč</strong>. Průvodce v korunách a s českými
+              daněmi, bez přikrášlování: od pravidla 4 % přes míru úspor až po roli ETF.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Link href="/fire-kalkulacka" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
@@ -198,31 +205,28 @@ export default async function FireHub() {
         {/* 2. KOLIK POTŘEBUJETE – pravidlo 4 % */}
         <section className="pb-10">
           <SectionHead title="Kolik potřebujete: pravidlo 4 % v korunách" desc="Nejjednodušší odhad cílové částky. Vezměte roční výdaje a vynásobte je 25 – tolik zhruba potřebujete, aby vám výběr ~4 % ročně uživil rentu." />
-          <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
-            <table className="w-full min-w-[34rem] text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
-                  <th className="py-3 px-4 text-left font-medium">Měsíční výdaje</th>
-                  <th className="py-3 px-4 text-right font-medium">Ročně</th>
-                  <th className="py-3 px-4 text-right font-medium">Cílová částka (×25)</th>
-                  <th className="py-3 px-4 text-left font-medium">Typ rozpočtu</th>
-                </tr>
-              </thead>
-              <tbody>
-                {TARGET_ROWS.map(({ monthly, note }) => (
-                  <tr key={monthly} className="border-b border-slate-100 last:border-0">
-                    <td className="py-3 px-4 font-medium text-slate-800 tabular-nums">{czk(monthly)} Kč</td>
-                    <td className="py-3 px-4 text-right tabular-nums text-slate-600">{czk(monthly * 12)} Kč</td>
-                    <td className="py-3 px-4 text-right tabular-nums font-semibold text-teal-700">{mil(monthly * 300)} mil. Kč</td>
-                    <td className="py-3 px-4 text-slate-500">{note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponzivniTabulka
+            popis="Cílová částka podle pravidla 4 % pro různé měsíční výdaje"
+            sloupce={[
+              { nazev: 'Měsíční výdaje' },
+              { nazev: 'Ročně' },
+              { nazev: 'Cílová částka (×25)', nazevKarta: 'Cílová částka (25× roční výdaje)' },
+              { nazev: 'Typ rozpočtu', zarovnani: 'left' },
+            ]}
+            radky={TARGET_ROWS.map(({ monthly, note }) => ({
+              key: String(monthly),
+              bunky: bunky(
+                <span key="m" className="tabular-nums">{czk(monthly)} Kč</span>,
+                <>{czk(monthly * 12)} Kč</>,
+                <span key="c" className="font-semibold text-teal-700">{mil(monthly * 300)} mil. Kč</span>,
+                <span key="t" className="text-slate-500">{note}</span>,
+              ),
+            }))}
+          />
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-            Pravidlo 4 % vychází z historických dat globálních akcií a dluhopisů (tzv. Trinity Study). Pro velmi dlouhou
+            Pravidlo 4 % vychází z americké studie Trinity University z roku 1998 (Cooley, Hubbard a Walz, AAII Journal),
+            která testovala americké akcie (S&amp;P 500) a americké firemní dluhopisy v letech 1926–1995. Pro velmi dlouhou
             rentu (40+ let) nebo opatrnější plán použijte 3–3,5 %, což cílovou částku zvedne. Není to záruka – jen
             pravděpodobnostní odhad z minulosti.{' '}
             <Link href="/pravidlo-4-procent" className="font-medium text-teal-700 hover:underline">Jak by pravidlo 4 % dopadlo v korunách od roku 2000</Link>
@@ -324,7 +328,7 @@ export default async function FireHub() {
 
         {/* 6. NÁSTROJE */}
         <section className="pb-10">
-          <SectionHead title="Nástroje pro tvůj plán" desc="Vše, co potřebujete k sestavení a otestování vlastní cesty k nezávislosti – zdarma a v korunách." />
+          <SectionHead title="Nástroje pro váš plán" desc="Vše, co potřebujete k sestavení a otestování vlastní cesty k nezávislosti – zdarma a v korunách." />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {TOOLS.map(({ href, label, desc, icon: Icon }) => (
               <Link key={href} href={href} className="group flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-sm transition-all">
@@ -368,8 +372,8 @@ export default async function FireHub() {
               <div>
                 <p className="font-semibold text-slate-900">Tomáš Kostrhoun</p>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle, na základě veřejných dat a doložené metodiky – bez provizí a placeného pořadí.
-                  <Link href="/o-nas" className="text-teal-700 hover:underline ml-1">O autorovi</Link>
+                  Autor ETF průvodce.cz s více než 12 lety praxe v českém bankovnictví. Obsah tvoříme nezávisle, na základě veřejných dat a doložené metodiky – bez provizí a placeného pořadí.{' '}
+                  <Link href="/o-nas" className="text-teal-700 hover:underline">O autorovi</Link>
                 </p>
               </div>
             </div>
