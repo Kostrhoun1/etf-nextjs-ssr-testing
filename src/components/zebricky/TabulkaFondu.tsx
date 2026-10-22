@@ -33,7 +33,7 @@ export interface RadekFondu {
   r3: Record<Currency, number | null>;
   typ: 'acc' | 'dist' | null;
   /** Měna zajištění („EUR“, „CHF“…), „ano“ když měna není poznat, null = nezajištěná třída. */
-  zajisteni: string | null;
+  zajisteni?: string | null;
   /** Den výnosů fondu („16. 10. 2026“) jen když se liší od „Data k …“ žebříčku (zpožděná řada u zdroje,
    *  src/lib/datumVynosu.ts); jinak chybí. */
   vynosyK?: string;
@@ -170,7 +170,8 @@ export default function TabulkaFondu({
   // Teď vždy skutečný počet řádků: „Ukazujeme 236 z 300 největších fondů (celkem 813 nad 50 mil. €); 64 … skrýváme“.
   const celkemText = `celkem ${n0(celkem)}${prah ? ` nad ${prah}${NB}mil.${NB}€` : ''}`;
   const zCeho = castecne
-    ? `${n0(radky.length)} největších fondů (${celkemText})`
+    // Kolo 8: žebříček řazený podle TER (nejlevnejsi-etf) načítá 300 NEJLEVNĚJŠÍCH, ne největších.
+    ? `${n0(radky.length)} ${vychozi === 'ter' ? 'nejlevnějších' : 'největších'} fondů (${celkemText})`
     : `${n0(celkem)} ${celkem === 1 ? 'fondu' : 'fondů'}`;
   const veta = castecne
     ? (vyber.length === radky.length ? `Ukazujeme ${zCeho}` : `Ukazujeme ${n0(vyber.length)} ${typSlovo(typ, vyber.length)}z ${zCeho}`)
@@ -273,7 +274,16 @@ export default function TabulkaFondu({
                   <EmitentLogo nazev={r.nazev} size={28} monogram={r.emitent} />
                   <span className="min-w-0 flex flex-col">
                     {/* Zkracuje se jen když se název opravdu nevejde (2 řádky), žádný pevný ořez. */}
-                    <span className="text-[15px] md:text-sm font-medium leading-snug text-slate-900 group-hover:text-teal-800 group-hover:underline underline-offset-2 line-clamp-2">{r.nazev}</span>
+                    {/* Kolo 8: rozlišující třída („· Acc · USD“) na vlastním řádku – v line-clamp-2 se u dlouhých názvů (high yield) uřízla. */}
+                    {(() => {
+                      const i0 = r.nazev.indexOf('\u00a0· ');
+                      const hlavni = i0 < 0 ? r.nazev : r.nazev.slice(0, i0);
+                      const trida = i0 < 0 ? null : r.nazev.slice(i0 + 3);
+                      return <>
+                        <span className="text-[15px] md:text-sm font-medium leading-snug text-slate-900 group-hover:text-teal-800 group-hover:underline underline-offset-2 line-clamp-2">{hlavni}</span>
+                        {trida && <span data-trida className="text-xs font-medium text-slate-700">{trida}</span>}
+                      </>;
+                    })()}
                     <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
                       {/* Bez tickeru celý ISIN (useknutý „IE…ZB19“ působil jako rozbitý export) */}
                       <span className={r.ticker ? 'font-medium text-slate-600' : 'text-slate-500'}>{r.ticker ?? r.isin}</span>

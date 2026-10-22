@@ -49,7 +49,7 @@ export interface DataZebricku {
    Největší je SXR8 (138,6 mld. €)…“) – nejlepsi-etf-2026, sp500, americke, akumulacni, nejlevnejsi. Každý teď vede
    fakty, kvůli kterým stránka existuje: největší fondy / nejnižší TER / index / medián trhu / třída. Čísla dál jen
    z dat stránky a s datem. Ostatní žebříčky beze změny (výchozí popisek). Hlídá check-fund-data.mjs, blok kolo7 seo. */
-type Zamer = 'nejvetsi' | 'nejlevnejsi' | 'index' | 'trh' | 'akumulacni';
+export type Zamer = 'nejvetsi' | 'nejlevnejsi' | 'index' | 'trh' | 'akumulacni';
 const ZAMER: Record<string, Zamer> = {
   'nejlepsi-etf-2026': 'nejvetsi',
   'nejlevnejsi-etf': 'nejlevnejsi',
@@ -57,6 +57,9 @@ const ZAMER: Record<string, Zamer> = {
   'nejlepsi-americke-etf': 'trh',
   'nejlepsi-akumulacni-etf': 'akumulacni',
 };
+
+/** Záměr stránky (kolo 8: i pro „odpověď nahoře“ na žebříčku, aby se úvodní věty 5 stránek neopakovaly). */
+export const zamerZebricku = (slug: string | null | undefined): Zamer | undefined => (slug ? ZAMER[slug] : undefined);
 
 const NB = ' ';
 const BRAND = ' | ETF průvodce.cz';
@@ -155,7 +158,7 @@ export function popisekZebricku(d: DataZebricku): string | null {
     const obd = d.median.obdobi === '3y' ? 'za 3 roky' : 'za 12 měsíců';
     const med = `Medián výnosu ${obd} v${NB}Kč ${pctText(d.median.hodnota)} (${pocet(d.median.pocet)} ${fondy1(d.median.pocet)} nad ${d.prahKaret}${NB}mil.${NB}€${d.median.bezVariant ? ' bez zajištěných a ESG tříd' : ''}).`;
     const vel = V && V.velikost != null ? `Největší je ${oznaceni(V)} (${velikostText(V.velikost)}).` : null;
-    vlastni.push([`${n} na americké akcie ${nadPrahem}: široký trh, Nasdaq i sektory.`, med, vel, datum].filter((x): x is string => !!x));
+    vlastni.push([`${n} na americké akcie ${nadPrahem}: široký trh i Nasdaq-100.`, med, vel, datum].filter((x): x is string => !!x));
     vlastni.push([`${n} na americké akcie ${nadPrahem}.`, med, vel, datum].filter((x): x is string => !!x));
     vlastni.push([`${n} na americké akcie ${nadPrahem}.`, med, datum]);
   } else if (zamer === 'akumulacni' && tv.length >= 2) {
@@ -195,7 +198,7 @@ export function odpovedZebricku(d: DataZebricku): string[] {
     zamer === 'nejvetsi' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn} napříč akciemi, dluhopisy i komoditami, seřazených podle spravovaného majetku.`
       : zamer === 'nejlevnejsi' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn}, seřazených od nejnižšího ročního poplatku (TER).`
         : zamer === 'index' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${pocet(d.celkem)} ${fondy1(d.celkem)} na index S&P${NB}500 (500 velkých amerických firem) nad ${d.prah}${NB}mil.${NB}€.`
-          : zamer === 'trh' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn} na americké akcie – široký trh, Nasdaq i jednotlivá odvětví.`
+          : zamer === 'trh' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn} na americké akcie – široký trh (S&P 500, MSCI USA) i Nasdaq-100.`
             : zamer === 'akumulacni' ? `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn}, které dividendy nevyplácejí, ale reinvestují.`
               : `K${NB}${den} ${sloveso} v${NB}žebříčku ${nn}.`,
   );

@@ -16,6 +16,9 @@
  *   - 'dividenda' – zdroj nemá poslední vyplacenou dividendu distribuční třídy (I50D ex 15. 10. 2026 0,0398 USD,
  *                   XISP ex 19. 8. 2026 0,19 €: Yahoo ji má, cena v řadě zdroje v ex-den spadla, „s dividendami“
  *                   ne) → výnos s reinvesticí o 0,4–1,4 p. b. nižší, než byl (I50D 19,55 % vs. akumulační I500 20,23 %).
+ *   - 'burza'     – (kolo 8) výnos nesedí s cenou na burze a s jinou třídou téhož fondu / se stejným zbožím, a pravidlo
+ *                   tříd (src/lib/tridyFondu.ts `vynosTridNesedi`) ho nechytí, protože třídy mají výnosy k různým dnům
+ *                   (USAC 1R +5,4 % vs. burza +18,7 % a Dist LYYB +17,8 %).
  * Seznam je RUČNÍ a ověřený; denní kontrola (scripts/check-fund-data.mjs, blok „kolo7 podezrele“) hledá NOVÉ případy
  * (poplach / varování) a hlásí položky, které už neplatí (zdroj chybu opravil, scraper vrací null) – ty se smažou.
  * Scraper (etf-astro, vynosy_z_rady.py, větev oprava/btcw-vynosy) od nasazení sám vrací null u období přes skok/díru.
@@ -34,9 +37,9 @@
 export const VYNOS_OBDOBI = /^(?:return_(?:1m|3m|6m|ytd|1y|3y|5y|10y|inception)(?:_czk|_usd|_percent)?|ytd_return_percent|return_per_risk_(?:1y|3y|5y))$/;
 /** Obecná vysvětlivka (srovnávač, porovnání – jeden text pro všechny důvody). */
 export const VYNOS_NEOVERENY_TEXT =
-  'Výnosy za období neukazujeme: nesedí s ostatními fondy na stejný trh nebo s cenou na burze – nejčastěji kvůli opožděné nebo chybné ceně u zdroje dat.';
+  'Výnosy za období neukazujeme: nesedí s ostatními fondy na stejný trh, s jinou třídou téhož fondu nebo s cenou na burze – nejčastěji kvůli opožděné nebo chybné ceně u zdroje dat.';
 
-export type DruhNeovereni = 'skok' | 'sum' | 'dividenda';
+export type DruhNeovereni = 'skok' | 'sum' | 'dividenda' | 'burza';
 export interface NeoverenyVynos {
   /** Ticker jen pro čtení seznamu (zdroj pravdy je ISIN). */
   ticker: string;
@@ -73,6 +76,11 @@ export const NEOVERENE_VYNOSY: Readonly<Record<string, NeoverenyVynos>> = {
   'IE00BG0J4957': { ticker: 'UDHY', druh: 'dividenda', den: '2026-10-15', overeno: '2026-10-22', dukaz: 'Yahoo HYUS.L ex 15. 10. 2026 0,0835 USD (≈ 1,87 %), zdroj ji nemá – cena i řada s dividendami −1,48 / −1,45 %' },
   'IE00B2NPKV68': { ticker: 'IUS7', druh: 'dividenda', den: '2026-10-15', overeno: '2026-10-22', dukaz: 'Yahoo IEMB.MI ex 15. 10. 2026 0,3926 € (≈ 0,50 %), zdroj od 7. 10. žádnou dividendu nemá' },
   'IE00B9M6RS56': { ticker: 'IS3C', druh: 'dividenda', den: '2026-10-15', overeno: '2026-10-22', dukaz: 'Yahoo EMBE.MI ex 15. 10. 2026 0,333 € (≈ 0,52 %), zdroj od 7. 10. žádnou dividendu nemá' },
+  // Kolo 8 (22. 10. 2026): výnos nesedí s cenou na burze a s jinou třídou téhož fondu, třídy mají výnosy k RŮZNÝM dnům
+  // (pravidlo tříd v src/lib/tridyFondu.ts je proto nechytí) nebo fond nemá sourozence se stejným dnem.
+  'IE0006IP4XZ8': { ticker: 'USAC', druh: 'burza', overeno: '2026-10-22', dukaz: 'Amundi MSCI USA ESG Broad Transition Acc 3,2 mld. €: zdroj 1R +5,35 % k 16. 10.; burza USAC.PA 16. 10. 2025→2026 +18,71 %; třída Dist LYYB +17,80 % (LUSA.MI +17,95 %); justETF totéž co zdroj' },
+  'LU2090063327': { ticker: 'LYSM', druh: 'burza', overeno: '2026-10-22', dukaz: 'Amundi MSCI Semiconductors Dist: zdroj 3R +274,3 % k 16. 10. vs Acc LSMC +302,2 % (CHIP.MI +301,9 %) při 1R 56,6 vs 57,1 % – poměr 3R 7,5 %, 1R 0,3 %; burza Dist v EUR na Yahoo není' },
+  'DE000A1E0HS6': { ticker: 'XAD6', druh: 'burza', overeno: '2026-10-22', dukaz: 'Xtrackers Physical Silver ETC (EUR): zdroj 5R +108,3 %, burza XAD6.MI 20. 10. 2021→2026 +142,0 %; medián stříbra (4 fondy) +144,6 %' },
 };
 export const NEOVERENE_ISINY: ReadonlySet<string> = new Set(Object.keys(NEOVERENE_VYNOSY));
 
@@ -84,6 +92,7 @@ export function duvodNeovereni(isin: string): string | null {
   if (!z) return null;
   if (z.druh === 'skok') return `Výnosy za období neukazujeme: v denních cenách u zdroje dat je${z.den ? ` ${datumCz(z.den)}` : ''} skok, který cena na burze nemá – je to chyba dat, ne pohyb trhu.`;
   if (z.druh === 'sum') return 'Výnosy za období neukazujeme: denní ceny tohoto produktu u zdroje dat kolísají kolem ceny na burze o víc než procento denně, takže výnos k jednomu dni může být o 1–3 p. b. vedle.';
+  if (z.druh === 'burza') return 'Výnosy za období neukazujeme: výnos od zdroje dat nesedí s cenou fondu na burze ani s jinou třídou téhož fondu (nebo s ostatními fondy na stejné zboží) – je to chyba dat, ne pohyb trhu.';
   return `Výnosy za období neukazujeme: zdroj dat nemá poslední vyplacenou dividendu (ex-den ${z.den ? datumCz(z.den) : '—'}), takže výnos s reinvesticí dividend vychází nižší, než ve skutečnosti byl.`;
 }
 
@@ -92,10 +101,16 @@ export function sNeoverenymi(odlehle: ReadonlySet<string> | Iterable<string>): S
   return new Set([...odlehle, ...NEOVERENE_ISINY]);
 }
 
-/** Kopie řádku bez výnosů za období (jen pole, která řádek má) + značka `_vynosNeovereny`. */
+/** Kolo 8: skok v řadě zdroje zkreslí i kolísavost a max. pokles (HASH: kolísavost 105,8 %, pokles −98 % – burza nic
+ *  takového nemá). U druhu 'skok' se proto skrývají i rizikové ukazatele (všechna období a pokles od vzniku). */
+export const RIZIKO_ZE_SKOKU = /^(?:volatility_(?:1y|3y|5y)|max_drawdown_(?:1y|3y|5y|inception))$/;
+export const rizikoSkokem = (isin: string | null | undefined) => !!isin && NEOVERENE_VYNOSY[isin]?.druh === 'skok';
+
+/** Kopie řádku bez výnosů za období (jen pole, která řádek má) + značka `_vynosNeovereny`. U skoku v řadě i bez rizika. */
 export function bezVynosuObdobi<T extends object>(radek: T): T & { _vynosNeovereny: true } {
   const out: Record<string, unknown> = { ...(radek as Record<string, unknown>), _vynosNeovereny: true };
-  for (const k of Object.keys(out)) if (VYNOS_OBDOBI.test(k)) out[k] = null;
+  const skok = rizikoSkokem(out.isin as string | undefined);
+  for (const k of Object.keys(out)) if (VYNOS_OBDOBI.test(k) || (skok && RIZIKO_ZE_SKOKU.test(k))) out[k] = null;
   return out as T & { _vynosNeovereny: true };
 }
 

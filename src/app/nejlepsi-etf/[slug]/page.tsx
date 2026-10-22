@@ -14,10 +14,10 @@ import {
   type ETFBasicInfo, getDataDatum, inceptionYear,
 } from '@/lib/etf-data';
 import { datumVynosu, datumVynosuIso, jineDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
-import { titulekZebricku, popisekZebricku, klicovaCislaZebricku, terText, velikostText, datumText, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
+import { titulekZebricku, popisekZebricku, klicovaCislaZebricku, terText, velikostText, datumText, pctText, zamerZebricku, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
 import KlicovaCisla from '@/components/design-preview/KlicovaCisla';
 import { porovnejNejlevnejsi, odlehleIsiny } from '@/lib/trhy';
-import { bezOdlehlychVynosu, bezOdlehlehoVynosu } from '@/lib/vynosNeovereny';
+import { bezOdlehlychVynosu, bezOdlehlehoVynosu, VYNOS_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
 import { ter, money, shortName, nbsp, SectionHead, CompositionInfographic, CategoryIndexes, slozeniPouzitelne } from '@/components/design-preview/CategoryUI';
 import { getCategoryContent, categoryLead } from '@/components/design-preview/categoryContent';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
@@ -158,7 +158,9 @@ function kratkeNazvy(fondy: { name: string; distribution_policy?: string | null;
  *  „Nejvýkonnější“ by tu ukazoval šum (rozdíl 1–2 p. b. mezi třídami) – místo něj neutrální „Jak vybrat“. */
 /** Široké smíšené žebříčky: karta „Nejvýkonnější“ ZÁMĚRNĚ chybí (ZAMERNA-ROZHODNUTI.md, kolo 6) – vyhrávaly úzké
  *  sektorové sázky (polovodiče +228 %, konvertibilní dluhopisy +45 %) a první velké zelené číslo působilo jako tip. */
-const BEZ_VYKONU = new Set(['nejlepsi-etf-2026', 'nejlepsi-akciove-etf', 'nejlepsi-dluhopisove-etf']);
+// Kolo 8: i nejlevnější, akumulační a distribuční – výběr podle poplatku/třídy, ne podle trhu (vyhrávaly polovodiče
+// +296 % a Staked Solana +303,8 %).
+const BEZ_VYKONU = new Set(['nejlepsi-etf-2026', 'nejlepsi-akciove-etf', 'nejlepsi-dluhopisove-etf', 'nejlevnejsi-etf', 'nejlepsi-akumulacni-etf', 'nejlepsi-distribucni-etf']);
 
 /** Žebříčky, kde se v jedné tabulce míchají akcie s dluhopisy, komoditami a peněžním trhem → štítek typu v řádku
  *  (SEO audit 6b, Markéta: v „Nejlepší ETF 2026“ nebylo poznat, že zlato je ETC a XEON peněžní trh). */
@@ -421,14 +423,44 @@ function odpovedNahore(d: DataZebricku): { vety: string[]; poznamka: string | nu
   const L = d.nejlevnejsi, V = d.nejvetsi;
   const tentyz = !!L && !!V && L.nazev === V.nazev && L.ticker === V.ticker;
   const sloveso = d.celkem >= 2 && d.celkem <= 4 ? 'jsou' : 'je';
-  let prvni = `K${NB}${den} ${sloveso} v${NB}žebříčku ${d.celkem.toLocaleString('cs-CZ')} ${fondu(d.celkem)} nad ${d.prah}${NB}mil.${NB}€`;
-  if (V && V.velikost != null) {
-    prvni += tentyz && L
-      ? `; největší a zároveň nejlevnější${V.mimoCH ? ' mimo švýcarské fondy' : ''} je ${jmeno(V)} – ${velikostText(V.velikost)}, TER ${terText(L.ter)}.`
-      : `; největší${V.mimoCH ? ' mimo švýcarské fondy' : ''} je ${jmeno(V)} s${NB}majetkem ${velikostText(V.velikost)}.`;
-  } else prvni += '.';
-  const vety = [prvni];
-  if (L && !tentyz) vety.push(`Nejnižší poplatek má ${jmeno(L)}: TER ${terText(L.ter)}${L.stejnyTer > 0 ? ` (stejný ${L.stejnyTer >= 2 && L.stejnyTer <= 4 ? 'mají' : 'má'} ještě ${L.stejnyTer})` : ''}.`);
+  // Kolo 8: úvod podle záměru stránky (ZAMER v src/lib/zebrickySeo.ts) – dřív měla „2026“, S&P 500, americké, akumulační
+  // a nejlevnější tutéž úvodní větu „… největší je SXR8“ a druhou „Nejnižší poplatek má SPYL“. Nejvýš 2 věty, jeden práh.
+  const zamer = zamerZebricku(d.slug);
+  const zaklad = `K${NB}${den} ${sloveso} v${NB}žebříčku ${d.celkem.toLocaleString('cs-CZ')} ${fondu(d.celkem)} nad ${d.prah}${NB}mil.${NB}€`;
+  const dalsiTer = (n: number) => (n > 0 ? ` (stejný ${n >= 2 && n <= 4 ? 'mají' : 'má'} ještě ${n})` : '');
+  const velky = V && V.velikost != null ? `${jmeno(V)} s${NB}majetkem ${velikostText(V.velikost)}` : null;
+  const levny = L ? `${jmeno(L)}: TER ${terText(L.ter)}${dalsiTer(L.stejnyTer)}` : null;
+  const mimoCH = V?.mimoCH ? ' mimo švýcarské fondy' : '';
+  let vety: string[];
+  if (zamer && !tentyz && (velky || levny)) {
+    const s1 = (pokr: string, zbytek: string | null) => `${zaklad}${pokr}${zbytek ? `; ${zbytek}` : ''}.`;
+    if (zamer === 'nejlevnejsi') {
+      vety = [s1(', seřazených od nejnižšího ročního poplatku (TER)', levny ? `nejnižší má ${levny}` : null)];
+      if (velky) vety.push(`Největší z${NB}nich${mimoCH} je ${velky}.`);
+    } else if (zamer === 'nejvetsi') {
+      vety = [s1(' napříč akciemi, dluhopisy i komoditami', velky ? `největší${mimoCH} je ${velky}` : null)];
+      if (levny) vety.push(`Nejnižší poplatek má ${levny}.`);
+    } else if (zamer === 'index') {
+      vety = [s1(` na index S&P${NB}500 (500 velkých amerických firem)`, velky ? `největší${mimoCH} je ${velky}` : null)];
+      if (levny) vety.push(`Fondy na stejný index se liší hlavně poplatkem – nejnižší má ${levny}.`);
+    } else if (zamer === 'trh') {
+      vety = [s1(' na americké akcie – široký trh (S&P 500, MSCI USA) i Nasdaq-100', velky ? `největší${mimoCH} je ${velky}` : null)];
+      if (d.median) vety.push(`Medián výnosu ${d.median.obdobi === '3y' ? 'za 3 roky' : 'za 12 měsíců'} v${NB}Kč je ${pctText(d.median.hodnota)} (${d.median.pocet.toLocaleString('cs-CZ')} ${fondu(d.median.pocet)}${d.median.bezVariant ? ' bez zajištěných a ESG tříd' : ''}).`);
+      else if (levny) vety.push(`Nejnižší poplatek má ${levny}.`);
+    } else {
+      vety = [s1(', které dividendy nevyplácejí, ale reinvestují do fondu', velky ? `největší${mimoCH} je ${velky}` : null)];
+      if (levny) vety.push(`Nejnižší poplatek mezi akumulačními třídami má ${levny}.`);
+    }
+  } else {
+    let prvni = zaklad;
+    if (V && V.velikost != null) {
+      prvni += tentyz && L
+        ? `; největší a zároveň nejlevnější${mimoCH} je ${jmeno(V)} – ${velikostText(V.velikost)}, TER ${terText(L.ter)}.`
+        : `; největší${mimoCH} je ${jmeno(V)} s${NB}majetkem ${velikostText(V.velikost)}.`;
+    } else prvni += '.';
+    vety = [prvni];
+    if (L && !tentyz) vety.push(`Nejnižší poplatek má ${levny}.`);
+  }
   const poznamka = L || V
     ? `Největší a nejlevnější fond vybíráme mezi fondy nad ${d.prahKaret}${NB}mil.${NB}€ bez měnového zajištění (nejlevnější s TER vyšším než 0 %).${d.prah !== d.prahKaret ? ` Žebříček sám bere fondy od ${d.prah}${NB}mil.${NB}€.` : ''}`
     : null;
@@ -503,12 +535,14 @@ export default async function CategoryDetailPreview(
   // Co znamená „nejlepší“ – skutečná kritéria karet (kolo 6: slib „s nejdelší historií“ nic neplnil).
   const kriteria = ['největší fond', 'nejnižší poplatek',
     ...(recos.some((r) => /nejvýkonnější/i.test(r.tag)) ? [`nejvyšší výnos ${vykonObdobi === '3y' ? 'za 3 roky' : 'za 12 měsíců'} v Kč`] : [])];
+  const slovoVyberu = slug === 'nejlevnejsi-etf' ? '„Nejlevnější“' : '„Nejlepší“';
   const kriteriaText = kriteria.length === 3 ? `${kriteria[0]}, ${kriteria[1]} a ${kriteria[2]}` : `${kriteria[0]} a ${kriteria[1]}`;
 
   // Tabulka – data pro klienta (bez fallbacku mezi měnami).
   // Jeden ticker webu (src/lib/ticker.ts); stejný ticker u dvou různých fondů v jednom žebříčku → s burzou.
   const tickery = tickeryBezDuplicit([...etfs, ...recos.map((r) => r.etf).filter((e) => !etfs.some((x) => x.isin === e.isin))]);
   const nazvy = kratkeNazvy(etfs.map((e) => ({ name: e.name, distribution_policy: e.distribution_policy, ticker: tickery.get(e.isin) ?? null })));
+  const r1d = (v: unknown) => { const x = num(v as number | null); return x == null ? null : Math.round(x * 10) / 10; };
   const radky: RadekFondu[] = etfs.map((e, i) => {
     const k = distKind(e.distribution_policy);
     return {
@@ -519,13 +553,16 @@ export default async function CategoryDetailPreview(
       rok: inceptionYear(e.inception_date),
       ter: num(e.ter_numeric),
       velikost: num(e.fund_size_numeric),
-      r1: { CZK: num(e.return_1y_czk), EUR: num(e.return_1y), USD: num(e.return_1y_usd) },
-      r3: { CZK: num(e.return_3y_czk), EUR: num(e.return_3y), USD: num(e.return_3y_usd) },
+      // Kolo 8 (payload): výnosy zaokrouhlené na přesnost, kterou tabulka zobrazuje (1 desetinné místo, jako srovnávač) –
+      // dřív 4 desetinná místa × 6 hodnot × 300 řádků. Měny se NEdopočítávají na klientu (přepočet kurzem by nebyl totožný s DB).
+      r1: { CZK: r1d(e.return_1y_czk), EUR: r1d(e.return_1y), USD: r1d(e.return_1y_usd) },
+      r3: { CZK: r1d(e.return_3y_czk), EUR: r1d(e.return_3y), USD: r1d(e.return_3y_usd) },
       typ: k === 'unknown' ? null : k,
-      zajisteni: zajisteni(e.name),
+      // Kolo 8 (payload): prázdné příznaky (null/false) se do dat pro klienta neposílají – 300 řádků × ~50 B.
+      ...((z) => (z ? { zajisteni: z } : {}))(zajisteni(e.name)),
       ...((dv) => (dv ? { vynosyK: dv, vynosyPozadu: vynosyPozadu(e, dataDate) } : {}))(jineDatumVynosu(e, dataDate)),
-      svycarsky: jeSvycarskyFond(e.isin, e.name),
-      druh: SMISENE.has(slug) ? druhProduktu(e.category, e.name) : null,
+      ...(jeSvycarskyFond(e.isin, e.name) ? { svycarsky: true } : {}),
+      ...((d) => (d ? { druh: d } : {}))(SMISENE.has(slug) ? druhProduktu(e.category, e.name) : null),
     };
   });
   // Velké fondy (hlava katalogu, AUM ≥ HEAD_MIN_SIZE – ty jsou v sitemapě), které tabulka ve VÝCHOZÍM pohledu
@@ -647,11 +684,14 @@ export default async function CategoryDetailPreview(
           )}
           {/* Co znamená „nejlepší“ (Markéta, kolo 4: nadpis „Nejlepší…“ a pak jen „největší a nejlevnější“) */}
           {/* Kolo 6: mobil – jedna krátká věta + vysvětlivka (tabulka začínala až na 770–970 px). */}
+          {/* Kolo 8: na „Nejlevnější ETF“ nadpis „Nejlepší“ není – vysvětlení podle toho, co stránka opravdu řadí. */}
           <p className="hidden md:block mt-1.5 max-w-2xl text-sm text-slate-500 leading-relaxed">
-            „Nejlepší“ = vybrané podle faktů: {kriteriaText} (fondy nad {prahText}). Tabulku si seřadíte sami. Pořadí není placené ani doporučení.
+            {slug === 'nejlevnejsi-etf'
+              ? <>„Nejlevnější“ = seřazené podle ročního poplatku (TER); karty nahoře: {kriteriaText} (fondy nad {prahText}). Tabulku si seřadíte sami. Pořadí není placené ani doporučení.</>
+              : <>{slovoVyberu} = vybrané podle faktů: {kriteriaText} (fondy nad {prahText}). Tabulku si seřadíte sami. Pořadí není placené ani doporučení.</>}
           </p>
           <p className="md:hidden mt-1 text-sm text-slate-500 inline-flex items-center gap-1">
-            „Nejlepší“ = podle faktů, ne doporučení
+            {slovoVyberu} = {slug === 'nejlevnejsi-etf' ? 'nejnižší poplatek, ne doporučení' : 'podle faktů, ne doporučení'}
             <InfoTip label={`Vybíráme podle faktů: ${kriteriaText} (fondy nad ${prahText}). Tabulku si seřadíte sami. Pořadí není placené ani doporučení.`}>{null}</InfoTip>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-600">
@@ -691,7 +731,7 @@ export default async function CategoryDetailPreview(
                         <span className="mt-0.5 md:mt-2.5 flex items-center gap-2.5 min-w-0">
                           <span className="hidden md:inline-flex"><EmitentLogo nazev={etf.name} size={32} monogram={etf.fund_provider} /></span>
                           <span className="min-w-0">
-                            <span className="text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 line-clamp-1 md:line-clamp-2">{nezlomitelne(nazevFondu(etf.name))}</span>
+                            <span className="text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 line-clamp-2">{nezlomitelne(nazevFondu(etf.name))}</span>
                             <span className="block text-xs text-slate-500">{tk ?? etf.isin}<span className="md:hidden"> · {popis}</span></span>
                           </span>
                         </span>
@@ -718,7 +758,8 @@ export default async function CategoryDetailPreview(
             <TabulkaFondu nadpisId="tabulka-h" radky={radky} celkem={celkem} vychozi={cfg.sortBy === 'ter_numeric' ? 'ter' : 'size'} datum={datumText} srovnavac={srovnavac} prah={prah} />
             {z.neovereneVynosy.length > 0 && (
               <p data-vynos-neovereny className="mt-2 text-xs text-slate-500">
-                {z.neovereneVynosy.map((e) => tickery.get(e.isin) ?? nazevFondu(e.name)).join(', ')}: výnosy neukazujeme („—“) – výnos za 12 měsíců se lišil o víc než 1,5 p. b. od ostatních fondů na stejný trh, nejčastěji kvůli opožděné ceně u zdroje dat.
+                {/* Kolo 8: seznam zahrnuje i ověřené chyby zdroje a třídy, které nesedí s jinou třídou téhož fondu. */}
+                {z.neovereneVynosy.map((e) => tickery.get(e.isin) ?? nazevFondu(e.name)).join(', ')}: výnosy neukazujeme („—“) – {VYNOS_NEOVERENY_TEXT.replace(/^Výnosy za období neukazujeme: /, '')}
               </p>
             )}
             {radky.some((r) => r.druh === 'ETC' || r.druh === 'krypto ETP') && (
@@ -734,15 +775,13 @@ export default async function CategoryDetailPreview(
                   <span>Rychlé odkazy na velké fondy <span className="font-normal text-slate-500">· nad {HEAD_MIN_SIZE / 1000}{'\u00a0'}mld.{'\u00a0'}€, které tabulka hned neukazuje</span></span>
                   <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
                 </summary>
-                <ul className="flex flex-wrap gap-2 border-t border-slate-100 px-4 py-3">
+                {/* Kolo 8 (payload): 267 odkazů bylo ~70 KB (každý <li> + <Link> s 12 třídami v HTML i v RSC). Styl je teď
+                    jednou na rodiči, odkazy jsou prosté <a> (zavřené <details> – prefetch netřeba), vzhled beze změny. */}
+                <p className="flex flex-wrap gap-2 border-t border-slate-100 px-4 py-3 text-xs text-slate-700 [&>a]:inline-flex [&>a]:items-center [&>a]:gap-1.5 [&>a]:rounded-lg [&>a]:border [&>a]:border-slate-200 [&>a]:px-2.5 [&>a]:py-1 [&>a:hover]:border-teal-300 [&>a:hover]:text-teal-800 [&_b]:font-semibold [&_em]:not-italic [&_em]:text-amber-800">
                   {dalsiVelke.map((r) => (
-                    <li key={r.isin}>
-                      <Link href={`/etf/${r.isin}`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-700 hover:border-teal-300 hover:text-teal-800">
-                        {r.ticker && <span className="font-semibold">{r.ticker}</span>}<span>{r.nazev}</span>{r.zajisteni && <span className="text-amber-800">· zajištěno</span>}
-                      </Link>
-                    </li>
+                    <a key={r.isin} href={`/etf/${r.isin}`}>{r.ticker && <b>{r.ticker}</b>}{r.nazev}{r.zajisteni && <em>· zajištěno</em>}</a>
                   ))}
-                </ul>
+                </p>
               </details>
             )}
           </section>
@@ -757,7 +796,7 @@ export default async function CategoryDetailPreview(
               {slozeni && <div className="min-w-0">{slozeni}</div>}
               {topIndexes.length > 0 && (
                 <div className="min-w-0">
-                  <CategoryIndexes indexes={topIndexes} total={etfs.length} sloupce={maSlozeni ? 1 : 2} zCeho={celkem > etfs.length ? 'největších fondů' : 'fondů v žebříčku'} rodiny={rodiny} />
+                  <CategoryIndexes indexes={topIndexes} total={etfs.length} sloupce={maSlozeni ? 1 : 2} zCeho={celkem > etfs.length ? (cfg.sortBy === 'ter_numeric' ? 'nejlevnějších fondů' : 'největších fondů') : 'fondů v žebříčku'} rodiny={rodiny} />
                   {WORLD_INDEX_SLUGS.has(slug) && (
                     <Link href="/svetove-etf-indexy" className="mt-3 inline-flex items-center gap-1.5 min-h-11 text-sm font-medium text-teal-700 hover:text-teal-800">
                       MSCI World, FTSE All-World, nebo S&amp;P 500? Srovnání indexů <ArrowRight className="w-4 h-4" />

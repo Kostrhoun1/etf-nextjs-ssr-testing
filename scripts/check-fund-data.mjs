@@ -1188,7 +1188,7 @@ const main = async () => {
     //    u finančních nesmí zmizet třetí výběr, když nejvýkonnější = největší.
     try {
       const chyby = [];
-      const BEZ = ['nejlepsi-etf-2026', 'nejlepsi-akciove-etf', 'nejlepsi-dluhopisove-etf', 'nejlepsi-sp500-etf', 'nejlepsi-zlato-etf', 'nejlepsi-bitcoin-etf'];
+      const BEZ = ['nejlepsi-etf-2026', 'nejlepsi-akciove-etf', 'nejlepsi-dluhopisove-etf', 'nejlepsi-sp500-etf', 'nejlepsi-zlato-etf', 'nejlepsi-bitcoin-etf', 'nejlevnejsi-etf', 'nejlepsi-akumulacni-etf', 'nejlepsi-distribucni-etf']; // kolo 8: + nejlevnější, akumulační, distribuční
       for (const slug of ZEBRICKY) {
         const v = sekce(stranky.get(slug), 'vybrane');
         if (!v) { chyby.push(`${slug}: chybí sekce Vybrané podle dat`); continue; }
@@ -2637,7 +2637,7 @@ const main = async () => {
     try {
       // Seznam ověřených chyb (jeden fond = jeden řádek v src/lib/vynosNeovereny.ts).
       const zdrojSeznamu = readFileSync('src/lib/vynosNeovereny.ts', 'utf8');
-      const seznam = new Map([...zdrojSeznamu.matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '([^']*)', druh: '(skok|sum|dividenda)'(?:, den: '(\d{4}-\d{2}-\d{2})')?/g)]
+      const seznam = new Map([...zdrojSeznamu.matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '([^']*)', druh: '(skok|sum|dividenda|burza)'(?:, den: '(\d{4}-\d{2}-\d{2})')?/g)]
         .map((m) => [m[1], { ticker: m[2], druh: m[3], den: m[4] }]));
       if (seznam.size < 5) throw new Error(`seznam NEOVERENE_VYNOSY ve vynosNeovereny.ts nenalezen (${seznam.size} položek)`);
       const sloupce = `isin,name,primary_ticker,is_leveraged,fund_size_numeric,investment_focus,index_name,distribution_policy,scraping_date,returns_as_of,return_1m,return_3m,return_6m,return_ytd,return_1y,return_3y,return_5y,${BURZY.join(',')}`;
@@ -3120,6 +3120,187 @@ const main = async () => {
   await kontrolaKolo7Mobil(poplach, varovani); // blok „kolo7 mobil“ – definice na konci souboru
   await kontrolaKolo8Faktory(poplach, varovani); // blok „kolo8 faktory“ – definice na konci souboru
   await kontrolaKolo8Obsah(poplach, varovani); // blok „kolo8 obsah“ – definice na konci souboru
+
+  // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+  //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
+  //     Mining WMIN na kartě „Nejvýkonnější“ amerických, Pictet „AI Enhanced“ v AI, Invesco Physical Bitcoin v komoditách,
+  //     Dow Jones Industrial Average v průmyslových). Nezávislá heuristika z názvu + indexu + zaměření (investment_focus):
+  //     fond na KARTĚ mimo kategorii = poplach, víc než 5 % tabulky = varování.
+  //  B) VÝNOSY TŘÍD TÉHOŽ FONDU (src/lib/tridyFondu.ts `vynosTridNesedi`): nezávislý klíč tříd; ke stejnému dni nesmí
+  //     srovnávač ukazovat u dvou tříd výnosy, které se liší nad práh (1,5 / 3 / 5 % poměru růstu) – poplach; k různým
+  //     dnům a rozdíl > 3× práh = varování (prověřit burzou → NEOVERENE_VYNOSY druh 'burza').
+  //  C) DETAIL: fondy z NEOVERENE_VYNOSY ukazují důvod „Výnosy za období neukazujeme“ (vzorek).
+  //  D) ŽEBŘÍČKY: nejlevnejsi-etf mluví o „nejlevnějších“ (ne „největších“) fondech, odpověď nahoře se na 5 hlavních
+  //     žebříčcích neopakuje doslova, HTML nejlepsi-etf-2026 do 600 KB (bylo 523 KB, z toho ~70 KB rychlé odkazy).
+  // Před nasazením (produkce bez „nejlevnějších fondů“ na nejlevnejsi-etf) jdou nálezy A, C a D jen do varování.
+  {
+    const hlav8 = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const html8 = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return r.ok ? (await r.text()).replace(/<!-- -->/g, '') : ''; } catch { return ''; } };
+    const text8 = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;| /g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
+    const levne8 = await html8('/nejlepsi-etf/nejlevnejsi-etf');
+    const nasazeno8 = /nejlevnějších fondů/.test(text8(levne8));
+    const nalez8 = (co, ukazka) => (nasazeno8 ? poplach : varovani).push({ co: `${co}${nasazeno8 ? '' : ' (produkce ještě bez oprav kola 8)'}`, ukazka });
+
+    // A) kategorie žebříčků
+    try {
+      const KAT8 = {
+        // slug: (fond, t = název + index, fo = investment_focus) => patří do kategorie?
+        'nejlepsi-americke-etf': (f, t, fo) => (/United States|North America/.test(fo) || /\b(USA|US|U\.S\.|S&P 500|Nasdaq|Dow Jones)\b/.test(f.name)) && !/World|Europe|Emerging|Latin|Asia|Pacific|Japan|China/.test(fo),
+        'nejlepsi-evropske-etf': (f, t, fo) => /Europe|Germany|France|Italy|Spain|Netherlands|Switzerland|United Kingdom|Sweden|Norway|Denmark|Finland|Austria|Belgium|Portugal|Ireland|Poland|Nordic/.test(fo) || /\b(Europe|European|Euro|EMU|Eurozone|STOXX|DAX|CAC|FTSE MIB|IBEX|AEX|SMI)\b/i.test(t),
+        'nejlepsi-japonske-etf': (f, t, fo) => /Japan/.test(fo) || /Japan|Nikkei|TOPIX/i.test(t),
+        'nejlepsi-cinske-etf': (f, t, fo) => /China|Hong Kong/.test(fo) || /China|Chinese|\bCSI\b|Hang Seng|Hong Kong/i.test(t),
+        'nejlepsi-indicke-etf': (f, t, fo) => /India/.test(fo) || /India|Nifty|Sensex/i.test(t),
+        'nejlepsi-emerging-markets-etf': (f, t, fo) => /Emerging/.test(fo) || /Emerging|\bEM\b/i.test(t),
+        'nejlepsi-asijsko-pacificke-etf': (f, t, fo) => /Asia|Pacific/.test(fo) || /Asia|Pacific/i.test(t),
+        'nejlepsi-technologicke-etf': (f, t, fo) => /Technology|Semiconductor/.test(fo) || /Tech|Semiconductor|Nasdaq|Digital|Software|Information|Cloud|\bAI\b|Artificial Intelligence/i.test(t),
+        'nejlepsi-healthcare-etf': (f, t, fo) => /Health/.test(fo) || /Health|Biotech|Pharma|Medical/i.test(t),
+        'nejlepsi-financni-etf': (f, t, fo) => /Financials|Insurance/.test(fo),
+        'nejlepsi-energeticke-etf': (f, t, fo) => /Energy/.test(fo),
+        'nejlepsi-prumyslove-etf': (f, t, fo) => (/Industrials/.test(fo) || /Industrial|Industry|Manufacturing/i.test(f.name)) && !/Industrial Average/i.test(t),
+        'nejlepsi-spotrebitelske-etf': (f, t, fo) => /Consumer/.test(fo) || /Consumer/i.test(t),
+        'nejlepsi-infrastrukturni-etf': (f, t, fo) => /Infrastructure|Utilities/.test(fo) || /Infrastructure|Utilities/i.test(t),
+        'nejlepsi-obnovitelne-zdroje-etf': (f, t, fo) => /Renewable|Clean|Alternative Energy/i.test(fo) || /Renewable|Clean Energy|New Energy|Green Energy|Solar|Wind|Hydrogen|Bioenergy|Energy Storage|Energy Transition/i.test(t),
+        'nejlepsi-biotechnologie-etf': (f, t, fo) => /Biotech/i.test(fo) || /Biotech/i.test(t),
+        'nejlepsi-cloud-etf': (f, t) => /Cloud/i.test(t),
+        'nejlepsi-defense-etf': (f, t, fo) => /Defen[cs]e|Aerospace/i.test(fo) || /Defen[cs]e|Aerospace/i.test(t),
+        'nejlepsi-kyberbezpecnost-etf': (f, t) => /Cyber|Security/i.test(t),
+        'nejlepsi-robotika-etf': (f, t) => /Robot|Automation/i.test(t),
+        'nejlepsi-ai-etf': (f) => /Artificial Intelligence|\bAI\b|Machine Learning|Big Data/i.test(f.name) && !/AI Enhanced|AI Optimized/i.test(f.name),
+        'nejlepsi-komoditni-etf': (f, t, fo) => !/Cryptocurrenc/.test(fo) && !/Bitcoin|Ethereum|Solana|Crypto/i.test(f.name),
+        'nejlepsi-zlato-etf': (f, t, fo) => /Gold/.test(fo),
+        'nejlepsi-stribro-etf': (f, t, fo) => /Silver/.test(fo),
+        'nejlepsi-ropa-etf': (f, t, fo) => /Oil|Energy/.test(fo) || /Oil|Brent|WTI/i.test(t),
+        'nejlepsi-bitcoin-etf': (f, t) => /Bitcoin/i.test(t),
+        'nejlepsi-realitni-etf': (f, t, fo) => /Real Estate/.test(fo) || /Real Estate|REIT|Property/i.test(t),
+        'nejlepsi-nasdaq-etf': (f, t) => /Nasdaq/i.test(t),
+        'nejlepsi-dax-etf': (f, t) => /\bDAX\b/i.test(t),
+        'nejlepsi-ftse100-etf': (f, t) => /FTSE 100/i.test(t),
+        'nejlepsi-stoxx600-etf': (f, t) => /STOXX Europe 600|STOXX 600/i.test(t),
+        'nejlepsi-sp500-etf': (f, t) => /S&P 500/i.test(t),
+      };
+      const n8 = { karty: [], tabulka: [], nejde: [] };
+      for (const [slug, patri] of Object.entries(KAT8)) {
+        const h = await html8(`/nejlepsi-etf/${slug}`);
+        if (!h) { n8.nejde.push(`${slug}: stránka se nenačetla`); continue; }
+        const tab = [...new Set([...h.matchAll(/isin\\":\\"([A-Z]{2}[A-Z0-9]{10})\\",\\"nazev/g)].map((m) => m[1]))];
+        const v = h.match(/data-sekce="vybrane"[\s\S]*?<\/section>/)?.[0] ?? '';
+        const karty = [...new Set([...v.matchAll(/href="\/etf\/([A-Z0-9]{12})"/g)].map((m) => m[1]))];
+        const isiny = [...new Set([...tab, ...karty])];
+        if (!isiny.length) { n8.nejde.push(`${slug}: bez fondů v datech stránky`); continue; }
+        const db = [];
+        for (let i = 0; i < isiny.length; i += 150) {
+          const r = await fetch(`${URL_DB}?select=isin,name,index_name,investment_focus&isin=in.(${isiny.slice(i, i + 150).join(',')})`, hlav8).then((x) => x.json());
+          if (Array.isArray(r)) db.push(...r);
+        }
+        const podle = new Map(db.map((f) => [f.isin, f]));
+        const ok = (i) => { const f = podle.get(i); return !f || patri(f, `${f.name ?? ''} ${f.index_name ?? ''}`, String(f.investment_focus ?? '')); };
+        const popis = (i) => { const f = podle.get(i); return `${i} ${String(f?.name ?? '').slice(0, 55)} (${f?.investment_focus ?? '—'})`; };
+        for (const i of karty.filter((x) => !ok(x))) n8.karty.push(`${slug}: karta ${popis(i)}`);
+        const mimo = tab.filter((x) => !ok(x));
+        if (tab.length && mimo.length / tab.length > 0.05) n8.tabulka.push(`${slug}: ${mimo.length} z ${tab.length} mimo kategorii, např. ${mimo.slice(0, 3).map(popis).join('; ')}`);
+      }
+      if (n8.karty.length) nalez8(`Karta žebříčku s fondem mimo kategorii (kolo8 A) – filtr v src/lib/etf-data.ts (categoryConfigs): ${n8.karty.length}`, n8.karty.slice(0, 10));
+      if (n8.tabulka.length) varovani.push({ co: `Tabulka žebříčku: víc než 5 % fondů neodpovídá kategorii podle názvu/indexu/zaměření (kolo8 A) – prověřit filtr: ${n8.tabulka.length}`, ukazka: n8.tabulka.slice(0, 12) });
+      if (n8.nejde.length) varovani.push({ co: `Kontrolu kategorií žebříčků (kolo8 A) nešlo u části stránek provést: ${n8.nejde.length}`, ukazka: n8.nejde.slice(0, 6) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu kategorií žebříčků (kolo8 A) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // B) výnosy tříd téhož fondu
+    try {
+      const PRAH8 = { '1y': 1.5, '3y': 3, '5y': 5 }; // % poměru růstu (1+a)/(1+b) − 1, stejně jako src/lib/tridyFondu.ts
+      const skutecne = [...readFileSync('src/lib/tridyFondu.ts', 'utf8').matchAll(/\['([A-Z]{2}[A-Z0-9]{10})', '([A-Z]{2}[A-Z0-9]{10})'\]/g)].map((m) => [m[1], m[2]]);
+      if (skutecne.length < 2) throw new Error('ROZDIL_TRID_SKUTECNY v src/lib/tridyFondu.ts nenalezen');
+      const neov = new Set([...readFileSync('src/lib/vynosNeovereny.ts', 'utf8').matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker:/g)].map((m) => m[1]));
+      const fondy8 = [];
+      for (let od = 0; od < 20000; od += 1000) {
+        const r = await fetch(`${URL_DB}?select=isin,name,fund_provider,primary_ticker,returns_as_of,return_1y,return_3y,return_5y,is_leveraged&scraping_date=gte.${new Date(Date.now() - 30 * 864e5).toISOString()}&name=not.is.null&order=isin&offset=${od}&limit=1000`, hlav8).then((x) => x.json());
+        if (!Array.isArray(r)) throw new Error('DB (kolo8 B)');
+        fondy8.push(...r);
+        if (r.length < 1000) break;
+      }
+      // Nezávislý klíč „stejný fond, jiná třída“ (záměrně jinak než klicTridy): emitent + název před ETF/ETC + zbytek bez
+      // závorek a slov třídy; měnově zajištěné třídy (Hedged, PfHdg, EAH, hEUR, H-CHF, (H)) a páka mimo.
+      const TRIDA8 = /\b(acc|accumulating|accumulation|dist|dis|distributing|distribution|inc|income|capitalisation|[0-9]?[a-z]|usd|eur|gbp|chf|jpy|dr|class)\b/gi;
+      const klic8 = (f) => {
+        const n = String(f.name ?? '');
+        if (f.is_leveraged || /hedg|hdg|\bEAH\b|\bh(eur|usd|gbp|chf)\b|\bH-[A-Z]{3}\b|\(H\)/i.test(n)) return null;
+        const m = n.match(/^(.*?)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b(.*)$/i);
+        if (!m) return null;
+        const zbytek = m[2].replace(/\(.*?\)/g, ' ').replace(TRIDA8, ' ').replace(/[^a-z0-9]+/gi, ' ').trim().toLowerCase();
+        return `${f.fund_provider}|${m[1].toLowerCase().replace(/\s+/g, ' ').trim()}|${zbytek}`;
+      };
+      const api8 = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).catch(() => null);
+      const radky8 = Array.isArray(api8) ? api8 : api8?.rows;
+      if (!Array.isArray(radky8) || radky8.length < 1000) throw new Error('/api/etf/screener se nenačetl');
+      const web8 = new Map(radky8.map((r) => [r.isin, r]));
+      const skupiny8 = new Map();
+      for (const f of fondy8) { const k = klic8(f); if (k && f.returns_as_of) skupiny8.set(k, [...(skupiny8.get(k) ?? []), f]); }
+      const pomer = (a, b) => Math.abs((1 + a / 100) / (1 + b / 100) - 1) * 100;
+      const vidi = [], jinyDen = [];
+      for (const g of skupiny8.values()) {
+        if (g.length < 2 || skutecne.some((par) => g.some((f) => par.includes(f.isin)))) continue;
+        for (const o of Object.keys(PRAH8)) {
+          const s = g.filter((f) => f[`return_${o}`] != null && web8.has(f.isin));
+          for (let i = 0; i < s.length; i++) for (let j = i + 1; j < s.length; j++) {
+            const a = s[i], b = s[j], va = Number(a[`return_${o}`]), vb = Number(b[`return_${o}`]);
+            if (pomer(va, vb) <= PRAH8[o]) continue;
+            const wa = web8.get(a.isin)[`return_${o}`], wb = web8.get(b.isin)[`return_${o}`];
+            if (wa == null || wb == null) continue; // aspoň jedna třída už má „—“
+            const popis = `${a.primary_ticker ?? a.isin} ${va.toFixed(1)} % vs ${b.primary_ticker ?? b.isin} ${vb.toFixed(1)} % (${o}; ${String(a.name).slice(0, 45)})`;
+            if (String(a.returns_as_of).slice(0, 10) === String(b.returns_as_of).slice(0, 10)) vidi.push(`${popis} – srovnávač ukazuje obě`);
+            else if (pomer(va, vb) > 3 * PRAH8[o] && !neov.has(a.isin) && !neov.has(b.isin)) jinyDen.push(`${popis}, výnosy k ${String(a.returns_as_of).slice(0, 10)} a ${String(b.returns_as_of).slice(0, 10)}`);
+          }
+        }
+      }
+      // Bez vlastní značky nasazení: srovnávač (API) se počítá při každém nasazení znovu a pravidlo tříd je v něm od kola 8.
+      const tridyNasazeny = radky8.some((r) => r.isin === 'LU2089238898' && r._vynX);
+      if (vidi.length) (tridyNasazeny ? poplach : varovani).push({ co: `Třídy téhož fondu ukazují výnosy ke stejnému dni, které se liší nad práh (kolo8 B; pravidlo vynosTridNesedi v src/lib/tridyFondu.ts je nechytilo) – ověřit burzou a doplnit OVERENY_VYNOS_TRIDY / ROZDIL_TRID_SKUTECNY${tridyNasazeny ? '' : ' (produkce ještě bez pravidla)'}: ${vidi.length}`, ukazka: vidi.slice(0, 10) });
+      if (jinyDen.length) varovani.push({ co: `Třídy téhož fondu s výnosy k různým dnům se liší víc, než pohyb trhu za pár dní vysvětlí (kolo8 B) – ověřit burzou, chybnou přidat do NEOVERENE_VYNOSY (druh 'burza'): ${jinyDen.length}`, ukazka: jinyDen.slice(0, 10) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu výnosů tříd téhož fondu (kolo8 B) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // C) detail fondů z NEOVERENE_VYNOSY: důvod „Výnosy za období neukazujeme“ (vzorek 6 – každý druh + USAC)
+    try {
+      const seznam8 = [...readFileSync('src/lib/vynosNeovereny.ts', 'utf8').matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '([^']*)', druh: '(\w+)'/g)].map((m) => ({ isin: m[1], ticker: m[2], druh: m[3] }));
+      const vzorek = [...new Map(seznam8.map((z) => [z.druh, z])).values(), ...seznam8.filter((z) => z.ticker === 'USAC')];
+      const chybi = [];
+      for (const z of vzorek) {
+        const t = text8(await html8(`/etf/${z.isin}`));
+        if (!t) { chybi.push(`${z.ticker}: detail se nenačetl`); continue; }
+        if (!/Výnosy za období neukazujeme/.test(t)) chybi.push(`${z.isin} ${z.ticker} (${z.druh}): detail bez důvodu „Výnosy za období neukazujeme“`);
+        if (z.druh === 'skok' && /Max\. pokles\s+−9\d,\d/.test(t)) chybi.push(`${z.isin} ${z.ticker}: detail ukazuje max. pokles ze skoku v řadě zdroje`);
+      }
+      if (chybi.length) nalez8(`Detail fondu s ověřeně chybným výnosem zdroje (NEOVERENE_VYNOSY) bez „—“ a důvodu (kolo8 C): ${chybi.length}`, chybi);
+    } catch (e) {
+      varovani.push({ co: `Kontrolu detailu neověřených výnosů (kolo8 C) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+
+    // D) žebříčky – texty, odpověď nahoře, velikost stránky
+    try {
+      const chyby = [];
+      if (levne8 && /\d+ největších fondů/.test(text8(levne8))) chyby.push('nejlevnejsi-etf: „… největších fondů“ – tabulka je 300 NEJLEVNĚJŠÍCH');
+      const PET = ['nejlepsi-etf-2026', 'nejlepsi-sp500-etf', 'nejlepsi-americke-etf', 'nejlepsi-akumulacni-etf', 'nejlevnejsi-etf'];
+      const vety = new Map();
+      let velikost2026 = null;
+      for (const slug of PET) {
+        const h = slug === 'nejlevnejsi-etf' ? levne8 : await html8(`/nejlepsi-etf/${slug}`);
+        if (slug === 'nejlepsi-etf-2026' && h) velikost2026 = Buffer.byteLength(h);
+        const odp = text8(h.match(/data-odpoved="zebricek"[^>]*>([\s\S]*?)<\/p>/)?.[1] ?? '');
+        for (const v of odp.split(/(?<=\.)\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])/).filter((x) => x.length > 20)) {
+          const k = v.replace(/\d[\d\s,.]*/g, '#');
+          vety.set(k, [...(vety.get(k) ?? []), slug]);
+        }
+      }
+      for (const [v, sl] of vety) if (sl.length > 1) chyby.push(`odpověď nahoře se opakuje na ${sl.join(', ')}: „${v.slice(0, 80)}…“`);
+      if (velikost2026 != null && velikost2026 > 600_000) chyby.push(`/nejlepsi-etf/nejlepsi-etf-2026 má ${Math.round(velikost2026 / 1000)} KB HTML (limit 600 KB; rychlé odkazy a řádky tabulky – kolo 8)`);
+      if (chyby.length) nalez8(`Žebříčky – texty a velikost (kolo8 D): ${chyby.length}`, chyby);
+    } catch (e) {
+      varovani.push({ co: `Kontrolu textů žebříčků (kolo8 D) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+  }
+  // --- konec kolo8 zebricky ---
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;

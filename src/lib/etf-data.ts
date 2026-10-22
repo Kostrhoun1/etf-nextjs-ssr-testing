@@ -16,7 +16,7 @@ import { detectHedging } from '@/utils/hedgingDetection';
 import { TRHY_SROVNAVACE, INDEXY_TRHU } from '@/lib/screenerTrhy';
 import { rizikoNesedi, type RizikoPole } from '@/lib/tridyFondu';
 import { indexDetailu, klicPodobnych, prefixIndexu, zajisteniFondu, type FondDetailu } from '@/lib/detailFondu';
-import { odlehleIsiny, kotvyRizika, radkyTrhu, trhyZRadku, odlehleZTrhu, kotvyZRadku } from '@/lib/trhy';
+import { odlehleIsiny, kotvyRizika, radkyTrhu, trhyZRadku, odlehleZTrhu, kotvyZRadku, tridyZRadku } from '@/lib/trhy';
 import { bezVynosuObdobi, bezOdlehlychVynosu, bezOdlehlehoVynosu } from '@/lib/vynosNeovereny';
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
@@ -70,6 +70,12 @@ export interface CategoryConfig {
      *  Bez toho spadne „MSCI World Semiconductors“ do kategorie „Celý svět“ jen proto,
      *  že má v názvu „World“ – `nameContains` je totiž prostá shoda podřetězce. */
     nameExcludes?: string[];
+    /** Regulární výrazy názvu (Postgres `~*`, OR spolu s nameContains) – pro celé slovo: `\\mUS\\M` (kolo 8: „US “ jako
+     *  podřetězec chytal „PLUS “, „Focus “). Bez čárek a bez uvozovek (syntaxe PostgREST `or`). */
+    nameMatches?: string[];
+    /** Regulární výrazy názvu, které fond z výsledku VYŘADÍ (AND, `!~*`) – celá slova („Latin“ jako podřetězec je
+     *  i v „Accumu-lating“). */
+    nameExcludeMatches?: string[];
     /** Sektor/zaměření podle zdroje (`investment_focus`, OR) – fond musí mít aspoň jedno. Název nestačí:
      *  „UmweltBank“ obsahuje „Bank“, „Clean Energy“ obsahuje „Energy“ (kolo 6, 20. 10. 2026). */
     focusContains?: string[];
@@ -141,10 +147,11 @@ export function filtrKategorie(q: any, config: CategoryConfig): any {
 
     // Apply name contains filter (OR logic between terms)
     // This uses ilike for case-insensitive matching
-    if (config.filters.nameContains && config.filters.nameContains.length > 0) {
-      const nameFilters = config.filters.nameContains.map(term => `name.ilike.%${term}%`).join(',');
-      query = query.or(nameFilters);
-    }
+    const nameOr = [
+      ...(config.filters.nameContains ?? []).map((term) => `name.ilike.%${term}%`),
+      ...(config.filters.nameMatches ?? []).map((re) => `name.imatch.${re}`),
+    ];
+    if (nameOr.length > 0) query = query.or(nameOr.join(','));
 
     // Vyřazení sektorových/faktorových fondů ze širokých kategorií (AND přes všechny termy).
     if (config.filters.nameExcludes && config.filters.nameExcludes.length > 0) {
@@ -152,6 +159,7 @@ export function filtrKategorie(q: any, config: CategoryConfig): any {
         query = query.not('name', 'ilike', `%${term}%`);
       }
     }
+    for (const re of config.filters.nameExcludeMatches ?? []) query = query.not('name', 'imatch', re);
 
     // Zaměření podle zdroje (investment_focus). NULL u akcií/komodit není, ale „not ilike“ by NULL tiše vyřadil –
     // proto u vyřazení výslovně „je NULL, nebo neodpovídá“.
@@ -1286,9 +1294,10 @@ export const getScreenerRows = reactCache(async (): Promise<{
   // Odlehlé výnosy (src/lib/vynosNeovereny.ts) – stejné pravidlo jako detail fondu: výnosy za období „—“.
   // Řádky trhů JEDNÍM dotazem (API route nemá React cache): z nich odlehlé ISINy i kotva rizika tříd (kolo 6b).
   const [vse, trhIsiny, radkyT] = await Promise.all([getScreenerETFData(), nactiTrhySrovnavace(), radkyTrhu()]);
-  const odlehle = odlehleZTrhu(trhyZRadku(radkyT));
   const kotvy = kotvyZRadku(radkyT);
   const raw = vse.filter(jeVNabidce);
+  // Kolo 8: výnos třídy, který nesedí s jinou třídou téhož fondu (src/lib/tridyFondu.ts) – ze stejných řádků, bez dotazu navíc.
+  const odlehle = new Set([...odlehleZTrhu(trhyZRadku(radkyT)), ...tridyZRadku(raw as unknown as Record<string, unknown>[]).keys()]);
 
   // Index každého fondu (čištění nabídky + odvození z názvu, viz src/utils/indexNormalization.ts).
   const { indexy, skupiny: vsechnySkupiny } = sestavIndexy(raw);
@@ -1531,6 +1540,10 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší komoditní ETF fondy - přehled ETF na zlato, stříbro, ropu a další komodity.',
     filters: {
       category: 'Komodity',
+      // Kolo 8: krypto ETC vede zdroj u části produktů jako „Komodity“ (Invesco Physical Bitcoin, Xtrackers Galaxy Bitcoin/
+      // Ethereum, 21shares Bitcoin Gold) – vyhrávaly kartu „Nejvýkonnější“ i medián. Krypto má vlastní žebříček.
+      focusExcludes: ['Cryptocurrenc'],
+      nameExcludeMatches: ['\\m(Bitcoin|Ethereum|Solana|Crypto|XRP|Cardano|Polkadot|Litecoin|Avalanche|Chainlink)'],
       minFundSize: 10,
     },
     sortBy: 'fund_size_numeric',
@@ -1576,7 +1589,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Technology', 'Tech', 'Nasdaq', 'Information', 'Digital', ' AI ', 'Cloud', 'Semiconductor'],
-      nameExcludes: ['Biotech', 'Fintech', 'Medtech', 'Healthtech'],
+      // Kolo 8: „AI Enhanced/Optimized“ = kvantové fondy na celý trh (Pictet PQWD…), ne technologie.
+      nameExcludes: ['Biotech', 'Fintech', 'Medtech', 'Healthtech', 'AI Enhanced', 'AI Optimized'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1725,8 +1739,18 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     metaDescription: 'Nejlepší americké ETF fondy - přehled ETF na US akciový trh.',
     filters: {
       category: 'Akcie',
-      nameContains: ['USA', 'US ', 'United States', 'America', 'S&P', 'Nasdaq', 'Dow Jones'],
-      nameExcludes: [...BROAD_MARKET_EXCLUDES, 'ex USA', 'ex-USA', 'ex US', 'ex-US'],
+      // Kolo 8 (22. 10. 2026): „US “ a „America“ jako podřetězce chytaly ~25 neamerických fondů z 275 („HSBC PLUS World“,
+      // „ESG Focus“, Latin America IUSC 2 mld. €, S&P Eurozone Climate, S&P Europe ex UK, S&P Select Frontier, S&P Global
+      // Mining WMIN na kartě „Nejvýkonnější“, Dow Jones Global Titans 50…). Teď „US“ jen jako celé slovo, vyřazení
+      // podle celých slov (Global – kromě emitenta „Global X“, World, Europe, Latin, Emerging, EM, Asia…) a podle
+      // zaměření ze zdroje (investment_focus „World“, „Europe“, „Emerging“…). VIX futures, zdravotnické přístroje
+      // a kyberbezpečnost (globální sektor) do „amerických akcií“ nepatří. Seznam změn: ZAMERNA-ROZHODNUTI.md (kolo 8).
+      nameContains: ['USA', 'United States', 'U.S.', 'America', 'S&P', 'Nasdaq', 'Dow Jones'],
+      nameMatches: ['\\mUS\\M'],
+      // „Industrial“ jen jako sektor („Industrials“) – Dow Jones Industrial Average (SXRU, 1,7 mld. €) je americký index 30 firem.
+      nameExcludes: [...BROAD_MARKET_EXCLUDES.filter((t) => t !== 'Industrial'), 'Industrials', 'Industrial Renaissance', 'ex USA', 'ex-USA', 'ex US', 'ex-US', 'VIX', 'Medical', 'Cybersecurity'],
+      nameExcludeMatches: ['\\m(Global(?! X\\M)|World|Europe|European|Eurozone|EURO STOXX|Latin|Frontier|Emerging|EM|Titans|Asia|Asian|International|ACWI|All Country|Japan|China|Pacific|UK|Miners|Mining)\\M'],
+      focusExcludes: ['World', 'Europe', 'Emerging', 'Latin America', 'Asia', 'Pacific'],
       minFundSize: 100,
     },
     sortBy: 'fund_size_numeric',
@@ -1863,6 +1887,8 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Industrial', 'Industry', 'Manufacturing'],
+      // Kolo 8: Dow Jones Industrial Average (SXRU – karta „Největší“) je široký americký index, ne průmyslový sektor.
+      nameExcludes: ['Industrial Average'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
@@ -1990,6 +2016,9 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     filters: {
       category: 'Akcie',
       nameContains: ['Artificial Intelligence', ' AI ', 'Machine Learning', 'Big Data'],
+      // Kolo 8: „AI Enhanced“ / „AI Optimized“ = kvantové fondy na celý trh, které AI jen používají k výběru akcií
+      // (Pictet PQWD/PQEU/PQWX, LAIQON) – vyhrávaly kartu „Nejnižší poplatek“.
+      nameExcludes: ['AI Enhanced', 'AI Optimized'],
       minFundSize: 50,
     },
     sortBy: 'fund_size_numeric',
