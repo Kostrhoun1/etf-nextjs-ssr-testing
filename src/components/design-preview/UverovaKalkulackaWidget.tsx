@@ -10,8 +10,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Wallet, Coins, TrendingDown, Percent, AlertTriangle, Banknote , ChevronUp, ChevronDown } from 'lucide-react';
+import { Wallet, Coins, TrendingDown, Percent, AlertTriangle, Banknote  } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 
 /**
  * Interaktivní jádro úvěrové kalkulačky (spotřebitelský úvěr) – redesign.
@@ -34,10 +35,11 @@ const fmtCZK = (amount: number) =>
     maximumFractionDigits: 0,
   }).format(amount);
 
+/* Popisky osy: nezlomitelné mezery (U+00A0) – recharts jinak „1,5 mil. Kč“ láme na dva řádky. */
 const fmtCompact = (v: number) => {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')} mil. Kč`;
-  if (v >= 1_000) return `${Math.round(v / 1000)} tis. Kč`;
-  return `${Math.round(v)} Kč`;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')}\u00a0mil.\u00a0Kč`;
+  if (v >= 1_000) return `${Math.round(v / 1000)}\u00a0tis.\u00a0Kč`;
+  return `${Math.round(v)}\u00a0Kč`;
 };
 
 interface LoanRow {
@@ -87,60 +89,6 @@ function buildSchedule(loanAmount: number, interestRate: number, loanPeriod: num
 }
 // ===== KONEC převzaté logiky =====
 
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-  onBlur,
-  step,
-  min,
-  max,
-  suffix,
-  hint,
-}: {
-  id: string;
-  label: React.ReactNode;
-  value: number;
-  onChange: (v: number) => void;
-  onBlur?: () => void;
-  step?: string;
-  min?: number;
-  max?: number;
-  suffix?: string;
-  hint?: string;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm text-slate-600 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="decimal"
-          step={step}
-          min={min}
-          max={max}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          onBlur={onBlur}
-          className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-          {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
-          {(() => { const sN = parseFloat(step ?? '1') || 1; const cl = (v: number) => { if (min != null && v < min) v = min; if (max != null && v > max) v = max; return Number(v.toFixed(6)); }; return (
-          <div className="flex flex-col">
-            <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => onChange(cl(value + sN))} className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300"><ChevronUp className="w-3.5 h-3.5" /></button>
-            <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => onChange(cl(value - sN))} className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px"><ChevronDown className="w-3.5 h-3.5" /></button>
-          </div> ); })()}
-        </div>
-      </div>
-      {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
-    </div>
-  );
-}
 
 type ChartDatum = {
   year: number;
@@ -175,9 +123,12 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
 
 export default function UverovaKalkulackaWidget() {
   // Výchozí hodnoty 1:1 z původní komponenty ConsumerLoanCalculator.tsx
-  const [loanAmount, setLoanAmount] = useState<number>(500000);
-  const [interestRate, setInterestRate] = useState<number>(8.5);
-  const [loanPeriod, setLoanPeriod] = useState<number>(5);
+  // null = prázdné / nedopsané pole → výsledek „—“ (žádná tichá 0, žádné „4,9“ → 49 %).
+  const [loanAmountV, setLoanAmount] = useState<number | null>(500000);
+  const [interestRateV, setInterestRate] = useState<number | null>(8.5);
+  const [loanPeriodV, setLoanPeriod] = useState<number | null>(5);
+  const vstupyOk = loanAmountV != null && interestRateV != null && loanPeriodV != null;
+  const loanAmount = loanAmountV ?? 0, interestRate = interestRateV ?? 0, loanPeriod = loanPeriodV ?? 0;
 
   const loanData = useMemo(
     () => buildSchedule(loanAmount, interestRate, loanPeriod),
@@ -217,9 +168,9 @@ export default function UverovaKalkulackaWidget() {
     return [start, ...rest];
   }, [loanData, loanAmount]);
 
-  const hasData = Boolean(summary);
+  const hasData = vstupyOk && Boolean(summary);
   const warn =
-    loanAmount > 0 &&
+    vstupyOk && loanAmount > 0 &&
     (loanAmount < 50000 || loanAmount > 2000000 || interestRate < 3 || interestRate > 25);
 
   return (
@@ -230,18 +181,18 @@ export default function UverovaKalkulackaWidget() {
           Parametry úvěru
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <NumberField
+          <CisloPole
             id="loanAmount"
             label="Výše úvěru"
-            value={loanAmount}
+            value={loanAmountV}
             min={10000}
             max={5000000}
             step="10000"
-            onChange={(v) => setLoanAmount(Math.max(0, v))}
+            onChange={setLoanAmount}
             suffix="Kč"
             hint="Obvykle 50 000 – 2 000 000 Kč"
           />
-          <NumberField
+          <CisloPole
             id="interestRate"
             label={
               <span className="inline-flex items-center gap-1">
@@ -251,22 +202,23 @@ export default function UverovaKalkulackaWidget() {
                 </InfoTip>
               </span>
             }
-            value={interestRate}
-            min={0}
-            max={50}
+            value={interestRateV}
+            min={0.1}
+            max={30}
             step="0.1"
-            onChange={(v) => setInterestRate(Math.max(0, v))}
+            onChange={setInterestRate}
             suffix="%"
             hint="Typicky 6 – 15 % ročně"
           />
-          <NumberField
+          <CisloPole
             id="loanPeriod"
             label="Doba splácení"
-            value={loanPeriod}
+            value={loanPeriodV}
             min={1}
             max={10}
             step="1"
-            onChange={(v) => setLoanPeriod(Math.max(1, Math.min(10, Math.round(v) || 1)))}
+            tisice={false}
+            onChange={setLoanPeriod}
             suffix="let"
             hint="Obvykle 1 – 7 let"
           />
@@ -293,6 +245,7 @@ export default function UverovaKalkulackaWidget() {
       </div>
 
       {/* Souhrn výsledků */}
+      {!hasData && <VysledekChybi />}
       {hasData && summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-lg border border-slate-200 bg-white p-4">
@@ -380,7 +333,7 @@ export default function UverovaKalkulackaWidget() {
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
                   tickLine={false}
                   axisLine={false}
-                  width={64}
+                  width={80}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 <Area

@@ -21,6 +21,7 @@ import {
   Dices,
 } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { CisloPole } from '@/components/CisloInput';
 
 /**
  * Interaktivní jádro Monte Carlo simulátoru portfolia – redesign.
@@ -267,10 +268,15 @@ const fmtCZK = (amount: number) =>
     maximumFractionDigits: 0,
   }).format(amount);
 
+/* Výsledky náhodné simulace zaokrouhlujeme na tisíce – „2 826 294 Kč“ budilo falešnou přesnost
+   (revize AD 22. 10. 2026). Vklady (zadané uživatelem) zůstávají přesné přes fmtCZK. */
+const fmtTis = (amount: number) => fmtCZK(Math.round(amount / 1000) * 1000);
+
+/* Popisky osy: nezlomitelné mezery (U+00A0) – recharts jinak „1,5 mil. Kč“ láme na dva řádky. */
 const fmtCompact = (v: number) => {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')} mil. Kč`;
-  if (v >= 1_000) return `${Math.round(v / 1000)} tis. Kč`;
-  return `${Math.round(v)} Kč`;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace('.', ',')}\u00a0mil.\u00a0Kč`;
+  if (v >= 1_000) return `${Math.round(v / 1000)}\u00a0tis.\u00a0Kč`;
+  return `${Math.round(v)}\u00a0Kč`;
 };
 
 const yearWord = (n: number) => (n === 1 ? 'roce' : n >= 2 && n <= 4 ? 'letech' : 'letech');
@@ -317,7 +323,7 @@ function GraphTooltip({
             <span className="flex items-center gap-1.5 text-slate-300">
               <span className={`inline-block w-2 h-2 rounded-full ${dot}`} /> {name}
             </span>
-            <span className="font-medium tabular-nums">{fmtCZK(val)}</span>
+            <span className="font-medium tabular-nums">{fmtTis(val)}</span>
           </div>
         ))}
       </div>
@@ -329,11 +335,16 @@ export default function MonteCarloWidget() {
   // Vstupy 1:1 s původním simulátorem (MonteCarloSimulator.tsx)
   const [allocation, setAllocation] = useState<AssetAllocation>(getDefaultAllocation());
   const [activePreset, setActivePreset] = useState<string | null>('vyvazene6040');
-  const [initialInvestment, setInitialInvestment] = useState<number>(100000);
-  const [monthlyContribution, setMonthlyContribution] = useState<number>(5000);
-  const [investmentPeriod, setInvestmentPeriod] = useState<number>(20);
+  // null = prázdné / nedopsané pole → simulaci nejde spustit (žádná tichá 0).
+  const [initialInvestmentV, setInitialInvestmentV] = useState<number | null>(100000);
+  const [monthlyContributionV, setMonthlyContributionV] = useState<number | null>(5000);
+  const [investmentPeriodV, setInvestmentPeriodV] = useState<number | null>(20);
   const [simulations, setSimulations] = useState<number>(600);
-  const [goalAmount, setGoalAmount] = useState<number>(3000000);
+  const [goalAmountV, setGoalAmountV] = useState<number | null>(3000000);
+  const vstupyOk = initialInvestmentV != null && monthlyContributionV != null && investmentPeriodV != null && goalAmountV != null;
+  const initialInvestment = initialInvestmentV ?? 0, monthlyContribution = monthlyContributionV ?? 0,
+    investmentPeriod = investmentPeriodV ?? 1, goalAmount = goalAmountV ?? 0;
+  const zmena = (set: (v: number | null) => void) => (v: number | null) => { set(v); setResults(null); };
 
   const [results, setResults] = useState<SimulationResult[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -381,7 +392,7 @@ export default function MonteCarloWidget() {
   };
 
   const runSimulation = () => {
-    if (totalAllocation !== 100) return;
+    if (totalAllocation !== 100 || !vstupyOk) return;
     setIsLoading(true);
     // Deterministické semínko odvozené ze vstupů: stejné zadání ⇒ stejný výsledek.
     const seed =
@@ -515,7 +526,7 @@ export default function MonteCarloWidget() {
                     value={allocation[key]}
                     onChange={(e) => setAssetWeight(key, Number(e.target.value))}
                     aria-label={`Podíl: ${ASSETS[key].label}`}
-                    className="w-full accent-teal-600"
+                    className="w-full h-11 accent-teal-600 cursor-pointer"
                   />
                 </div>
               ))}
@@ -539,102 +550,21 @@ export default function MonteCarloWidget() {
 
         {/* Číselné vstupy */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label htmlFor="mc-initial" className="block text-sm text-slate-600 mb-1">
-              Počáteční investice
-            </label>
-            <div className="relative">
-              <input
-                id="mc-initial"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={100000000}
-                value={initialInvestment}
-                onChange={(e) => {
-                  setInitialInvestment(Math.max(0, Number(e.target.value)));
-                  setResults(null);
-                }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-                Kč
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="mc-monthly" className="block text-sm text-slate-600 mb-1">
-              Měsíční vklad
-            </label>
-            <div className="relative">
-              <input
-                id="mc-monthly"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={10000000}
-                value={monthlyContribution}
-                onChange={(e) => {
-                  setMonthlyContribution(Math.max(0, Number(e.target.value)));
-                  setResults(null);
-                }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-                Kč
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="mc-period" className="block text-sm text-slate-600 mb-1">
-              Investiční horizont
-            </label>
-            <div className="relative">
-              <input
-                id="mc-period"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={50}
-                value={investmentPeriod}
-                onChange={(e) => {
-                  setInvestmentPeriod(Math.max(1, Math.min(50, Number(e.target.value))));
-                  setResults(null);
-                }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-                let
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="mc-goal" className="block text-sm text-slate-600 mb-1">
-              <InfoTip label="Volitelný cíl. Simulátor spočítá, v kolika procentech scénářů portfolio na konci horizontu tuto částku dosáhne nebo překročí.">Cílová částka</InfoTip>
-            </label>
-            <div className="relative">
-              <input
-                id="mc-goal"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={1000000000}
-                value={goalAmount}
-                onChange={(e) => {
-                  setGoalAmount(Math.max(0, Number(e.target.value)));
-                  setResults(null);
-                }}
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-10 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-                Kč
-              </span>
-            </div>
-          </div>
+          <CisloPole id="mc-initial" label="Počáteční investice" value={initialInvestmentV} min={0} max={100000000} step="10000" tlacitka={false} suffix="Kč" onChange={zmena(setInitialInvestmentV)} />
+          <CisloPole id="mc-monthly" label="Měsíční vklad" value={monthlyContributionV} min={0} max={10000000} step="500" tlacitka={false} suffix="Kč" onChange={zmena(setMonthlyContributionV)} />
+          <CisloPole id="mc-period" label="Investiční horizont" value={investmentPeriodV} min={1} max={50} tisice={false} tlacitka={false} suffix="let" onChange={zmena(setInvestmentPeriodV)} />
+          <CisloPole
+            id="mc-goal"
+            label={<InfoTip label="Volitelný cíl. Simulátor spočítá, v kolika procentech scénářů portfolio na konci horizontu tuto částku dosáhne nebo překročí.">Cílová částka</InfoTip>}
+            value={goalAmountV} min={0} max={1000000000} step="100000" tlacitka={false} suffix="Kč" onChange={zmena(setGoalAmountV)}
+          />
         </div>
+        {/* Měna: výnosy aktiv jsou DOLAROVÉ (US třídy aktiv). Dřív stránka tvrdila „v korunách“ (revize 22. 10. 2026). */}
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900/80 leading-relaxed" data-qa="mc-mena">
+          <strong className="font-semibold text-amber-800">Bez vlivu kurzu koruny:</strong> model počítá s dlouhodobými výnosy a kolísáním
+          amerických tříd aktiv v dolarech (USD). Částky v Kč tak odpovídají situaci, kdy by se kurz USD/CZK za celé období nezměnil –
+          skutečný výsledek v korunách může být vyšší i nižší.
+        </p>
 
         {/* Počet simulací */}
         <div className="mt-4">
@@ -660,7 +590,7 @@ export default function MonteCarloWidget() {
               setSimulations(Number(e.target.value));
               setResults(null);
             }}
-            className="w-full accent-teal-600"
+            className="w-full h-11 accent-teal-600 cursor-pointer"
           />
           <div className="flex justify-between text-xs text-slate-400 mt-1">
             <span>100</span>
@@ -673,7 +603,7 @@ export default function MonteCarloWidget() {
         <button
           type="button"
           onClick={runSimulation}
-          disabled={isLoading || totalAllocation !== 100}
+          disabled={isLoading || totalAllocation !== 100 || !vstupyOk}
           className="mt-5 w-full inline-flex items-center justify-center gap-2 min-h-[48px] rounded-lg bg-teal-700 px-4 py-3 text-sm font-medium text-white hover:bg-teal-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? (
@@ -686,6 +616,9 @@ export default function MonteCarloWidget() {
             </>
           )}
         </button>
+        {!vstupyOk && (
+          <p className="mt-2 text-center text-xs text-amber-700">Doplňte všechna čísla (vklad i cíl mohou být 0) – pak simulaci spustíte.</p>
+        )}
         {totalAllocation !== 100 && (
           <p className="mt-2 text-center text-xs text-amber-700">
             Nejprve nastavte složení portfolia na 100 % (aktuálně {totalAllocation} %).
@@ -706,7 +639,7 @@ export default function MonteCarloWidget() {
                   </span>
                   <div>
                     <p className="text-sm text-slate-500">
-                      Šance dosáhnout {fmtCZK(ranWith.goal)} za {ranWith.years} let
+                      Šance dosáhnout {fmtCZK(ranWith.goal)} za {ranWith.years} {ranWith.years === 1 ? 'rok' : ranWith.years >= 2 && ranWith.years <= 4 ? 'roky' : 'let'}
                     </p>
                     <p className="text-2xl font-bold text-slate-900 tabular-nums">
                       {ranWith.probGoal.toFixed(0)} %
@@ -743,7 +676,7 @@ export default function MonteCarloWidget() {
                 </p>
               </div>
               <p className="text-xl font-bold text-slate-900 tabular-nums">
-                {fmtCZK(finalRow.percentile5)}
+                {fmtTis(finalRow.percentile5)}
               </p>
             </div>
             <div className="rounded-lg border border-teal-200 bg-teal-50/40 p-4">
@@ -758,7 +691,7 @@ export default function MonteCarloWidget() {
                 </p>
               </div>
               <p className="text-xl font-bold text-teal-800 tabular-nums">
-                {fmtCZK(finalRow.percentile50)}
+                {fmtTis(finalRow.percentile50)}
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-4">
@@ -773,7 +706,7 @@ export default function MonteCarloWidget() {
                 </p>
               </div>
               <p className="text-xl font-bold text-emerald-700 tabular-nums">
-                {fmtCZK(finalRow.percentile95)}
+                {fmtTis(finalRow.percentile95)}
               </p>
             </div>
           </div>
@@ -795,7 +728,10 @@ export default function MonteCarloWidget() {
                 <span className="inline-block w-3 h-3 rounded-sm bg-teal-400" /> Pásmo 25–75 %
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="inline-block w-4 h-0.5 rounded bg-teal-600" /> Medián{' '}
+                <span className="inline-block w-4 h-0.5 rounded bg-teal-600" /> Medián
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-4 h-0.5 rounded bg-red-300" /> Pesimistický scénář (5 %){' '}
                 <InfoTip label="Percentil udává, jaký podíl scénářů skončil pod danou hodnotou. 5. percentil = jen 5 % scénářů bylo horších; 95. percentil = jen 5 % bylo lepších.">
                   percentily
                 </InfoTip>
@@ -828,7 +764,7 @@ export default function MonteCarloWidget() {
                     tick={{ fontSize: 11, fill: '#94a3b8' }}
                     tickLine={false}
                     axisLine={false}
-                    width={72}
+                    width={84}
                   />
                   <Tooltip content={<GraphTooltip />} />
                   {/* Spodní okraj širokého pásma (neviditelná výplň po pesimistický) */}
@@ -887,8 +823,9 @@ export default function MonteCarloWidget() {
               </ResponsiveContainer>
             </div>
             <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-              Najetím myší (nebo tapnutím na mobilu) zobrazíte hodnoty pro daný rok ve všech pásmech.
-              Hodnoty jsou nominální, bez zohlednění inflace, daní a poplatků.
+              Červená čára je pesimistický scénář: jen 5 % simulací dopadlo hůř. Najetím myší (nebo tapnutím na mobilu)
+              zobrazíte hodnoty pro daný rok ve všech pásmech. Hodnoty jsou nominální, bez inflace, daní, poplatků
+              a bez vlivu kurzu koruny (výnosy aktiv v USD), zaokrouhlené na tisíce.
             </p>
           </div>
 
@@ -900,7 +837,7 @@ export default function MonteCarloWidget() {
             <p className="mt-3 text-sm md:text-base text-teal-50 leading-relaxed">
               Celkem vložíte {fmtCZK(totalInvested)}. V polovině scénářů portfolio za {ranWith.years}{' '}
               {ranWith.years === 1 ? 'rok' : ranWith.years >= 2 && ranWith.years <= 4 ? 'roky' : 'let'} skončí nad{' '}
-              <strong className="font-semibold">{fmtCZK(finalRow.percentile50)}</strong>,
+              <strong className="font-semibold">{fmtTis(finalRow.percentile50)}</strong>,
               ale skutečný výsledek může být kdekoli v rámci pásma – budoucnost nikdo nezná. Proto se
               díváme na rozsah, ne na jediné číslo.
             </p>
@@ -914,8 +851,8 @@ export default function MonteCarloWidget() {
                 <p className="font-semibold text-amber-800">Co simulace nezohledňuje</p>
                 <p className="mt-1 leading-relaxed">
                   Předpokládá normální rozdělení výnosů (reálné trhy mají „tlusté chvosty“ – extrémní
-                  události jsou častější). Nepočítá s inflací, daněmi, poplatky ani s nepředvídatelnými
-                  událostmi. Jde o pravděpodobnostní model, ne o předpověď.
+                  události jsou častější). Výnosy aktiv jsou dolarové (USD) – nepočítá s pohybem kurzu koruny,
+                  s inflací, daněmi, poplatky ani s nepředvídatelnými událostmi. Jde o pravděpodobnostní model, ne o předpověď.
                 </p>
               </div>
             </div>

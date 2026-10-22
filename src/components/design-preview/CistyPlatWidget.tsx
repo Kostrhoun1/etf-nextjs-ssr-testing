@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Wallet, TrendingDown, Receipt, BadgePercent, Building2, AlertTriangle } from 'lucide-react';
 import InfoTip from './InfoTip';
+import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 
 /**
  * Interaktivní jádro kalkulačky čisté mzdy 2026 – PRESKINOVANÁ verze (design systém teal/slate).
@@ -34,6 +35,13 @@ const CHILD_TAX_CREDIT_THIRD_PLUS = 2320; // Kč za 3. a další dítě
 const DISABILITY_TAX_CREDIT_1_2_MONTHLY = 210; // Kč pro invaliditu 1./2. stupeň
 
 const EMPLOYER_SOCIAL_INSURANCE_RATE = 0.248; // 24,8 %
+// STROP sociálního pojištění (zaměstnanec i zaměstnavatel): maximální vyměřovací základ = 48× průměrná mzda
+// = 48 × 48 967 = 2 350 416 Kč ročně (ČSSZ, Přehled nejdůležitějších údajů pro sociální zabezpečení v roce 2026).
+// Nad strop se sociální pojištění neplatí; zdravotní pojištění strop od 2013 nemá. Dřív chyběl → nad
+// ~195 868 Kč měsíčně byla čistá mzda podhodnocená (revize 22. 10. 2026). Měsíčně počítáme PRŮMĚR za rok
+// (ve skutečnosti se platí plně, dokud roční úhrn nedosáhne stropu, pak nic).
+const MAX_SOCIAL_BASE_ANNUAL_2026 = 48 * AVERAGE_SALARY_2026; // 2 350 416 Kč
+const MAX_SOCIAL_BASE_MONTHLY = MAX_SOCIAL_BASE_ANNUAL_2026 / 12; // 195 868 Kč
 const EMPLOYER_HEALTH_INSURANCE_RATE = 0.09; // 9 %
 
 interface NetSalaryParams {
@@ -57,6 +65,10 @@ interface NetSalaryData {
   taxBonus: number;
   netSalary: number;
   employerCosts: number;
+  employerSocialInsurance: number;
+  employerHealthInsurance: number;
+  /** Hrubá nad stropem sociálního pojištění → měsíční částky jsou průměr za rok. */
+  socialCapped: boolean;
   taxEffectiveRate: number;
   breakdown: {
     monthlyTaxCredit: number;
@@ -70,16 +82,17 @@ interface NetSalaryData {
 function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
   const { grossSalary, isPensioner, hasChildren, numberOfChildren, hasDisability } = params;
 
-  // Výpočet pojistného
+  // Výpočet pojistného – sociální jen do stropu (maximální vyměřovací základ), zdravotní bez stropu.
   let socialInsurance: number;
   let healthInsurance: number;
+  const socialBase = Math.min(grossSalary, MAX_SOCIAL_BASE_MONTHLY);
 
   if (isPensioner) {
     // Pracující důchodci – 0,6 % sociální (sleva 6,5 %), 4,5 % zdravotní
-    socialInsurance = grossSalary * (SOCIAL_INSURANCE_RATE - PENSIONER_SOCIAL_DISCOUNT);
+    socialInsurance = socialBase * (SOCIAL_INSURANCE_RATE - PENSIONER_SOCIAL_DISCOUNT);
     healthInsurance = grossSalary * PENSIONER_HEALTH_INSURANCE_RATE;
   } else {
-    socialInsurance = grossSalary * SOCIAL_INSURANCE_RATE;
+    socialInsurance = socialBase * SOCIAL_INSURANCE_RATE;
     healthInsurance = grossSalary * HEALTH_INSURANCE_RATE;
   }
 
@@ -130,7 +143,7 @@ function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
   const netSalary = grossSalary - totalInsurance - netTax + taxBonus;
 
   // Náklady zaměstnavatele
-  const employerSocialInsurance = grossSalary * EMPLOYER_SOCIAL_INSURANCE_RATE;
+  const employerSocialInsurance = socialBase * EMPLOYER_SOCIAL_INSURANCE_RATE;
   const employerHealthInsurance = grossSalary * EMPLOYER_HEALTH_INSURANCE_RATE;
   const employerCosts = grossSalary + employerSocialInsurance + employerHealthInsurance;
 
@@ -149,6 +162,9 @@ function calculateNetSalary(params: NetSalaryParams): NetSalaryData {
     taxBonus,
     netSalary,
     employerCosts,
+    employerSocialInsurance,
+    employerHealthInsurance,
+    socialCapped: grossSalary > MAX_SOCIAL_BASE_MONTHLY,
     taxEffectiveRate,
     breakdown: { monthlyTaxCredit, childTaxCredit, disabilityTaxCredit, totalTaxCredits },
   };
@@ -164,52 +180,6 @@ const fmtCZK = (amount: number) =>
   }).format(amount);
 
 const fmtPct = (rate: number) => `${(rate * 100).toFixed(1).replace('.', ',')} %`;
-
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-  step,
-  min,
-  max,
-  suffix,
-}: {
-  id: string;
-  label: React.ReactNode;
-  value: number;
-  onChange: (v: number) => void;
-  step?: string;
-  min?: number;
-  max?: number;
-  suffix?: string;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm text-slate-600 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="numeric"
-          step={step}
-          min={min}
-          max={max}
-          value={value === 0 ? '' : value}
-          onChange={(e) => onChange(Number(e.target.value) || 0)}
-          className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        {suffix && (
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-            {suffix}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /** Vodorovný skládaný pruh: rozpad hrubé mzdy na čistou + odvody + daň. */
 function Breakdown({ data }: { data: NetSalaryData }) {
@@ -247,26 +217,28 @@ function Breakdown({ data }: { data: NetSalaryData }) {
 }
 
 export default function CistyPlatWidget() {
-  const [grossSalary, setGrossSalary] = useState<number>(45000);
+  const [grossSalary, setGrossSalary] = useState<number | null>(45000);
   const [isPensioner, setIsPensioner] = useState<boolean>(false);
   const [hasChildren, setHasChildren] = useState<boolean>(false);
-  const [numberOfChildren, setNumberOfChildren] = useState<number>(1);
+  const [numberOfChildren, setNumberOfChildren] = useState<number | null>(1);
   const [hasDisability, setHasDisability] = useState<boolean>(false);
 
+  // Výsledek jen z vyplněných polí – prázdná hrubá mzda = „—“, ne čistá mzda 0 Kč.
+  const vstupyOk = grossSalary != null && grossSalary > 0 && (!hasChildren || numberOfChildren != null);
   const data = useMemo(
     () =>
-      calculateNetSalary({
-        grossSalary,
+      !vstupyOk ? null : calculateNetSalary({
+        grossSalary: grossSalary ?? 0,
         isPensioner,
         hasChildren,
-        numberOfChildren: hasChildren ? numberOfChildren : 0,
+        numberOfChildren: hasChildren ? numberOfChildren ?? 0 : 0,
         hasDisability,
       }),
-    [grossSalary, isPensioner, hasChildren, numberOfChildren, hasDisability],
+    [vstupyOk, grossSalary, isPensioner, hasChildren, numberOfChildren, hasDisability],
   );
 
-  const netShare = grossSalary > 0 ? (data.netSalary / grossSalary) * 100 : 0;
-  const belowMinWage = grossSalary > 0 && grossSalary < 22400;
+  const netShare = data && data.grossSalary > 0 ? (data.netSalary / data.grossSalary) * 100 : 0;
+  const belowMinWage = grossSalary != null && grossSalary > 0 && grossSalary < 22400;
 
   return (
     <div className="space-y-4">
@@ -276,14 +248,15 @@ export default function CistyPlatWidget() {
           Vaše údaje
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <NumberField
+          <CisloPole
             id="gross"
             label="Hrubá mzda (měsíčně)"
             value={grossSalary}
             min={0}
             max={5000000}
             step="1000"
-            onChange={(v) => setGrossSalary(Math.max(0, v))}
+            tlacitka={false}
+            onChange={setGrossSalary}
             suffix="Kč"
           />
           <div className="space-y-2.5 sm:pt-7">
@@ -324,13 +297,15 @@ export default function CistyPlatWidget() {
 
         {hasChildren && (
           <div className="mt-4 max-w-[12rem]">
-            <NumberField
+            <CisloPole
               id="children"
               label="Počet dětí"
               value={numberOfChildren}
               min={0}
               max={10}
-              onChange={(v) => setNumberOfChildren(Math.max(0, Math.min(10, Math.round(v))))}
+              tisice={false}
+              tlacitka={false}
+              onChange={setNumberOfChildren}
             />
           </div>
         )}
@@ -348,6 +323,9 @@ export default function CistyPlatWidget() {
         )}
       </div>
 
+      {!data ? (
+        <VysledekChybi co={grossSalary == null || grossSalary <= 0 ? 'hrubou mzdu' : 'počet dětí'} />
+      ) : (<>
       {/* Hlavní výsledek */}
       <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">
         <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
@@ -355,8 +333,8 @@ export default function CistyPlatWidget() {
         </p>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div>
-            <p className="text-sm text-teal-100">Čistá mzda měsíčně</p>
-            <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1">{fmtCZK(data.netSalary)}</p>
+            <p className="text-sm text-teal-100">Čistá mzda měsíčně{data.socialCapped ? ' (průměr za rok)' : ''}</p>
+            <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1" data-qa="cista-mzda">{fmtCZK(data.netSalary)}</p>
             <p className="text-xs text-teal-200 mt-1">
               {netShare.toFixed(1).replace('.', ',')} % z hrubé mzdy
             </p>
@@ -376,6 +354,12 @@ export default function CistyPlatWidget() {
             <p className="text-xs text-teal-200 mt-1">za 12 měsíců</p>
           </div>
         </div>
+        {data.socialCapped && (
+          <p className="mt-4 text-xs text-teal-100 leading-relaxed border-t border-white/15 pt-3">
+            Hrubá mzda je nad stropem sociálního pojištění (maximální vyměřovací základ 2 350 416 Kč ročně = 48× průměrná mzda,
+            ČSSZ 2026). Sociální pojištění se platí, dokud roční příjem strop nepřekročí, pak už ne – měsíční částky proto ukazujeme jako průměr za rok.
+          </p>
+        )}
       </div>
 
       {/* Vizuální rozpad hrubá → čistá */}
@@ -515,11 +499,11 @@ export default function CistyPlatWidget() {
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-slate-600">Sociální pojištění zaměstnavatele (24,8 %)</dt>
-            <dd className="font-semibold text-slate-900 tabular-nums">{fmtCZK(data.grossSalary * EMPLOYER_SOCIAL_INSURANCE_RATE)}</dd>
+            <dd className="font-semibold text-slate-900 tabular-nums">{fmtCZK(data.employerSocialInsurance)}</dd>
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-slate-600">Zdravotní pojištění zaměstnavatele (9 %)</dt>
-            <dd className="font-semibold text-slate-900 tabular-nums">{fmtCZK(data.grossSalary * EMPLOYER_HEALTH_INSURANCE_RATE)}</dd>
+            <dd className="font-semibold text-slate-900 tabular-nums">{fmtCZK(data.employerHealthInsurance)}</dd>
           </div>
           <div className="flex justify-between gap-3 border-t border-slate-200 pt-2.5">
             <dt className="font-medium text-slate-900">Celkové náklady zaměstnavatele</dt>
@@ -527,6 +511,7 @@ export default function CistyPlatWidget() {
           </div>
         </dl>
       </div>
+      </>)}
     </div>
   );
 }

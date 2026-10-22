@@ -10,9 +10,8 @@ import {
   AlertTriangle,
   PiggyBank,
   TrendingUp,
-  ChevronUp,
-  ChevronDown,
 } from 'lucide-react';
+import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 
 /**
  * Interaktivní jádro kalkulačky nouzové rezervy – PRESKINOVANÁ verze.
@@ -61,7 +60,14 @@ interface EmergencyFundData {
 
 /* ===== VÝPOČET 1:1 z calculateEmergencyFund (řádky 63–217) – NEMĚNIT ===== */
 /** „1 měsíc“, „2–4 měsíce“, „5+ měsíců“ (dřív vždy „měsíců“ – „4 měsíců“). */
-const mesice = (n: number) => `${n.toLocaleString('cs-CZ')} ${n === 1 ? 'měsíc' : n >= 2 && n <= 4 ? 'měsíce' : 'měsíců'}`;
+/** Desetinná čísla mají v češtině 2. pád jednotného čísla: „4,8 měsíce“ (dřív „4,8 měsíců“). Rozhoduje
+ *  zobrazená (zaokrouhlená na 1 desetinné místo) hodnota: 3,0 → „3 měsíce“. */
+const mesiceSlovo = (n: number) => {
+  const z = Math.round(n * 10) / 10;
+  if (!Number.isInteger(z)) return 'měsíce';
+  return z === 1 ? 'měsíc' : z >= 2 && z <= 4 ? 'měsíce' : 'měsíců';
+};
+const mesice = (n: number) => `${(Math.round(n * 10) / 10).toLocaleString('cs-CZ')} ${mesiceSlovo(n)}`;
 
 function calculateEmergencyFund(params: EmergencyFundParams): EmergencyFundData {
   const {
@@ -188,57 +194,6 @@ const fmtCZK = (amount: number) =>
     maximumFractionDigits: 0,
   }).format(amount);
 
-const fmtMonths = (v: number) => v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 });
-
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-  step,
-  min,
-  max,
-  suffix,
-}: {
-  id: string;
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  step?: string;
-  min?: number;
-  max?: number;
-  suffix?: string;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm text-slate-600 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="decimal"
-          step={step}
-          min={min}
-          max={max}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white pl-3 pr-20 py-2.5 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-          {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
-          {(() => { const sN = parseFloat(step ?? '1') || 1; const cl = (v: number) => { if (min != null && v < min) v = min; if (max != null && v > max) v = max; return Number(v.toFixed(6)); }; return (
-          <div className="flex flex-col">
-            <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => onChange(cl(value + sN))} className="flex items-center justify-center w-6 h-[18px] rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300"><ChevronUp className="w-3.5 h-3.5" /></button>
-            <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => onChange(cl(value - sN))} className="flex items-center justify-center w-6 h-[18px] rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px"><ChevronDown className="w-3.5 h-3.5" /></button>
-          </div> ); })()}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SelectField<T extends string>({
   id,
   label,
@@ -261,7 +216,7 @@ function SelectField<T extends string>({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
+        className="vyber w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-base text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -319,10 +274,11 @@ const RISK_LABEL: Record<RiskLevel, string> = {
 
 export default function NouzovaRezervaWidget() {
   // Vstupy – stejné výchozí hodnoty jako původní EmergencyFundCalculator
-  const [monthlyExpenses, setMonthlyExpenses] = useState<number>(40000);
-  const [currentSavings, setCurrentSavings] = useState<number>(100000);
-  const [monthlySavingCapacity, setMonthlySavingCapacity] = useState<number>(5000);
-  const [familySize, setFamilySize] = useState<number>(2);
+  // null = pole je prázdné / nedopsané → žádný výsledek ani verdikt („—“), nikdy tichá 0.
+  const [monthlyExpenses, setMonthlyExpenses] = useState<number | null>(40000);
+  const [currentSavings, setCurrentSavings] = useState<number | null>(100000);
+  const [monthlySavingCapacity, setMonthlySavingCapacity] = useState<number | null>(5000);
+  const [familySize, setFamilySize] = useState<number | null>(2);
 
   const [jobStability, setJobStability] = useState<JobStability>('stable');
   const [contractType, setContractType] = useState<ContractType>('permanent');
@@ -331,21 +287,27 @@ export default function NouzovaRezervaWidget() {
   const [hasSecondIncome, setHasSecondIncome] = useState<boolean>(false);
   const [hasDebt, setHasDebt] = useState<boolean>(false);
 
+  // Výsledek jen z úplných a smysluplných vstupů. Při prázdných/nulových výdajích dřív vyšlo
+  // „0 Kč“ a zároveň „Kritická priorita“ i „Cíl splněn“ (protimluv, test 22. 10. 2026).
+  const vstupyOk =
+    monthlyExpenses != null && monthlyExpenses > 0 &&
+    currentSavings != null && monthlySavingCapacity != null && familySize != null;
   const r = useMemo(
     () =>
-      calculateEmergencyFund({
-        monthlyExpenses: Math.max(0, monthlyExpenses),
+      !vstupyOk ? null : calculateEmergencyFund({
+        monthlyExpenses: Math.max(0, monthlyExpenses ?? 0),
         jobStability,
-        familySize: Math.max(1, familySize),
+        familySize: Math.max(1, familySize ?? 1),
         hasSecondIncome,
         hasDebt,
-        currentSavings: Math.max(0, currentSavings),
-        monthlySavingCapacity: Math.max(0, monthlySavingCapacity),
+        currentSavings: Math.max(0, currentSavings ?? 0),
+        monthlySavingCapacity: Math.max(0, monthlySavingCapacity ?? 0),
         contractType,
         ageGroup,
         education,
       }),
     [
+      vstupyOk,
       monthlyExpenses,
       currentSavings,
       monthlySavingCapacity,
@@ -359,14 +321,21 @@ export default function NouzovaRezervaWidget() {
     ]
   );
 
-  const currentAmount = Math.max(0, currentSavings);
-  const progressPercentage = Math.min(
-    100,
-    r.recommendedMonths > 0 ? (r.currentCoverage / r.recommendedMonths) * 100 : 0
-  );
-  const priority = PRIORITY_META[r.priorityLevel];
+  const currentAmount = Math.max(0, currentSavings ?? 0);
+  const progressPercentage = r
+    ? Math.min(100, r.recommendedMonths > 0 ? (r.currentCoverage / r.recommendedMonths) * 100 : 0)
+    : 0;
+  const priority = r ? PRIORITY_META[r.priorityLevel] : null;
+  // Spoří 0 Kč a rezerva chybí → k cíli se nedostane. Dřív „Čas do cíle: Hotovo – cíl je splněn“.
+  const nikdy = r != null && r.shortfall > 0 && (monthlySavingCapacity ?? 0) <= 0;
 
-  const warnExpenses = monthlyExpenses <= 0;
+  const warnExpenses = monthlyExpenses == null || monthlyExpenses <= 0;
+  const chybi = [
+    (monthlyExpenses == null || monthlyExpenses <= 0) && 'měsíční výdaje',
+    currentSavings == null && 'současné úspory (i 0)',
+    monthlySavingCapacity == null && 'měsíční spoření (i 0)',
+    familySize == null && 'počet osob',
+  ].filter(Boolean).join(', ');
 
   return (
     <div className="space-y-4">
@@ -378,43 +347,43 @@ export default function NouzovaRezervaWidget() {
 
         {/* Finanční údaje */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <NumberField
+          <CisloPole
             id="expenses"
             label="Měsíční výdaje"
             value={monthlyExpenses}
             min={0}
             max={5000000}
             step="1000"
-            onChange={(v) => setMonthlyExpenses(Math.max(0, v))}
+            onChange={setMonthlyExpenses}
             suffix="Kč"
           />
-          <NumberField
+          <CisloPole
             id="savings"
             label="Současné úspory"
             value={currentSavings}
             min={0}
             max={50000000}
             step="10000"
-            onChange={(v) => setCurrentSavings(Math.max(0, v))}
+            onChange={setCurrentSavings}
             suffix="Kč"
           />
-          <NumberField
+          <CisloPole
             id="capacity"
             label="Měsíční spoření"
             value={monthlySavingCapacity}
             min={0}
             max={1000000}
             step="1000"
-            onChange={(v) => setMonthlySavingCapacity(Math.max(0, v))}
+            onChange={setMonthlySavingCapacity}
             suffix="Kč"
           />
-          <NumberField
+          <CisloPole
             id="family"
             label="Počet osob v domácnosti"
             value={familySize}
             min={1}
             max={10}
-            onChange={(v) => setFamilySize(Math.max(1, Math.min(10, v)))}
+            onChange={setFamilySize}
           />
         </div>
 
@@ -495,25 +464,36 @@ export default function NouzovaRezervaWidget() {
         )}
       </div>
 
+      {/* Výsledky – jen z úplných vstupů. Bez nich žádné číslo ani verdikt. */}
+      {!r || !priority ? (
+        <VysledekChybi co={chybi || undefined} />
+      ) : (<>
       {/* Hlavní výsledkový panel */}
-      <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">
+      <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7" data-qa="nouzova-vysledek">
         <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
           <ShieldAlert className="w-4 h-4" /> Doporučená nouzová rezerva
         </p>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1">
+            <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1" data-qa="nouzova-castka">
               {fmtCZK(r.recommendedAmount)}
             </p>
             <p className="text-sm text-teal-100 mt-1">
-              {fmtMonths(r.recommendedMonths)} měsíců nezbytných výdajů
+              {mesice(r.recommendedMonths)} nezbytných výdajů
+            </p>
+            {/* Riziko výpadku příjmu určuje, na kolik měsíců rezerva má být (3–12). Dřív samostatná
+                karta „rizikový profil“ vedle „priority“ – působilo to jako dva protichůdné verdikty. */}
+            <p className="mt-2 inline-flex flex-wrap items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs text-teal-50">
+              <TrendingUp className="w-3.5 h-3.5" />
+              Riziko výpadku příjmu: <strong className="font-semibold">{RISK_LABEL[r.riskLevel].toLowerCase()}</strong>
+              <span className="text-teal-200">(určuje počet měsíců)</span>
             </p>
           </div>
           <div className="sm:border-l sm:border-white/15 sm:pl-5">
             <p className="text-sm text-teal-100">Aktuálně máte naspořeno</p>
             <p className="text-3xl md:text-4xl font-bold tabular-nums mt-1">{fmtCZK(currentAmount)}</p>
             <p className="text-xs text-teal-200 mt-1">
-              pokryje {fmtMonths(r.currentCoverage)} měsíců výdajů
+              pokryje {mesice(r.currentCoverage)} výdajů
             </p>
           </div>
         </div>
@@ -541,9 +521,9 @@ export default function NouzovaRezervaWidget() {
         </div>
       </div>
 
-      {/* Tři metriky: priorita / chybí / čas */}
+      {/* Tři metriky: naléhavost / chybí / čas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Priorita */}
+        {/* Naléhavost spoření (podle toho, kolik měsíců výdajů už máte) */}
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="flex items-center gap-2 mb-2">
             {priority.tone === 'emerald' ? (
@@ -553,7 +533,7 @@ export default function NouzovaRezervaWidget() {
             ) : (
               <Target className="w-4 h-4 text-teal-700 shrink-0" />
             )}
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Priorita</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Jak naléhavě spořit</p>
           </div>
           <p
             className={`text-lg font-bold ${
@@ -568,7 +548,7 @@ export default function NouzovaRezervaWidget() {
           >
             {priority.text}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">{priority.desc}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{priority.desc} Teď máte na {mesice(r.currentCoverage)}.</p>
         </div>
 
         {/* Kolik chybí dospořit */}
@@ -600,7 +580,12 @@ export default function NouzovaRezervaWidget() {
               Čas do cíle
             </p>
           </div>
-          {r.monthsToTarget > 0 ? (
+          {nikdy ? (
+            <>
+              <p className="text-lg font-bold text-slate-400">—</p>
+              <p className="text-xs text-slate-500 mt-0.5">bez měsíčního spoření se k cíli nedostanete</p>
+            </>
+          ) : r.monthsToTarget > 0 ? (
             <>
               <p className="text-lg font-bold text-slate-900 tabular-nums">
                 {mesice(r.monthsToTarget)}
@@ -677,30 +662,15 @@ export default function NouzovaRezervaWidget() {
               <p className="text-xs text-slate-400 mt-2">
                 {data.timeline === 'splněno'
                   ? <span className="text-emerald-700 font-medium">Splněno – tolik už máte</span>
-                  : <>Naspoříte za <span className="text-slate-600 font-medium">{data.timeline}</span></>}
+                  : data.timeline === 'N/A'
+                    ? <>Bez měsíčního spoření se sem nedostanete</>
+                    : <>Naspoříte za <span className="text-slate-600 font-medium">{data.timeline}</span></>}
               </p>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Rizikový profil */}
-      <div className="rounded-lg border border-slate-200 bg-white p-4 flex items-center justify-between gap-3">
-        <span className="flex items-center gap-2 text-sm text-slate-600">
-          <TrendingUp className="w-4 h-4 text-teal-700 shrink-0" /> Váš rizikový profil
-        </span>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-medium border ${
-            r.riskLevel === 'low'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : r.riskLevel === 'medium'
-                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                : 'bg-red-50 text-red-700 border-red-200'
-          }`}
-        >
-          {RISK_LABEL[r.riskLevel]} riziko
-        </span>
-      </div>
+      </>)}
     </div>
   );
 }

@@ -276,6 +276,21 @@ export default async function NouzovaRezervaPreview() {
         {/* POKRAČUJTE DÁL */}
         <section className="pb-10">
           <SectionHead title="Pokračujte dál" />
+          {/* Návaznost kalkulaček: rezerva → kolik zbývá z výplaty → kolik investovat (test 22. 10. 2026). */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-2.5">
+            {([
+              ['/cisty-plat', 'Kolik vám zbývá?', 'Spočítejte si čistou mzdu a z ní, kolik můžete měsíčně odkládat.', Wallet],
+              ['/kolik-investovat-mesicne', 'Kolik investovat měsíčně', 'Až máte rezervu, zbytek můžete pravidelně investovat.', Coins],
+            ] as [string, string, string, typeof Wallet][]).map(([href, label, desc, Icon]) => (
+              <Link key={href} href={href} className="group flex items-start gap-3 rounded-lg border border-teal-200 bg-teal-50/40 px-4 py-3 hover:border-teal-400 transition-all">
+                <span className="flex items-center justify-center w-9 h-9 rounded-md bg-teal-100 text-teal-700 shrink-0"><Icon className="w-4 h-4" /></span>
+                <span>
+                  <span className="flex items-center gap-1 font-semibold text-slate-900 text-sm">{label} <ArrowRight className="w-3.5 h-3.5 text-teal-700" /></span>
+                  <span className="block text-xs text-slate-500 mt-0.5 leading-snug">{desc}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {([
               ['/kalkulacky', 'Další kalkulačky', Calculator],

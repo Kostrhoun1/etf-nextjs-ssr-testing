@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   // Self-canonical: na stránku vedou odkazy s parametry (FB, presety, přesměrování) – ty
   // nemají být samostatné URL ve vyhledávači (deep dive 17. 10. 2026).
   alternates: { canonical: '/monte-carlo' },
-  title: titulek('Monte Carlo simulátor portfolia: scénáře budoucnosti v Kč'),
+  title: titulek('Monte Carlo simulátor portfolia: scénáře budoucnosti'),
   description:
-    'Monte Carlo simulátor vygeneruje stovky možných vývojů portfolia a ukáže pesimistický, střední i optimistický scénář v korunách včetně šance na dosažení cíle.',
+    'Monte Carlo simulátor vygeneruje stovky možných vývojů portfolia a ukáže pesimistický, střední i optimistický scénář včetně šance na dosažení cíle.',
 };
 
 export default async function MonteCarloPreview() {
@@ -111,14 +111,14 @@ export default async function MonteCarloPreview() {
                   <InfoTip label="Místo jediné předpovědi statistická metoda generuje mnoho náhodných scénářů. Pojmenovaná je po kasinu v Monaku.">
                     pravděpodobnostní rozsah
                   </InfoTip>
-                  {' '}hodnoty vašeho portfolia – v přepočtu na koruny.
+                  {' '}hodnoty vašeho portfolia. Počítá s dolarovými výnosy aktiv, bez vlivu kurzu koruny.
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1.5"><User className="w-3.5 h-3.5" />
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
-                  <span className="inline-flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Výsledky v korunách</span>
+                  <span className="inline-flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Výnosy aktiv v USD, bez kurzu koruny</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   <Link href="#simulator" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit simulátor</Link>

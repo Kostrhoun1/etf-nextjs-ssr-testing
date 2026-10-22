@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import CisloInput from '@/components/CisloInput';
 import Link from 'next/link';
 import { ArrowRight, Share2, Check, History, Minus, Plus } from 'lucide-react';
 import { STROJ_PRESETY, spocitejStroj, vlozenoVDnesnichCenach, slozeniProStart, type StrojRada } from '@/lib/strojCasuVypocet';
@@ -74,8 +75,11 @@ function Graf({ prubeh }: { prubeh: { mesic: string; hodnota: number; vlozeno: n
 export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
   const dostupne = STROJ_PRESETY.filter((p) => rady.some((r) => r.id === p.id));
   const [co, setCo] = useState(dostupne[0]?.id ?? 'svet');
-  const [mesicne, setMesicne] = useState(5000);
-  const [naraz, setNaraz] = useState(0);
+  // Pole drží null, když je prázdné / nedopsané (sdílené CisloInput); ve výpočtu prázdné = 0 Kč
+  // (pole má zástupný text „0“), obě nulové → „Zadejte částku“. Dřív „5000,5“ → 50 005 Kč (čárka se zahodila).
+  const [mesicneV, setMesicne] = useState<number | null>(5000);
+  const [narazV, setNaraz] = useState<number | null>(0);
+  const mesicne = mesicneV ?? 0, naraz = narazV ?? 0;
   const [od, setOd] = useState(2010);
   const [minule, setMinule] = useState<Ulozeno | null>(null);
   const [pripraveno, setPripraveno] = useState(false); // až po přečtení URL/uloženého scénáře
@@ -171,7 +175,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     return <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">Data pro stroj času se teď nepodařilo načíst. Zkuste to prosím později.</p>;
   }
   const zisk = vysledek ? vysledek.hodnota - vysledek.vlozeno : 0;
-  const pole = 'w-full min-h-[44px] rounded-lg border border-slate-200 px-3 pr-10 tabular-nums focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100';
+  const pole = 'w-full min-h-[44px] rounded-lg border border-slate-200 px-3 pr-10 text-base tabular-nums focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100';
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white">
@@ -196,16 +200,14 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
             <div>
               <label htmlFor="sc-mesicne" className="text-sm font-medium text-slate-700">Měsíčně</label>
               <div className="relative mt-1.5">
-                <input id="sc-mesicne" type="text" inputMode="numeric" value={mesicne === 0 ? '' : mesicne.toLocaleString('cs-CZ')} placeholder="0"
-                  onChange={(e) => setMesicne(Math.min(1_000_000, Number(e.target.value.replace(/[^0-9]/g, '') || 0)))} className={pole} />
+                <CisloInput id="sc-mesicne" value={mesicneV} onValue={setMesicne} min={0} max={1_000_000} placeholder="0" className={pole} />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">Kč</span>
               </div>
             </div>
             <div>
               <label htmlFor="sc-naraz" className="text-sm font-medium text-slate-700">Na začátku</label>
               <div className="relative mt-1.5">
-                <input id="sc-naraz" type="text" inputMode="numeric" value={naraz === 0 ? '' : naraz.toLocaleString('cs-CZ')} placeholder="0"
-                  onChange={(e) => setNaraz(Math.min(100_000_000, Number(e.target.value.replace(/[^0-9]/g, '') || 0)))} className={pole} />
+                <CisloInput id="sc-naraz" value={narazV} onValue={setNaraz} min={0} max={100_000_000} placeholder="0" className={pole} />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">Kč</span>
               </div>
             </div>

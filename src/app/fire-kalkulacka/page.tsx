@@ -7,6 +7,9 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator, Wallet, Coins, Landmark, Scale, ShieldCheck, Crown, HelpCircle, BookOpen, Flame, Target, PiggyBank, Percent, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import FireKalkulackaWidget from '@/components/design-preview/FireKalkulackaWidget';
+import { FIRE_PREDPOKLADY } from '@/lib/firePredpoklady';
+
+const S = FIRE_PREDPOKLADY.strategie;
 import InfoTip from '@/components/design-preview/InfoTip';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { titulek } from '@/lib/seoTitulek';
@@ -233,7 +236,7 @@ export default async function FireKalkulackaPreview() {
             <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-slate-600">
               {[
                 ['Cílová částka', '25× ročních výdajů (pravidlo 4 %).'],
-                ['Strategie a výnosy', 'Konzervativní 7,7 %, vyvážená 8,8 %, agresivní 9,8 % p.a. (nominálně, před inflací) – historická data 1995–2024.'],
+                ['Strategie a výnosy', `Reálně (po inflaci): konzervativní 30/70 ${S.conservative.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} %, vyvážená 60/40 ${S.moderate.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} %, agresivní 80/20 ${S.aggressive.realnyVynos.toLocaleString('cs-CZ', { minimumFractionDigits: 1 })} % ročně – historický výnos v Kč ${FIRE_PREDPOKLADY.obdobi} (akcie celého světa + státní dluhopisy eurozóny, inflace ČSÚ), data k ${FIRE_PREDPOKLADY.dataK}.`],
                 ['Inflace', 'Cíl se každý rok navyšuje o zadanou míru inflace; výdaje zadáváte v dnešních cenách.'],
                 ['Horizont', 'Výpočet sleduje vývoj portfolia až 50 let dopředu.'],
                 ['Daně', 'Nezahrnuje daň z výnosů (u ETF v ČR po 3 letech osvobozeno).'],
@@ -275,7 +278,7 @@ export default async function FireKalkulackaPreview() {
             {([
               [ShieldCheck, 'Nezávislé nástroje', 'Žádné placené pořadí ani skrytá reklama.'],
               [Crown, '12+ let v českém bankovnictví', 'Obsah od jmenného autora, ne anonymně.'],
-              [Database, 'Doložená metodika', `Výnosy z historických dat 1995–2024. Aktualizováno ${upraveno}.`],
+              [Database, 'Doložená metodika', `Výnosy z historických dat v Kč ${FIRE_PREDPOKLADY.obdobi}. Aktualizováno ${upraveno}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -319,7 +322,7 @@ export default async function FireKalkulackaPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: historická data 1995–2024 (portfoliovisualizer.com), vlastní metodika. Aktualizováno {upraveno}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: vlastní backtest v Kč {FIRE_PREDPOKLADY.obdobi} (Vanguard FTSE All-World, Xtrackers Eurozone Government Bond, kurzy ECB/ČNB, inflace ČSÚ), data k {FIRE_PREDPOKLADY.dataK}. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Kalkulačka má vzdělávací charakter a pracuje s modelovým výnosem – skutečné výnosy se liší a nelze je zaručit.</p>
             </div>
           </div>
