@@ -279,17 +279,18 @@ export default async function KolikVydelalyEtf() {
           <span className="text-slate-700">Kolik vydělaly ETF</span>
         </nav>
 
-        {/* HERO */}
+        {/* HERO – světlý jako ostatní články rodiny „Co říkají data“ (/sp500-nebo-cely-svet, /stroj-casu,
+            /jak-dlouho-v-minusu, /pravidlo-4-procent, rozcestník). Kolo 7: tahle stránka jediná z rodiny měla tmavé hero. */}
         <section className="pb-7">
-          <div className="rounded-2xl bg-slate-900 text-white px-6 py-8 md:px-9 md:py-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-xs font-medium text-teal-200">
+          <div className="pt-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200 px-3 py-1 text-xs font-medium text-teal-800">
               <LineChart className="w-3.5 h-3.5" /> Datový pohled · reálná čísla v korunách
             </span>
-            <h1 className="mt-3 text-2xl md:text-4xl font-bold tracking-tight leading-tight max-w-3xl">
+            <h1 className="mt-3 text-3xl md:text-4xl font-bold tracking-tight leading-tight text-balance max-w-3xl">
               Kolik reálně vydělaly ETF a světové akcie v korunách
             </h1>
-            <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
-              Ze <strong className="text-white">100 000 Kč zhruba {kc(d.svet.konec)}</strong> za {roky}{NB}let ({nasobekText(d.svet.nasobek)} vkladu,
+            <p className="mt-3 text-slate-600 text-[15px] md:text-base leading-relaxed max-w-2xl">
+              Ze <strong className="text-slate-900">100 000 Kč zhruba {kc(d.svet.konec)}</strong> za {roky}{NB}let ({nasobekText(d.svet.nasobek)} vkladu,
               {' '}{pctBez(d.svet.cagr)} ročně). Cesta k tomu ale vedla přes {hlubokych > 1 ? `${hlubokych} propadů hlubších než 20 %` : 'hluboké propady'} – a právě ony
               rozhodly, kdo výnos nakonec dostal. Akcie celého světa (fond VT) v číslech: kolik vydělaly, o kolik cestou spadly
               a co z toho plyne pro váš horizont.
@@ -298,11 +299,11 @@ export default async function KolikVydelalyEtf() {
               <Link href="/backtest" className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 transition-colors">
                 <Calculator className="w-4 h-4" /> Otestovat vlastní portfolio
               </Link>
-              <Link href="/pruvodce" className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+              <Link href="/pruvodce" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors">
                 <TrendingUp className="w-4 h-4" /> Co jsou vlastně ETF
               </Link>
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500">
               <span className="inline-flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Vše v Kč</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční</span>
               <span className="inline-flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Data k {datum}</span>
@@ -311,20 +312,20 @@ export default async function KolikVydelalyEtf() {
             {/* Klíčová čísla v hero */}
             {/* Mobil 2 + 1 (kolo 7: ve třech sloupcích „688 000 Kč“ přetékalo do sousední dlaždice). */}
             <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-w-2xl">
-              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Sprout className="w-3.5 h-3.5" /> Ze 100 000 Kč</span>
-                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-emerald-400">{kc(d.svet.konec)}</p>
-                <p className="text-xs text-slate-400 mt-0.5">za {roky} let ({pctBez(d.svet.cagr)} ročně)</p>
+              <div className="rounded-lg bg-white border border-slate-200 px-3 py-3">
+                <span className="flex items-center gap-1.5 text-xs text-slate-500"><Sprout className="w-3.5 h-3.5" /> Ze 100 000 Kč</span>
+                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-emerald-700">{kc(d.svet.konec)}</p>
+                <p className="text-xs text-slate-500 mt-0.5">za {roky} let ({pctBez(d.svet.cagr)} ročně)</p>
               </div>
-              <div className="rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400"><TrendingDown className="w-3.5 h-3.5" /> Nejhlubší propad</span>
-                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-rose-300">{pctBez(d.svet.maxPokles, 0)}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{mesRok(prvniPropad.od)} → {mesRok(prvniPropad.dno)}</p>
+              <div className="rounded-lg bg-white border border-slate-200 px-3 py-3">
+                <span className="flex items-center gap-1.5 text-xs text-slate-500"><TrendingDown className="w-3.5 h-3.5" /> Nejhlubší propad</span>
+                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-rose-600">{pctBez(d.svet.maxPokles, 0)}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{mesRok(prvniPropad.od)} → {mesRok(prvniPropad.dno)}</p>
               </div>
-              <div className="col-span-2 sm:col-span-1 rounded-lg bg-white/[0.06] border border-white/10 px-3 py-3">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400"><Timer className="w-3.5 h-3.5" /> Na horizontu 10 let</span>
-                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-white">{o10 ? `${cz(o10.vPlusu * 100)} %` : '—'}</p>
-                <p className="text-xs text-slate-400 mt-0.5">období skončilo v plusu</p>
+              <div className="col-span-2 sm:col-span-1 rounded-lg bg-white border border-slate-200 px-3 py-3">
+                <span className="flex items-center gap-1.5 text-xs text-slate-500"><Timer className="w-3.5 h-3.5" /> Na horizontu 10 let</span>
+                <p className="mt-1 text-lg md:text-xl font-bold tabular-nums text-slate-900">{o10 ? `${cz(o10.vPlusu * 100)} %` : '—'}</p>
+                <p className="text-xs text-slate-500 mt-0.5">období skončilo v plusu</p>
               </div>
             </div>
           </div>
