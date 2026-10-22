@@ -733,12 +733,15 @@ i tečku a mezery v tisících, hodnotu posílá jen platnou a v rozsahu; ořez 
 s viditelnou hláškou „Upraveno do povoleného rozsahu“. Dokud pole není platné, kalkulačka ukáže „—“ / „Doplňte …“
 (nouzová rezerva ani FIRE bez vstupu nevydají žádný verdikt). **Nevracet `type="number"` s `Number(e.target.value)`**
 – smazání „2“ dělalo „0“ a další číslice se přilepila („10“ osob, věk „1831“ → 80, sazba „4,9“ → 49 %).
-Výjimka `prazdne={0}`: stroj času, backtest a náklady u brokerů mají u částek zástupný text „0“ a prázdné = žádný vklad.
+Prázdné = žádný vklad (zástupný text „0“) jen tam, kde to dává smysl: backtest přes vlastnost `prazdne={0}` (`#bt-initial`,
+`#bt-contrib`), stroj času bez ní – stav pole je `null` a widget ho počítá jako 0 (`mesicneV ?? 0`), obě částky 0 → „Zadejte
+částku“. Kalkulačka nákladů u brokerů `prazdne` NEPOUŽÍVÁ: prázdné / neplatné pole = „Zadejte částku od 100 do 1 000 000 Kč“.
+(Opraveno 22. 10. 2026 – dřív tu stálo, že `prazdne={0}` mají všechny tři; ověřeno grepem, používá ho jen BacktestWidget.)
 Kontrola: `scripts/qa-kalkulacky.mjs` (WebKit 390 px, vyprázdní pole, napíše hodnotu, ověří výsledek).
 
 **FIRE kalkulačka – předpoklady výnosů jsou REÁLNÉ (po inflaci) historické výnosy v Kč, ne 7,7/8,8/9,8 %.**
 `src/lib/firePredpoklady.ts`: konzervativní 30/70 = 2,0 %, vyvážená 60/40 = 4,6 %, agresivní 80/20 = 6,2 % ročně
-nad inflaci; kolísání 6,9 / 8,8 / 10,7 %. Složení jako modelové portfolio 60/40 (Vanguard FTSE All-World +
+nad inflaci; kolísání REÁLNÉ 7,6 / 9,2 / 11,0 % (do auditu nástrojů 22. 10. 2026 nominální 6,9 / 8,8 / 10,7 % – viz níže). Složení jako modelové portfolio 60/40 (Vanguard FTSE All-World +
 Xtrackers Eurozone Government Bond), roční rebalancování, nejdelší společné období 7/2008–9/2026 (VT existuje
 od 6/2008), inflace ČSÚ. Proč: staré nominální sazby bez zdroje dávaly portfoliu s 60 % dluhopisů víc, než web
 jinde uvádí pro čisté akcie. Kalkulačka počítá v dnešních korunách: nominální výnos = (1 + reálný) × (1 + zadaná
@@ -747,7 +750,8 @@ a 11 % a dluhopisy eurozóny v nich ztrácely – je to skutečnost, ne chyba. O
 × kurzy ČNB, inflace Eurostat HICP + ČSÚ): `scripts/overeni-fire-predpoklady.mjs` – reálně 2,00 / 4,55 / 6,14 %.
 Přestane platit: při aktualizaci období (pak přepočítat enginem a spustit ověřovací skript).
 
-**Monte Carlo počítá s DOLAROVÝMI výnosy amerických tříd aktiv – bez kurzu koruny, a tak to i píše.**
+**Monte Carlo počítá s DOLAROVÝMI výnosy amerických ETF – bez kurzu koruny, a tak to i píše.** Předpoklady od 22. 10. 2026
+z historie ETF (sekce „Audit nástrojů – kalkulačky“).
 Dřív stránka tvrdila „výsledky v korunách“. Převod do Kč (kurzová vrstva) zatím není ověřený → nepublikujeme.
 Výsledky simulace zaokrouhlené na tisíce.
 
@@ -760,6 +764,51 @@ Zdravotní pojištění strop nemá. Přestane platit 1. 1. 2027 (nová průměr
 
 **Hypotéka: změna ceny nemovitosti už nepřepisuje výši úvěru na 80 %** – během psaní to mazalo zadaný úvěr.
 Úvěr nad cenou = varování.
+
+## Audit nástrojů – kalkulačky (22. 10. 2026)
+
+Nezávislý auditní tým (zlaté případy, Python z holých dat) našel chyby v kalkulačkách. Co vypadá divně, ale je záměr:
+
+- **Tečka/čárka po 3 číslicích = tisíce v polích pro celá čísla** (`rozborCisla` v `src/components/CisloInput.tsx`, V1):
+  „15.000“ = 15 000, „1.000.000“ = 1 000 000, „1,000“ = 1 000. Dřív „15.000“ → 15 Kč, „1.000.000“ → prázdné.
+  Desetinné číslo v poli pro celá čísla („2,5“ osoby, „5000,5“ Kč) = CHYBA s hláškou „Zadejte celé číslo“ a výsledek „—“,
+  žádné tiché zaokrouhlení (dřív „2,5“ → 3). V DESETINNÝCH polích (%, sazba) je „1.000“ nejednoznačné: když pole nepřipouští
+  ≥ 1 000 (max < 1 000 – dnes všechna procentní pole), bere se jako 1,000 = 1; jinak hláška „nejednoznačné“. Dvě a víc
+  skupin („1.000.000“) = vždy tisíce; „1.000,5“ / „1,000.5“ = poslední znak je desetinný. Výjimka: pole s `prazdne={0}`
+  (backtest) neplatný text smaže a počítá s 0 – pole pak ukazuje zástupnou „0“, takže výpočet odpovídá tomu, co je vidět.
+  Hlídá `scripts/qa-kalkulacky.mjs` (WebKit i Chromium, 390 px, dotyk).
+- **FIRE simulace je GEOMETRICKÁ (log-normální)** (V2): měsíční růst = exp(N(ln(1 + r)/12, σ/√12)), r = historický reálný
+  CAGR → medián dráhy roste přesně o r (numpy 100 000 cest: 4,609 % při r = 4,6 %). Dřív se (1 + r)^(1/12) − 1 bral jako
+  aritmetický průměr → medián o ~σ²/2 nižší a věk FIRE o 1–3 roky později (výchozí 58/67 → teď 52/57/65). Kolísání je
+  REÁLNÉ (měsíční log výnosy po inflaci × √12) 7,6 / 9,2 / 11,0 % – simulace běží v dnešních korunách; nominální 6,9 / 8,7 /
+  10,6 % je nižší, protože měsíční inflace kolísání přidává. Ověřuje `scripts/overeni-fire-predpoklady.mjs`.
+- **FIRE: „nedosáhnete“ jen když cíle nedosáhne ŽÁDNÁ simulace** (S19). Když ho dosáhne menšina, píšeme „jen v X % simulací“.
+  „Obvykle (medián)“ místo „Nejčastěji“ (medián není nejčastější hodnota).
+- **Monte Carlo: výnosy, kolísání a korelace z historie ETF 11/2007–9/2026** (V3, `src/lib/monteCarloPredpoklady.ts`):
+  SPY 10,8 %, EFA 4,2 %, EEM 3,1 %, AGG 2,7 %, BWX 0,3 %, VNQ 5,4 %, GLD 8,7 %, BIL 1,3 % (CAGR v USD s dividendami).
+  **Vypadá to divně** (rozvíjející se trhy 3 %, zlato skoro jako akcie, mezinárodní dluhopisy ~0 %) – je to skutečná historie
+  tohoto období, ne chyba. Období je nejdelší společné (BWX od 10/2007). Třídy bez dat a bez váhy v portfoliích (US malé
+  firmy, Kanada, high-yield) odebrány. Výsledky na 2 platné číslice (S22: p95 se při 600 scénářích mění o 3–6 %).
+  Kontrola: `scripts/monte-carlo-predpoklady.mjs` (Yahoo, týdně v CI). Kotvy: S&P 500 TR 10,90 %, T-bill (FRED TB3MS) 1,43 %.
+- **Kurzový dopad: kolísavost z kurzů ČNB 1/1999–9/2026** (V7, `src/lib/kurzovaKolisavost.ts`): USD/CZK 11,35 %, EUR/CZK
+  5,14 %, korelace 0,61 (měsíční log změny × √12). Posledních 10 let je koruna klidnější (9,2 / 4,2 %) – bereme nejdelší
+  období, je to uvedené u čísla. Kontrola: `scripts/kurzovy-dopad-predpoklady.mjs`. Scénáře jsou okamžitá změna kurzu
+  bez horizontu (je to napsané). Věta „pravidelné nákupy kurzové riziko zmírňují“ odstraněna (S27): průměrují jen kurz
+  nákupu, na už nakoupenou část působí kurz dál.
+- **Čistý plat počítá se zákonným zaokrouhlením** (N14): základ zálohy na stokoruny nahoru, záloha a pojistné na koruny
+  nahoru, zdravotní 13,5 % nahoru a zaměstnanec třetinu nahoru – proto se čísla mohou o pár korun lišit od „hladkých“
+  kalkulaček. Pod minimální mzdou (22 400 Kč) zaměstnanec doplácí 13,5 % z rozdílu (S24), pokud nezaškrtne výjimku
+  (student, rodič na rodičovské, státní pojištěnec, ZTP…); pracující důchodce výjimku má automaticky. Daňový bonus pod
+  50 Kč měsíčně se nevyplácí (§ 35d odst. 4 ZDP, N13). „Pojistné + daň, X % z hrubé“ je BEZ bonusu (bonus zvlášť, S23).
+  Štítek pracujícího důchodce „0,6 %“ (V11). Přestane platit 1. 1. 2027 (nová průměrná a minimální mzda).
+- **Nouzová rezerva = redakční pravidlo, ne vědecký zdroj** (V12, S26 – rozhodnutí vedoucího): zaměstnanec 3 měsíce (nejvýš 6),
+  OSVČ / dohody 6 (nejvýš 12), +1 měsíc za faktor (středně stabilní práce, nestabilní +2, doba určitá, pravidelné splátky,
+  jediný příjem v domácnosti se 3+ osobami, 50+, základní vzdělání), 2+ osoby a splátky ≥ 6 měsíců. Stejně ve widgetu
+  („Jak počítáme“), ve FAQ i v sekci stránky. „Dostatečná rezerva“ jen když nic nechybí (S25). Popisek „Mám pravidelné
+  splátky“ (redakční hranice – bez témat úvěrů). Zlatý případ osobni-24 vychází dál 12 měsíců.
+- **Investiční kalkulačka: výsledky modelu na tisíce** (N2), vklady přesně; „vloženo + výnos“ = zobrazená hodnota.
+  Zlaté případy investicni-* proto s tolerancí ±500 Kč (dřív ±1 Kč). Prázdný výnos/daň = „—“, ne „0 %“ (S6).
+- **Stroj času: částka nad maximum = hláška a žádný výsledek** (S7), po opuštění pole ořez s hláškou.
 
 ## Faktorové ETF – kolo 8 (22. 10. 2026)
 

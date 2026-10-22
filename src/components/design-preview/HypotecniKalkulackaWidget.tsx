@@ -456,7 +456,7 @@ export default function HypotecniKalkulackaWidget() {
           </p>
           <p className="mt-3 text-sm md:text-base text-teal-50 leading-relaxed">
             Při úvěru {fmtCZK(loanAmount)}, sazbě {interestRate.toLocaleString('cs-CZ')} % a splatnosti{' '}
-            {loanPeriod} let zaplatíte měsíčně{' '}
+            {loanPeriod} {loanPeriod === 1 ? 'rok' : loanPeriod >= 2 && loanPeriod <= 4 ? 'roky' : 'let'} zaplatíte měsíčně{' '}
             <strong className="font-semibold">{fmtCZK(Math.round(summary.monthlyPayment))}</strong> a celkem
             bance vrátíte <strong className="font-semibold">{fmtCZK(Math.round(summary.totalPayments))}</strong>.
             Výpočet je orientační – počítá s neměnnou sazbou po celou dobu a nezahrnuje poplatky ani pojištění.

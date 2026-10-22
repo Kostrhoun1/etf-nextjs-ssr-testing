@@ -16,16 +16,17 @@ import { DollarSign, Coins, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-
 import InfoTip from '@/components/design-preview/InfoTip';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 import { kulateKroky } from '@/lib/osyGrafu';
+import { KURZ_KOLISAVOST } from '@/lib/kurzovaKolisavost';
 
 /**
  * Interaktivní jádro kalkulačky kurzového dopadu (vliv kurzu USD/CZK a EUR/CZK
  * na korunový výnos ETF) – redesign.
  *
- * Výpočetní logika je převzata 1:1 z ověřené utility
- * `src/utils/currencyImpactCalculations.ts` (funkce calculateCurrencyImpact)
- * a původních komponent CurrencyImpactAnalyzer.tsx / CurrencyImpactResults.tsx.
- * Měněn je POUZE vizuál (teal/slate, design systém, graf přes recharts).
- * Finanční logiku neměnit.
+ * Výpočetní logika je převzata z původní utility currencyImpactCalculations.ts (soubor už v repu není)
+ * (funkce calculateCurrencyImpact). Audit nástrojů 22. 10. 2026 (V7, N16): kolísavost kurzů a korelace
+ * už nejsou natvrdo (USD 12 %, EUR 8 %, 0,6 bez zdroje), ale z kurzů ČNB (src/lib/kurzovaKolisavost.ts);
+ * nepoužité vstupy (dnešní kurzy 23,5 / 25,2, horizont 10 let) a nepoužité metriky bez zdroje
+ * (maxDrawdown = 2,2 × kolísavost, „průměrný dopad“ 8 %) odstraněny.
  */
 
 const fmtCZK = (amount: number) =>
@@ -76,26 +77,22 @@ interface CurrencyImpactData {
   riskMetrics: {
     portfolioVolatility: number;
     currencyVolatility: number;
-    maxDrawdown: number;
     valueAtRisk: number;
   };
   historicalAnalysis: {
     worstCase: { period: string; usdCzkImpact: number; eurCzkImpact: number; totalPortfolioImpact: number };
     bestCase: { period: string; usdCzkImpact: number; eurCzkImpact: number; totalPortfolioImpact: number };
-    averageImpact: number;
   };
 }
 
 interface CurrencyImpactParams {
   portfolioValue: number;
   allocations: { usd: number; eur: number; czk: number };
-  investmentHorizon: number;
-  currentRates: { usdCzk: number; eurCzk: number };
 }
 
-// ===== VÝPOČET 1:1 z src/utils/currencyImpactCalculations.ts (calculateCurrencyImpact) – NEMĚNIT =====
+// ===== VÝPOČET z src/utils/currencyImpactCalculations.ts (calculateCurrencyImpact) =====
 function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactData {
-  const { portfolioValue, allocations, currentRates } = params;
+  const { portfolioValue, allocations } = params;
 
   // Výpočet současné expozice – všechny zahraniční pozice jsou nezajištěné
   const usdValue = (portfolioValue * allocations.usd) / 100;
@@ -107,6 +104,7 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
 
   // Ilustrační scénáře „co kdyby“ – NE předpověď. Dřív u nich byly pravděpodobnosti 20/15/20/15/30 %
   // natvrdo bez zdroje (revize AD 22. 10. 2026) → odstraněny; nikde je nepublikujeme.
+  // Scénář = jednorázová změna kurzu oproti dnešku, BEZ časového horizontu (N16) – to stránka píše u grafu.
   const scenarios: CurrencyScenario[] = [
     {
       name: 'Oslabení koruny',
@@ -142,7 +140,7 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
     },
     {
       name: 'Stabilita',
-      description: 'Kurzy se do konce období vrátí tam, kde jsou dnes (průběžně kolísají v pásmu ±3 %).',
+      description: 'Kurzy zůstanou tam, kde jsou dnes.',
       usdCzkChange: 0,
       eurCzkChange: 0,
       portfolioImpact: 0,
@@ -164,9 +162,10 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
   // Rizikové metriky
   const currencyExposure = portfolioValue > 0 ? (unhedgedUsd + unhedgedEur) / portfolioValue : 0;
 
-  const usdVolatility = 0.12;
-  const eurVolatility = 0.08;
-  const correlation = 0.6;
+  // Roční kolísavost kurzů a korelace z kurzů ČNB (zdroj, období a kontrola: src/lib/kurzovaKolisavost.ts).
+  const usdVolatility = KURZ_KOLISAVOST.usd;
+  const eurVolatility = KURZ_KOLISAVOST.eur;
+  const correlation = KURZ_KOLISAVOST.korelace;
 
   const usdWeight = unhedgedUsd / (unhedgedUsd + unhedgedEur + 0.001);
   const eurWeight = unhedgedEur / (unhedgedUsd + unhedgedEur + 0.001);
@@ -180,8 +179,6 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
   // Kolísavost portfolia ZPŮSOBENÁ KURZEM (v % hodnoty celého portfolia). Dřív se míchala s akciovou
   // volatilitou přiřazenou jen korunové části → nesmyslné číslo („celková kolísavost“ 10,5 %).
   const portfolioVolatility = currencyVolatility * currencyExposure * 100;
-
-  const maxDrawdown = portfolioVolatility * 2.2;
 
   // VaR jen z části vystavené kurzu (dřív z celého portfolia včetně korunové části).
   const valueAtRisk = (unhedgedUsd + unhedgedEur) * currencyVolatility * 1.65;
@@ -211,13 +208,12 @@ function calculateCurrencyImpact(params: CurrencyImpactParams): CurrencyImpactDa
       eurCzkImpact: HIST.r2020.eur * 100,
       totalPortfolioImpact: dopad(HIST.r2020),
     },
-    averageImpact: currencyExposure * 100 * 0.08,
   };
 
   return {
     currentExposure: { unhedgedUsd, unhedgedEur, czkAmount: czkValue },
     scenarios,
-    riskMetrics: { portfolioVolatility, currencyVolatility, maxDrawdown, valueAtRisk },
+    riskMetrics: { portfolioVolatility, currencyVolatility, valueAtRisk },
     historicalAnalysis,
   };
 }
@@ -272,8 +268,6 @@ export default function KurzovyDopadWidget() {
   const vstupyOk = portfolioValueV != null && usdAllocationV != null && eurAllocationV != null && czkAllocationV != null;
   const portfolioValue = portfolioValueV ?? 0, usdAllocation = usdAllocationV ?? 0,
     eurAllocation = eurAllocationV ?? 0, czkAllocation = czkAllocationV ?? 0;
-  const [currentUsdCzk, setCurrentUsdCzk] = useState<number>(23.5);
-  const [currentEurCzk, setCurrentEurCzk] = useState<number>(25.2);
 
   const totalAllocation = usdAllocation + eurAllocation + czkAllocation;
   const isAllocationValid = Math.abs(totalAllocation - 100) < 0.1;
@@ -288,10 +282,8 @@ export default function KurzovyDopadWidget() {
     return calculateCurrencyImpact({
       portfolioValue,
       allocations: { usd: normalizedUsd, eur: normalizedEur, czk: normalizedCzk },
-      investmentHorizon: 10,
-      currentRates: { usdCzk: currentUsdCzk, eurCzk: currentEurCzk },
     });
-  }, [portfolioValue, usdAllocation, eurAllocation, czkAllocation, currentUsdCzk, currentEurCzk]);
+  }, [portfolioValue, usdAllocation, eurAllocation, czkAllocation]);
 
   const totalExposure = results.currentExposure.unhedgedUsd + results.currentExposure.unhedgedEur;
   const totalPortfolio = totalExposure + results.currentExposure.czkAmount;
@@ -324,12 +316,15 @@ export default function KurzovyDopadWidget() {
     return hi - lo < 1 ? [0, 1] : kulateKroky(hi, lo, 4);
   }, [chartData]);
 
+  /* S27 (audit 22. 10. 2026): dřív „pravidelné nákupy kurzové riziko zmírňují“ – zavádějící. Pravidelné nákupy
+     jen průměrují kurz, za který nakupujete; na už nakoupenou část působí kurz dál celou vahou. */
+  const pravidelne = 'Pravidelné nákupy rozloží kurz, za který nakupujete, ale na už nakoupenou část portfolia působí kurz dál celou svou vahou. Kurzové riziko mění jen podíl korunových (nebo do koruny zajištěných) aktiv.';
   const recommendation =
     exposurePct / 100 > 0.7
-      ? 'Vysoká kurzová expozice. Pro dlouhodobé investice je nejlepší pravidelné nákupy (rozložení v čase), které kurzové riziko zmírňují.'
+      ? `Vysoká kurzová expozice: korunová hodnota většiny portfolia se mění s kurzem dolaru a eura. ${pravidelne}`
       : exposurePct / 100 > 0.3
-        ? 'Střední kurzová expozice. Pravidelné investování pomáhá vyrovnat kurzové výkyvy v čase.'
-        : 'Nízká kurzová expozice. Portfolio má minimální závislost na kurzových změnách.';
+        ? `Střední kurzová expozice: s kurzem se mění korunová hodnota zhruba ${Math.round(exposurePct)} % portfolia. ${pravidelne}`
+        : 'Nízká kurzová expozice: kurz ovlivňuje jen menší část portfolia.';
 
   return (
     <div className="space-y-4">
@@ -467,7 +462,9 @@ export default function KurzovyDopadWidget() {
           <p className="text-sm text-slate-600 leading-relaxed mb-4">
             Výnos samotných ETF necháváme stranou – sloupce ukazují <strong className="text-slate-900">jen o kolik korun
             se změní hodnota portfolia kvůli kurzu</strong>: doprava = přibude, doleva = ubude. Nulová čára je dnešní hodnota{' '}
-            {fmtCZK(portfolioValue)}. Scénáře jsou ilustrační „co kdyby“, ne předpověď.
+            {fmtCZK(portfolioValue)}. Scénáře jsou ilustrační „co kdyby“, ne předpověď: jednorázová změna kurzu o uvedená
+            procenta, bez určení, za jak dlouho. Pro představu – za rok se kurz historicky měnil typicky o ±{fmtP1(KURZ_KOLISAVOST.usd * 100)} (USD/CZK)
+            a ±{fmtP1(KURZ_KOLISAVOST.eur * 100)} (EUR/CZK), jedna směrodatná odchylka podle ČNB {KURZ_KOLISAVOST.obdobi}.
           </p>
           <div className="w-full h-72 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -585,10 +582,10 @@ export default function KurzovyDopadWidget() {
             </div>
             <div className="sm:border-l sm:border-white/15 sm:pl-5">
               <p className="text-sm text-teal-100">Kolísavost z kurzu</p>
-              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1">
+              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1" data-qa="kurz-vol">
                 {fmtP1(results.riskMetrics.portfolioVolatility)}
               </p>
-              <p className="text-xs text-teal-200 mt-1">roční výkyv hodnoty jen kvůli kurzu (odhad)</p>
+              <p className="text-xs text-teal-200 mt-1">roční výkyv hodnoty jen kvůli kurzu (odhad z historie)</p>
             </div>
             <div className="sm:border-l sm:border-white/15 sm:pl-5">
               <p className="text-sm text-teal-100">
@@ -596,12 +593,17 @@ export default function KurzovyDopadWidget() {
                   Hodnota v riziku (95 %)
                 </InfoTip>
               </p>
-              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1">
+              <p className="text-2xl md:text-3xl font-bold tabular-nums mt-1" data-qa="kurz-var">
                 {fmtCZK(results.riskMetrics.valueAtRisk)}
               </p>
               <p className="text-xs text-teal-200 mt-1">možná roční ztráta z kurzu</p>
             </div>
           </div>
+          <p className="mt-3 text-xs text-teal-100/90 leading-relaxed" data-qa="kurz-predpoklad">
+            Odhad z historie: roční kolísavost USD/CZK {fmtP1(KURZ_KOLISAVOST.usd * 100)}, EUR/CZK {fmtP1(KURZ_KOLISAVOST.eur * 100)},
+            korelace {KURZ_KOLISAVOST.korelace.toLocaleString('cs-CZ')} – {KURZ_KOLISAVOST.zdroj} {KURZ_KOLISAVOST.obdobi}, data k {KURZ_KOLISAVOST.dataK}.
+            Posledních deset let byla koruna klidnější, budoucnost se může lišit.
+          </p>
           <p className="mt-4 text-sm text-teal-50 leading-relaxed border-t border-white/15 pt-4">
             {recommendation}
           </p>

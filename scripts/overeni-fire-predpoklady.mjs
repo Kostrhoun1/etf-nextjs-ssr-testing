@@ -12,8 +12,10 @@
  *  - kurzy: ČNB (denní fixing USD/CZK a EUR/CZK, kurz platný v den obchodu = poslední fixing ≤ den),
  *  - inflace: Eurostat HICP CZ (2015 = 100) pro 6/2008 → 6/2015, ČSÚ CPI CEN0101E (2015 = 100) pro 6/2015 → 9/2026.
  *    (ČSÚ má měsíční index v open datech až od 2015; HICP je jiný, ale blízký index – proto tolerance.)
- * Porovná s hodnotami v FIRE_PREDPOKLADY; rozdíl reálného CAGR > 0,3 p. b. nebo kolísání > 1 p. b. = chyba → exit 1.
- * Výsledek 22. 10. 2026: reálně 2,00 / 4,55 / 6,14 % (web 2,0 / 4,6 / 6,2 %), kolísání 6,9 / 8,8 / 10,7 %, inflace 3,11 % ročně.
+ * Porovná s hodnotami v FIRE_PREDPOKLADY; rozdíl reálného CAGR > 0,3 p. b. nebo REÁLNÉHO kolísání > 0,5 p. b. = chyba → exit 1.
+ * Kolísání je REÁLNÉ (simulace FIRE běží v dnešních korunách): sm. odchylka měsíčních log. výnosů po inflaci × √12.
+ * Výsledek 22. 10. 2026: reálně 2,00 / 4,55 / 6,14 % (web 2,0 / 4,6 / 6,2 %), reálné kolísání 7,6 / 9,2 / 11,0 %
+ * (nominální 6,9 / 8,7 / 10,6 % – to měl web do auditu nástrojů 22. 10. 2026, V2), inflace 3,11 % ročně.
  *
  * SPUŠTĚNÍ: node scripts/overeni-fire-predpoklady.mjs
  */
@@ -72,8 +74,10 @@ async function cpi() {
     const f = l.split('","');
     cz[f[13]] = Number(f[14]);
   }
+  // Měsíční CPI: HICP do 5/2015 (přeškálovaný na ČSÚ v 6/2015), od 6/2015 ČSÚ – pro reálné měsíční výnosy.
+  const mesicni = (m) => (m >= '2015-06' ? cz[m] : (hv(m) * cz['2015-06']) / hv('2015-06'));
   // CPI(9/2026) / CPI(6/2008) = HICP(6/2015)/HICP(6/2008) × ČSÚ(9/2026)/ČSÚ(6/2015)
-  return { pomer: (hv('2015-06') / hv('2008-06')) * (cz['2026-09'] / cz['2015-06']), hicp0806: hv('2008-06'), hicp1506: hv('2015-06'), cz1506: cz['2015-06'], cz2609: cz['2026-09'] };
+  return { mesicni, pomer: (hv('2015-06') / hv('2008-06')) * (cz['2026-09'] / cz['2015-06']), hicp0806: hv('2008-06'), hicp1506: hv('2015-06'), cz1506: cz['2015-06'], cz2609: cz['2026-09'] };
 }
 
 const [vt, xg, usd, eur, infl] = await Promise.all([yahoo('VT'), yahoo('XGLE.DE'), cnb('USD'), cnb('EUR'), cpi()]);
@@ -106,15 +110,17 @@ for (const mix of [0, 0.3, 0.6, 0.8, 1]) {
   const konec = ua * rada.at(-1).a + ub * rada.at(-1).b;
   const nom = konec ** (1 / roky) - 1;
   const real = (konec / infl.pomer) ** (1 / roky) - 1;
+  // Reálné měsíční log. výnosy: konec měsíce / konec předchozího ÷ poměr CPI. Start = konec 6/2008 (CPI 6/2008).
+  const mesice = [...konceMesicu.keys()];
   const me = [...konceMesicu.values()];
-  const lr = me.slice(1).map((v, i) => v / me[i] - 1);
+  const lr = me.slice(1).map((v, i) => Math.log(v / me[i] / (infl.mesicni(mesice[i + 1]) / infl.mesicni(mesice[i]))));
   const prumer = lr.reduce((s, x) => s + x, 0) / lr.length;
   const vol = Math.sqrt(lr.reduce((s, x) => s + (x - prumer) ** 2, 0) / (lr.length - 1)) * Math.sqrt(12);
   const web = naWebu[mix] ?? { real: NaN, vol: NaN };
   const rozdil = real * 100 - web.real;
-  const ok = !naWebu[mix] || (Math.abs(rozdil) <= TOLERANCE_PB && Math.abs(vol - web.vol) * 100 <= 1);
+  const ok = !naWebu[mix] || (Math.abs(rozdil) <= TOLERANCE_PB && Math.abs(vol - web.vol) * 100 <= 0.5);
   if (!ok) chyb++;
-  console.log(`${ok ? '✅' : '❌'} ${Math.round(mix * 100)}/${Math.round((1 - mix) * 100)}: nominálně ${(nom * 100).toFixed(2)} %, reálně ${(real * 100).toFixed(2)} % ${naWebu[mix] ? `(web ${web.real} %, rozdíl ${rozdil.toFixed(2)} p. b.)` : '(jen pro kontext)'}, kolísání z měsíčních výnosů ${(vol * 100).toFixed(1)} % ${naWebu[mix] ? `(web ${(web.vol * 100).toFixed(1)} %)` : ''}`);
+  console.log(`${ok ? '✅' : '❌'} ${Math.round(mix * 100)}/${Math.round((1 - mix) * 100)}: nominálně ${(nom * 100).toFixed(2)} %, reálně ${(real * 100).toFixed(2)} % ${naWebu[mix] ? `(web ${web.real} %, rozdíl ${rozdil.toFixed(2)} p. b.)` : '(jen pro kontext)'}, reálné kolísání (měsíční log. výnosy po inflaci) ${(vol * 100).toFixed(1)} % ${naWebu[mix] ? `(web ${(web.vol * 100).toFixed(1)} %)` : ''}`);
 }
 const r = Object.values(naWebu).map((x) => x.real);
 if (!(r[0] < r[1] && r[1] < r[2])) { console.log('❌ Pořadí výnosů musí být konzervativní < vyvážená < agresivní'); chyb++; }

@@ -1,0 +1,26 @@
+# Týdenní nezávislé ověření předpokladů kalkulaček (audit nástrojů 22. 10. 2026, pravidlo č. 1 bod 4).
+# Každý skript spočítá předpoklady znovu z holých externích dat (Yahoo adj. close, kurzy ČNB, inflace ČSÚ/Eurostat)
+# a porovná je s konstantami webu. Selhání = konstanty neodpovídají datům (nebo zdroj nejde stáhnout) → e-mail z GitHubu.
+name: Ověření předpokladů kalkulaček
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'  # pondělí 07:00 UTC
+  workflow_dispatch:
+
+jobs:
+  overeni:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: FIRE – reálný výnos a kolísání (VT + XGLE × ČNB, inflace)
+        run: node scripts/overeni-fire-predpoklady.mjs
+      - name: Monte Carlo – výnosy, kolísání a korelace ETF (Yahoo)
+        if: always()
+        run: node scripts/monte-carlo-predpoklady.mjs
+      - name: Kurzový dopad – kolísavost USD/CZK a EUR/CZK (ČNB)
+        if: always()
+        run: node scripts/kurzovy-dopad-predpoklady.mjs
