@@ -6,6 +6,10 @@ import {
   calculateRollingReturns,
 } from '@/lib/backtest/calculations'
 import type { BacktestInput, RebalancingStrategy } from '@/lib/backtest/types'
+import { MIN_MESICU_RIZIKA } from '@/lib/backtest/calculations'
+
+/** Mění se s každou opravou metodiky, kterou má denní kontrola rozlišit (nasazeno / ještě ne). */
+export const METODIKA_BACKTESTU = '2026-10-22'
 
 export type Currency = 'EUR' | 'CZK' | 'USD'
 
@@ -70,7 +74,18 @@ export async function simulateAndSerialize(body: SimulateRequestBody) {
     : await runBacktest(input)
 
   const convertedEvolution = result.evolution
-  const convertedSummary = result.summary
+  // KRATŠÍ OBDOBÍ (audit 22. 10. 2026, V8): pod rok se výnos NEanualizuje (cagr = null, UI ukáže celkový výnos
+  // za období – zásada GIPS), pod 12 měsíčních výnosů se kolísavost/Sharpe/Sortino/VaR neukazují („—“).
+  // Raději „—“ než „40,8 % ročně“ a „kolísavost 0,0 %“ ze 7 týdnů.
+  const s = result.summary
+  const malo = s.mesicnichVynosu < MIN_MESICU_RIZIKA
+  const convertedSummary = {
+    ...s,
+    cagr: s.obdobiLet >= 1 ? s.cagr : null,
+    standardDeviation: malo ? null : s.standardDeviation,
+    sharpeRatio: malo ? null : s.sharpeRatio,
+    sortinoRatio: malo ? null : s.sortinoRatio,
+  }
 
   const stressPeriods = calculateStressPeriods(result.marketNav ?? [])
   const drawdownSeries = calculateDrawdownSeries(result.marketNav ?? [])
@@ -82,6 +97,9 @@ export async function simulateAndSerialize(body: SimulateRequestBody) {
   const { marketNav: _rawMarketNav, ...resultRest } = result
   return {
     ...resultRest,
+    /** Verze metodiky výpočtu – denní kontrola (check-fund-data.mjs, audit backtest) podle ní pozná, že je
+     *  oprava z auditu 22. 10. 2026 nasazená (před nasazením hlásí rozdíly jen jako varování). */
+    metodika: METODIKA_BACKTESTU,
     currency,
     marketNavMonthly,
     stressPeriods,

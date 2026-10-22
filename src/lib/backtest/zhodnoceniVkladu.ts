@@ -25,9 +25,14 @@ export function vkladyVCase(evolution: { date: string }[], pocatecni: number, vk
   let suma = pocatecni;
   if (evolution.length && pocatecni > 0) toky.push({ t: Date.parse(evolution[0].date), castka: pocatecni });
   for (let i = 0; i < evolution.length; i++) {
-    if (i > 0 && f !== 'none' && vklad > 0) {
-      const d = new Date(evolution[i].date), p = new Date(evolution[i - 1].date);
-      if (obdobi(d, f) !== obdobi(p, f)) { suma += vklad; toky.push({ t: d.getTime(), castka: vklad }); }
+    if (f !== 'none' && vklad > 0) {
+      // Bez počátečního vkladu jde pravidelný vklad i první den (engine od 22. 10. 2026, audit S8).
+      if (i === 0) {
+        if (!(pocatecni > 0)) { suma += vklad; toky.push({ t: Date.parse(evolution[0].date), castka: vklad }); }
+      } else {
+        const d = new Date(evolution[i].date), p = new Date(evolution[i - 1].date);
+        if (obdobi(d, f) !== obdobi(p, f)) { suma += vklad; toky.push({ t: d.getTime(), castka: vklad }); }
+      }
     }
     kumul.push(suma);
   }
