@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import StickyKdyzSeVejde from './StickyKdyzSeVejde';
 import {
-  brokers, nakladNakupu, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisVedeniUctu, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru,
+  brokers, nakladNakupu, castiPrikladu, rocniPoplatekRobo, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisVedeniUctu, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru,
   cenikyOverenyIso, cenikyOverenyStr,
 } from '@/data/brokerData';
 import { getBrokerContent } from '@/components/design-preview/brokerContent';
@@ -58,14 +58,18 @@ export default async function BrokerReview(
   const kurzy = await nactiKurzCnb();
 
 
-  /* Příkladový nákup – spočítaný z ceníku a kurzu ČNB (ne natvrdo). „od“ = část nákladu neznáme. */
+  /* Příkladový nákup – spočítaný z ceníku a kurzu ČNB (ne natvrdo). „od“ = část nákladu neznáme.
+     Celkem = součet ZAOKROUHLENÝCH částí (castiPrikladu) – dřív IBKR „od 74 Kč“ vs „30 Kč + 43 Kč“ (kolo 8). */
   const n = kurzy && !b.robo ? nakladNakupu(b, CASTKA_PRIKLAD, kurzy) : null;
-  const priklad = !n ? '—'
-    : n.celkemKc == null ? `od ${kc(n.provizeKc)}`
-    : `${n.plusBurza ? 'od ' : ''}${kc(n.celkemKc)} (${proc((n.celkemKc / CASTKA_PRIKLAD) * 100)})`;
-  const prikladPozn = !n ? undefined
-    : n.celkemKc == null ? `poplatek ${kc(n.provizeKc)} + směna v kurzu banky (výši neznáme)`
-    : `poplatek ${kc(n.provizeKc)} + směna ${kc(n.smenaKc ?? 0)}${n.plusBurza ? ' + poplatky burzy (výši neznáme)' : ''}`;
+  const cp8 = n ? castiPrikladu(n) : null;
+  const priklad = !n || !cp8 ? '—'
+    : cp8.celkem == null ? `od ${kc(cp8.provize)}`
+    : `${n.plusBurza ? 'od ' : ''}${kc(cp8.celkem)} (${proc((cp8.celkem / CASTKA_PRIKLAD) * 100)})`;
+  const prikladPozn = !n || !cp8 ? undefined
+    : cp8.smena == null ? `poplatek ${kc(cp8.provize)} + směna v kurzu banky (výši neznáme)`
+    : `poplatek ${kc(cp8.provize)} + směna ${kc(cp8.smena)}${n.plusBurza ? ' + poplatky burzy (výši neznáme)' : ''}`;
+  /* Robo-poradce: konkrétní roční náklad pro typické hodnoty portfolia (Sazebník Portu, sazba na celý majetek). */
+  const roboPriklady = b.robo ? [100_000, 750_000].map((h) => ({ h, bez: rocniPoplatekRobo(b, h), s: rocniPoplatekRobo(b, h, b.roboSlevaMax ?? 0) })) : [];
 
   /* JEDINÉ místo s fakty o brokerovi na stránce (dřív 3× – podtitulek, boční karta, tabulka). */
   const hot = ochranaHotovosti(b);
@@ -73,6 +77,12 @@ export default async function BrokerReview(
   const fakta: Fakt[] = b.robo
     ? [
         { k: 'Roční poplatek za správu', v: b.managementFee, tip: 'Platí se každý rok z celé hodnoty portfolia; zahrnuje nákupy, rebalancování i směnu měn.' },
+        { k: `Nákup za ${CASTKA_PRIKLAD.toLocaleString('cs-CZ')} Kč`, v: 'bez poplatku za nákup', pozn: 'nákup je v ročním poplatku za správu' },
+        ...roboPriklady.filter((x) => x.bez && x.s).map((x) => ({
+          k: `Za rok při ${x.h.toLocaleString('cs-CZ')} Kč v portfoliu`,
+          v: `${x.bez!.kc.toLocaleString('cs-CZ')} Kč (${proc(x.bez!.sazba)})`,
+          pozn: `s fixací 15 let ${x.s!.kc.toLocaleString('cs-CZ')} Kč (${proc(x.s!.sazba)}); k tomu vnitřní poplatky ETF (TER)`,
+        })),
         { k: 'Směna měn', v: b.fxFee },
         { k: 'Minimální vklad', v: popisMinVkladu(b) },
         { k: 'Daň z českých dividend', ...popisDaneDividend(b) },
@@ -82,9 +92,12 @@ export default async function BrokerReview(
         { k: 'Směna CZK → EUR', v: popisSmeny(b) ?? '—', pozn: b.nakup?.smenaPozn, data: { 'data-smena': popisSmeny(b) ?? '' } },
         {
           k: `Nákup za ${CASTKA_PRIKLAD.toLocaleString('cs-CZ')} Kč celkem`, v: priklad, pozn: prikladPozn,
+          // Denní kontrola (check-fund-data, kolo8 obsah): celkem = poplatek + směna (zaokrouhlené části).
+          data: cp8 ? { 'data-priklad': `${cp8.celkem ?? ''}|${cp8.provize}|${cp8.smena ?? ''}` } : undefined,
           tip: kurzy ? `Poplatek za nákup + směna korun na eura, nákup evropského ETF na Xetře. Kurz ČNB k ${datumKurzu(kurzy)}.` : 'Kurz ČNB se nepodařilo načíst – částku teď neukazujeme.',
         },
         { k: 'Vedení účtu', ...popisVedeniUctu(b) },
+        ...(b.prevodVen ? [{ k: 'Převod ETF k jinému brokerovi', v: b.prevodVen }] : []),
         { k: 'Minimální vklad', v: popisMinVkladu(b) },
         { k: 'Daň z českých dividend', ...popisDaneDividend(b), tip: 'Srážka z dividend českých akcií. U akumulačních ETF se vás přímo netýká.' },
       ];
@@ -141,8 +154,14 @@ export default async function BrokerReview(
             Web {b.name} <ExternalLink className="h-3.5 w-3.5" />
           </a>
         )}
+        {b.cenik && (
+          <a href={b.cenik.url} target="_blank" rel="nofollow noopener noreferrer" data-cenik={b.id} className="flex items-center gap-1 text-slate-600 hover:text-slate-900">
+            Oficiální ceník: {b.cenik.nazev}{b.cenik.platnost ? ` (${b.cenik.platnost})` : ''} <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          </a>
+        )}
         <p className="pt-1 text-xs text-slate-500">
           Ceník ověřen <time dateTime={cenikyOverenyIso}>{cenikyOverenyStr}</time>{kurzy && !b.robo ? `, kurz ČNB k ${datumKurzu(kurzy)}` : ''}. Odkazy bez provize.
+          {b.robo ? ' Kalkulačka nákladů na /kde-koupit počítá jen brokery – roční poplatek Portu je v řádcích výše.' : ''}
         </p>
       </div>
     </aside>
@@ -256,6 +275,23 @@ export default async function BrokerReview(
                     </details>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {/* Převod portfolia (kolo 8, 22. 10. 2026): § 4 odst. 1 písm. u) ZDP (zakonyprolidi.cz/cs/1992-586, znění od 1. 8. 2026)
+                počítá 3 roky „mezi nabytím a úplatným převodem“ – přesun cenných papírů k jinému brokerovi není ani jedno. */}
+            {!b.robo && (
+              <section data-sekce="prevod" className="rounded-xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-600">
+                <h2 className="text-base font-semibold text-slate-900">Přechod k jinému brokerovi</h2>
+                <p className="mt-1.5">
+                  ETF můžete k jinému brokerovi převést bez prodeje. Převod cenných papírů není prodej ani nový nákup, takže
+                  tříletý časový test pro osvobození zisku od daně (§ 4 odst. 1 písm. u) zákona o daních z příjmů) běží dál
+                  od původního nákupu. Kdybyste fondy prodali a u nového brokera koupili znovu, test začíná od nového nákupu
+                  a ze zisku z prodeje může vzniknout daň.{' '}
+                  {b.prevodVen
+                    ? <>Odchozí převod u {b.name}: {b.prevodVen}{b.cenik?.platnost ? ` (ceník ${b.cenik.platnost})` : ''}.</>
+                    : <>Poplatek za odchozí převod si ověřte v ceníku {b.name}.</>}
+                </p>
               </section>
             )}
 
