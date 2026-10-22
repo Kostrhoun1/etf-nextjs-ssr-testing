@@ -21,6 +21,9 @@ import { chromium, webkit } from 'playwright';
 const BASE = (process.env.BASE_URL || 'https://etfpruvodce.cz').replace(/\/$/, '');
 const ERROR_TEXT = /nepodařilo|cyclic|circular structure|Application error|Something went wrong/i;
 
+// Smoke test nesmí kazit měření návštěvnosti: každý kontext Playwrightu by byl v GA nový uživatel (22. 10. 2026).
+const BEZ_MERENI = /googletagmanager\.com|google-analytics\.com|\/api\/ev(\?|$)/;
+
 const results = [];
 const ok = (name) => results.push({ name, ok: true });
 const fail = (name, detail) => results.push({ name, ok: false, detail });
@@ -81,6 +84,7 @@ async function checkMobilniHledani(browserType, engine) {
   }
   try {
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: engine === 'chromium' });
+    await ctx.route(BEZ_MERENI, (r) => r.abort());
     const page = await ctx.newPage();
     page.setDefaultTimeout(30000);
     await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -103,7 +107,9 @@ async function checkMobilniHledani(browserType, engine) {
 
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage();
+  const kontext = await browser.newContext();
+  await kontext.route(BEZ_MERENI, (r) => r.abort());
+  const page = await kontext.newPage();
   page.setDefaultTimeout(30000);
   for (const p of ['/', '/backtest', '/srovnani', '/fire', '/dane-z-etf', '/zebricky']) {
     await checkPage(page, p);
