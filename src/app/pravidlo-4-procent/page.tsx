@@ -231,7 +231,8 @@ export default async function PravidloCtyriProcenta() {
                 </table>
               </div>
               <p className="mt-2 text-xs text-slate-500">
-                Celý svět = celosvětový fond Vanguard VT (index FTSE Global All Cap); před 7/2008, kdy fond nebyl, aproximace 60 % USA + 40 % zbytek světa. Vyvážené = 60 % akcie celého světa, 40 % dluhopisy (data dluhopisového fondu od {vy.od.slice(0, 4)}).
+                Celý svět = celosvětový fond Vanguard VT (index FTSE Global All Cap); před 7/2008, kdy fond nebyl, aproximace 60 % USA + 40 % zbytek světa. Vyvážené = 60 % akcie celého světa, 40 % americké dluhopisy (fond iShares Core US Aggregate Bond – AGG, převedený do korun; data od {vy.od.slice(0, 4)}).
+                Je to jiné 60/40 než modelové portfolio a FIRE kalkulačka, které mají státní dluhopisy eurozóny (Xtrackers XGLE).
                 U pozdějších startů je období ještě krátké – rozhodující jsou první roky.
               </p>
             </section>

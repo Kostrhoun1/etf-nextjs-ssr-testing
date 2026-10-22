@@ -883,3 +883,51 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   srovnávač), prázdné příznaky (null/false) se neposílají. Měny se na klientu NEdopočítávají – přepočet kurzem by se lišil
   od výnosu v Kč z DB.
 - Hlídá `scripts/check-fund-data.mjs`, blok `kolo8 zebricky` (A kategorie, B třídy, C detail neověřených, D texty a velikost).
+
+## Texty a statické výpočty na stránkách – audit nástrojů (22.–23. 10. 2026)
+
+- **Poplatek fondu se strhává z hodnoty fondu: čistý výnos = (1 + r)(1 − TER) − 1, NE r − TER** – /pruvodce (příklad
+  poplatků, `vynosPoPoplatku` v src/lib/prikladPoplatku.ts) i /kalkulacka. 10 000 Kč měsíčně, 20 let, 7 %, TER 0,2 / 1,8 %:
+  4 953 725 / 4 091 260 Kč, rozdíl 862 465 Kč (dřív 4 962 000 / 4 149 000 / 813 000). Kontrola v check-fund-data (kolo6 bod 7)
+  dřív kopírovala chybu webu (0,068 / 0,052 = kruh) – teď nezávislé konstanty 0,06786 / 0,05074 (1,07 × 0,998 − 1, 1,07 × 0,982 − 1).
+- **„7 % ročně“ na /kolik-investovat-mesicne, /dip, /investovani-pro-deti, /pruvodce je MODELOVÝ PŘEDPOKLAD, ne „historický
+  průměr“.** Skutečné výnosy v Kč závisí na období (k 21. 10. 2026: celý svět/VT od 2. 7. 2008 11,1 % ročně, S&P 500 od 1/2000
+  6,3 % ročně – /kolik-vydelaly-etf, počítá se z dat, nezávisle ověřeno 21. 10.). Stránky na ně odkazují, čísla nepíší natvrdo
+  (zastarala by). Neměnit zpět na „dlouhodobý průměr“.
+- **/fire „roky do FIRE“ počítá s reálným výnosem FIRE kalkulačky (vyvážené 60/40, 4,6 %) importem `FIRE_PREDPOKLADY`**,
+  ne opisem. Dřív „~5 % reálně“ bez zdroje. 50 % úspor → ~17 let, 20 % → ~38 let (víc než dvakrát), 70 % → ~9 let.
+- **Dvě různá „60/40“ jsou záměr, ale musí být pojmenovaná:** FIRE kalkulačka, /fire a modelové portfolio 60/40 = VWCE/VT +
+  státní dluhopisy eurozóny (Xtrackers XGLE, `eur_govt_bond`); stroj času a /pravidlo-4-procent = VT + americké dluhopisy
+  (iShares AGG, `us_aggregate_bond`, data od 10/2003). Texty na /pravidlo-4-procent, /fire-kalkulacka a popis presetu ve
+  stroji času (src/lib/strojCasuVypocet.ts) to říkají výslovně. Sjednocení dat = rozhodnutí majitele (otevřené).
+- **Časování vkladu ve statických tabulkách = konec měsíce** (/kolik-investovat-mesicne, /investovani-pro-deti, /pruvodce,
+  hero /kalkulacka; /dip a /fire na konci roku) a stránky to píší. Investiční kalkulačka a stroj času vkládají na začátku
+  měsíce (widgety – sjednocení navrženo, neprovedeno).
+- **Pravidlo 4 % na /kolik-investovat-mesicne má výhradu a sloupec 3,5 %**: v Kč by u startů 2000–2002 z čistě akciového
+  portfolia peníze došly a u startu 2000 ani 3,5 % a 3 % (S&P 500 3 % došly 9/2017, celý svět 10/2018; /pravidlo-4-procent,
+  data k 22. 10. 2026). Sloupec 3,5 % NENÍ „bezpečná“ sazba – text to říká.
+- **/investovani-pro-deti: věta o odkladu se generuje z čísel** (`slovniPodil`): 148 291 / 420 918 = 35,2 % → „zhruba třetina
+  výsledku (35 %)“, dřív natvrdo „ani ne třetina“. OG obrázek bere částku z výpočtu.
+- **Sloupec „5 let celkem (Kč)“ na /dip a /investovani-pro-deti je kumulativní** výnos (return_5y_czk), ne roční průměr – napsáno
+  v záhlaví i v poznámce pod tabulkou.
+- **Odpočet úroků z hypotéky: 150 000 Kč ročně za domácnost** (§ 15 odst. 4 ZDP, https://www.zakonyprolidi.cz/cs/1992-586,
+  znění 1. 8.–31. 12. 2026, ověřeno 22. 10. 2026); **300 000 Kč jen u bydlení pořízeného před 1. 1. 2021** (zákon č. 386/2020 Sb.,
+  čl. IV body 3–4, přechodná ustanovení na téže stránce). Úspora při 15 %: 22 500 Kč (u starých případů 45 000 Kč).
+- **Daně na /kalkulacka:** časový test 3 roky (§ 4 odst. 1 písm. u) ZDP) platí pro každý nákup zvlášť; hodnotový test = úhrn
+  příjmů z prodeje cenných papírů do 100 000 Kč za rok (§ 4 odst. 1 písm. t) ZDP; počítá se tržba, ne zisk). Ověřeno na
+  zakonyprolidi.cz 22. 10. 2026.
+- **DCA (/dca-vs-jednorazova) – čísla Vanguardu jsou rozdíly KONEČNÉ hodnoty, ne roční výnos** (ověřeno v PDF 22. 10. 2026):
+  Vanguard 2023, Finlay & Zorn, „Cost averaging: Invest now or temporarily hold your cash?“
+  (https://corporate.vanguard.com/content/dam/corp/research/pdf/cost_averaging_invest_now_or_temporarily_hold_your_cash.pdf):
+  str. 5 – 60/40, rozložení do 3 měsíců, po 1 roce LS o 1,8 % víc (109 360 vs 107 453 USD); str. 3 – MSCI World 1976–2022, LS
+  poráží CA v 68 %, CA poráží hotovost v 69 %. Vanguard 2012, Shtekhman/Tasopoulos/Wimmer, „Dollar-cost averaging just means
+  taking risk later“, červenec 2012 (původní PDF na vanguard.com už PDF nevrací; text ověřen z kopie originálu
+  https://indexacapital.files.wordpress.com/2017/07/dollar-cost-averaging-just-means-taking-risk-later-vanguard-2012.pdf):
+  str. 3 – USA, LSI poráží 36měsíční DCA v ~90 % desetiletých období; str. 4 – 60/40, 12 měsíců, po 10 letech +2,3 % (UK 2,2 %,
+  AU 1,3 %).
+- **Monte Carlo neumí výběry z renty** (jen vklady) – /fire ho nenabízí jako „pravděpodobnost úspěchu renty“ a /monte-carlo
+  nemá kartu „předčasný důchod / načasování propadů“. Výnosy aktiv v simulátoru se na stránce jmenují „modelové
+  (předpokládané)“, ne „historické“ (V3 – čísla nemají doložený zdroj; oprava čísel je ve widgetu).
+- **„Aktualizováno 23. října 2026“** u stránek upravených v tomto auditu (redakce.ts) – datum úpravy textu.
+- Hlídá `scripts/check-fund-data.mjs`, blok `audit texty` (+ kolo6 bod 7). Před nasazením (produkce bez `data-priklad-vzorec`
+  na /pruvodce) jdou nálezy jen do varování.

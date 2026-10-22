@@ -33,7 +33,7 @@ export default async function MonteCarloPreview() {
     },
     {
       q: 'Jak simulátor počítá scénáře?',
-      a: 'Pro každé aktivum (akcie, dluhopisy, zlato, hotovost) pracujeme s historickým ročním výnosem a kolísavostí (volatilitou) v amerických dolarech. Pohyb kurzu koruny simulace nezahrnuje – český investor má kvůli němu výsledky v Kč kolísavější (víc v článku o měnovém riziku). Vzájemné vazby mezi aktivy zachycuje korelační matice, kterou rozkládáme Choleskyho dekompozicí – díky tomu se aktiva v jednotlivých měsících pohybují realisticky společně. Každý měsíc přičteme váš vklad a aplikujeme náhodně vygenerovaný výnos. Tento postup zopakujeme pro stovky scénářů a z výsledků spočítáme percentily.',
+      a: 'Pro každé aktivum (akcie, dluhopisy, zlato, hotovost) pracujeme s modelovým (předpokládaným) ročním výnosem a kolísavostí (volatilitou) v amerických dolarech – nejsou to změřené historické průměry konkrétních fondů. Pohyb kurzu koruny simulace nezahrnuje – český investor má kvůli němu výsledky v Kč kolísavější (víc v článku o měnovém riziku). Vzájemné vazby mezi aktivy zachycuje korelační matice, kterou rozkládáme Choleskyho dekompozicí – díky tomu se aktiva v jednotlivých měsících pohybují realisticky společně. Každý měsíc přičteme váš vklad a aplikujeme náhodně vygenerovaný výnos. Tento postup zopakujeme pro stovky scénářů a z výsledků spočítáme percentily.',
     },
     {
       q: 'Co znamená percentil a pásmo?',
@@ -179,7 +179,7 @@ export default async function MonteCarloPreview() {
               {([
                 [Database, 'Vstupní data aktiv', (
                   <>
-                    Každé aktivum má historický roční výnos a{' '}
+                    Každé aktivum má modelový (předpokládaný) roční výnos a{' '}
                     <InfoTip label="Volatilita = míra kolísání hodnoty. Vyšší volatilita znamená větší výkyvy nahoru i dolů.">volatilitu</InfoTip>
                     . Vzájemné vazby řeší korelační matice.
                   </>
@@ -227,7 +227,8 @@ export default async function MonteCarloPreview() {
           <div className="grid sm:grid-cols-3 gap-3">
             {([
               ['Plánování důchodu', 'Zjistíte, s jakou pravděpodobností portfolio dosáhne cílové částky za 20–30 let.'],
-              ['Předčasný důchod', 'U dlouhých horizontů (40+ let) ukáže riziko nepříznivého načasování propadů.'],
+              // Audit 22. 10. 2026 (S21): simulátor umí jen vklady, ne výběry z renty – „riziko načasování propadů“ v důchodu neukáže.
+              ['Dlouhé spoření', 'U horizontů 30+ let ukáže, jak široké je pásmo možných výsledků. Výběry z renty simulátor nepočítá – ty rozebírá článek Pravidlo 4 % v korunách.'],
               ['Porovnání profilů', 'Srovnáte nejen výnos, ale i šíři pásma – tedy riziko – mezi opatrnou a růstovou variantou.'],
             ] as [string, string][]).map(([t, d]) => (
               <div key={t} className="rounded-lg border border-slate-200 bg-white p-4">
@@ -306,7 +307,7 @@ export default async function MonteCarloPreview() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Metodika: měsíční simulace s historickými dolarovými výnosy a volatilitou aktiv (bez pohybu kurzu koruny), korelace přes Choleskyho dekompozici, percentily z výsledných scénářů. Aktualizováno {upraveno}.</p>
+              <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Metodika: měsíční simulace s modelovými (předpokládanými) dolarovými výnosy a volatilitou aktiv (bez pohybu kurzu koruny), korelace přes Choleskyho dekompozici, percentily z výsledných scénářů. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Simulátor má vzdělávací charakter, pracuje s nominálními hodnotami a předpokládá přibližně normální rozdělení výnosů – skutečné výnosy kolísají a nelze je zaručit.</p>
             </div>
           </div>
