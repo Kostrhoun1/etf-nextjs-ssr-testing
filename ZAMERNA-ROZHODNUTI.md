@@ -608,3 +608,38 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Titulek > 65 znaků → bez „| ETF průvodce.cz“** (`titulek()` v src/lib/seoTitulek.ts), stejně jako u žebříčků a detailů.
 - **Organization schema: „Největší český průvodce ETF fondy“ ZŮSTÁVÁ** (rozhodnutí majitele 18. 10., viz výše) i přes
   doporučení auditu 6b; odstraněna jen „Jedinečná databáze ETF pro české investory“.
+
+## Kontrolní kolo 7 – podezřelá čísla (22. 10. 2026)
+
+- **Výnosy za období „—“ u fondů ze seznamu `NEOVERENE_VYNOSY` (src/lib/vynosNeovereny.ts) jsou ZÁMĚR.** Každá položka je
+  nezávisle ověřená chyba ZDROJE dat (důkaz s čísly je přímo v seznamu): skok v denní řadě, který burza nemá (HASH, HAMO
+  22. 9. 2026 −96 % – burza bez obchodu od září; pákové VIXL, 3NGL, 3LAA, 3SNV, 3SAA, 3USS, 3BBE, 3LTS, 3SFB s body
+  v miliardách €), zašuměná řada bez tržní kotvy (EWG2, TMGD: 1R +1,0 % vs. burza Stuttgart −1,6 %, Xetra-Gold −1,3 %)
+  a chybějící dividenda distribuční třídy (I50D, XISP, IUSP, UDHY, IUS7, IS3C – Yahoo ji má, zdroj ne). Nevracet čísla
+  „aspoň do tabulky“. Položku smazat, až ji denní kontrola (check-fund-data.mjs, blok kolo7 podezrele) nahlásí jako
+  neplatnou; NOVÝ případ hlásí jako poplach (skok, šum) nebo varování (dividenda < 3 týdny – zdroj je doplňuje se
+  zpožděním, 22. 10. chyběla u 11 ze 149 největších distribučních fondů).
+- **Pravidlo pro zlato/bitcoin NENÍ „odchylka od mediánu skupiny“** – ověřeno na 130 dnech: fondy oceňované v jinou denní
+  dobu (LBMA fix vs. závěr Xetry vs. 22:00) se legitimně rozcházejí až o 2,2 p. b. (zlato) a 4 p. b. (bitcoin) ve všech
+  obdobích stejným směrem. Rozhoduje vlastní šum řady (≥ 1,1 % a ≥ 2,5× medián skupiny) A výnos 1M i 1R vedle vlastní burzy
+  o > 1,5 p. b. stejným směrem. VBTC (šum 0,97 %, burza 1M +1,7 / 1R −0,4) proto chybou NENÍ.
+- **Ověřené extrémy – skutečnost, neopravovat (22. 10. 2026, burza v EUR ke stejnému dni):** LSMC 3R +302 % (CHIP.MI
+  +302 %), FAMMWS 3R +314 % (+295 %, řídký obchod), 3BAL 3R +1 224 % (3BAL.L +1 222 %), 3ITL 3R +384 % (+382 %), IBEXA
+  3R +344 % (+344 %), 5MIB 3R +752 % (+770 %), LCFE 3R +315 % (+306 %), Polygon (POLY/VPOL/CPYG) 3R −81 až −84 % (burza
+  −84/−85 %), Solana (SLNC/WSOL) 3R +310/+318 % bez skoku v řadě, 3MRN (3× Moderna) 1R +3 015 % – burza 3MRN.L stejný
+  trend (572 → 1 800+ p.). Pákové 3× produkty umí −90 % i +1 000 % reálně.
+- **VALL (IE000VAHT5T0) velikost 3,2 mld. € dva měsíce po vzniku = skutečnost (řádově).** Zdroj: EUR 3 238 m (profil
+  22. 10. 2026); emitent (Vanguard, stránka produktu): Share Class Assets 2,51 mld. USD, Total 2,57 mld. USD, 507 485 297
+  podílů k 30. 9. 2026; tisk (bankeronwheels.com, 4. 9. 2026): 1 mld. USD za 2 týdny od startu. Číslo ukazovat s datem.
+- **SNTE (Ossiam Serenity Euro, €STR) 1R +2,45 % nad XEON +2,09 % i přes vyšší TER = skutečnost.** Xetra SNTE.DE
+  20. 10. 2025 → 20. 10. 2026: 102,355 → 104,858 € = +2,445 %; XEON.DE +2,07 %. ECB €STR složený za stejné období
+  2,09 %, €STR + 8,5 bp 2,18 % → XEON (TER 0,10) sedí přesně; SNTE i Amundi Smart Overnight (CSH2.PA +2,49 %) dávají
+  o ~0,4 p. b. víc, než index po poplatku dovolí (podmínky swapu / repo strategie emitenta – příčinu z veřejných dat
+  neověříme). Neopravovat; nejde o chybu dat.
+- **VHYL × VGWE (tentýž fond, dvě třídy): správně je VHYL, chybná VGWE.** Přepočet z denní řady zdroje dá přesně údaje
+  DB (VHYL vol 1R 7,98 %, 3R 10,03 %, pokles 3R −14,79 %; VGWE 10,77 / 16,99 / −19,56 %) – VGWE má v řadě vadné body
+  (25. 12. 2024 aj.). Nezávisle Yahoo: VHYL.AS vol 1R 8,72 / 3R 10,72 %, VGWE.DE 8,95 / 10,73 % → riziko obou tříd je
+  ~VHYL. Na webu má být „—“ jen u VGWE (úprava src/lib/tridyFondu.ts – viz report kola 7).
+- **Distribuční třídy: zdroj vede dividendy se zpožděním a zaokrouhlené na 2 desetinná místa** (I50D 0,03 místo 0,0347 €).
+  Rozdíl I50D/XISP proti akumulačním třídám (~0,7 p. b.) NENÍ metodika zdroje (řada „s dividendami“ dividendy
+  reinvestuje), je to chybějící poslední dividenda → „—“ (výše). Platí, dokud zdroj nezačne dividendy vést včas.

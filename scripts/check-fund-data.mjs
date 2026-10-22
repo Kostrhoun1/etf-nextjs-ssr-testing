@@ -2444,6 +2444,218 @@ const main = async () => {
   }
   // --- konec kolo6b seo obsah ---
 
+  // --- kolo7 podezrele --- (kontrolní kolo 7, 22. 10. 2026; pravidlo č. 1, body 4–5: podezřelé číslo se prověří hned,
+  // každá chyba = oprava + kontrola). Čísla, která recenzenti našli a nezávisle jsme ověřili jako chyby ZDROJE dat:
+  //  A) skok v denní řadě zdroje, který burza nemá (HASH/HAMO 22. 9. 2026 −96 % → web 1R −97,8 %; pákové VIXL, 3NGL,
+  //     3LAA… s body v miliardách €). Kandidáti = extrémní výnosy; skok = ×3 za den (bez páky) / ×10 (páka).
+  //  B) produkty bez tržní kotvy (fyzické zlato, bitcoin): zašuměná řada zdroje (EWG2, TMGD: výnos k jednomu dni o 1–3
+  //     p. b. vedle). Medián skupiny ani pravidlo „1,5 p. b. od trhu“ to nechytí (rozptyl časování ocenění ve skupině
+  //     zlata až 2,2 p. b., u bitcoinu až 4 p. b. – ověřeno na 130 dnech). Rozhoduje VLASTNÍ šum řady proti mediánu
+  //     denních změn skupiny (60 prac. dní; EWG2 1,30 %, TMGD 1,14 %, ostatní zlato ≤ 0,78 %, bitcoin ≤ 1,00 %)
+  //     A ZÁROVEŇ výnos 1M i 1R proti vlastní burze (EUR) vedle o > 1,5 p. b. stejným směrem (VBTC: +1,7 / −0,4 → ne).
+  //  C) chybějící dividenda distribuční třídy u zdroje (I50D ex 15. 10., XISP ex 19. 8. 2026; Yahoo je má) → výnos
+  //     s reinvesticí nižší (I50D 19,55 % vs. I500 20,23 %). Zdroj dividendy doplňuje se zpožděním – 22. 10. 2026
+  //     chyběla u 11 ze 149 největších distribučních fondů (většinou iShares ex 15. 10.).
+  //  D) dávka scraperu neuložená (BTCN 22. 10.: upload po 5 fondech, jedno přetečení numeric(8,4) shodí celou dávku –
+  //     od 21. 10. denně 25 fondů z ISIN.csv bez aktualizace).
+  //  E) velký čerstvý fond bez returns_as_of (BTCW 1,4 mld. €: díra s cenou 0 u zdroje v roce 2021 → všechny výnosy null).
+  // Ověřené chyby jsou v src/lib/vynosNeovereny.ts (NEOVERENE_VYNOSY) a web je ukazuje jako „—“. NOVÝ případ mimo seznam =
+  // POPLACH (A, B), u dividend varování (zdroj je doplňuje sám, poplach až když chybí > 21 dní). Položka seznamu, která už
+  // neplatí (zdroj chybu opravil / scraper vrací null), = varování „smazat ze seznamu“.
+  {
+    const hlav = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const UA = { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; etfpruvodce.cz kontrola dat)', Accept: 'application/json' } };
+    const SUF = { XETRA: '.DE', 'Stuttgart Stock Exchange': '.SG', 'Borsa Italiana': '.MI', 'Euronext Paris': '.PA', 'Euronext Amsterdam': '.AS', 'SIX Swiss Exchange': '.SW', 'London Stock Exchange': '.L' };
+    const BURZY = Array.from({ length: 10 }, (_, i) => [`exchange_${i + 1}_name`, `exchange_${i + 1}_ticker`, `exchange_${i + 1}_currency`]).flat();
+    const zpet7 = (d, mes) => { const [r, m, den] = d.split('-').map(Number); const t = r * 12 + (m - 1) - mes, nr = Math.floor(t / 12), nm = t - nr * 12; const posl = new Date(Date.UTC(nr, nm + 1, 0)).getUTCDate(); return `${nr}-${String(nm + 1).padStart(2, '0')}-${String(Math.min(den, posl)).padStart(2, '0')}`; };
+    const bod7 = (s, d) => { let r = null; for (const b of s) { if (b[0] <= d) r = b; else break; } return r; };
+    const med7 = (xs) => { const s = [...xs].sort((a, b) => a - b); const m = s.length >> 1; return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : null; };
+    const dnu7 = (a, b) => Math.abs(new Date(a) - new Date(b)) / 864e5;
+    const radaZdroje = async (isin, od, doD, div = false) => {
+      const j = await fetch(`https://www.justetf.com/api/etfs/${isin}/performance-chart?locale=en&currency=EUR&valuesType=MARKET_VALUE&reduceData=false&includeDividends=${div}&features=DIVIDENDS&dateFrom=${od}&dateTo=${doD}`, UA)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`justETF HTTP ${r.status}`))));
+      return { rada: (j.series ?? []).map((p) => [p.date, Number(p.value?.raw)]).filter((p) => Number.isFinite(p[1])), dividendy: (j.features?.DIVIDENDS ?? []).map((d) => d.date) };
+    };
+    // Burzovní řada (Yahoo): jen dny se skutečným obchodem (objem > 0) – jinak Yahoo nese poslední cenu dál (HASH).
+    const yahoo7 = async (sym, rozsah = '5y', div = false) => {
+      const j = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=${rozsah}&interval=1d${div ? '&events=div' : ''}`, UA).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      const res = j?.chart?.result?.[0];
+      if (!res?.timestamp) return null;
+      const off = res.meta.gmtoffset ?? 0, q = res.indicators.quote[0];
+      const adj = res.indicators.adjclose?.[0]?.adjclose ?? q.close;
+      const rada = res.timestamp.map((t, i) => [new Date((t + off) * 1000).toISOString().slice(0, 10), q.close[i], adj[i], q.volume?.[i]]).filter((p) => p[1] > 0 && p[3] > 0);
+      const dividendy = Object.values(res.events?.dividends ?? {}).map((d) => ({ den: new Date(d.date * 1000).toISOString().slice(0, 10), castka: d.amount }));
+      return { mena: res.meta.currency, rada, dividendy };
+    };
+    const burzyFondu = (f, jenEur) => {
+      const out = [];
+      for (let i = 1; i <= 10; i++) {
+        const n = f[`exchange_${i}_name`], t = f[`exchange_${i}_ticker`];
+        if (SUF[n] && t && t !== '-' && (!jenEur || f[`exchange_${i}_currency`] === 'EUR')) out.push(t + SUF[n]);
+      }
+      return [...new Set(out)];
+    };
+    const prvniBurza = async (f, jenEur, rozsah, div) => { for (const s of burzyFondu(f, jenEur)) { const y = await yahoo7(s, rozsah, div); if (y && y.rada.length > 40) return { sym: s, ...y }; } return null; };
+    const konecVynosu = (f) => (f.returns_as_of ? String(f.returns_as_of).slice(0, 10) : String(f.scraping_date ?? '').slice(0, 10));
+    const nalezy = { A: [], B: [], C: [], Cstare: [], D: [], E: [], smazat: [], nejde: [], web: [] };
+    try {
+      // Seznam ověřených chyb (jeden fond = jeden řádek v src/lib/vynosNeovereny.ts).
+      const zdrojSeznamu = readFileSync('src/lib/vynosNeovereny.ts', 'utf8');
+      const seznam = new Map([...zdrojSeznamu.matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '([^']*)', druh: '(skok|sum|dividenda)'(?:, den: '(\d{4}-\d{2}-\d{2})')?/g)]
+        .map((m) => [m[1], { ticker: m[2], druh: m[3], den: m[4] }]));
+      if (seznam.size < 5) throw new Error(`seznam NEOVERENE_VYNOSY ve vynosNeovereny.ts nenalezen (${seznam.size} položek)`);
+      const sloupce = `isin,name,primary_ticker,is_leveraged,fund_size_numeric,investment_focus,index_name,distribution_policy,scraping_date,returns_as_of,return_1m,return_3m,return_6m,return_ytd,return_1y,return_3y,return_5y,${BURZY.join(',')}`;
+
+      // A) Extrémní výnosy × skok v řadě zdroje, který burza nemá.
+      const extremy = await fetch(`${URL_DB}?select=${sloupce}&scraping_date=gte.${new Date(Date.now() - 14 * 864e5).toISOString()}&or=(return_1y.lt.-80,return_1y.gt.300,return_3y.lt.-85,return_3y.gt.500,return_1m.lt.-50,return_1m.gt.100)`, hlav).then((r) => r.json());
+      if (!Array.isArray(extremy)) throw new Error('DB extrémy');
+      const MES7 = { '1m': 1, '3m': 3, '6m': 6, '1y': 12, '3y': 36, '5y': 60 };
+      const probrane = new Set();
+      for (const f of [...extremy, ...(await fetch(`${URL_DB}?select=${sloupce}&isin=in.(${[...seznam].filter(([, z]) => z.druh === 'skok').map(([i]) => i).join(',')})`, hlav).then((r) => r.json()))]) {
+        if (probrane.has(f.isin)) continue;
+        probrane.add(f.isin);
+        const D = konecVynosu(f);
+        const obdobi = Object.keys(MES7).filter((o) => f[`return_${o}`] != null);
+        if (f.return_ytd != null) obdobi.push('ytd');
+        const vSeznamu = seznam.get(f.isin)?.druh === 'skok';
+        if (!obdobi.length) { if (vSeznamu) nalezy.smazat.push(`${f.isin} ${f.primary_ticker ?? ''} (skok): výnosy za období už null – scraper je odfiltroval`); continue; }
+        const zac = (o) => (o === 'ytd' ? `${Number(D.slice(0, 4)) - 1}-12-31` : zpet7(D, MES7[o]));
+        const nejdal = obdobi.map(zac).sort()[0];
+        let r;
+        try { r = (await radaZdroje(f.isin, zpet7(nejdal, 0).slice(0, 8) + '01', D)).rada; } catch (e) { nalezy.nejde.push(`${f.isin}: ${e.message}`); continue; }
+        const prah = f.is_leveraged ? 10 : 3;
+        const skoky = [];
+        for (let k = 1; k < r.length; k++) {
+          const a = r[k - 1][1], b = r[k][1];
+          if (r[k][0] < nejdal) continue;
+          if (a <= 0 || b <= 0 ? a !== b : b / a > prah || b / a < 1 / prah) skoky.push({ den: r[k][0], a, b });
+        }
+        if (!skoky.length) { if (vSeznamu) nalezy.smazat.push(`${f.isin} ${f.primary_ticker ?? ''} (skok): v řadě zdroje za období s výnosem už skok není`); continue; }
+        // Burza: když tentýž den (±5 dní) skočila podobně (konsolidace na obou), je skok skutečný. Rozhoduje PRVNÍ
+        // skok, který burza nemá a přes který vede aspoň jeden výnos na webu.
+        const y = await prvniBurza(f, false, '5y');
+        let nalez = null;
+        for (const sk of skoky) {
+          const zasazena = obdobi.filter((o) => zac(o) < sk.den).map((o) => `${o} ${Number(f[`return_${o}`]).toFixed(1)} %`);
+          if (!zasazena.length) continue;
+          let burzaText = 'burza nedostupná', realny = false;
+          if (y) {
+            const pred = y.rada.filter((p) => p[0] < sk.den).at(-1), po = y.rada.find((p) => p[0] >= sk.den);
+            if (!pred || !po || dnu7(po[0], sk.den) > 5) burzaText = `${y.sym}: bez obchodu kolem ${sk.den} (poslední ${y.rada.at(-1)?.[0]})`;
+            else {
+              const xb = po[1] / pred[1], xz = sk.b / sk.a;
+              realny = xz > 0 && Number.isFinite(xz) && xb / xz < 1.5 && xb / xz > 1 / 1.5;
+              burzaText = `${y.sym} ${pred[0]}→${po[0]} ×${xb.toFixed(2)}`;
+            }
+          }
+          if (!realny) { nalez = `${f.isin} ${f.primary_ticker ?? ''}${f.is_leveraged ? ' (páka)' : ''}: zdroj ${sk.den} ${sk.a} → ${sk.b}, ${burzaText}; na webu ${zasazena.join(', ')}`; break; }
+        }
+        if (!nalez) { if (vSeznamu) nalezy.smazat.push(`${f.isin} ${f.primary_ticker ?? ''} (skok): skoky v řadě má i burza nebo už neovlivní výnosy na webu`); continue; }
+        if (!seznam.has(f.isin)) nalezy.A.push(nalez);
+      }
+
+      // B) Bez tržní kotvy: fyzické zlato (EUR, nezajištěné) a fyzický bitcoin – vlastní šum řady × výnos proti burze.
+      const kandidati = await fetch(`${URL_DB}?select=${sloupce}&scraping_date=gte.${new Date(Date.now() - 14 * 864e5).toISOString()}&is_leveraged=eq.false&or=(investment_focus.ilike.*Precious*,investment_focus.ilike.*Cryptocurrenc*)`, hlav).then((r) => r.json());
+      if (!Array.isArray(kandidati)) throw new Error('DB skupiny zlata/bitcoinu');
+      const skupiny = {
+        zlato: kandidati.filter((f) => f.investment_focus === 'Precious Metals, Gold' && !/hedg|\bEAH\b|\bH-|future|yield|bitcoin|\bshort\b/i.test(f.name ?? '')),
+        bitcoin: kandidati.filter((f) => /^bitcoin$/i.test(String(f.index_name ?? '').trim()) && !/gold|short|basket|macro|cash/i.test(f.name ?? '')),
+      };
+      const dnes7 = new Date().toISOString().slice(0, 10);
+      for (const [jm, clenove] of Object.entries(skupiny)) {
+        if (clenove.length < 8) { nalezy.nejde.push(`skupina ${jm}: jen ${clenove.length} fondů`); continue; }
+        const rady = new Map();
+        for (const f of clenove) { try { rady.set(f.isin, new Map((await radaZdroje(f.isin, zpet7(dnes7, 5), dnes7)).rada.filter((p) => p[1] > 0))); } catch { /* bez řady – vynechat */ } }
+        const dny = [...new Set([...rady.values()].flatMap((m) => [...m.keys()]))].filter((d) => new Date(d).getUTCDay() % 6).sort().slice(-61);
+        const rezidua = new Map();
+        for (let k = 1; k < dny.length; k++) {
+          const z = [];
+          for (const [i, m] of rady) { const a = m.get(dny[k - 1]), b = m.get(dny[k]); if (a > 0 && b > 0) z.push([i, Math.log(b / a) * 100]); }
+          if (z.length < 5) continue;
+          const md = med7(z.map((x) => x[1]));
+          for (const [i, x] of z) rezidua.set(i, [...(rezidua.get(i) ?? []), x - md]);
+        }
+        const sum = new Map([...rezidua].filter(([, xs]) => xs.length >= 40).map(([i, xs]) => [i, Math.sqrt(xs.reduce((a, b) => a + b * b, 0) / xs.length)]));
+        const medSum = med7([...sum.values()]);
+        for (const f of clenove) {
+          const s = sum.get(f.isin);
+          const zSeznamu = seznam.get(f.isin)?.druh === 'sum';
+          if (s == null) { if (zSeznamu) nalezy.nejde.push(`${f.isin} ${f.primary_ticker}: šum řady nejde spočítat`); continue; }
+          const sumny = s >= 1.1 && s >= 2.5 * medSum;
+          if (zSeznamu && s < 0.7) nalezy.smazat.push(`${f.isin} ${f.primary_ticker} (šum): vlastní šum řady už ${s.toFixed(2)} % (medián skupiny ${medSum.toFixed(2)} %)`);
+          if (!sumny || zSeznamu || (f.return_1m == null && f.return_1y == null)) continue;
+          // Výnos proti VLASTNÍ burze (EUR listing) ke stejnému dni – stejný směr u 1M i 1R a > 1,5 p. b.
+          const D = konecVynosu(f);
+          const y = await prvniBurza(f, true, '2y');
+          if (!y) { nalezy.B.push(`${f.isin} ${f.primary_ticker} (${jm}): vlastní šum řady ${s.toFixed(2)} % (×${(s / medSum).toFixed(1)} mediánu skupiny), burzu v EUR nejde ověřit – prověřit ručně`); continue; }
+          const e = bod7(y.rada, D);
+          const rozdil = (o, mes) => { const z = zpet7(D, mes), a = bod7(y.rada, z); return !e || !a || dnu7(a[0], z) > 6 || dnu7(e[0], D) > 4 || f[`return_${o}`] == null ? null : Number(f[`return_${o}`]) - (e[2] / a[2] - 1) * 100; };
+          const r1m = rozdil('1m', 1), r1y = rozdil('1y', 12);
+          if (r1m != null && r1y != null && Math.sign(r1m) === Math.sign(r1y) && Math.abs(r1m) > 1.5 && Math.abs(r1y) > 1.5)
+            nalezy.B.push(`${f.isin} ${f.primary_ticker} (${jm}): šum řady ${s.toFixed(2)} % (×${(s / medSum).toFixed(1)}), výnos proti ${y.sym}: 1M ${r1m > 0 ? '+' : ''}${r1m.toFixed(2)} p. b., 1R ${r1y > 0 ? '+' : ''}${r1y.toFixed(2)} p. b.`);
+        }
+      }
+
+      // C) Dividendy distribučních tříd: 100 největších + položky seznamu. Yahoo ex-den (> 3 dny starý, ≥ 0,25 % ceny)
+      //    bez dividendy u zdroje v ±10 dnech (zdroj u části fondů vede den výplaty, ne ex-den – CHSPI, VECP).
+      const dist = await fetch(`${URL_DB}?select=${sloupce}&distribution_policy=eq.Distributing&scraping_date=gte.${new Date(Date.now() - 3 * 864e5).toISOString()}&order=fund_size_numeric.desc.nullslast&limit=100`, hlav).then((r) => r.json());
+      const divSeznam = [...seznam].filter(([, z]) => z.druh === 'dividenda').map(([i]) => i);
+      const divFondy = [...(Array.isArray(dist) ? dist : []), ...(await fetch(`${URL_DB}?select=${sloupce}&isin=in.(${divSeznam.join(',')})`, hlav).then((r) => r.json()))];
+      const hotovo7 = new Set();
+      for (const f of divFondy) {
+        if (hotovo7.has(f.isin)) continue;
+        hotovo7.add(f.isin);
+        const y = await prvniBurza(f, false, '2y', true);
+        if (!y) continue;
+        let src;
+        try { src = (await radaZdroje(f.isin, zpet7(dnes7, 14), dnes7, true)).dividendy; } catch { continue; }
+        const posl = y.rada.at(-1)?.[1];
+        const chybi = y.dividendy.filter((d) => d.den >= zpet7(dnes7, 13) && dnu7(d.den, dnes7) > 3 && posl > 0 && d.castka / posl >= 0.0025 && !src.some((s) => dnu7(s, d.den) <= 10));
+        const zSeznamu = seznam.get(f.isin);
+        if (zSeznamu && !chybi.some((d) => dnu7(d.den, zSeznamu.den ?? d.den) <= 3)) nalezy.smazat.push(`${f.isin} ${f.primary_ticker} (dividenda ${zSeznamu.den}): zdroj ji už má`);
+        if (zSeznamu) continue;
+        for (const d of chybi) (dnu7(d.den, dnes7) > 21 ? nalezy.Cstare : nalezy.C).push(`${f.isin} ${f.primary_ticker} (${y.sym}): ex ${d.den} ${d.castka} ${y.mena} ≈ ${(100 * d.castka / posl).toFixed(2)} % ceny – zdroj ji nemá`);
+      }
+
+      // D) Fondy z ISIN.csv, které poslední běh scraperu neuložil (dávka 5 fondů padá na jednom přetečení).
+      if (isinList.size > 4000) {
+        const posledni = fondy.map((x) => String(x.scraping_date ?? '')).sort().at(-1);
+        const hranice = new Date(new Date(`${posledni}Z`).getTime() - 12 * 3600e3).toISOString().slice(0, 19);
+        nalezy.D = fondy.filter((x) => isinList.has(x.isin) && x.scraping_date && String(x.scraping_date) < hranice && dni(x) <= 30)
+          .map((x) => `${x.isin} ${x.primary_ticker ?? ''} ${String(x.name ?? '').slice(0, 30)} – data z ${String(x.scraping_date).slice(0, 16)}`);
+      }
+
+      // E) Velký čerstvý fond bez dne výnosů (všechny výnosy za období null) – BTCW.
+      const bezDne = await fetch(`${URL_DB}?select=isin,name,primary_ticker,fund_size_numeric&scraping_date=gte.${new Date(Date.now() - 2 * 864e5).toISOString()}&returns_as_of=is.null&fund_size_numeric=gte.100`, hlav).then((r) => r.json());
+      nalezy.E = (Array.isArray(bezDne) ? bezDne : []).map((x) => `${x.isin} ${x.primary_ticker ?? ''} ${String(x.name ?? '').slice(0, 35)} (${x.fund_size_numeric} mil. €)`);
+
+      // F) Web: fond ze seznamu nesmí mít ve srovnávači výnos za období. Zapojení seznamu do src/lib/trhy.ts (odlehleZTrhu)
+      //    pozná kontrola podle značky _vynX u fondů seznamu; dokud žádný značku nemá, je to jen varování (před nasazením).
+      let api = [];
+      try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()); } catch { /* níže */ }
+      if (Array.isArray(api) && api.length > 1000) {
+        const OBD7 = /^(return_(1m|3m|6m|ytd|1y|3y|5y)(_czk|_usd)?)$/;
+        const radky = api.filter((x) => seznam.has(x.isin));
+        const zapojeno = radky.some((x) => x._vynX);
+        for (const x of radky) if (Object.entries(x).some(([k, v]) => OBD7.test(k) && v != null)) nalezy.web.push(`${x.isin} ${seznam.get(x.isin).ticker}: srovnávač ukazuje výnos za období`);
+        if (nalezy.web.length) (zapojeno ? poplach : varovani).push({ co: `Ověřeně chybné výnosy (src/lib/vynosNeovereny.ts) jsou na webu vidět${zapojeno ? '' : ' – seznam ještě není zapojený v src/lib/trhy.ts (odlehleZTrhu → sNeoverenymi) a na detailu'}: ${nalezy.web.length}`, ukazka: nalezy.web.slice(0, 8) });
+      } else varovani.push({ co: 'Kontrola kolo7 (F): /api/etf/screener se nenačetl – zobrazení seznamu neověřeno', ukazka: [] });
+
+      if (nalezy.A.length) poplach.push({ co: `Výnos přes skok v řadě zdroje, který burza nemá (kolo7 A) – ověřit a přidat do NEOVERENE_VYNOSY (src/lib/vynosNeovereny.ts): ${nalezy.A.length}`, ukazka: nalezy.A.slice(0, 10) });
+      if (nalezy.B.length) poplach.push({ co: `Produkt bez tržní kotvy se zašuměnou řadou zdroje (kolo7 B) – výnos k jednomu dni nesedí s burzou; ověřit a přidat do NEOVERENE_VYNOSY: ${nalezy.B.length}`, ukazka: nalezy.B.slice(0, 10) });
+      if (nalezy.Cstare.length) poplach.push({ co: `Zdroj dat přes 3 týdny nemá vyplacenou dividendu distribuční třídy (kolo7 C) – výnos s dividendami je nižší; přidat do NEOVERENE_VYNOSY: ${nalezy.Cstare.length}`, ukazka: nalezy.Cstare.slice(0, 10) });
+      if (nalezy.C.length) varovani.push({ co: `Zdroj dat zatím nemá nedávnou dividendu distribuční třídy (kolo7 C; obvykle ji doplní do 3 týdnů) – výnos s dividendami je do té doby nižší: ${nalezy.C.length}`, ukazka: nalezy.C.slice(0, 12) });
+      if (nalezy.D.length >= 10) poplach.push({ co: `Poslední běh scraperu neuložil ${nalezy.D.length} fondů ze seznamu ISIN (kolo7 D) – v logu „Chunk N: Failed to upload“ (numeric field overflow shodí celou dávku 5 fondů); oprava: etf-astro vynosy_z_rady.py MAX_VYNOS_PCT + upload po jednom při chybě dávky`, ukazka: nalezy.D.slice(0, 8) });
+      else if (nalezy.D.length) varovani.push({ co: `Poslední běh scraperu neuložil ${nalezy.D.length} fondů ze seznamu ISIN (kolo7 D)`, ukazka: nalezy.D });
+      if (nalezy.E.length) varovani.push({ co: `Velké čerstvé fondy bez dne výnosů – všechny výnosy za období „—“ (kolo7 E; BTCW: díra s cenou 0 u zdroje, oprava etf-astro oprava/btcw-vynosy)`, ukazka: nalezy.E.slice(0, 8) });
+      if (nalezy.smazat.length) varovani.push({ co: `NEOVERENE_VYNOSY (src/lib/vynosNeovereny.ts): položky, které už neplatí – smazat ze seznamu: ${nalezy.smazat.length}`, ukazka: nalezy.smazat });
+      if (nalezy.nejde.length) varovani.push({ co: `Kontrolu kolo7 nešlo u části fondů provést: ${nalezy.nejde.length}`, ukazka: nalezy.nejde.slice(0, 6) });
+    } catch (e) {
+      varovani.push({ co: `Kontrolu podezřelých čísel (kolo7) se nepodařilo provést: ${e.message}`, ukazka: [] });
+    }
+  }
+  // --- konec kolo7 podezrele ---
+
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
   const radky = [`# Kontrola dat fondů`, '', souhrn, ''];
