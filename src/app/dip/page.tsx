@@ -42,7 +42,9 @@ export const metadata: Metadata = {
 const fvAnnual = (yearly: number, annual: number, years: number) =>
   yearly * ((Math.pow(1 + annual, years) - 1) / annual);
 
-const RATE = 0.07; // modelový nominální výnos p.a. (dlouhodobý průměr širokého akciového indexu)
+// Modelový PŘEDPOKLAD nominálního výnosu p.a. (zaokrouhlený), ne změřený historický průměr – skutečné výnosy v Kč podle
+// období ukazuje /kolik-vydelaly-etf (audit nástrojů 22. 10. 2026, S1). Vratka se reinvestuje jednou ročně, na KONCI roku (S3).
+const RATE = 0.07;
 const DEDUCTION_CAP = 48_000; // roční strop odpočtu (společný s penzijním/životním)
 const EMPLOYER_CAP = 50_000; // osvobozený příspěvek zaměstnavatele / rok
 
@@ -249,7 +251,7 @@ export default async function DipPage() {
         <section className="pb-10">
           <SectionHead
             title="Co ta vrácená daň udělá v čase"
-            desc="Kdo vratku daně nechá projíst a kdo ji pokaždé znovu investuje, dopadne po letech úplně jinak. Modelově 7 200 Kč ročně (maximální úspora při 15 %), reinvestováno při 7 % p.a."
+            desc="Kdo vratku daně nechá projíst a kdo ji pokaždé znovu investuje, dopadne po letech úplně jinak. Modelově 7 200 Kč ročně (maximální úspora při 15 %), reinvestováno vždy na konci roku při modelovém výnosu 7 % p.a."
           />
           <div className="grid gap-3 sm:grid-cols-3">
             {HORIZONS.map((y) => (
@@ -266,7 +268,9 @@ export default async function DipPage() {
           <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
             <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
             Jde o modelový výpočet, ne o zaručený výnos – reálné číslo závisí na trhu i na tom, jestli vratku daně
-            skutečně znovu investujete. Nominálně, před inflací. Vlastní vklad a horizont si zkusíte v{' '}
+            skutečně znovu investujete. Nominálně, před inflací. Výnos 7 % ročně je modelový předpoklad (zaokrouhlený), ne
+            změřený průměr; skutečný historický výnos v korunách se podle období a indexu liší o několik procentních bodů
+            ročně – s daty k dnešku ho ukazuje <Link href="/kolik-vydelaly-etf" className="text-teal-700 hover:underline">Kolik vydělaly ETF</Link>. Vlastní vklad a horizont si zkusíte v{' '}
             <Link href="/investicni-kalkulacka" className="text-teal-700 hover:underline">investiční kalkulačce</Link>.
           </p>
         </section>
@@ -392,7 +396,7 @@ export default async function DipPage() {
             {/* Kolo 8: tabulka fondů měla 736 px → sdílená responzivní tabulka. */}
             <ResponzivniTabulka
               popis="Široké světové ETF – parametry a výnos v korunách"
-              sloupce={[{ nazev: 'Fond' }, { nazev: 'Index', zarovnani: 'left' }, { nazev: 'TER' }, { nazev: 'Velikost' }, { nazev: '5 let (Kč)', nazevKarta: 'Výnos za 5 let (Kč)' }]}
+              sloupce={[{ nazev: 'Fond' }, { nazev: 'Index', zarovnani: 'left' }, { nazev: 'TER' }, { nazev: 'Velikost' }, { nazev: '5 let celkem (Kč)', nazevKarta: 'Výnos za 5 let celkem (Kč)' }]}
               radky={funds.map((f) => ({
                 key: f.isin,
                 bunky: bunky(
@@ -415,7 +419,7 @@ export default async function DipPage() {
             />
             <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
               <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-              {datumDat && <>Data k {datumDat}. </>}Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
+              {datumDat && <>Data k {datumDat}. </>}Výnos za 5 let je celkový (kumulativní) za celé období v korunách, ne roční průměr. Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
               Do režimu DIP navíc nezařadí každý poskytovatel každý fond; nabídku si ověřte u toho svého. Rozdíl mezi
               indexy rozebírá <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
               všech {pocetFondu} fondů profiltrujete ve{' '}
@@ -483,7 +487,7 @@ export default async function DipPage() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (7 % p.a., nominálně před inflací) a mají vzdělávací charakter. Nejde o investiční ani daňové poradenství a skutečné výsledky se liší. Daňová pravidla DIP se mohou měnit – ověřte si aktuální stav a konkrétní situaci proberte s daňovým poradcem. Aktualizováno {upraveno}.</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Výpočty jsou modelové (předpoklad 7 % p.a., nominálně před inflací, vklad na konci roku) a mají vzdělávací charakter. Nejde o investiční ani daňové poradenství a skutečné výsledky se liší. Daňová pravidla DIP se mohou měnit – ověřte si aktuální stav a konkrétní situaci proberte s daňovým poradcem. Aktualizováno {upraveno}.</p>
             </div>
           </div>
         </section>

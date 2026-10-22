@@ -49,7 +49,9 @@ export default async function HypotecniKalkulackaPreview() {
     },
     {
       q: 'Lze si úroky z hypotéky odečíst z daní?',
-      a: 'Ano. Zaplacené úroky z hypotéky na vlastní bydlení si můžete odečíst ze základu daně z příjmů, a to až do výše 300 000 Kč ročně. Při 15% sazbě daně to představuje úsporu až 45 000 Kč ročně. Odpočet platí pro nemovitost, kterou sami užíváte k bydlení, ne pro investiční nemovitosti pronajímané dál.',
+      // Audit 22. 10. 2026 (V6): dřív „až 300 000 Kč, úspora až 45 000 Kč“ – to platí jen pro bydlení pořízené do konce
+      // roku 2020. Ověřeno v § 15 odst. 4 ZDP a čl. IV bodech 3–4 zákona č. 386/2020 Sb. (zakonyprolidi.cz, 22. 10. 2026).
+      a: 'Ano. Zaplacené úroky z hypotéky na vlastní bydlení si můžete odečíst ze základu daně z příjmů, a to až do výše 150 000 Kč ročně za celou společně hospodařící domácnost (§ 15 odst. 4 zákona o daních z příjmů). Při 15% sazbě daně to představuje úsporu až 22 500 Kč ročně. Vyšší strop 300 000 Kč (úspora až 45 000 Kč) zůstal jen u bydlení pořízeného před 1. 1. 2021. Odpočet platí pro nemovitost, kterou sami užíváte k bydlení, ne pro investiční nemovitosti pronajímané dál. Nejde o daňové poradenství.',
     },
     {
       q: 'Lze hypotéku předčasně splatit a kolik to stojí?',
@@ -221,8 +223,10 @@ export default async function HypotecniKalkulackaPreview() {
               <Percent className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
               <span>
                 <strong>Daňový odpočet úroků.</strong> Zaplacené úroky z hypotéky na vlastní bydlení si můžete
-                odečíst ze základu daně až do <strong>300 000 Kč ročně</strong>. Při 15% sazbě daně to znamená
-                úsporu až <strong>45 000 Kč ročně</strong>. Úleva platí pro vlastní bydlení, ne pro investiční nemovitosti.
+                odečíst ze základu daně až do <strong>150 000 Kč ročně</strong> za domácnost. Při 15% sazbě daně to znamená
+                úsporu až <strong>22 500 Kč ročně</strong>. U bydlení pořízeného do konce roku 2020 platí původní strop
+                300 000 Kč (úspora až 45 000 Kč). Úleva platí pro vlastní bydlení, ne pro investiční nemovitosti
+                (<a href="https://www.zakonyprolidi.cz/cs/1992-586#p15-4" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">§ 15 odst. 4 zákona o daních z příjmů</a>).
               </span>
             </div>
             <p className="mt-3">

@@ -59,9 +59,8 @@ export default async function FeeCalculatorPreview() {
     };
     return run(0.2) - run(1.8);
   })();
-  const modelDiffStr = new Intl.NumberFormat('cs-CZ', {
-    style: 'currency', currency: 'CZK', maximumFractionDigits: 0,
-  }).format(modelDiff);
+  // Audit 22. 10. 2026 (N2): hero na tisíce jako widget (dřív 4 416 696 Kč nad widgetem se 4 417 000 Kč).
+  const modelDiffStr = `${(Math.round(modelDiff / 1000) * 1000).toLocaleString('cs-CZ')}\u00a0Kč`;
 
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
@@ -158,7 +157,6 @@ export default async function FeeCalculatorPreview() {
                     <Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link>
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
-                  <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výnosy přepočtené do Kč</span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2.5">
                   <Link href="#kalkulacka" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit kalkulačku</Link>
@@ -180,8 +178,8 @@ export default async function FeeCalculatorPreview() {
                 </div>
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Modelový rozdíl / 30 let</p>
-                  <p className="text-lg font-bold tabular-nums text-emerald-400">{modelDiffStr}</p>
-                  <p className="text-xs text-slate-400">výchozí vstupy</p>
+                  <p className="text-lg font-bold tabular-nums text-emerald-400" data-model-rozdil={Math.round(modelDiff)}>≈ {modelDiffStr}</p>
+                  <p className="text-xs text-slate-400">výchozí vstupy, model 7 % ročně</p>
                 </div>
               </div>
             </div>
@@ -274,7 +272,7 @@ export default async function FeeCalculatorPreview() {
                 [Percent, 'TER', 'poplatek fondu'],
                 [Landmark, 'Poplatek brokera', 'za nákup'],
                 [Scale, 'Spread', 'rozdíl cen'],
-                [Receipt, 'Daň', 'při prodeji do 3 let'],
+                [Receipt, 'Daň', 'prodej do 3 let a nad 100 000 Kč ročně'],
               ] as [typeof Percent, string, string][]).map(([Icon, t, d], i) => (
                 <div key={t} className="flex items-stretch sm:items-center gap-2">
                   {i > 0 && <span className="text-slate-300 font-semibold self-center px-0.5">+</span>}
@@ -293,8 +291,12 @@ export default async function FeeCalculatorPreview() {
 
             <p className="mt-5 text-sm text-slate-600 leading-relaxed">
               U českého investora dokresluje obrázek <strong className="text-slate-900">daňový režim</strong>: zisk z prodeje
-              ETF je podle § 4 zákona o daních z příjmů osvobozen, pokud fond držíte déle než 3 roky (časový test). Při prodeji
-              do 3 let se zisk daní sazbou 15 %. Proto se pro dlouhodobé držení hodí levný{' '}
+              ETF je podle § 4 zákona o daních z příjmů osvobozen, pokud mezi nákupem a prodejem uplynou víc než 3 roky
+              (časový test) – počítá se <strong className="text-slate-900">pro každý nákup zvlášť</strong>, takže u pravidelného
+              investování splní test nejdřív nejstarší nákupy. Osvobozený je i prodej, pokud úhrn příjmů z prodeje cenných
+              papírů za rok nepřesáhne <strong className="text-slate-900">100 000 Kč</strong> (hodnotový test; počítá se celá
+              tržba, ne zisk). Jinak se zisk daní sazbou 15 % (u vysokých příjmů 23 %). Nejde o daňové poradenství.
+              Pro dlouhodobé držení se hodí levný{' '}
               <InfoTip label="Akumulační ETF dividendy reinvestuje uvnitř fondu — neřešíte každoroční zdanění výplat ani řádky v přiznání.">akumulační</InfoTip>
               {' '}ETF.
             </p>

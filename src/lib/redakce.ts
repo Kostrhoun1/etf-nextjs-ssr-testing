@@ -13,10 +13,10 @@ export const ORGANIZACE_ID = `${BASE}/#organization`;
 
 export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string }> = {
   '/kolik-vydelaly-etf': { publikovano: '2026-07-10', upraveno: '2026-10-21' }, // 21. 10.: všechna čísla z dat (dřív napevno a v USD)
-  '/stroj-casu': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
+  '/stroj-casu': { publikovano: '2026-10-17', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
   '/sp500-nebo-cely-svet': { publikovano: '2026-10-17', upraveno: '2026-10-19' },
   '/jak-dlouho-v-minusu': { publikovano: '2026-10-17', upraveno: '2026-10-22' },
-  '/pravidlo-4-procent': { publikovano: '2026-10-17', upraveno: '2026-10-17' },
+  '/pravidlo-4-procent': { publikovano: '2026-10-17', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
   '/co-rikaji-data': { publikovano: '2026-10-17', upraveno: '2026-10-21' }, // 21. 10.: karta Korunového stroje času
   '/faktorove-etf': { publikovano: '2026-07-13', upraveno: '2026-10-22' }, // kolo 8: čísla z dat, fondy na stejný index
   // Detaily faktorů sdílí šablonu FactorDetail (poslední úprava výpočtů 17. 10. 2026).
@@ -39,25 +39,25 @@ export const DATA_CLANKU: Record<string, { publikovano: string; upraveno: string
   '/dane-z-etf': { publikovano: '2026-07-06', upraveno: '2026-10-21' },
   '/jak-zacit': { publikovano: '2026-07-03', upraveno: '2026-10-21' },
   '/jaky-sp500-etf': { publikovano: '2026-07-07', upraveno: '2026-10-21' },
-  '/dip': { publikovano: '2026-07-18', upraveno: '2026-10-22' },
-  '/fire': { publikovano: '2026-07-05', upraveno: '2026-10-22' },
+  '/dip': { publikovano: '2026-07-18', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
+  '/fire': { publikovano: '2026-07-05', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
   '/svetove-etf-indexy': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
   '/akumulacni-vs-distribucni-etf': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
   '/menove-riziko-etf': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
   '/etf-vs-akcie': { publikovano: '2026-07-20', upraveno: '2026-10-22' },
-  '/dca-vs-jednorazova': { publikovano: '2026-07-08', upraveno: '2026-10-22' },
-  '/investovani-pro-deti': { publikovano: '2026-07-14', upraveno: '2026-10-22' },
-  '/kolik-investovat-mesicne': { publikovano: '2026-07-06', upraveno: '2026-10-22' },
-  '/pruvodce': { publikovano: '2026-07-03', upraveno: '2026-10-21' },
+  '/dca-vs-jednorazova': { publikovano: '2026-07-08', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
+  '/investovani-pro-deti': { publikovano: '2026-07-14', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
+  '/kolik-investovat-mesicne': { publikovano: '2026-07-06', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
+  '/pruvodce': { publikovano: '2026-07-03', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
   '/recenze/*': { publikovano: '2026-07-03', upraveno: '2026-10-22' },
   // Kalkulačky: datum úpravy textu a metodiky (výpočet běží v prohlížeči, data fondů nepoužívá).
-  '/fire-kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-17' },
+  '/fire-kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
   '/nouzova-rezerva': { publikovano: '2026-07-03', upraveno: '2026-10-17' },
-  '/hypotecni-kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-17' },
+  '/hypotecni-kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
   '/uverova-kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-17' },
-  '/kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-18' },
+  '/kalkulacka': { publikovano: '2026-07-03', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
   '/kurzovy-dopad': { publikovano: '2026-07-03', upraveno: '2026-10-17' },
-  '/monte-carlo': { publikovano: '2026-07-03', upraveno: '2026-10-17' },
+  '/monte-carlo': { publikovano: '2026-07-03', upraveno: '2026-10-23' }, // 23. 10.: audit nástrojů (texty, předpoklady, zdroje)
 };
 
 /** Stránky, které MUSÍ mít Article s datem úpravy textu (hlídá check-fund-data.mjs, blok kolo6b seo obsah). */

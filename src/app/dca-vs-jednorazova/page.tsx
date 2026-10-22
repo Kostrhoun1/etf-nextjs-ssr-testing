@@ -32,7 +32,8 @@ export default async function DcaVsJednorazova() {
   const faqs = [
     {
       q: 'Mám 500 000 Kč z dědictví – naházet do ETF naráz, nebo po částech?',
-      a: 'Statisticky je jednorázový vstup lepší zhruba ve dvou třetinách případů (v průměru o ~1–2 % ročně), protože trh většinu času roste. Pokud byste ale nervově neustáli propad hned po vstupu a hrozilo, že v panice prodáte, rozložte investici na 6–12 měsíců. Je to klid za cenu mírně nižšího očekávaného výnosu.',
+      // Audit 22. 10. 2026 (V10): dřív „v průměru o ~1–2 % ročně“ – studie uvádějí rozdíl KONEČNÉ hodnoty, ne roční výnos.
+      a: 'Statisticky je jednorázový vstup lepší zhruba ve dvou třetinách případů, protože trh většinu času roste. Rozdíl je v konečné hodnotě, ne ročně: u portfolia 60/40 skončil jednorázový vstup po roce v průměru o 1,8 % výš než rozložení do 3 měsíců (Vanguard 2023, Cost averaging: Invest now or temporarily hold your cash?, str. 5) a po 10 letech o 2,3 % výš než rozložení do 12 měsíců (USA; Vanguard 2012, Dollar-cost averaging just means taking risk later, str. 4). Pokud byste ale nervově neustáli propad hned po vstupu a hrozilo, že v panice prodáte, rozložte investici na 6–12 měsíců. Je to klid za cenu mírně nižšího očekávaného výnosu.',
     },
     {
       q: 'Je pravidelné investování z výplaty horší než jednorázové?',
@@ -48,11 +49,11 @@ export default async function DcaVsJednorazova() {
     },
     {
       q: 'Sníží pravidelné investování mé měnové riziko u amerických ETF?',
-      a: 'Částečně ano – rozložením nákupů zprůměrujete i nákupní kurz CZK/USD, nejen cenu akcií. Je to ale vedlejší efekt. U dlouhodobého akciového ETF se měna dlouhodobě sama částečně vyrovnává a měnové zajištění se obvykle nevyplatí.',
+      a: 'Částečně – rozložením nákupů zprůměrujete i nákupní kurz CZK/USD, nejen cenu akcií. Je to ale vedlejší efekt: kurzové riziko tím nezmizí, nesete ho po celou dobu držby fondu. Jak kurz koruny ovlivnil výnosy v minulosti, rozebírá článek Měnové riziko ETF.',
     },
     {
       q: 'Jak dlouhé období pro postupné investování zvolit?',
-      a: 'Čím delší rozložení, tím víc obětujete z očekávaného výnosu – 36měsíční postupné investování prohrálo s jednorázovým v ~90 % historických období. Pokud už rozkládat kvůli klidu, volte spíš kratší dobu (3–12 měsíců).',
+      a: 'Čím delší rozložení, tím víc obětujete z očekávaného výnosu – v USA prohrálo 36měsíční postupné investování s jednorázovým zhruba v 90 % desetiletých období (Vanguard 2012, str. 3). Pokud už rozkládat kvůli klidu, volte spíš kratší dobu (3–12 měsíců).',
     },
   ];
   const faqSchema = {
@@ -163,7 +164,9 @@ export default async function DcaVsJednorazova() {
               // Kolo 8: dřív „+1,8 % ročně“ – studie uvádí rozdíl KONEČNÝCH hodnot po 10 letech, ne roční (Vanguard 2012,
               // „Dollar-cost averaging just means taking risk later“, str. 4: USA 2,3 %, UK 2,2 %, Austrálie 1,3 %; ověřeno 22. 10. 2026).
               ['+2,3 %', 'vyšší konečná hodnota po 10 letech u portfolia 60/40 v USA proti rozložení do 12 měsíců (Británie +2,2 %, Austrálie +1,3 %). Je to rozdíl za celých 10 let, ne ročně.'],
-              ['~90 %', 'času vyhrála jednorázová, když se DCA rozložilo na 36 měsíců – čím déle, tím hůř.'],
+              // Ověřeno 22. 10. 2026 v primárním zdroji: Vanguard 2012, str. 3 („LSI outperformed 36-month DCA in approximately 90%
+              // of the 10-year spans“, USA). Vanguard 2023, str. 3: CA vs. hotovost 69 % (MSCI World 1976–2022, 1 rok, rozložení do 3 měsíců).
+              ['~90 %', 'desetiletých období v USA vyhrála jednorázová, když se DCA rozložilo na 36 měsíců – čím déle, tím hůř (Vanguard 2012, str. 3).'],
             ] as [string, string][]).map(([big, d]) => (
               <div key={big} className="rounded-lg border border-slate-200 bg-white p-5">
                 <p className="text-2xl font-bold text-teal-700 tabular-nums">{big}</p>
@@ -192,7 +195,8 @@ export default async function DcaVsJednorazova() {
               <p>
                 Vanguard proto DCA doporučuje hlavně investorům s <strong className="text-slate-900">velmi vysokou averzí
                 ke ztrátě</strong>, kteří by jinak nechali celý balík ležet v hotovosti. I DCA totiž poráží držení hotovosti
-                (v ~69 % případů) – takže když je alternativou „nechat cash ležet“, i postupné investování je lepší než nic.
+                (v 69 % ročních období na světovém indexu MSCI World 1976–2022 při rozložení do 3 měsíců; Vanguard 2023, str. 3)
+                – takže když je alternativou „nechat cash ležet“, i postupné investování je lepší než nic.
               </p>
             </div>
           </div>
@@ -319,7 +323,7 @@ export default async function DcaVsJednorazova() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
-              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: Vanguard (2012: Shtekhman, Tasopoulos, Wimmer – „Dollar-cost averaging just means taking risk later“, klouzavá 10letá období, USA od 1926, Británie od 1976, Austrálie od 1984; 2023) – studie o dollar-cost averaging vs. lump-sum. Aktualizováno {upraveno}.</p>
+              <p className="flex items-start gap-1.5"><Database className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Zdroje: Vanguard (2012: Shtekhman, Tasopoulos, Wimmer – „Dollar-cost averaging just means taking risk later“, klouzavá 10letá období, USA od 1926, Británie od 1976, Austrálie od 1984, str. 3–4; 2023: Finlay, Zorn – „Cost averaging: Invest now or temporarily hold your cash?“, MSCI World a portfolia 60/40 1976–2022, hodnota po 1 roce, str. 3 a 5) – studie o dollar-cost averaging vs. lump-sum. Aktualizováno {upraveno}.</p>
               <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Vzdělávací obsah, není investičním doporučením. Historická data nezaručují budoucí výsledky.</p>
             </div>
           </div>
