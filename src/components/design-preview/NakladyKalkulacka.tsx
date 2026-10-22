@@ -6,6 +6,7 @@
    Kolo 5: roční náklad konzistentní s texty (IBKR směna jednou za rok, DEGIRO ETF Selection vs ostatní ETF),
    rychlé volby částky hned u pole, štítek „nejlevnější“ podle zadané částky. */
 import { useState } from 'react';
+import CisloInput from '@/components/CisloInput';
 import Link from 'next/link';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
@@ -84,13 +85,14 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
       <div className="border-b border-slate-100 p-4">
         <label htmlFor="naklady-castka" className="block text-sm font-medium text-slate-800">Kolik investujete měsíčně</label>
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          <span className="flex h-11 w-full items-center rounded-lg border border-slate-300 bg-white focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20 sm:w-44 md:h-10">
-            <input
+          <span className="flex h-[46px] w-full items-center rounded-lg border border-slate-300 bg-white focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20 sm:w-44 md:h-10">
+            {/* Sdílené číselné pole (22. 10. 2026): dřív se čárka zahodila („2000,5“ → 20 005 Kč). */}
+            <CisloInput
               id="naklady-castka"
-              type="text"
-              inputMode="numeric"
-              value={vstup ? Number(vstup).toLocaleString('cs-CZ') : ''}
-              onChange={(e) => setVstup(e.target.value.replace(/\D/g, '').slice(0, 8))}
+              value={vstup === '' ? null : Number(vstup)}
+              onValue={(v) => setVstup(v == null ? '' : String(v))}
+              min={0}
+              max={99_999_999}
               aria-describedby="naklady-rozsah"
               className="h-full min-w-0 flex-1 rounded-lg bg-transparent px-3 text-base font-semibold tabular-nums text-slate-900 outline-none"
             />

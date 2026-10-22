@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import InfoTip from '@/components/design-preview/InfoTip';
+import CisloInput from '@/components/CisloInput';
 import { mer } from '@/lib/mereni';
 
 /**
@@ -1238,9 +1239,10 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             <div>
               <label htmlFor="bt-initial" className="block text-sm text-slate-600 mb-1">Počáteční vklad</label>
               <div className="relative">
-                <input id="bt-initial" type="text" inputMode="numeric" value={initialAmount === 0 ? '' : initialAmount.toLocaleString('cs-CZ')} placeholder="0"
-                  onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setInitialAmount(v === '' ? 0 : parseInt(v, 10)); }}
-                  className="w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white px-3 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                {/* Sdílené číselné pole (22. 10. 2026): dřív se čárka zahodila („5000,5“ → 50 005). Prázdné = 0 (zástupný text „0“). */}
+                <CisloInput id="bt-initial" value={initialAmount} prazdne={0} min={0} max={1_000_000_000} placeholder="0"
+                  onValue={(v) => setInitialAmount(v ?? 0)}
+                  className="w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white px-3 text-base text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
               </div>
             </div>
@@ -1248,9 +1250,9 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
             <div>
               <label htmlFor="bt-contrib" className="block text-sm text-slate-600 mb-1">Pravidelný vklad</label>
               <div className="relative">
-                <input id="bt-contrib" type="text" inputMode="numeric" value={contributionAmount === 0 ? '' : contributionAmount.toLocaleString('cs-CZ')} placeholder="0"
-                  onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); const n = v === '' ? 0 : parseInt(v, 10); setContributionAmount(n); if (n > 0 && contributionFrequency === 'none') setContributionFrequency('monthly'); }}
-                  className="w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white px-3 text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <CisloInput id="bt-contrib" value={contributionAmount} prazdne={0} min={0} max={100_000_000} placeholder="0"
+                  onValue={(v) => { const n = v ?? 0; setContributionAmount(n); if (n > 0 && contributionFrequency === 'none') setContributionFrequency('monthly'); }}
+                  className="w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white px-3 text-base text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">{CURRENCIES.find((c) => c.code === currency)?.label}</span>
               </div>
             </div>

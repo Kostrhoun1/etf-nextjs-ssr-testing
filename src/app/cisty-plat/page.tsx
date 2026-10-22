@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { TrendingUp, User, CalendarDays, Database, Info, Calculator, Wallet, Receipt, BadgePercent, HelpCircle, BookOpen, Scale, Landmark, ChevronDown } from 'lucide-react';
+import { TrendingUp, User, CalendarDays, Database, Info, Calculator, Wallet, Receipt, BadgePercent, HelpCircle, BookOpen, Scale, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import CistyPlatWidget from '@/components/design-preview/CistyPlatWidget';
 import InfoTip from '@/components/design-preview/InfoTip';

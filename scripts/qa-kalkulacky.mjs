@@ -34,7 +34,7 @@ async function prepis(page, sel, hodnota, { opustit = true } = {}) {
   const el = page.locator(sel).first();
   await el.scrollIntoViewIfNeeded();
   await el.tap();
-  await el.press(process.platform === 'darwin' && PROHLIZEC === webkit ? 'Meta+a' : 'Control+a');
+  await el.press('ControlOrMeta+a');
   await el.press('Backspace');
   // Kontrola: pole jde opravdu vyprázdnit (dřív skočilo na 0/1/18).
   const prazdne = await el.inputValue();
@@ -66,6 +66,9 @@ async function otevri(ctx, cesta) {
   page.jsChyby = jsChyby;
   return page;
 }
+
+/** Anuitní měsíční splátka – nezávislý přepočet mimo kód webu. */
+const anuita = (jistina, sazbaPct, roky) => { const r = sazbaPct / 100 / 12, n = roky * 12; return (jistina * r) / (1 - (1 + r) ** -n); };
 
 const TESTY = {
   async '/nouzova-rezerva'(page) {
@@ -127,6 +130,107 @@ const TESTY = {
     if (vynosy[0] < vynosy[1] && vynosy[1] < vynosy[2]) ok('FIRE: výnosy konzervativní < vyvážená < agresivní', vynosy.join(' / '));
     else chyba('FIRE: pořadí výnosů', vynosy.join(' / '));
   },
+  async '/hypotecni-kalkulacka'(page) {
+    // Sazba „4,9“ = 4,9 % (dřív 49 % a splátka 147 001 Kč). Očekávaná splátka spočtená nezávisle anuitním vzorcem.
+    await prepis(page, '#loanAmount', '3600000');
+    await prepis(page, '#loanPeriod', '25');
+    await prepis(page, '#interestRate', '4,9');
+    const v = await page.locator('#interestRate').inputValue();
+    if (v === '4,9') ok('hypotéka: sazba „4,9“ zůstane 4,9'); else chyba('hypotéka: desetinná čárka', `pole ukazuje „${v}“`);
+    const ocek = anuita(3_600_000, 4.9, 25);
+    const m = (await textStranky(page)).match(/Měsíční splátka\s*([\d ]+) Kč/);
+    const spl = m ? Number(m[1].replace(/ /g, '')) : NaN;
+    if (Math.abs(spl - ocek) <= 1) ok('hypotéka: splátka', `${spl} Kč (anuita ${Math.round(ocek)})`); else chyba('hypotéka: splátka', `${spl} Kč, čekáno ${Math.round(ocek)}`);
+    // Mimo rozsah → viditelná hláška a ořez při opuštění pole.
+    await prepis(page, '#interestRate', '49');
+    const v2 = await page.locator('#interestRate').inputValue();
+    const t = await textStranky(page);
+    if (v2 === '15' && /Upraveno do povoleného rozsahu/.test(t)) ok('hypotéka: sazba 49 → ořez na 15 s hláškou'); else chyba('hypotéka: horní mez sazby', `pole „${v2}“`);
+  },
+  async '/uverova-kalkulacka'(page) {
+    await prepis(page, '#loanAmount', '500000');
+    await prepis(page, '#loanPeriod', '5');
+    await prepis(page, '#interestRate', '8,5');
+    const ocek = anuita(500_000, 8.5, 5);
+    const m = (await textStranky(page)).match(/Měsíční splátka\s*([\d ]+) Kč/);
+    const spl = m ? Number(m[1].replace(/ /g, '')) : NaN;
+    if (Math.abs(spl - ocek) <= 1) ok('úvěr: splátka při „8,5“', `${spl} Kč`); else chyba('úvěr: splátka', `${spl} Kč, čekáno ${Math.round(ocek)}`);
+    await prepis(page, '#loanAmount', '');
+    if (await page.locator('[data-vysledek-chybi]').count()) ok('úvěr: prázdná částka → „—“'); else chyba('úvěr: prázdná částka', 'ukazuje výsledek');
+  },
+  async '/kalkulacka'(page) {
+    await prepis(page, '#return', '6,5');
+    const v = await page.locator('#return').inputValue();
+    if (v === '6,5') ok('poplatky: výnos „6,5“ zůstane 6,5'); else chyba('poplatky: desetinná čárka', `pole „${v}“`);
+    const r = norm(await page.locator('[data-qa="poplatky-rozdil"]').innerText());
+    if (/000 Kč$/.test(r)) ok('poplatky: výsledek zaokrouhlen na tisíce', r); else chyba('poplatky: zaokrouhlení', r);
+    // Graf: popisky musí mít na mobilu skutečně ≥ 10 px (dřív zmenšené SVG ~5 px).
+    const px = await page.evaluate(() => Math.min(...[...document.querySelectorAll('svg[aria-label*="levného ETF"] text')].map((t) => t.getBoundingClientRect().height)));
+    if (px >= 10) ok('poplatky: popisky grafu čitelné', `${px.toFixed(1)} px`); else chyba('poplatky: popisky grafu', `${px} px`);
+  },
+  async '/cisty-plat'(page) {
+    // Nezávisle: 45 000 Kč hrubé 2026 → soc. 7,1 % + zdr. 4,5 % + daň 15 % − sleva 2 570 = 35 600 Kč.
+    await prepis(page, '#gross', '45000');
+    const c1 = Number(norm(await page.locator('[data-qa="cista-mzda"]').innerText()).replace(/\D/g, ''));
+    if (c1 === 35600) ok('čistý plat: 45 000 → 35 600 Kč'); else chyba('čistý plat: 45 000', `${c1} Kč`);
+    // Strop sociálního pojištění (ČSSZ 2026: 2 350 416 Kč ročně): 250 000 Kč hrubé.
+    const soc = 0.071 * (2_350_416 / 12), zdr = 0.045 * 250_000;
+    const dan = ((2_350_416 * 0.75) * 0.15 + (3_000_000 - 2_350_416 * 0.75) * 0.23) / 12 - 2570; // 36× průměrná mzda = 0,75 × strop
+    const ocek = Math.round(250_000 - soc - zdr - dan);
+    await prepis(page, '#gross', '250000');
+    const c2 = Number(norm(await page.locator('[data-qa="cista-mzda"]').innerText()).replace(/\D/g, ''));
+    if (Math.abs(c2 - ocek) <= 1) ok('čistý plat: strop soc. pojištění', `250 000 → ${c2} Kč`); else chyba('čistý plat: strop', `${c2} Kč, čekáno ${ocek}`);
+    await prepis(page, '#gross', '');
+    if (await page.locator('[data-vysledek-chybi]').count()) ok('čistý plat: prázdná mzda → „—“'); else chyba('čistý plat: prázdná mzda', 'ukazuje výsledek');
+  },
+  async '/kurzovy-dopad'(page) {
+    await prepis(page, '#usdAlloc', '60,5');
+    const v = await page.locator('#usdAlloc').inputValue();
+    if (v === '60,5') ok('kurzový dopad: „60,5“ zůstane 60,5'); else chyba('kurzový dopad: čárka', `pole „${v}“`);
+    await prepis(page, '#usdAlloc', '60');
+    const t = await textStranky(page);
+    if (/\d\.\d %/.test(t)) chyba('kurzový dopad: formát', 'desetinná tečka v procentech');
+    else if (/(^|\s)-\d/.test(t)) chyba('kurzový dopad: formát', 'spojovník místo minus');
+    else ok('kurzový dopad: české formátování čísel');
+    if (/pravděpodobn/i.test(t) && /\b(15|20|30) %\s*\n/.test(t)) chyba('kurzový dopad', 'pravděpodobnosti scénářů bez zdroje');
+    else ok('kurzový dopad: bez pravděpodobností scénářů');
+  },
+  async '/monte-carlo'(page) {
+    const t = await textStranky(page);
+    if (/Výsledky v korunách/.test(t) || /v přepočtu na koruny/.test(t)) chyba('Monte Carlo: měna', 'tvrdí „v korunách“, počítá v USD');
+    else if (/bez vlivu kurzu/i.test(t)) ok('Monte Carlo: uvádí dolarové výnosy bez kurzu koruny');
+    else chyba('Monte Carlo: měna', 'chybí upozornění na USD / kurz');
+    await prepis(page, '#mc-initial', '100000');
+    await page.getByRole('button', { name: /Spustit simulaci/ }).click();
+    await page.getByText('Pravděpodobnostní pásma vývoje portfolia').waitFor({ timeout: 20000 }).catch(() => {});
+    const t2 = await textStranky(page);
+    const m = t2.match(/Medián \(50 %\)\s*([\d ]+) Kč/);
+    if (m && / 000$/.test(m[1].trim())) ok('Monte Carlo: výsledky zaokrouhlené na tisíce', m[1]); else chyba('Monte Carlo: zaokrouhlení', m ? m[1] : 'medián nenalezen');
+  },
+  async '/investicni-kalkulacka'(page) {
+    await prepis(page, '#initial', '');
+    if (await page.locator('[data-vysledek-chybi]').count()) ok('investiční: prázdný vklad → „—“'); else chyba('investiční: prázdný vklad', 'ukazuje výsledek');
+    await prepis(page, '#initial', '100000');
+    await prepis(page, '#return', '7,5');
+    const v = await page.locator('#return').inputValue();
+    if (v === '7,5') ok('investiční: výnos „7,5“'); else chyba('investiční: čárka', `pole „${v}“`);
+  },
+  async '/stroj-casu'(page) {
+    await prepis(page, '#sc-mesicne', '5000,5');
+    const v = await page.locator('#sc-mesicne').inputValue();
+    if (norm(v) === '5 001') ok('stroj času: „5000,5“ → 5 001 (ne 50 005)'); else chyba('stroj času: čárka', `pole „${v}“`);
+  },
+  async '/backtest'(page) {
+    await prepis(page, '#bt-initial', '5000,5');
+    const v = await page.locator('#bt-initial').inputValue();
+    if (norm(v) === '5 001') ok('backtest: „5000,5“ → 5 001'); else chyba('backtest: čárka', `pole „${v}“`);
+  },
+  async '/kde-koupit'(page) {
+    if (!(await page.locator('#naklady-castka').count())) { ok('kde koupit: pole částky není (bez kurzu ČNB)'); return; }
+    await prepis(page, '#naklady-castka', '2000,5');
+    const v = await page.locator('#naklady-castka').inputValue();
+    if (norm(v) === '2 001') ok('kde koupit: „2000,5“ → 2 001'); else chyba('kde koupit: čárka', `pole „${v}“`);
+  },
 };
 
 const browser = await PROHLIZEC.launch();
@@ -143,7 +247,7 @@ for (const cesta of vyber) {
     await TESTY[cesta](page);
     await zakazaneTexty(page, `${cesta} po úpravách`);
     // Dotykové cíle: číselná pole a rozbalovací seznamy ≥ 44 px vysoké.
-    const male = await page.evaluate(() => [...document.querySelectorAll('main input[inputmode], main select, main input[type=range]')]
+    const male = await page.evaluate(() => [...document.querySelectorAll('main input[inputmode], main select, main input[type=range], main button[aria-label="Zvýšit"], main button[aria-label="Snížit"]')]
       .filter((e) => e.offsetParent !== null && e.getBoundingClientRect().height < 43.5)
       .map((e) => `${e.id || e.getAttribute('aria-label') || e.tagName} ${Math.round(e.getBoundingClientRect().height)} px`));
     if (male.length) chyba(`${cesta}: dotykové cíle`, male.join(', ')); else ok(`${cesta}: pole a seznamy ≥ 44 px`);

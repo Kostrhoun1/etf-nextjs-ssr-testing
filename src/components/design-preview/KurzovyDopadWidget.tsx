@@ -15,6 +15,7 @@ import {
 import { DollarSign, Coins, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import { kulateKroky } from '@/lib/osyGrafu';
 
 /**
  * Interaktivní jádro kalkulačky kurzového dopadu (vliv kurzu USD/CZK a EUR/CZK
@@ -316,6 +317,13 @@ export default function KurzovyDopadWidget() {
       .sort((a, b) => a.delta - b.delta);
   }, [results.scenarios, portfolioValue]);
 
+  // Kulaté kroky osy odchylek včetně nuly (1/2/2,5/5 × 10^n).
+  const osaX = useMemo(() => {
+    const d = chartData.map((x) => x.delta);
+    const lo = Math.min(0, ...d), hi = Math.max(0, ...d);
+    return hi - lo < 1 ? [0, 1] : kulateKroky(hi, lo, 4);
+  }, [chartData]);
+
   const recommendation =
     exposurePct / 100 > 0.7
       ? 'Vysoká kurzová expozice. Pro dlouhodobé investice je nejlepší pravidelné nákupy (rozložení v čase), které kurzové riziko zmírňují.'
@@ -458,35 +466,40 @@ export default function KurzovyDopadWidget() {
           </p>
           <p className="text-sm text-slate-600 leading-relaxed mb-4">
             Výnos samotných ETF necháváme stranou – sloupce ukazují <strong className="text-slate-900">jen o kolik korun
-            se změní hodnota portfolia kvůli kurzu</strong>: nahoru = přibude, dolů = ubude. Nulová čára je dnešní hodnota{' '}
+            se změní hodnota portfolia kvůli kurzu</strong>: doprava = přibude, doleva = ubude. Nulová čára je dnešní hodnota{' '}
             {fmtCZK(portfolioValue)}. Scénáře jsou ilustrační „co kdyby“, ne předpověď.
           </p>
           <div className="w-full h-72 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+              {/* Vodorovné sloupce (jména scénářů čitelně vlevo i na mobilu – dřív se popisky osy X překrývaly)
+                  a kulaté kroky osy přes nulu (dřív „+57 tis. / +17 tis. / −23 tis.“). */}
+              <BarChart data={chartData} layout="vertical" margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
                 <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 11, fill: '#64748b' }}
-                  tickLine={false}
-                  axisLine={{ stroke: '#e2e8f0' }}
-                  interval={0}
-                />
-                <YAxis
+                  type="number"
+                  ticks={osaX}
+                  domain={[osaX[0], osaX[osaX.length - 1]]}
                   tickFormatter={(v) => fmtOsa(Number(v))}
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
                   tickLine={false}
                   axisLine={false}
-                  width={64}
-                  allowDecimals={false}
-                  domain={[(min: number) => Math.min(0, min), (max: number) => Math.max(0, max)]}
+                  interval={0}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={104}
+                  interval={0}
                 />
                 <Tooltip
                   cursor={{ fill: 'rgba(15, 118, 110, 0.06)' }}
                   content={<ChartTooltip baseValue={portfolioValue} />}
                 />
-                <ReferenceLine y={0} stroke="#64748b" strokeWidth={1.5} />
-                <Bar dataKey="delta" maxBarSize={64} minPointSize={2}>
+                <ReferenceLine x={0} stroke="#64748b" strokeWidth={1.5} />
+                <Bar dataKey="delta" maxBarSize={36} minPointSize={2}>
                   {chartData.map((d) => (
                     <Cell key={d.name} fill={Math.round(d.delta) === 0 ? '#94a3b8' : d.delta > 0 ? '#0d9488' : '#dc2626'} />
                   ))}

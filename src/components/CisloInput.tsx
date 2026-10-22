@@ -57,14 +57,19 @@ export interface CisloInputProps
   /** Hlášení stavu pro viditelné varování: 'mimo' = během psaní mimo rozsah, 'orez' = při opuštění
    *  pole upraveno na mez, 'ok' / 'prazdne' jinak. */
   onStav?: (s: CisloStav) => void;
+  /** Jen pro pole, kde prázdné VÝSLOVNĚ znamená číslo (např. 0 = „bez vkladu“, se zástupným textem „0“):
+   *  prázdné pole pošle tuto hodnotu a ta se zobrazuje jako prázdné pole. Nedopsaný text během psaní
+   *  nic neposílá (výpočet se spouští až tlačítkem / po opuštění pole). Jinde nepoužívat – prázdné = null = „—“. */
+  prazdne?: number;
 }
 
 export type CisloStav = 'ok' | 'prazdne' | 'mimo' | 'orez';
 
 export default function CisloInput({
-  value, onValue, min, max, desetinna = false, tisice = true, onStav, onBlur, onFocus, onKeyDown, className, ...rest
+  value, onValue, min, max, desetinna = false, tisice = true, onStav, prazdne, onBlur, onFocus, onKeyDown, className, ...rest
 }: CisloInputProps) {
-  const [text, setText] = useState(() => formatCislo(value, desetinna, tisice));
+  const fmt = (v: number | null) => (prazdne != null && v === prazdne ? '' : formatCislo(v, desetinna, tisice));
+  const [text, setText] = useState(() => fmt(value));
   // Poslední hodnota, kterou pole poslalo ven (nebo dostalo zvenku). Když se `value` změní na něco
   // jiného (tlačítka +/−, reset, načtení uloženého plánu), přepíšeme text; vlastní ozvěnu ignorujeme.
   const posledni = useRef<number | null>(value);
@@ -72,7 +77,7 @@ export default function CisloInput({
   useEffect(() => {
     if (value === posledni.current) return;
     posledni.current = value;
-    setText(formatCislo(value, desetinna, tisice));
+    setText(fmt(value));
     onStav?.(value == null ? 'prazdne' : 'ok');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, desetinna, tisice]);
@@ -91,6 +96,11 @@ export default function CisloInput({
     const n = parseCislo(t);
     const platne = n != null && vRozsahu(n, min, max) && (desetinna || Number.isInteger(n));
     onStav?.(platne ? 'ok' : n != null && !vRozsahu(n, min, max) ? 'mimo' : 'prazdne');
+    if (prazdne != null) {
+      if (t.replace(MEZERY, '') === '') posli(prazdne);
+      else if (platne) posli(n);
+      return;
+    }
     posli(platne ? n : null);
   };
 
@@ -100,7 +110,7 @@ export default function CisloInput({
       // Prázdné nebo nedopsané pole zůstane prázdné → výsledek „—“. Žádná tichá náhrada nulou.
       if (text !== '') setText('');
       onStav?.('prazdne');
-      posli(null);
+      posli(prazdne ?? null);
       return;
     }
     let v = n;
@@ -109,7 +119,7 @@ export default function CisloInput({
     v = desetinna ? Number(v.toFixed(4)) : Math.round(v);
     if (min != null && v < min) v = min; // zaokrouhlení nesmí vrátit pod minimum
     if (max != null && v > max) v = max;
-    setText(formatCislo(v, desetinna, tisice));
+    setText(fmt(v));
     onStav?.(Math.abs(v - n) > 1e-9 && !vRozsahu(n, min, max) ? 'orez' : 'ok');
     posli(v);
   };

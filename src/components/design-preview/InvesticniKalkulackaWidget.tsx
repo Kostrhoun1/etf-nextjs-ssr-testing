@@ -11,8 +11,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Sparkles, ChevronUp, ChevronDown, ArrowRight, Loader2, Repeat, Clock, PiggyBank } from 'lucide-react';
+import { Sparkles, ChevronDown, ArrowRight, Loader2, Repeat, Clock, PiggyBank } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
+import { CisloPole, VysledekChybi } from '@/components/CisloInput';
 import { kulateKroky, fmtOsa } from '@/lib/osyGrafu';
 import { scenarSkutecnosti, shrnSkutecnost, type SkutecnostVysledek } from '@/lib/kalkulackaSkutecnost';
 
@@ -104,92 +105,14 @@ function calculateInvestment(params: {
 }
 // ===== KONEC převzaté logiky =====
 
-/** Číslo v české notaci pro pole („7,5“, „100 000“). */
-const ciselnyText = (v: number, kc: boolean) => (kc ? (v === 0 ? '' : v.toLocaleString('cs-CZ')) : v.toLocaleString('cs-CZ', { maximumFractionDigits: 2 }));
-
-/* Pole s číslem: desetinná ČÁRKA (dřív type=number ukazoval „7.5“), mezery v tisících u Kč a VIDITELNÁ hláška,
-   když zadání leží mimo rozsah (revize kola 4: výnos 50 % se tiše ořezal na 30 %, −3 % na 0, doba 0 na 1). */
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-  step,
-  min,
-  max,
-  suffix,
-}: {
-  id: string;
-  label: React.ReactNode;
-  value: number;
-  onChange: (v: number) => void;
-  step?: string;
-  min?: number;
-  max?: number;
-  suffix?: string;
+/* Číselná pole: sdílená komponenta CisloPole (src/components/CisloInput.tsx) – prázdné pole = výsledek „—“,
+   desetinná čárka, ořez na rozsah až při opuštění pole s viditelnou hláškou (22. 10. 2026). Dřív vlastní pole
+   s okamžitým ořezem a prázdná částka = tichá 0. */
+function NumberField(props: {
+  id: string; label: React.ReactNode; value: number | null; onChange: (v: number | null) => void;
+  step?: string; min?: number; max?: number; suffix?: string;
 }) {
-  const kc = suffix === 'Kč';
-  const [text, setText] = useState<string | null>(null);
-  const [mimo, setMimo] = useState<string | null>(null);
-  const stepNum = parseFloat(step ?? '1') || 1;
-  const jednotka = (n: number) => (suffix === 'let' ? (n === 1 ? 'rok' : n >= 2 && n <= 4 ? 'roky' : 'let') : suffix ?? '');
-  const nastav = (raw: number) => {
-    let v = raw;
-    if (min != null && v < min) v = min;
-    if (max != null && v > max) v = max;
-    v = Number(v.toFixed(6));
-    setMimo(v !== raw
-      ? `Povolený rozsah je ${(min ?? 0).toLocaleString('cs-CZ')}–${(max ?? 0).toLocaleString('cs-CZ')}\u00a0${jednotka(max ?? 0)} – počítáme s ${v.toLocaleString('cs-CZ')}\u00a0${jednotka(v)}.`
-      : null);
-    onChange(v);
-  };
-  return (
-    <div>
-      <label htmlFor={id} className="block text-sm text-slate-600 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type="text"
-          inputMode={kc ? 'numeric' : 'decimal'}
-          value={text ?? ciselnyText(value, kc)}
-          placeholder={kc ? '0' : undefined}
-          aria-describedby={mimo ? `${id}-mimo` : undefined}
-          onFocus={() => setText(ciselnyText(value, kc))}
-          onBlur={() => setText(null)}
-          onChange={(e) => {
-            if (kc) {
-              const t = e.target.value.replace(/[^0-9]/g, '');
-              setText(t === '' ? '' : Number(t).toLocaleString('cs-CZ'));
-              nastav(Number(t || 0));
-              return;
-            }
-            const t = e.target.value.replace(/[^0-9,.\-−]/g, '').replace('.', ',').replace('−', '-');
-            setText(t);
-            const n = Number(t.replace(',', '.'));
-            if (t !== '' && t !== '-' && Number.isFinite(n)) nastav(n);
-          }}
-          className="w-full h-11 lg:h-10 rounded-lg border border-slate-200 bg-white pl-3 pr-10 md:pr-[4.25rem] text-slate-900 tabular-nums focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none"
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-          {suffix && <span className="pointer-events-none text-sm text-slate-400">{suffix}</span>}
-          {/* Šipky jen s myší (desktop); na mobilu by byly pod 32 px (revize kola 4). */}
-          <div className="hidden md:flex flex-col">
-            <button type="button" aria-label="Zvýšit" tabIndex={-1} onClick={() => nastav(value + stepNum)}
-              className="flex items-center justify-center w-6 h-4 rounded-t bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300">
-              <ChevronUp className="w-3.5 h-3.5" />
-            </button>
-            <button type="button" aria-label="Snížit" tabIndex={-1} onClick={() => nastav(value - stepNum)}
-              className="flex items-center justify-center w-6 h-4 rounded-b bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300 mt-px">
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
-      {mimo && <p id={`${id}-mimo`} role="status" className="mt-1 text-xs text-amber-700">{mimo}</p>}
-    </div>
-  );
+  return <CisloPole {...props} tlacitka={false} tisice={props.suffix === 'Kč'} />;
 }
 
 type ChartDatum = {
@@ -265,12 +188,16 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
   skutecnostVychozi?: SkutecnostVysledek | null;
 }) {
   // Výchozí hodnoty 1:1 z původní komponenty InvestmentCalculatorContent.tsx
-  const [initialInvestment, setInitialInvestment] = useState<number>(100000);
-  const [recurringInvestment, setRecurringInvestment] = useState<number>(5000);
+  // null = prázdné / nedopsané pole → výsledek „—“ (žádná tichá 0).
+  const [initialInvestmentV, setInitialInvestment] = useState<number | null>(100000);
+  const [recurringInvestmentV, setRecurringInvestment] = useState<number | null>(5000);
   const [recurringFrequency, setRecurringFrequency] = useState<'monthly' | 'yearly'>('monthly');
-  const [averageReturn, setAverageReturn] = useState<number>(7);
-  const [investmentPeriod, setInvestmentPeriod] = useState<number>(20);
-  const [taxRate, setTaxRate] = useState<number>(0);
+  const [averageReturnV, setAverageReturn] = useState<number | null>(7);
+  const [investmentPeriodV, setInvestmentPeriod] = useState<number | null>(20);
+  const [taxRateV, setTaxRate] = useState<number | null>(0);
+  const vstupyOk = [initialInvestmentV, recurringInvestmentV, averageReturnV, investmentPeriodV, taxRateV].every((v) => v != null);
+  const initialInvestment = initialInvestmentV ?? 0, recurringInvestment = recurringInvestmentV ?? 0,
+    averageReturn = averageReturnV ?? 0, investmentPeriod = investmentPeriodV ?? 0, taxRate = taxRateV ?? 0;
   const [vsechnyRoky, setVsechnyRoky] = useState(false);
 
   const results = useMemo(
@@ -307,7 +234,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
   const poznamkaVynos = averageReturn < 3
     ? 'Výnos pod 3 % ročně odpovídá spíš spořicímu účtu nebo dluhopisům než akciím.'
     : averageReturn > 15 ? 'Výnos nad 15 % ročně je výrazně nad dlouhodobou historií velkých akciových trhů v Kč (viz rychlé volby).' : null;
-  const hasData = Boolean(finalResult) && investmentPeriod > 0;
+  const hasData = vstupyOk && Boolean(finalResult) && investmentPeriod > 0;
 
   // Vybraná rychlá volba (shoda s historickým výnosem) → podle ní i odkaz do backtestu.
   const vybrany = historicke.find((h) => Math.abs(averageReturn - Math.round(h.cagr * 1000) / 10) < 0.05);
@@ -320,6 +247,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
   const [skutecnost, setSkutecnost] = useState<SkutecnostVysledek | null>(skutecnostVychozi);
   const [skutecnostStav, setSkutecnostStav] = useState<'ok' | 'pocitam' | 'chyba'>(skutecnostVychozi ? 'ok' : 'pocitam');
   useEffect(() => {
+    if (!vstupyOk) return; // neúplné vstupy → žádný dotaz na server
     if (skutecnost?.klic === scenar.klic) { setSkutecnostStav('ok'); return; }
     if (!(scenar.body.initialAmount > 0) && !scenar.body.contributions) { setSkutecnostStav('chyba'); return; }
     setSkutecnostStav('pocitam');
@@ -339,7 +267,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
     }, 900);
     return () => { clearTimeout(t); ctrl.abort(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenar.klic]);
+  }, [scenar.klic, vstupyOk]);
   const skutecnostAktualni = skutecnost && skutecnost.klic === scenar.klic ? skutecnost : null;
 
   /* Mobil: lišta s výsledkem dole jen když HLAVNÍ ČÍSLO není vidět (revize 19. 10. 2026: hlídala se celá karta
@@ -393,11 +321,11 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               <NumberField
                 id="initial"
                 label="Jednorázový vklad"
-                value={initialInvestment}
+                value={initialInvestmentV}
                 min={0}
                 max={50000000}
                 step="10000"
-                onChange={(v) => setInitialInvestment(v)}
+                onChange={setInitialInvestment}
                 suffix="Kč"
               />
             </div>
@@ -405,10 +333,10 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               <NumberField
                 id="period"
                 label="Doba investování"
-                value={investmentPeriod}
+                value={investmentPeriodV}
                 min={1}
                 max={50}
-                onChange={(v) => setInvestmentPeriod(Math.round(v))}
+                onChange={setInvestmentPeriod}
                 suffix="let"
               />
             </div>
@@ -418,8 +346,8 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               <p className="block text-sm text-slate-600 mb-1">Pravidelný vklad</p>
               <div className="flex gap-2">
                 <div className="flex-1 min-w-0">
-                  <NumberField id="recurring" label={<span className="sr-only">Částka</span>} value={recurringInvestment} min={0} max={1000000} step="500"
-                    onChange={(v) => setRecurringInvestment(v)} suffix="Kč" />
+                  <NumberField id="recurring" label={<span className="sr-only">Částka</span>} value={recurringInvestmentV} min={0} max={1000000} step="500"
+                    onChange={setRecurringInvestment} suffix="Kč" />
                 </div>
                 <select
                   aria-label="Frekvence pravidelného vkladu"
@@ -445,7 +373,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                     </InfoTip>
                   </span>
                 }
-                value={averageReturn}
+                value={averageReturnV}
                 step="0.1"
                 min={0}
                 max={30}
@@ -498,11 +426,11 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 label={
                   <InfoTip label="Při držení ETF déle než 3 roky je zisk v ČR osvobozen (časový test = 0 %). Při kratším držení se zisk daní 15 %, resp. 23 %.">Daň ze zisku</InfoTip>
                 }
-                value={taxRate}
+                value={taxRateV}
                 step="1"
                 min={0}
                 max={23}
-                onChange={(v) => setTaxRate(v)}
+                onChange={setTaxRate}
                 suffix="%"
               />
             </div>
@@ -510,6 +438,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
         </div>
 
         {/* ===== VÝSLEDEK – velké číslo + graf (desktop vpravo, mobil hned pod vstupy) ===== */}
+        {!hasData && <VysledekChybi />}
         {hasData && (
           <div id="vysledek" ref={vysledekRef} data-sekce="kalk-vysledek" className="lg:sticky lg:top-[4.5rem] scroll-mt-20 rounded-xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
             <p className="text-sm text-slate-600">

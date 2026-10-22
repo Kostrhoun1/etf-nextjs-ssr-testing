@@ -608,3 +608,39 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Titulek > 65 znaků → bez „| ETF průvodce.cz“** (`titulek()` v src/lib/seoTitulek.ts), stejně jako u žebříčků a detailů.
 - **Organization schema: „Největší český průvodce ETF fondy“ ZŮSTÁVÁ** (rozhodnutí majitele 18. 10., viz výše) i přes
   doporučení auditu 6b; odstraněna jen „Jedinečná databáze ETF pro české investory“.
+
+## Kalkulačky: číselná pole, předpoklady FIRE a další (kolo 8, 22. 10. 2026)
+
+**Prázdné číselné pole = výsledek „—“, ne 0.** Všechny kalkulačky používají sdílené `src/components/CisloInput.tsx`
+(`CisloInput`, `CisloPole`, `VysledekChybi`). Pole během psaní dovolí prázdno i mezistavy („1,“), bere čárku
+i tečku a mezery v tisících, hodnotu posílá jen platnou a v rozsahu; ořez na min/max až při opuštění pole
+s viditelnou hláškou „Upraveno do povoleného rozsahu“. Dokud pole není platné, kalkulačka ukáže „—“ / „Doplňte …“
+(nouzová rezerva ani FIRE bez vstupu nevydají žádný verdikt). **Nevracet `type="number"` s `Number(e.target.value)`**
+– smazání „2“ dělalo „0“ a další číslice se přilepila („10“ osob, věk „1831“ → 80, sazba „4,9“ → 49 %).
+Výjimka `prazdne={0}`: stroj času, backtest a náklady u brokerů mají u částek zástupný text „0“ a prázdné = žádný vklad.
+Kontrola: `scripts/qa-kalkulacky.mjs` (WebKit 390 px, vyprázdní pole, napíše hodnotu, ověří výsledek).
+
+**FIRE kalkulačka – předpoklady výnosů jsou REÁLNÉ (po inflaci) historické výnosy v Kč, ne 7,7/8,8/9,8 %.**
+`src/lib/firePredpoklady.ts`: konzervativní 30/70 = 2,0 %, vyvážená 60/40 = 4,6 %, agresivní 80/20 = 6,2 % ročně
+nad inflaci; kolísání 6,9 / 8,8 / 10,7 %. Složení jako modelové portfolio 60/40 (Vanguard FTSE All-World +
+Xtrackers Eurozone Government Bond), roční rebalancování, nejdelší společné období 7/2008–9/2026 (VT existuje
+od 6/2008), inflace ČSÚ. Proč: staré nominální sazby bez zdroje dávaly portfoliu s 60 % dluhopisů víc, než web
+jinde uvádí pro čisté akcie. Kalkulačka počítá v dnešních korunách: nominální výnos = (1 + reálný) × (1 + zadaná
+inflace) − 1. Čísla **vypadají nízko** (konzervativní 2 %), protože období obsahuje roky 2022–2023 s inflací 15 %
+a 11 % a dluhopisy eurozóny v nich ztrácely – je to skutečnost, ne chyba. Ověřeno nezávisle (Yahoo adj. close
+× kurzy ČNB, inflace Eurostat HICP + ČSÚ): `scripts/overeni-fire-predpoklady.mjs` – reálně 2,00 / 4,55 / 6,14 %.
+Přestane platit: při aktualizaci období (pak přepočítat enginem a spustit ověřovací skript).
+
+**Monte Carlo počítá s DOLAROVÝMI výnosy amerických tříd aktiv – bez kurzu koruny, a tak to i píše.**
+Dřív stránka tvrdila „výsledky v korunách“. Převod do Kč (kurzová vrstva) zatím není ověřený → nepublikujeme.
+Výsledky simulace zaokrouhlené na tisíce.
+
+**Kurzový dopad: scénáře jsou ilustrační „co kdyby“ bez pravděpodobností.** Pravděpodobnosti 20/15/20/15/30 %
+byly natvrdo bez zdroje → odstraněny. Graf ukazuje odchylku od dnešní hodnoty (0 = beze změny, šedá).
+
+**Čistý plat: strop sociálního pojištění 2 350 416 Kč ročně (48 × 48 967 Kč, ČSSZ 2026).** Nad ~195 868 Kč
+měsíčně je sociální pojištění (zaměstnanec i zaměstnavatel) zastropované; měsíční částky jsou pak průměr za rok.
+Zdravotní pojištění strop nemá. Přestane platit 1. 1. 2027 (nová průměrná mzda).
+
+**Hypotéka: změna ceny nemovitosti už nepřepisuje výši úvěru na 80 %** – během psaní to mazalo zadaný úvěr.
+Úvěr nad cenou = varování.
