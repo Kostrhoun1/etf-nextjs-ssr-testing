@@ -760,7 +760,10 @@ const main = async () => {
       }),
     }).then((r) => r.json());
     const vlozeno = bt?.summary?.amountInvested;
-    if (vlozeno !== 11000) poplach.push({ co: 'Backtest počítá vklady špatně (0 Kč na začátku + 1 000 Kč měsíčně v roce 2024 má dát vloženo 11 000 Kč)', ukazka: [`API vrací vloženo ${vlozeno}`] });
+    // Audit 22. 10. 2026 (S8): bez počátečního vkladu jde pravidelný vklad i první den → 12 × 1 000 = 12 000 Kč.
+    // Produkce před nasazením opravy (API bez `metodika`) má ještě 11 000 (první měsíc chyběl).
+    const ocekVlozeno = bt?.metodika ? 12000 : 11000;
+    if (vlozeno !== ocekVlozeno) poplach.push({ co: `Backtest počítá vklady špatně (0 Kč na začátku + 1 000 Kč měsíčně v roce 2024 má dát vloženo ${ocekVlozeno.toLocaleString('cs-CZ')} Kč)`, ukazka: [`API vrací vloženo ${vlozeno}`] });
     else if (!(bt?.summary?.cagr > 0.15 && bt.summary.cagr < 0.45)) poplach.push({ co: 'Backtest s nulovým počátečním vkladem vrací nesmyslný roční výnos S&P 500 za 2024 v Kč', ukazka: [`cagr ${bt?.summary?.cagr}`] });
   } catch (e) {
     varovani.push({ co: `Kontrolu vkladů backtestu se nepodařilo provést: ${e.message}`, ukazka: [] });
@@ -2443,6 +2446,205 @@ const main = async () => {
     }
   }
   // --- konec kolo6b seo obsah ---
+
+  // --- audit backtest --- (audit nástrojů 22. 10. 2026: K1, V8, V9, V15, S8–S12, S17, S18, N9–N11)
+  // Zlaté případy s PEVNÝM koncem 2026-10-21. Očekávané hodnoty = NEZÁVISLÝ přepočet (Yahoo adj. close × kurzy ČNB,
+  // bezriziková sazba z holých dat ČNB/ECB/FRED, CPI z holého CSV ČSÚ; skript auditora sim.py + overeni.py) – ne replika
+  // enginu. Tolerance: konečná hodnota ±0,6 % (kurzy ČNB vs. ECB v DB), CAGR ±0,07 p. b., kolísavost ±0,1 p. b., max. pokles
+  // ±0,25 p. b. (60/40 ±0,05 – S9), Sharpe ±0,03, Sortino ±0,05, VaR ±0,3 p. b. API se volá nejvýš ~18× (rate limit).
+  // Před nasazením (API bez `metodika`) jdou neshody jen do varování – produkce ještě počítá postaru.
+  {
+    const chyby = [], upoz = [];
+    // Neshody v REPU a v DATECH (pravidla kvízu, CPI, sazby, texty, DB) = poplach hned; neshody živého API/stránky jen po nasazení.
+    const chybyRepo = [];
+    const sim = (telo) => fetch(`${WEB_URL}/api/backtest/simulate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(telo) })
+      .then(async (r) => ({ status: r.status, j: await r.json().catch(() => null) })).catch(() => ({ status: 0, j: null }));
+    const slozky = (o) => Object.entries(o).map(([c, w]) => ({ isin: c, name: c, indexCode: c, weight: w, ter: 0 }));
+    const DO = '2026-10-21';
+    const pct = (x) => (x == null ? null : x * 100);
+    const blizko = (id, klic, web, ocek, tol) => {
+      if (web == null || !Number.isFinite(web)) chyby.push(`${id}: ${klic} chybí (${web})`);
+      else if (Math.abs(web - ocek) > tol) chyby.push(`${id}: ${klic} ${+web.toFixed(4)} ≠ ${ocek} (±${tol})`);
+    };
+    const blizkoRel = (id, klic, web, ocek, tol = 0.006) => {
+      if (!(web > 0)) chyby.push(`${id}: ${klic} chybí (${web})`);
+      else if (Math.abs(web / ocek - 1) > tol) chyby.push(`${id}: ${klic} ${Math.round(web).toLocaleString('cs-CZ')} ≠ ${ocek.toLocaleString('cs-CZ')} (±${tol * 100} %)`);
+    };
+    let nasazeno = false;
+    try {
+      // 1) S&P 500 v Kč 2005 → 2026-10-21, 100 000 Kč (backtest-01): výnos, riziko, Sharpe/Sortino/VaR (S10, N10, N11),
+      //    měsíční výnosy a horizonty z MĚSÍČNÍ řady (S11), inflace (S18).
+      const b1 = await sim({ portfolio: slozky({ sp500: 1 }), startDate: '2005-01-01', endDate: DO, initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly' });
+      nasazeno = b1.j?.metodika === '2026-10-22';
+      const s1 = b1.j?.summary ?? {};
+      blizkoRel('S&P Kč 2005', 'konečná hodnota', s1.netAssetValue, 916909);
+      blizko('S&P Kč 2005', 'CAGR %', pct(s1.cagr), 10.701, 0.07);
+      blizko('S&P Kč 2005', 'kolísavost %', pct(s1.standardDeviation), 14.13, 0.1);
+      blizko('S&P Kč 2005', 'max. pokles %', pct(b1.j?.risk?.maxDrawdown?.depth), -52.84, 0.25);
+      blizko('S&P Kč 2005', 'Sharpe (rf ČNB 2T repo)', s1.sharpeRatio, 0.648, 0.03);
+      blizko('S&P Kč 2005', 'Sortino', s1.sortinoRatio, 1.002, 0.05);
+      blizko('S&P Kč 2005', 'VaR 95 % (měsíční)', pct(b1.j?.risk?.valueAtRisk95), -12.15, 0.3);
+      if (b1.j?.evolution?.[0]?.date?.slice(0, 10) !== '2005-01-03') chyby.push(`S&P Kč 2005: první den ${b1.j?.evolution?.[0]?.date?.slice(0, 10)} ≠ 2005-01-03`);
+      const tm = b1.j?.returns?.totalMonths;
+      if (!(tm >= 260 && tm <= 264)) chyby.push(`S11: měsíčních výnosů ${tm} (má být ~262 = měsíce, ne obchodní dny)`);
+      blizko('S11 horizont 1 rok', 'podíl kladných %', pct(b1.j?.horizons?.[0]?.percentagePositive), 79.3, 2);
+      blizko('S18 inflace 2005', 'reálný CAGR %', pct(b1.j?.inflation?.realCAGR), 7.275, 0.05);
+
+      // 2) USD a EUR: Sharpe s bezrizikovou sazbou MĚNY (fed funds, EONIA/€STR), ne 2 % (S10).
+      const b2 = await sim({ portfolio: slozky({ sp500: 1 }), startDate: '2005-01-01', endDate: DO, initialAmount: 100000, currency: 'USD', rebalancingStrategy: 'yearly' });
+      blizkoRel('S&P USD 2005', 'konečná hodnota', b2.j?.summary?.netAssetValue, 954744, 0.002);
+      blizko('S&P USD 2005', 'CAGR %', pct(b2.j?.summary?.cagr), 10.907, 0.05);
+      blizko('S&P USD 2005', 'Sharpe (rf fed funds)', b2.j?.summary?.sharpeRatio, 0.66, 0.02);
+      const b9 = await sim({ portfolio: slozky({ sp500: 0.9, us_treasury_1_3y: 0.1 }), startDate: '2002-07-30', endDate: DO, initialAmount: 10000, currency: 'EUR', rebalancingStrategy: 'yearly' });
+      blizkoRel('90/10 EUR 2002', 'konečná hodnota', b9.j?.summary?.netAssetValue, 97328);
+      blizko('90/10 EUR 2002', 'Sharpe (rf EONIA/€STR)', b9.j?.summary?.sharpeRatio, 0.701, 0.03);
+      if (b1.j?.summary && b2.j?.summary && Math.abs(b1.j.summary.cagr - b2.j.summary.cagr) < 1e-6) chyby.push('CAGR v Kč = CAGR v USD (přepočet měny chybí)');
+
+      // 3) S9: 60/40 – dno 1. 3. 2023 se nesmí vynechat (max. pokles −20,72 %, ne −20,5 %).
+      const b4 = await sim({ portfolio: slozky({ ftse_all_world: 0.6, eur_govt_bond: 0.4 }), startDate: '2008-06-26', endDate: DO, initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly' });
+      blizko('60/40 2008', 'max. pokles %', pct(b4.j?.risk?.maxDrawdown?.depth), -20.72, 0.05);
+      if (b4.j?.risk?.maxDrawdown?.troughDate?.slice(0, 10) !== '2023-03-01') chyby.push(`60/40: dno ${b4.j?.risk?.maxDrawdown?.troughDate?.slice(0, 10)} ≠ 2023-03-01 (vynechaný 1. den v měsíci?)`);
+      blizkoRel('60/40 2008', 'konečná hodnota', b4.j?.summary?.netAssetValue, 386832);
+      blizko('60/40 2008', 'CAGR %', pct(b4.j?.summary?.cagr), 7.664, 0.07);
+
+      // 4) S8: 0 Kč + 2 000 Kč měsíčně od 1/2010 – vklad i první den (404 000 Kč, ne 402 000).
+      const b11 = await sim({ portfolio: slozky({ sp500: 1 }), startDate: '2010-01-01', endDate: DO, initialAmount: 0, currency: 'CZK', rebalancingStrategy: 'yearly', contributions: { amount: 2000, frequency: 'monthly' } });
+      if (b11.j?.summary?.amountInvested !== 404000) chyby.push(`S8: 0 + 2 000 Kč/měs. od 1/2010 vloženo ${b11.j?.summary?.amountInvested} ≠ 404 000`);
+      blizkoRel('S8 0 + 2 000 Kč', 'konečná hodnota', b11.j?.summary?.netAssetValue, 1652910);
+
+      // 5) V8: období kratší než rok – žádné „% ročně“, kolísavost/Sharpe/Sortino/VaR „—“ (null), celkový výnos ≈ +5,4 %.
+      const b42 = await sim({ portfolio: slozky({ sp500: 1 }), startDate: '2026-09-01', endDate: DO, initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly', contributions: { amount: 5000, frequency: 'monthly' } });
+      const s42 = b42.j?.summary ?? {};
+      if (s42.cagr != null) chyby.push(`V8: start 1. 9. 2026 vrací roční zhodnocení ${(s42.cagr * 100).toFixed(1)} % (pod rok se neanualizuje)`);
+      for (const k of ['standardDeviation', 'sharpeRatio', 'sortinoRatio']) if (s42[k] != null) chyby.push(`V8: start 1. 9. 2026 vrací ${k} = ${s42[k]} (z méně než 12 měsíců má být null)`);
+      if (b42.j?.risk?.valueAtRisk95 != null) chyby.push(`V8: start 1. 9. 2026 vrací VaR ${b42.j.risk.valueAtRisk95}`);
+      blizko('V8 krátké období', 'celkový výnos %', pct(s42.celkovyVynos), 5.39, 0.3);
+      if (s42.amountInvested !== 105000) chyby.push(`V8: vloženo ${s42.amountInvested} ≠ 105 000`);
+
+      // 6) V9: součet vah 99,5 % → 400; 100,005 % (zaokrouhlení) → normalizace = stejný výsledek jako 100 %.
+      const b44 = await sim({ portfolio: slozky({ sp500: 0.995 }), startDate: '2005-01-01', endDate: DO, initialAmount: 100000, currency: 'CZK' });
+      if (b44.status !== 400 && !(Math.abs(pct(b44.j?.summary?.cagr) - 10.701) < 0.07)) chyby.push(`V9: váha 0,995 → status ${b44.status}, CAGR ${pct(b44.j?.summary?.cagr)?.toFixed(2)} % (má být 400 nebo 10,70 %)`);
+      const bn = await sim({ portfolio: slozky({ sp500: 1.00005 }), startDate: '2005-01-01', endDate: DO, initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly' });
+      if (bn.status !== 200 || Math.abs((bn.j?.summary?.netAssetValue ?? 0) - (s1.netAssetValue ?? -1)) > 0.01) chyby.push(`V9: váha 1,00005 (zaokrouhlení) se nenormalizuje (status ${bn.status}, ${bn.j?.summary?.netAssetValue} vs ${s1.netAssetValue})`);
+
+      // 7) Vklady, vyvažování, poplatek, EUR (regrese zlatých případů backtest-07/12/14/17/18/20).
+      const b7 = await sim({ portfolio: slozky({ sp500: 0.6, msci_eafe: 0.4 }), startDate: '2002-01-01', endDate: DO, initialAmount: 50000, currency: 'CZK', rebalancingStrategy: 'yearly', contributions: { amount: 3000, frequency: 'monthly' } });
+      if (b7.j?.summary?.amountInvested !== 941000) chyby.push(`backtest-07: vloženo ${b7.j?.summary?.amountInvested} ≠ 941 000`);
+      blizkoRel('backtest-07', 'konečná hodnota', b7.j?.summary?.netAssetValue, 3989775);
+      const b12 = await sim({ portfolio: slozky({ ftse_all_world: 1 }), startDate: '2010-03-15', endDate: DO, initialAmount: 20000, currency: 'CZK', rebalancingStrategy: 'yearly', contributions: { amount: 6000, frequency: 'quarterly' } });
+      if (b12.j?.summary?.amountInvested !== 422000) chyby.push(`backtest-12: vloženo ${b12.j?.summary?.amountInvested} ≠ 422 000`);
+      blizkoRel('backtest-12', 'konečná hodnota', b12.j?.summary?.netAssetValue, 1281298);
+      const b14 = await sim({ portfolio: slozky({ sp500: 0.6, us_aggregate_bond: 0.4 }), startDate: '2005-01-01', endDate: DO, initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'monthly' });
+      blizkoRel('backtest-14', 'konečná hodnota', b14.j?.summary?.netAssetValue, 504667);
+      blizko('backtest-14', 'max. pokles %', pct(b14.j?.risk?.maxDrawdown?.depth), -37.98, 0.25);
+      const b17 = await sim({ portfolio: [{ isin: 'x', name: 'x', indexCode: 'ftse_all_world', weight: 1, ter: 0, feeOverride: 0.0014 }], startDate: '2008-06-26', endDate: DO, initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly' });
+      blizkoRel('backtest-17 poplatek 0,14 %', 'konečná hodnota', b17.j?.summary?.netAssetValue, 652317);
+      const b20 = await sim({ portfolio: slozky({ sp500: 1 }), startDate: '2005-01-01', endDate: DO, initialAmount: 4000, currency: 'EUR', rebalancingStrategy: 'yearly', contributions: { amount: 200, frequency: 'monthly' } });
+      if (b20.j?.summary?.amountInvested !== 56200) chyby.push(`backtest-20: vloženo ${b20.j?.summary?.amountInvested} ≠ 56 200`);
+      blizkoRel('backtest-20 EUR', 'konečná hodnota', b20.j?.summary?.netAssetValue, 349745);
+
+      // 8) S18: inflace od 2000 z MĚSÍČNÍHO CPI ČSÚ (faktor 1/2000 → 9/2026 = 159,2 / 71,6 = 2,2235).
+      const b8 = await sim({ portfolio: slozky({ sp500: 1 }), startDate: '2000-01-03', endDate: DO, initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly' });
+      blizko('S&P Kč 2000', 'max. pokles %', pct(b8.j?.risk?.maxDrawdown?.depth), -71.71, 0.25);
+      blizkoRel('S&P Kč 2000', 'konečná hodnota', b8.j?.summary?.netAssetValue, 512620);
+      const roky8 = b8.j?.summary?.obdobiLet;
+      if (roky8 > 0) blizko('S18 inflace 2000', 'inflace % ročně', pct(b8.j?.inflation?.inflationRate), (Math.pow(2.2235, 1 / roky8) - 1) * 100, 0.02);
+    } catch (e) {
+      chyby.push(`API backtestu nešlo ověřit: ${e.message}`);
+    }
+
+    // 9) K1: kvíz porovnává propady ze STEJNÉHO období – všechny data-kontrola-backtest mají stejné start=.
+    //    Fakt o délce propadu na delší historii (data-kontrola-backtest-historie) = API se stejnými vstupy.
+    try {
+      const html = await fetch(`${WEB_URL}/vyber-etf`).then((r) => (r.ok ? r.text() : ''));
+      const starty = [...new Set([...html.matchAll(/data-kontrola-backtest="([^"]+)"/g)].map((m) => new URL(m[1].replace(/&amp;/g, '&').split('|')[0], WEB_URL).searchParams.get('start')))];
+      const kvizNasazen = /data-kontrola-backtest-historie=/.test(html);
+      if (starty.length > 1) (kvizNasazen ? chyby : upoz).push(`K1 /vyber-etf: propady z různých období (start ${starty.join(', ')})`);
+      const hist = html.match(/data-kontrola-backtest-historie="([^"]+)"/)?.[1]?.replace(/&amp;/g, '&');
+      if (hist) {
+        const [odkaz, , navStr] = hist.split('|');
+        const q = new URL(odkaz, WEB_URL).searchParams;
+        const r = await sim({ portfolio: slozky({ sp500: 1 }), startDate: q.get('start'), endDate: q.get('do'), initialAmount: 100000, currency: 'CZK', rebalancingStrategy: 'yearly' });
+        if (!(Math.abs((r.j?.summary?.netAssetValue ?? 0) / Number(navStr) - 1) <= 0.001)) chyby.push(`/vyber-etf fakt S&P 500 od 2000: stránka ${Math.round(Number(navStr))} vs. backtest ${Math.round(r.j?.summary?.netAssetValue ?? 0)}`);
+      } else if (kvizNasazen) chyby.push('/vyber-etf: chybí kontrolní údaj faktu o délce propadu');
+    } catch (e) {
+      upoz.push(`Kvíz /vyber-etf nešlo ověřit: ${e.message}`);
+    }
+
+    // 10) V15 + S17: pravidla kvízu pro VŠECH 162 kombinací odpovědí (čistá funkce, Node ≥ 22.18 načte .ts sám).
+    try {
+      const { recommend, CATS } = await import(new URL('../src/components/design-preview/vyberEtfData.ts', import.meta.url).href);
+      let n = 0;
+      for (const horizon of ['short', 'mid', 'long']) for (const risk of ['low', 'mid', 'high'])
+        for (const focus of ['world', 'usa', 'europe', 'dividends', 'tech', 'esg']) for (const payout of ['acc', 'dist', 'idk']) {
+          n++;
+          const o = recommend({ horizon, risk, focus, payout }), id = `${horizon}/${risk}/${focus}/${payout}`;
+          if (!CATS[o.key]) chybyRepo.push(`kvíz ${id}: neznámá kategorie ${o.key}`);
+          if (horizon === 'short' && (o.key !== 'bonds' || !o.upozorneni.includes('kratky'))) chybyRepo.push(`kvíz ${id}: krátký horizont bez dluhopisů/upozornění`);
+          if (horizon === 'mid' && !o.upozorneni.includes('stredni-horizont')) chybyRepo.push(`kvíz ${id}: 3–10 let bez upozornění na délku propadu (V15)`);
+          if (horizon !== 'short' && risk === 'mid' && o.portfolia !== 'umirnena') chybyRepo.push(`kvíz ${id}: „střední výkyvy“ bez portfolií s dluhopisy (V15)`);
+          if (horizon !== 'short' && risk === 'low' && o.portfolia !== 'konzervativni') chybyRepo.push(`kvíz ${id}: „nechci velké propady“ bez konzervativních portfolií`);
+          if (o.portfolia == null && o.key !== 'bonds' && !(risk === 'high' && horizon === 'long') && !o.upozorneni.includes('stredni-horizont')) chybyRepo.push(`kvíz ${id}: 100 % akcie bez varování`);
+          if (focus === 'dividends' && payout === 'acc' && !o.upozorneni.includes('prijem-reinvestice')) chybyRepo.push(`kvíz ${id}: příjem + reinvestice bez upozornění na rozpor (S17)`);
+        }
+      if (n !== 162) chybyRepo.push(`kvíz: otestováno ${n} kombinací místo 162`);
+    } catch (e) {
+      upoz.push(`Pravidla kvízu nešlo načíst (Node bez type stripping?): ${e.message}`);
+    }
+
+    // 11) S18: CPI v inflation.ts měsíčně od 1/1996 bez děr a roční průměry = publikovaná míra inflace ČSÚ (nezávislá kotva).
+    try {
+      const infl = readFileSync('src/lib/backtest/inflation.ts', 'utf8');
+      const cpi = Object.fromEntries([...infl.matchAll(/'(\d{4}-\d{2})': (\d+(?:\.\d+)?),/g)].map((m) => [m[1], Number(m[2])]));
+      const MIRA = { 1997: 8.5, 1998: 10.7, 1999: 2.1, 2000: 3.9, 2001: 4.7, 2002: 1.8, 2003: 0.1, 2004: 2.8, 2005: 1.9, 2006: 2.5, 2007: 2.8, 2008: 6.3, 2009: 1.0, 2010: 1.5, 2011: 1.9, 2012: 3.3, 2013: 1.4, 2014: 0.4, 2015: 0.3, 2016: 0.7, 2017: 2.5, 2018: 2.1, 2019: 2.8, 2020: 3.2, 2021: 3.8, 2022: 15.1, 2023: 10.7, 2024: 2.4, 2025: 2.5 };
+      const prum = (y) => { const v = Array.from({ length: 12 }, (_, i) => cpi[`${y}-${String(i + 1).padStart(2, '0')}`]); return v.every((x) => x > 0) ? v.reduce((a, b) => a + b, 0) / 12 : null; };
+      if (!cpi['1996-01']) chybyRepo.push('S18: inflation.ts nemá měsíční CPI od 1/1996 (CEN0101B)');
+      for (const [y, m] of Object.entries(MIRA)) {
+        const a = prum(Number(y)), p = prum(Number(y) - 1);
+        if (a == null || p == null) { chybyRepo.push(`S18: CPI za ${y} nebo ${Number(y) - 1} neúplné`); continue; }
+        if (Math.abs((a / p - 1) * 100 - m) > 0.15) chybyRepo.push(`S18: inflace ${y} z inflation.ts ${((a / p - 1) * 100).toFixed(2)} % ≠ ČSÚ ${m} %`);
+      }
+      // Texty, které po přechodu na měsíční CPI neplatí (stránky mimo backtest – opraví jejich vlastník).
+      for (const [soubor, vzor] of [['src/app/metodika/page.tsx', /starší roky z průměrné roční míry inflace/], ['src/app/jak-dlouho-v-minusu/page.tsx', /dříve z ročních průměrů/]]) {
+        try { if (vzor.test(readFileSync(soubor, 'utf8'))) chybyRepo.push(`${soubor}: text tvrdí, že CPI před 2015 je z ročních průměrů – od 22. 10. 2026 je měsíční (ČSÚ CEN0101B)`); } catch { /* soubor nemusí existovat */ }
+      }
+      // S8: bez počátečního vkladu jde první měsíční vklad už první den dat (1. 7. 2008), ne v srpnu.
+      try {
+        if (/od srpna 2008/.test(readFileSync('src/app/kolik-vydelaly-etf/page.tsx', 'utf8'))) chybyRepo.push('src/app/kolik-vydelaly-etf/page.tsx: „od srpna 2008“ – od opravy S8 (22. 10. 2026) je první z měsíčních vkladů 1. 7. 2008 („od července 2008“)');
+      } catch { /* soubor nemusí existovat */ }
+      // Bezriziková sazba: řady aktuální (měsíc nejvýš 3 měsíce starý) a kotva ČNB 2T repo 6/2023 = 7,00 %.
+      const rf = readFileSync('src/lib/backtest/bezrizikovaSazba.ts', 'utf8');
+      const czk = rf.match(/CZK: \{([\s\S]*?)\n  \}/)?.[1] ?? '';
+      if (!/'2023-06': 7(\.0)?,/.test(czk)) chybyRepo.push('S10: bezriziková sazba CZK 6/2023 ≠ 7,00 % (2T repo ČNB)');
+      const posledni = [...czk.matchAll(/'(\d{4}-\d{2})':/g)].map((m) => m[1]).sort().at(-1);
+      const hranice = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 3, 1)).toISOString().slice(0, 7);
+      if (!posledni || posledni < hranice) upoz.push(`Bezriziková sazba (Sharpe) končí ${posledni} – spusťte scripts/backtest/generuj-cpi-a-sazby.py`);
+    } catch (e) {
+      upoz.push(`Statickou kontrolu CPI/sazeb nešlo provést: ${e.message}`);
+    }
+
+    // 12) S9: v denních řadách nejsou body o víkendu / 1. 1. / 25. 12. (úklid 18. 10. 2026; engine je od 22. 10. jen vynechává).
+    try {
+      const hl = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+      for (const kod of ['sp500', 'ftse_all_world']) {
+        const dny = [];
+        for (let od = 0; ; od += 1000) {
+          const b = await fetch(`${URL_DB.replace('etf_funds', 'index_historical_data')}?select=date&index_code=eq.${kod}&date=gte.2000-01-01&order=date&limit=1000&offset=${od}`, hl).then((r) => r.json());
+          if (!Array.isArray(b)) throw new Error(`DB ${kod}`);
+          dny.push(...b.map((x) => x.date)); if (b.length < 1000) break;
+        }
+        const spatne = dny.filter((d) => { const t = new Date(`${d}T00:00:00Z`); return [0, 6].includes(t.getUTCDay()) || d.endsWith('-01-01') || d.endsWith('-12-25'); });
+        if (spatne.length) chybyRepo.push(`S9: ${kod} má ${spatne.length} bodů v nepracovní den (${spatne.slice(0, 3).join(', ')}) – vadný zdroj v DB`);
+      }
+    } catch (e) {
+      upoz.push(`Kontrolu nepracovních dnů v DB nešlo provést: ${e.message}`);
+    }
+
+    if (chyby.length) (nasazeno ? poplach : varovani).push({ co: `Audit backtestu (zlaté případy, do ${DO})${nasazeno ? '' : ' – produkce ještě bez oprav z 22. 10. 2026 (před nasazením)'}: ${chyby.length} neshod`, ukazka: chyby.slice(0, 20) });
+    if (chybyRepo.length) poplach.push({ co: `Audit backtestu – pravidla kvízu, CPI, sazby a data v DB: ${chybyRepo.length} neshod`, ukazka: chybyRepo.slice(0, 20) });
+    if (upoz.length) varovani.push({ co: 'Audit backtestu: upozornění', ukazka: upoz.slice(0, 10) });
+  }
+  // --- konec audit backtest ---
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
