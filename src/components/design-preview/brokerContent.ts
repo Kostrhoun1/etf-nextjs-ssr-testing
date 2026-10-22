@@ -52,17 +52,17 @@ export const brokerContent: Record<string, BrokerContent> = {
     "zalozeniZdroj": "https://www.degiro.cz/helpdesk/become-client/registering-degiro-account/how-do-i-open-degiro-account",
     "intro": [
       "DEGIRO je nizozemský broker založený v roce 2008, který od roku 2013 cílí i na drobné investory. Dnes je součástí burzovně kotované flatexDEGIRO Bank AG a patří mezi velké evropské brokery. Na rozdíl od většiny konkurentů tak nejde o samostatnou brokerskou firmu, ale o entitu napojenou na plnohodnotnou banku regulovanou německým BaFinem a nizozemskými DNB/AFM.",
-      "Na českém trhu si DEGIRO vybudoval pozici mezi nákladově uvědomělými investory. Láká na tzv. ETF Selection – seznam 200+ vybraných UCITS ETF, které lze nakupovat prakticky bez transakčního poplatku (pouze 1 EUR manipulační poplatek za nákup). Celková nabídka přesahuje 3000 ETF a desetitisíce akcií na 31 světových burzách.",
+      "Na českém trhu si DEGIRO vybudoval pozici mezi nákladově uvědomělými investory. Láká na tzv. ETF Selection – ETF kótovaná na burze Tradegate, která lze nakupovat bez provize (platí se jen 1 EUR manipulační poplatek za nákup). Celková nabídka přesahuje 3000 ETF a desetitisíce akcií na 31 světových burzách.",
       "Odlišuje se právě kombinací velmi nízkých nákladů na ETF a bankovního zázemí. Zároveň ale nejde o brokera bez kompromisů: chybí frakční investování, demo účet i pokročilé nástroje a české dividendy jsou zdaněny 35 % sazbou."
     ],
     "feesText": [
-      "Pro českého investora do ETF jsou reálné náklady u DEGIRO nízké, pokud se drží ETF Selection. Zde platíte 0 EUR provize plus 1 EUR manipulační poplatek za jeden nákup (kolem 24 Kč). U ostatních ETF mimo tento seznam zaplatíte 3 EUR za pokyn (včetně manipulačního poplatku). K tomu se přičítá roční poplatek za připojení na jednotlivé zahraniční burzy (nejvýš 0,25 % hodnoty účtu, max. 2,5 EUR ročně za každou burzu, kde v daném roce obchodujete; pražská burza je výjimkou).",
+      "Pro českého investora do ETF jsou reálné náklady u DEGIRO nízké, pokud se drží ETF Selection, tedy ETF kótovaných na burze Tradegate. Zde platíte 0 EUR provize plus 1 EUR manipulační poplatek za jeden nákup. U ostatních ETF (třeba na Xetře) zaplatíte 3 EUR za pokyn (včetně manipulačního poplatku) a k tomu roční poplatek za připojení k zahraniční burze (nejvýš 0,25 % hodnoty účtu, max. 2,5 EUR ročně za každou burzu, kde v daném roce obchodujete; pražská burza a ETF Selection jsou výjimkou). Stejný poplatek (až 2,5 EUR ročně) účtuje ceník i za připojení k CNX, burze používané pro směnu měn (Přehled poplatků od 1. 1. 2026).",
       "Klíčovou výhodou pro Čecha je bezplatná konverze CZK/EUR – vklady i výběry i samotný převod korun na eura DEGIRO nezpoplatňuje. U ostatních měnových konverzí (např. na USD při nákupu US-listed instrumentů) je poplatek 0,25 %, což je nízké. Pozor ale na daně z dividend: u českých akcií a dividendových titulů drží DEGIRO srážkovou daň 35 % místo standardních 15 %. Část (rozdíl oproti 15 %) lze za určitých podmínek řešit vratkou přes daňové přiznání, ale je to administrativa navíc. Nejjednodušší obranou je volit akumulační ETF, kde se dividendy reinvestují uvnitř fondu a tento problém prakticky odpadá."
     ],
     "faqs": [
       {
         "q": "Kolik reálně zaplatím za nákup ETF u DEGIRO?",
-        "a": "U fondů ze seznamu ETF Selection (200+ vybraných ETF) je provize 0 EUR a platíte pouze 1 EUR manipulační poplatek za nákup (kolem 24 Kč). U ostatních ETF je to 3 EUR za pokyn. K tomu se jednou ročně přičítá poplatek za připojení na burzu (nejvýš 0,25 % hodnoty účtu, max. 2,5 EUR za každou burzu, kde v daném roce obchodujete)."
+        "a": "U fondů z výběru ETF Selection (ETF kótovaná na burze Tradegate) je provize 0 EUR a platíte pouze 1 EUR manipulační poplatek za nákup. U ostatních ETF (třeba na Xetře) je to 3 EUR za pokyn a k tomu jednou ročně poplatek za připojení k burze (nejvýš 0,25 % hodnoty účtu, max. 2,5 EUR za každou burzu, kde v daném roce obchodujete). Až 2,5 EUR ročně účtuje ceník i za připojení k CNX, burze používané pro směnu měn (Přehled poplatků od 1. 1. 2026)."
       },
       {
         "q": "Jak DEGIRO zdaňuje dividendy pro české investory?",
@@ -70,7 +70,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Musím u DEGIRO směňovat koruny na eura a kolik to stojí?",
-        "a": "Konverze CZK/EUR i vklady a výběry v korunách jsou u DEGIRO zdarma. Pokud nakupujete instrumenty v jiné měně (např. USD), platí se poplatek za konverzi 0,25 %, což je nízká sazba."
+        "a": "Konverze CZK/EUR i vklady a výběry v korunách jsou u DEGIRO zdarma. Ceník ale účtuje až 2,5 EUR ročně (nejvýš 0,25 % hodnoty účtu) za připojení k CNX, burze používané pro směnu měn, a výjimku pro směnu CZK/EUR neuvádí. Pokud nakupujete instrumenty v jiné měně (např. USD), platí se poplatek za konverzi 0,25 %."
       },
       {
         "q": "Je u DEGIRO nějaký minimální vklad?",
@@ -119,7 +119,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "XTB tak cílí na běžného retailového investora, který chce jednoduše a bez provizí nakupovat ETF v češtině, spíše než na profesionály hledající opce, futures nebo nejnižší možné náklady na velkých objemech."
     ],
     "feesText": [
-      "Samotný nákup ETF je u XTB bez provize do souhrnného objemu 100 000 EUR měsíčně, nad tento limit se účtuje 0,2 %. Většina retailových investorů se tak fakticky pohybuje v režimu 0 Kč za obchod. Reálné náklady českého investora ale tvoří hlavně měna: XTB vede účet nejčastěji v EUR nebo CZK a při obchodování ETF denominovaného v jiné měně provádí konverzi se spreadem 0,5 % nad tržním kurzem. Kdo posílá koruny a kupuje ETF v eurech nebo dolarech, zaplatí tuto konverzi na každém nákupu i při případném prodeji. Vklad bankovním (SEPA) převodem je zdarma, platba kartou ale stojí 0,77 % (CZK) nebo 0,70 % (EUR) — proto se vždy vyplatí posílat peníze převodem, ne kartou. Minimální vklad není žádný. Vedení účtu je zdarma; poplatek za neaktivitu 10 EUR měsíčně se účtuje, jen když zároveň rok (365 dní) neotevřete ani neuzavřete žádnou pozici a 90 dní nevložíte peníze (Tabulka poplatků a provizí ze dne 20. 10. 2026).",
+      "Samotný nákup ETF je u XTB bez provize do souhrnného objemu 100 000 EUR měsíčně, nad tento limit se účtuje 0,2 %. Většina retailových investorů se tak fakticky pohybuje v režimu 0 Kč za obchod. Reálné náklady českého investora ale tvoří hlavně měna: XTB vede účet nejčastěji v EUR nebo CZK a při obchodování ETF denominovaného v jiné měně provádí konverzi se spreadem 0,5 % nad tržním kurzem. Kdo posílá koruny a kupuje ETF v eurech nebo dolarech, zaplatí tuto konverzi na každém nákupu i při případném prodeji. Vklad bankovním (SEPA) převodem i platební kartou je zdarma, vklad přes službu PayU stojí 0,77 % (vklad v CZK); vlastní poplatky může účtovat vaše banka nebo vydavatel karty. Minimální vklad není žádný. Vedení účtu je zdarma; poplatek za neaktivitu 10 EUR měsíčně se účtuje, jen když zároveň rok (365 dní) neotevřete ani neuzavřete žádnou pozici a 90 dní nevložíte peníze (Tabulka poplatků a provizí ze dne 20. 10. 2026).",
       "U zdanění dividend je situace dvojí. U ETF a akcií z USA lze díky vyplněnému formuláři W-8BEN dosáhnout snížené srážky 15 % místo 30 %. Naopak u dividend z českých akcií drží XTB jako zahraniční broker srážku 35 % (nesnížených 15 %), což je citelná nevýhoda pro dividendové investory do českých titulů. Pro typického investora do širokých akumulačních ETF (např. celosvětové indexy) je ale zdanění dividend uvnitř fondu řešeno na úrovni fondu a tento problém se ho prakticky netýká."
     ],
     "faqs": [
@@ -137,7 +137,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Jaký je minimální vklad u XTB?",
-        "a": "XTB nemá žádný povinný minimální vklad — účet lze založit a začít investovat i s malou částkou. Díky frakčním podílům můžete koupit i zlomek dražší akcie nebo ETF. Bankovní (SEPA) převod je zdarma; platba kartou stojí 0,77 % (CZK) nebo 0,70 % (EUR)."
+        "a": "XTB nemá žádný povinný minimální vklad — účet lze založit a začít investovat i s malou částkou. Díky frakčním podílům můžete koupit i zlomek dražší akcie nebo ETF. Vklad převodem i kartou je zdarma, přes službu PayU stojí 0,77 % (vklad v CZK) – Tabulka poplatků a provizí ze dne 20. 10. 2026."
       },
       {
         "q": "Jsou peníze a ETF u XTB v bezpečí?",
@@ -281,7 +281,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Směňujete koruny najednou za větší částku – 0,002 %, min. 2 USD za směnu"
     ],
     "proKohoNe": [
-      "Posíláte malé částky – minimum 1,25 EUR za nákup a 2 USD za směnu",
+      "Posíláte malé částky – minimum 1,25 EUR za nákup",
       "Potřebujete podporu v češtině – jen anglicky",
       "Začínáte a chcete jednoduchou aplikaci – rozhraní je pro pokročilé"
     ],
@@ -306,7 +306,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       "Od konkurence se odlišuje především šíří nabídky, nízkými transakčními náklady u velkých objemů a velmi levnou měnovou konverzí (0,002 %). Naopak platforma TWS je nástroj pro pokročilé a broker nenabízí českou lokalizaci ani českou podporu."
     ],
     "feesText": [
-      "Reálné náklady českého investora: evropské (UCITS) ETF stojí v cenovém plánu Tiered 0,05 % hodnoty s minimem 1,25 EUR plus poplatky burzy, v plánu Fixed minimálně 3 EUR. Americké ETF retailoví investoři z EU nekoupí (chybí jim dokument KID). U větších objemů je to velmi levné, ale u malých pravidelných nákupů (např. 100 EUR měsíčně) je minimum 1,25 EUR znát (1,25 %). Konverze měn stojí 0,002 %, ale nejméně 2 USD – u vkladu 5 000 Kč tedy kolem 0,9 %. Minimální vklad je 0 USD (zrušen v roce 2021) a IBKR neúčtuje poplatky za neaktivitu.",
+      "Reálné náklady českého investora: evropské (UCITS) ETF stojí v cenovém plánu Tiered 0,05 % hodnoty s minimem 1,25 EUR (nejvýš 29 EUR) plus vypořádání (0,02 EUR + 0,0008 %), regulační poplatek 0,01 EUR a případně poplatek burzy Xetra, v plánu Fixed minimálně 3 EUR včetně všech poplatků. Americké ETF retailoví investoři z EU nekoupí (chybí jim dokument KID). U větších objemů je to velmi levné, ale u malých pravidelných nákupů (např. 100 EUR měsíčně) je minimum 1,25 EUR znát (1,25 %). Ruční konverze měn stojí 0,002 %, ale nejméně 2 USD; automatická konverze při nákupu stojí 0,03 % v kurzu bez minima, takže u malých částek vyjde levněji (ceník IBKR Ireland, ověřeno 22. 10. 2026). Minimální vklad je 0 USD (zrušen v roce 2021) a IBKR neúčtuje poplatky za neaktivitu.",
       "Měnová konverze stojí 0,002 % objemu s minimem 2 USD za jednu směnu. Koruny nemusíte směňovat při každém nákupu: na účtu můžete držet hotovost ve více měnách, směnit jednou větší částku a z ní nakupovat postupně – minimum 2 USD pak zaplatíte jen jednou. U malých jednorázových směn minimum převáží (DEGIRO má směnu CZK/EUR zdarma). Dividendy z českých akcií IBKR drží na sběrném (omnibus) účtu, proto se z nich sráží 35 %; vratku lze žádat jen individuálně u finančního úřadu. U irských UCITS ETF se srážka z amerických dividend řeší uvnitř fondu a formulář W-8BEN se vás netýká – ten je pro přímo držené americké akcie. Přístup k některým tržním datům je zpoplatněn (1–45 USD měsíčně podle typu)."
     ],
     "faqs": [
@@ -332,7 +332,7 @@ export const brokerContent: Record<string, BrokerContent> = {
       },
       {
         "q": "Kolik zaplatím za nákup ETF?",
-        "a": "U evropských (UCITS) ETF v plánu Tiered 0,05 % hodnoty s minimem 1,25 EUR plus poplatky burzy, v plánu Fixed minimálně 3 EUR. Americké ETF retailoví investoři z EU nekoupí (chybí KID). U větších objemů jsou náklady velmi nízké, u malých pravidelných nákupů se ale minimální poplatek projeví."
+        "a": "U evropských (UCITS) ETF v plánu Tiered 0,05 % hodnoty s minimem 1,25 EUR plus vypořádání a regulační poplatek (na Xetře 0,03 EUR + 0,0008 %) a případně poplatek burzy, v plánu Fixed minimálně 3 EUR včetně poplatků. Americké ETF retailoví investoři z EU nekoupí (chybí KID). U větších objemů jsou náklady velmi nízké, u malých pravidelných nákupů se ale minimální poplatek projeví."
       }
     ]
   },

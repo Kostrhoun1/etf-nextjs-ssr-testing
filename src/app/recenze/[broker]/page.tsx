@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import StickyKdyzSeVejde from './StickyKdyzSeVejde';
 import {
-  brokers, nakladNakupu, castiPrikladu, rocniPoplatekRobo, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisVedeniUctu, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru,
+  brokers, burzaNakupu, nakladNakupu, castiPrikladu, rocniPoplatekRobo, popisPoplatku, popisSmeny, popisMinVkladu, popisRegulace, popisVedeniUctu, popisDaneDividend, popisPodpory, ochranaHotovosti, ochranaPapiru,
   cenikyOverenyIso, cenikyOverenyStr,
 } from '@/data/brokerData';
 import { getBrokerContent } from '@/components/design-preview/brokerContent';
@@ -44,7 +44,10 @@ export async function generateMetadata(
 
 const kc = (v: number) =>
   `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')} Kč`;
-const proc = (v: number) => `${v.toLocaleString('cs-CZ', { maximumFractionDigits: v < 1 ? 2 : 1 })} %`;
+// Kladný podíl pod 0,005 % by se zaokrouhlil na „0 %“ → „< 0,01 %“ (audit nákladů 22. 10. 2026, N18).
+const proc = (v: number) => (v > 0 && v < 0.005
+  ? '< 0,01 %'
+  : `${v.toLocaleString('cs-CZ', { maximumFractionDigits: v < 1 ? 2 : 1 })} %`);
 
 type Fakt = { k: string; v: string; pozn?: string; tip?: string; data?: Record<string, string> };
 
@@ -67,7 +70,7 @@ export default async function BrokerReview(
     : `${n.plusBurza ? 'od ' : ''}${kc(cp8.celkem)} (${proc((cp8.celkem / CASTKA_PRIKLAD) * 100)})`;
   const prikladPozn = !n || !cp8 ? undefined
     : cp8.smena == null ? `poplatek ${kc(cp8.provize)} + směna v kurzu banky (výši neznáme)`
-    : `poplatek ${kc(cp8.provize)} + směna ${kc(cp8.smena)}${n.plusBurza ? ' + poplatky burzy (výši neznáme)' : ''}`;
+    : `poplatek ${kc(cp8.provize)} + směna ${kc(cp8.smena)}${n.plusBurza ? ' + případně poplatek burzy (u IBKR jen někdy)' : ''}`;
   /* Robo-poradce: konkrétní roční náklad pro typické hodnoty portfolia (Sazebník Portu, sazba na celý majetek). */
   const roboPriklady = b.robo ? [100_000, 750_000].map((h) => ({ h, bez: rocniPoplatekRobo(b, h), s: rocniPoplatekRobo(b, h, b.roboSlevaMax ?? 0) })) : [];
 
@@ -88,13 +91,14 @@ export default async function BrokerReview(
         { k: 'Daň z českých dividend', ...popisDaneDividend(b) },
       ]
     : [
-        { k: 'Nákup ETF (Xetra)', v: popisPoplatku(b) ?? '—', pozn: b.nakup?.pozn, data: { 'data-poplatek': popisPoplatku(b) ?? '' } },
+        // Burza podle ceníku: Xetra, u DEGIRO ETF Selection Tradegate (Přehled poplatků DEGIRO, ověřeno 22. 10. 2026, audit S15).
+        { k: `Nákup ETF (${burzaNakupu(b)})`, v: popisPoplatku(b) ?? '—', pozn: b.nakup?.pozn, data: { 'data-poplatek': popisPoplatku(b) ?? '' } },
         { k: 'Směna CZK → EUR', v: popisSmeny(b) ?? '—', pozn: b.nakup?.smenaPozn, data: { 'data-smena': popisSmeny(b) ?? '' } },
         {
           k: `Nákup za ${CASTKA_PRIKLAD.toLocaleString('cs-CZ')} Kč celkem`, v: priklad, pozn: prikladPozn,
           // Denní kontrola (check-fund-data, kolo8 obsah): celkem = poplatek + směna (zaokrouhlené části).
           data: cp8 ? { 'data-priklad': `${cp8.celkem ?? ''}|${cp8.provize}|${cp8.smena ?? ''}` } : undefined,
-          tip: kurzy ? `Poplatek za nákup + směna korun na eura, nákup evropského ETF na Xetře. Kurz ČNB k ${datumKurzu(kurzy)}.` : 'Kurz ČNB se nepodařilo načíst – částku teď neukazujeme.',
+          tip: kurzy ? `Poplatek za nákup + směna korun na eura, nákup evropského ETF na burze ${burzaNakupu(b)}${b.nakup?.ostatniEtfEur != null ? ' (ETF Selection)' : ''}. Kurz ČNB k ${datumKurzu(kurzy)}.` : 'Kurz ČNB se nepodařilo načíst – částku teď neukazujeme.',
         },
         { k: 'Vedení účtu', ...popisVedeniUctu(b) },
         ...(b.prevodVen ? [{ k: 'Převod ETF k jinému brokerovi', v: b.prevodVen }] : []),

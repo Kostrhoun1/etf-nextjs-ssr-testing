@@ -352,7 +352,8 @@ const main = async () => {
       if (!nakup || !rok) continue;
       pocet++;
       if (rok > 12 * (nakup + 0.5)) chyby.push(`${m[1]}: za rok ${rok} Kč > 12 × ${nakup} Kč`);
-      if (m[1] === 'ibkr' && rok >= 12 * nakup) chyby.push(`ibkr: za rok ${rok} Kč = 12 × nákup se směnou (směna se má počítat jednou)`);
+      // IBKR: od auditu 22. 10. 2026 je u malých částek levnější automatická směna u každého nákupu (0,03 %, bez minima),
+      // takže rok = 12 × nákup je správně. Ruční směnu jednou za rok hlídá blok „audit naklady“ nezávislým vzorcem.
     }
     if (!pocet) varovani.push({ co: '/kde-koupit: v HTML chybí data-za-nakup/data-za-rok – kontrolu ročního nákladu nešlo provést', ukazka: [] });
     if (chyby.length) varovani.push({ co: `/kde-koupit: roční náklad nesedí s nákupem (${chyby.length})`, ukazka: chyby });
@@ -3301,6 +3302,102 @@ const main = async () => {
     }
   }
   // --- konec kolo8 zebricky ---
+
+  // --- audit naklady --- (22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+  // Nezávislý audit nákladů brokerů našel: V13 IBKR „od 74 Kč“ za 2 000 Kč nebyla spodní hranice (automatická směna
+  // 0,03 % bez minima), V14 XTB „platba kartou 0,77 % / 0,70 %“ podle staré tabulky (od 20. 10. 2026 kartou zdarma),
+  // S14 hero „nejlevnější nad 16 100 Kč DEGIRO“ (skutečně od 16 177 Kč), S15 DEGIRO ETF Selection = Tradegate, ne Xetra.
+  // Ceníkové konstanty jsou tu ZÁMĚRNĚ opsané z oficiálních ceníků (ověřeno 22. 10. 2026), ne z src/data/brokerData.ts –
+  // kontrola nesmí kopírovat kód webu (kruh). Při změně ceníku je nutné změnit obojí; rozdíl = poplach = správně.
+  //   A) XTB: nejnovější „tabulkapoplatkuaprovizi<DDMMRRRR>.pdf“ na xtb.com/cz/obchodni-podminky novější než
+  //      CENIKY_OVERENY → POPLACH (XTB vydává tabulku ~měsíčně; 90denní varování nestačí).
+  //   B) /kde-koupit (kurz ČNB dnes): IBKR za 2 000 Kč ≤ 32 Kč a ±2 % od nezávislého vzorce; řádky T212/XTB/DEGIRO
+  //      shodně se vzorcem; hranice T212/DEGIRO v hero (data-hranice) = 1 EUR / 0,15 % na celé koruny.
+  //   C) Recenze: součet IBKR příkladu ≤ 32 Kč a = součet částí; /recenze/xtb bez „kartou … 0,77“; DEGIRO „Tradegate“.
+  //   D) Zdroj: brokerData.ts má IBKR autoProcento, DEGIRO burzaNakupu Tradegate a cnxRocneMaxEur.
+  // Značka nasazení: data-hranice na /kde-koupit; bez ní B–C jen varování (produkce ještě bez oprav).
+  {
+    const chybyN = [];
+    const varN = [];
+    try {
+      const bd = readFileSync('src/data/brokerData.ts', 'utf8');
+      const overeno = bd.match(/CENIKY_OVERENY = '(\d{4}-\d{2}-\d{2})'/)?.[1];
+      // D) zdroj
+      if (!/autoProcento:\s*0\.03/.test(bd)) chybyN.push('brokerData.ts: IBKR bez automatické směny 0,03 % (autoProcento) – „od“ by nebyla spodní hranice (V13)');
+      if (!/burzaNakupu:\s*'Tradegate'/.test(bd)) chybyN.push('brokerData.ts: DEGIRO ETF Selection bez burzy Tradegate (S15)');
+      if (!/cnxRocneMaxEur/.test(bd)) chybyN.push('brokerData.ts: DEGIRO bez poplatku za CNX (Přehled poplatků str. 10, pozn. 2)');
+      const bc = readFileSync('src/components/design-preview/brokerContent.ts', 'utf8');
+      // Zakázané: placený vklad kartou („platba kartou ale stojí 0,77 %“); povolené: „kartou je zdarma, přes PayU 0,77 %“.
+      const KARTA_PLACENA = /kartou (ale )?stojí|kartou[^.;"<]{0,12}\d+,\d+[\s ]?%/;
+      if (KARTA_PLACENA.test(bc)) chybyN.push('brokerContent.ts: XTB „kartou 0,77 %“ – od tabulky z 20. 10. 2026 je vklad kartou zdarma (V14)');
+
+      // A) XTB – novější tabulka poplatků než ověření
+      try {
+        const xtb = await fetch('https://www.xtb.com/cz/obchodni-podminky', { headers: { 'User-Agent': 'Mozilla/5.0 (etfpruvodce.cz kontrola ceniku)' } }).then((r) => (r.ok ? r.text() : ''));
+        const data = [...xtb.matchAll(/tabulkapoplatkuaprovizi(\d{2})(\d{2})(\d{4})\.pdf/g)].map((m) => `${m[3]}-${m[2]}-${m[1]}`).sort();
+        if (!data.length) varN.push('XTB: na xtb.com/cz/obchodni-podminky jsem nenašel žádnou „tabulkapoplatkuaprovizi…pdf“ – stránka se změnila, ověřit ručně');
+        else if (overeno && data[data.length - 1] > overeno) poplach.push({ co: `XTB vydala novou tabulku poplatků (${data[data.length - 1]}), ceníky brokerů ověřeny ${overeno} – projít změny (vklady, směna, provize) a aktualizovat src/data/brokerData.ts + CENIKY_OVERENY`, ukazka: [`https://www.xtb.com/cz/soubory/tabulkapoplatkuaprovizi${data[data.length - 1].split('-').reverse().join('')}.pdf`] });
+      } catch (e) { varN.push(`XTB seznam tabulek poplatků se nepodařilo stáhnout: ${e.message}`); }
+
+      // B) a C) živý web
+      const vem = async (c) => { try { const r = await fetch(`${WEB_URL}${c}`); return r.ok ? await r.text() : ''; } catch { return ''; } };
+      const [kde, recIbkr, recXtb, recDegiro] = await Promise.all(['/kde-koupit', '/recenze/ibkr', '/recenze/xtb', '/recenze/degiro'].map(vem));
+      const nasazeno = /data-hranice="/.test(kde);
+      const listek = await fetch('https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt').then((r) => r.text());
+      const kurzN = (kod) => { const r = listek.split('\n').find((x) => x.split('|')[3] === kod); if (!r) return NaN; const p = r.split('|'); return Number(p[4].replace(',', '.')) / Number(p[2]); };
+      const EUR = kurzN('EUR'), USD = kurzN('USD');
+      if (!Number.isFinite(EUR) || !Number.isFinite(USD)) throw new Error('kurzovní lístek ČNB se nepodařilo přečíst');
+      // Nezávislý vzorec z ceníků (22. 10. 2026). IBKR Tiered Německo 0,05 % (min. 1,25, max. 29 EUR) + Xetra vypořádání
+      // 0,02 EUR + 0,0008 % + regulační 0,01 EUR; směna min(automatická 0,03 %, ruční max(0,002 %, 2 USD)).
+      const model = {
+        trading212: (kc) => 0.0015 * kc,
+        xtb: (kc) => 0.005 * kc,
+        degiro: () => 1 * EUR,
+        ibkr: (kc) => { const e = kc / EUR; return (Math.min(Math.max(0.0005 * e, 1.25), 29) + 0.03 + 0.000008 * e) * EUR + Math.min(0.0003 * kc, Math.max(0.00002 * kc, 2 * USD)); },
+      };
+      const tol = (v) => Math.max(1, 0.02 * v); // kurz stránky (ISR 1 den) může být o den starší než dnešní lístek
+      const cil = nasazeno ? chybyN : varN;
+      // B) /kde-koupit – výchozí částka kalkulačky 2 000 Kč
+      for (const m of kde.matchAll(/<tr[^>]*data-broker="([^"]+)"[^>]*>/g)) {
+        const id = m[1];
+        const nakup = Number(m[0].match(/data-za-nakup="(\d+)"/)?.[1]);
+        if (!model[id] || !Number.isFinite(nakup)) continue;
+        const ocek = model[id](2000);
+        if (Math.abs(nakup - ocek) > tol(ocek)) cil.push(`/kde-koupit ${id}: za 2 000 Kč ${nakup} Kč, nezávislý vzorec ${ocek.toFixed(2)} Kč`);
+        if (id === 'ibkr' && nakup > 32) cil.push(`/kde-koupit ibkr: za 2 000 Kč ${nakup} Kč > 32 Kč – automatická směna 0,03 % se nepočítá (V13)`);
+        if (id === 'ibkr') {
+          // Rok: 12 × poplatek + levnější z (automatická směna u každého nákupu, jedna ruční směna celé roční částky).
+          const e = 2000 / EUR, prov = (Math.min(Math.max(0.0005 * e, 1.25), 29) + 0.03 + 0.000008 * e) * EUR;
+          const rokOcek = 12 * prov + Math.min(12 * Math.min(0.0003 * 2000, Math.max(0.00002 * 2000, 2 * USD)), Math.max(0.00002 * 24000, 2 * USD));
+          const rok = Number(m[0].match(/data-za-rok="(\d+)"/)?.[1]);
+          if (Number.isFinite(rok) && Math.abs(rok - rokOcek) > tol(rokOcek)) cil.push(`/kde-koupit ibkr: za rok ${rok} Kč, nezávislý vzorec ${rokOcek.toFixed(2)} Kč`);
+        }
+      }
+      const hranice = [...kde.matchAll(/data-nejlevnejsi-broker="([a-z0-9]+)" data-hranice="(\d+)"/g)].map((m) => ({ id: m[1], kc: Number(m[2]) }));
+      const hDeg = hranice.find((h) => h.id === 'degiro');
+      const hOcek = Math.ceil(EUR / 0.0015);
+      if (nasazeno && !hDeg) chybyN.push('/kde-koupit: hero bez hranice „Nejlevnější od … DEGIRO“ (data-hranice)');
+      if (hDeg && Math.abs(hDeg.kc - hOcek) > Math.max(1, 0.02 * hOcek)) cil.push(`/kde-koupit hero: hranice T212/DEGIRO ${hDeg.kc} Kč, ze vzorce 1 EUR / 0,15 % = ${hOcek} Kč (S14)`);
+      if (hDeg && !new RegExp(`od ${hDeg.kc.toLocaleString('cs-CZ').replace(/\s/g, '[\\s\\u00a0]')}[\\s\\u00a0]Kč`).test(kde.replace(/&nbsp;|&#160;/g, ' '))) cil.push(`/kde-koupit hero: zobrazená hranice ≠ data-hranice ${hDeg.kc}`);
+      if (/nad 16[\s ]100[\s ]Kč/.test(kde)) cil.push('/kde-koupit: „nad 16 100 Kč“ (krok 100 Kč místo spočítané hranice)');
+      if (nasazeno && !/Tradegate/.test(kde)) chybyN.push('/kde-koupit: chybí „Tradegate“ u DEGIRO ETF Selection (S15)');
+      // C) recenze
+      const pr = recIbkr.match(/data-priklad="([^"]*)"/)?.[1];
+      if (pr) {
+        const [celkem, provize, smena] = pr.split('|').map((x) => (x === '' ? null : Number(x)));
+        if (celkem != null && celkem > 32) cil.push(`/recenze/ibkr: příklad za 2 000 Kč „od ${celkem} Kč“ > 32 Kč (V13)`);
+        if (celkem != null && smena != null && Math.abs(celkem - (provize + smena)) > 0.051) cil.push(`/recenze/ibkr: ${celkem} ≠ ${provize} + ${smena}`);
+      }
+      if (KARTA_PLACENA.test(recXtb.replace(/&nbsp;|&#160;/g, ' '))) cil.push('/recenze/xtb: „platba kartou 0,77 %“ – vklad kartou je od 20. 10. 2026 zdarma (V14)');
+      if (nasazeno && !/Tradegate/.test(recDegiro)) chybyN.push('/recenze/degiro: chybí „Tradegate“ (ETF Selection, S15)');
+      if (!nasazeno) varN.push('Audit nákladů: produkce ještě nemá opravy (bez data-hranice na /kde-koupit) – živé kontroly jen jako varování');
+    } catch (e) {
+      varN.push(`Kontrolu „audit naklady“ se nepodařilo provést: ${e.message}`);
+    }
+    if (chybyN.length) poplach.push({ co: `Náklady brokerů (audit 22. 10. 2026): ${chybyN.length} nálezů`, ukazka: chybyN.slice(0, 12) });
+    if (varN.length) varovani.push({ co: `Náklady brokerů (audit 22. 10. 2026) – varování: ${varN.length}`, ukazka: varN.slice(0, 12) });
+  }
+  // --- konec audit naklady ---
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
