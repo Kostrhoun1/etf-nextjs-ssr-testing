@@ -9,6 +9,7 @@ import { zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { unstable_cache } from 'next/cache';
 import { odlehleIsiny } from '@/lib/trhy';
 import { TRHY } from '@/data/trhyDvojcata';
+import { NEOVERENE_ISINY } from '@/lib/vynosNeovereny';
 
 /* Výnos mimo svůj trh (src/lib/vynosNeovereny.ts) – v našeptávači taky bez čísla (kolo 6b). Dotaz na trhy jen když
    výsledek obsahuje fond některého trhu, a sdílený přes datovou cache (1 h) – ne dotaz na každé hledání. */
@@ -102,7 +103,8 @@ export async function GET(request: NextRequest) {
         fund_size_numeric: row.fund_size_numeric,
         // TER 0 u akcií/dluhopisů je chyba zdroje → null (stejně jako srovnávač).
         ter: row.ter_numeric == null || (Number(row.ter_numeric) === 0 && ['Akcie', 'Dluhopisy'].includes(String(row.category))) ? null : Number(row.ter_numeric),
-        r1_czk: row.return_1y_czk == null || odlehle.has(String(row.isin)) ? null : Number(row.return_1y_czk),
+        // Ověřené chyby zdroje (NEOVERENE_VYNOSY, kolo 8) bez čísla i mimo ruční seznamy trhů (HASH −97 %).
+        r1_czk: row.return_1y_czk == null || odlehle.has(String(row.isin)) || NEOVERENE_ISINY.has(String(row.isin)) ? null : Number(row.return_1y_czk),
         rating: row.rating,
       }));
 

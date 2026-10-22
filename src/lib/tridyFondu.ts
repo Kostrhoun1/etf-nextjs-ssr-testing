@@ -44,6 +44,16 @@ export function klicTridy(name: string | null | undefined, provider: string | nu
   return `${provider ?? ''}|${detectHedging(n).hedgingType}|${m[1].toLowerCase().replace(/\s+/g, ' ').trim()}|${zbytek}`;
 }
 
+/**
+ * OVĚŘENÁ TŘÍDA (kolo 8, 22. 10. 2026): třída, jejíž rizikové údaje jsme NEZÁVISLE ověřili, slouží jako kotva tam, kde
+ * kotva trhu chybí (fond mimo ruční seznamy trhů). VHYL (IE00B8GKDB10, Vanguard FTSE All-World High Dividend Dist):
+ * přepočet z denní řady zdroje i Yahoo VHYL.AS kolísavost 1R 8,72 %, 3R 10,72 % = údaj zdroje u VHYL; chybná je VGWE
+ * (Acc, 10,8 / 17,0 %). Dřív „—“ u obou, teď jen u VGWE. Zapsáno v ZAMERNA-ROZHODNUTI.md (kolo 8).
+ */
+export const OVERENA_TRIDA: Readonly<Record<string, readonly RizikoPole[]>> = {
+  IE00B8GKDB10: ['volatility_1y', 'volatility_3y', 'volatility_5y', 'max_drawdown_3y', 'max_drawdown_5y'],
+};
+
 const nesedi = (a: number, b: number) => Math.abs(a - b) >= 1 && Math.max(a, b) / Math.min(a, b) > 1.3;
 
 type Fond = { isin: string; name: string | null; fund_provider: string | null } & Partial<Record<RizikoPole, number | null>>;
@@ -79,9 +89,12 @@ export function rizikoNesedi(fondy: Fond[], pole: readonly RizikoPole[] = RIZIKO
       // Kotva (stejná pro celou skupinu – stejný trh): třída, která s ní sedí, se neskrývá – pokud aspoň jedna sedí.
       const kotva = s.map((x) => kotvy?.get(x.isin)?.[o]).find((k): k is number => k != null && k > 0);
       const sKotvou = kotva == null ? [] : s.filter((x) => !nesedi(x.v, kotva));
-      for (const x of podezrele) if (!sKotvou.some((k) => k.isin === x.isin)) pridej(x.isin, o);
+      // Bez kotvy trhu rozhoduje ručně ověřená třída (OVERENA_TRIDA) – správná je ona a třídy, které s ní sedí.
+      const overena = sKotvou.length ? [] : s.filter((x) => OVERENA_TRIDA[x.isin]?.includes(o));
+      const spravne = sKotvou.length ? sKotvou : overena.length ? s.filter((x) => overena.some((v) => !nesedi(x.v, v.v))) : [];
+      for (const x of podezrele) if (!spravne.some((k) => k.isin === x.isin)) pridej(x.isin, o);
       // Rozpor se vyřešil kotvou → skrýt i třídy, které s kotvou nesedí, když je pravidlo mediánu nechalo (3+ tříd).
-      if (sKotvou.length) for (const x of s) if (!sKotvou.includes(x) && !podezrele.includes(x)) pridej(x.isin, o);
+      if (spravne.length) for (const x of s) if (!spravne.includes(x) && !podezrele.includes(x)) pridej(x.isin, o);
     }
   }
   return out;

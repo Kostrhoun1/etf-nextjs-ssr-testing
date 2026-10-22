@@ -5,6 +5,7 @@ import { CERSTVOST_DNI } from '@/lib/etf-data';
 import { nejcastejsiDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
 import { RIZIKO_POLE, klicTridy, type RizikoPole } from '@/lib/tridyFondu';
+import { sNeoverenymi } from '@/lib/vynosNeovereny';
 
 /* Výpočet pro homepage sekci „Nejlevnější, největší a nejvýkonnější ETF podle trhu“.
    Jeden dotaz (~130 fondů) při ISR renderu, nic na návštěvníka. Pravidlo č. 1:
@@ -142,8 +143,9 @@ export function trhyZRadku(data: Record<string, unknown>[] | null): RadekTrhu[] 
 
 export const nactiTrhy = cache(async (): Promise<RadekTrhu[] | null> => trhyZRadku(await nactiFondyTrhu()));
 
-/** Odlehlé ISINy z vypočtených trhů. */
-export const odlehleZTrhu = (trhy: RadekTrhu[] | null) => new Set((trhy ?? []).flatMap((t) => t.odlehle.map((f) => f.isin)));
+/** Odlehlé ISINy z vypočtených trhů ∪ ověřené chyby zdroje (NEOVERENE_VYNOSY, src/lib/vynosNeovereny.ts – kolo 8:
+ *  jeden seznam pro detail, srovnávač `_vynX`, žebříčky, porovnání i hledání). */
+export const odlehleZTrhu = (trhy: RadekTrhu[] | null) => sNeoverenymi((trhy ?? []).flatMap((t) => t.odlehle.map((f) => f.isin)));
 
 /** ISINy fondů s výnosem mimo svůj trh (> ODLEHLA_PB od mediánu) – JEDEN seznam pro detail, žebříčky, srovnávač
  *  i porovnání (src/lib/vynosNeovereny.ts). Stojí na `nactiTrhy` (React cache) → na stránce, která trhy už načítá,

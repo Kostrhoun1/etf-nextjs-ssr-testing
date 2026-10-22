@@ -27,6 +27,7 @@ import { isHeadFund } from '@/lib/etf-head';
 import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaIndex';
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy, odlehleIsiny } from '@/lib/trhy';
+import { duvodNeovereni } from '@/lib/vynosNeovereny';
 import { TRHY } from '@/data/trhyDvojcata';
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { kanonickaDvojice, dvojiceFondu, kuratorskaProIsiny } from '@/lib/pairs';
@@ -439,6 +440,10 @@ export default async function ETFDetailPreview(
   // Fond s výnosem mimo svůj trh (> 1,5 p. b. od mediánu fondů na stejný index, src/lib/trhy.ts) –
   // nejčastěji opožděná cena u zdroje. Pravidlo č. 1: číslo nechat, ale viditelně upozornit.
   const trhOdlehly = (await nactiTrhy())?.find((r) => r.odlehle.some((f) => f.isin === etf.isin)) ?? null;
+  // Ověřená chyba zdroje (NEOVERENE_VYNOSY, src/lib/vynosNeovereny.ts – HASH skok −97 %, EWG2 šum, I50D chybí dividenda):
+  // výnosy za období „—“ stejně jako u odlehlého (kolo 8). `vynosySkryte` = jediná podmínka pro skrytí na detailu.
+  const duvodB = duvodNeovereni(etf.isin);
+  const vynosySkryte = trhOdlehly != null || duvodB != null;
   const souper = podobne.find((f) => f.primary_ticker && TICKER_OK.test(f.primary_ticker));
   // Odkaz rovnou na KANONICKOU adresu dvojice (src/lib/pairs.ts) – dřív primární tickery v pořadí „tento vs. soupeř“,
   // takže polovina odkazů mířila na tvar, který se přesměrovává (SEO audit 20. 10. 2026).
@@ -494,7 +499,7 @@ export default async function ETFDetailPreview(
   };
   const hasYtd = ytdCol.vals.EUR != null || ytdCol.vals.CZK != null || ytdCol.vals.USD != null;
   // Fond s ověřeně opožděnou cenou (trhOdlehly): letošní výnos také neověřený → bez sloupce YTD.
-  const calCols2 = hasYtd && !trhOdlehly ? [...calCols, ytdCol] : calCols;
+  const calCols2 = hasYtd && !vynosySkryte ? [...calCols, ytdCol] : calCols;
 
   // krátká období (jen v EUR) pro výnosovou sekci
   const shortPeriods = {
@@ -599,7 +604,7 @@ export default async function ETFDetailPreview(
   const tickerSouper = souper ? platnyTicker(souper.primary_ticker) : null;
 
   // Výnosy v úvodu – jediné místo kumulativních 1R/3R/5R. Fond s výnosem mimo trh: „—“.
-  const heroByCur = trhOdlehly
+  const heroByCur = vynosySkryte
     ? { CZK: NEOVERENO, EUR: NEOVERENO, USD: NEOVERENO }
     : returnsByCur;
   // Samé „—“ v úvodu (žádná měna nemá 1/3/5 let) → bez „data k …“ (kolo 7: BTCW).
@@ -652,12 +657,12 @@ export default async function ETFDetailPreview(
 
   // Riziko: kolísavost, max. pokles a výnos/riziko jsou ze zdroje JEN v EUR (v Kč je nemáme) → jedna tabulka „v EUR“.
   // Výnos / riziko stojí na výnosu za období → u fondu s výnosem mimo trh také „—“ (kolo 6b, stejně jako porovnání).
-  const rr = trhOdlehly ? { y1: null, y3: null, y5: null }
+  const rr = vynosySkryte ? { y1: null, y3: null, y5: null }
     : { y1: sharpe, y3: vol3 == null ? null : num(r.return_per_risk_3y as number), y5: vol5 == null ? null : num(r.return_per_risk_5y as number) };
   const ddMax = num(r.max_drawdown_inception as number);
   const f1 = (v: number | null) => procenta(v, 1, false);
   const f2 = (v: number | null) => (v == null ? '—' : cislo(v, 2));
-  const prikladRR = eur.y1 != null && vol1 != null && sharpe != null ? ` Za poslední rok: ${f1(eur.y1)} ÷ ${f1(vol1)} = ${f2(sharpe)}.` : '';
+  const prikladRR = !vynosySkryte && eur.y1 != null && vol1 != null && sharpe != null ? ` Za poslední rok: ${f1(eur.y1)} ÷ ${f1(vol1)} = ${f2(sharpe)}.` : '';
   // Celá tabulka rizika prázdná (nový fond, zdroj nemá) → jedna poznámka místo 9 pomlček (kolo 6).
   const rizikoPrazdne = [vol1, vol3, vol5, dd1, dd3, dd5, rr.y1, rr.y3, rr.y5].every((v) => v == null);
 
@@ -977,6 +982,12 @@ export default async function ETFDetailPreview(
               <Link href={trhOdlehly.trh.href} className="font-medium text-teal-700 underline underline-offset-2">Fondy na stejný trh</Link></span>
             </p>
           )}
+          {!trhOdlehly && duvodB && (
+            <p role="note" data-vynos-neovereny className="mb-3 flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 leading-relaxed">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
+              <span>{duvodB}{' '}<Link href="/metodika" className="font-medium text-teal-700 underline underline-offset-2">Jak data ověřujeme</Link></span>
+            </p>
+          )}
           {/* Kolo 6: zajištěná třída – výnos v Kč/USD není „výnos indexu“ (Martin: IBCF v USD za 2025 +30,3 % mátl). */}
           {isHedged && (
             <p data-zajisteni-poznamka className="mb-3 flex items-start gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-slate-700 leading-relaxed">
@@ -1015,9 +1026,9 @@ export default async function ETFDetailPreview(
             <div className="lg:col-span-2 min-w-0">
               {/* Pravidlo č. 1: u fondu s výnosem mimo trh (opožděná cena u zdroje) výnosy za období neukazovat („—“). */}
               <EtfReturns
-                byCur={trhOdlehly ? { CZK: NEOVERENO, EUR: NEOVERENO, USD: NEOVERENO } : returnsByCur}
+                byCur={vynosySkryte ? { CZK: NEOVERENO, EUR: NEOVERENO, USD: NEOVERENO } : returnsByCur}
                 fundCurrency={etf.fund_currency}
-                short={trhOdlehly ? { m1: null, m3: null, m6: null } : shortPeriods}
+                short={vynosySkryte ? { m1: null, m3: null, m6: null } : shortPeriods}
                 letos={fundUpdated ? `od 1.${NBSP}1.${NBSP}${fundUpdated.getFullYear()} do ${datumKratce(fundUpdated)}` : undefined}
               >
                 {btCode && (
