@@ -6,7 +6,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, CalendarDays, Database, Info, Calculator, Percent, Landmark, Wallet, Coins, Layers, Receipt, Scale, ShieldCheck, Crown, HelpCircle, BookOpen, ChevronDown } from 'lucide-react';
 import { ter, shortName, SectionHead } from '@/components/design-preview/CategoryUI';
-import { getTopETFsForCategory, getTotalETFCount, categoryConfigs , getDataDate } from '@/lib/etf-data';
+import { getTopETFsForCategory, getTotalETFCount, categoryConfigs , getDataDatum } from '@/lib/etf-data';
 import { brokers } from '@/data/brokerData';
 import FeeCalculatorWidget from '@/components/design-preview/FeeCalculatorWidget';
 import InfoTip from '@/components/design-preview/InfoTip';
@@ -32,8 +32,8 @@ export default async function FeeCalculatorPreview() {
   const cheapest = (await getTopETFsForCategory(categoryConfigs['nejlevnejsi-etf'])).slice(0, 10);
   const totalCount = await getTotalETFCount();
 
-  const today = new Date();
-  const dateStr = (await getDataDate(today)).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Kolo 7: bez návratu ke dnešku – neznámý den dat = žádné „data k …“ (pravidlo č. 1).
+  const dateStr = (await getDataDatum())?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null;
   const upraveno = upravenoDlouze('/kalkulacka'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
 
   const lowestTer = cheapest[0];
@@ -105,7 +105,7 @@ export default async function FeeCalculatorPreview() {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
       { '@type': 'ListItem', position: 2, name: 'Kalkulačky', item: 'https://etfpruvodce.cz/kalkulacky' },
-      { '@type': 'ListItem', position: 3, name: 'Kalkulačka poplatků ETF', item: 'https://etfpruvodce.cz/kalkulacky/kalkulacka-poplatku-etf' },
+      { '@type': 'ListItem', position: 3, name: 'Kalkulačka poplatků ETF', item: 'https://etfpruvodce.cz/kalkulacka' },
     ],
   };
 
@@ -429,7 +429,7 @@ export default async function FeeCalculatorPreview() {
             {([
               [ShieldCheck, 'Nezávislé srovnání', 'Žádné placené pořadí ani reklamní žebříček.'],
               [Crown, '12+ let v českém bankovnictví', 'Obsah od jmenného autora, ne anonymně.'],
-              [Database, 'Aktuální data', `Nejlevnější ETF i brokeři z vlastní databáze, data k ${dateStr}.`],
+              [Database, 'Aktuální data', `Nejlevnější ETF i brokeři z vlastní databáze${dateStr ? `, data k ${dateStr}` : ''}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>

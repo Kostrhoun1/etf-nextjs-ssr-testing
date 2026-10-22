@@ -3,7 +3,7 @@
  *
  * ČÍSLA JEN Z DAT (pravidlo č. 1, revize 19. 10. 2026): místo čísel bez zdroje („klidně o 45 %“, „−40 % i víc“)
  * zástupné značky, které detail doplní z backtestu stránky (stejná data a období jako tabulka historie):
- *   {maxPokles} největší propad portfolia, {obdobiPropadu} „vrchol 10/2007 → dno 3/2009“, {navrat} „návrat za ~4 roky“,
+ *   {maxPokles} největší propad portfolia, {obdobiPropadu} „vrchol 10/2007 → dno 3/2009“, {navrat} „návrat na vrchol za ~4 roky od dna“,
  *   {od} začátek dat („6/2008“), {maxPoklesAkcie} propad 100 % akcií světa (VT) ve stejném období, {rok2022} výnos 2022.
  * Chybí-li data, doplní se „—“ (raději žádné číslo než špatné).
  */

@@ -34,7 +34,7 @@ export default function HeroSearch({ priklady = [] }: { priklady?: string[] }) {
   }, []);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
-  // Žebříčky k dotazu (české hledání: „zlato“ → Nejlepší zlato ETF) – viz src/lib/hledaniCz.ts.
+  // Žebříčky k dotazu (české hledání: „zlato“ → Nejlepší ETF na zlato) – viz src/lib/hledaniCz.ts.
   const [kategorie, setKategorie] = useState<{ href: string; label: string; typ?: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);

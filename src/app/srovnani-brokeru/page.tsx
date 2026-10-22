@@ -11,7 +11,8 @@ import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruCl
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { RoboKarta, FaqSeznam, AutorBox, doporuceniProfily } from '@/components/design-preview/brokerUI';
 import { brokeriAbecedne, roboPoradci, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
-import { getDataDate, getTotalETFCount } from '@/lib/etf-data';
+import { getTotalETFCount } from '@/lib/etf-data';
+import { clanekSchema } from '@/lib/redakce';
 import { nactiKurzCnb } from '@/lib/kurzCnb';
 import { titulek } from '@/lib/seoTitulek';
 
@@ -55,8 +56,6 @@ const FAQ = [
 ] as const;
 
 export default async function SrovnaniBrokeruPage() {
-  const published = '2026-01-10T08:00:00+01:00';
-  const modified = (await getDataDate(new Date())).toISOString();
   const etfCount = await getTotalETFCount();
   const etfCountLabel = etfCount > 0 ? `${(Math.floor(etfCount / 100) * 100).toLocaleString('cs-CZ')}+` : '—';
   const kurzy = await nactiKurzCnb();
@@ -84,14 +83,9 @@ export default async function SrovnaniBrokeruPage() {
     '@type': 'FAQPage',
     mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   };
-  const articleSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: 'Srovnání brokerů pro ETF 2026',
-    author: { '@type': 'Person', name: 'Tomáš Kostrhoun' },
-    datePublished: published,
-    dateModified: modified,
-  };
+  // Article: datum úpravy TEXTU a ceníků z redakce.ts (SEO audit kola 7: dřív dateModified = den dat fondů → každý den
+  // „nově upraveno“, ačkoli ceníky byly ověřeny 18. 10.), obrázek, autor a vydavatel přes @id.
+  const articleSchema = clanekSchema({ cesta: '/srovnani-brokeru', nadpis: 'Srovnání brokerů pro ETF 2026', popis: String(metadata.description ?? '') });
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">

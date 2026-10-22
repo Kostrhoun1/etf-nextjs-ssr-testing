@@ -83,10 +83,10 @@ const cfg: FactorConfig = {
     </>
   ),
   crises: [
-    { name: 'Dot-com krach (2000–02)', drop: '−53 %', note: 'návrat 137 měsíců – nejdelší zkouška; momentum drželo technologie až do konce' },
-    { name: 'Finanční krize 2008', drop: '−45 %', note: 'návrat 37 měsíců – a v odrazu 2009 momentum zaostalo o 10 p. b. za indexem (slavný momentum crash)' },
-    { name: 'COVID krach (2020)', drop: '−27 %', note: 'zotavení za 4 měsíce – momentum drželo technologie, které z pandemie vyšly jako vítěz' },
-    { name: 'Medvědí trh 2022', drop: '−23 %', note: 'zotavení za 19 měsíců – obrat trhu momentum zaskočil, držel růstové tituly z 2021' },
+    { name: 'Dot-com krach (2000–02)', drop: '−53 %', note: 'návrat 137 měsíců od dna – nejdelší zkouška; momentum drželo technologie až do konce' },
+    { name: 'Finanční krize 2008', drop: '−45 %', note: 'návrat 37 měsíců od dna – a v odrazu 2009 momentum zaostalo o 10 p. b. za indexem (slavný momentum crash)' },
+    { name: 'COVID krach (2020)', drop: '−27 %', note: 'zotavení za 4 měsíce od dna – momentum drželo technologie, které z pandemie vyšly jako vítěz' },
+    { name: 'Medvědí trh 2022', drop: '−23 %', note: 'zotavení za 19 měsíců od dna – obrat trhu momentum zaskočil, držel růstové tituly z 2021' },
   ],
   riskTitle: 'Momentum crash: největší slabina',
   riskDesc: 'Rok 2009 máme v datech – a je vidět přesně to, co teorie předpovídá.',

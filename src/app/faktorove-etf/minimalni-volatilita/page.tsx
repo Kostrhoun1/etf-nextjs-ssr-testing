@@ -76,8 +76,8 @@ const cfg: FactorConfig = {
     </>
   ),
   crises: [
-    { name: 'COVID krach (2020)', drop: '−26 %', note: 'návrat 15 měsíců – déle než index (defenzivní tituly se zvedaly pomaleji než technologie)' },
-    { name: 'Medvědí trh 2022', drop: '−12 %', note: 'návrat 1 měsíc – tady min vol zazářil: nejrychlejší zotavení ze všech faktorů' },
+    { name: 'COVID krach (2020)', drop: '−26 %', note: 'návrat 15 měsíců od dna – déle než index (defenzivní tituly se zvedaly pomaleji než technologie)' },
+    { name: 'Medvědí trh 2022', drop: '−12 %', note: 'návrat 1 měsíc od dna – tady min vol zazářil: nejrychlejší zotavení ze všech faktorů' },
   ],
   riskTitle: 'Hlavní zjištění: v korunách se výhoda rozpouští v kurzu',
   riskDesc: 'Unikátní pohled, který v dolarových materiálech nenajdete.',
@@ -111,7 +111,7 @@ const cfg: FactorConfig = {
     },
     {
       q: 'Chrání min vol v každé krizi?',
-      a: 'Ne stejně. V roce 2022 (růst sazeb, pád technologií) fungoval skvěle – propad −12 % s návratem za měsíc. V COVID krachu 2020 padal skoro jako trh, protože panika prodávala všechno. Je to tlumič průměrných špatných období, ne neprůstřelná vesta.',
+      a: 'Ne stejně. V roce 2022 (růst sazeb, pád technologií) fungoval skvěle – propad −12 % s návratem od dna za měsíc. V COVID krachu 2020 padal skoro jako trh, protože panika prodávala všechno. Je to tlumič průměrných špatných období, ne neprůstřelná vesta.',
     },
     {
       q: 'Je lepší min vol, nebo dividendové akcie? Obojí je „defenziva“.',

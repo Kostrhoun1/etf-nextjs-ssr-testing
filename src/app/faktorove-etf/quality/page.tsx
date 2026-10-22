@@ -81,10 +81,10 @@ const cfg: FactorConfig = {
     </>
   ),
   crises: [
-    { name: 'Dot-com krach (2000–02)', drop: '−55 %', note: 'návrat 148 měsíců – „kvalitní“ tituly roku 2000 byly zároveň nejdražší; nejdelší čekání' },
-    { name: 'Finanční krize 2008', drop: '−42 %', note: 'návrat 37 měsíců – mělčí propad než index (−50 %); tady se kvalita rozvah ukázala' },
-    { name: 'COVID krach (2020)', drop: '−27 %', note: 'návrat 6 měsíců – nejrychlejší z faktorů; kvalita byla první, co trh po panice koupil zpět' },
-    { name: 'Medvědí trh 2022', drop: '−19 %', note: 'návrat 15 měsíců – kvalitní firmy byly v roce 2021 drahé a růst sazeb je přecenil skoro jako celý trh' },
+    { name: 'Dot-com krach (2000–02)', drop: '−55 %', note: 'návrat 148 měsíců od dna – „kvalitní“ tituly roku 2000 byly zároveň nejdražší; nejdelší čekání' },
+    { name: 'Finanční krize 2008', drop: '−42 %', note: 'návrat 37 měsíců od dna – mělčí propad než index (−50 %); tady se kvalita rozvah ukázala' },
+    { name: 'COVID krach (2020)', drop: '−27 %', note: 'návrat 6 měsíců od dna – nejrychlejší z faktorů; kvalita byla první, co trh po panice koupil zpět' },
+    { name: 'Medvědí trh 2022', drop: '−19 %', note: 'návrat 15 měsíců od dna – kvalitní firmy byly v roce 2021 drahé a růst sazeb je přecenil skoro jako celý trh' },
   ],
   riskTitle: 'Hlavní riziko: platíte faktor, dostáváte skoro index',
   riskDesc: 'Nejsubtilnější past ze všech faktorů.',

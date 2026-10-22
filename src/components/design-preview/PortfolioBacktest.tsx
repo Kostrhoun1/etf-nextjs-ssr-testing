@@ -74,10 +74,11 @@ function neuplneRoky(evo: EvoPoint[]) {
 function navrat(d: Drawdown) {
   if (!d.recovered || !d.endDate) return d.recovered ? `návrat za ${d.lengthMonths} měs. od vrcholu` : 'zatím bez návratu';
   const mes = Math.round((Date.parse(d.endDate) - Date.parse(d.troughDate)) / (30.44 * 864e5));
-  if (mes < 1) return 'návrat do měsíce';
-  if (mes < 18) return `návrat za ${mes} měs.`;
+  // Kolo 7: doba od DNA (troughDate) do návratu na předchozí vrchol – vždy s výchozím bodem.
+  if (mes < 1) return 'návrat do měsíce od dna';
+  if (mes < 18) return `návrat za ${mes} měs. od dna`;
   const r = Math.round(mes / 12);
-  return `návrat za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
+  return `návrat za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'} od dna`;
 }
 
 /** Ukazatele z výsledku – CELÉ roky pro nejlepší/nejhorší/kladné. */
@@ -332,7 +333,7 @@ export default function PortfolioBacktest({ config, portfolioName, initialCzk }:
                 <tr key={k.key} className="border-b border-slate-50 last:border-0">
                   <td className="py-2.5 pr-2">
                     <span className="font-medium text-slate-800">{k.name}</span>
-                    <span className="block text-[11px] text-slate-500">{POZNAMKA_KRIZE[k.key] ?? ''}{k.recoveryMonths != null ? (k.recoveryMonths < 1 ? ' · návrat do měsíce' : ` · návrat za ${k.recoveryMonths} měs.`) : ' · zatím bez návratu'}</span>
+                    <span className="block text-[11px] text-slate-500">{POZNAMKA_KRIZE[k.key] ?? ''}{k.recoveryMonths != null ? (k.recoveryMonths < 1 ? ' · návrat do měsíce od dna' : ` · návrat za ${k.recoveryMonths} měs. od dna`) : ' · zatím bez návratu'}</span>
                   </td>
                   <td className="py-2.5 px-2 text-right tabular-nums font-semibold text-red-600 whitespace-nowrap">{ap}{pctD(k.drop)}</td>
                   <td className="py-2.5 pl-2 text-right tabular-nums text-red-600 whitespace-nowrap">{pctD(bch)}</td>

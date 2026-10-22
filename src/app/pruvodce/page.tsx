@@ -3,7 +3,7 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { getFeaturedETFs, getTotalETFCount, type ETFBasicInfo , getDataDate } from '@/lib/etf-data';
+import { getFeaturedETFs, getTotalETFCount, type ETFBasicInfo , getDataDatum } from '@/lib/etf-data';
 import {
   TrendingUp, TrendingDown, ArrowRight, ArrowDown, ArrowUpRight, User, CalendarDays, BookOpen,
   Database, Check, X, Layers, Coins, Percent, Banknote, ShieldCheck, Landmark,
@@ -38,11 +38,10 @@ export default async function GuidePreview() {
   const [featured, totalCount] = await Promise.all([getFeaturedETFs(), getTotalETFCount()]);
 
   const today = new Date();
-  const datumDat = await getDataDate(today);
-  const dateStr = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const datumDat = await getDataDatum(); // kolo 7: bez návratu ke dnešku (null = datum neukazovat)
+  const dateStr = datumDat?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null;
   const upraveno = upravenoDlouze('/pruvodce'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
-  const dataDen = datumDat.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
-  const year = today.getFullYear();
+  const dataDen = datumDat?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }) ?? null;
 
   /* ---------- Živé metriky do hero (vše z DB, nic ručně psaného) ---------- */
   // Bez čísla raději „—“ než vymyšlený odhad (kolo 6: dřív tichý fallback „4 800“).
@@ -217,7 +216,7 @@ export default async function GuidePreview() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Domů', item: 'https://etfpruvodce.cz/' },
-      { '@type': 'ListItem', position: 2, name: 'Co jsou ETF', item: 'https://etfpruvodce.cz/co-jsou-etf' },
+      { '@type': 'ListItem', position: 2, name: 'Co jsou ETF', item: 'https://etfpruvodce.cz/pruvodce' },
     ],
   };
 
@@ -291,24 +290,25 @@ export default async function GuidePreview() {
 
               {/* Živé metriky z DB */}
               <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+                {/* Kolo 7: na mobilu 3 úzké sloupce → px-3 a text-base (dřív „+19,7 %“ přetékalo dlaždici, 74 vs 63 px). */}
+                <div className="min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 md:px-4 py-3">
                   <p className="text-xs text-slate-400">Fondů v databázi</p>
-                  <p className="text-lg font-bold tabular-nums">{countLabel}</p>
+                  <p className="text-base sm:text-lg font-bold tabular-nums whitespace-nowrap">{countLabel}</p>
                   <p className="text-xs text-slate-400">z čeho vybíráme</p>
                 </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+                <div className="min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 md:px-4 py-3">
                   <p className="text-xs text-slate-400">Nejnižší TER</p>
-                  <p className="text-lg font-bold tabular-nums">{ter(lowestTerEtf?.ter_numeric ?? null)}</p>
+                  <p className="text-base sm:text-lg font-bold tabular-nums whitespace-nowrap">{ter(lowestTerEtf?.ter_numeric ?? null)}</p>
                   <p className="text-xs text-slate-400">{lowestTicker ?? 'ročně'}{stejnyTer > 0 ? ` a ${stejnyTer} dalších` : ''}</p>
                 </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+                <div className="min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 md:px-4 py-3">
                   <p className="text-xs text-slate-400">Výnos za 1 rok</p>
-                  <p className={`text-lg font-bold tabular-nums ${(medianPerf ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pct(medianPerf)}</p>
+                  <p className={`text-base sm:text-lg font-bold tabular-nums whitespace-nowrap ${(medianPerf ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pct(medianPerf)}</p>
                   <p className="text-xs text-slate-400">medián, v Kč</p>
                 </div>
                 {/* Kolo 6: definice a datum čísel v dlaždicích (dřív „Medián 1R – velké fondy“ bez data). */}
                 <p className="col-span-3 md:col-span-1 text-[11px] leading-snug text-slate-400">
-                  Data k {dataDen}. Výnos = medián výnosů za posledních 12 měsíců v korunách u 20 největších fondů v databázi.
+                  {dataDen && <>Data k {dataDen}. </>}Výnos = medián výnosů za posledních 12 měsíců v korunách u 20 největších fondů v databázi.
                   Nejnižší TER: fondy nad 100 mil. € bez měnového zajištění, při shodě akumulační, pak větší.
                 </p>
               </div>
@@ -789,7 +789,7 @@ export default async function GuidePreview() {
             {([
               [ShieldCheck, 'Vysvětleno bez žargonu', 'Každý pojem rozebíráme srozumitelně a s příkladem.'],
               [BadgeCheck, 'Jmenný autor', 'Obsah od Tomáše Kostrhouna, ne anonymně.'],
-              [Database, 'Živá data', `Ukázková čísla tažená z databáze, data k ${dateStr}.`],
+              [Database, 'Živá data', `Ukázková čísla tažená z databáze${dateStr ? `, data k ${dateStr}` : ''}.`],
             ] as [typeof ShieldCheck, string, string][]).map(([Icon, t, d]) => (
               <div key={t} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4">
                 <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 shrink-0"><Icon className="w-5 h-5" /></span>
@@ -811,6 +811,12 @@ export default async function GuidePreview() {
               ['/kde-koupit', 'Kde koupit ETF', Landmark],
               ['/kalkulacka', 'Kalkulačka poplatků', Calculator],
               ['/kolik-vydelaly-etf', 'Kolik ETF vydělaly', TrendingUp],
+              // SEO audit kola 7: slabě prolinkované stránky (1–4 příchozí odkazy); 12 položek = mřížka 2 i 3 sloupce bez díry.
+              ['/etf-vs-akcie', 'ETF, nebo jednotlivé akcie?', Wallet],
+              ['/sp500-nebo-cely-svet', 'S&P 500, nebo celý svět?', Globe],
+              ['/portfolio-strategie', 'Modelová portfolia', Banknote],
+              ['/pravidlo-4-procent', 'Pravidlo 4 % v korunách', Calculator],
+              ['/infografiky', 'Infografiky ETF', TrendingUp],
             ] as [string, string, typeof Globe][]).map(([href, label, Icon]) => (
               <Link key={href} href={href} className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-300 hover:bg-teal-50/40 transition-all">
                 <span className="flex items-center justify-center w-8 h-8 rounded-md bg-slate-100 text-slate-500 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors shrink-0"><Icon className="w-4 h-4" /></span>
@@ -840,7 +846,7 @@ export default async function GuidePreview() {
             </div>
             <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
               <p className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> Zdroje: justETF, S&amp;P Dow Jones Indices, ČNB, vlastní databáze. Aktualizováno {upraveno}.</p>
-              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy. Investice do ETF nesou riziko ztráty. {year}</p>
+              <p className="flex items-start gap-1.5"><Info className="w-3.5 h-3.5 mt-0.5 shrink-0" /> Obsah má vzdělávací charakter a nepředstavuje investiční doporučení. Minulá výkonnost nezaručuje budoucí výnosy. Investice do ETF nesou riziko ztráty.</p>
             </div>
           </div>
         </section>

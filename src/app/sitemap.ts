@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
-import { categoryConfigs, getDataDate } from '@/lib/etf-data';
+import { categoryConfigs, getDataDatum } from '@/lib/etf-data';
+import { dataClanku, datumUpravy } from '@/lib/redakce';
 import { portfolioModels } from '@/components/design-preview/portfolioData';
 import { fetchHeadIsins } from '@/lib/etf-head';
 import { SITEMAP_PAIRS } from '@/lib/pairs';
@@ -21,7 +22,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Teď: stránky, jejichž čísla se denně přepočítávají z dat fondů (revalidate ≤ 1 den), dostanou
   // datum posledních dat (MAX scraping_date). Ostatní lastmod nemají – žádné datum je poctivější
   // než falešné. Detaily fondů se cachují až 30 dní, takže ani ty datum dat nedostanou.
-  const dataDate = await getDataDate(new Date());
+  // SEO audit kola 7: když den dat nejde načíst, lastmod se VYNECHÁ (dřív tichý fallback na „dnes“ – pravidlo č. 1).
+  // Redakční stránky (src/lib/redakce.ts) mají lastmod = skutečné datum úpravy textu; u stránek z dat pozdější z obou.
+  const dataDate = await getDataDatum();
+  const lastmod = (p: string): string | Date | undefined => {
+    const cesta = p || '/';
+    if (DATA_PAGES.test(p)) return dataClanku(cesta) ? datumUpravy(cesta, dataDate) || undefined : dataDate ?? undefined;
+    return dataClanku(cesta) ? datumUpravy(cesta) || undefined : undefined;
+  };
   const DATA_PAGES = /^(|\/srovnani|\/zebricky|\/nejlepsi-etf\/.*|\/srovnani\/[a-z0-9]+-vs-[a-z0-9]+)$/;
   const paths: { p: string; pr: number; cf?: 'weekly' | 'monthly' }[] = [
     { p: '', pr: 1 },
@@ -80,10 +88,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // hint by zval crawlera častěji a každý expirovaný render je Vercel ISR Write.
   for (const isin of await fetchHeadIsins()) paths.push({ p: `/etf/${isin}`, pr: 0.5, cf: 'monthly' });
 
-  return paths.map(({ p, pr, cf }) => ({
-    url: BASE + p,
-    ...(DATA_PAGES.test(p) ? { lastModified: dataDate } : {}),
-    changeFrequency: cf ?? 'weekly',
-    priority: pr,
-  }));
+  return paths.map(({ p, pr, cf }) => {
+    const lm = lastmod(p);
+    return {
+      url: BASE + p,
+      ...(lm ? { lastModified: lm } : {}),
+      changeFrequency: cf ?? 'weekly',
+      priority: pr,
+    };
+  });
 }

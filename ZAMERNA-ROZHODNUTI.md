@@ -59,7 +59,8 @@ o 0,2–0,9 p. b. vedle (SXR8 19. 10.: 743,07 → 739,32). Výpočet: etf-astro 
 chart API, RELATIVE_CHANGE – ne MARKET_VALUE, ta má u levných fondů chybu zaokrouhlení až 0,1 p. b.).
 - Fondy se zpožděnou řadou u zdroje (ESEA, PSP5, S5USAS, WSPX…) mají VLASTNÍ, starší den – web ho u nich ukazuje
   („výnosy k 16. 10. 2026“). „Data k“ stránky = nejčastější `returns_as_of` (src/lib/datumVynosu.ts).
-- Fond pozadu o víc než 3 pracovní dny není v mediánech, kartě „Nejvýkonnější“ ani v součtech portfolií (jiné období).
+- Fond pozadu o víc než 3 pracovní dny není v mediánech ani v součtech portfolií (jiné období). Karta „Nejvýkonnější“ a medián
+  na žebříčku berou od kola 7 jen fondy PŘESNĚ ke dni „Data k …“ stránky (viz Srovnávač a žebříčky – kolo 7).
 - Selže-li chart API, jsou výnosy za období `null` („—“) – NIKDY náhrada z HTML profilu (ten je předběžný). Kalendářní roky
   (2021–2025) dál z profilu: jsou uzavřené a sedí.
 - „Od vzniku“ (return_inception) se počítá z téže řady (= profil zdroje). Dřív parser četl „+2,141.66%“ jako 2,141 %.
@@ -149,7 +150,7 @@ naše vlastní skóre ze scraperu (etf-astro/scraper/etf_rating.py) – „podle
 než 3 fondy). Roční momentum u indexových kategorií je šum (revize 18. 10. 2026). Nejnižší poplatek
 ignoruje TER 0 % (u akcií/dluhopisů chyba zdroje, u Xetra-Gold apod. náklady mimo TER).
 **U indexových žebříčků (S&P 500, MSCI World, Nasdaq-100, celý svět, DAX, STOXX 600, FTSE 100, zlato,
-stříbro, bitcoin – `INDEXOVE` v nejlepsi-etf/[slug]/page.tsx) karta „Nejvýkonnější“ ZÁMĚRNĚ CHYBÍ** –
+stříbro, bitcoin a od kola 7 i Emerging markets – `INDEXOVE` v nejlepsi-etf/[slug]/page.tsx) karta „Nejvýkonnější“ ZÁMĚRNĚ CHYBÍ** –
 fondy mají stejný podklad, rozdíl 1–2 p. b. je šum tříd a poplatků. Místo ní neutrální „Jak vybrat mezi
 fondy na stejný index“ (TER, velikost, Acc/Dist, kde koupit). Jinde karta ukazuje pravidlo výběru a medián;
 práh velikosti karet je 100 mil. € a karty se počítají z CELÉ kategorie (`getVyberKarty`, kolo 6) – ne z 300 fondů
@@ -265,9 +266,11 @@ ZŮSTÁVÁ** – majitel 18. 10. 2026: „když jsi u modelových portfolií dal
   12 sektorů zdroje: Technology, Finance, Healthcare, Consumer Non-Cyclicals, Industrials, Energy, Consumer Cyclicals,
   Non-Energy Materials, Consumer Services, Utilities, Business Services, Telecommunication(s). Kontrola: check-fund-data
   (název sektoru v DB bez českého překladu = varování).
-- **Složení fondu nemá na webu konkrétní datum** – DB (`etf_funds`) žádný sloupec s datem složení nemá (justETF ho
-  uvádí, scraper ho neukládá). Proto popisek „Podle posledního zveřejnění emitenta – obvykle 1–2 měsíce zpětně“. Až
-  scraper (etf-astro) datum začne ukládat, nahradit „Složení k …“.
+- **Složení fondu má datum `holdings_as_of`, ne den výnosů ani stažení** (kolo 7, 22. 10. 2026; dřív tu stálo „nemá datum“ –
+  sloupec scraper plní od 20. 10. 2026). Detail fondu: „Složení k 31. 8. 2026 – poslední zveřejnění emitenta“; žebříčky
+  (infografika složení největšího fondu) a /sp500-nebo-cely-svet totéž. Je to obvykle konec měsíce 1–2 měsíce zpět – ZÁMĚR,
+  nepřepisovat na den dat. Chybí-li datum, stránka napíše „Datum složení neznáme“ (nikdy den stažení – /sp500-nebo-cely-svet
+  psal „Složení fondů k 22. 10. 2026“, zdroj uvádí 31. 8.). Hlídá check-fund-data (kolo6 data + kolo7 data).
 - **Komodity a krypto: „Nevyplácí (komodita)“, i když zdroj píše „Accumulating“** (`src/lib/dividendyFondu.ts`). Jen
   akumulační třídy; distribuční komoditní fondy (Enhanced Commodity – úroky z pokladničních poukázek, Gold+ Yield –
   opce) ukazují, co uvádí zdroj. Fondy těžařů (miners) nejsou komodita. Hlídá `check-fund-data.mjs`.
@@ -608,3 +611,116 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Titulek > 65 znaků → bez „| ETF průvodce.cz“** (`titulek()` v src/lib/seoTitulek.ts), stejně jako u žebříčků a detailů.
 - **Organization schema: „Největší český průvodce ETF fondy“ ZŮSTÁVÁ** (rozhodnutí majitele 18. 10., viz výše) i přes
   doporučení auditu 6b; odstraněna jen „Jedinečná databáze ETF pro české investory“.
+
+## Data a datumy – kontrolní kolo 7 (22. 10. 2026)
+
+- **Žádný návrat ke dnešku.** Když se den dat nenačte (`getDataDatum()` = null), stránka „Data k …“ ani JSON-LD
+  `dateModified`/`temporalCoverage` NEUKAZUJE – i když to vypadá jako chybějící údaj. `getDataDate(fallback)` smí jen sitemapa.
+  Detail fondu bez výnosů bere den cen podle stažení TOHO fondu, nikdy globální datum. Hlídá check-fund-data (kolo7 data, statická kontrola).
+- **„Výnosy k …“ u fondu jen když je jeho den STARŠÍ než „Data k“ stránky** (`jineDatumVynosu`, src/lib/datumVynosu.ts) a fond má
+  aspoň jeden výnos za období. Fond s novějším dnem (výjimečně) nese den stránky – text u data říká „zdroj má ceny se zpožděním“,
+  což by u novějšího dne lhalo. Fond bez jediného výnosu (BTCW 22. 10.: returns_as_of null) žádný den výnosů nemá – „—“ bez data.
+- **ETC/ETN/ETP mají v porovnání „Právní struktura: ETC – dluhový cenný papír, ne fond“**, i když zdroj u nich vede „UCITS“
+  (BRNT, BITC, BTCW). Švýcarský fond „švýcarský fond (ne UCITS)“, rozbité hodnoty sloupce (`focus Equity…`, `Contractual`) → „UCITS“
+  jen když ho má fond v názvu, jinak „—“ (`pravniStrukturaText`, src/lib/detailFondu.ts). U nich i „stejný produkt“ místo „stejný fond“.
+- **Štítek „sídlo CH“ nedostávají ETP, ETC ani ETN** (XXBU – Xtrackers Galaxy Physical Bitcoin ETC Securities, CH1315732250).
+- **/sp500-nebo-cely-svet: kolísavost z MĚSÍČNÍCH výnosů stejnou funkcí jako backtest** (calculateSummary) – S&P 500 v Kč od 7/2008
+  13,7 % (dřív 21,1 % z denních log-výnosů). Ověřeno 22. 10. 2026: backtest API 13,74 %, Yahoo SPY × kurzy ČNB 13,72 %. „Od 2008“
+  = od 1. 7. 2008 jako engine (první den 2. 7.): S&P 500 v Kč 14,7 % ročně všude (dřív hloubkový rozbor od 30. 6. = 14,5 %);
+  Yahoo × ČNB 14,66 %. Nejhlubší propad S&P 500 v Kč = celá řada od 2000 (9/2000 → 3/2009, −72 %, zpět na vrcholu 12/2014),
+  ne dno okna 2000–2003 (−61 %); Yahoo × denní kurzy ČNB −71,7 %, stejné dny. Hlídá check-fund-data (kolo7 data).
+- **„Návrat“ vždy s výchozím bodem.** Backtest, portfolia a faktorové stránky (krize = calculateStressPeriods) počítají dobu
+  OD DNA do návratu na předchozí vrchol („návrat za 14 měs. od dna“); tabulka krizí v /sp500-nebo-cely-svet a /kolik-vydelaly-etf
+  a „nejhlubší propad“ faktorů (maxDrawdown.lengthMonths) OD VRCHOLU. Oba údaje jsou správně – liší se definicí, proto ji text
+  vždy uvádí. Hlídá check-fund-data (kolo7 data: „návrat za …“ bez „od dna/od vrcholu“ = poplach).
+
+## Kontrolní kolo 7 – podezřelá čísla (22. 10. 2026)
+
+- **Výnosy za období „—“ u fondů ze seznamu `NEOVERENE_VYNOSY` (src/lib/vynosNeovereny.ts) jsou ZÁMĚR.** Každá položka je
+  nezávisle ověřená chyba ZDROJE dat (důkaz s čísly je přímo v seznamu): skok v denní řadě, který burza nemá (HASH, HAMO
+  22. 9. 2026 −96 % – burza bez obchodu od září; pákové VIXL, 3NGL, 3LAA, 3SNV, 3SAA, 3USS, 3BBE, 3LTS, 3SFB s body
+  v miliardách €), zašuměná řada bez tržní kotvy (EWG2, TMGD: 1R +1,0 % vs. burza Stuttgart −1,6 %, Xetra-Gold −1,3 %)
+  a chybějící dividenda distribuční třídy (I50D, XISP, IUSP, UDHY, IUS7, IS3C – Yahoo ji má, zdroj ne). Nevracet čísla
+  „aspoň do tabulky“. Položku smazat, až ji denní kontrola (check-fund-data.mjs, blok kolo7 podezrele) nahlásí jako
+  neplatnou; NOVÝ případ hlásí jako poplach (skok, šum) nebo varování (dividenda < 3 týdny – zdroj je doplňuje se
+  zpožděním, 22. 10. chyběla u 11 ze 149 největších distribučních fondů).
+- **Pravidlo pro zlato/bitcoin NENÍ „odchylka od mediánu skupiny“** – ověřeno na 130 dnech: fondy oceňované v jinou denní
+  dobu (LBMA fix vs. závěr Xetry vs. 22:00) se legitimně rozcházejí až o 2,2 p. b. (zlato) a 4 p. b. (bitcoin) ve všech
+  obdobích stejným směrem. Rozhoduje vlastní šum řady (≥ 1,1 % a ≥ 2,5× medián skupiny) A výnos 1M i 1R vedle vlastní burzy
+  o > 1,5 p. b. stejným směrem. VBTC (šum 0,97 %, burza 1M +1,7 / 1R −0,4) proto chybou NENÍ.
+- **Ověřené extrémy – skutečnost, neopravovat (22. 10. 2026, burza v EUR ke stejnému dni):** LSMC 3R +302 % (CHIP.MI
+  +302 %), FAMMWS 3R +314 % (+295 %, řídký obchod), 3BAL 3R +1 224 % (3BAL.L +1 222 %), 3ITL 3R +384 % (+382 %), IBEXA
+  3R +344 % (+344 %), 5MIB 3R +752 % (+770 %), LCFE 3R +315 % (+306 %), Polygon (POLY/VPOL/CPYG) 3R −81 až −84 % (burza
+  −84/−85 %), Solana (SLNC/WSOL) 3R +310/+318 % bez skoku v řadě, 3MRN (3× Moderna) 1R +3 015 % – burza 3MRN.L stejný
+  trend (572 → 1 800+ p.). Pákové 3× produkty umí −90 % i +1 000 % reálně.
+- **VALL (IE000VAHT5T0) velikost 3,2 mld. € dva měsíce po vzniku = skutečnost (řádově).** Zdroj: EUR 3 238 m (profil
+  22. 10. 2026); emitent (Vanguard, stránka produktu): Share Class Assets 2,51 mld. USD, Total 2,57 mld. USD, 507 485 297
+  podílů k 30. 9. 2026; tisk (bankeronwheels.com, 4. 9. 2026): 1 mld. USD za 2 týdny od startu. Číslo ukazovat s datem.
+- **SNTE (Ossiam Serenity Euro, €STR) 1R +2,45 % nad XEON +2,09 % i přes vyšší TER = skutečnost.** Xetra SNTE.DE
+  20. 10. 2025 → 20. 10. 2026: 102,355 → 104,858 € = +2,445 %; XEON.DE +2,07 %. ECB €STR složený za stejné období
+  2,09 %, €STR + 8,5 bp 2,18 % → XEON (TER 0,10) sedí přesně; SNTE i Amundi Smart Overnight (CSH2.PA +2,49 %) dávají
+  o ~0,4 p. b. víc, než index po poplatku dovolí (podmínky swapu / repo strategie emitenta – příčinu z veřejných dat
+  neověříme). Neopravovat; nejde o chybu dat.
+- **VHYL × VGWE (tentýž fond, dvě třídy): správně je VHYL, chybná VGWE.** Přepočet z denní řady zdroje dá přesně údaje
+  DB (VHYL vol 1R 7,98 %, 3R 10,03 %, pokles 3R −14,79 %; VGWE 10,77 / 16,99 / −19,56 %) – VGWE má v řadě vadné body
+  (25. 12. 2024 aj.). Nezávisle Yahoo: VHYL.AS vol 1R 8,72 / 3R 10,72 %, VGWE.DE 8,95 / 10,73 % → riziko obou tříd je
+  ~VHYL. Na webu má být „—“ jen u VGWE (úprava src/lib/tridyFondu.ts – viz report kola 7).
+- **Distribuční třídy: zdroj vede dividendy se zpožděním a zaokrouhlené na 2 desetinná místa** (I50D 0,03 místo 0,0347 €).
+  Rozdíl I50D/XISP proti akumulačním třídám (~0,7 p. b.) NENÍ metodika zdroje (řada „s dividendami“ dividendy
+  reinvestuje), je to chybějící poslední dividenda → „—“ (výše). Platí, dokud zdroj nezačne dividendy vést včas.
+
+## SEO/LLM audit kola 7 (22. 10. 2026)
+
+- **„Největší český průvodce ETF fondy“ v Organization ZŮSTÁVÁ i po auditu kola 7** (třetí audit, který ho chce pryč) –
+  rozhodnutí majitele 18. 10. platí, dokud ho majitel nezmění. Odstraněn jen DRUHÝ uzel Organization na /o-nas se stejným
+  @id a jiným tvrzením („Největší srovnávač ETF pro české investory“) – dva různé popisy jedné entity.
+- **Organization a WebSite jsou samostatné uzly** (src/components/SEO/AuthorSchema.tsx); WebSite má SearchAction na
+  `/srovnani?q=` (ScreenerUI čte `q` z window.location – stránka zůstává statická, viz komentář v srovnani/page.tsx).
+- **Dvojice srovnání – pravidlo pořadí:** kurátorský alias (`vwce-vs-eunl`) = 200 + canonical na hlavní dvojici
+  (`vwce-vs-iwda`), jeho obrácené pořadí (`eunl-vs-vwce`) = 301 ROVNOU na hlavní dvojici (ne na alias – žádný řetěz
+  přesměrování). Obojí končí na stejné kanonické adrese; že alias sám nepřesměrovává, je záměr kola 6 (viz výše).
+- **Popisky pěti žebříčků se záměrně liší podle záměru stránky** (`ZAMER` v src/lib/zebrickySeo.ts): nejlepsi-etf-2026 =
+  tři největší fondy, nejlevnejsi = nejnižší TER (počet fondů s minimem + první tři podle pravidla karty), sp500 = index,
+  americke = medián výnosu trhu, akumulacni = třída. Dřív měly všechny stejné jádro „Nejnižší TER má SPYL… Největší je SXR8…“.
+  Nevracet na společnou šablonu. Hlídá check-fund-data.mjs, blok `kolo7 seo` (žádná věta popisku ve dvou z pěti).
+- **„Klíčová čísla k {datum}“ na hlavních žebříčcích** (2026, S&P 500, MSCI World, celý svět; `KLICOVA_CISLA_ZEBRICKY`) –
+  stejná data jako popisek a odpověď nahoře, chybějící hodnota = řádek vynechán. Medián výnosu jen u indexových žebříčků
+  (fondy na stejný index; u smíšeného „2026“ by medián akcií, dluhopisů a zlata nic neznamenal).
+  Nezávisle ověřeno 22. 10. 2026: SXR8 za 12 měsíců v Kč +20,1 % (Xetra SXR8.DE 617,40 → 741,34 € = +20,07 %, ČNB EUR
+  24,295 → 24,325 → +20,2 % v Kč; web z NAV +20,13 %), medián S&P 500 za 3 roky v Kč +75,0 % (26 fondů, přepočet z holé DB
+  vlastním filtrem 75,03 %), SC0J TER 0,05 % (DB i profil justETF).
+- **Sitemap lastmod:** datové stránky = den dat, a když ho nejde načíst, lastmod CHYBÍ (dřív tichý „dnes“); redakční
+  stránky = `upraveno` z src/lib/redakce.ts. /srovnani-brokeru má vlastní záznam (ceníky ověřeny 18. 10., text 19. 10.) –
+  při změně ceníků posunout `upraveno` i `CENIKY_OVERENY` (kontrola hlídá, že úprava není starší než ověření ceníků).
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo7 seo` (URL v JSON-LD vrací 200, FAQ viditelné, uzly schema, lastmod,
+  popisky, klíčová čísla proti DB, prolinkování, pravidlo dvojic).
+
+## Srovnávač a žebříčky – kolo 7 (revize pokročilého testera, 22. 10. 2026)
+
+- **Řazení podle výnosu (srovnávač i žebříčky, desktop i mobil) dává fondy s výnosy k JINÉMU dni než většina na konec pod
+  šedý oddělovač „Výnosy k jinému dni – nesrovnatelné pořadí“.** Není to chyba řazení: fondy s posunutou řadou u zdroje (S&P 500:
+  WSPX, SPTG, SPTD, PSP5, S5USAS, ESEA k 16.–19. 10.) jinak vedly 1R/3R, přitom ve stejném okně je rozdíl ~1 p. b. Platí i pro
+  fondy o den NOVĚJŠÍ (21. 10.). ScreenerUI.tsx (`_dv`), TabulkaFondu.tsx (`vynosyK`).
+- **Karta „Nejvýkonnější“ a medián na žebříčku = jen fondy s `returns_as_of` = den „Data k …“ stránky** (dřív stačilo ≤ 3 prac. dny).
+- **Štítek dne výnosů: šedý „k 16. 10.“ = 1–3 pracovní dny jinak (běžné, ~19 % fondů), jantarový „výnosy k …“ jen > 3 pracovní dny
+  pozadu** (`_dvP`, vynosyPozadu). Nedělat zase všechno jantarově.
+- **Emerging markets je indexový žebříček (bez „Nejvýkonnější“, s „Jak vybrat“).** Vyhrávaly jiné trhy a metodiky (84X0 EM ex-China
+  +91,6 %, Value faktor, ESG, Islamic); mezi fondy na MSCI EM / EM IMI / FTSE EM je rozdíl jen šum tříd.
+- **Varianty „ex-…“ (EM ex-China, Eastern Europe ex Russia…) se nevybírají na žádnou kartu** (Největší/Nejlevnější/Nejvýkonnější) – jiný
+  trh než kategorie. Výjimky (`EX_NA_KARTACH`): široké seznamy a Asie a Pacifik (MSCI Pacific ex Japan je tam hlavní index). V tabulce zůstávají.
+- **TER 0 % (Xetra-Gold, EUWAX Gold, CoinShares Staked ETH/SOL…) = „0,00 %*“ s poznámkou „náklady mimo TER“ a v řazení podle TER
+  NA KONCI** (srovnávač, žebříčky, detail). Číslo je podle zdroje pravdivé, ale „zdarma“ to není (rozpětí cen, podíl ze stakingu).
+  U akcií a dluhopisů je TER 0 chyba zdroje → „—“ (beze změny).
+- **Srovnávač: při výběru indexu nebo celého trhu jsou měnově zajištěné třídy ve výchozím stavu SKRYTÉ** (stejně jako žebříček;
+  vedle počtu „bez N měnově zajištěných tříd · zobrazit“, v nabídce indexů přepínač). Bez výběru indexu (celý seznam, hledání tickeru)
+  se ukazují všechny se štítkem „zajištěno do …“ – jinak by hledání IUSE nic nenašlo. Výchozí stav = `zajisteni` 'auto' (není v URL).
+- **Hledání ve srovnávači vyžaduje VŠECHNA slova dotazu** (doslova, přes český výraz, nebo jako část víceslovného výrazu); výplňová
+  slova („celý“, „ETF“, „trhy“) se nevyžadují. Dřív „iShares USD Treasury“ = 949 fondů (stačilo „iShares“), teď 39. Našeptávač
+  (/api/etf/search) má vlastní relevanci – beze změny.
+- **Tabulka srovnávače plave (sticky hlavička, bez overflow) až od xl (1 280 px)**; má nejméně ~1 080 px a obsah stránky je 1 120 px.
+  Pod xl se posouvá do strany a sloupec „Porovnat“ drží u pravého okraje (sticky, podklad = podklad řádku). Nevracet na lg.
+- **Odpověď nahoře na žebříčku = nejvýš 2 věty** (den + počet + největší; nejlevnější), práh karet (100 mil. €) ve vysvětlivce (i),
+  ne ve větě. Počet fondů na stránce 2× (odpověď + věta nad tabulkou); čip ukazuje jen práh. Funkce `odpovedNahore` v
+  nejlepsi-etf/[slug]/page.tsx – titulek a popisek dál src/lib/zebrickySeo.ts (`odpovedZebricku` se na stránce nepoužívá).
+- **Název fondu v tabulce žebříčku nekončí tickerem** (ticker je v řádku pod ním); rozsah „0‑1yr“ s nezlomitelnou pomlčkou.
+- Hlídá `scripts/check-fund-data.mjs`, blok `kolo7 srovnavac`.

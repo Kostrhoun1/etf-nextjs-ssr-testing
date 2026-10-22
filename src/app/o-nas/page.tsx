@@ -8,6 +8,7 @@ import {
   Database, Coins, Scale, BookOpen, ShieldCheck, ExternalLink,
 } from 'lucide-react';
 import { titulek } from '@/lib/seoTitulek';
+import { drobeckySchema } from '@/lib/redakce';
 
 export const revalidate = 86400;
 
@@ -25,7 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// JSON-LD: Person (autor) + Organization (web s founder = ten Person).
+// JSON-LD: AboutPage + ProfilePage s hlavní entitou Person (autor). Organization je jednou v layoutu (AuthorSchema,
+// @id …/#organization) – dřív tu byl druhý uzel se stejným @id a jiným popisem („Největší srovnávač…“), SEO audit kola 7.
+// Jen fakta, která jsou na stránce vidět (role, praxe, LinkedIn).
 const PERSON = {
   '@type': 'Person',
   '@id': 'https://etfpruvodce.cz/o-nas#tomas-kostrhoun',
@@ -37,7 +40,8 @@ const PERSON = {
     'https://www.linkedin.com/in/tomas-kostrhoun-b34a6831',
     'https://x.com/ETFpruvodce',
   ],
-  worksFor: { '@type': 'Organization', name: 'ETF průvodce.cz' },
+  url: 'https://etfpruvodce.cz/o-nas',
+  worksFor: { '@type': 'Organization', '@id': 'https://etfpruvodce.cz/#organization', name: 'ETF průvodce.cz' },
   alumniOf: [
     { '@type': 'Organization', name: 'MONETA Money Bank' },
     { '@type': 'Organization', name: 'Česká spořitelna' },
@@ -45,15 +49,16 @@ const PERSON = {
   knowsAbout: ['ETF', 'investování', 'osobní finance', 'pasivní investování', 'finanční trhy'],
 };
 
-const ORGANIZATION = {
+const STRANKA = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
-  '@id': 'https://etfpruvodce.cz/#organization',
-  name: 'ETF průvodce.cz',
-  url: 'https://etfpruvodce.cz',
-  description:
-    'Největší srovnávač ETF pro české investory – nezávislá data o fondech s výnosy přepočtenými do korun.',
-  founder: PERSON,
+  '@type': ['AboutPage', 'ProfilePage'],
+  '@id': 'https://etfpruvodce.cz/o-nas#stranka',
+  url: 'https://etfpruvodce.cz/o-nas',
+  name: 'Kdo stojí za ETF průvodce.cz',
+  inLanguage: 'cs-CZ',
+  isPartOf: { '@id': 'https://etfpruvodce.cz/#website' },
+  about: { '@id': 'https://etfpruvodce.cz/#organization' },
+  mainEntity: PERSON,
 };
 
 const EXPERTISE = [
@@ -95,7 +100,8 @@ export default async function AboutPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRANKA) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(drobeckySchema([['O nás', '/o-nas']])) }} />
 
       <AboutHeader />
 

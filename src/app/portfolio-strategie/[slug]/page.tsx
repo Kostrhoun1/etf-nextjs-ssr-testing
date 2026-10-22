@@ -90,9 +90,10 @@ export default async function PortfolioDetailPreview(
     if (!ddPf) return '—';
     if (!ddPf.recovered || !ddPf.endDate) return 'zatím bez návratu na vrchol';
     const mes = Math.round((Date.parse(ddPf.endDate) - Date.parse(ddPf.troughDate)) / (30.44 * 864e5));
-    if (mes < 18) return `návrat na vrchol za ${Math.max(mes, 1)} měs.`;
+    // Kolo 7: doba od DNA (troughDate) – vždy s výchozím bodem.
+    if (mes < 18) return `návrat na vrchol za ${Math.max(mes, 1)} měs. od dna`;
     const r = Math.round(mes / 12);
-    return `návrat na vrchol za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'}`;
+    return `návrat na vrchol za ~${r} ${r === 1 ? 'rok' : r < 5 ? 'roky' : 'let'} od dna`;
   })();
   const rok2022 = btPf?.returns.annualReturns.find((a) => a.year === 2022)?.return;
   const melciNezAkcie = btDD != null && benchDD != null && btDD > benchDD + 0.01;
@@ -449,10 +450,31 @@ export default async function PortfolioDetailPreview(
           </div>
         </section>
 
+        {/* DALŠÍ PORTFOLIA + SOUVISEJÍCÍ (SEO audit kola 7: detaily portfolií měly jen 2 příchozí odkazy – hub a homepage) */}
+        <section data-sekce="dalsi-portfolia" className="pb-8">
+          <h2 className="text-lg font-bold tracking-tight text-slate-900">Další modelová portfolia</h2>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {portfolioModels.filter((p) => p.slug !== slug).map((p) => (
+              <li key={p.slug}>
+                <Link href={`/portfolio-strategie/${p.slug}`} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm hover:border-teal-300">
+                  <span className="font-medium text-slate-900">{p.name}</span>
+                  <span className="shrink-0 text-xs text-slate-500">{p.risk} · {p.stocksPct} % akcií</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+            Kolik si z portfolia lze ročně vybírat, ukazuje{' '}
+            <Link href="/pravidlo-4-procent" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">pravidlo 4 % v korunách</Link>;
+            jak dlouho trvaly propady, popisuje{' '}
+            <Link href="/jak-dlouho-v-minusu" className="font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800">Jak dlouho v minusu</Link>.
+          </p>
+        </section>
+
         {/* CTA */}
         <section className="pb-8">
           <div className="flex flex-wrap gap-3">
-            {btLink && <Link href={btLink} className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><History className="w-4 h-4" /> Otestovat v backtestu</Link>}
+            {btLink &&<Link href={btLink} className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800"><History className="w-4 h-4" /> Otestovat v backtestu</Link>}
             <Link href="/kde-koupit" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Kde ETF koupit <ArrowRight className="w-4 h-4" /></Link>
             <Link href="/srovnani" className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-slate-400">Porovnat ETF</Link>
             {slug === 'globalni-jadro-small-cap-value' && (

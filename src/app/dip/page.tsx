@@ -7,7 +7,7 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowRight, User, Database, Info, Calculator, Wallet, Coins, Scale, ShieldCheck, HelpCircle, Target, PiggyBank, Clock, Gift, LineChart, Landmark, AlertTriangle, Lock, Globe, Percent, Briefcase, CheckCircle2, XCircle, ChevronDown } from 'lucide-react';
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { getETFsByIsins, getETFCountLabel, getDataDate } from '@/lib/etf-data';
+import { getETFsByIsins, getETFCountLabel, getDataDatum } from '@/lib/etf-data';
 import { platnyTicker } from '@/lib/ticker';
 import { titulek } from '@/lib/seoTitulek';
 import { upravenoDlouze, clanekSchema, ogObrazek } from '@/lib/redakce';
@@ -74,7 +74,7 @@ export default async function DipPage() {
   const pocetFondu = await getETFCountLabel();
   const upraveno = upravenoDlouze('/dip'); // datum úpravy TEXTU (redakce.ts), ne den dat fondů
   const funds = await getETFsByIsins(DIP_ISINS);
-  const datumDat = (await getDataDate(new Date())).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }); // čísla v tabulce fondů
+  const datumDat = (await getDataDatum())?.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }) ?? null; // čísla v tabulce fondů; kolo 7: bez návratu ke dnešku
 
   const maxBack15 = DEDUCTION_CAP * 0.15; // 7 200 Kč
   const maxBack23 = DEDUCTION_CAP * 0.23; // 11 040 Kč
@@ -440,7 +440,7 @@ export default async function DipPage() {
                         {f.fund_size_numeric == null
                           ? '—'
                           : f.fund_size_numeric >= 1000
-                            ? `${(f.fund_size_numeric / 1000).toFixed(1).replace('.', ',')} mld €`
+                            ? `${(f.fund_size_numeric / 1000).toFixed(1).replace('.', ',')} mld. €`
                             : `${Math.round(f.fund_size_numeric)} mil €`}
                       </td>
                       <td className="py-3 px-4 text-right tabular-nums font-medium text-teal-700">{pct(f.return_5y_czk)}</td>
@@ -451,7 +451,7 @@ export default async function DipPage() {
             </div>
             <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-3xl">
               <Info className="inline w-4 h-4 text-slate-400 mr-1 -mt-0.5" />
-              Data k {datumDat}. Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
+              {datumDat && <>Data k {datumDat}. </>}Není to doporučení konkrétního fondu – jen srovnání parametrů. Minulé výnosy nezaručují budoucí.
               Do režimu DIP navíc nezařadí každý poskytovatel každý fond; nabídku si ověřte u toho svého. Rozdíl mezi
               indexy rozebírá <Link href="/svetove-etf-indexy" className="text-teal-700 hover:underline">Světové ETF indexy</Link>,
               všech {pocetFondu} fondů profiltrujete ve{' '}

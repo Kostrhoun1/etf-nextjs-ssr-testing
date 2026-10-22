@@ -6,11 +6,10 @@ import SiteNav from '@/components/design-preview/SiteNav';
 import {
   getFeaturedETFs,
   getTotalETFCount,
-  getDataDate,
+  getDataDatum,
   getTopETFsForCategory,
   categoryConfigs,
 } from '@/lib/etf-data';
-import InfoTip from '@/components/design-preview/InfoTip';
 import AktualnostDat from '@/components/design-preview/AktualnostDat';
 import {
   InfografikyHeatGrid,
@@ -18,10 +17,12 @@ import {
   InfografikyLinkRow,
   type InfografikyHeatTile,
 } from '@/components/design-preview/InfografikyUI';
-import { TrendingUp, Wallet, Grid3x3, ShieldCheck, Star, Banknote, Layers } from 'lucide-react';
+import { TrendingUp, Wallet, Grid3x3, ShieldCheck, Star, Layers } from 'lucide-react';
+import { nactiRozlozeniTer } from '@/lib/infografikyData';
+import { odlehleIsiny } from '@/lib/trhy';
+import { bezOdlehlehoVynosu } from '@/lib/vynosNeovereny';
+import { nejcastejsiDatumVynosu, jineDatumVynosu } from '@/lib/datumVynosu';
 import { titulek } from '@/lib/seoTitulek';
-import { porovnejNejlevnejsi, jeAkumulacni } from '@/lib/trhy';
-import { detectHedging } from '@/utils/hedgingDetection';
 import { zobrazovanyTicker } from '@/lib/ticker';
 import { shortName } from '@/components/design-preview/CategoryUI';
 import type { ETFBasicInfo } from '@/lib/etf-data';
@@ -37,44 +38,71 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://etfpruvodce.cz/infografiky' },
 };
 
-/* Regiony a sektory pro tržní heatmapu – reálná data z DB (top fond v kategorii). */
+/* Regiony, sektory a třídy aktiv pro tržní heatmapu – hodnota = výnos NEJVĚTŠÍHO fondu žebříčku za 12 měsíců v Kč
+   (z DB, nic napevno). Kolo 7 (22. 10. 2026): dřív 8 dlaždic, všechny zelené – heatmapa bez poklesů nic neukazuje.
+   Seznam pokrývá i trhy a aktiva, která umí klesat (Čína, Indie, zlato, bitcoin, dluhopisy, čistá energie);
+   barvu určují data, ne výběr. Názvy = názvy žebříčků („Realitní“, ne „Nemovitosti“). */
 const HEATMAP_CATEGORIES: { slug: string; label: string }[] = [
   { slug: 'nejlepsi-celosvetove-etf', label: 'Celý svět' },
   { slug: 'nejlepsi-sp500-etf', label: 'USA (S&P 500)' },
   { slug: 'nejlepsi-evropske-etf', label: 'Evropa' },
-  { slug: 'nejlepsi-emerging-markets-etf', label: 'Rozvíjející se' },
+  { slug: 'nejlepsi-japonske-etf', label: 'Japonsko' },
+  { slug: 'nejlepsi-emerging-markets-etf', label: 'Rozvíjející se trhy' },
+  { slug: 'nejlepsi-cinske-etf', label: 'Čína' },
+  { slug: 'nejlepsi-indicke-etf', label: 'Indie' },
   { slug: 'nejlepsi-technologicke-etf', label: 'Technologie' },
+  { slug: 'nejlepsi-healthcare-etf', label: 'Zdravotnictví' },
   { slug: 'nejlepsi-financni-etf', label: 'Finance' },
   { slug: 'nejlepsi-energeticke-etf', label: 'Energetika' },
-  { slug: 'nejlepsi-realitni-etf', label: 'Nemovitosti' },
+  { slug: 'nejlepsi-obnovitelne-zdroje-etf', label: 'Obnovitelné zdroje' },
+  { slug: 'nejlepsi-realitni-etf', label: 'Realitní (REIT)' },
+  { slug: 'nejlepsi-vladni-dluhopisy-etf', label: 'Vládní dluhopisy' },
+  { slug: 'nejlepsi-zlato-etf', label: 'Zlato' },
+  { slug: 'nejlepsi-bitcoin-etf', label: 'Bitcoin' },
 ];
 
-async function getHeatmapTiles(): Promise<InfografikyHeatTile[]> {
-  const results = await Promise.all(
-    HEATMAP_CATEGORIES.map(async (c) => {
-      const cfg = categoryConfigs[c.slug];
-      if (!cfg) return null;
-      try {
-        const etfs = await getTopETFsForCategory({ ...cfg, limit: 1 });
-        const top = etfs[0];
-        if (!top) return null;
-        const value = top.return_1y_czk ?? null; // nikdy EUR místo Kč
-        return { label: c.label, value, href: `/nejlepsi-etf/${c.slug}` } as InfografikyHeatTile;
-      } catch {
-        return null;
-      }
-    })
-  );
-  return results.filter((t): t is InfografikyHeatTile => t != null);
+async function getHeatmapTiles(): Promise<{ tiles: InfografikyHeatTile[]; den: Date | null }> {
+  const [odlehle, results] = await Promise.all([
+    odlehleIsiny().catch(() => new Set<string>()),
+    Promise.all(
+      HEATMAP_CATEGORIES.map(async (c) => {
+        const cfg = categoryConfigs[c.slug];
+        if (!cfg) return null;
+        try {
+          const etfs = await getTopETFsForCategory({ ...cfg, limit: 1 });
+          return etfs[0] ? { c, top: etfs[0] } : null;
+        } catch {
+          return null;
+        }
+      }),
+    ),
+  ]);
+  const nalezene = results.filter((x): x is NonNullable<typeof x> => x != null);
+  // Den výnosů heatmapy = nejčastější returns_as_of; fond se zpožděnou řadou ukáže vlastní den (pravidlo č. 1).
+  const den = nejcastejsiDatumVynosu(nalezene.map((x) => x.top));
+  const tiles = nalezene.map(({ c, top }) => {
+    const r = bezOdlehlehoVynosu(top, odlehle) ?? top;
+    return {
+      label: c.label,
+      value: r.return_1y_czk ?? null, // nikdy EUR místo Kč; odlehlý výnos → „—“
+      href: `/nejlepsi-etf/${c.slug}`,
+      ticker: zobrazovanyTicker(top as unknown as Record<string, unknown>),
+      jinyDen: jineDatumVynosu(top, den),
+    } as InfografikyHeatTile;
+  });
+  return { tiles, den };
 }
 
 export default async function InfografikyRozcestnik() {
-  const [featured, totalCount, heatTiles, dataDate] = await Promise.all([
+  const [featured, totalCount, heat, dataDate, ter] = await Promise.all([
     getFeaturedETFs(),
     getTotalETFCount(),
     getHeatmapTiles(),
-    getDataDate(new Date()),
+    getDataDatum(), // kolo 7: bez návratu ke dnešku (null = datum neukazovat)
+    nactiRozlozeniTer(),
   ]);
+  const heatTiles = heat.tiles;
+  const denCz = (d: Date | null) => (d ? d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '—');
 
   const count = totalCount > 0 ? totalCount : TOTAL_FALLBACK;
   // SEO audit 6b (art director): „Nejvýkonnější ETF“ (Korea +101 %, polovodiče) šlo proti rozhodnutí „široké seznamy
@@ -84,14 +112,7 @@ export default async function InfografikyRozcestnik() {
   const popisRadku = (e: ETFBasicInfo) => zobrazovanyTicker(e as unknown as Record<string, unknown>) ?? e.fund_provider ?? null;
   const nejvetsi = (featured.bySize || []).slice(0, 5);
   const maxVel = Math.max(1, ...nejvetsi.map((e) => e.fund_size_numeric ?? 0));
-  const nejlevnejsi = (featured.lowCost || [])
-    .filter((e) => (e.ter_numeric ?? 0) > 0 && (e.fund_size_numeric ?? 0) >= 100 && !detectHedging(e.name).isHedged)
-    .sort((a, b) => porovnejNejlevnejsi(
-      { ter: a.ter_numeric, acc: jeAkumulacni(a.distribution_policy), velikost: a.fund_size_numeric },
-      { ter: b.ter_numeric, acc: jeAkumulacni(b.distribution_policy), velikost: b.fund_size_numeric },
-    ))
-    .slice(0, 5);
-  const maxTer = Math.max(0.01, ...nejlevnejsi.map((e) => e.ter_numeric ?? 0));
+  const maxPasmo = ter ? Math.max(1, ...ter.pasma.map((p) => p.pocet)) : 1;
   const velikostText = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${(v / 1000).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} mld. €` : `${Math.round(v).toLocaleString('cs-CZ')} mil. €`);
   const terText = (t: number | null) => (t == null ? '—' : `${t.toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`);
 
@@ -172,7 +193,7 @@ export default async function InfografikyRozcestnik() {
             podle poplatku a tržní heatmapa regionů a sektorů s výnosy v korunách.
           </p>
           {/* Pravidlo č. 1: čísla na stránce bez data nebyla (SEO audit 20. 10. 2026). */}
-          <AktualnostDat datum={dataDate} className="mt-3" />
+          {dataDate && <AktualnostDat datum={dataDate} className="mt-3" />}
         </section>
 
         {/* Dva přehledy fondů – každé číslo jen jednou (dřív top 3 v kartách a znovu top 5 pod nimi). */}
@@ -189,18 +210,49 @@ export default async function InfografikyRozcestnik() {
               rows={nejvetsi.map((e) => ({ isin: e.isin, nazev: nazevRadku(e), popis: popisRadku(e), hodnota: velikostText(e.fund_size_numeric), podil: (e.fund_size_numeric ?? 0) / maxVel }))}
             />
           </div>
-          <div className="min-w-0">
-            <h2 className="flex items-center gap-2 text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
-              <Wallet className="w-5 h-5 text-teal-700" aria-hidden="true" /> Nejlevnější ETF podle TER
-            </h2>
-            <InfografikyListPanel
-              title="Roční poplatek za správu (TER)"
-              subtitle="Fondy nad 100 mil. € bez měnového zajištění; při shodě akumulační, pak větší"
-              href="/nejlepsi-etf/nejlevnejsi-etf"
-              hrefLabel="celý žebříček"
-              rows={nejlevnejsi.map((e) => ({ isin: e.isin, nazev: nazevRadku(e), popis: popisRadku(e), hodnota: terText(e.ter_numeric), podil: (e.ter_numeric ?? 0) / maxTer }))}
-            />
-          </div>
+          {/* Kolo 7: místo 5 náhodně vybraných fondů s TER 0,03 % (stejně dlouhé pruhy) rozložení poplatků
+              a VŠECHNY fondy s nejnižším TER. Chybí-li data, panel se nevykreslí (raději nic než část). */}
+          {ter && (
+            <div className="min-w-0">
+              <h2 className="flex items-center gap-2 text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
+                <Wallet className="w-5 h-5 text-teal-700" aria-hidden="true" /> Kolik ETF stojí: poplatky (TER)
+              </h2>
+              <div data-infografika="ter" className="min-w-0 rounded-lg border border-slate-200 bg-white">
+                <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-slate-900">Roční poplatek za správu (TER) u {ter.pocet.toLocaleString('cs-CZ')} fondů</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Fondy nad 100 mil. € bez měnového zajištění · data k {denCz(ter.den)} · medián {terText(ter.median)}</p>
+                  </div>
+                  <Link href="/nejlepsi-etf/nejlevnejsi-etf" className="text-xs text-teal-700 hover:text-teal-800 shrink-0">celý žebříček →</Link>
+                </div>
+                <ul className="px-4 py-3 space-y-1.5">
+                  {ter.pasma.map((p) => (
+                    <li key={p.label} className="flex items-center gap-3 text-sm">
+                      <span className="w-24 shrink-0 text-slate-600 tabular-nums">{p.label}</span>
+                      <span className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                        <span className="block h-full rounded-full bg-teal-600" style={{ width: `${p.pocet ? Math.max(2, (p.pocet / maxPasmo) * 100) : 0}%` }} />
+                      </span>
+                      <span className="w-20 shrink-0 text-right tabular-nums font-semibold text-slate-900">{p.pocet.toLocaleString('cs-CZ')} <span className="font-normal text-slate-500">fondů</span></span>
+                    </li>
+                  ))}
+                </ul>
+                <div data-ter-nejnizsi={ter.nejnizsi} data-ter-pocet={ter.nejlevnejsi.length} className="border-t border-slate-100 px-4 py-3">
+                  <p className="text-sm text-slate-700">
+                    Nejnižší poplatek <strong className="tabular-nums">{terText(ter.nejnizsi)}</strong> má {ter.nejlevnejsi.length === 1 ? 'jediný fond' : `${ter.nejlevnejsi.length} fondů`} (od největšího):
+                  </p>
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {ter.nejlevnejsi.map((f) => (
+                      <li key={f.isin}>
+                        <Link href={`/etf/${f.isin}`} title={f.nazev} className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-800">
+                          {f.ticker ?? f.isin}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Tržní heatmapa – jednou, v plné velikosti */}
@@ -210,61 +262,12 @@ export default async function InfografikyRozcestnik() {
           </h2>
           <InfografikyHeatGrid tiles={heatTiles} />
           <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-            Hodnota = výnos největšího fondu v kategorii za 12 měsíců, přepočteno do Kč. Zelená je růst, červená pokles;
-            minulý výnos nezaručuje budoucí.
+            Hodnota = výnos největšího fondu žebříčku (ticker pod číslem) za 12 měsíců v Kč, k {denCz(heat.den)}. Zelená je růst,
+            červená pokles; minulý výnos nezaručuje budoucí.
           </p>
         </section>
 
-        {/* Edukační pruh – ikonové vysvětlivky, BEZ schémat */}
-        <section className="py-4">
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
-            Co která infografika ukazuje
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-4">
-            <div className="rounded-lg border border-slate-200 bg-white p-5">
-              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3">
-                <Layers className="w-5 h-5" strokeWidth={2} />
-              </span>
-              <h3 className="text-sm font-semibold text-slate-900">
-                <InfoTip label="Kolik peněz fond spravuje (v eurech). Velký fond má obvykle nižší riziko zrušení a užší rozpětí mezi nákupní a prodejní cenou – o budoucím výnosu nic neříká.">
-                  Velikost fondu
-                </InfoTip>
-              </h3>
-              <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Kolik majetku fond spravuje – ne jak si povede.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-white p-5">
-              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3">
-                <Wallet className="w-5 h-5" strokeWidth={2} />
-              </span>
-              <h3 className="text-sm font-semibold text-slate-900">
-                <InfoTip label="Total Expense Ratio – roční poplatek za správu fondu. Strhává se automaticky z hodnoty fondu, nižší je lépe.">
-                  TER
-                </InfoTip>
-              </h3>
-              <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Roční poplatek za správu — nižší je lépe.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-white p-5">
-              <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-50 text-teal-700 mb-3">
-                <Grid3x3 className="w-5 h-5" strokeWidth={2} />
-              </span>
-              <h3 className="text-sm font-semibold text-slate-900">
-                <InfoTip label="Barevná mřížka, kde každá dlaždice je jeden region nebo sektor. Zelená značí růst, červená pokles — barva odpovídá výnosu za období.">
-                  Heatmapa
-                </InfoTip>
-              </h3>
-              <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Barevná mapa, kde zelená je růst a červená pokles.
-              </p>
-            </div>
-          </div>
-        </section>
-
+        {/* Kolo 7: blok „Co která infografika ukazuje“ odstraněn – opakoval popisky panelů výše. */}
         {/* Prolinkování + trust */}
         <section className="py-8">
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-4">
@@ -279,12 +282,12 @@ export default async function InfografikyRozcestnik() {
             ]}
           />
 
-          <div className="mt-6 grid sm:grid-cols-3 gap-4">
-            {[
+          {/* „Kde koupit ETF“ je už v řádku odkazů výše – karta byla duplicitní (kolo 7). */}
+          <div className="mt-6 grid sm:grid-cols-2 gap-4">
+            {([
               [ShieldCheck, 'Nezávislé srovnání', 'Žádné reklamy ani placené pořadí.', '/o-nas'],
               [Star, '12+ let v českém bankovnictví', 'Obsah od Tomáše Kostrhouna, ne anonymně.', '/o-nas'],
-              [Banknote, 'Kde koupit ETF', 'Srovnání brokerů pro české investory.', '/kde-koupit'],
-            ].map(([Icon, t, d, href]: any) => (
+            ] as [typeof Star, string, string, string][]).map(([Icon, t, d, href]) => (
               <Link
                 key={t}
                 href={href}

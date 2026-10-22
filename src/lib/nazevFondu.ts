@@ -57,8 +57,9 @@ export function tridaText(t: TridaFondu): string {
  * Švýcarský fond (sídlo CH, švýcarské právo – ne UCITS): iShares Swiss Dividend (CH), UBS ETF (CH) Gold, Swisscanto (CH) Gold,
  * Raiffeisen ETF Solid Gold… Českým investorům je řada brokerů nenabízí (chybí KID/PRIIPs). Na webu nesou štítek
  * „sídlo CH – ověřte dostupnost u brokera“ a nevybírají se na karty žebříčků (ZAMERNA-ROZHODNUTI.md, SEO audit 6b).
- * Výjimka: ETP/ETN švýcarských emitentů (21Shares, …) – jsou to dluhové cenné papíry s evropským prospektem, ne fondy.
+ * Výjimka: ETP/ETC/ETN švýcarských emitentů (21Shares, Xtrackers Galaxy …) – jsou to dluhové cenné papíry s evropským
+ * prospektem, ne fondy. Kolo 7: dřív jen ETP|ETN → XXBU (Xtrackers Galaxy Physical Bitcoin ETC, CH1315732250) dostal štítek.
  */
 export function jeSvycarskyFond(isin: string | null | undefined, name: string | null | undefined): boolean {
-  return /^CH/i.test(String(isin ?? '')) && !/\b(ETP|ETN)\b/i.test(String(name ?? ''));
+  return /^CH/i.test(String(isin ?? '')) && !/\b(ETP|ETC|ETN)\b/i.test(String(name ?? ''));
 }

@@ -41,6 +41,20 @@ export function jeDluhovyProdukt(f: FondDetailu): 'ETC' | 'ETN' | 'ETP' | null {
   return m ? (m[1] as 'ETC' | 'ETN' | 'ETP') : null;
 }
 
+/**
+ * Právní struktura K ZOBRAZENÍ (kolo 7, 22. 10. 2026). Zdroj vede `legal_structure` = „UCITS“ i u ETC/ETN/ETP
+ * (BRNT, BITC, BTCW, XXBU), přestože to nejsou fondy, a sloupec má i rozbité hodnoty z parsování („UCITS (“,
+ * „focus Equity, World…“, „Contractual“). Proto: dluhový produkt → typ + „dluhový cenný papír“, fond s UCITS
+ * v právní struktuře nebo v názvu → „UCITS“, švýcarský fond (sídlo CH) → „švýcarský fond (ne UCITS)“, jinak „—“ (null).
+ */
+export function pravniStrukturaText(f: FondDetailu & { isin?: string | null; legal_structure?: string | null }): string | null {
+  const dluh = jeDluhovyProdukt(f);
+  if (dluh) return `${dluh} – dluhový cenný papír, ne fond`;
+  if (/^CH/i.test(f.isin ?? '') && !/\bUCITS\b/i.test(f.name ?? '')) return 'švýcarský fond (ne UCITS)';
+  if (/^UCITS\b/i.test((f.legal_structure ?? '').trim()) || /\bUCITS\b/i.test(f.name ?? '')) return 'UCITS';
+  return null;
+}
+
 /** Měnové zajištění třídy – JEDNA funkce webu (detectHedging), z názvu fondu, záložně z index_name („S&P 500® (EUR Hedged)“). */
 export function zajisteniFondu(f: FondDetailu): HedgingInfo {
   const h = detectHedging(f.name);
