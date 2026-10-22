@@ -1276,16 +1276,22 @@ const main = async () => {
     }
 
     // 7) /pruvodce – MODELOVÝ PŘÍKLAD POPLATKŮ: nezávislý přepočet (vklad na konci měsíce, efektivní měsíční sazba
-    //    (1+r)^(1/12)−1, 10 000 Kč, 20 let, 7 % − TER). Dřív r/12 → 5 085 000 / 4 207 000 Kč místo ≈ 4 962 000 / 4 149 000.
+    //    (1+r)^(1/12)−1, 10 000 Kč, 20 let). Dřív r/12 → 5 085 000 / 4 207 000 Kč.
+    //    Audit nástrojů 22. 10. 2026 (V4): kontrola dřív počítala 7 % − TER (0,068 / 0,052) = STEJNÁ chyba jako web (kruh).
+    //    Poplatek se strhává z hodnoty fondu → čistý výnos (1 + 7 %)(1 − TER) − 1. Konstanty NEZÁVISLE ručně:
+    //    1,07 × 0,998 − 1 = 0,06786; 1,07 × 0,982 − 1 = 0,05074 → 4 953 725 / 4 091 260 Kč (rozdíl 862 465 Kč).
+    //    Produkce před nasazením (bez data-priklad-vzorec) → jen varování.
     try {
       const t = await html('/pruvodce');
       const levny = Number(t.match(/data-priklad-levny="(\d+)"/)?.[1] ?? NaN);
       const drahy = Number(t.match(/data-priklad-drahy="(\d+)"/)?.[1] ?? NaN);
       const fv = (r) => { const m = (1 + r) ** (1 / 12) - 1; return 10000 * (((1 + m) ** 240 - 1) / m); };
+      const R_LEVNY = 0.06786, R_DRAHY = 0.05074;
       const chyby = [];
-      if (!Number.isFinite(levny) || Math.abs(levny - fv(0.068)) > 2) chyby.push(`levný fond: stránka ${levny}, přepočet ${Math.round(fv(0.068))}`);
-      if (!Number.isFinite(drahy) || Math.abs(drahy - fv(0.052)) > 2) chyby.push(`drahý fond: stránka ${drahy}, přepočet ${Math.round(fv(0.052))}`);
-      if (chyby.length) poplach.push({ co: '/pruvodce: modelový příklad poplatků nesedí s nezávislým přepočtem', ukazka: chyby });
+      if (!Number.isFinite(levny) || Math.abs(levny - fv(R_LEVNY)) > 2) chyby.push(`levný fond: stránka ${levny}, přepočet ${Math.round(fv(R_LEVNY))}`);
+      if (!Number.isFinite(drahy) || Math.abs(drahy - fv(R_DRAHY)) > 2) chyby.push(`drahý fond: stránka ${drahy}, přepočet ${Math.round(fv(R_DRAHY))}`);
+      const vzorecNasazen = /data-priklad-vzorec="/.test(t);
+      if (chyby.length) (vzorecNasazen ? poplach : varovani).push({ co: `/pruvodce: modelový příklad poplatků nesedí s nezávislým přepočtem (1+r)(1−TER)−1${vzorecNasazen ? '' : ' – produkce ještě bez opravy V4 (před nasazením)'}`, ukazka: chyby });
     } catch (e) {
       varovani.push({ co: `Kontrolu příkladu poplatků (kolo6) se nepodařilo provést: ${e.message}`, ukazka: [] });
     }
@@ -3301,6 +3307,120 @@ const main = async () => {
     }
   }
   // --- konec kolo8 zebricky ---
+
+  // --- audit texty --- (audit nástrojů 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+  //  Statické texty a výpočty na stránkách (src/app/**/page.tsx): V4 /pruvodce (vzorec v kódu; čísla hlídá kolo6 bod 7),
+  //  V5 /investovani-pro-deti „ani ne třetina“ (35,2 %), N5 OG obrázek natvrdo, N4 kumulativní „5 let“, V6 odpočet úroků
+  //  300 000 Kč jen u bydlení pořízeného do 2020, V10 Vanguard („~1–2 % ročně“ → konečná hodnota se stranou studie),
+  //  S1 „7 % = historický průměr“ / „~5 % reálně“, S2 výhrada k pravidlu 4 %, S4 neexistující přepínač, S5/N2/N3 /kalkulacka,
+  //  S20 dvě různá 60/40, S21 Monte Carlo „úspěch renty“, zakázané texty (undefined/NaN/Infinity).
+  //  Konstanty a vzorce jsou NEZÁVISLÉ na kódu webu (ruční přepočet, primární zdroje) – ne import z webu (kruh).
+  //  Značka nasazení: data-priklad-vzorec na /pruvodce; bez ní (produkce před nasazením) jen varování.
+  {
+    const chyby = [];
+    let nasazenoA = false;
+    try {
+      const vemA = async (cesta) => { try { const r = await fetch(`${WEB_URL}${cesta}`); return { status: r.status, html: (await r.text()).replace(/<!-- -->/g, '') }; } catch { return { status: 0, html: '' }; } };
+      const textA = (h) => h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;| |⁠/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/\s+/g, ' ');
+      const cestyA = ['/pruvodce', '/investovani-pro-deti', '/dip', '/hypotecni-kalkulacka', '/dca-vs-jednorazova', '/kolik-investovat-mesicne',
+        '/kalkulacka', '/fire', '/fire-kalkulacka', '/monte-carlo', '/pravidlo-4-procent'];
+      const SA = new Map(await Promise.all(cestyA.map(async (c) => [c, await vemA(c)])));
+      const HA = (c) => SA.get(c)?.html ?? '';
+      const TA = (c) => textA(HA(c));
+      nasazenoA = /data-priklad-vzorec="/.test(HA('/pruvodce'));
+      for (const [c, { status }] of SA) if (status !== 200) chyby.push(`${c}: HTTP ${status}`);
+      // Nezávislá anuita: vklad na konci měsíce, efektivní měsíční sazba (1 + r)^(1/12) − 1.
+      const fvA = (pmt, r, roky) => { const m = (1 + r) ** (1 / 12) - 1; return pmt * (((1 + m) ** (roky * 12) - 1) / m); };
+
+      // Zakázané texty na všech stránkách bloku (4A.6 souhrnu auditu).
+      for (const c of cestyA) { const z = TA(c).match(/.{0,30}\b(undefined|NaN|Infinity)\b.{0,20}/); if (z) chyby.push(`${c}: „${z[0].trim()}“`); }
+
+      // V4 – zdroj: příklad poplatků nesmí počítat r − TER (stránka i knihovna).
+      const pruvodceSrc = readFileSync('src/app/pruvodce/page.tsx', 'utf8') + readFileSync('src/lib/prikladPoplatku.ts', 'utf8');
+      if (/hrubyVynos\s*-\s*P\.ter|rocne\s*-\s*ter\b/.test(pruvodceSrc)) chyby.push('/pruvodce: poplatek počítaný jako r − TER (má být (1 + r)(1 − TER) − 1)');
+
+      // V5 – /investovani-pro-deti: podíl „start v 9 letech / od narození“ z dat stránky, nezávisle přepočtený (7 %, 1 000 Kč).
+      const deti = HA('/investovani-pro-deti'), detiT = TA('/investovani-pro-deti');
+      const pozde = Number(deti.match(/data-pozde="(\d+)"/)?.[1] ?? NaN), vcas = Number(deti.match(/data-vcas="(\d+)"/)?.[1] ?? NaN);
+      const ocek18 = fvA(1000, 0.07, 18), ocek9 = fvA(1000, 0.07, 9); // 420 918 / 148 291 → 35,2 %
+      if (nasazenoA && (Math.abs(pozde - ocek9) > 2 || Math.abs(vcas - ocek18) > 2)) chyby.push(`/investovani-pro-deti: 9 let ${pozde} / 18 let ${vcas}, přepočet ${Math.round(ocek9)} / ${Math.round(ocek18)}`);
+      const podil = ocek9 / ocek18;
+      if (podil > 1 / 3 && /ani ne třetin/.test(detiT)) chyby.push(`/investovani-pro-deti: „ani ne třetina výsledku“, ale podíl je ${(podil * 100).toFixed(1)} %`);
+      if (nasazenoA && !detiT.includes(`(${Math.round(podil * 100)} %)`)) chyby.push(`/investovani-pro-deti: věta o odkladu neuvádí podíl ${Math.round(podil * 100)} %`);
+      // N5 – OG obrázek: číslo z výpočtu, ne natvrdo v kódu.
+      if (/stat:\s*'\d/.test(readFileSync('src/app/investovani-pro-deti/page.tsx', 'utf8'))) chyby.push('src/app/investovani-pro-deti/page.tsx: číslo v OG obrázku natvrdo');
+      const og = decodeURIComponent((deti.match(/property="og:image" content="([^"]+)"/)?.[1] ?? '').replace(/&amp;/g, '&').replace(/\+/g, ' '));
+      const ogStat = og.match(/stat=([^&]+)/)?.[1]?.replace(/\s/g, '');
+      if (ogStat && ogStat !== `${Math.round(ocek18).toLocaleString('cs-CZ')}Kč`.replace(/\s/g, '')) chyby.push(`/investovani-pro-deti: OG obrázek „${ogStat}“ ≠ přepočet ${Math.round(ocek18)} Kč`);
+      // N4 – sloupec výnosu za 5 let je kumulativní → musí to být napsané.
+      for (const c of ['/dip', '/investovani-pro-deti']) if (nasazenoA && /Výnos za 5 let|5 let \(Kč\)/.test(TA(c)) && !/5 let celkem|kumulativní/.test(TA(c))) chyby.push(`${c}: sloupec „5 let (Kč)“ bez označení, že je kumulativní`);
+
+      // V6 – odpočet úroků z hypotéky (§ 15 odst. 4 ZDP: 150 000 Kč; 300 000 Kč jen u bydlení pořízeného před 1. 1. 2021,
+      //      čl. IV body 3–4 zákona č. 386/2020 Sb.). Hlídá text i JSON-LD (FAQ).
+      const hypo = HA('/hypotecni-kalkulacka').replace(/&nbsp;| |\\u00a0/g, ' ');
+      for (const m of hypo.matchAll(/(300 000|45 000) Kč/g)) {
+        const okoli = hypo.slice(Math.max(0, m.index - 250), m.index + 250);
+        if (!/2020|2021/.test(okoli)) { chyby.push(`/hypotecni-kalkulacka: „${m[0]}“ bez výhrady „bydlení pořízené do konce 2020“`); break; }
+      }
+      if (!/150 000 Kč/.test(hypo)) chyby.push('/hypotecni-kalkulacka: chybí strop odpočtu úroků 150 000 Kč (§ 15 odst. 4 ZDP)');
+
+      // V10 – DCA: rozdíl je v konečné hodnotě (Vanguard 2023 str. 5: +1,8 % po 1 roce; 2012 str. 4: +2,3 % po 10 letech).
+      const dca = HA('/dca-vs-jednorazova');
+      if (/1–2 % ročně|1-2 % ročně/.test(dca)) chyby.push('/dca-vs-jednorazova: „~1–2 % ročně“ (studie uvádějí rozdíl konečné hodnoty, ne roční výnos)');
+      if (nasazenoA && !/Vanguard 2023[^"]{0,120}str\. 5/.test(dca)) chyby.push('/dca-vs-jednorazova: FAQ bez citace Vanguard 2023, str. 5');
+
+      // S1 – modelový výnos ≠ „historický průměr“; /fire = předpoklad FIRE kalkulačky.
+      for (const c of ['/kolik-investovat-mesicne', '/dip', '/investovani-pro-deti']) {
+        const t = TA(c);
+        if (/historický průměr|historicky vynášel|dlouhodobý průměr/.test(t)) chyby.push(`${c}: 7 % vydávané za historický průměr (je to modelový předpoklad)`);
+        if (nasazenoA && !HA(c).includes('href="/kolik-vydelaly-etf"')) chyby.push(`${c}: chybí odkaz na skutečné výnosy v Kč (/kolik-vydelaly-etf)`);
+      }
+      const fireT = TA('/fire');
+      if (/reálný výnos ~5 %/.test(fireT)) chyby.push('/fire: „reálný výnos ~5 %“ (FIRE kalkulačka počítá vyvážené 60/40 s 4,6 %)');
+      const fireSrc = readFileSync('src/lib/firePredpoklady.ts', 'utf8');
+      const predpoklad = Number(fireSrc.match(/moderate:\s*\{\s*realnyVynos:\s*([\d.]+)/)?.[1] ?? NaN) / 100;
+      const naFire = Number(HA('/fire').match(/data-fire-realny-vynos="([\d.]+)"/)?.[1] ?? NaN);
+      if (nasazenoA && Math.abs(naFire - predpoklad) > 1e-9) chyby.push(`/fire: reálný výnos v tabulce ${naFire} ≠ FIRE kalkulačka ${predpoklad}`);
+      // Tabulka „roky do FIRE“: nezávislý vzorec n = ln(1 + 25(1 − s)r/s) / ln(1 + r) pro 50 % úspor.
+      if (nasazenoA && Number.isFinite(predpoklad)) {
+        const n50 = Math.log(1 + (25 * 0.5 * predpoklad) / 0.5) / Math.log(1 + predpoklad);
+        const zobr = fireT.match(/50 % ~(\d+(?:,\d)?) (?:let|roku)/)?.[1];
+        const ocek = n50 < 15 ? Math.round(n50 * 2) / 2 : Math.round(n50);
+        if (zobr && Number(zobr.replace(',', '.')) !== ocek) chyby.push(`/fire: 50 % úspor „~${zobr}“, přepočet ${ocek} (${n50.toFixed(2)})`);
+      }
+
+      // S2 + S4 – /kolik-investovat-mesicne.
+      const kim = HA('/kolik-investovat-mesicne'), kimT = TA('/kolik-investovat-mesicne');
+      if (nasazenoA && (!/data-vyhrada-4-procenta/.test(kim) || !kim.includes('href="/pravidlo-4-procent"'))) chyby.push('/kolik-investovat-mesicne: renta „300× výdaje“ bez výhrady a odkazu na /pravidlo-4-procent');
+      if (/přepnete|si přepnete/.test(kimT)) chyby.push('/kolik-investovat-mesicne: „reálnou hodnotu si přepnete“ – přepínač neexistuje');
+
+      // S5, N2, N3 – /kalkulacka.
+      const kal = HA('/kalkulacka'), kalT = TA('/kalkulacka');
+      if (/Výnosy přepočtené do Kč/.test(kalT)) chyby.push('/kalkulacka: „Výnosy přepočtené do Kč“ (je to model se zadaným výnosem)');
+      const rozdil = Number(kal.match(/data-model-rozdil="(\d+)"/)?.[1] ?? NaN);
+      if (nasazenoA) {
+        // Nezávisle: 250 000 Kč + 12 500 Kč na konci měsíce, 30 let, 7 % hrubě, TER z hodnoty fondu (1,07 × (1 − TER)).
+        const beh = (ter) => { const m = (1.07 * (1 - ter)) ** (1 / 12) - 1; let v = 250000; for (let i = 0; i < 360; i++) v = v * (1 + m) + 12500; return v; };
+        const ocekRozdil = beh(0.002) - beh(0.018); // ≈ 4 416 696 Kč
+        if (Math.abs(rozdil - ocekRozdil) > 2) chyby.push(`/kalkulacka: modelový rozdíl ${rozdil}, přepočet ${Math.round(ocekRozdil)}`);
+        const heroText = textA(kal.match(/data-model-rozdil="\d+"[^>]*>([\s\S]*?)<\/p>/)?.[1] ?? '').trim();
+        if (!/ 000 Kč$/.test(heroText)) chyby.push(`/kalkulacka: hero rozdíl „${heroText}“ není na tisíce jako widget`);
+        if (!/100 000 Kč/.test(kalT) || !/každý nákup zvlášť/.test(kalT)) chyby.push('/kalkulacka: daně bez hodnotového testu 100 000 Kč nebo bez „časový test pro každý nákup zvlášť“');
+      }
+
+      // S20 – dvě různá 60/40 musí být pojmenovaná; S21 – Monte Carlo neumí výběry z renty.
+      if (nasazenoA && !/40 % americké dluhopisy \(fond iShares Core US Aggregate Bond – AGG/.test(TA('/pravidlo-4-procent'))) chyby.push('/pravidlo-4-procent: 60/40 bez pojmenování dluhopisů (AGG, jiné než FIRE/modelové portfolio s XGLE)');
+      if (nasazenoA && !/dluhopisy americké \(fond AGG\)/.test(TA('/fire-kalkulacka'))) chyby.push('/fire-kalkulacka: chybí rozlišení 60/40 (XGLE) od 60/40 v /pravidlo-4-procent (AGG)');
+      if (/úspěchu renty/.test(fireT)) chyby.push('/fire: Monte Carlo „pravděpodobnost úspěchu renty“ – simulátor výběry neumí');
+      if (/načasování propadů/.test(TA('/monte-carlo'))) chyby.push('/monte-carlo: „riziko nepříznivého načasování propadů“ v důchodu – simulátor výběry neumí');
+      if (/historickým ročním výnosem|historický roční výnos|historickými dolarovými výnosy/.test(TA('/monte-carlo'))) chyby.push('/monte-carlo: výnosy aktiv vydávané za historické (V3 – nejsou doložené)');
+    } catch (e) {
+      varovani.push({ co: `Kontrolu audit texty se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+    }
+    if (chyby.length) (nasazenoA ? poplach : varovani).push({ co: `Texty a statické výpočty (audit nástrojů 22. 10.)${nasazenoA ? '' : ' – produkce ještě bez oprav (před nasazením)'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 25) });
+  }
+  // --- konec audit texty ---
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
