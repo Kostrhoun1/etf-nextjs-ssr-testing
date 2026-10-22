@@ -312,6 +312,8 @@ export async function getTopETFsForCategory(config: CategoryConfig): Promise<ETF
  *  null = chyba dotazu → stránka karty raději vynechá, než by je spočítala z části dat. */
 export async function getVyberKarty(config: CategoryConfig, prah: number, sVykonem: boolean): Promise<{
   levne: ETFBasicInfo[]; nejvetsi: ETFBasicInfo | null; nejvetsiJeCH: boolean; vsechny: ETFBasicInfo[] | null;
+  /** 10 největších mimo švýcarské (kolo 7: karta „Největší“ přeskakuje i varianty „ex-…“ – EM ex-China). */
+  velke: ETFBasicInfo[];
 } | null> {
   const sloupce = ['isin', 'name', 'fund_provider', 'ter_numeric', 'fund_size_numeric', 'distribution_policy',
     'return_1y_czk', 'return_3y_czk', 'inception_date', 'scraping_date', 'returns_as_of', ...SLOUPCE_TICKERU].join(',');
@@ -338,6 +340,7 @@ export async function getVyberKarty(config: CategoryConfig, prah: number, sVykon
     return {
       levne: mimoCH((lev.data ?? []) as ETFBasicInfo[]),
       nejvetsi: mimoCH(velke)[0] ?? null,
+      velke: mimoCH(velke),
       nejvetsiJeCH: !!velke[0] && jeSvycarskyFond(velke[0].isin, velke[0].name),
       vsechny: vsechny ? mimoCH(vsechny) : null,
     };
@@ -351,7 +354,11 @@ export async function getVyberKarty(config: CategoryConfig, prah: number, sVykon
  *  „MSCI World“ (audit 17. 10. 2026), takže je nesmíme brát jako „stejný index“. */
 export const SPECIFICKY_FOND = /\b(sector|energy|financials?|information technology|technology|health ?care|utilities|industrials?|materials|consumer|communication|real estate|equal weight|value|growth|momentum|quality|min(imum)? vol|dividend|esg|sri|paris|climate|ex[- ]|small ?cap|mid ?cap|leveraged|short|inverse|\dx)\b/i;
 
-export interface PodobnyFond { isin: string; name: string; primary_ticker: string | null; ter_numeric: number | null; fund_size_numeric: number | null; return_1y_czk: number | null; fund_provider: string | null }
+export interface PodobnyFond {
+  isin: string; name: string; primary_ticker: string | null; ter_numeric: number | null; fund_size_numeric: number | null; return_1y_czk: number | null; fund_provider: string | null;
+  /** Den výnosů fondu (src/lib/datumVynosu.ts) – box „Další fondy na index“ u jiného dne ukazuje „k 19. 10.“ (kolo 7). */
+  returns_as_of: string | null; scraping_date: string | null;
+}
 
 /**
  * Podobné fondy pro „Další fondy na index X“ na detailu (kolo 6, 20. 10. 2026): STEJNÝ index jako nadpis
@@ -372,7 +379,7 @@ export async function getPodobneFondy(fond: FondDetailu & { isin: string }): Pro
   try {
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('isin, name, primary_ticker, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, index_name, investment_focus, category')
+      .select('isin, name, primary_ticker, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, returns_as_of, scraping_date, index_name, investment_focus, category')
       .ilike('index_name', prefix)
       .neq('isin', fond.isin)
       .not('is_leveraged', 'is', true)
@@ -387,7 +394,7 @@ export async function getPodobneFondy(fond: FondDetailu & { isin: string }): Pro
       .filter((f) => { const h = zajisteniFondu(f); return h.isHedged === zaj.isHedged && h.hedgedCurrency === zaj.hedgedCurrency; })
       .filter((f) => specificky || !SPECIFICKY_FOND.test(f.name))
       .slice(0, 4)
-      .map(({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider }) => ({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider: fund_provider ?? null }));
+      .map(({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider, returns_as_of, scraping_date }) => ({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider: fund_provider ?? null, returns_as_of: returns_as_of ?? null, scraping_date: scraping_date ?? null }));
   } catch {
     return [];
   }
@@ -1160,6 +1167,9 @@ export interface ScreenerRow {
   /** Den výnosů fondu („16. 10. 2026“) – JEN když se liší od dne většiny fondů ve srovnávači (src/lib/datumVynosu.ts).
    *  Zpožděná řada u zdroje (ESEA, PSP5…): výnosy platí k jinému dni než „Data k …“ stránky. Jinak chybí. */
   _dv?: string;
+  /** 1 = výnosy fondu jsou o víc než 3 pracovní dny starší než u většiny (vynosyPozadu) → jantarový štítek;
+   *  o 1–3 dny jinak = jen neutrální šedé „k 16. 10.“ (kolo 7, 22. 10. 2026). Jinak chybí. */
+  _dvP?: 1;
   fund_provider: string | null;
   // Předpočítaná odvozená pole (dřív se počítala na klientu přes všech ~4900 fondů).
   _region: string | null;
@@ -1331,6 +1341,7 @@ export const getScreenerRows = reactCache(async (): Promise<{
       ...(volNesedi.has(e.isin) ? { _volX: 1 as const } : {}),
       ...(vynX ? { _vynX: 1 as const } : {}),
       ...((dv) => (dv ? { _dv: dv } : {}))(jineDatumVynosu(e, vetsinaVynosu)),
+      ...(vynosyPozadu(e, vetsinaVynosu) ? { _dvP: 1 as const } : {}),
       fund_provider: e.fund_provider,
       _dom: domLabelSrv(e.fund_domicile),
       _year: inceptionYear(e.inception_date),

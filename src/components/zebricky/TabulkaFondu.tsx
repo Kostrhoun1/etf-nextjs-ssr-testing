@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { RADKU_TABULKY_VYCHOZI } from '@/lib/zebrickySouvisejici';
 import Link from 'next/link';
 import { ArrowRight, ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
@@ -37,6 +37,8 @@ export interface RadekFondu {
   /** Den výnosů fondu („16. 10. 2026“) jen když se liší od „Data k …“ žebříčku (zpožděná řada u zdroje,
    *  src/lib/datumVynosu.ts); jinak chybí. */
   vynosyK?: string;
+  /** Výnosy o víc než 3 pracovní dny starší než „Data k …“ (vynosyPozadu) → jantarový štítek; jinak šedý (kolo 7). */
+  vynosyPozadu?: boolean;
   /** Švýcarský fond (sídlo CH) – štítek „sídlo CH – ověřte dostupnost u brokera“ (SEO audit 6b). */
   svycarsky?: boolean;
   /** Typ produktu ve smíšených žebříčcích („ETC“, „peněžní trh“, „dluhopisy“…); null = akcie / neukazovat. */
@@ -57,6 +59,15 @@ const NB = ' ';
 const cz = (v: number, d = 1) => v.toLocaleString('cs-CZ', { minimumFractionDigits: d, maximumFractionDigits: d });
 const pct = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${cz(Math.abs(v))}${NB}%`);
 const terF = (v: number | null) => (v == null ? '—' : `${cz(v, 2)}${NB}%`);
+/* TER 0 % (kolo 7): u ETC a krypto ETP (Xetra-Gold, EUWAX Gold, CoinShares Staked…) nejsou náklady v TER – „0,00 %*“
+   s poznámkou pod tabulkou, v řazení podle TER na konci (hodnota null). Ne „zdarma“. */
+const TER_NULA_TEXT = 'TER 0 % neznamená, že je produkt zdarma – u ETC a krypto ETP platíte náklady mimo TER (např. v rozpětí nákupní a prodejní ceny nebo podílem z odměn ze stakingu). Podrobnosti uvádí emitent v dokumentu KID.';
+const terUzel = (v: number | null) => (v === 0
+  ? <span data-ter-nula title={TER_NULA_TEXT} className="cursor-help">{terF(0)}<sup className="text-slate-400">*</sup></span>
+  : terF(v));
+/** „16. 10. 2026“ → „16. 10.“ (letošní rok se neopakuje). */
+const bezRoku = (d: string) => d.replace(new RegExp(`\\s*${new Date().getFullYear()}$`), '');
+const jeVynos = (k: Klic) => k === 'r1' || k === 'r3';
 const vel = (v: number | null) => (v == null ? '—' : v >= 1000 ? `${cz(v / 1000)}${NB}mld.${NB}€` : `${Math.round(v)}${NB}mil.${NB}€`);
 const barva = (v: number | null) => (v == null ? 'text-slate-400' : v >= 0 ? 'text-emerald-700' : 'text-red-700');
 const n0 = (n: number) => n.toLocaleString('cs-CZ');
@@ -126,7 +137,11 @@ export default function TabulkaFondu({
     const f = radky.filter((r) => (typ === 'vse' || r.typ === typ) && (!bezZajisteni || !r.zajisteni));
     // Bez hodnoty vždy na konec (nezávisle na směru) – „—“ nesmí vyhrát řazení.
     // Při shodě TER akumulační třída, pak větší fond – stejné pravidlo jako karta „Nejnižší poplatek“ a homepage (src/lib/trhy.ts).
+    // Kolo 7 (D1): při řazení podle výnosu fondy s výnosy k JINÉMU dni (vynosyK) až na konec pod oddělovač – jejich
+    // výnos je za jiné období a v pořadí by se srovnával nesrovnatelný (S&P 500: fondy k 16. 10. vedly 1R).
+    const jinyDen = jeVynos(klic);
     return [...f].sort((a, b) => {
+      if (jinyDen && !!a.vynosyK !== !!b.vynosyK) return a.vynosyK ? 1 : -1;
       const x = hodnota(a, klic), y = hodnota(b, klic);
       if (x == null && y == null) return (b.velikost ?? 0) - (a.velikost ?? 0);
       if (x == null) return 1;
@@ -164,12 +179,13 @@ export default function TabulkaFondu({
       : `Ukazujeme ${n0(vyber.length)} ${typSlovo(typ, vyber.length)}z ${zCeho}`;
 
   const zobrazene = vyber.slice(0, pocet);
+  const oddel = jeVynos(klic) ? zobrazene.findIndex((r) => !!r.vynosyK) : -1;
   const zbyva = vyber.length - zobrazene.length;
 
   // Mobil: dvě čísla nad sebou – hlavní podle řazení a výnos za 1 rok (USP: výnos v Kč i ve výchozím pohledu).
   const mobilVedlejsi: Klic = klic === 'r1' ? 'size' : 'r1';
   const popisSloupce = (k: Klic) => (k === 'size' ? 'Velikost' : k === 'ter' ? 'TER' : k === 'r1' ? `1 rok ${curText[cur]}` : `3 roky ${curText[cur]}`);
-  const textHodnoty = (k: Klic, v: number | null) => (k === 'size' ? vel(v) : k === 'ter' ? terF(v) : pct(v));
+  const textHodnoty = (k: Klic, v: number | null, r?: RadekFondu) => (k === 'size' ? vel(v) : k === 'ter' ? (r?.ter === 0 ? terUzel(0) : terF(v)) : pct(v));
 
   // Řadicí hlavička: tlačítko a vysvětlivka vedle sebe (InfoTip je tlačítko – nesmí být uvnitř jiného).
   const Hlavicka = ({ k, tip, children }: { k: Klic; tip?: string; children: React.ReactNode }) => (
@@ -245,7 +261,13 @@ export default function TabulkaFondu({
             const hlavni = hodnota(r, klic);
             const vedl = hodnota(r, mobilVedlejsi);
             return (
-              <li key={r.isin} className="relative grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_7rem_6.5rem_6.5rem_6.5rem] gap-x-4 items-center px-4 md:px-5 py-2.5 hover:bg-slate-50/70">
+              <Fragment key={r.isin}>
+              {i === oddel && (
+                <li data-jiny-den-oddel className="bg-slate-100 px-4 md:px-5 py-2 text-xs leading-snug text-slate-600">
+                  <strong className="font-semibold text-slate-800">Výnosy k jinému dni – nesrovnatelné pořadí.</strong> Fondy níže mají výnosy k jinému dni než ostatní (zdroj má jejich ceny posunuté, den je u fondu), proto je řadíme až sem.
+                </li>
+              )}
+              <li className="relative grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[2rem_minmax(0,1fr)_5.5rem_7rem_6.5rem_6.5rem_6.5rem] gap-x-4 items-center px-4 md:px-5 py-2.5 hover:bg-slate-50/70">
                 <span className="hidden md:block text-xs tabular-nums text-slate-400">{i + 1}</span>
                 <Link href={`/etf/${r.isin}`} className="group min-w-0 flex items-center gap-2.5 min-h-11">
                   <EmitentLogo nazev={r.nazev} size={28} monogram={r.emitent} />
@@ -258,7 +280,10 @@ export default function TabulkaFondu({
                       {r.typ && <span>· {r.typ === 'acc' ? 'akumulační' : 'distribuční'}</span>}
                       {r.rok && <span>· od {r.rok}</span>}
                       {r.zajisteni && <span className="rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">zajištěno{r.zajisteni !== 'ano' ? ` ${r.zajisteni}` : ''}</span>}
-                      {r.vynosyK && <span data-vynosy-k={r.vynosyK} title="Zdroj má ceny tohoto fondu se zpožděním – jeho výnosy platí k jinému dni než ostatní." className="cursor-help rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">výnosy k {r.vynosyK}</span>}
+                      {/* Kolo 7: o 1–3 pracovní dny jinak = neutrální šedé „k 16. 10.“, jantarová jen výrazně pozadu (> 3 prac. dny). */}
+                      {r.vynosyK && (r.vynosyPozadu
+                        ? <span data-vynosy-k={r.vynosyK} data-vynosy-pozadu title="Zdroj má ceny tohoto fondu o víc než 3 pracovní dny pozadu – jeho výnosy platí k jinému dni než ostatní." className="cursor-help rounded bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200">výnosy k {bezRoku(r.vynosyK)}</span>
+                        : <span data-vynosy-k={r.vynosyK} title={`Výnosy tohoto fondu platí k ${r.vynosyK} – zdroj má jeho ceny o pár dní jinak než u ostatních.`} className="cursor-help rounded bg-slate-100 px-1 text-[11px] font-medium text-slate-500">k {bezRoku(r.vynosyK)}</span>)}
                       {r.druh && <span className="rounded bg-slate-100 px-1 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200">{r.druh}</span>}
                       {r.svycarsky && <span className="rounded bg-slate-100 px-1 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200" title="Fond se sídlem ve Švýcarsku (není UCITS) – část brokerů ho českým investorům nenabízí.">sídlo CH – ověřte dostupnost u brokera</span>}
                     </span>
@@ -266,15 +291,16 @@ export default function TabulkaFondu({
                 </Link>
                 {/* Mobil: hlavní číslo podle řazení + výnos za 1 rok (při řazení podle 1 roku velikost) */}
                 <span className="md:hidden text-right">
-                  <span className={`block text-[15px] font-semibold tabular-nums whitespace-nowrap ${klic === 'r1' || klic === 'r3' ? barva(hlavni) : 'text-slate-900'}`}>{textHodnoty(klic, hlavni)}</span>
-                  <span className={`block text-xs tabular-nums whitespace-nowrap ${mobilVedlejsi === 'r1' ? barva(vedl) : 'text-slate-500'}`}>{textHodnoty(mobilVedlejsi, vedl)}</span>
+                  <span className={`block text-[15px] font-semibold tabular-nums whitespace-nowrap ${klic === 'r1' || klic === 'r3' ? barva(hlavni) : 'text-slate-900'}`}>{textHodnoty(klic, hlavni, r)}</span>
+                  <span className={`block text-xs tabular-nums whitespace-nowrap ${mobilVedlejsi === 'r1' ? barva(vedl) : 'text-slate-500'}`}>{textHodnoty(mobilVedlejsi, vedl, r)}</span>
                 </span>
-                <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${klic === 'ter' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{terF(r.ter)}</span>
+                <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${klic === 'ter' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{terUzel(r.ter)}</span>
                 <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${klic === 'size' ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{vel(r.velikost)}</span>
                 <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${barva(r1(r))} ${klic === 'r1' ? 'font-semibold' : ''}`}>{pct(r1(r))}</span>
                 <span className={`hidden md:block text-right text-sm tabular-nums whitespace-nowrap ${barva(r3(r))} ${klic === 'r3' ? 'font-semibold' : ''}`}>{pct(r3(r))}</span>
                 <span className="hidden md:flex justify-end"><CompareButton isin={r.isin} label={r.ticker ?? r.isin} variant="row" /></span>
               </li>
+              </Fragment>
             );
           })}
           {zobrazene.length === 0 && (
@@ -283,6 +309,12 @@ export default function TabulkaFondu({
         </ol>
       </div>
 
+      {zobrazene.some((r) => r.ter === 0) && (
+        <p data-ter-nula-poznamka className="mt-2 text-xs leading-snug text-slate-500"><sup>*</sup> {TER_NULA_TEXT} V řazení podle TER jsou proto na konci.</p>
+      )}
+      {zobrazene.some((r) => r.vynosyK) && (
+        <p className="mt-1 text-xs leading-snug text-slate-500">„k 16. 10.“ u fondu = jeho výnosy platí k uvedenému dni, ne k {datum} jako u ostatních (zdroj má jeho ceny posunuté); při řazení podle výnosu je proto až na konci.</p>
+      )}
       <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         {zbyva > 0 ? (
           <button type="button" onClick={() => setPocet((p) => p + 40)} className="inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">

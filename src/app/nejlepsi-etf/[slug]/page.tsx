@@ -13,8 +13,8 @@ import {
   getTopETFsForCategory, getCategoryCount, getFlagshipComposition, categoryConfigs, getVyberKarty,
   type ETFBasicInfo, getDataDatum, inceptionYear,
 } from '@/lib/etf-data';
-import { datumVynosu, jineDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
-import { titulekZebricku, popisekZebricku, odpovedZebricku, klicovaCislaZebricku, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
+import { datumVynosu, datumVynosuIso, jineDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
+import { titulekZebricku, popisekZebricku, klicovaCislaZebricku, terText, velikostText, datumText, type DataZebricku, type FondSeo } from '@/lib/zebrickySeo';
 import KlicovaCisla from '@/components/design-preview/KlicovaCisla';
 import { porovnejNejlevnejsi, odlehleIsiny } from '@/lib/trhy';
 import { bezOdlehlychVynosu, bezOdlehlehoVynosu } from '@/lib/vynosNeovereny';
@@ -92,7 +92,18 @@ const SOUVISI: Record<string, { href: string; text: string }[]> = {
 
 /** Varianty indexu s jinou metodikou – nevyhrávají „nejvyšší výnos“ (liší se metodikou, ne kvalitou fondu;
  *  revize 18. 10. 2026: v S&P 500 vyhrával „S&P 500 Leaders“). */
-const VARIANTA = /\b(ESG|SRI|Screened|Scored|Leaders|Paris|Climate|PAB|CTB|Equal Weight|Hedged|Islamic|Active|Enhanced)\b/i;
+const VARIANTA = /\b(ESG|SRI|Screened|Scored|Leaders|Paris|Climate|PAB|CTB|Equal Weight|Hedged|Islamic|Active|Enhanced|Socially Responsible|Low Carbon|Fossil)\b/i;
+
+/** Varianta indexu „ex-…“ (EM ex-China, Europe ex UK…) = jiný trh než hlavní index kategorie (kolo 7, 22. 10. 2026:
+ *  v Emerging markets vyhrával „Nejvýkonnější“ 84X0 EM ex-China +91,6 %). Na karty se nevybírá – v tabulce zůstává. */
+const EX_VARIANTA = /\bex[- ][a-z]/i;
+/** Kde „ex-“ na kartách smí být: široké smíšené seznamy (všechny fondy) a Asie a Pacifik (MSCI Pacific ex Japan je
+ *  tam hlavní index kategorie, ne odbočka). */
+const EX_NA_KARTACH = new Set(['nejlepsi-etf-2026', 'nejlepsi-akciove-etf', 'nejlepsi-dluhopisove-etf', 'nejlevnejsi-etf',
+  'nejlepsi-akumulacni-etf', 'nejlepsi-distribucni-etf', 'nejlepsi-esg-etf', 'nejlepsi-asijsko-pacificke-etf']);
+
+/** Nezlomitelná pomlčka v rozsahu čísel („0‑1yr“, „1‑3yr“) – „Bond 0-1yr“ se v tabulce lámal na pomlčce (kolo 7). */
+const nezlomitelne = (s: string) => s.replace(/(\d)-(\d)/g, '$1\u2011$2');
 
 /** Měna zajištění třídy fondu („EUR“…), „ano“ = zajištěná bez poznané měny, null = nezajištěná.
  *  JEDNA funkce pro celý web (src/utils/hedgingDetection.ts) – stejná jako srovnávač a porovnání. */
@@ -125,8 +136,9 @@ function kratkeNazvy(fondy: { name: string; distribution_policy?: string | null;
     xs.forEach((k) => pocet.set(k, (pocet.get(k) ?? 0) + 1));
     return (k: string) => (pocet.get(k) ?? 0) > 1;
   };
-  // 1) měna třídy („· USD“), 2) celá třída – výplata, měna, zajištění („· Acc · USD“, „· Dist · zajištěno do EUR“),
-  // 3) ticker. SEO audit 6b: 5× „UBS MSCI ACWI SF“, 2× „… · USD“ se v tabulce nedaly rozlišit.
+  // 1) měna třídy („· USD“), 2) celá třída – výplata, měna, zajištění („· Acc · USD“, „· Dist · zajištěno do EUR“).
+  // SEO audit 6b: 5× „UBS MSCI ACWI SF“, 2× „… · USD“ se v tabulce nedaly rozlišit. Kolo 7: ticker se do názvu už
+  // NEpřidává – řádek ho ukazuje hned pod názvem („… 1-3yr · Acc (IS0F)“ + „IS0F“ = ticker dvakrát).
   const dupl1 = duplicity(kratke);
   const krok1 = kratke.map((k, i) => {
     if (!dupl1(k)) return k;
@@ -139,8 +151,7 @@ function kratkeNazvy(fondy: { name: string; distribution_policy?: string | null;
     const t = tridaText(tridaFondu(fondy[i].name, fondy[i].distribution_policy));
     return t ? `${kratke[i]}\u00a0· ${t}` : k;
   });
-  const dupl3 = duplicity(krok2);
-  return krok2.map((k, i) => (dupl3(k) && fondy[i].ticker ? `${k} (${fondy[i].ticker})` : k));
+  return krok2.map(nezlomitelne);
 }
 
 /** Indexové kategorie: fondy sledují STEJNÝ podklad (index, kov, bitcoin) a liší se hlavně poplatkem a třídou.
@@ -194,6 +205,9 @@ function tickeryBezDuplicit(fondy: ETFBasicInfo[]): Map<string, string | null> {
 const INDEXOVE: Record<string, 'akcie' | 'komodita' | 'krypto'> = {
   'nejlepsi-sp500-etf': 'akcie', 'nejlepsi-msci-world-etf': 'akcie', 'nejlepsi-nasdaq-etf': 'akcie',
   'nejlepsi-celosvetove-etf': 'akcie', 'nejlepsi-dax-etf': 'akcie', 'nejlepsi-stoxx600-etf': 'akcie', 'nejlepsi-ftse100-etf': 'akcie',
+  // Kolo 7 (22. 10. 2026): „Nejvýkonnější“ v Emerging markets vyhrávaly jiné trhy a metodiky (EM ex-China +91,6 %, Value
+  // faktor, ESG, Islamic); mezi fondy na hlavní index (MSCI EM / EM IMI / FTSE EM) je rozdíl jen šum tříd → jako indexové.
+  'nejlepsi-emerging-markets-etf': 'akcie',
   'nejlepsi-zlato-etf': 'komodita', 'nejlepsi-stribro-etf': 'komodita', 'nejlepsi-bitcoin-etf': 'krypto',
 };
 
@@ -296,23 +310,27 @@ const nactiZebricek = reactCache(async (slug: string) => {
   const vyberDb = vyberDb0 && {
     levne: bezOdlehlychVynosu(vyberDb0.levne, odlehle),
     nejvetsi: bezOdlehlehoVynosu(vyberDb0.nejvetsi, odlehle),
+    velke: bezOdlehlychVynosu(vyberDb0.velke, odlehle),
     vsechny: vyberDb0.vsechny && bezOdlehlychVynosu(vyberDb0.vsechny, odlehle),
     nejvetsiJeCH: vyberDb0.nejvetsiJeCH,
   };
   // Švýcarské fondy (sídlo CH, jeSvycarskyFond) se na karty nevybírají – v tabulce zůstávají se štítkem (SEO audit 6b).
   const mimoCH = (xs: ETFBasicInfo[]) => xs.filter((e) => !jeSvycarskyFond(e.isin, e.name));
-  const zdrojLevne = castecneNacteno ? (vyberDb?.levne ?? []) : mimoCH(etfs);
-  const zdrojVykon = castecneNacteno ? (vyberDb?.vsechny ?? []) : mimoCH(etfs);
-  const nejvetsi = castecneNacteno ? (vyberDb?.nejvetsi ?? null) : (mimoCH(bySize)[0] ?? null);
+  // Kolo 7: varianty „ex-…“ (jiný trh) na karty nejdou – kromě širokých seznamů a Asie a Pacifiku (EX_NA_KARTACH).
+  const bezEx = EX_NA_KARTACH.has(slug) ? (xs: ETFBasicInfo[]) => xs : (xs: ETFBasicInfo[]) => xs.filter((e) => !EX_VARIANTA.test(e.name));
+  const zdrojLevne = bezEx(castecneNacteno ? (vyberDb?.levne ?? []) : mimoCH(etfs));
+  const zdrojVykon = bezEx(castecneNacteno ? (vyberDb?.vsechny ?? []) : mimoCH(etfs));
+  const nejvetsi = castecneNacteno ? (bezEx(vyberDb?.velke ?? [])[0] ?? null) : (bezEx(mimoCH(bySize))[0] ?? null);
   const nejvetsiJeCH = castecneNacteno ? !!vyberDb?.nejvetsiJeCH : !!bySize[0] && jeSvycarskyFond(bySize[0].isin, bySize[0].name);
   // Nejvýkonnější: jen „čisté“ třídy (ne ESG/Screened/Leaders, ne měnově zajištěné – liší se metodikou nebo
   // měnou, ne kvalitou fondu) a fondy ≥ 100 mil. €. Momentum za 12 měsíců je u indexových kategorií spíš
   // šum (revize 18. 10. 2026) → primárně 3 roky v Kč, když je má aspoň 3 fondy.
   const jeEsgKategorie = /esg|udrzitel|klima|zajist|hedg|equal|stejne-vah/i.test(slug);
-  // Fond s výnosy o víc než 3 pracovní dny staršími než většina (zpožděná řada u zdroje, src/lib/datumVynosu.ts)
-  // do „Nejvýkonnějšího“ ani mediánu nepatří – srovnávalo by se jiné období (21. 10. 2026).
+  // Kolo 7 (D1, 22. 10. 2026): do „Nejvýkonnějšího“ a mediánu jen fondy s výnosy ke STEJNÉMU dni jako „Data k …“
+  // stránky – i 1–2 dny rozdílu jsou jiné období (dřív se vylučovalo až zpoždění > 3 pracovní dny).
+  const denDat = dataDatum ? dataDatum.toISOString().slice(0, 10) : null;
   const kandidati = zdrojVykon.filter((e) => (e.fund_size_numeric ?? 0) >= PRAH_KARET && (jeEsgKategorie || (!VARIANTA.test(e.name) && !zajisteni(e.name)))
-    && !vynosyPozadu(e, dataDatum));
+    && denDat != null && datumVynosuIso(e) === denDat);
   // Nejnižší poplatek = PRAVIDLO HOMEPAGE (porovnejNejlevnejsi v src/lib/trhy.ts): nejnižší TER > 0, při shodě
   // akumulační třída, pak větší fond; jen fondy nad 100 mil. € a bez měnového zajištění.
   const jeZajistKategorie = /zajist|hedg/i.test(slug);
@@ -387,6 +405,36 @@ function KlicovaZebricku({ z }: { z: Zebricek }) {
   return k ? <KlicovaCisla datum={k.datum} radky={k.radky} zdroje={k.zdroje} /> : null;
 }
 
+/**
+ * ODPOVĚĎ NAHOŘE (kolo 7, 22. 10. 2026): nejvýš 2 krátké věty – 1) den dat, počet fondů a největší fond,
+ * 2) nejnižší poplatek. Dřív 3 věty (první ~45 slov) a u dividendových/dluhopisových se v jednom odstavci míchal práh
+ * žebříčku („nad 50 mil. €“) s prahem karet („nad 100 mil. €“) → práh karet jde do poznámky (vysvětlivka). Medián a výnos
+ * ukazují karty. Čísla = karty stránky (dataSeo); fond s jiným dnem dat nese své datum. Titulek a popisek dál
+ * src/lib/zebrickySeo.ts. Hlídá check-fund-data (kolo6 seo zebricky – začíná „K {den}“, počet = data-pocet-fondu; kolo7).
+ */
+function odpovedNahore(d: DataZebricku): { vety: string[]; poznamka: string | null } {
+  if (!d.datum || d.celkem <= 0) return { vety: [], poznamka: null };
+  const NB = '\u00a0';
+  const den = datumText(d.datum);
+  const kDni = (f: FondSeo) => (f.datum && datumText(f.datum) !== den ? ` (data k${NB}${datumText(f.datum)})` : '');
+  const jmeno = (f: FondSeo) => (f.ticker ? `${f.nazev} (${f.ticker})` : f.nazev) + kDni(f);
+  const L = d.nejlevnejsi, V = d.nejvetsi;
+  const tentyz = !!L && !!V && L.nazev === V.nazev && L.ticker === V.ticker;
+  const sloveso = d.celkem >= 2 && d.celkem <= 4 ? 'jsou' : 'je';
+  let prvni = `K${NB}${den} ${sloveso} v${NB}žebříčku ${d.celkem.toLocaleString('cs-CZ')} ${fondu(d.celkem)} nad ${d.prah}${NB}mil.${NB}€`;
+  if (V && V.velikost != null) {
+    prvni += tentyz && L
+      ? `; největší a zároveň nejlevnější${V.mimoCH ? ' mimo švýcarské fondy' : ''} je ${jmeno(V)} – ${velikostText(V.velikost)}, TER ${terText(L.ter)}.`
+      : `; největší${V.mimoCH ? ' mimo švýcarské fondy' : ''} je ${jmeno(V)} s${NB}majetkem ${velikostText(V.velikost)}.`;
+  } else prvni += '.';
+  const vety = [prvni];
+  if (L && !tentyz) vety.push(`Nejnižší poplatek má ${jmeno(L)}: TER ${terText(L.ter)}${L.stejnyTer > 0 ? ` (stejný ${L.stejnyTer >= 2 && L.stejnyTer <= 4 ? 'mají' : 'má'} ještě ${L.stejnyTer})` : ''}.`);
+  const poznamka = L || V
+    ? `Největší a nejlevnější fond vybíráme mezi fondy nad ${d.prahKaret}${NB}mil.${NB}€ bez měnového zajištění (nejlevnější s TER vyšším než 0 %).${d.prah !== d.prahKaret ? ` Žebříček sám bere fondy od ${d.prah}${NB}mil.${NB}€.` : ''}`
+    : null;
+  return { vety, poznamka };
+}
+
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
@@ -421,8 +469,8 @@ export default async function CategoryDetailPreview(
   const datumText = dataDate ? fmtDatum(dataDate) : '—';
   const prahText = `${PRAH_KARET} mil. €`;
   const dalsiFondy = (n: number) => (n === 1 ? 'další fond' : n <= 4 ? 'další fondy' : 'dalších fondů');
-  // GEO „odpověď nahoře“: 2–3 věty z dat stránky s datem (src/lib/zebrickySeo.ts).
-  const odpoved = odpovedZebricku(dataSeo(z));
+  // GEO „odpověď nahoře“: nejvýš 2 krátké věty z dat stránky s datem (kolo 7, odpovedNahore).
+  const { vety: odpoved, poznamka: odpovedPoznamka } = odpovedNahore(dataSeo(z));
   const souvisi = SOUVISI[slug] ?? [];
 
   const recos: { tag: string; icon: typeof Trophy; etf: ETFBasicInfo; hodnota: string; popis: string; pravidlo?: string }[] = [];
@@ -475,7 +523,7 @@ export default async function CategoryDetailPreview(
       r3: { CZK: num(e.return_3y_czk), EUR: num(e.return_3y), USD: num(e.return_3y_usd) },
       typ: k === 'unknown' ? null : k,
       zajisteni: zajisteni(e.name),
-      ...((dv) => (dv ? { vynosyK: dv } : {}))(jineDatumVynosu(e, dataDate)),
+      ...((dv) => (dv ? { vynosyK: dv, vynosyPozadu: vynosyPozadu(e, dataDate) } : {}))(jineDatumVynosu(e, dataDate)),
       svycarsky: jeSvycarskyFond(e.isin, e.name),
       druh: SMISENE.has(slug) ? druhProduktu(e.category, e.name) : null,
     };
@@ -585,9 +633,8 @@ export default async function CategoryDetailPreview(
           <h1 className="text-[28px] md:text-4xl font-bold tracking-tight leading-tight text-slate-900">{cfg.title}</h1>
           {/* Odpověď nahoře (SEO/GEO, kolo 6): fakta z dat stránky s datem – počet, nejnižší poplatek, největší fond, výnos v Kč. */}
           {odpoved.length > 0 && (
-            <p data-odpoved="zebricek" className="mt-2 max-w-3xl text-sm md:text-base text-slate-800 leading-relaxed">{odpoved.slice(0, 2).join(' ')}
-            {/* Mobil: jen první 2 věty (počet + poplatek/velikost) – další opakují karty pod nimi a tlačily tabulku níž (SEO audit 6b). */}
-            {odpoved.slice(2).map((v) => <span key={v} className="hidden md:inline"> {v}</span>)}</p>
+            <p data-odpoved="zebricek" className="mt-2 max-w-3xl text-sm md:text-base text-slate-800 leading-relaxed">{odpoved.join(' ')}
+              {odpovedPoznamka && <>{' '}<InfoTip label={odpovedPoznamka}>{null}</InfoTip></>}</p>
           )}
           {/* Mobil: s odpovědí nahoře se popis kategorie neukazuje (zůstává v HTML) – ať tabulka nezačíná až pod ohybem (kolo 6). */}
           <p className={`mt-2 max-w-2xl text-sm md:text-[15px] text-slate-600 leading-relaxed ${odpoved.length > 0 ? 'hidden md:block' : ''}`}>{nbsp(lead)}</p>
@@ -608,8 +655,11 @@ export default async function CategoryDetailPreview(
             <InfoTip label={`Vybíráme podle faktů: ${kriteriaText} (fondy nad ${prahText}). Tabulku si seřadíte sami. Pořadí není placené ani doporučení.`}>{null}</InfoTip>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-600">
+            {/* Kolo 7: počet fondů nejvýš 2× (odpověď nahoře + věta nad tabulkou) – s odpovědí tu zůstává jen práh. */}
             <span data-pocet-fondu={pocetDb ?? undefined} className="inline-flex items-center gap-1">
-              <span><strong className="font-semibold text-slate-900 tabular-nums">{celkem.toLocaleString('cs-CZ')}</strong> {fondu(celkem)} nad {prah}{'\u00a0'}mil.{'\u00a0'}€</span>
+              {odpoved.length > 0
+                ? <span>Fondy nad {prah}{'\u00a0'}mil.{'\u00a0'}€</span>
+                : <span><strong className="font-semibold text-slate-900 tabular-nums">{celkem.toLocaleString('cs-CZ')}</strong> {fondu(celkem)} nad {prah}{'\u00a0'}mil.{'\u00a0'}€</span>}
               <InfoTip label={`V žebříčku jsou fondy se spravovaným majetkem aspoň ${prah} mil. €. Vynecháváme pákové a inverzní produkty a fondy, jejichž data nebyla 14 dní aktualizována.`}>{null}</InfoTip>
             </span>
             {dataDate && <AktualnostDat datum={dataDate} nejstarsi={nejstarsi} />}
@@ -621,11 +671,13 @@ export default async function CategoryDetailPreview(
           <section data-sekce="vybrane" className="pb-8" aria-labelledby="vybrane-h">
             <h2 id="vybrane-h" className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Vybrané podle dat</h2>
             {/* Kolo 5: karty se neroztahují na výšku nejvyšší karty v řadě (u S&P 500 měla „Největší fond“ velkou prázdnou spodní část). */}
-            <div className={`grid gap-2 md:gap-3 md:items-start ${recos.length + (indexova ? 1 : 0) === 2 ? 'md:grid-cols-2 lg:max-w-4xl' : 'md:grid-cols-3'}`}>
+            {/* Kolo 7: bez karty „Jak vybrat“ (široké a neindexové žebříčky) mají karty stejnou výšku (Nejlepší ETF 2026, akciové:
+                „Největší“ a „Nejnižší poplatek“ různě vysoké); vedle vysoké „Jak vybrat“ zůstávají podle obsahu (kolo 5). */}
+            <div className={`grid gap-2 md:gap-3 ${indexova ? 'md:items-start' : 'md:items-stretch'} ${recos.length + (indexova ? 1 : 0) === 2 ? 'md:grid-cols-2 lg:max-w-4xl' : 'md:grid-cols-3'}`}>
               {recos.map(({ tag, icon: Icon, etf, hodnota, popis, pravidlo }) => {
                 const tk = tickery.get(etf.isin) ?? zobrazovanyTicker(etf as unknown as Record<string, unknown>);
                 return (
-                  <div key={etf.isin} className="group relative min-w-0 rounded-xl border border-slate-200 bg-white px-3.5 py-3 md:p-5 hover:border-teal-300 hover:shadow-sm transition-all">
+                  <div key={etf.isin} className="group relative min-w-0 rounded-xl border border-slate-200 bg-white px-3.5 py-3 md:p-5 md:flex md:flex-col hover:border-teal-300 hover:shadow-sm transition-all">
                     <div className="absolute right-3 top-3 z-10 hidden md:block">
                       <CompareButton isin={etf.isin} label={tk ?? shortName(etf.name)} variant="row" />
                     </div>
@@ -639,7 +691,7 @@ export default async function CategoryDetailPreview(
                         <span className="mt-0.5 md:mt-2.5 flex items-center gap-2.5 min-w-0">
                           <span className="hidden md:inline-flex"><EmitentLogo nazev={etf.name} size={32} monogram={etf.fund_provider} /></span>
                           <span className="min-w-0">
-                            <span className="text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 line-clamp-1 md:line-clamp-2">{nazevFondu(etf.name)}</span>
+                            <span className="text-[15px] font-semibold leading-snug text-slate-900 group-hover:text-teal-800 line-clamp-1 md:line-clamp-2">{nezlomitelne(nazevFondu(etf.name))}</span>
                             <span className="block text-xs text-slate-500">{tk ?? etf.isin}<span className="md:hidden"> · {popis}</span></span>
                           </span>
                         </span>
@@ -678,7 +730,8 @@ export default async function CategoryDetailPreview(
             {dalsiVelke.length > 0 && (
               <details data-sekce="dalsi-velke-fondy" className="group mt-3 rounded-xl border border-slate-200 bg-white">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50 rounded-xl [&::-webkit-details-marker]:hidden">
-                  <span>Další velké fondy v žebříčku ({dalsiVelke.length}) – nad 2 mld. €, ve výchozím pohledu tabulky nejsou{dalsiVelke.some((r) => r.zajisteni) ? ' (i měnově zajištěné třídy)' : ''}</span>
+                  {/* Kolo 7: dřív „Další velké fondy v žebříčku (280) – nad 2 mld. €, ve výchozím pohledu tabulky nejsou“. */}
+                  <span>Rychlé odkazy na velké fondy <span className="font-normal text-slate-500">· nad {HEAD_MIN_SIZE / 1000}{'\u00a0'}mld.{'\u00a0'}€, které tabulka hned neukazuje</span></span>
                   <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
                 </summary>
                 <ul className="flex flex-wrap gap-2 border-t border-slate-100 px-4 py-3">
