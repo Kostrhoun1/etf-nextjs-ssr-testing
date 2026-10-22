@@ -24,7 +24,7 @@ interface Radek { nazev: string; tip?: string; hodnota: (b: Broker) => Hodnota }
 const RADKY: Radek[] = [
   {
     nazev: 'Nákup ETF',
-    tip: 'Poplatek za nákup evropského ETF na burze Xetra (v EUR, podle ceníku). Kolik to dělá v korunách pro vaši částku, spočítáme na stránce Kde koupit ETF.',
+    tip: 'Poplatek za nákup evropského ETF na burze Xetra, u DEGIRO ETF Selection na burze Tradegate (v EUR, podle ceníku). Kolik to dělá v korunách pro vaši částku, spočítáme na stránce Kde koupit ETF.',
     hodnota: (b) => ({ v: popisPoplatku(b) ?? '—', pozn: b.nakup?.pozn, data: { 'data-poplatek': popisPoplatku(b) ?? '' } }),
   },
   {

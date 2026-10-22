@@ -42,7 +42,13 @@ export interface Broker {
 /** Ceník nákupu evropského ETF (Xetra, EUR) z ceníku brokera. Pásma podle objemu pokynu v EUR:
  *  poplatek = max(pevneEur + procento % z objemu, minEur). */
 export interface CenikNakupu {
-  pasma: { doEur: number | null; procento: number; minEur: number; pevneEur: number }[];
+  /** maxEur = strop poplatku za pokyn (IBKR Tiered Německo: 29 EUR); chybí = bez stropu. */
+  pasma: { doEur: number | null; procento: number; minEur: number; pevneEur: number; maxEur?: number }[];
+  /** Burza, pro kterou ceník platí (výchozí Xetra). DEGIRO ETF Selection = ETF kótované na burze Tradegate. */
+  burzaNakupu?: string;
+  /** Jisté poplatky třetích stran za pokyn, které broker přeúčtuje (IBKR Tiered na Xetře: vypořádání 0,02 EUR
+   *  + 0,0008 % a regulační poplatek 0,01 EUR) – započítávají se do poplatku za nákup. */
+  tretiStrany?: { pevneEur: number; procento: number };
   /** K provizi se připočítávají poplatky burzy (výši neznáme → zobrazit „+ poplatky burzy“). */
   plusBurza?: boolean;
   /** Krátká poznámka k poplatku za nákup do srovnávací tabulky (podmínka, pásma). */
@@ -50,13 +56,15 @@ export interface CenikNakupu {
   /** Krátká poznámka ke směně (víkend, v kurzu banky, …). */
   smenaPozn?: string;
   /** Směna CZK→EUR. null = bez samostatného poplatku, náklad je v kurzu (výši neznáme → „—“). */
-  smena: { procento: number; minUsd: number } | null;
+  smena: { procento: number; minUsd: number; autoProcento?: number } | null;
   /** Vícměnový účet: směnu stačí udělat jednou za větší částku (IBKR) → roční náklad = 1 směna, ne 12. */
   smenaNajednou?: boolean;
   /** Poplatek za ETF MIMO zvýhodněný výběr (DEGIRO: ETF Selection 1 EUR, ostatní 3 EUR). */
   ostatniEtfEur?: number;
   /** Roční poplatek za připojení k burze – jen u ETF mimo zvýhodněný výběr (DEGIRO: až 2,5 EUR za burzu). */
   burzaRocneMaxEur?: number;
+  /** Roční poplatek za připojení k burze pro směnu měn (DEGIRO CNX: až 2,5 EUR) – platí u každého nákupu z korun. */
+  cnxRocneMaxEur?: number;
 }
 
 export interface BrokerFeature {

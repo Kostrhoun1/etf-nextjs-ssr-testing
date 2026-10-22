@@ -65,18 +65,22 @@ export default async function KdeKoupitPage() {
   const kurzy = await nactiKurzCnb();
   const ukazka = nejlevnejsiUkazka(kurzy);
 
-  // Hero: nejlevnější nákup PODLE ČÁSTKY („do 16 200 Kč Trading 212, nad DEGIRO“) – spočítané z ceníků, ne natvrdo.
+  // Hero: nejlevnější nákup PODLE ČÁSTKY („do 16 176 Kč Trading 212, od 16 177 Kč DEGIRO“) – spočítané z ceníků, ne natvrdo.
   // Kolo 4: dřív pevně „za 2 000 Kč“, takže při zadání 50 000 Kč hero tvrdil něco jiného než tabulka pod ním.
+  // Audit 22. 10. 2026 (S14): hranice na celé koruny (dřív krok 100 Kč → „nad 16 100 Kč“, kalkulačka pro 16 150 Kč
+  // ukázala Trading 212). data-hranice nese spočítanou hranici pro denní kontrolu (check-fund-data, „audit naklady“).
   const useky = kurzy ? nejlevnejsiPodleCastky(kurzy) : [];
   const nejlevnejsiRadky = useky.length > 0 && useky.length <= 3
     ? useky.map((u, i) => ({
         k: useky.length === 1 ? 'Nejlevnější nákup'
           : i === 0 ? `Nejlevnější do ${kcText(u.doKc)}`
-          : i === useky.length - 1 ? `Nejlevnější nad ${kcText(useky[i - 1].doKc)}`
+          : i === useky.length - 1 ? `Nejlevnější od ${kcText(u.odKc)}`
           : `Nejlevnější ${kcText(u.odKc)}–${kcText(u.doKc)}`,
+        hranice: i > 0 ? u.odKc : null,
+        broker: u.b?.id ?? '',
         v: u.b ? `${u.b.name}${u.b.nakup?.ostatniEtfEur != null ? ' (ETF Selection)' : ''}` : '—',
       }))
-    : [{ k: 'Nejlevnější nákup', v: kurzy ? 'podle částky – viz tabulka' : '—' }];
+    : [{ k: 'Nejlevnější nákup', v: kurzy ? 'podle částky – viz tabulka' : '—', hranice: null, broker: '' }];
   const bezProvize = brokeriAbecedne.filter((b) => b.nakup && b.nakup.pasma.every((p) => p.pevneEur === 0 && p.procento === 0 && p.minEur === 0));
   const cesky = brokers.filter((b) => b.czSupport);
 
@@ -97,7 +101,8 @@ export default async function KdeKoupitPage() {
     },
     {
       q: 'Jsou ETF u DEGIRO opravdu zdarma?',
-      a: 'Ne úplně. Fondy z výběru ETF Selection koupíte za 1 EUR manipulační poplatek, ostatní ETF za 3 EUR a u nich platíte i až 2,5 EUR ročně za připojení k burze. Směna CZK/EUR je zdarma, takže u jednoho většího nákupu měsíčně jsou náklady nízké.',
+      // Audit 22. 10. 2026: ETF Selection = ETF kótovaná na Tradegate; poplatek 2,5 EUR ročně i za CNX (Přehled poplatků od 1. 1. 2026).
+      a: 'Ne úplně. Fondy z výběru ETF Selection (ETF kótovaná na burze Tradegate) koupíte za 1 EUR manipulační poplatek, ostatní ETF (např. na Xetře) za 3 EUR a u nich platíte i až 2,5 EUR ročně za připojení k burze. Směna CZK/EUR je zdarma, ceník ale účtuje až 2,5 EUR ročně za připojení k CNX, burze pro směnu měn. U jednoho většího nákupu měsíčně jsou náklady nízké.',
     },
     {
       q: 'Proč některý broker sráží 35 % z dividend?',
@@ -193,7 +198,7 @@ export default async function KdeKoupitPage() {
                   S fondem skryté: „nejlevnější nad X Kč DEGIRO (ETF Selection)“ u fondu, o kterém nevíme, zda je ve výběru, mate. */}
               <BezFondu><dl className="hidden md:block mt-6 md:mt-0 md:w-[24rem] shrink-0 divide-y divide-white/10 rounded-xl border border-white/10 bg-white/5 text-sm">
                 {nejlevnejsiRadky.map((r) => (
-                  <div key={r.k} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                  <div key={r.k} data-nejlevnejsi-broker={r.broker || undefined} data-hranice={r.hranice ?? undefined} className="flex items-center justify-between gap-3 px-4 py-2.5">
                     <dt className="whitespace-nowrap text-slate-400 tabular-nums">{r.k}</dt>
                     <dd className="text-right font-semibold whitespace-nowrap">{r.v}</dd>
                   </div>

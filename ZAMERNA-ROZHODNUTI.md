@@ -331,6 +331,26 @@ a ostatní ETF jako „12 × 3 EUR + až 2,5 EUR za burzu“ – horní mez, ne 
 stačí udělat jednou; „za nákup“ dál počítá směnu při každém nákupu. Nevymýšlet odhady, dokud nejsou ověřené
 u oficiálního ceníku. Shodu poplatku a směny mezi /kde-koupit, /srovnani-brokeru
 a recenzemi hlídá denní kontrola (`check-fund-data.mjs`).
+
+**Audit nákladů 22. 10. 2026 – co se změnilo (a vypadá to divně):**
+- **IBKR směna = levnější ze dvou cest** (commissions-spot-currencies): automatická konverze při nákupu „typically
+  0.03%“ v kurzu BEZ minima, nebo ruční 0,002 % s min. 2 USD. Za nákup i za rok se bere levnější (rok: automatická
+  u každého nákupu, nebo jedna ruční směna celé roční částky). Proto je u malých částek „za rok“ = 12 × „za nákup“
+  (dřív kontrola hlásila chybu) – správně. Za 2 000 Kč „od 32 Kč“ (dřív „od 74 Kč“, nebyla spodní hranice).
+- **IBKR vypořádání a regulační poplatek se započítávají** (Xetra (IBIS) Fees je od 22. 10. 2026 dostupná): 0,02 EUR
+  + 0,0008 % a 0,01 EUR za obchod. Poplatek burzy Xetra u ETF (0,004 %, min. 0,50 EUR) se NEzapočítává – IBKR ho
+  u retailových pokynů směrovaných podle best execution neúčtuje → součet zůstává „od“. Výše nahoře (odstavec o 403) neplatí.
+- **DEGIRO ETF Selection = ETF kótovaná na burze Tradegate** (Přehled poplatků, str. 4, pozn. 1), ne nákup na Xetře.
+  Na Xetře stojí nákup 3 EUR + připojení k burze. Na stránkách „Nákup ETF (Tradegate)“ u DEGIRO je záměr.
+- **DEGIRO „+ až 2,5 EUR ročně za CNX“ u ETF Selection i ostatních ETF** (str. 10, pozn. 2: poplatek „bude rovněž
+  účtován za připojení k CNX, burze používané pro směnu měn“). Výjimku pro bezplatnou směnu CZK/EUR ceník neuvádí →
+  ukazujeme jako horní mez vedle ročního součtu (data-za-rok ho NEobsahuje). Neodstraňovat, dokud DEGIRO písemně
+  nepotvrdí, že se u CZK/EUR neúčtuje (pak opravit + tento bod).
+- **„Nejlevnější do 16 176 Kč / od 16 177 Kč“** – hranice na celé koruny půlením na vzorcích (`nejlevnejsiPodleCastky`),
+  ne krokem 100 Kč; mění se s kurzem ČNB (1 EUR / 0,15 %).
+- **DEGIRO a Fio „jen celé kusy“** bez ceny kusu: cenu kusu v databázi nemáme (`etf_funds.current_price` = 0) → jen
+  věta, žádné číslo.
+Hlídá blok „audit naklady“ v `check-fund-data.mjs` (nezávislý vzorec z ceníků + XTB: novější tabulka poplatků → poplach).
 - **Stejný výnos v Kč na 4 desetinná místa u různých tříd/fondů (SXR8 = IUSA = VUSA 1R 21,7501 %; VWCE = VWRL),
   18. 10. 2026:** není chyba. Zdroj (justETF) dává výnos v EUR na 2 desetinná místa a ty jsou u fondů na stejný
   index se stejným TER shodné (21,70 %); Kč se počítá z EUR stejným kurzem ČNB → shodný výsledek. VUAA (21,59 %) se liší.
@@ -426,7 +446,11 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **DEGIRO – česká podpora „Ne“, i když má český web.** degiro.cz/helpdesk/contact: „our Service Desk is not available
   in Czech“. Na webu proto „web česky, podpora jen anglicky“.
 - **DEGIRO u konkrétního fondu (/kde-koupit?isin=…) ukazuje dvě sazby** (ETF Selection 1 EUR / mimo 3 EUR) a nemá
-  štítek „nejlevnější“: seznam ETF Selection ověřený nemáme. Neopravovat na jednu sazbu.
+  štítek „nejlevnější“: seznam ETF Selection ověřený nemáme. Neopravovat na jednu sazbu. (22. 10. 2026: ETF Selection =
+  ETF kótovaná na Tradegate; naše data burz fondu Tradegate nemají spolehlivě, proto dál dvě sazby.)
+- **Trading 212 – ceník ověřen 22. 10. 2026 v centru nápovědy** (helpcentre.trading212.com, články 11471996799517 a
+  360018909758: „FX fee: 0.15%, Trading commission: Free“; „spot exchange rate + 0.15% FX fee“). trading212.com/terms
+  dál blokuje stažení.
 
 ## Backtest, předpočty a kvíz – kolo 5 A (19. 10. 2026)
 

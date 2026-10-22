@@ -5,21 +5,27 @@
    Pravidlo č. 1: co neznáme (směna Fio v kurzu banky, poplatky burzy IBKR), je „—“ a součet je „od“.
    Kolo 5: roční náklad konzistentní s texty (IBKR směna jednou za rok, DEGIRO ETF Selection vs ostatní ETF),
    rychlé volby částky hned u pole, štítek „nejlevnější“ podle zadané částky. */
+/* Audit nákladů 22. 10. 2026: IBKR směna = levnější z automatické (0,03 %, bez minima) a ruční (0,002 %, min. 2 USD),
+   + vypořádání Xetry; DEGIRO ETF Selection = nákup na Tradegate (ne Xetra) a + až 2,5 EUR ročně za CNX (směna měn);
+   upozornění na celé kusy u DEGIRO a Fio; „< 0,01 %“ místo „0 %“; pole s mezemi 100–1 000 000 Kč. */
 import { useState } from 'react';
-import CisloInput from '@/components/CisloInput';
+import CisloInput, { type CisloStav } from '@/components/CisloInput';
 import Link from 'next/link';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { useFond } from '@/components/design-preview/FondKontext';
 import { TipZaTextem } from '@/components/design-preview/brokerUI';
 import {
-  brokeriAbecedne, nakladNakupu, nakladRocne, popisPoplatku, popisSmeny, type Kurzy,
+  brokeriAbecedne, burzaNakupu, cenikyOverenyStr, nakladNakupu, nakladRocne, popisPoplatku, popisSmeny, type Kurzy,
 } from '@/data/brokerData';
 
 const NB = ' ';
 const kc = (v: number) =>
   `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')}${NB}Kč`;
-const proc = (v: number) => `${v.toLocaleString('cs-CZ', { maximumFractionDigits: v < 1 ? 2 : 1 })}${NB}%`;
+// Kladný podíl pod 0,005 % by se zaokrouhlil na „0 %“ (DEGIRO 24 Kč z 1 000 000 Kč) → „< 0,01 %“ (audit N18).
+const proc = (v: number) => (v > 0 && v < 0.005
+  ? `<${NB}0,01${NB}%`
+  : `${v.toLocaleString('cs-CZ', { maximumFractionDigits: v < 1 ? 2 : 1 })}${NB}%`);
 const datum = (iso: string) =>
   new Date(`${iso}T00:00:00Z`).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
@@ -36,16 +42,20 @@ function Logo({ id }: { id: string }) {
   );
 }
 
-const TIP_BURZA = 'K poplatku IBKR (plán Tiered) se připočítávají poplatky burzy a vypořádání. Jejich výši jsme na oficiálním ceníku nemohli ověřit, proto je nezapočítáváme – skutečný náklad je o ně vyšší.';
+// Ceníky ověřené 22. 10. 2026 (zdroje u brokerů v src/data/brokerData.ts).
+const TIP_BURZA = 'Poplatek IBKR (plán Tiered) = 0,05 % z objemu (min. 1,25 EUR) + vypořádání Xetry 0,02 EUR + 0,0008 % + regulační poplatek 0,01 EUR – to vše započítáváme. Poplatek burzy Xetra (u ETF 0,004 %, min. 0,50 EUR) IBKR podle ceníku u retailových pokynů směrovaných podle best execution neúčtuje, jinak ano – proto ho nezapočítáváme a částka je „od“.';
 const TIP_FIO = 'Fio směnu korun na eura zvlášť neúčtuje, náklad je v kurzu banky (rozdíl nákupního a prodejního kurzu). Jeho výši ceník neuvádí, proto „—“ a součet „od“.';
-const TIP_IBKR_SMENA = 'Na účtu IBKR můžete držet hotovost ve více měnách. Stačí směnit jednou větší částku a z ní nakupovat postupně – minimum 2 USD pak platíte jen jednou. Za jeden nákup počítáme směnu pokaždé, v ročním součtu jen jednou (celá roční částka najednou).';
-const TIP_DEGIRO_FOND = 'U DEGIRO záleží, zda je fond ve výběru ETF Selection: pak nákup stojí 1 EUR a bez ročního poplatku za burzu, jinak 3 EUR a k tomu až 2,5 EUR ročně za každou zahraniční burzu (nejvýš 0,25 % hodnoty účtu). Seznam se mění a ověřený ho nemáme – podívejte se v aplikaci DEGIRO.';
-const TIP_DEGIRO = 'ETF Selection = výběr fondů DEGIRO za 1 EUR a bez ročního poplatku za připojení k burze. Ostatní ETF stojí 3 EUR za nákup a k tomu až 2,5 EUR ročně za každou zahraniční burzu (nejvýš 0,25 % hodnoty účtu). Zda je váš fond ve výběru, ověřte v aplikaci DEGIRO.';
+const TIP_IBKR_SMENA = 'IBKR směňuje dvěma způsoby: automaticky při nákupu (přirážka 0,03 % v kurzu, bez minima), nebo ručně (0,002 %, ale nejméně 2 USD za směnu). Ruční směna se vyplatí u velkých částek – na účtu pak držíte eura a nakupujete z nich postupně. Za nákup i za rok počítáme levnější z obou cest.';
+const TIP_DEGIRO_FOND = 'U DEGIRO záleží, zda fond nakoupíte ve výběru ETF Selection (ETF kótovaná na burze Tradegate): pak nákup stojí 1 EUR a bez ročního poplatku za burzu, jinak (např. na Xetře) 3 EUR a k tomu až 2,5 EUR ročně za každou zahraniční burzu (nejvýš 0,25 % hodnoty účtu). Zda se fond na Tradegate obchoduje, ověřte v aplikaci DEGIRO.';
+const TIP_DEGIRO = 'ETF Selection = ETF kótovaná na burze Tradegate: nákup za 1 EUR a bez ročního poplatku za připojení k burze. Ostatní ETF (např. na Xetře) stojí 3 EUR za nákup a k tomu až 2,5 EUR ročně za každou zahraniční burzu (nejvýš 0,25 % hodnoty účtu). Zda je váš fond na Tradegate, ověřte v aplikaci DEGIRO.';
+const TIP_CNX = 'Přehled poplatků DEGIRO (od 1. 1. 2026): poplatek 2,5 EUR ročně (nejvýš 0,25 % hodnoty účtu) se účtuje i za připojení k CNX, burze používané pro směnu měn. Výjimku pro bezplatnou směnu CZK/EUR ceník neuvádí, proto počítáme s ním jako s horní mezí.';
+const TIP_KUSY = 'DEGIRO a Fio prodávají jen celé kusy ETF. Když jeden kus fondu stojí víc než zadaná částka, nákup za ni neprovedete – peníze počkají na účtu, dokud nenasbíráte na celý kus. Cenu kusu uvidíte v aplikaci brokera.';
 
 export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy | null; zvyraznit?: string }) {
   // Jen číslice; zobrazení s mezerami po tisících („2 000“).
   const [vstup, setVstup] = useState('2000');
-  const castka = Number(vstup);
+  const [stav, setStav] = useState<CisloStav>('ok');
+  const castka = vstup === '' ? NaN : Number(vstup);
   const platna = Number.isFinite(castka) && castka >= MIN && castka <= MAX;
   // Přišel z detailu fondu: nevíme, zda je fond v ETF Selection DEGIRO → obě sazby rovnocenně, bez štítku „nejlevnější“
   // (kolo 5: dřív se počítalo za 1 EUR, jako by fond ve výběru byl).
@@ -91,8 +101,11 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
               id="naklady-castka"
               value={vstup === '' ? null : Number(vstup)}
               onValue={(v) => setVstup(v == null ? '' : String(v))}
-              min={0}
-              max={99_999_999}
+              onStav={setStav}
+              // Stejné meze jako výpočet (dřív pole 0–99 999 999, výpočet jen 100–1 000 000 – audit N18).
+              min={MIN}
+              max={MAX}
+              aria-invalid={stav === 'mimo' || undefined}
               aria-describedby="naklady-rozsah"
               className="h-full min-w-0 flex-1 rounded-lg bg-transparent px-3 text-base font-semibold tabular-nums text-slate-900 outline-none"
             />
@@ -113,9 +126,11 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
           </div>
         </div>
       </div>
-      {!platna && (
-        <p id="naklady-rozsah" className="border-b border-slate-100 bg-slate-50 px-4 py-2.5 text-sm text-slate-600">
-          Zadejte částku od {MIN.toLocaleString('cs-CZ')} do {MAX.toLocaleString('cs-CZ')}{NB}Kč.
+      {(!platna || stav === 'orez') && (
+        <p id="naklady-rozsah" role="status" className="border-b border-slate-100 bg-slate-50 px-4 py-2.5 text-sm text-slate-600">
+          {stav === 'orez' && platna
+            ? <>Upraveno do povoleného rozsahu {MIN.toLocaleString('cs-CZ')}–{MAX.toLocaleString('cs-CZ')}{NB}Kč.</>
+            : <>Zadejte částku od {MIN.toLocaleString('cs-CZ')} do {MAX.toLocaleString('cs-CZ')}{NB}Kč.</>}
         </p>
       )}
 
@@ -142,8 +157,11 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
             const nej = b.id === nejlevnejsiId;
             // Fond z detailu + DEGIRO: dvě rovnocenné varianty (ve výběru ETF Selection / mimo něj).
             const dPoplatek = dvoji && n ? `${kc(n.provizeKc)} / ${kc(b.nakup!.ostatniEtfEur! * kurzy.eurCzk)}` : null;
-            // IBKR (kolo 5): nákup počítá směnu pokaždé, rok jen jednou – rozdíl napoprvé mátl → popisek přímo u čísla.
+            // IBKR: za nákup i za rok levnější cesta směny (automatická 0,03 % / ruční 0,002 %, min. 2 USD) → popisek u čísla.
             const smenaJednou = !!r?.smenaJednou;
+            const smenaZpusob = !b.nakup?.smena?.autoProcento || !n ? null : n.smenaAuto ? 'automaticky při nákupu' : 'ručně (min. 2 USD)';
+            const cnx = r?.cnxMaxKc;
+            const celeKusy = !b.fractional;
             return (
               <tr key={b.id} data-broker={b.id} data-poplatek={popisPoplatku(b) ?? ''} data-smena={popisSmeny(b) ?? ''} data-za-nakup={celkem == null ? '' : Math.round(celkem)} data-za-rok={rocne == null ? '' : Math.round(rocne)} className={b.id === zvyraznit ? 'bg-teal-50/60' : undefined}>
                 <td className="px-3 py-3 align-top sm:px-4">
@@ -156,14 +174,22 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                     </span>
                   </Link>
                   {nej && <span className="ml-9 mt-1 inline-block whitespace-nowrap rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-800 ring-1 ring-teal-200">nejlevnější pro {kc(castka)}</span>}
+                  {/* Celé kusy (DEGIRO, Fio): za malou částku nemusí jít koupit ani 1 kus (audit S16). Cenu kusu v datech
+                      nemáme (etf_funds.current_price = 0) → obecná věta, žádné číslo. */}
+                  {celeKusy && n && (
+                    <span data-cele-kusy={b.id} className="mt-1 block pl-9 text-xs leading-snug text-amber-700">
+                      <TipZaTextem text={`jen celé kusy${fond?.ticker ? ` ${fond.ticker}` : ''} – část podílu nekoupíte`} tip={TIP_KUSY} />
+                    </span>
+                  )}
                   {/* Mobil: rozpis pod jménem (sloupce poplatek/směna jsou jen od md) */}
                   {n && (
                     <span className="mt-1 block pl-9 text-xs leading-snug text-slate-500 md:hidden">
                       {dvoji
                         ? <>poplatek {dPoplatek} · směna {smenaTxt}<span className="block"><TipZaTextem text="ve výběru ETF Selection / mimo něj" tip={TIP_DEGIRO_FOND} /></span></>
-                        : <>poplatek {poplatekTxt}{ostatni ? ' (ETF Selection)' : ''} · směna {smenaTxt}</>}
-                      {ibkr && <span className="block"><TipZaTextem text="směna u každého nákupu, ročně jen jednou" tip={TIP_IBKR_SMENA} /></span>}
+                        : <>poplatek {poplatekTxt}{ostatni ? ` (ETF Selection, ${burzaNakupu(b)})` : ''} · směna {smenaTxt}</>}
+                      {smenaZpusob && <span className="block"><TipZaTextem text={`směna ${smenaZpusob}${smenaJednou ? ', ročně jednou ručně' : ''}`} tip={TIP_IBKR_SMENA} /></span>}
                       {ostatni && !dvoji && <span className="block">ostatní ETF 3{NB}EUR, ročně {kc(ostatni.celkemKc)} + <InfoTip label={TIP_DEGIRO}>burza</InfoTip></span>}
+                      {cnx != null && <span className="block">ročně + až {kc(cnx)} <InfoTip label={TIP_CNX}>za CNX (směna měn)</InfoTip></span>}
                     </span>
                   )}
                 </td>
@@ -178,7 +204,7 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                       <span className="block font-medium text-slate-800">
                         {ibkr ? <InfoTip label={TIP_BURZA}>{poplatekTxt}</InfoTip> : poplatekTxt}
                       </span>
-                      <span className="block text-xs text-slate-400">ceník {popisPoplatku(b)}{ostatni ? ' (ETF Selection)' : ''}</span>
+                      <span className="block text-xs text-slate-400">ceník {popisPoplatku(b)}{ostatni ? ` (ETF Selection, ${burzaNakupu(b)})` : ''}</span>
                       {ostatni && <span className="mt-0.5 block text-xs text-slate-500"><InfoTip label={TIP_DEGIRO}>ostatní ETF 3{NB}EUR</InfoTip></span>}
                     </>
                   )}
@@ -190,7 +216,7 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                   <span className="block text-xs text-slate-400">
                     {smenaNezn ? 'v kurzu banky' : <>ceník {popisSmeny(b)}</>}
                   </span>
-                  {ibkr && <span className="mt-0.5 block text-xs text-slate-500"><InfoTip label={TIP_IBKR_SMENA}>stačí jednou za větší částku</InfoTip></span>}
+                  {smenaZpusob && <span className="mt-0.5 block text-xs text-slate-500"><InfoTip label={TIP_IBKR_SMENA}>{smenaZpusob}</InfoTip></span>}
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 text-right align-top sm:px-4 md:text-left">
                   {dvoji && n?.celkemKc != null ? (
@@ -213,7 +239,7 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                   )}
                   {/* whitespace-normal: buňka je nowrap kvůli číslu, poznámky se ale musí zalomit (jinak tabulka na mobilu přeteče) */}
                   <span className="block whitespace-normal text-xs text-slate-500 md:hidden">
-                    {rocne == null ? '' : dvoji && ostatni ? `ročně ${kc(rocne)} / ${kc(ostatni.celkemKc)} + burza` : `ročně ${od}${kc(rocne)}`}
+                    {rocne == null ? '' : dvoji && ostatni ? `ročně ${kc(rocne)} / ${kc(ostatni.celkemKc)} + burza${cnx != null ? ' + CNX' : ''}` : `ročně ${od}${kc(rocne)}`}
                   </span>
                 </td>
                 <td className="hidden px-3 py-3 align-top md:table-cell">
@@ -221,13 +247,15 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
                     <>
                       <span className="block font-medium text-slate-800">{kc(rocne ?? 0)} / {kc(ostatni.celkemKc)}</span>
                       <span className="block text-xs leading-snug text-slate-500">mimo výběr + až {kc(ostatni.burzaMaxKc)} ročně za burzu</span>
+                      {cnx != null && <span className="block text-xs leading-snug text-slate-500">obojí + až {kc(cnx)} <InfoTip label={TIP_CNX}>za CNX (směna měn)</InfoTip></span>}
                     </>
                   ) : (
                     <>
                       <span className="block font-medium text-slate-800">{rocne == null ? '—' : `${od}${kc(rocne)}`}</span>
-                      {ostatni && <span className="block text-xs text-slate-400">ETF Selection</span>}
-                      {smenaJednou && <span className="block text-xs text-slate-500">směna jen jednou za celý rok, bez poplatků burzy</span>}
-                      {castecne && !smenaJednou && <span className="block text-xs text-slate-400">bez nákladu směny</span>}
+                      {ostatni && <span className="block text-xs text-slate-400">ETF Selection ({burzaNakupu(b)})</span>}
+                      {cnx != null && <span className="block text-xs leading-snug text-slate-500">+ až {kc(cnx)} <InfoTip label={TIP_CNX}>za CNX (směna měn)</InfoTip></span>}
+                      {ibkr && <span className="block text-xs text-slate-500">{smenaJednou ? 'směna jednou ručně za celý rok' : 'směna automaticky u každého nákupu'}, bez poplatku burzy</span>}
+                      {castecne && !ibkr && <span className="block text-xs text-slate-400">bez nákladu směny</span>}
                       {ostatni && (
                         <span className="mt-1 block text-xs leading-snug text-slate-500">
                           ostatní ETF {kc(ostatni.celkemKc)}<br />+ až {kc(ostatni.burzaMaxKc)} ročně za burzu
@@ -244,16 +272,16 @@ export default function NakladyKalkulacka({ kurzy, zvyraznit }: { kurzy: Kurzy |
 
       <div className="space-y-1 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-xs leading-relaxed text-slate-500">
         <p>
-          Řazeno podle známých nákladů. „od“ = část nákladu neznáme (u Fio směnu v kurzu banky, u IBKR poplatky burzy), skutečná částka je vyšší.
+          Řazeno podle známých nákladů. „od“ = část nákladu neznáme (u Fio směnu v kurzu banky, u IBKR poplatek burzy), skutečná částka může být vyšší.
         </p>
         {fond && (
           <p>
-            U DEGIRO dvě čísla: fond ve výběru ETF Selection / mimo něj. Který případ platí pro {fond.ticker ?? fond.isin}, uvidíte v aplikaci DEGIRO.
+            U DEGIRO dvě čísla: fond ve výběru ETF Selection (nákup na burze Tradegate) / mimo něj. Který případ platí pro {fond.ticker ?? fond.isin}, uvidíte v aplikaci DEGIRO.
           </p>
         )}
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span>Kurz ČNB k {datum(kurzy.datum)}: 1{NB}EUR = {kurzy.eurCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}{NB}Kč, 1{NB}USD = {kurzy.usdCzk.toLocaleString('cs-CZ', { maximumFractionDigits: 3 })}{NB}Kč</span>
-          <InfoTip label="Jeden nákup evropského ETF na burze Xetra (v EUR) z korunového účtu: poplatek za nákup + směna CZK→EUR podle ceníku brokera. Za rok = 12 nákupů; u IBKR se směna počítá jednou za celou roční částku. DEGIRO: ETF Selection za 1 EUR bez poplatku za burzu, ostatní ETF 3 EUR + až 2,5 EUR ročně za burzu (podle hodnoty účtu).">Jak počítáme</InfoTip>
+          <InfoTip label={`Jeden nákup evropského ETF v EUR z korunového účtu (burza Xetra; u DEGIRO ETF Selection burza Tradegate): poplatek za nákup + směna CZK→EUR podle ceníků ověřených ${cenikyOverenyStr}. Za rok = 12 nákupů. IBKR: levnější ze dvou cest směny – automaticky u každého nákupu (0,03 %), nebo jednou ručně celou roční částku (0,002 %, min. 2 USD). DEGIRO: ETF Selection za 1 EUR bez poplatku za burzu, ostatní ETF 3 EUR + až 2,5 EUR ročně za burzu; u obou až 2,5 EUR ročně za CNX (podle hodnoty účtu).`}>Jak počítáme</InfoTip>
         </p>
       </div>
     </div>
