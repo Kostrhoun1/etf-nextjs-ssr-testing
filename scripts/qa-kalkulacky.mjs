@@ -32,8 +32,11 @@
  * kazil měření návštěvnosti. Exit 1 = aspoň jedna chyba.
  */
 import { webkit, chromium, devices } from 'playwright';
+import { vytvorRezim } from './lib/cil.mjs';
 
 const BASE = (process.argv[2] || process.env.BASE_URL || 'http://localhost:3106').replace(/\/$/, '');
+/** ISR (scripts/lib/cil.mjs): kdyby se test pustil proti produkci, Next.js prefetch detailů mimo pevnou sadu se zablokuje. */
+const REZIM = vytvorRezim(BASE, 'qa-kalkulacky');
 const PROHLIZECE = process.env.PROHLIZEC === 'chromium' ? [['chromium', chromium]]
   : process.env.PROHLIZEC === 'webkit' ? [['webkit', webkit]]
     : [['webkit', webkit], ['chromium', chromium]];
@@ -415,6 +418,7 @@ for (const [jmeno, typ] of PROHLIZECE) {
   const ctx = await browser.newContext({ ...devices['iPhone 13'], viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: typ !== webkit ? true : undefined, locale: 'cs-CZ' });
   // Analytiku NIKDY nepouštět – test by kazil měření návštěvnosti (blokace v KAŽDÉM kontextu).
   await ctx.route(/googletagmanager\.com|google-analytics\.com|\/api\/ev(\?|$)/, (r) => r.abort());
+  await REZIM.hlidejKontext(ctx);
   for (const cesta of vyber) {
     let page;
     try {
@@ -436,6 +440,8 @@ for (const [jmeno, typ] of PROHLIZECE) {
   }
   await browser.close();
 }
+if (REZIM.poruseni.length) chyba('ISR pojistka', `kontrola by zapisovala do ISR: ${[...new Set(REZIM.poruseni)].slice(0, 5).join(', ')}`);
 const spatne = vysledky.filter((v) => !v.ok).length;
 console.log(`\n${vysledky.length - spatne}/${vysledky.length} OK`);
+for (const r of REZIM.souhrn()) console.log(r);
 process.exit(spatne ? 1 : 0);

@@ -3,6 +3,9 @@ name: Prod smoke test
 # Kontrola produkce: (1) v prohlížeči reálně klikne na nástroje (chytí klientské bugy),
 # (2) ověří SPRÁVNOST čísel backtestu (chytí bugy typu „DCA se počítá jako výnos").
 # Běží hlavně po deployi (tam bugy vznikají) + 1× denně pojistka. Selhání = notifikace.
+# PRODUKČNÍ REŽIM (23. 10. 2026, scripts/lib/cil.mjs): jen statické stránky; prefetch Next.js na detaily fondů mimo
+# pevnou sadu se blokuje (dřív /srovnani při každém běhu přednačetlo ~11 detailů = ISR zápisy). Opakování po deployi
+# (až 10×) proto nové ISR zápisy nestojí.
 
 on:
   push:

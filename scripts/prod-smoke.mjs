@@ -15,10 +15,17 @@
  *   npm i -D playwright && npx playwright install chromium
  *
  * Exit kód 0 = vše OK, 1 = aspoň jeden problém (vhodné pro cron/alert).
+ *
+ * ISR (rozhodnutí majitele 23. 10. 2026, scripts/lib/cil.mjs): smoke navštěvuje jen statické stránky. Next.js ale
+ * v produkci sám přednačítá (prefetch) viditelné odkazy – /srovnani tak bez kliknutí sáhlo na ~11 detailů fondů,
+ * každý nový = ISR zápis. V produkčním režimu se prefetch detailů/dvojic mimo pevnou sadu blokuje v každém kontextu.
  */
 import { chromium, webkit } from 'playwright';
+import { vytvorRezim } from './lib/cil.mjs';
 
 const BASE = (process.env.BASE_URL || 'https://etfpruvodce.cz').replace(/\/$/, '');
+const R = vytvorRezim(BASE, 'prod-smoke');
+R.hlidejFetch();
 const ERROR_TEXT = /nepodařilo|cyclic|circular structure|Application error|Something went wrong/i;
 
 // Smoke test nesmí kazit měření návštěvnosti: každý kontext Playwrightu by byl v GA nový uživatel (22. 10. 2026).
@@ -85,6 +92,7 @@ async function checkMobilniHledani(browserType, engine) {
   try {
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: engine === 'chromium' });
     await ctx.route(BEZ_MERENI, (r) => r.abort());
+    await R.hlidejKontext(ctx); // ISR: na produkci žádný prefetch/navigace na detail mimo pevnou sadu
     const page = await ctx.newPage();
     page.setDefaultTimeout(30000);
     await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -109,6 +117,7 @@ async function checkMobilniHledani(browserType, engine) {
   const browser = await chromium.launch();
   const kontext = await browser.newContext();
   await kontext.route(BEZ_MERENI, (r) => r.abort());
+  await R.hlidejKontext(kontext); // ISR: na produkci žádný prefetch/navigace na detail mimo pevnou sadu
   const page = await kontext.newPage();
   page.setDefaultTimeout(30000);
   for (const p of ['/', '/backtest', '/srovnani', '/fire', '/dane-z-etf', '/zebricky']) {
@@ -119,10 +128,12 @@ async function checkMobilniHledani(browserType, engine) {
   await checkMobilniHledani(chromium, 'chromium');
   await checkMobilniHledani(webkit, 'webkit');
 
+  if (R.poruseni.length) fail('ISR pojistka', `kontrola by zapisovala do ISR: ${[...new Set(R.poruseni)].slice(0, 5).join(', ')}`);
   const failed = results.filter((r) => !r.ok);
   const stamp = new Date().toISOString();
   console.log(`\n[prod-smoke ${stamp}] ${BASE}`);
   for (const r of results) console.log(`  ${r.ok ? 'OK  ' : 'FAIL'} ${r.name}${r.detail ? ' — ' + r.detail : ''}`);
+  for (const r of R.souhrn()) console.log(`  ${r}`);
   console.log(`\n${failed.length ? '❌ ' + failed.length + ' problém(ů)' : '✅ vše v pořádku'} (${results.length} kontrol)`);
   process.exit(failed.length ? 1 : 0);
 })();

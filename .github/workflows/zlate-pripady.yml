@@ -5,6 +5,8 @@
 # Poplach (selhání → e-mail z GitHub Actions) jen při neshodě v bráně nebo zakázaném textu na stránce nástroje.
 # Známé chyby (dnes_selze = XFAIL), varování a „chyba opravena – odeber příznak“ (XPASS) jsou v přehledu běhu (Summary).
 # Měření (GA, Vercel Analytics, /api/ev) skript blokuje VŽDY – proti produkci nikdy bez blokace.
+# PRODUKČNÍ REŽIM (23. 10. 2026, scripts/lib/cil.mjs): případy otevírají jen statické stránky a 3 předgenerované detaily;
+# prefetch Next.js na detaily/dvojice mimo pevnou sadu se blokuje (každý nový detail = ISR zápis), navigace mimo ni = poplach.
 name: Zlaté případy nástrojů
 
 on:

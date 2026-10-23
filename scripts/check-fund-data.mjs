@@ -16,13 +16,23 @@
  * NENÍ (nehlásit): TER = 0 u fyzických zlatých ETC (Xetra-Gold, EUWAX Gold – poplatek za správu
  * opravdu nemají), výnos −100 % u 3× pákových produktů (umí reálně o vše přijít).
  *
- * SPUŠTĚNÍ:  SUPABASE_KEY=… node scripts/check-fund-data.mjs
+ * SPUŠTĚNÍ:  SUPABASE_KEY=… node scripts/check-fund-data.mjs                         (produkce, pevná sada stránek)
+ *            SUPABASE_KEY=… WEB_URL=http://localhost:3005 node scripts/check-fund-data.mjs   (lokální build, plný rozsah)
+ *
+ * PRODUKCE vs. LOKÁL (rozhodnutí majitele 23. 10. 2026, scripts/lib/cil.mjs, scripts/README.md): proti produkci jen
+ * pevná malá sada dynamických stránek (každý nový detail fondu = ISR zápis). Kontroly, které si fondy vybírají z DB
+ * (top 50, fondy bez výnosů…), na produkci použijí pevného reprezentanta, nebo se přeskočí („jen lokálně“ ve výpisu).
+ * Kontroly dat v DB běží vždy. Plný běh proti lokálnímu buildu dělá CEO před každým nasazením.
  */
 
 import { appendFileSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { vytvorRezim } from './lib/cil.mjs';
 
 const KEY = process.env.SUPABASE_KEY;
 const WEB_URL = process.env.WEB_URL || 'https://etfpruvodce.cz'; // pro test proti lokálnímu buildu
+/** Režim cíle: na produkci jen pevná sada dynamických stránek; fetch na dynamickou stránku mimo ni se neodešle. */
+const R = vytvorRezim(WEB_URL, 'check-fund-data');
+R.hlidejFetch();
 const URL_DB = 'https://nbhwnatadyubiuadfakx.supabase.co/rest/v1/etf_funds';
 const ISIN_CSV = 'https://raw.githubusercontent.com/Kostrhoun1/etf-astro/main/scraper/ISIN.csv';
 if (!KEY) { console.error('❌ Chybí SUPABASE_KEY'); process.exit(1); }
@@ -863,7 +873,8 @@ const main = async () => {
     // 3) INDEX NA STRÁNKÁCH DVOJIC: index_name bývá prázdný řetězec (SPYI) → prázdná buňka „Sledovaný index“.
     try {
       const prazdne = [];
-      for (const par of ['vwce-vs-spyi', 'iusq-vs-spyi', 'vwce-vs-cspx', 'vwce-vs-iwda']) {
+      // Na produkci jen dvojice z pevné sady (iusq-vs-spyi se vykresluje na vyžádání → ISR zápis).
+      for (const par of R.cesty(['vwce-vs-spyi', 'iusq-vs-spyi', 'vwce-vs-cspx', 'vwce-vs-iwda'].map((x) => `/srovnani/${x}`), 'Index na stránkách dvojic (kolo5 B)').map((c) => c.slice('/srovnani/'.length))) {
         const t = await html(`/srovnani/${par}`);
         if (!t) { prazdne.push(`${par}: stránka se nenačetla`); continue; }
         const m = t.match(/Sledovaný index<\/span><\/td><td[^>]*>([^<]*)<\/td><td[^>]*>([^<]*)<\/td>/) || t.match(/>Index<\/td><td[^>]*>([^<]*)<\/td><td[^>]*>([^<]*)<\/td>/);
@@ -917,7 +928,12 @@ const main = async () => {
     try {
       const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json());
       if (!Array.isArray(rows)) throw new Error('API srovnávače nevrátilo data');
-      const top = rows.filter((r) => !r.is_leveraged).sort((a, b) => (b.fund_size_numeric ?? 0) - (a.fund_size_numeric ?? 0)).slice(0, 50);
+      // Lokálně top 50 podle velikosti (mění se s daty → na produkci by každý den sahalo na nové detaily = ISR zápisy);
+      // na produkci pevná sada PROD_DETAILY (scripts/lib/cil.mjs).
+      const top = R.produkce
+        ? rows.filter((r) => R.PROD_DETAILY.includes(r.isin))
+        : rows.filter((r) => !r.is_leveraged).sort((a, b) => (b.fund_size_numeric ?? 0) - (a.fund_size_numeric ?? 0)).slice(0, 50);
+      R.jenLokalne(`Jeden ticker detail × srovnávač: top 50 fondů jen lokálně, na produkci ${top.length} fondů z pevné sady`);
       const jine = [];
       let bezAtributu = 0;
       for (let i = 0; i < top.length; i += 5) {
@@ -1521,6 +1537,7 @@ const main = async () => {
         if (!dvojice.length) chyby.push('/jaky-sp500-etf: žádný odkaz na kurátorské dvojice');
         for (const p of dvojice) {
           if (!povolene.has(p)) chyby.push(`/jaky-sp500-etf: dvojice ${p} není v SITEMAP_PAIRS`);
+          if (!R.povoleno(`/srovnani/${p}`)) { R.jenLokalne(`/jaky-sp500-etf: odkaz na /srovnani/${p} (mimo pevnou sadu) neověřen`); continue; }
           const r = await fetch(`${WEB_URL}/srovnani/${p}`, { redirect: 'manual' });
           if (r.status !== 200) chyby.push(`/srovnani/${p}: HTTP ${r.status}`);
         }
@@ -1777,8 +1794,9 @@ const main = async () => {
       if (!sxr8) throw new Error('detail SXR8 se nenačetl');
       const nasazeno = /data-detail="kolo6"/.test(sxr8);
       const chyby = [];   // → poplach (po nasazení), jinak varování
-      const T = { EUN5: 'IE00B3F81R35', IBC1: 'IE00BGSF1X88', IBCF: 'IE00B3ZW0K18', XEON: 'LU0290358497', BRNT: 'JE00B78CGV99', BITC: 'GB00BLD4ZL17',
-        SGLN: 'IE00B4ND3602', QDVE: 'IE00B3WJKG14', VWRL: 'IE00B3RBWM25', P500: 'IE00B3YCGJ38', VHYL: 'IE00B8GKDB10', EMIM: 'IE00BKM4GZ66', QUEJ: 'LU1753045845' };
+      // Na produkci jen fondy z pevné sady (EUN5, IBCF, QDVE, VWRL, QUEJ jen lokálně – jejich podkontroly se samy přeskočí).
+      const T = R.detailyT({ EUN5: 'IE00B3F81R35', IBC1: 'IE00BGSF1X88', IBCF: 'IE00B3ZW0K18', XEON: 'LU0290358497', BRNT: 'JE00B78CGV99', BITC: 'GB00BLD4ZL17',
+        SGLN: 'IE00B4ND3602', QDVE: 'IE00B3WJKG14', VWRL: 'IE00B3RBWM25', P500: 'IE00B3YCGJ38', VHYL: 'IE00B8GKDB10', EMIM: 'IE00BKM4GZ66', QUEJ: 'LU1753045845' }, 'Detail fondu (kolo 6)');
       const html = { SXR8: sxr8 };
       for (const [tk, isin] of Object.entries(T)) html[tk] = await stranka(isin);
       const nenacteno = Object.entries(html).filter(([, h]) => !h).map(([tk]) => tk);
@@ -1829,7 +1847,9 @@ const main = async () => {
       //    a údaje o zajištění) a stejné zajištění. Dřív holé .eq(index_name) – EMIM (IMI) by ukázal MSCI EM standard.
       const velke = await fetch(`${URL_DB}?select=isin,name,index_name&is_leveraged=not.is.true&fund_size_numeric=not.is.null&order=fund_size_numeric.desc&limit=20`, hlav).then((x) => x.json());
       const spatnePodobne = [];
-      for (const f of [...velke, ...db.filter((x) => ['IE00B3ZW0K18', 'IE00BKM4GZ66', 'IE00B8GKDB10'].includes(x.isin))]) {
+      // 20 největších se mění s daty → na produkci jen ty z pevné sady.
+      const velkeVyber = new Set(R.detaily(velke.map((x) => x.isin), 'Podobné fondy (kolo 6): 20 největších fondů'));
+      for (const f of [...velke.filter((x) => velkeVyber.has(x.isin)), ...db.filter((x) => ['IE00B3ZW0K18', 'IE00BKM4GZ66', 'IE00B8GKDB10'].includes(x.isin))]) {
         const h = html[Object.keys(T).find((k) => T[k] === f.isin)] || await stranka(f.isin);
         const isiny = [...sekce(h, 'podobne-fondy').matchAll(/href="\/etf\/([A-Z]{2}[A-Z0-9]{10})"/g)].map((m) => m[1]);
         if (!isiny.length) continue;
@@ -1845,7 +1865,8 @@ const main = async () => {
       // 7) Nový fond (< 1 rok, bez výnosu za rok): jedna věta „Fond vznikl …“ místo stěny pomlček.
       const mlade = await fetch(`${URL_DB}?select=isin,name,inception_date,return_1y&return_1y=is.null&fund_size_numeric=gte.500&is_leveraged=not.is.true&scraping_date=gte.${new Date(Date.now() - 5 * 864e5).toISOString().slice(0, 10)}&order=fund_size_numeric.desc&limit=200`, hlav).then((x) => x.json());
       const novy = mlade.find((x) => { const d = Date.parse(x.inception_date); return Number.isFinite(d) && Date.now() - d < 330 * 864e5 && Date.now() - d > 20 * 864e5; });
-      if (novy) {
+      if (novy && !R.povoleno(`/etf/${novy.isin}`)) R.jenLokalne(`Nový fond „Fond vznikl …“ (kolo 6): ${novy.isin} vybraný z DB`);
+      else if (novy) {
         const h = await stranka(novy.isin);
         if (h && !/data-novy-fond/.test(h)) chyby.push(`${novy.isin} (vznik ${novy.inception_date}): nový fond bez věty „Fond vznikl …“`);
       }
@@ -1960,7 +1981,7 @@ const main = async () => {
           } catch { /* hledání nedostupné – hlásí jiné kontroly */ }
         }
         // e) detail fondu (původní pravidlo – pojistka)
-        for (const o of odlehle.slice(0, 3)) {
+        for (const o of odlehle.slice(0, 3).filter((x) => R.detaily([x.isin], 'Kolo 6b (e): detail fondu s odlehlým výnosem').length)) {
           const h = await vem(`/etf/${o.isin}`);
           if (h && !/Výnosy za období neukazujeme/.test(text(h))) chyby.push(`detail ${o.isin}: výnos mimo trh bez vysvětlení „Výnosy za období neukazujeme“`);
         }
@@ -1983,7 +2004,7 @@ const main = async () => {
       }
 
       // 3a) XETRA: FAQ „na XETRA se obchoduje v X“ a řádek „Burza XETRA“ jen když to DB opravdu má.
-      const T = { SXR8: 'IE00B5BMR087', VWRL: 'IE00B3RBWM25', VALL: 'IE000VAHT5T0', IBC1: 'IE00BGSF1X88', EMIM: 'IE00BKM4GZ66', P500: 'IE00B3YCGJ38', QUEJ: 'LU1753045845' };
+      const T = R.detailyT({ SXR8: 'IE00B5BMR087', VWRL: 'IE00B3RBWM25', VALL: 'IE000VAHT5T0', IBC1: 'IE00BGSF1X88', EMIM: 'IE00BKM4GZ66', P500: 'IE00B3YCGJ38', QUEJ: 'LU1753045845' }, 'Kolo 6b: XETRA a odkaz na žebříček (VWRL, VALL, QUEJ)');
       const dbx = await fetch(`${URL_DB}?select=isin,fund_currency,${Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_name,exchange_${i + 1}_ticker,exchange_${i + 1}_currency`).join(',')}&isin=in.(${Object.values(T).join(',')})`, hlav).then((x) => x.json());
       const html = { SXR8: sxr8 };
       for (const [tk, isin] of Object.entries(T)) if (!html[tk]) html[tk] = await vem(`/etf/${isin}`);
@@ -2067,7 +2088,8 @@ const main = async () => {
       {
         const { html: hlava } = await vem('/etf/IE00B5BMR087');
         if (/<meta name="googlebot" content="[^"]*noindex/.test(hlava)) chyby.push('detail SXR8 (hlava) má googlebot noindex – experiment indexace porušen');
-        const maly = await fetch(`${URL_DB}?select=isin&fund_size_numeric=lt.50&fund_size_numeric=gt.0&is_leveraged=not.is.true&name=not.is.null&order=fund_size_numeric.desc&limit=1`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((x) => x.json()).catch(() => []);
+        // Lokálně největší z malých fondů (mění se s daty); na produkci malý fond z pevné sady (stejná podmínka v DB).
+        const maly = await fetch(`${URL_DB}?select=isin&fund_size_numeric=lt.50&fund_size_numeric=gt.0&is_leveraged=not.is.true&name=not.is.null${R.produkce ? `&isin=in.(${R.PROD_DETAILY.join(',')})` : ''}&order=fund_size_numeric.desc&limit=1`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((x) => x.json()).catch(() => []);
         if (maly[0]) {
           const { html: ocas } = await vem(`/etf/${maly[0].isin}`);
           if (ocas && !/<meta name="googlebot" content="noindex, follow"/.test(ocas)) chyby.push(`detail ${maly[0].isin} (ocas) nemá googlebot noindex, follow`);
@@ -2090,7 +2112,9 @@ const main = async () => {
       const velka = await vem('/srovnani/VWCE-vs-IWDA', { redirect: 'manual' });
       if (velka.status !== 301 || !/\/srovnani\/vwce-vs-iwda$/.test(velka.loc)) chyby.push(`/srovnani/VWCE-vs-IWDA → ${velka.status} ${velka.loc} (má být 301 na malá písmena)`);
       const odkazyNaDvojice = new Set();
-      for (const [slug, [i1, i2]] of Object.entries(kur)) {
+      // Na produkci jen kurátorské dvojice z pevné sady (hlavní + vwce-vs-eunl); aliasy a „osiřelé“ jen lokálně.
+      const kurVyber = R.cesty(Object.keys(kur).map((x) => `/srovnani/${x}`), 'Kurátorské dvojice (kolo6 seo): aliasy').map((c) => c.slice('/srovnani/'.length));
+      for (const [slug, [i1, i2]] of Object.entries(kur).filter(([x]) => kurVyber.includes(x))) {
         const { status, html: h } = await vem(`/srovnani/${slug}`);
         if (status !== 200) { chyby.push(`/srovnani/${slug} → HTTP ${status}`); continue; }
         const cil = aliasy[slug] ?? slug;
@@ -2102,11 +2126,15 @@ const main = async () => {
         if (kur[slug][0] === kur[slug][1] && (!/data-stejny-fond/.test(h) || !/Data k \d/.test(h) || !/BreadcrumbList/.test(h))) chyby.push(`/srovnani/${slug} (stejný fond): chybí datum, drobečky nebo věta o stejném ISINu`);
       }
       const osirele = hlavni.filter((s) => !odkazyNaDvojice.has(s));
-      if (osirele.length) chyby.push(`Kurátorské dvojice bez interního odkazu z ostatních dvojic: ${osirele.join(', ')}`);
-      const mimo = await vem('/srovnani/eunl-vs-spyl');
-      if (mimo.status === 200 && !/<meta name="googlebot" content="noindex, follow"/.test(mimo.html)) chyby.push('/srovnani/eunl-vs-spyl (mimo kurátorský seznam) nemá googlebot noindex, follow');
-      const mimoObr = await vem('/srovnani/spyl-vs-eunl', { redirect: 'manual' });
-      if (!PRESMEROVANI.includes(mimoObr.status) || !/\/srovnani\/eunl-vs-spyl$/.test(mimoObr.loc)) chyby.push(`/srovnani/spyl-vs-eunl → ${mimoObr.status} ${mimoObr.loc} (má být trvalé přesměrování na eunl-vs-spyl)`);
+      if (kurVyber.length < Object.keys(kur).length) R.jenLokalne('Kurátorské dvojice bez interního odkazu (potřebuje všechny dvojice včetně aliasů)');
+      else if (osirele.length) chyby.push(`Kurátorské dvojice bez interního odkazu z ostatních dvojic: ${osirele.join(', ')}`);
+      // Nekurátorská dvojice se vykresluje na vyžádání (ISR zápis) a její chování je čistě kód → jen proti lokálnímu buildu.
+      if (R.povoleno('/srovnani/eunl-vs-spyl') && R.povoleno('/srovnani/spyl-vs-eunl')) {
+        const mimo = await vem('/srovnani/eunl-vs-spyl');
+        if (mimo.status === 200 && !/<meta name="googlebot" content="noindex, follow"/.test(mimo.html)) chyby.push('/srovnani/eunl-vs-spyl (mimo kurátorský seznam) nemá googlebot noindex, follow');
+        const mimoObr = await vem('/srovnani/spyl-vs-eunl', { redirect: 'manual' });
+        if (!PRESMEROVANI.includes(mimoObr.status) || !/\/srovnani\/eunl-vs-spyl$/.test(mimoObr.loc)) chyby.push(`/srovnani/spyl-vs-eunl → ${mimoObr.status} ${mimoObr.loc} (má být trvalé přesměrování na eunl-vs-spyl)`);
+      } else R.jenLokalne('Nekurátorská dvojice eunl-vs-spyl: googlebot noindex a přesměrování obráceného pořadí');
 
       // 4) robots.txt: /api/ zakázané, /api/og povolené (náhledy pro sociální sítě); /api/og s X-Robots-Tag noindex.
       const robots = (await vem('/robots.txt')).html;
@@ -2277,7 +2305,10 @@ const main = async () => {
       const jine = sDnem.filter((x) => String(x.returns_as_of).slice(0, 10) !== vetsina && (x.return_1y != null || x.return_ytd != null));
       // Nejdřív známé fondy se zpožděnou řadou, pak ostatní – max. 3 detaily (ISR, ať kontrola nezatěžuje web).
       const ZNAME = ['FR0011550680', 'FR0011871128', 'IE00B4JY5R22', 'XS2427355958'];
-      const vzorek = [...jine.filter((x) => ZNAME.includes(x.isin)), ...jine.filter((x) => !ZNAME.includes(x.isin))].slice(0, 3);
+      // Na produkci jen fondy z pevné sady (ESEA FR0011550680 = známá zpožděná řada); ostatní by byly každý den jiné.
+      const vzorekVse = [...jine.filter((x) => ZNAME.includes(x.isin)), ...jine.filter((x) => !ZNAME.includes(x.isin))];
+      const vzorekProd = new Set(R.detaily(vzorekVse.map((x) => x.isin), 'Kolo 6b (c): den výnosů na detailu fondu s jiným dnem než většina'));
+      const vzorek = vzorekVse.filter((x) => vzorekProd.has(x.isin)).slice(0, 3);
       const spatne = [], nenacteno = [];
       const sxr8 = await fetch(`${WEB_URL}/etf/IE00B5BMR087`).then((r) => (r.ok ? r.text() : '')).catch(() => '');
       const webNasazen = /data-vynosy-k=/.test(sxr8);
@@ -2287,6 +2318,8 @@ const main = async () => {
           if (!html) { nenacteno.push(x.isin); continue; }
           const m = /data-vynosy-k="(\d{4}-\d{2}-\d{2})"/.exec(html);
           // Detail se cachuje (ISR) – smí ukazovat starší den než DB (i čísla jsou pak z té doby), novější ne a bez data nikdy.
+          // Kolo 7: fond se skrytými výnosy (NEOVERENE_VYNOSY → „—“, data-vynos-neovereny) „data k …“ záměrně nemá.
+          if (!m && /data-vynos-neovereny/.test(html)) continue;
           if (!m) spatne.push(`${x.isin}: detail neukazuje den výnosů (DB ${x.returns_as_of}, většina ${vetsina})`);
           else if (m[1] > String(x.returns_as_of).slice(0, 10)) spatne.push(`${x.isin}: detail ukazuje ${m[1]}, DB má výnosy k ${x.returns_as_of}`);
         }
@@ -2329,7 +2362,7 @@ const main = async () => {
       //    Dvojice /srovnani/x-vs-y spravuje jiná část kódu (src/app/srovnani/[pair]) → jen varování.
       const sm = (await vem('/sitemap.xml')).html;
       const cesty = [...sm.matchAll(/<loc>https?:\/\/[^/<]+([^<]*)<\/loc>/g)].map((m) => m[1] || '/');
-      const stranky = cesty.filter((c) => !c.startsWith('/etf/'));
+      const stranky = R.cesty(cesty.filter((c) => !c.startsWith('/etf/')), 'SEO obsah (kolo 6b): stránky ze sitemapy');
       const headIsiny = cesty.filter((c) => c.startsWith('/etf/')).map((c) => c.slice(5));
       const nacteno = new Map();
       for (let i = 0; i < stranky.length; i += 6) {
@@ -2504,7 +2537,7 @@ const main = async () => {
       nasazeno7 = /data-slozeni-k=/.test(detailSxr8.html);
 
       // 4) Fond bez jediného výnosu (BTCW 22. 10. 2026) nemá nad samými „—“ „data k …“ (hero data-vynosy-k).
-      for (const f of bezVynosu) {
+      for (const f of bezVynosu.filter((x) => R.detaily([x.isin], 'Kolo 7 (4): detail fondu bez jediného výnosu (vybraný z DB)').length)) {
         const h = (await vem(`/etf/${f.isin}`)).html;
         if (/data-vynosy-k=/.test(h)) chyby.push(`/etf/${f.isin} (${f.primary_ticker}): fond bez výnosů má „data k …“ nad „—“`);
       }
@@ -2835,7 +2868,7 @@ const main = async () => {
         lastmod: m[1].match(/<lastmod>([^<]*)<\/lastmod>/)?.[1] ?? null,
       }));
       if (polozky.length < 100) throw new Error(`sitemapa má jen ${polozky.length} URL`);
-      const stranky = [...polozky.filter((p) => !p.cesta.startsWith('/etf/')).map((p) => p.cesta), ...polozky.filter((p) => p.cesta.startsWith('/etf/')).slice(0, 3).map((p) => p.cesta)];
+      const stranky = R.cesty([...polozky.filter((p) => !p.cesta.startsWith('/etf/')).map((p) => p.cesta), ...polozky.filter((p) => p.cesta.startsWith('/etf/')).slice(0, 3).map((p) => p.cesta)], 'SEO (kolo 7): stránky ze sitemapy + 3 detaily z hlavy');
       const nacteno = new Map();
       for (let i = 0; i < stranky.length; i += 6) await Promise.all(stranky.slice(i, i + 6).map(async (c) => nacteno.set(c, await vem(c))));
       const H = (c) => nacteno.get(c)?.html ?? '';
@@ -2858,8 +2891,9 @@ const main = async () => {
         if (m) { if (!isiny.has(m[1])) chyby.push(`JSON-LD: ${u} – fond není v DB (z ${z.slice(0, 2).join(', ')})`); continue; }
         if (!u.startsWith('/api/og')) overit.push(u); // OG obrázky se generují – neověřujeme (CPU)
       }
-      for (let i = 0; i < overit.length; i += 6) {
-        await Promise.all(overit.slice(i, i + 6).map(async (u) => {
+      const overitVyber = R.cesty(overit, 'SEO (kolo 7): odkazy z JSON-LD');
+      for (let i = 0; i < overitVyber.length; i += 6) {
+        await Promise.all(overitVyber.slice(i, i + 6).map(async (u) => {
           const r = nacteno.get(u) ?? await vem(u);
           if (r.status !== 200) chyby.push(`JSON-LD: ${u} → HTTP ${r.status}${r.loc ? ` → ${r.loc}` : ''} (z ${cile.get(u).slice(0, 2).join(', ')})`);
         }));
@@ -3079,7 +3113,7 @@ const main = async () => {
 
       // (c) DETAIL FONDU ──────────────────────────────────────────────────────────────────────────────────
       // „Další fondy na index“: číslo fondu s jiným dnem výnosů než fond stránky → data-podobny-vynosy-k.
-      for (const isin of ['GB00BLD4ZL17', 'XS2940466316', 'FR0011550680', 'IE00B5BMR087']) {
+      for (const isin of R.detaily(['GB00BLD4ZL17', 'XS2940466316', 'FR0011550680', 'IE00B5BMR087'], 'Kolo 7 (c): „Další fondy na index“ s jiným dnem výnosů')) {
         const h = await vem(`/etf/${isin}`);
         if (!h) { upozorneni.push(`/etf/${isin} se nenačetl`); continue; }
         const denStranky = h.match(/data-vynosy-k="(\d{4}-\d{2}-\d{2})"/)?.[1];
@@ -3274,7 +3308,10 @@ const main = async () => {
     // C) detail fondů z NEOVERENE_VYNOSY: důvod „Výnosy za období neukazujeme“ (vzorek 6 – každý druh + USAC)
     try {
       const seznam8 = [...readFileSync('src/lib/vynosNeovereny.ts', 'utf8').matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '([^']*)', druh: '(\w+)'/g)].map((m) => ({ isin: m[1], ticker: m[2], druh: m[3] }));
-      const vzorek = [...new Map(seznam8.map((z) => [z.druh, z])).values(), ...seznam8.filter((z) => z.ticker === 'USAC')];
+      // Lokálně vzorek každého druhu + USAC; na produkci jen fondy z pevné sady (HASH, druh skok).
+      const vzorekVse = [...new Map(seznam8.map((z) => [z.druh, z])).values(), ...seznam8.filter((z) => z.ticker === 'USAC')];
+      const vzorek = R.produkce ? seznam8.filter((z) => R.PROD_DETAILY.includes(z.isin)) : vzorekVse;
+      if (R.produkce) R.jenLokalne(`Kolo 8 C: detail neověřených výnosů – vzorek každého druhu jen lokálně, na produkci ${vzorek.map((z) => z.ticker).join(', ') || 'nic'}`);
       const chybi = [];
       for (const z of vzorek) {
         const t = text8(await html8(`/etf/${z.isin}`));
@@ -3723,7 +3760,9 @@ const main = async () => {
 
   // ── výstup ──
   const souhrn = `${n} fondů · čerstvých za 3 dny ${(100 * cerstve / n).toFixed(0)} % · starších 30 dní ${(100 * stare30.length / n).toFixed(1)} %`;
-  const radky = [`# Kontrola dat fondů`, '', souhrn, ''];
+  // Pojistka ISR (scripts/lib/cil.mjs): pokus o dynamickou stránku mimo pevnou sadu = poplach (požadavek neodešel).
+  if (R.poruseni.length) poplach.push({ co: `Kontrola by na produkci zapisovala do ISR: ${R.poruseni.length} požadavků na detail fondu / dvojici mimo pevnou sadu (neodeslány) – použij reprezentanta z PROD_DETAILY nebo R.jenLokalne() (scripts/lib/cil.mjs)`, ukazka: [...new Set(R.poruseni)].slice(0, 10) });
+  const radky = [`# Kontrola dat fondů`, '', souhrn, '', ...R.souhrn().map((r) => (r.startsWith('  - ') ? r : `_${r}_`)), ''];
   radky.push(poplach.length ? `## 🚨 POPLACH (${poplach.length})` : '## ✅ Žádný poplach – přísun dat funguje');
   for (const p of poplach) radky.push(`- **${p.co}**`, ...p.ukazka.map((u) => `  - \`${u}\``));
   radky.push('', `## ⚠️ Varování (${varovani.length}) – známé nedostatky kvality`);
