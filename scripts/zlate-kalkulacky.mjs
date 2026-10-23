@@ -33,8 +33,13 @@
  *   VYSTUP_JSON=vysledky.json …                           (uloží podrobné výsledky)
  * Měření (GA, Vercel Analytics/Speed Insights, /api/ev) se VŽDY blokuje – test nesmí kazit statistiky návštěvnosti.
  * POST /api/backtest/simulate nejvýš MAX_API (25) přímých volání za běh (free tier Vercelu: CPU).
+ * ISR (rozhodnutí majitele 23. 10. 2026, scripts/lib/cil.mjs): případy otevírají jen statické stránky a předgenerované
+ * detaily (3 ISINy). Next.js v produkci ale sám přednačítá viditelné odkazy na detaily fondů (kvíz, náklady…) – každý
+ * nový = ISR zápis. V produkčním režimu se prefetch detailů/dvojic mimo pevnou sadu v každém kontextu blokuje
+ * a navigace mimo ni je poplach („kontrola by zapisovala do ISR“).
  */
 import { chromium, webkit, devices } from 'playwright';
+import { vytvorRezim } from './lib/cil.mjs';
 import { readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -43,6 +48,9 @@ const ADRESAR = path.dirname(fileURLToPath(import.meta.url));
 const BASE = (process.argv[2] || process.env.BASE_URL || 'https://etfpruvodce.cz').replace(/\/$/, '');
 /** Běží test proti ostrému webu? (dnes_selze.opraveno: produkce = XFAIL/XPASS, jinde přísně) */
 const PRODUKCE = /(^|\.)etfpruvodce\.cz$/.test(new URL(BASE).hostname);
+/** ISR režim (scripts/lib/cil.mjs): na produkci jen pevná sada dynamických stránek (NUTIT_PRODUKCNI_REZIM=1 = zkouška proti lokálu). */
+const REZIM = vytvorRezim(BASE, 'zlate-kalkulacky');
+REZIM.hlidejFetch();
 const JEN = process.env.JEN ? process.env.JEN.split(',').map((s) => s.trim()).filter(Boolean) : null;
 const PROHLIZECE = (process.env.PROHLIZECE || 'chromium,webkit').split(',').map((s) => s.trim());
 const MAX_API = Number(process.env.MAX_API || 25);
@@ -1520,6 +1528,7 @@ async function behProhlizece(nazev) {
   const novyKontext = async () => {
     const ctx = await browser.newContext(nastaveni);
     await ctx.route(MERENI, (r) => r.abort()); // NIKDY neměřit (GA, Vercel Analytics, /api/ev)
+    await REZIM.hlidejKontext(ctx); // ISR: na produkci žádný prefetch/navigace na detail fondu / dvojici mimo pevnou sadu
     await ctx.addInitScript(() => { try { localStorage.clear(); sessionStorage.clear(); } catch { /* bez úložiště */ } });
     return ctx;
   };
@@ -1618,13 +1627,13 @@ const pocty = {};
 for (const v of vysledky) pocty[v.stav] = (pocty[v.stav] || 0) + 1;
 const selhalo = vysledky.filter((v) => v.stav === 'SELHALO');
 const xpass = vysledky.filter((v) => v.stav === 'XPASS');
-const poplach = selhalo.length > 0 || zakazaneNalezy.length > 0;
+const poplach = selhalo.length > 0 || zakazaneNalezy.length > 0 || REZIM.poruseni.length > 0;
 const bunkaMd = (s) => String(s ?? '—').replace(/\|/g, '\\|').replace(/\n/g, ' ').slice(0, 160);
 
 const md = [];
 md.push(`## Zlaté případy nástrojů – ${poplach ? '❌ POPLACH' : '✅ bez poplachu'}`);
 md.push(`${BASE} · ${zacatek.toISOString().slice(0, 16).replace('T', ' ')} UTC · zlaté případy k ${DATA.meta.data_k} · přímých volání API backtestu ${apiVolani}/${MAX_API}${preskoceneProhlizece.length ? ` · ⚠️ nespuštěno: ${preskoceneProhlizece.join(', ')}` : ''}`);
-md.push('');
+md.push('', ...REZIM.souhrn().map((r) => (r.startsWith('  - ') ? r : `_${r}_`)), '');
 md.push(`| Stav | Počet |\n|---|---|\n${['OK', 'SELHALO', 'XFAIL', 'XPASS', 'VAROVÁNÍ', 'NEOVĚŘENO'].map((s) => `| ${s} | ${pocty[s] || 0} |`).join('\n')}\n| zakázané texty / JS chyby (poplach) | ${zakazaneNalezy.length} |\n| známé zakázané texty (XFAIL) | ${znameNalezy.length} |`);
 if (selhalo.length) {
   md.push('\n### ❌ Selhalo (poplach)\n| Případ | Prohlížeč | Klíč | Čekáno | Na webu | Tolerance |\n|---|---|---|---|---|---|');
@@ -1668,6 +1677,6 @@ if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMM
 if (process.env.VYSTUP_JSON) writeFileSync(process.env.VYSTUP_JSON, JSON.stringify({ base: BASE, cas: zacatek.toISOString(), pocty, apiVolani, zakazaneNalezy, vysledky }, null, 1));
 if (xpass.length && process.env.GITHUB_ACTIONS) console.log(`::warning::${xpass.length} případů s dnes_selze nečekaně prošlo – po ověření na produkci odeber příznak.`);
 if (poplach) {
-  if (process.env.GITHUB_ACTIONS) console.log(`::error::Zlaté případy: ${selhalo.length} selhalo, ${zakazaneNalezy.length} zakázaných textů/JS chyb.`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::error::Zlaté případy: ${selhalo.length} selhalo, ${zakazaneNalezy.length} zakázaných textů/JS chyb${REZIM.poruseni.length ? `, ${REZIM.poruseni.length} požadavků mimo pevnou sadu (ISR)` : ''}.`);
   process.exit(1);
 }

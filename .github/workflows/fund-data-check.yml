@@ -3,6 +3,11 @@
 #
 # Poplach (selhání → e-mail) jen když se rozbije přísun dat. Varování o známých nedostatcích
 # kvality se objeví v přehledu běhu (Summary), e-mail neposílají.
+#
+# PRODUKČNÍ REŽIM (rozhodnutí majitele 23. 10. 2026, scripts/lib/cil.mjs, scripts/README.md): proti produkci jen
+# pevná sada 30 dynamických stránek (detaily fondů / dvojice) – každý nový detail = ISR zápis na Vercelu. Kontroly,
+# které si fondy vybírají z DB, se tu přeskočí („Jen lokálně“ v Summary); plný běh proti lokálnímu buildu dělá CEO
+# před každým nasazením. Požadavek mimo pevnou sadu = poplach „kontrola by zapisovala do ISR“.
 name: Kontrola dat fondů
 
 on:
@@ -16,6 +21,7 @@ jobs:
     runs-on: ubuntu-24.04  # zafixováno 1.10.2026: ubuntu-latest od 19.10. přechází na Ubuntu 26 – přejít vědomě a otestovaně
     env:
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      WEB_URL: https://etfpruvodce.cz  # → produkční režim (pevná sada stránek)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
