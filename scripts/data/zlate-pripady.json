@@ -47,7 +47,8 @@
   },
   "celkem": 185,
   "vyrazeno": 2,
-  "test": "scripts/zlate-kalkulacky.mjs (denně .github/workflows/zlate-pripady.yml)"
+  "test": "scripts/zlate-kalkulacky.mjs (denně .github/workflows/zlate-pripady.yml)",
+  "upraveno": "23. 10. 2026: po opravách auditu (bc8ea6b) – N2 tolerance investiční ±500 Kč, osobni-02 a osobni-06 (zaokrouhlení, doplatek), Monte Carlo fire-11 až fire-16 s předpoklady z historie ETF (V3). Příznaky dnes_selze ponechány – na produkci platí do nasazení."
  },
  "pripady": [
   {
@@ -72,9 +73,10 @@
     "podíl výnosu (%)": 56
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -102,9 +104,10 @@
     "podíl výnosu (%)": 4
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -132,9 +135,10 @@
     "podíl výnosu (%)": 100
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -162,9 +166,10 @@
     "podíl výnosu (%)": 0
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -192,9 +197,10 @@
     "podíl výnosu (%)": 38
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -222,9 +228,10 @@
     "podíl výnosu (%)": 70
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -252,9 +259,10 @@
     "podíl výnosu (%)": 8
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -282,9 +290,10 @@
     "podíl výnosu (%)": 96
    },
    "tolerance": {
-    "Kč": 1,
+    "Kč": 500,
     "dnešní ceny": 1000,
-    "%": 1
+    "%": 1,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
@@ -478,7 +487,8 @@
     "Modelový rozdíl / 30 let": 4416696
    },
    "tolerance": {
-    "Kč": 1
+    "Kč": 500,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Stejný nezávislý přepočet jako výchozí případ kalkulačky.",
    "vstupy_doplnil": "vedoucí auditu (statická stránka, vstupy z obsahu)",
@@ -502,8 +512,9 @@
     "za 30 let": 1169453
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč"
+    "Kč": 500,
+    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč",
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity PMT·((1+i)^n−1)/i, i=1,07^(1/12)−1 (Python model.py).",
    "zavisi_na_datu": false
@@ -526,8 +537,9 @@
     "za 30 let": 3508358
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč"
+    "Kč": 500,
+    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč",
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity PMT·((1+i)^n−1)/i, i=1,07^(1/12)−1 (Python model.py).",
    "zavisi_na_datu": false
@@ -550,8 +562,9 @@
     "za 30 let": 5847263
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč"
+    "Kč": 500,
+    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč",
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity PMT·((1+i)^n−1)/i, i=1,07^(1/12)−1 (Python model.py).",
    "zavisi_na_datu": false
@@ -574,8 +587,9 @@
     "za 30 let": 11694526
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč"
+    "Kč": 500,
+    "nad 1 mil.": "zobrazeno X,XX mil. → tolerance 5 000 Kč",
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity PMT·((1+i)^n−1)/i, i=1,07^(1/12)−1 (Python model.py).",
    "zavisi_na_datu": false
@@ -598,7 +612,8 @@
     "násobek 10 vs 30 let (zaokr.)": 7
    },
    "tolerance": {
-    "Kč": 1
+    "Kč": 500,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "Inverze FV obyčejné anuity (model.py).",
    "zavisi_na_datu": false
@@ -644,8 +659,9 @@
     "vloženo od narození": 108000
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": 5000
+    "Kč": 500,
+    "nad 1 mil.": 5000,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity (model.py).",
    "zavisi_na_datu": false
@@ -668,8 +684,9 @@
     "vloženo od narození": 216000
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": 5000
+    "Kč": 500,
+    "nad 1 mil.": 5000,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity (model.py).",
    "zavisi_na_datu": false
@@ -692,8 +709,9 @@
     "vloženo od narození": 432000
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": 5000
+    "Kč": 500,
+    "nad 1 mil.": 5000,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity (model.py).",
    "zavisi_na_datu": false
@@ -716,8 +734,9 @@
     "vloženo od narození": 648000
    },
    "tolerance": {
-    "Kč": 1,
-    "nad 1 mil.": 5000
+    "Kč": 500,
+    "nad 1 mil.": 5000,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity (model.py).",
    "zavisi_na_datu": false
@@ -739,7 +758,8 @@
     "text NESMÍ tvrdit": "ani ne třetina"
    },
    "tolerance": {
-    "Kč": 1
+    "Kč": 500,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné anuity; 148 291 / 420 918 = 35,2 % > 1/3 → věta „ani ne třetina výsledku“ je nepravdivá (stav 22. 10. 2026 lokálně i na produkci).",
    "zavisi_na_datu": false,
@@ -768,7 +788,8 @@
     "vratka 23 % z 48 000": 11040
    },
    "tolerance": {
-    "Kč": 1
+    "Kč": 500,
+    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné roční anuity 7200·(1,07^n−1)/0,07; limit 48 000 Kč § 15 odst. 6 ZDP (2026).",
    "zavisi_na_datu": false
@@ -1462,24 +1483,28 @@
     "scenaru": 600
    },
    "ocekavano": {
-    "sance_pct": 45,
-    "p5": 1617000,
-    "median": 2826000,
-    "p95": 5332000,
+    "p5": 1608685,
+    "median": 2714818,
+    "p95": 4768609,
+    "sance_pct": 38.2,
     "vlozeno": 1300000
    },
    "tolerance": {
     "presne": 0,
     "statisticky": {
-     "p5": 133000,
-     "median": 145000,
-     "p95": 525000,
-     "sance_pct": 6
+     "p5": 126000.0,
+     "median": 145000.0,
+     "p95": 466000.0,
+     "sance_pct": 6.0
     }
    },
-   "zdroj_overeni": "Přesná replika (presna_replika_mc.py) shodná na tisíce Kč; nezávislý numpy model 200 000 simulací: p5 1 655 000, medián 2 848 000, p95 5 124 000, šance 44,0 % (±3 sd při 600 sim.).",
+   "zdroj_overeni": "Nezávislý numpy model (200 000 cest, scratchpad mc_numpy.py): měsíční log výnos ~ N(ln(1+r)/12, σ/√12), korelace Choleského rozkladem, vklad na začátku měsíce; předpoklady = MC_PREDPOKLADY (src/lib/monteCarloPredpoklady.ts, ověřené proti Yahoo skriptem scripts/monte-carlo-predpoklady.mjs). Tolerance = 3 sm. odchylky odhadu percentilu při daném počtu scénářů (400 opakovaných výběrů). Kontrola modelu: fire-11 vychází 1,61 / 2,71 / 4,76 mil., šance 38 % – shodně s nezávislým modelem opravářů (1 608 685 / 2 714 818 / 4 768 609, 38,2 %). Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu)",
    "zavisi_na_datu": false,
-   "poznamka_vedouciho": "Branou je statistická tolerance z nezávislého modelu (200 000 simulací). Přesná shoda (seed) je jen regresní varování – vychází z repliky kódu webu."
+   "poznamka_vedouciho": "Branou je statistická tolerance (3σ). Seed webu se nezkoumá – přesná shoda se nepožaduje.",
+   "dnes_selze": {
+    "chyba": "V3 Monte Carlo – nové předpoklady z historie ETF (opraveno v bc8ea6b, čeká na nasazení)",
+    "kde": "produkce + build :3005 do nasazení"
+   }
   },
   {
    "id": "fire-12",
@@ -1496,23 +1521,24 @@
     "scenaru": 1000
    },
    "ocekavano": {
-    "sance_pct": 73,
-    "p5": 5172000,
-    "median": 14587000,
-    "p95": 50446000,
+    "p5": 5531694,
+    "median": 15081676,
+    "p95": 45820043,
+    "sance_pct": 74.3,
     "vlozeno": 3600000
    },
    "tolerance": {
     "presne": 0,
     "statisticky": {
-     "median": 1200000,
-     "p95": 7000000,
-     "sance_pct": 5
+     "p5": 616000.0,
+     "median": 1186000.0,
+     "p95": 6544000.0,
+     "sance_pct": 4.2
     }
    },
-   "zdroj_overeni": "Přesná replika; numpy 200k: p5 5 200 000, medián 14 767 000, p95 47 420 000, šance 72,1 %.",
+   "zdroj_overeni": "Nezávislý numpy model (200 000 cest, scratchpad mc_numpy.py): měsíční log výnos ~ N(ln(1+r)/12, σ/√12), korelace Choleského rozkladem, vklad na začátku měsíce; předpoklady = MC_PREDPOKLADY (src/lib/monteCarloPredpoklady.ts, ověřené proti Yahoo skriptem scripts/monte-carlo-predpoklady.mjs). Tolerance = 3 sm. odchylky odhadu percentilu při daném počtu scénářů (400 opakovaných výběrů). Kontrola modelu: fire-11 vychází 1,61 / 2,71 / 4,76 mil., šance 38 % – shodně s nezávislým modelem opravářů (1 608 685 / 2 714 818 / 4 768 609, 38,2 %). Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu)",
    "zavisi_na_datu": false,
-   "poznamka_vedouciho": "Branou je statistická tolerance z nezávislého modelu (200 000 simulací). Přesná shoda (seed) je jen regresní varování – vychází z repliky kódu webu."
+   "poznamka_vedouciho": "Branou je statistická tolerance (3σ). Seed webu se nezkoumá – přesná shoda se nepožaduje. Prochází se starými i novými předpoklady (statistická tolerance je širší než rozdíl) – proto bez dnes_selze."
   },
   {
    "id": "fire-13",
@@ -1530,19 +1556,21 @@
    },
    "ocekavano": {
     "sance": "nezobrazuje se",
-    "p5": 937000,
-    "median": 1064000,
-    "p95": 1191000
+    "p5": 931270,
+    "median": 1051943,
+    "p95": 1188564
    },
    "tolerance": {
     "presne": 0,
     "statisticky": {
-     "median": 35000
+     "p5": 44000.0,
+     "median": 30000.0,
+     "p95": 51000.0
     }
    },
-   "zdroj_overeni": "Přesná replika; numpy 200k: 932 000 / 1 055 000 / 1 195 000.",
+   "zdroj_overeni": "Nezávislý numpy model (200 000 cest, scratchpad mc_numpy.py): měsíční log výnos ~ N(ln(1+r)/12, σ/√12), korelace Choleského rozkladem, vklad na začátku měsíce; předpoklady = MC_PREDPOKLADY (src/lib/monteCarloPredpoklady.ts, ověřené proti Yahoo skriptem scripts/monte-carlo-predpoklady.mjs). Tolerance = 3 sm. odchylky odhadu percentilu při daném počtu scénářů (400 opakovaných výběrů). Kontrola modelu: fire-11 vychází 1,61 / 2,71 / 4,76 mil., šance 38 % – shodně s nezávislým modelem opravářů (1 608 685 / 2 714 818 / 4 768 609, 38,2 %). Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu)",
    "zavisi_na_datu": false,
-   "poznamka_vedouciho": "Branou je statistická tolerance z nezávislého modelu (200 000 simulací). Přesná shoda (seed) je jen regresní varování – vychází z repliky kódu webu."
+   "poznamka_vedouciho": "Branou je statistická tolerance (3σ). Seed webu se nezkoumá – přesná shoda se nepožaduje. Prochází se starými i novými předpoklady (statistická tolerance je širší než rozdíl) – proto bez dnes_selze."
   },
   {
    "id": "fire-14",
@@ -1559,23 +1587,28 @@
     "scenaru": 600
    },
    "ocekavano": {
-    "sance_pct": 98,
-    "p5": 5957000,
-    "median": 13341000,
-    "p95": 28538000,
+    "p5": 7822488,
+    "median": 16787388,
+    "p95": 37172610,
+    "sance_pct": 99.6,
     "vlozeno": 1700000
    },
    "tolerance": {
     "presne": 0,
     "statisticky": {
-     "p5": 740000,
-     "median": 850000,
-     "sance_pct": 2
+     "p5": 912000.0,
+     "median": 1247000.0,
+     "p95": 4620000.0,
+     "sance_pct": 2.0
     }
    },
-   "zdroj_overeni": "Přesná replika; numpy 200k: 6 372 000 / 13 347 000 / 28 917 000, šance 98,6 %.",
+   "zdroj_overeni": "Nezávislý numpy model (200 000 cest, scratchpad mc_numpy.py): měsíční log výnos ~ N(ln(1+r)/12, σ/√12), korelace Choleského rozkladem, vklad na začátku měsíce; předpoklady = MC_PREDPOKLADY (src/lib/monteCarloPredpoklady.ts, ověřené proti Yahoo skriptem scripts/monte-carlo-predpoklady.mjs). Tolerance = 3 sm. odchylky odhadu percentilu při daném počtu scénářů (400 opakovaných výběrů). Kontrola modelu: fire-11 vychází 1,61 / 2,71 / 4,76 mil., šance 38 % – shodně s nezávislým modelem opravářů (1 608 685 / 2 714 818 / 4 768 609, 38,2 %). Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu)",
    "zavisi_na_datu": false,
-   "poznamka_vedouciho": "Branou je statistická tolerance z nezávislého modelu (200 000 simulací). Přesná shoda (seed) je jen regresní varování – vychází z repliky kódu webu."
+   "poznamka_vedouciho": "Branou je statistická tolerance (3σ). Seed webu se nezkoumá – přesná shoda se nepožaduje.",
+   "dnes_selze": {
+    "chyba": "V3 Monte Carlo – nové předpoklady z historie ETF (opraveno v bc8ea6b, čeká na nasazení)",
+    "kde": "produkce + build :3005 do nasazení"
+   }
   },
   {
    "id": "fire-15",
@@ -1618,21 +1651,23 @@
     "scenaru": 1000
    },
    "ocekavano": {
-    "sance_pct": 56,
-    "p5": 87000,
-    "median": 217000,
-    "p95": 517000
+    "p5": 94987,
+    "median": 219091,
+    "p95": 505082,
+    "sance_pct": 57.1
    },
    "tolerance": {
     "presne": 0,
     "statisticky": {
-     "median": 14000,
-     "sance_pct": 5
+     "p5": 10000.0,
+     "median": 13000.0,
+     "p95": 50000.0,
+     "sance_pct": 4.5
     }
    },
-   "zdroj_overeni": "Přesná replika; numpy 200k: 90 400 / 217 000 / 521 000, šance 56,0 %.",
+   "zdroj_overeni": "Nezávislý numpy model (200 000 cest, scratchpad mc_numpy.py): měsíční log výnos ~ N(ln(1+r)/12, σ/√12), korelace Choleského rozkladem, vklad na začátku měsíce; předpoklady = MC_PREDPOKLADY (src/lib/monteCarloPredpoklady.ts, ověřené proti Yahoo skriptem scripts/monte-carlo-predpoklady.mjs). Tolerance = 3 sm. odchylky odhadu percentilu při daném počtu scénářů (400 opakovaných výběrů). Kontrola modelu: fire-11 vychází 1,61 / 2,71 / 4,76 mil., šance 38 % – shodně s nezávislým modelem opravářů (1 608 685 / 2 714 818 / 4 768 609, 38,2 %). Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu)",
    "zavisi_na_datu": false,
-   "poznamka_vedouciho": "Branou je statistická tolerance z nezávislého modelu (200 000 simulací). Přesná shoda (seed) je jen regresní varování – vychází z repliky kódu webu."
+   "poznamka_vedouciho": "Branou je statistická tolerance (3σ). Seed webu se nezkoumá – přesná shoda se nepožaduje. Prochází se starými i novými předpoklady (statistická tolerance je širší než rozdíl) – proto bez dnes_selze."
   },
   {
    "id": "fire-17",
@@ -3749,15 +3784,16 @@
     "invalidita_1_2": false
    },
    "ocekavano": {
-    "cista_mzda_mesicne": 19012,
-    "socialni_pojisteni": 1590,
+    "cista_mzda_mesicne": 19011,
+    "socialni_pojisteni": 1591,
     "zdravotni_pojisteni": 1008,
     "dan_po_slevach": 790,
     "naklady_zamestnavatele": 29971
    },
-   "tolerance": "±1 Kč (zaokrouhlení zobrazení); se zákonným zaokrouhlením ±25 Kč",
-   "zdroj_overeni": "Nezávislý přepočet skripty/prepocet.py: sazby ČSSZ 2026 (TZ 10. 12. 2025: průměrná mzda 48 967 Kč, max. VZ 2 350 416 Kč), ZDP 586/1992 Sb. §16 (23 % nad 36× PM), §35ba (sleva 30 840 Kč/rok), §35c (15 204/22 320/27 840 Kč), §35d odst. 4 (bonus při příjmu ≥ ½ min. mzdy 11 200 Kč); pojistné 7,1 % / 4,5 %, zaměstnavatel 24,8 % / 9 %. Kotva: 50 000 Kč → 39 270 Kč (businessinfo.cz, nettocalc.com). Bez zákonného zaokrouhlení (rozdíl ≤ 25 Kč).",
-   "zavisi_na_datu": false
+   "tolerance": "±25 Kč (zákonné zaokrouhlení)",
+   "zdroj_overeni": "Nezávislý přepočet skripty/prepocet.py: sazby ČSSZ 2026 (TZ 10. 12. 2025: průměrná mzda 48 967 Kč, max. VZ 2 350 416 Kč), ZDP 586/1992 Sb. §16 (23 % nad 36× PM), §35ba (sleva 30 840 Kč/rok), §35c (15 204/22 320/27 840 Kč), §35d odst. 4 (bonus při příjmu ≥ ½ min. mzdy 11 200 Kč); pojistné 7,1 % / 4,5 %, zaměstnavatel 24,8 % / 9 %. Kotva: 50 000 Kč → 39 270 Kč (businessinfo.cz, nettocalc.com). Bez zákonného zaokrouhlení (rozdíl ≤ 25 Kč). | Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu): se zákonným zaokrouhlením čistá 19 011 Kč (sociální 7,1 % z 22 400 = 1 590,4 → 1 591).",
+   "zavisi_na_datu": false,
+   "tolerance_kc": 25
   },
   {
    "id": "osobni-03",
@@ -3804,7 +3840,11 @@
    },
    "tolerance": "±1 Kč (zaokrouhlení zobrazení); se zákonným zaokrouhlením ±25 Kč",
    "zdroj_overeni": "Nezávislý přepočet skripty/prepocet.py: sazby ČSSZ 2026 (TZ 10. 12. 2025: průměrná mzda 48 967 Kč, max. VZ 2 350 416 Kč), ZDP 586/1992 Sb. §16 (23 % nad 36× PM), §35ba (sleva 30 840 Kč/rok), §35c (15 204/22 320/27 840 Kč), §35d odst. 4 (bonus při příjmu ≥ ½ min. mzdy 11 200 Kč); pojistné 7,1 % / 4,5 %, zaměstnavatel 24,8 % / 9 %. Kotva: 50 000 Kč → 39 270 Kč (businessinfo.cz, nettocalc.com). Bez zákonného zaokrouhlení (rozdíl ≤ 25 Kč).",
-   "zavisi_na_datu": false
+   "zavisi_na_datu": false,
+   "dnes_selze": {
+    "chyba": "strop sociálního pojištění 2 350 416 Kč ročně (kolo 8, 22. 10. 2026) – produkce ze 21. 10. ho nemá",
+    "kde": "jen produkce (do nasazení)"
+   }
   },
   {
    "id": "osobni-05",
@@ -3847,16 +3887,21 @@
     "invalidita_1_2": false
    },
    "ocekavano": {
-    "cista_mzda_mesicne": 13028,
+    "cista_mzda_mesicne": 11515,
     "socialni_pojisteni": 795,
-    "zdravotni_pojisteni": 504,
+    "zdravotni_pojisteni": 2016,
     "dan_po_slevach": 0,
     "naklady_zamestnavatele": 14986,
     "bonus": 3127
    },
-   "tolerance": "±1 Kč (zaokrouhlení zobrazení); se zákonným zaokrouhlením ±25 Kč",
-   "zdroj_overeni": "Nezávislý přepočet skripty/prepocet.py: sazby ČSSZ 2026 (TZ 10. 12. 2025: průměrná mzda 48 967 Kč, max. VZ 2 350 416 Kč), ZDP 586/1992 Sb. §16 (23 % nad 36× PM), §35ba (sleva 30 840 Kč/rok), §35c (15 204/22 320/27 840 Kč), §35d odst. 4 (bonus při příjmu ≥ ½ min. mzdy 11 200 Kč); pojistné 7,1 % / 4,5 %, zaměstnavatel 24,8 % / 9 %. Kotva: 50 000 Kč → 39 270 Kč (businessinfo.cz, nettocalc.com). Bez zákonného zaokrouhlení (rozdíl ≤ 25 Kč).",
-   "zavisi_na_datu": false
+   "tolerance": "±2 Kč (zaokrouhlení doplatku)",
+   "zdroj_overeni": "Nezávislý přepočet skripty/prepocet.py: sazby ČSSZ 2026 (TZ 10. 12. 2025: průměrná mzda 48 967 Kč, max. VZ 2 350 416 Kč), ZDP 586/1992 Sb. §16 (23 % nad 36× PM), §35ba (sleva 30 840 Kč/rok), §35c (15 204/22 320/27 840 Kč), §35d odst. 4 (bonus při příjmu ≥ ½ min. mzdy 11 200 Kč); pojistné 7,1 % / 4,5 %, zaměstnavatel 24,8 % / 9 %. Kotva: 50 000 Kč → 39 270 Kč (businessinfo.cz, nettocalc.com). Bez zákonného zaokrouhlení (rozdíl ≤ 25 Kč). | Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu): bez výjimky doplatek zdravotního pojištění do min. vyměřovacího základu 22 400 Kč (4,5 % × 11 200 + 13,5 % × 11 200 = 504 + 1 512 = 2 016 Kč) → čistá 11 515 Kč; s výjimkou 13 027 Kč.",
+   "zavisi_na_datu": false,
+   "tolerance_kc": 2,
+   "dnes_selze": {
+    "chyba": "S24 doplatek zdravotního pojištění pod minimální mzdou (opraveno v bc8ea6b, čeká na nasazení)",
+    "kde": "produkce + build :3005 do nasazení"
+   }
   },
   {
    "id": "osobni-07",
@@ -3902,7 +3947,11 @@
    },
    "tolerance": "±1 Kč (zaokrouhlení zobrazení); se zákonným zaokrouhlením ±25 Kč",
    "zdroj_overeni": "Nezávislý přepočet skripty/prepocet.py: sazby ČSSZ 2026 (TZ 10. 12. 2025: průměrná mzda 48 967 Kč, max. VZ 2 350 416 Kč), ZDP 586/1992 Sb. §16 (23 % nad 36× PM), §35ba (sleva 30 840 Kč/rok), §35c (15 204/22 320/27 840 Kč), §35d odst. 4 (bonus při příjmu ≥ ½ min. mzdy 11 200 Kč); pojistné 7,1 % / 4,5 %, zaměstnavatel 24,8 % / 9 %. Kotva: 50 000 Kč → 39 270 Kč (businessinfo.cz, nettocalc.com). Bez zákonného zaokrouhlení (rozdíl ≤ 25 Kč).",
-   "zavisi_na_datu": false
+   "zavisi_na_datu": false,
+   "dnes_selze": {
+    "chyba": "strop sociálního pojištění 2 350 416 Kč ročně (kolo 8, 22. 10. 2026) – produkce ze 21. 10. ho nemá",
+    "kde": "jen produkce (do nasazení)"
+   }
   },
   {
    "id": "osobni-09",
@@ -3918,7 +3967,11 @@
    },
    "tolerance": "přesně",
    "zdroj_overeni": "Pravidlo č. 1 + ZAMERNA-ROZHODNUTI.md (kolo 8): prázdné pole = „—“.",
-   "zavisi_na_datu": false
+   "zavisi_na_datu": false,
+   "dnes_selze": {
+    "chyba": "prázdná hrubá mzda → „—“ místo výsledku (kolo 8, 22. 10. 2026) – produkce ze 21. 10. ukazuje 0 Kč a „NaN %“",
+    "kde": "jen produkce (do nasazení)"
+   }
   },
   {
    "id": "osobni-10",

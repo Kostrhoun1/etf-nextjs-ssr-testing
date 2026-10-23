@@ -50,8 +50,14 @@ const ZAKAZANE = /undefined|NaN|Infinity| a lety|\bza [1-4] let\b|splatnosti 1 l
  *  Po opravě a ověření na produkci položku SMAŽ (běh bez nálezu to sám ohlásí jako „odeber“). */
 const ZNAME_TEXTY = [
   { vzor: /^za 1 let$/, stranka: '/kalkulacka', chyba: 'N1 skloňování „za 1 let“ – kalkulačka poplatků (FeeCalculatorWidget), SOUHRN auditu 22. 10. 2026' },
+  { vzor: /^NaN$/, stranka: '/cisty-plat', chyba: 'prázdná hrubá mzda → „NaN % z hrubé“ (oprava „—“ / VysledekChybi, kolo 8, 22. 10. 2026, čeká na nasazení)' },
   { vzor: /^splatnosti 1 let$/, stranka: '/hypotecni-kalkulacka', chyba: 'N1 skloňování „splatnosti 1 let“ – hypoteční kalkulačka (HypotecniKalkulackaWidget), SOUHRN auditu 22. 10. 2026' },
 ];
+/** Známé vady chování polí, které na produkci zůstávají do nasazení opravy (XFAIL místo poplachu).
+ *  Po nasazení a ověření na produkci položku SMAŽ – běh bez nálezu to ohlásí jako „odeber“. */
+const ZNAME_VADY = {
+  nevyprazdnitelnePole: 'číselné pole nejde vyprázdnit (starý <input type="number">; oprava sdílené komponenty CisloInput 22. 10. 2026 čeká na nasazení)',
+};
 /** Kotva ČNB pro přepočet nákladů brokerů při jiném kurzu, než měl zlatý případ. */
 const CNB_URL = 'https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt';
 
@@ -152,7 +158,8 @@ async function otevri(ctx, url) {
   page.on('pageerror', (e) => chyby.push(String(e).slice(0, 200)));
   jsChybyStranky.set(page, chyby);
   page.setDefaultTimeout(20000);
-  await page.goto(BASE + url, { waitUntil: 'load', timeout: 90000 });
+  await page.goto(BASE + url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await page.waitForLoadState('load', { timeout: 20000 }).catch(() => {}); // WebKit občas „load“ nedokončí (zablokované měření)
   await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
   await page.waitForTimeout(400);
   return page;
@@ -177,6 +184,8 @@ async function snimek(page) {
   return s;
 }
 const atribut = (s, jmeno, filtr = () => true) => s.atributy.find((x) => x.a[jmeno] !== undefined && filtr(x))?.a[jmeno];
+/** Text prvku s data-qa (stabilní háček widgetů; null, když ho build ještě nemá). */
+const qa = (s, jmeno) => s.atributy.find((x) => x.a['data-qa'] === jmeno)?.text ?? null;
 
 /** Zakázané texty v aktuálním stavu stránky (celé tělo) → [{ ukazka, znama }]. */
 async function zakazaneTexty(page, url) {
@@ -203,7 +212,14 @@ async function prepis(page, sel, hodnota, { opustit = true } = {}) {
   await el.press('ControlOrMeta+a');
   await el.press('Backspace');
   const prazdne = await el.inputValue();
-  if (prazdne !== '') throw new Error(`pole ${typeof sel === 'string' ? sel : 'pole'} nejde vyprázdnit (zůstalo „${prazdne}“)`);
+  if (prazdne !== '') {
+    // Pole nejde vyprázdnit (starý řízený <input type="number"> – oprava CisloInput 22. 10. 2026). Když je to známá
+    // nenasazená vada (ZNAME_VADY), zapíše se jako XFAIL a hodnota se napíše přes označený obsah, jinak chyba = poplach.
+    const jmeno = typeof sel === 'string' ? sel : 'pole';
+    if (!ZNAME_VADY.nevyprazdnitelnePole || String(hodnota) === '') throw new Error(`pole ${jmeno} nejde vyprázdnit (zůstalo „${prazdne}“)`);
+    page.vady?.push(`pole ${jmeno} nejde vyprázdnit (zůstalo „${prazdne}“)`);
+    await el.press('ControlOrMeta+a');
+  }
   if (String(hodnota) !== '') await el.pressSequentially(String(hodnota), { delay: 15 });
   if (opustit) await el.press('Enter');
   await page.waitForTimeout(150);
@@ -312,11 +328,15 @@ R.investicniKalk = async (p, env) => {
   const s = await snimek(page);
   const o = p.ocekavano, t = p.tolerance;
   const dnes = s.text.match(/V dnešních cenách[^\n]*?zhruba ([\d ]+) Kč/);
-  const podil = s.text.match(/(\d+) % konečné částky tvoří výnos/);
+  // „56 % konečné částky tvoří výnos“; při nulovém výnosu věta chybí → podíl z „Výnos +0 Kč“ / výsledku
+  const podilVeta = s.text.match(/(\d+) % konečné částky tvoří výnos/);
+  const vynosKc = precti(poStitku(s.radky, /^Výnos( po dani)?$/, /^[+−-]?\s?\d/, { max: 1 }));
+  const vysledekKc = precti(qa(s, 'invest-vysledek')) || precti(poStitku(s.radky, /^Za .+ byste měl/, KC));
+  const podil = podilVeta || (vynosKc && vysledekKc?.v ? [null, String(Math.round((vynosKc.v / vysledekKc.v) * 100))] : null);
   return {
     stranky: [page],
     kontroly: [
-      cNum('Za N let byste měli (Kč)', o['Za N let byste měli (Kč)'], precti(poStitku(s.radky, /^Za .+ byste měli$/, KC)), t['Kč']),
+      cNum('Za N let byste měli (Kč)', o['Za N let byste měli (Kč)'], precti(qa(s, 'invest-vysledek')) || precti(poStitku(s.radky, /^Za .+ byste měl/, KC)), t['Kč']),
       cNum('Vloženo (Kč)', o['Vloženo (Kč)'], precti(poStitku(s.radky, /^Vloženo$/, KC)), t['Kč']),
       cNum('V dnešních cenách při 2 % (Kč, na tisíce)', o['V dnešních cenách při 2 % (Kč, na tisíce)'], precti(dnes?.[1]), t['dnešní ceny'], { half: false }),
       cNum('podíl výnosu (%)', o['podíl výnosu (%)'], precti(podil?.[1]), t['%'], { half: false }),
@@ -512,12 +532,12 @@ R.fire = async (p, env) => {
   }
   await page.waitForTimeout(600);
   const s = await snimek(page);
-  const od = Math.max(0, indexRadku(s.radky, /^VÁŠ VÝSLEDEK$/i));
+  const od = Math.max(0, indexRadku(s.radky, /^VÁŠ VÝSLEDEK$/i), indexRadku(s.radky, /^Životní události/));
   const tolVek = typeof p.tolerance === 'object' ? (p.tolerance.vek ?? p.tolerance.vek_presne ?? 0) : p.tolerance;
   const vek = (re, klic) => {
     const i = indexRadku(s.radky, re, od);
     if (i < 0) return null;
-    const hodnota = s.radky[i + 1];
+    const hodnota = norm(qa(s, { kdyz_se_darilo: 'fire-fast', nejcasteji: 'fire-med', kdyz_se_nedarilo: 'fire-slow' }[klic]) ?? s.radky[i + 1]).trim();
     if (/^—/.test(hodnota)) return { raw: `— (${s.radky[i + 2]})`, pomlcka: true };
     return precti(hodnota);
   };
@@ -528,7 +548,7 @@ R.fire = async (p, env) => {
     else k.push(x?.pomlcka ? { klic, ocek: o[klic], skut: x.raw, ok: false, druh: 'hodnota' } : cNum(klic, o[klic], x, tolVek, { half: false }));
   }
   // Karta výsledku, nebo (cíl už splněn / nedosažitelný) věta „Cílová částka podle pravidla 4 % je … Kč; … dává … Kč měsíčně“.
-  const cilova = precti(poStitku(s.radky, /^Cílová částka( \(|$)/, KC, { od, max: 4 })) || precti(s.text.match(/Cílová částka podle pravidla 4 % je ([\d ]+) Kč/)?.[1]);
+  const cilova = precti(poStitku(s.radky, /^Cílová částka( \(|$)/, KC, { od, max: 4 })) || precti(s.text.match(/Cílová částka podle pravidla 4 % je ([\d ]+) Kč/)?.[1]) || precti(s.text.match(/Cílová částka \(\s*pravidlo 4 %\s*\) vychází na ([\d ]+) Kč/)?.[1]);
   const prijem = precti(poStitku(s.radky, /^Měsíční příjem z portfolia$/, KC, { od, max: 1 })) || precti(s.text.match(/dává ([\d ]+) Kč měsíčně/)?.[1]);
   if (o.cilova_castka_kc !== undefined) k.push(cNum('cilova_castka_kc', o.cilova_castka_kc, cilova, p.tolerance?.cilova_castka_kc ?? 0, { half: false }));
   if (o.mesicni_prijem_kc !== undefined) k.push(cNum('mesicni_prijem_kc', o.mesicni_prijem_kc, prijem, p.tolerance?.mesicni_prijem_kc ?? 0, { half: false }));
@@ -550,29 +570,25 @@ R.monteCarlo = async (p, env) => {
   await prepis(page, '#mc-goal', v.cil);
   await posuvnik(page, '#mc-sims', v.scenaru);
   await klikni(page, page.getByRole('button', { name: /Spustit simulaci/ }).first());
-  await cekejNaText(page, /Medián \(50 %\)\s*\n+\s*[\d ]+ Kč/, 30000).catch(() => {});
+  await cekejNaText(page, /Medián \(50 %\)\s*\n+\s*\d[\d ,]*(mil\. )?Kč/, 30000).catch(() => {});
   const s = await snimek(page);
+  // data-qa (nový build) má přednost, text jako záloha. Výsledky jsou zaokrouhlené (2 platné číslice) → polovina kroku k toleranci.
   const hodnoty = {
-    sance_pct: precti(s.text.match(/Šance dosáhnout[^\n]*\n+\s*(\d+) %/)?.[1]),
-    p5: precti(poStitku(s.radky, /^Pesimistický \(5 %\)$/, KC, { max: 2 })),
-    median: precti(poStitku(s.radky, /^Medián \(50 %\)$/, KC, { max: 2 })),
-    p95: precti(poStitku(s.radky, /^Optimistický \(95 %\)$/, KC, { max: 2 })),
+    sance_pct: precti(qa(s, 'mc-sance')) || precti(s.text.match(/Šance dosáhnout[^\n]*\n+\s*(\d+) %/)?.[1]),
+    p5: precti(qa(s, 'mc-p5')) || precti(poStitku(s.radky, /^Pesimistický \(5 %\)$/, KC, { max: 2 })),
+    median: precti(qa(s, 'mc-p50')) || precti(poStitku(s.radky, /^Medián \(50 %\)$/, KC, { max: 2 })),
+    p95: precti(qa(s, 'mc-p95')) || precti(poStitku(s.radky, /^Optimistický \(95 %\)$/, KC, { max: 2 })),
     vlozeno: precti(s.text.match(/[Vv]loženo[^\n]*?([\d ]+) Kč/)?.[1]),
   };
   const k = [];
   const stat = typeof p.tolerance === 'object' ? p.tolerance.statisticky || {} : {};
   for (const [klic, ocek] of Object.entries(o)) {
     if (klic === 'sance') { k.push(cBool('sance', !/Šance dosáhnout/.test(s.text), 'šance se nezobrazuje (cíl 0)')); continue; }
-    if (klic === 'vlozeno' && !hodnoty.vlozeno) { k.push(neovereno(klic, ocek, 'stránka vloženou částku nezobrazuje')); continue; }
+    if (klic === 'vlozeno') { k.push(hodnoty.vlozeno ? cNum(klic, ocek, hodnoty.vlozeno, 0, { half: false }) : neovereno(klic, ocek, 'stránka vloženou částku nezobrazuje')); continue; }
     if (p.tolerance === 0) { k.push(cNum(klic, ocek, hodnoty[klic], 0, { half: false })); continue; }
-    if (stat[klic] !== undefined) {
-      k.push(cNum(klic, ocek, hodnoty[klic], stat[klic], { half: false }));
-      k.push(cNum(`${klic} (přesná shoda se seedem)`, ocek, hodnoty[klic], 0, { half: false, druh: 'varovani' }));
-    } else if (klic === 'vlozeno') {
-      k.push(hodnoty.vlozeno ? cNum(klic, ocek, hodnoty.vlozeno, 0, { half: false }) : neovereno(klic, ocek, 'stránka vloženou částku nezobrazuje'));
-    } else {
-      k.push(cNum(`${klic} (přesná shoda se seedem)`, ocek, hodnoty[klic], 0, { half: false, druh: 'varovani' }));
-    }
+    // Branou je statistická tolerance (3σ nezávislého modelu); bez ní hodnotu nelze rozhodnout → jen varování.
+    if (stat[klic] !== undefined) k.push(cNum(klic, ocek, hodnoty[klic], stat[klic]));
+    else k.push(cNum(klic, ocek, hodnoty[klic], 0, { druh: 'varovani', pozn: 'bez statistické tolerance' }));
   }
   return { stranky: [page], kontroly: k };
 };
@@ -589,7 +605,7 @@ R.pravidlo4 = async (p, env) => {
       const r = radekTab(tab, new RegExp(`^${rok}$`));
       const bunka = r?.[index === 'sp500' ? 1 : 2];
       if (klic.endsWith('nasobek')) k.push(cNum(klic, ocek, precti(bunka), p.tolerance.nasobek, { half: false }));
-      else k.push(cNum(klic, Number(ocek), precti(bunka?.match(/došly v \S+ (\d{4})/)?.[1]), p.tolerance.rok, { half: false }));
+      else k.push(cNum(klic, Number(ocek), precti(bunka?.match(/došly (?:v \S+ |\d{1,2}\/)(\d{4})/)?.[1]), p.tolerance.rok, { half: false })); // desktop „v lednu 2012“, mobil „1/2012“
     }
   } else if (p.id === 'fire-18') {
     const tab = tabulka(s.tabulky, /^VÝBĚR ROČNĚ.*S&P 500/i);
@@ -651,7 +667,7 @@ async function ctiBacktestUI(page) {
     s,
     netAssetValue: precti(poStitku(s.radky, /^Z vložených .+ bylo$/, /\d/, { max: 2 })),
     amountInvested: precti(poStitku(s.radky, /^Vloženo$/, /\d/, { max: 2 })),
-    cagr_pct: precti(poStitku(s.radky, /^Roční zhodnocení$/, PCT, { max: 3 })),
+    cagr_pct: precti(poStitku(s.radky, /^(Roční zhodnocení|Ročně)$/, PCT, { max: 3 })), // mobil: „Ročně“
     maxDrawdown_pct: precti(poStitku(s.radky, /^Max\. pokles$/, PCT, { max: 3 })),
     standardDeviation_pct: precti(poStitku(s.radky, /^Kolísavost$/, PCT, { max: 3 })),
     xirr_pct: precti(s.text.match(/zhodnocovaly\s*([\d,−-]+) % ročně/)?.[1]),
@@ -725,7 +741,7 @@ R.backtestKratky = async (p, env) => {
   const page = await env.nova(p.url);
   const x = await ctiBacktestUI(page);
   const o = p.ocekavano;
-  const rocne = poStitku(x.s.radky, /^Roční zhodnocení$/, /%|—/, { max: 3 });
+  const rocne = poStitku(x.s.radky, /^(Roční zhodnocení|Ročně)$/, /%|—/, { max: 3 });
   const kolis = poStitku(x.s.radky, /^Kolísavost$/, /%|—/, { max: 3 });
   return {
     stranky: [page],
@@ -865,14 +881,15 @@ R.vydelaly = async (p, env) => {
 };
 R.vydelalyMesicne = async (p, env) => {
   const s = await env.staticka('/kolik-vydelaly-etf');
-  const m = s.text.match(/([\d ]+) Kč měsíčně \((\d+) vkladů[^)]*\)\s*([\d ]+) Kč\s*vloženo ([\d ]+) Kč/);
+  // Třetí sloupec („vloženo …“) je na mobilu skrytý → vloženo jen když se zobrazuje.
+  const m = s.text.match(/([\d ]+) Kč měsíčně \((\d+) vkladů[^)]*\)\s*([\d ]+) Kč(?:\s*vloženo ([\d ]+) Kč)?/);
   const o = p.ocekavano;
   const k = [
-    cNum('vlozeno', o.vlozeno, precti(m?.[4]), 0, { half: false }),
+    m && !m[4] ? neovereno('vlozeno', o.vlozeno, 'sloupec „vloženo“ se v tomto rozložení nezobrazuje') : cNum('vlozeno', o.vlozeno, precti(m?.[4]), 0, { half: false }),
     cNum('pocet_vkladu', o.pocet_vkladu, precti(m?.[2]), 0, { half: false }),
     cNum('konecna', o.konecna, precti(m?.[3]), 0, { rel: 0.005 }),
   ];
-  if (m) k.push(cNum('konzistence: vloženo = vklad × počet vkladů', precti(m[1]).v * Number(m[2]), precti(m[4]), 0, { half: false, druh: 'konzistence' }));
+  if (m?.[4]) k.push(cNum('konzistence: vloženo = vklad × počet vkladů', precti(m[1]).v * Number(m[2]), precti(m[4]), 0, { half: false, druh: 'konzistence' }));
   return { datum: datum(s.text.match(/Data k ([^\n]*\d{4})/)?.[1]), kontroly: k };
 };
 R.klouzava = async (p, env) => {
@@ -893,10 +910,12 @@ R.klouzava = async (p, env) => {
 R.sp500Text = async (p, env) => {
   const s = await env.staticka('/sp500-nebo-cely-svet');
   const o = p.ocekavano;
-  const dek = s.text.match(/S&P 500 v dekádě 2000–2009 \(v Kč\)\s*([−-][\d,]+) % ročně\s*svět mimo USA ([−-][\d,]+) % ročně/);
+  // Tabulka „Klíčová čísla“ (3. sloupec na mobilu skrytý), záloha: věta „(−7,3 % vs. −4,2 % ročně za 2000–2009)“.
+  const veta = s.text.match(/\(([−-][\d,]+) % vs\. ([−-][\d,]+) % ročně za 2000–2009\)/);
+  const dek = [null, s.text.match(/S&P 500 v dekádě 2000–2009 \(v Kč\)\s*([−-][\d,]+) % ročně/)?.[1] ?? veta?.[1], s.text.match(/svět mimo USA ([−-][\d,]+) % ročně/)?.[1] ?? veta?.[2]];
   const vt = s.text.match(/lepší ve všech (\d+) desetiletých obdobích, o ([\d,]+) p\. b\. až ([\d,]+) p\. b\./);
   const vg = s.text.match(/lepší v (\d+) z \d+ období \(\d+ %\)\. Rozdíl ale kolísal od ([−-][\d,]+) p\. b\. do \+?([\d,]+) p\. b\./);
-  const usd = s.text.match(/Nejhlubší propad S&P 500 od 2008 \(v Kč \/ v USD\)\s*[−-][\d,]+ % \/ ([−-][\d,]+) %/);
+  const usd = s.text.match(/Nejhlubší propad S&P 500 od 2008 \(v Kč \/ v USD\)\s*[−-][\d,]+ % \/ ([−-][\d,]+) %/) || s.text.match(/od roku 2008 v dolarech ([−-][\d,]+) %/);
   const cisla = (x) => (norm(x).match(/[−-]?\d+(?:,\d+)?/g) || []).map((c) => Number(c.replace('−', '-').replace(',', '.')));
   const [vtN, vtLo, vtHi] = cisla(o.SPY_vs_VT_od_2008).filter((_, i) => i !== 1);
   const [vgN, vgLo, vgHi] = cisla(o.SPY_vs_VGTSX_od_2000);
@@ -966,17 +985,20 @@ R.cistyPlat = async (p, env) => {
     return { stranky: [page], kontroly: [cBool('vysledek', chybi && !s.atributy.some((x) => x.a['data-qa'] === 'cista-mzda'), o.vysledek)] };
   }
   const k = [];
-  const tol = 1;
+  const tol = p.tolerance_kc ?? 1;
+  // Zdravotní = 4,5 % + případný doplatek do minimálního vyměřovacího základu (S24, data-qa="doplatek").
+  const zdr = precti(qa(s, 'zdr')) || precti(poStitku(s.radky, /^Zdravotní pojištění \(4,5 %\)$/, KC, { max: 1 }));
+  const doplatek = precti(qa(s, 'doplatek'));
   const mapa = {
-    cista_mzda_mesicne: precti(s.atributy.find((x) => x.a['data-qa'] === 'cista-mzda')?.text),
-    socialni_pojisteni: precti(poStitku(s.radky, /^Sociální pojištění \(/, KC, { max: 1 })),
-    zdravotni_pojisteni: precti(poStitku(s.radky, /^Zdravotní pojištění \(4,5 %\)$/, KC, { max: 1 })),
+    cista_mzda_mesicne: precti(qa(s, 'cista-mzda')) || precti(poStitku(s.radky, /^Čistá mzda měsíčně/, KC, { max: 1 })),
+    socialni_pojisteni: precti(qa(s, 'soc')) || precti(poStitku(s.radky, /^Sociální pojištění \(/, KC, { max: 1 })),
+    zdravotni_pojisteni: zdr && doplatek ? { ...zdr, v: zdr.v + doplatek.v, raw: `${zdr.raw} + doplatek ${doplatek.raw}` } : zdr,
     dan_po_slevach: precti(poStitku(s.radky, /^Daň po slevách$/, KC, { max: 1 })),
     naklady_zamestnavatele: precti(poStitku(s.radky, /^Celkové náklady zaměstnavatele$/, KC, { max: 1 })),
-    bonus: precti(poStitku(s.radky, /^Daňový bonus na děti$/, KC, { max: 1 })),
+    bonus: precti(qa(s, 'bonus')) || precti(poStitku(s.radky, /^Daňový bonus na děti$/, KC, { max: 1 })),
   };
   for (const [klic, ocek] of Object.entries(o)) {
-    if (klic === 'socialni_pojisteni_stitek') k.push(cText(klic, ocek, s.text.match(/Sociální pojištění \(([\d,]+ %)\)/)?.[1] ?? null));
+    if (klic === 'socialni_pojisteni_stitek') k.push(cText(klic, ocek, (qa(s, 'soc-stitek') ?? s.text).match(/Sociální pojištění \(([\d,]+ %)\)/)?.[1] ?? null));
     else k.push(cNum(klic, ocek, mapa[klic], tol, { half: false }));
   }
   return { stranky: [page], kontroly: k };
@@ -1104,7 +1126,7 @@ R.naklady = async (p, env) => {
   if (p.id === 'naklady-13' && kurz) { // S14: hranice T212/DEGIRO v hero
     const hranice = kurz.eur / 0.0015;
     const hero = precti(s.text.match(/Nejlevnější do ([\d ]+) Kč/)?.[1]);
-    k.push(cNum('hero: hranice T212 → DEGIRO (Kč)', Math.round(hranice), hero, 1, { half: false }));
+    k.push(hero ? cNum('hero: hranice T212 → DEGIRO (Kč)', Math.round(hranice), hero, 1, { half: false }) : { ...neovereno('hero: hranice T212 → DEGIRO (Kč)', Math.round(hranice), 'věta „Nejlevnější do … Kč“ se v tomto rozložení nezobrazuje'), blokujeXpass: true });
   }
   return { stranky: [page], datum: kurz?.datum, kurzZlaty: zlaty, kurzPozn: kurz?.pozn, kontroly: k };
 };
@@ -1381,9 +1403,10 @@ function vyhodnot(p, prohlizec, vysledek) {
   if (!datumSedi && datumStranky) pozn.push(`stránka má data k ${datumStranky}, zlatý případ k ${p.datum_dat} → hodnoty jen jako varování, brána = konzistence`);
   if (vysledek.kurzPozn) pozn.push(vysledek.kurzPozn);
   if (vysledek.neovereno) { stav = 'NEOVĚŘENO'; pozn.push(vysledek.neovereno); }
-  else if (p.dnes_selze) stav = selhaneBrany.length || vysledek.chyba ? 'XFAIL' : brana.length ? 'XPASS' : 'NEOVĚŘENO';
+  // XPASS jen když se kontrola, kvůli které případ selhával, opravdu ověřila (blokujeXpass = klíč chyby se nedal přečíst)
+  else if (p.dnes_selze) stav = selhaneBrany.length || vysledek.chyba ? 'XFAIL' : brana.length && !kontroly.some((k) => k.blokujeXpass) ? 'XPASS' : 'NEOVĚŘENO';
   else if (vysledek.chyba || selhaneBrany.length) stav = 'SELHALO';
-  else if (!brana.length && !varovani.length) stav = 'NEOVĚŘENO';
+  else if (!brana.length && !varovani.length) stav = kontroly.some((k) => k.uroven === 'varovani') ? 'OK' : 'NEOVĚŘENO'; // data k jinému dni, hodnoty v toleranci
   else stav = varovani.length ? 'VAROVÁNÍ' : 'OK';
   if (p.zmeni_se_po_oprave && stav === 'SELHALO') pozn.push(`pozor: ${p.zmeni_se_po_oprave} – pokud byla oprava nasazena, přepočítej zlatý případ`);
   return { id: p.id, nastroj: p.nastroj, url: p.url, prohlizec, stav, kontroly, selhaneBrany, varovani, pozn, chyba: p.dnes_selze?.chyba };
@@ -1394,12 +1417,14 @@ function vyhodnot(p, prohlizec, vysledek) {
 const vysledky = [];
 const zakazaneNalezy = [];
 const znameNalezy = [];
+const znameVadyNalezy = [];
 const videneZname = new Set();
 
 async function behProhlizece(nazev) {
   const typ = nazev === 'webkit' ? webkit : chromium;
   let browser;
-  try { browser = await typ.launch(); } catch (e) {
+  const spust = async () => { browser = await typ.launch(); };
+  try { await spust(); } catch (e) {
     console.log(`⚠️  ${nazev} není nainstalovaný – přeskakuji (${String(e).split('\n')[0].slice(0, 120)})`);
     return { preskoceno: true };
   }
@@ -1407,15 +1432,23 @@ async function behProhlizece(nazev) {
   const nastaveni = mobil
     ? { ...devices['iPhone 13'], viewport: { width: 390, height: 844 }, hasTouch: true, locale: 'cs-CZ' }
     : { viewport: { width: 1440, height: 900 }, locale: 'cs-CZ' };
-  const kontexty = [];
+  let kontextyPripadu = [];
+  let vadyPripadu = []; // kontexty aktuálního případu – zavírají se VŽDY (i po chybě), jinak se WebKit zahltí
   const novyKontext = async () => {
     const ctx = await browser.newContext(nastaveni);
     await ctx.route(MERENI, (r) => r.abort()); // NIKDY neměřit (GA, Vercel Analytics, /api/ev)
     await ctx.addInitScript(() => { try { localStorage.clear(); sessionStorage.clear(); } catch { /* bez úložiště */ } });
-    kontexty.push(ctx);
     return ctx;
   };
-  const statickyCtx = await novyKontext();
+  let statickyCtx = await novyKontext();
+  /** Prohlížeč spadl nebo zamrzl (goto timeout) → zavřít a spustit znovu, statický kontext i mezipaměť nanovo. */
+  const restart = async (proc) => {
+    console.log(`↻ ${nazev}: restart prohlížeče (${proc})`);
+    await browser.close().catch(() => {});
+    await spust();
+    statickyCtx = await novyKontext();
+    cache.clear();
+  };
   const cache = new Map();
   const zkontrolovaneUrl = new Set();
   const zakazaneNaStrance = async (page, url, kontext) => {
@@ -1430,8 +1463,10 @@ async function behProhlizece(nazev) {
     mobil,
     async nova(url) {
       const ctx = await novyKontext();
+      kontextyPripadu.push(ctx);
       const page = await otevri(ctx, url);
       page.dotyk = mobil;
+      page.vady = vadyPripadu;
       return page;
     },
     async staticka(url) {
@@ -1443,6 +1478,7 @@ async function behProhlizece(nazev) {
         await page.close();
         return s;
       })());
+      cache.get(url).catch(() => cache.delete(url)); // neúspěšné načtení necachovat
       return cache.get(url);
     },
   };
@@ -1455,14 +1491,21 @@ async function behProhlizece(nazev) {
     const start = Date.now();
     if (!fn) vysledek = { neovereno: 'pro případ není řidič testu' };
     else {
-      try {
-        vysledek = await fn(p, env);
-        for (const page of vysledek.stranky || []) {
-          await zakazaneNaStrance(page, p.url, `po zadání vstupů případu ${p.id}`);
-          await page.context().close();
+      for (let pokus = 1; pokus <= 2; pokus++) {
+        try {
+          if (!browser.isConnected()) await restart('prohlížeč se odpojil');
+          vysledek = await fn(p, env);
+          for (const page of vysledek.stranky || []) await zakazaneNaStrance(page, p.url, `po zadání vstupů případu ${p.id}`);
+        } catch (e) {
+          vysledek = { kontroly: [], chyba: String(e.message || e).split('\n')[0].slice(0, 220) };
+        } finally {
+          for (const c of kontextyPripadu) await c.close().catch(() => {});
+          kontextyPripadu = [];
+          if (vadyPripadu.length) { znameVadyNalezy.push({ prohlizec: nazev, id: p.id, url: p.url, vady: [...new Set(vadyPripadu)] }); vadyPripadu.length = 0; }
         }
-      } catch (e) {
-        vysledek = { kontroly: [], chyba: String(e.message || e).split('\n')[0].slice(0, 220) };
+        // Zamrzlý / spadlý prohlížeč (ne chyba webu) → restart a jeden opakovaný pokus.
+        if (pokus === 1 && vysledek.chyba && /page\.goto: Timeout|has been closed|crashed|disconnected/.test(vysledek.chyba)) { await restart(vysledek.chyba.slice(0, 60)); continue; }
+        break;
       }
     }
     const v = vyhodnot(p, jenJednou(p) ? 'api' : nazev, vysledek);
@@ -1474,8 +1517,7 @@ async function behProhlizece(nazev) {
       : v.stav === 'VAROVÁNÍ' ? v.varovani.slice(0, 2).map((k) => `${k.klic}: čekáno ${k.ocek}, je ${k.skut}`).join('; ') : v.pozn.join('; ');
     console.log(`${ikona} [${v.prohlizec}] ${p.id} ${v.stav}${detail ? ' – ' + detail : ''}`);
   }
-  for (const c of kontexty) await c.close().catch(() => {});
-  await browser.close();
+  await browser.close().catch(() => {});
   return { preskoceno: false };
 }
 
@@ -1514,16 +1556,18 @@ if (zakazaneNalezy.length) {
 }
 // Známá chyba textu se v celém běhu neobjevila → nejspíš opravena (jen při běhu všech případů).
 const znameNevidene = !JEN ? ZNAME_TEXTY.filter((z) => !videneZname.has(z)) : [];
-if (xpass.length || znameNevidene.length) {
+if (xpass.length || znameNevidene.length || (!JEN && ZNAME_VADY.nevyprazdnitelnePole && !znameVadyNalezy.length)) {
   md.push('\n### 🔔 Nečekaně prošlo (XPASS) – chyba opravena? Po ověření na produkci odeber příznak `dnes_selze`');
   for (const v of xpass) md.push(`- **${v.id}** [${v.prohlizec}] ${v.chyba}`);
   for (const z of znameNevidene) md.push(`- **zakázaný text** ${z.chyba} – už se neobjevil, smaž položku ze ZNAME_TEXTY ve skriptu`);
+  if (!JEN && ZNAME_VADY.nevyprazdnitelnePole && !znameVadyNalezy.length) md.push(`- **vada polí** ${ZNAME_VADY.nevyprazdnitelnePole} – už se neobjevila, smaž ZNAME_VADY.nevyprazdnitelnePole ve skriptu`);
 }
 const xfail = vysledky.filter((v) => v.stav === 'XFAIL');
-if (xfail.length || znameNalezy.length) {
+if (xfail.length || znameNalezy.length || znameVadyNalezy.length) {
   md.push('\n<details><summary>🟡 Očekávaná selhání (XFAIL) – známé chyby čekající na opravu</summary>\n');
   for (const v of xfail) md.push(`- **${v.id}** [${v.prohlizec}] ${v.chyba}${v.selhaneBrany[0] ? ` – ${bunkaMd(v.selhaneBrany[0].klic)}: čekáno ${bunkaMd(v.selhaneBrany[0].ocek)}, je ${bunkaMd(v.selhaneBrany[0].skut)}` : v.pozn.length ? ` – ${bunkaMd(v.pozn.join('; '))}` : ''}`);
   for (const z of znameNalezy) md.push(`- **zakázaný text** [${z.prohlizec}] ${z.chyba} – ${bunkaMd(z.nalez)} (${bunkaMd(z.kontext)})`);
+  if (znameVadyNalezy.length) md.push(`- **vada polí** ${ZNAME_VADY.nevyprazdnitelnePole}: ${znameVadyNalezy.length}× (${[...new Set(znameVadyNalezy.map((z) => z.url))].join(', ')})`);
   md.push('\n</details>');
 }
 const varov = vysledky.filter((v) => v.stav === 'VAROVÁNÍ' || v.stav === 'NEOVĚŘENO');

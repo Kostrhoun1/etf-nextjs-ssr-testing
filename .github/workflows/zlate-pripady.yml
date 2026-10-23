@@ -1,0 +1,41 @@
+# Denní test zlatých případů všech nástrojů na produkci (audit nástrojů 22. 10. 2026, pravidlo č. 1 bod 4).
+# Co a proč hlídá, a jak čte stavy OK / SELHALO / XFAIL / XPASS / VAROVÁNÍ: scripts/zlate-kalkulacky.mjs,
+# očekávané hodnoty (nezávisle ověřené): scripts/data/zlate-pripady.json.
+#
+# Poplach (selhání → e-mail z GitHub Actions) jen při neshodě v bráně nebo zakázaném textu na stránce nástroje.
+# Známé chyby (dnes_selze = XFAIL), varování a „chyba opravena – odeber příznak“ (XPASS) jsou v přehledu běhu (Summary).
+# Měření (GA, Vercel Analytics, /api/ev) skript blokuje VŽDY – proti produkci nikdy bez blokace.
+name: Zlaté případy nástrojů
+
+on:
+  schedule:
+    # Noční scraper (etf-astro, pg_cron út–pá 01:30 / po 05:00 UTC) a sync indexů doběhnou dřív → 06:30 UTC.
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  zlate-pripady:
+    runs-on: ubuntu-24.04  # zafixováno 1.10.2026: ubuntu-latest od 19.10. přechází na Ubuntu 26 – přejít vědomě a otestovaně
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install deps
+        run: npm ci || npm install
+      - name: Install Chromium + WebKit
+        run: npx playwright install --with-deps chromium webkit
+      - name: Zlaté případy proti produkci
+        env:
+          BASE_URL: https://etfpruvodce.cz
+          VYSTUP_JSON: zlate-vysledky.json
+        run: node scripts/zlate-kalkulacky.mjs
+      - name: Uložit podrobné výsledky
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zlate-vysledky
+          path: zlate-vysledky.json
+          retention-days: 14
+          if-no-files-found: ignore
