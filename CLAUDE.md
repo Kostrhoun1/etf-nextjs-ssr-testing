@@ -34,4 +34,10 @@ roky „věrohodné" – nikdo je nezávisle nekontroloval. Podrobnosti: `PLAN-O
 - Scraper a noční joby jsou v repu `etf-astro` (`/Users/tomaskostrhoun/Documents/etf-astro`).
 - Bez cookie lišty a bez nástrojů vyžadujících souhlas. Bez témat úvěrů, hypoték a páky na dluh,
   bez kritiky bank.
-- Max. jeden produkční deploy denně (každý deploy maže ISR cache, free tier Vercelu má limit zápisů).
+- Nasazovat MÁLO: opravy sbírat do balíku, produkční deploy nejvýš 1–2× týdně (rozhodnutí majitele 23. 10. 2026).
+  Každý deploy maže ISR cache a roboti pak znovu projdou ~5 000 detailů fondů ≈ 40 000 ISR zápisů během pár dní;
+  free tier Vercelu = 200 000 zápisů / 4 h CPU za klouzavých 30 dní, překročení = pozastavení webu. Před deployem
+  zkontrolovat usage (vercel.com/…/~/usage/isr-writes) a nasadit jen s rezervou ≥ 45 000 zápisů. Bez placeného plánu
+  a bez ořezávání obsahu stránek.
+- Naše testy a kontroly NESMÍ procházet produkci hromadně (každý nový detail fondu = ISR zápis): proti produkci jen
+  pevná malá sada stránek, široké kontroly proti lokálnímu buildu.
