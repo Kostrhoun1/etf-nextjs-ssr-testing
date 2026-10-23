@@ -320,10 +320,13 @@ async function kurzStranky(text, pripad) {
 
 const R = {};
 
+/** Krok zobrazení výsledku modelu investiční kalkulačky (specifikace opravy N2 z 23. 10. 2026, nezávisle na kódu webu):
+ *  3 platné číslice, pod 100 000 Kč na stovky. Tolerance = polovina kroku (+1 Kč na zaokrouhlení vstupu). */
+const krokModelu = (v) => (Math.abs(v) < 100000 ? 100 : 10 ** (String(Math.floor(Math.abs(v))).length - 3));
+const tolModelu = (v) => krokModelu(v) / 2 + 1;
+
 /* Investiční kalkulačka – vstupy */
-R.investicniKalk = async (p, env) => {
-  const page = await env.nova(p.url);
-  const v = p.vstupy;
+async function investicniVstupy(page, v) {
   await page.selectOption('select[aria-label="Frekvence pravidelného vkladu"]', v.frekvence);
   await prepis(page, '#initial', v['#initial']);
   await prepis(page, '#recurring', v['#recurring']);
@@ -331,9 +334,44 @@ R.investicniKalk = async (p, env) => {
   await prepis(page, '#period', v['#period']);
   await prepis(page, '#tax', v['#tax']);
   await page.waitForTimeout(300);
+}
+/* Regrese N2 (investicni-41/42): malé částky – výnos se nesmí vynulovat, roční výnos nesmí být záporný,
+   „vloženo + výnos = zobrazená hodnota“ ve velkém čísle i v každém řádku tabulky. */
+R.investicniMale = async (p, env) => {
+  const page = await env.nova(p.url);
+  await investicniVstupy(page, p.vstupy);
+  const s = await snimek(page);
+  const o = p.ocekavano, k = [];
+  const hodnota = precti(qa(s, 'invest-vysledek'));
+  const vlozeno = precti(poStitku(s.radky, /^Vloženo$/, KC));
+  const vynos = precti(poStitku(s.radky, /^Výnos( po dani)?$/, /^[+−-]?\s?\d/, { max: 1 }));
+  k.push(cNum('Za N let byste měli (Kč)', o['Za N let byste měli (Kč)'], hodnota, tolModelu(o['Za N let byste měli (Kč)'])));
+  k.push(cNum('Vloženo (Kč)', o['Vloženo (Kč)'], vlozeno, 0));
+  k.push(cNum('Výnos (Kč)', o['Výnos (Kč)'], vynos, tolModelu(o['Za N let byste měli (Kč)'])));
+  if (o['Výnos (Kč)'] > 0) k.push(cBool('výnos > 0', vynos?.v > 0, 'kladný výnos (skutečně ' + o['Výnos (Kč)'] + ' Kč)', { skut: vynos?.raw }));
+  k.push(cBool('vloženo + výnos = výsledek', hodnota && vlozeno && vynos && vlozeno.v + vynos.v === hodnota.v, 'součet sedí', { druh: 'konzistence', skut: `${vlozeno?.v} + ${vynos?.v} vs ${hodnota?.v}` }));
+  const veta = s.text.match(/z toho bude ([\d ]+) Kč/);
+  k.push(cBool('věta „z toho bude“ = výsledek', veta && precti(veta[1])?.v === hodnota?.v, 'stejné číslo jako velký výsledek', { druh: 'konzistence', skut: veta?.[1] }));
+  if (o['podíl výnosu (%)'] !== undefined) k.push(cNum('podíl výnosu (%)', o['podíl výnosu (%)'], precti(s.text.match(/(\d+) % konečné částky tvoří výnos/)?.[1]), 0.5, { half: false }));
+  if (o['V dnešních cenách při 2 % (Kč)'] !== undefined) k.push(cNum('V dnešních cenách při 2 % (Kč)', o['V dnešních cenách při 2 % (Kč)'], precti(s.text.match(/V dnešních cenách[^\n]*?zhruba ([\d ]+) Kč/)?.[1]), tolModelu(o['V dnešních cenách při 2 % (Kč)']), { half: false }));
+  const tab = tabulka(s.tabulky, /^Rok \| Vloženo/);
+  for (const r of o.tabulka || []) {
+    const row = tab?.find((x) => x[0] === `${r.rok}.`);
+    const [vl, zaRok, celkem, hod] = (row || []).slice(1).map(precti);
+    k.push(cNum(`rok ${r.rok}: výnos za rok`, r.vynos_za_rok, zaRok, tolModelu(r.vynos_za_rok), { half: false }));
+    k.push(cBool(`rok ${r.rok}: výnos za rok ≥ 0`, zaRok && zaRok.v >= 0, '≥ 0 Kč', { skut: zaRok?.raw }));
+    k.push(cNum(`rok ${r.rok}: hodnota`, r.hodnota, hod, tolModelu(r.hodnota), { half: false }));
+    k.push(cBool(`rok ${r.rok}: vloženo + výnos celkem = hodnota`, vl && celkem && hod && vl.v + celkem.v === hod.v, 'součet sedí', { druh: 'konzistence', skut: `${vl?.v} + ${celkem?.v} vs ${hod?.v}` }));
+  }
+  return { stranky: [page], kontroly: k };
+};
+R.investicniKalk = async (p, env) => {
+  const page = await env.nova(p.url);
+  await investicniVstupy(page, p.vstupy);
   const s = await snimek(page);
   const o = p.ocekavano, t = p.tolerance;
   const dnes = s.text.match(/V dnešních cenách[^\n]*?zhruba ([\d ]+) Kč/);
+  const oDnes = o['V dnešních cenách při 2 % (Kč)'] ?? o['V dnešních cenách při 2 % (Kč, na tisíce)'];
   // „56 % konečné částky tvoří výnos“; při nulovém výnosu věta chybí → podíl z „Výnos +0 Kč“ / výsledku
   const podilVeta = s.text.match(/(\d+) % konečné částky tvoří výnos/);
   const vynosKc = precti(poStitku(s.radky, /^Výnos( po dani)?$/, /^[+−-]?\s?\d/, { max: 1 }));
@@ -342,12 +380,13 @@ R.investicniKalk = async (p, env) => {
   return {
     stranky: [page],
     kontroly: [
-      cNum('Za N let byste měli (Kč)', o['Za N let byste měli (Kč)'], precti(qa(s, 'invest-vysledek')) || precti(poStitku(s.radky, /^Za .+ byste měl/, KC)), t['Kč']),
-      cNum('Vloženo (Kč)', o['Vloženo (Kč)'], precti(poStitku(s.radky, /^Vloženo$/, KC)), t['Kč']),
-      cNum('V dnešních cenách při 2 % (Kč, na tisíce)', o['V dnešních cenách při 2 % (Kč, na tisíce)'], precti(dnes?.[1]), t['dnešní ceny'], { half: false }),
-      // Podíl dopočtený z „Výnos“ / „Za N let“ (věta chybí, když zobrazený výnos je 0) nese chybu zaokrouhlení na tisíce
-      // (N2, ±500 Kč) → tolerance v p. b. = 100 × ±Kč / výsledek (6 225 → „6 000 Kč“, výnos „+0 Kč“: podíl 0 vs. skutečně 3,6 %).
-      cNum('podíl výnosu (%)', o['podíl výnosu (%)'], precti(podil?.[1]), !podilVeta && vysledekKc?.v ? Math.max(t['%'], Math.ceil((100 * t['Kč']) / vysledekKc.v)) : t['%'], { half: false }),
+      // Výsledky modelu: 3 platné číslice, pod 100 000 Kč na stovky (N2 upraveno 23. 10. 2026) → ± polovina kroku.
+      cNum('Za N let byste měli (Kč)', o['Za N let byste měli (Kč)'], precti(qa(s, 'invest-vysledek')) || precti(poStitku(s.radky, /^Za .+ byste měl/, KC)), tolModelu(o['Za N let byste měli (Kč)'])),
+      cNum('Vloženo (Kč)', o['Vloženo (Kč)'], precti(poStitku(s.radky, /^Vloženo$/, KC)), 0),
+      cNum('V dnešních cenách při 2 % (Kč)', oDnes, precti(dnes?.[1]), tolModelu(oDnes), { half: false }),
+      // Podíl dopočtený z „Výnos“ / „Za N let“ (věta chybí, když zobrazený výnos je 0) nese chybu zaokrouhlení
+      // → tolerance v p. b. = 100 × polovina kroku / výsledek.
+      cNum('podíl výnosu (%)', o['podíl výnosu (%)'], precti(podil?.[1]), !podilVeta && vysledekKc?.v ? Math.max(t['%'], Math.ceil((100 * tolModelu(o['Za N let byste měli (Kč)'])) / vysledekKc.v)) : t['%'], { half: false }),
     ],
   };
 };
@@ -423,7 +462,10 @@ R.kolikInvestovat = async (p, env) => {
     const r = tab?.find((row) => precti(row[0])?.v === p.vstupy.mesicne);
     ['za 10 let', 'za 20 let', 'za 30 let'].forEach((kl, i) => k.push(cNum(kl, o[kl], precti(r?.[i + 1]), tolMil(r?.[i + 1]), { half: false })));
   } else if (p.vstupy.cil) {
-    for (const [kl, re] of [['za 10 let', /^za 10 let$/i], ['za 20 let', /^za 20 let$/i], ['za 30 let', /^za 30 let$/i]]) k.push(cNum(kl, o[kl], precti(poStitku(s.radky, re, KC, { max: 2 })), p.tolerance['Kč']));
+    // Hledat až v sekci „na milion“: na mobilu (< 640 px) má tabulka nad ní karty se stejnými popisky „Za 10 let“
+    // (ResponzivniTabulka) → test ve WebKitu četl 171 052 Kč (1 000 Kč měsíčně za 10 let) místo 5 846 Kč.
+    const od = indexRadku(s.radky, /^Kolik měsíčně na první milion$/i);
+    for (const [kl, re] of [['za 10 let', /^za 10 let$/i], ['za 20 let', /^za 20 let$/i], ['za 30 let', /^za 30 let$/i]]) k.push(cNum(kl, o[kl], od >= 0 ? precti(poStitku(s.radky, re, KC, { max: 2, od })) : null, p.tolerance['Kč']));
     k.push(cNum('násobek 10 vs 30 let (zaokr.)', o['násobek 10 vs 30 let (zaokr.)'], precti(s.text.match(/tedy (\d+)× víc/)?.[1]), 0));
   } else {
     for (const kl of ['5 %', '7 %', '9 %']) k.push(cNum(kl, o[kl], precti(poStitku(s.radky, new RegExp(`^${esc(kl)} ročně$`, 'i'), KC, { max: 2 })), p.tolerance['Kč'], { half: false }));
@@ -1054,10 +1096,16 @@ R.nouzova = async (p, env) => {
   await prepis(page, '#savings', v.uspory);
   await prepis(page, '#capacity', v.sporeni);
   await prepis(page, '#family', v.osoby);
-  if (v.job) await page.selectOption('#job', v.job);
-  if (v.smlouva) await page.selectOption('#contract', v.smlouva);
-  if (v.vek) await page.selectOption('#age', v.vek);
-  if (v.vzdel) await page.selectOption('#education', v.vzdel);
+  // Volba, která v <select> není (osobni-23 „young“ po V12), dřív čekala 20 s na timeout → hned srozumitelná chyba.
+  const vyber = async (sel, hodnota) => {
+    const volby = await page.locator(`${sel} option`).evaluateAll((os) => os.map((o) => o.value));
+    if (!volby.includes(hodnota)) throw new Error(`v ${sel} není volba „${hodnota}“ (jsou: ${volby.join(', ')})`);
+    await page.selectOption(sel, hodnota);
+  };
+  if (v.job) await vyber('#job', v.job);
+  if (v.smlouva) await vyber('#contract', v.smlouva);
+  if (v.vek) await vyber('#age', v.vek);
+  if (v.vzdel) await vyber('#education', v.vzdel);
   await page.locator('#second-income').setChecked(!!v.druhy);
   await page.locator('#debt').setChecked(!!v.dluh);
   await page.waitForTimeout(400);
@@ -1147,7 +1195,18 @@ R.nakladyChovani = async (p, env) => {
   const hlaska = 'Zadejte částku od 100 do 1 000 000 Kč.';
   const pomlcky = rows.length > 0 && rows.every((r) => /^(—|-)?$/.test(norm(r.a['data-za-nakup'] ?? '').trim()));
   const k = [];
-  if (p.ocekavano.hlaska) {
+  if (p.ocekavano.pole_po_opusteni != null) {
+    // naklady-15/16: mimo rozsah → po opuštění pole ořez na mez s hláškou „Upraveno do povoleného rozsahu…“
+    // (sdílené CisloInput, ZAMERNA-ROZHODNUTI „ořez na min/max až při opuštění pole“). Řádky pak platí
+    // pro zobrazenou (ořezanou) částku – ověřeno nezávisle na T212 (0,15 %) a XTB (0,5 %), bez kurzu.
+    const o = p.ocekavano;
+    k.push(cBool('hlaska', s.text.includes(o.hlaska), o.hlaska));
+    k.push(cText('pole_po_opusteni', o.pole_po_opusteni, await page.locator('#naklady-castka').inputValue()));
+    for (const klic of ['trading212.data-za-nakup', 'xtb.data-za-nakup']) {
+      const [broker, pole] = klic.split('.');
+      k.push(cNum(klic, Math.round(o[klic]), rows.find((r) => r.a['data-broker'] === broker) ? precti(rows.find((r) => r.a['data-broker'] === broker).a[pole]) : null, 0, { half: false }));
+    }
+  } else if (p.ocekavano.hlaska) {
     k.push(cBool('hlaska', s.text.includes(hlaska), hlaska));
     k.push(cBool('vsechny_radky', pomlcky, '— u všech brokerů', { skut: rows.map((r) => `${r.a['data-broker']}=${r.a['data-za-nakup']}`).join(', ') }));
   } else { // naklady-17 „100.000“
@@ -1316,6 +1375,7 @@ R.kvizVse = async (p, env) => {
   const H = ['Kratší než 3 roky', '3–10 let', '10 let a víc'], RI = ['Nechci velké propady', 'Zvládnu střední výkyvy', 'Zvládnu velké výkyvy'];
   const F = { 'Celý svět': 'Celosvětové ETF', 'Hlavně USA (S&P 500)': 'S&P 500 ETF', Evropa: 'Evropské ETF', 'Chci pravidelný příjem': 'Dividendové ETF', Technologie: 'Technologické ETF', 'Odpovědně / ESG': 'ESG ETF' };
   const D = ['Reinvestovat (růst)', 'Vyplácet na účet', 'Nevím'];
+  const CATS_VVETE = { 'Celý svět': 'celosvětové ETF', 'Hlavně USA (S&P 500)': 'ETF na S&P 500', Evropa: 'evropské ETF', 'Chci pravidelný příjem': 'dividendové ETF', Technologie: 'technologické ETF', 'Odpovědně / ESG': 'ESG ETF' };
   let cesty = [];
   for (const h of H) for (const r of RI) for (const f of Object.keys(F)) for (const d of D) cesty.push([h, r, f, d]);
   if (env.mobil) cesty = cesty.filter((_, i) => i % 7 === 0); // WebKit: vzorek 24 cest (jako audit)
@@ -1325,14 +1385,23 @@ R.kvizVse = async (p, env) => {
     const t = norm(await page.evaluate(() => (document.querySelector('main') || document.body).innerText));
     const vysledek = t.slice(t.search(/PODLE VAŠICH ODPOVĚDÍ/i), t.search(/Jak průvodce funguje/));
     const nadpis = vysledek.split('\n').map((x) => x.trim()).filter(Boolean)[1] || '';
-    const ocekNadpis = c[0] === H[0] ? 'Dluhopisové ETF' : c[1] === RI[0] ? 'Portfolia s dluhopisy' : F[c[2]];
+    // Pravidla (recommend ve vyberEtfData.ts po V15, audit 22. 10. 2026): <3 roky → dluhopisové ETF; jinak „Nechci velké
+    // propady“ → konzervativní portfolia s dluhopisy, „Zvládnu střední výkyvy“ → umírněná portfolia (akcie s částí
+    // dluhopisů), obojí s druhou možností = kategorie zaměření; „Zvládnu velké výkyvy“ → rovnou kategorie zaměření.
+    const sPortfolii = c[0] !== H[0] && (c[1] === RI[0] || c[1] === RI[1]);
+    const ocekNadpis = c[0] === H[0] ? 'Dluhopisové ETF' : c[1] === RI[0] ? 'Portfolia s dluhopisy' : c[1] === RI[1] ? 'Akcie s částí dluhopisů' : F[c[2]];
     const vady = [];
     if (nadpis !== ocekNadpis) vady.push(`nadpis „${nadpis}“ ≠ „${ocekNadpis}“`);
     if (/undefined|NaN|Infinity|\bnull\b/.test(vysledek)) vady.push('zakázaný text');
-    if (c[0] !== H[0] && c[1] === RI[0] && !vysledek.includes(`Druhá možnost:`)) vady.push('chybí druhá možnost');
+    if (sPortfolii && !vysledek.includes(`Druhá možnost: ${CATS_VVETE[c[2]]}`)) vady.push(`chybí druhá možnost „${CATS_VVETE[c[2]]}“`);
+    if (!sPortfolii && vysledek.includes('Druhá možnost:')) vady.push('druhá možnost navíc');
     if (c[3] === D[1] && !/Příklad je distribuční \(Dist\)/.test(vysledek)) vady.push('příklad není distribuční');
     if (c[3] === D[0] && !/Příklad je akumulační \(Acc\)/.test(vysledek)) vady.push('příklad není akumulační');
-    if (c[0] !== H[0] && c[1] !== RI[0] && c[2] === 'Technologie' && !/Technologie jsou volatilnější/.test(vysledek)) vady.push('chybí varování u technologií');
+    if (c[0] !== H[0] && c[2] === 'Technologie' && !/Technologie jsou volatilnější/.test(vysledek)) vady.push('chybí varování u technologií');
+    // V15: horizont 3–10 let = varování o délce propadu (fakt z delší historie S&P 500), jinde ne.
+    if ((c[0] === H[1]) !== /Horizont 3–10 let je na akcie krátký/.test(vysledek)) vady.push(c[0] === H[1] ? 'chybí varování 3–10 let' : 'varování 3–10 let navíc');
+    // S17: pravidelný příjem + reinvestovat si odporují → upozornění.
+    if ((c[2] === 'Chci pravidelný příjem' && c[3] === D[0]) !== /to si odporuje/.test(vysledek)) vady.push('upozornění příjem × reinvestice nesedí');
     if (vady.length) chyby.push(`${c.join(' / ')}: ${vady.join('; ')}`);
     await klikni(page, page.getByRole('button', { name: /Znovu/ }).first());
     await page.waitForTimeout(150);
@@ -1347,6 +1416,7 @@ function ridic(p) {
   if (id === 'backtest-41') return R.inflace;
   if (['investicni-37', 'investicni-38', 'investicni-39'].includes(id)) return R.rychleVolby;
   if (id === 'investicni-40') return R.doopravdy;
+  if (['investicni-41', 'investicni-42'].includes(id)) return R.investicniMale;
   if (u === '/investicni-kalkulacka') return R.investicniKalk;
   if (id === 'investicni-14') return R.poplatkyHero;
   if (u === '/kalkulacka') return R.poplatkyKalk;

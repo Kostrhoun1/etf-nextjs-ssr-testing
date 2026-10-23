@@ -834,8 +834,13 @@ Nezávislý auditní tým (zlaté případy, Python z holých dat) našel chyby 
   jediný příjem v domácnosti se 3+ osobami, 50+, základní vzdělání), 2+ osoby a splátky ≥ 6 měsíců. Stejně ve widgetu
   („Jak počítáme“), ve FAQ i v sekci stránky. „Dostatečná rezerva“ jen když nic nechybí (S25). Popisek „Mám pravidelné
   splátky“ (redakční hranice – bez témat úvěrů). Zlatý případ osobni-24 vychází dál 12 měsíců.
-- **Investiční kalkulačka: výsledky modelu na tisíce** (N2), vklady přesně; „vloženo + výnos“ = zobrazená hodnota.
-  Zlaté případy investicni-* proto s tolerancí ±500 Kč (dřív ±1 Kč). Prázdný výnos/daň = „—“, ne „0 %“ (S6).
+- **Investiční kalkulačka: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky** (N2, upraveno 23. 10. 2026),
+  vklady přesně; „vloženo + výnos“ = zobrazená hodnota (výnos = zobrazená hodnota − vloženo; zaokrouhlení nikdy nepřehodí
+  hodnotu na druhou stranu vkladů). „6 200 Kč“ u 6 225 Kč a „2 940 000 Kč“ u 2 938 999 Kč je záměr. Dřív vše na tisíce →
+  500 Kč měsíčně / 7 % / 1 rok ukazovalo „Výnos +0 Kč“ (skutečně 225 Kč) a roční výnos v tabulce mohl vyjít záporný.
+  „Výnos za rok“ = zaokrouhlený rozdíl NEzaokrouhlených hodnot (součet ročních výnosů se proto může o zaokrouhlení lišit
+  od „výnosu celkem“). Zlaté případy investicni-* s tolerancí ± polovina kroku zobrazení; regrese investicni-41/42.
+  Prázdný výnos/daň = „—“, ne „0 %“ (S6).
 - **Stroj času: částka nad maximum = hláška a žádný výsledek** (S7), po opuštění pole ořez s hláškou.
 
 ## Faktorové ETF – kolo 8 (22. 10. 2026)

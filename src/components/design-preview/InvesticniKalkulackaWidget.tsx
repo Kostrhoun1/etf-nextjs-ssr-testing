@@ -33,10 +33,26 @@ const fmtCZK = (amount: number) =>
     maximumFractionDigits: 0,
   }).format(amount);
 
-/** Výsledek MODELU (stálý výnos) na tisíce – stejně jako kalkulačka poplatků (audit nástrojů 22. 10. 2026, N2):
- *  „2 938 999 Kč“ budilo přesnost, kterou model se stálým výnosem nemá. Vklady (zadané) zůstávají přesné. */
-const tisice = (v: number) => Math.round(v / 1000) * 1000;
-const fmtModel = (v: number) => fmtCZK(tisice(v));
+/** Výsledek MODELU (stálý výnos) zaokrouhlený (audit nástrojů 22. 10. 2026, N2): „2 938 999 Kč“ budilo přesnost,
+ *  kterou model se stálým výnosem nemá. Vklady (zadané) zůstávají přesné.
+ *  OPRAVA 23. 10. 2026 (pravidlo č. 1): dřív vždy na tisíce → u malých částek se výnos vynuloval (500 Kč měsíčně,
+ *  7 %, 1 rok: „6 000 Kč“ a „Výnos +0 Kč“, skutečně 6 225 Kč, výnos 225 Kč) a roční výnos v tabulce
+ *  (rozdíl dvou čísel na tisíce) mohl vyjít i záporný. Teď 3 platné číslice, pod 100 000 Kč na stovky. */
+const krokModelu = (v: number) => {
+  const a = Math.abs(v);
+  // Počet číslic celé části (bez Math.log10 – u mocnin deseti nesmí plovoucí čárka posunout krok).
+  return a < 100000 ? 100 : 10 ** (String(Math.floor(a)).length - 3);
+};
+const zaokrModel = (v: number) => {
+  const k = krokModelu(v);
+  return Math.round(v / k) * k;
+};
+/** Zobrazená hodnota modelu ke vkladům: zaokrouhlená, ale nikdy na druhou stranu vkladů než skutečná hodnota
+ *  (zisk 40 Kč u 6 140 Kč nesmí ukázat „6 100 Kč“ a výnos −40 Kč) → „vloženo + výnos = zobrazená hodnota“ platí vždy. */
+const zobrazModel = (hodnota: number, vlozeno: number) => {
+  const z = zaokrModel(hodnota);
+  return Math.sign(z - vlozeno) !== Math.sign(hodnota - vlozeno) ? vlozeno : z;
+};
 
 interface YearRow {
   year: number;
@@ -138,10 +154,10 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
       </div>
       <div className="flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full bg-teal-400" /> Výnos:{' '}
-        <span className="font-medium tabular-nums">{fmtCZK(tisice(d.total) - d.invested)}</span>
+        <span className="font-medium tabular-nums">{fmtCZK(zobrazModel(d.total, d.invested) - d.invested)}</span>
       </div>
       <div className="mt-1 pt-1 border-t border-white/15 text-teal-300">
-        Celkem: <span className="font-semibold tabular-nums">{fmtModel(d.total)}</span>
+        Celkem: <span className="font-semibold tabular-nums">{fmtCZK(zobrazModel(d.total, d.invested))}</span>
       </div>
     </div>
   );
@@ -173,9 +189,10 @@ const rokyOsy = (n: number) => {
   return out;
 };
 
-const fmtMil = (v: number) => v >= 1e6
+/** Hodnota modelu v řádku „Kalkulačka se stálými …“ – stejná jako velké číslo nahoře (pod milion stejné zaokrouhlení). */
+const fmtMil = (v: number, vlozeno: number) => v >= 1e6
   ? `${(v / 1e6).toLocaleString('cs-CZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mil. Kč`
-  : fmtCZK(Math.round(v / 1000) * 1000);
+  : fmtCZK(zobrazModel(v, vlozeno));
 const fmtPct1 = (v: number) => `${v.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace('-', '−')}\u00a0%`;
 const mesRok = (iso: string) => { const d = new Date(iso); return `${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
 /** „za 4 roky“ / „za 8 měsíců“ – od dna propadu zpět na předchozí vrchol. */
@@ -309,9 +326,11 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
     ? results
     : results.filter((r) => r.year % 5 === 0 || r.year === investmentPeriod || (investmentPeriod < 5 && r.year >= 1));
 
-  // Výnos = zaokrouhlená hodnota − vklady, aby „vloženo + výnos“ dalo přesně zobrazenou hodnotu.
-  const zisk = hasData ? tisice(finalResult.netValue) - finalResult.totalInvested : 0;
-  const podilVynosu = hasData && finalResult.netValue > 0 ? Math.max(0, zisk) / finalResult.netValue : 0;
+  // Zobrazená hodnota (3 platné číslice, pod 100 000 Kč na stovky) a výnos = zobrazená hodnota − vklady, aby
+  // „vloženo + výnos“ dalo přesně zobrazenou hodnotu. Podíl výnosu z nezaokrouhlených hodnot.
+  const hodnotaZobr = hasData ? zobrazModel(finalResult.netValue, finalResult.totalInvested) : 0;
+  const zisk = hasData ? hodnotaZobr - finalResult.totalInvested : 0;
+  const podilVynosu = hasData && finalResult.netValue > 0 ? Math.max(0, finalResult.netValue - finalResult.totalInvested) / finalResult.netValue : 0;
   const frekvenceText = recurringFrequency === 'monthly' ? 'měsíčně' : 'ročně';
   const vDnesnichCenach = hasData ? finalResult.netValue / Math.pow(1 + INFLACE_CIL_CNB, investmentPeriod) : 0;
 
@@ -450,7 +469,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
             <p className="text-sm text-slate-600">
               Za {investmentPeriod} {let_(investmentPeriod)} byste měli{taxRate > 0 ? ' (po dani)' : ''}
             </p>
-            <p ref={setCisloEl} className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1" data-qa="invest-vysledek">{fmtModel(finalResult.netValue)}</p>
+            <p ref={setCisloEl} className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1" data-qa="invest-vysledek">{fmtCZK(hodnotaZobr)}</p>
             {(() => {
               const seg = [
                 { label: 'Vloženo', v: finalResult.totalInvested, color: 'bg-slate-300' },
@@ -544,11 +563,11 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                   ? <>Když jednorázově vložíte {fmtCZK(initialInvestment)}, </>
                   : <>Když budete vkládat {fmtCZK(recurringInvestment)} {frekvenceText}, </>}
               vložíte za {investmentPeriod} {let_(investmentPeriod)} celkem {fmtCZK(finalResult.totalInvested)}. Při výnosu {averageReturn.toLocaleString('cs-CZ')} % ročně z toho bude{' '}
-              <strong className="font-semibold text-white">{fmtModel(finalResult.netValue)}</strong>
+              <strong className="font-semibold text-white">{fmtCZK(hodnotaZobr)}</strong>
               {podilVynosu > 0 && <> – {Math.round(podilVynosu * 100)} % konečné částky tvoří výnos, ne vaše vklady</>}.
             </p>
             <p className="mt-2 text-xs text-teal-100/90 leading-relaxed">
-              V dnešních cenách to při inflaci 2 % ročně (cíl ČNB) odpovídá zhruba {fmtCZK(Math.round(vDnesnichCenach / 1000) * 1000)}.
+              V dnešních cenách to při inflaci 2 % ročně (cíl ČNB) odpovídá zhruba {fmtCZK(zaokrModel(vDnesnichCenach))}.
             </p>
           </div>
 
@@ -583,7 +602,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                   <ul className="mt-2 space-y-1 text-sm text-slate-600">
                     <li>Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(v.vlozeno)}</span></li>
                     {!scenar.zkraceno && taxRate === 0 && (
-                      <li>Kalkulačka se stálými {averageReturn.toLocaleString('cs-CZ')}&nbsp;%: <span className="font-semibold tabular-nums text-slate-800">{fmtMil(finalResult.netValue)}</span></li>
+                      <li>Kalkulačka se stálými {averageReturn.toLocaleString('cs-CZ')}&nbsp;%: <span className="font-semibold tabular-nums text-slate-800">{fmtMil(finalResult.netValue, finalResult.totalInvested)}</span></li>
                     )}
                     {v.irr != null && (
                       <li>
@@ -636,15 +655,18 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
                 const i = r.year - 1;
                 const predchozi = i === 0 ? initialInvestment : results[i - 1].netValue;
                 const vkladyLetos = r.totalInvested - (i === 0 ? initialInvestment : results[i - 1].totalInvested);
-                const vynosLetos = tisice(r.netValue) - tisice(predchozi) - vkladyLetos;
-                const zhodnoceniCelkem = tisice(r.netValue) - r.totalInvested;
+                // Výnos za rok z NEzaokrouhlených hodnot, zaokrouhlený až výsledek (dřív rozdíl dvou čísel na tisíce →
+                // „0 Kč“ nebo i záporný výnos při kladném zhodnocení). Výnos celkem = zobrazená hodnota − vloženo.
+                const vynosLetos = zaokrModel(r.netValue - predchozi - vkladyLetos);
+                const hodnotaRoku = zobrazModel(r.netValue, r.totalInvested);
+                const zhodnoceniCelkem = hodnotaRoku - r.totalInvested;
                 return (
                   <tr key={r.year} className="border-t border-slate-100">
                     <td className="py-2 px-2 md:px-3 tabular-nums text-slate-700">{r.year}.</td>
                     <td className="py-2 px-2 md:px-3 text-right tabular-nums text-slate-600 whitespace-nowrap">{fmtCZK(r.totalInvested)}</td>
                     <td className="hidden sm:table-cell py-2 px-2 md:px-3 text-right tabular-nums text-teal-700 whitespace-nowrap">{fmtCZK(vynosLetos)}</td>
                     <td className="hidden sm:table-cell py-2 px-2 md:px-3 text-right tabular-nums text-teal-700 whitespace-nowrap">{fmtCZK(zhodnoceniCelkem)}</td>
-                    <td className="py-2 px-2 md:px-3 text-right tabular-nums font-semibold text-slate-900 whitespace-nowrap">{fmtModel(r.netValue)}</td>
+                    <td className="py-2 px-2 md:px-3 text-right tabular-nums font-semibold text-slate-900 whitespace-nowrap">{fmtCZK(hodnotaRoku)}</td>
                   </tr>
                 );
               })}
@@ -702,7 +724,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
       {listaDole && (
         <a href="#vysledek" className="md:hidden fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-2.5 shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
           <span className="text-xs text-slate-500">Za {investmentPeriod} {let_(investmentPeriod)}</span>
-          <span className="text-base font-bold text-slate-900 tabular-nums">{fmtModel(finalResult.netValue)}</span>
+          <span className="text-base font-bold text-slate-900 tabular-nums">{fmtCZK(hodnotaZobr)}</span>
         </a>
       )}
     </div>
