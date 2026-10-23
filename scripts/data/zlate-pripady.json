@@ -21,12 +21,12 @@
   ],
   "souhrn": {
    "investicni": {
-    "pocet": 41,
-    "dnes_selze": 2,
+    "pocet": 43,
+    "dnes_selze": 5,
     "zavisi_na_datu": 13
    },
    "fire": {
-    "pocet": 21,
+    "pocet": 22,
     "dnes_selze": 5,
     "zavisi_na_datu": 0
    },
@@ -41,15 +41,15 @@
     "zavisi_na_datu": 0
    },
    "naklady": {
-    "pocet": 46,
-    "dnes_selze": 4,
-    "zavisi_na_datu": 45
+    "pocet": 47,
+    "dnes_selze": 7,
+    "zavisi_na_datu": 44
    }
   },
-  "celkem": 186,
+  "celkem": 188,
   "vyrazeno": 2,
   "test": "scripts/zlate-kalkulacky.mjs (denně .github/workflows/zlate-pripady.yml)",
-  "upraveno": "23. 10. 2026: po opravách auditu (bc8ea6b) – N2 tolerance investiční ±500 Kč, osobni-02 a osobni-06 (zaokrouhlení, doplatek), Monte Carlo fire-11 až fire-16 s předpoklady z historie ETF (V3). Příznaky dnes_selze ponechány – na produkci platí do nasazení. | 23. 10. 2026 (po sloučení oprav auditu): fire-01/05–09 přepočteny nezávislým lognormálním modelem (dřív replika kódu = kruh), fire-02 text podle S19, backtest-32–37 start 1. 7. 2008 (Yahoo × ČNB), backtest-40 262 nákupů, nový backtest-45 (celý rok); nezávisle ověřené XPASS dostaly dnes_selze.opraveno."
+  "upraveno": "23. 10. 2026: po opravách auditu (bc8ea6b) – N2 tolerance investiční ±500 Kč, osobni-02 a osobni-06 (zaokrouhlení, doplatek), Monte Carlo fire-11 až fire-16 s předpoklady z historie ETF (V3). Příznaky dnes_selze ponechány – na produkci platí do nasazení. | 23. 10. 2026 (po sloučení oprav auditu): fire-01/05–09 přepočteny nezávislým lognormálním modelem (dřív replika kódu = kruh), fire-02 text podle S19, backtest-32–37 start 1. 7. 2008 (Yahoo × ČNB), backtest-40 262 nákupů, nový backtest-45 (celý rok); nezávisle ověřené XPASS dostaly dnes_selze.opraveno. | 23. 10. 2026 (SELHALO po sloučení): naklady-15/16 ořez s hláškou, naklady-41–45 propady od 26. 6. 2008 (K1, Yahoo × ČNB), naklady-46 pravidla po V15/S17, osobni-23 věk „middle“ (V12), investicni-00–07 přesné hodnoty a tolerance podle kroku zobrazení (N2: 3 platné číslice, pod 100 000 na stovky), nové regrese investicni-41/42."
  },
  "pripady": [
   {
@@ -68,18 +68,16 @@
     "#tax": 0
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 2938999,
+    "Za N let byste měli (Kč)": 2938998.75,
     "Vloženo (Kč)": 1300000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 1978000,
-    "podíl výnosu (%)": 56
+    "podíl výnosu (%)": 56,
+    "V dnešních cenách při 2 % (Kč)": 1977861.91
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 2 938 998,75 Kč, dnešní ceny FV / 1,02^n = 1 977 861,91 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false
   },
@@ -99,21 +97,29 @@
     "#tax": 0
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 6225,
+    "Za N let byste měli (Kč)": 6225.15,
     "Vloženo (Kč)": 6000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 6000,
-    "podíl výnosu (%)": 4
+    "podíl výnosu (%)": 4,
+    "V dnešních cenách při 2 % (Kč)": 6103.09
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 6 225,15 Kč, dnešní ceny FV / 1,02^n = 6 103,09 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false,
-   "poznamka_23_10": "Přepočteno 23. 10. 2026 po N2 (výsledky na tisíce): stránka ukazuje 6 000 Kč a „Výnos +0 Kč“, skutečný výnos je 225 Kč (FV 6 225, podíl 3,6 %). Očekávání 4 % zůstává (pravda); test podíl dopočtený ze zaokrouhlených Kč porovnává s tolerancí 100 × 500 / výsledek p. b. Vedlejší efekt N2 („Výnos +0 Kč“) nahlášen jako nález."
+   "poznamka_23_10": "23. 10. 2026: chyba N2 opravena – stránka ukazovala 6 000 Kč a „Výnos +0 Kč“, teď 6 200 Kč a „Výnos +200 Kč“ (skutečně 6 225,15 Kč, výnos 225,15 Kč, podíl 3,6 % → 4 %). Regrese: investicni-41/42.",
+   "dnes_selze": {
+    "chyba": "N2: na tisíce → „6 000 Kč“, „Výnos +0 Kč“, dnešní ceny „6 000 Kč“",
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "větev worktree-agent-a26a816e82ef3cfac (oprava N2, 23. 10. 2026)",
+     "datum": "2026-10-23",
+     "overeno": "anuita splatná předem: FV 6 225,15 Kč, dnešní ceny 6 103,09 Kč (23. 10. 2026)",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
+   }
   },
   {
    "id": "investicni-02",
@@ -131,18 +137,16 @@
     "#tax": 0
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 47920541780491,
+    "Za N let byste měli (Kč)": 47920541780488.83,
     "Vloženo (Kč)": 650000000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 17803817398000,
-    "podíl výnosu (%)": 100
+    "podíl výnosu (%)": 100,
+    "V dnešních cenách při 2 % (Kč)": 17803817398081.59
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 47 920 541 780 488,83 Kč, dnešní ceny FV / 1,02^n = 17 803 817 398 081,59 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false
   },
@@ -162,18 +166,16 @@
     "#tax": 0
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 1300000,
+    "Za N let byste měli (Kč)": 1300000.0,
     "Vloženo (Kč)": 1300000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 875000,
-    "podíl výnosu (%)": 0
+    "podíl výnosu (%)": 0,
+    "V dnešních cenách při 2 % (Kč)": 874862.73
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 1 300 000,00 Kč, dnešní ceny FV / 1,02^n = 874 862,73 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false
   },
@@ -193,18 +195,16 @@
     "#tax": 0
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 161345,
+    "Za N let byste měli (Kč)": 161344.77,
     "Vloženo (Kč)": 100000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 132000,
-    "podíl výnosu (%)": 38
+    "podíl výnosu (%)": 38,
+    "V dnešních cenách při 2 % (Kč)": 132358.9
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 161 344,77 Kč, dnešní ceny FV / 1,02^n = 132 358,90 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false
   },
@@ -224,18 +224,16 @@
     "#tax": 0
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 6064382,
+    "Za N let byste měli (Kč)": 6064382.48,
     "Vloženo (Kč)": 1800000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 3348000,
-    "podíl výnosu (%)": 70
+    "podíl výnosu (%)": 70,
+    "V dnešních cenách při 2 % (Kč)": 3347969.03
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 6 064 382,48 Kč, dnešní ceny FV / 1,02^n = 3 347 969,03 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false
   },
@@ -255,18 +253,16 @@
     "#tax": 15
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 239848,
+    "Za N let byste měli (Kč)": 239847.99,
     "Vloženo (Kč)": 220000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 231000,
-    "podíl výnosu (%)": 8
+    "podíl výnosu (%)": 8,
+    "V dnešních cenách při 2 % (Kč)": 230534.4
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 239 847,99 Kč, dnešní ceny FV / 1,02^n = 230 534,40 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false
   },
@@ -286,18 +282,16 @@
     "#tax": 0
    },
    "ocekavano": {
-    "Za N let byste měli (Kč)": 13682050,
+    "Za N let byste měli (Kč)": 13682049.68,
     "Vloženo (Kč)": 600000,
-    "V dnešních cenách při 2 % (Kč, na tisíce)": 5083000,
-    "podíl výnosu (%)": 96
+    "podíl výnosu (%)": 96,
+    "V dnešních cenách při 2 % (Kč)": 5083262.94
    },
    "tolerance": {
-    "Kč": 500,
-    "dnešní ceny": 1000,
     "%": 1,
-    "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
+    "poznamka_N2": "N2 upraveno 23. 10. 2026: výsledky modelu na 3 platné číslice, pod 100 000 Kč na stovky → test bere ± polovinu kroku zobrazení (+1 Kč); vloženo přesně."
    },
-   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
+   "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem. | Přepočteno 23. 10. 2026 (Decimal, scratchpad kv-skripty/investicni_nezavisle.py): FV 13 682 049,68 Kč, dnešní ceny FV / 1,02^n = 5 083 262,94 Kč.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
    "zavisi_na_datu": false
   },
@@ -1179,6 +1173,106 @@
    "zdroj_overeni": "Yahoo SPY adj. close × ČNB, vklady v první obch. den měsíce, XIRR bisekcí (karta.py). Platí k 21. 10. 2026.",
    "zavisi_na_datu": true,
    "datum_dat": "2026-10-21"
+  },
+  {
+   "skupina": "investicni",
+   "typ": "hodnota",
+   "nastroj": "Investiční kalkulačka",
+   "url": "/investicni-kalkulacka",
+   "zavisi_na_datu": false,
+   "id": "investicni-41",
+   "pripad": "regrese N2: malá částka – výnos se nesmí vynulovat",
+   "vstupy": {
+    "#initial": 0,
+    "#recurring": 500,
+    "frekvence": "monthly",
+    "#return (psát jako text)": "7",
+    "#period": 1,
+    "#tax": 0
+   },
+   "ocekavano": {
+    "Za N let byste měli (Kč)": 6225.15,
+    "Vloženo (Kč)": 6000,
+    "Výnos (Kč)": 225.15,
+    "podíl výnosu (%)": 4,
+    "V dnešních cenách při 2 % (Kč)": 6103.09,
+    "tabulka": [
+     {
+      "rok": 1,
+      "vynos_za_rok": 225.15,
+      "hodnota": 6225.15
+     }
+    ]
+   },
+   "tolerance": {
+    "Kč": "± polovina kroku zobrazení (pod 100 000 Kč krok 100 → ±51 Kč)",
+    "konzistence": "vloženo + výnos = výsledek přesně"
+   },
+   "zdroj_overeni": "Anuita splatná předem (Decimal, mimo kód webu): i = 1,07^(1/12) − 1, FV = 500 × (1,07 − 1)/i × (1 + i) = 6 225,15 Kč; kotva: (1+i)^12 = 1,07 přesně, tedy 500 × 12,4500… ; výnos 225,15 Kč > 0; dnešní ceny 6 225,15 / 1,02 = 6 103,09 Kč. Před opravou: „6 000 Kč“, „Výnos +0 Kč“ (N2 na tisíce).",
+   "dnes_selze": {
+    "chyba": "N2: výnos se u malé částky vynuloval",
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "větev worktree-agent-a26a816e82ef3cfac (oprava N2, 23. 10. 2026)",
+     "datum": "2026-10-23",
+     "overeno": "anuita 23. 10. 2026",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
+   }
+  },
+  {
+   "skupina": "investicni",
+   "typ": "hodnota",
+   "nastroj": "Investiční kalkulačka",
+   "url": "/investicni-kalkulacka",
+   "zavisi_na_datu": false,
+   "id": "investicni-42",
+   "pripad": "regrese N2: roční výnos v tabulce nesmí být záporný",
+   "vstupy": {
+    "#initial": 0,
+    "#recurring": 100,
+    "frekvence": "monthly",
+    "#return (psát jako text)": "1",
+    "#period": 3,
+    "#tax": 0
+   },
+   "ocekavano": {
+    "Za N let byste měli (Kč)": 3655.79,
+    "Vloženo (Kč)": 3600,
+    "Výnos (Kč)": 55.79,
+    "tabulka": [
+     {
+      "rok": 1,
+      "vynos_za_rok": 6.49,
+      "hodnota": 1206.49
+     },
+     {
+      "rok": 2,
+      "vynos_za_rok": 18.56,
+      "hodnota": 2425.05
+     },
+     {
+      "rok": 3,
+      "vynos_za_rok": 30.74,
+      "hodnota": 3655.79
+     }
+    ]
+   },
+   "tolerance": {
+    "Kč": "± polovina kroku zobrazení (krok 100 → ±51 Kč)",
+    "konzistence": "vloženo + výnos celkem = hodnota v každém řádku"
+   },
+   "zdroj_overeni": "Anuita splatná předem (Decimal, mimo kód webu), i = 1,01^(1/12) − 1: FV po 1/2/3 letech 1 206,49 / 2 425,05 / 3 655,79 Kč, výnos za rok = rozdíl hodnot − vklady 1 200 Kč = 6,49 / 18,56 / 30,74 Kč (≥ 0). Před opravou tabulka ukazovala −200, −200, +800 Kč (rozdíl dvou čísel na tisíce).",
+   "dnes_selze": {
+    "chyba": "N2: záporný roční výnos v tabulce",
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "větev worktree-agent-a26a816e82ef3cfac (oprava N2, 23. 10. 2026)",
+     "datum": "2026-10-23",
+     "overeno": "anuita 23. 10. 2026",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
+   }
   },
   {
    "id": "fire-00",
@@ -4399,7 +4493,7 @@
     "uspory": 0,
     "sporeni": 1000,
     "osoby": 1,
-    "vek": "young",
+    "vek": "middle",
     "vzdel": "university",
     "druhy": true,
     "job": "stable",
@@ -4413,7 +4507,7 @@
     "pokryti_mesicu": 0.0
    },
    "tolerance": "přesně (Kč), měsíce na 0,1",
-   "zdroj_overeni": "Přepočet podle metodiky zveřejněné na /nouzova-rezerva („Jak kalkulačka velikost počítá“: základ 3/6/9 měsíců, +30 %/+60 %, rozsah 3–12) – aritmetika ověřena nezávisle; body rizika nejsou na stránce zveřejněné ani podložené zdrojem (viz zpráva). Čas do cíle = ceil(chybí / měsíční spoření).",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 podle redakčního pravidla zveřejněného na /nouzova-rezerva (V12, ZAMERNA-ROZHODNUTI): zaměstnanec 3 měsíce, +1 měsíc za rizikový faktor – tady žádný (stabilní práce, doba neurčitá, bez splátek, 1 osoba, do 49 let, VŠ, druhý příjem) → 3 × 22 000 = 66 000 Kč; chybí 66 000, čas = ceil(66 000 / 1 000) = 66 měsíců; pokrytí 0 / 22 000 = 0. Volba věku „young“ po V12 neexistuje (jen „Do 49 let“ / „50 let a více“).",
    "zavisi_na_datu": false
   },
   {
@@ -5215,12 +5309,14 @@
     "postup": "tap, Cmd/Ctrl+A, Backspace, napsat, Enter; WebKit 390×844 hasTouch i Chromium 1440"
    },
    "ocekavano": {
-    "hlaska": "Zadejte částku od 100 do 1 000 000 Kč.",
-    "vsechny_radky": "—"
+    "hlaska": "Upraveno do povoleného rozsahu 100–1 000 000 Kč.",
+    "pole_po_opusteni": "100",
+    "trading212.data-za-nakup": 0.15,
+    "xtb.data-za-nakup": 0.5
    },
-   "tolerance": "přesně",
-   "zdroj_overeni": "Specifikace pole (rozsah 100–1 000 000 Kč z textu stránky); pravidlo č. 1 „raději — než špatné číslo“.",
-   "zavisi_na_datu": "kurz ČNB"
+   "tolerance": "přesně (Kč zaokrouhlené na celé jako data-za-nakup)",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026: sdílené číselné pole (CisloInput, 22. 10. 2026) částku mimo 100–1 000 000 Kč po opuštění pole ořízne na mez a ukáže „Upraveno do povoleného rozsahu…“ (záměr v ZAMERNA-ROZHODNUTI.md, stejně jako ostatní kalkulačky); dřív hláška „Zadejte částku…“ a „—“. Řádky pak platí pro zobrazenou (ořezanou) částku – nezávisle z ceníků bez kurzu: Trading 212 0,15 % × 100 Kč = 0.15 Kč, XTB 0,5 % × 100 Kč = 0.5 Kč (data-za-nakup = zaokrouhleno na Kč).",
+   "zavisi_na_datu": false
   },
   {
    "id": "naklady-16",
@@ -5233,12 +5329,14 @@
     "postup": "tap, Cmd/Ctrl+A, Backspace, napsat, Enter; WebKit 390×844 hasTouch i Chromium 1440"
    },
    "ocekavano": {
-    "hlaska": "Zadejte částku od 100 do 1 000 000 Kč.",
-    "vsechny_radky": "—"
+    "hlaska": "Upraveno do povoleného rozsahu 100–1 000 000 Kč.",
+    "pole_po_opusteni": "1 000 000",
+    "trading212.data-za-nakup": 1500,
+    "xtb.data-za-nakup": 5000
    },
-   "tolerance": "přesně",
-   "zdroj_overeni": "Specifikace pole (rozsah 100–1 000 000 Kč z textu stránky); pravidlo č. 1 „raději — než špatné číslo“.",
-   "zavisi_na_datu": "kurz ČNB"
+   "tolerance": "přesně (Kč zaokrouhlené na celé jako data-za-nakup)",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026: sdílené číselné pole (CisloInput, 22. 10. 2026) částku mimo 100–1 000 000 Kč po opuštění pole ořízne na mez a ukáže „Upraveno do povoleného rozsahu…“ (záměr v ZAMERNA-ROZHODNUTI.md, stejně jako ostatní kalkulačky); dřív hláška „Zadejte částku…“ a „—“. Řádky pak platí pro zobrazenou (ořezanou) částku – nezávisle z ceníků bez kurzu: Trading 212 0,15 % × 1 000 000 Kč = 1500 Kč, XTB 0,5 % × 1 000 000 Kč = 5000 Kč (data-za-nakup = zaokrouhleno na Kč).",
+   "zavisi_na_datu": false
   },
   {
    "id": "naklady-17",
@@ -5901,11 +5999,10 @@
    "ocekavano": {
     "max_propad_CZK_%": -32.1
    },
-   "tolerance": "±0,3 p. b. (dluhopisy: web z měsíční řady, denně −21,3 %)",
-   "zdroj_overeni": "Yahoo chart API adjclose (VT/SPY/VGK/VYM denně, IBGS.AS denně) × kurzy ČNB rok.txt (kurz ≤ 4 dny starý); skripty/propady.py. Pozn.: S&P 500 od 6/2008 = −32,0 % (stejné období jako VT).",
+   "tolerance": "±0,3 p. b. (kurzy ECB na webu vs. ČNB v ověření, denní řada)",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po K1 (společný start všech kategorií = první den VT 26. 6. 2008): Yahoo v8 adjclose VT denně × kurz ČNB rok.txt téhož dne (jinak poslední předchozí), max. propad z denních hodnot v Kč 26. 6. 2008 – 21. 10. 2026 = −32,07 % (vrchol 28. 8. 2008, dno 9. 3. 2009); stejně i do 20. 10. 2026 (skript scratchpad kv-skripty/propad_kviz.py, mimo kód webu). Dřív každý typ vlastní start (USA 1/2000 → −71,7 %), kvíz tak srovnával nesrovnatelné.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-20",
-   "zmeni_se_po_oprave": "K1 kvíz: po sjednocení startu propadů se období i hodnoty změní"
+   "datum_dat": "2026-10-21"
   },
   {
    "id": "naklady-42",
@@ -5920,17 +6017,26 @@
      "Hlavně USA (S&P 500)",
      "Nevím"
     ],
-    "od": "2000-01-03",
+    "od": "2008-06-26",
     "do": "2026-10-21"
    },
    "ocekavano": {
-    "max_propad_CZK_%": -71.7
+    "max_propad_CZK_%": -31.8
    },
-   "tolerance": "±0,3 p. b. (dluhopisy: web z měsíční řady, denně −21,3 %)",
-   "zdroj_overeni": "Yahoo chart API adjclose (VT/SPY/VGK/VYM denně, IBGS.AS denně) × kurzy ČNB rok.txt (kurz ≤ 4 dny starý); skripty/propady.py. Pozn.: S&P 500 od 6/2008 = −32,0 % (stejné období jako VT).",
+   "tolerance": "±0,3 p. b. (kurzy ECB na webu vs. ČNB v ověření, denní řada)",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po K1 (společný start všech kategorií = první den VT 26. 6. 2008): Yahoo v8 adjclose SPY denně × kurz ČNB rok.txt téhož dne (jinak poslední předchozí), max. propad z denních hodnot v Kč 26. 6. 2008 – 21. 10. 2026 = −31,82 % (vrchol 8. 9. 2008, dno 9. 3. 2009); stejně i do 20. 10. 2026 (skript scratchpad kv-skripty/propad_kviz.py, mimo kód webu). Dřív každý typ vlastní start (USA 1/2000 → −71,7 %), kvíz tak srovnával nesrovnatelné.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-20",
-   "zmeni_se_po_oprave": "K1 kvíz: po sjednocení startu propadů se období i hodnoty změní"
+   "datum_dat": "2026-10-21",
+   "dnes_selze": {
+    "chyba": "K1 kvíz: propady kategorií od různých startů",
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "8a5c37c",
+     "datum": "2026-10-23",
+     "overeno": "nezávisle 23. 10. 2026: Yahoo × ČNB od 26. 6. 2008 = −31,82 % (vrchol 8. 9. 2008, dno 9. 3. 2009)",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
+   }
   },
   {
    "id": "naklady-43",
@@ -5945,17 +6051,26 @@
      "Evropa",
      "Nevím"
     ],
-    "od": "2005-03-10",
+    "od": "2008-06-26",
     "do": "2026-10-21"
    },
    "ocekavano": {
-    "max_propad_CZK_%": -60.2
+    "max_propad_CZK_%": -38.5
    },
-   "tolerance": "±0,3 p. b. (dluhopisy: web z měsíční řady, denně −21,3 %)",
-   "zdroj_overeni": "Yahoo chart API adjclose (VT/SPY/VGK/VYM denně, IBGS.AS denně) × kurzy ČNB rok.txt (kurz ≤ 4 dny starý); skripty/propady.py. Pozn.: S&P 500 od 6/2008 = −32,0 % (stejné období jako VT).",
+   "tolerance": "±0,3 p. b. (kurzy ECB na webu vs. ČNB v ověření, denní řada)",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po K1 (společný start všech kategorií = první den VT 26. 6. 2008): Yahoo v8 adjclose VGK denně × kurz ČNB rok.txt téhož dne (jinak poslední předchozí), max. propad z denních hodnot v Kč 26. 6. 2008 – 21. 10. 2026 = −38,51 % (vrchol 3. 9. 2008, dno 9. 3. 2009); stejně i do 20. 10. 2026 (skript scratchpad kv-skripty/propad_kviz.py, mimo kód webu). Dřív každý typ vlastní start (USA 1/2000 → −71,7 %), kvíz tak srovnával nesrovnatelné.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-20",
-   "zmeni_se_po_oprave": "K1 kvíz: po sjednocení startu propadů se období i hodnoty změní"
+   "datum_dat": "2026-10-21",
+   "dnes_selze": {
+    "chyba": "K1 kvíz: propady kategorií od různých startů",
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "8a5c37c",
+     "datum": "2026-10-23",
+     "overeno": "nezávisle 23. 10. 2026: Yahoo × ČNB od 26. 6. 2008 = −38,51 % (vrchol 3. 9. 2008, dno 9. 3. 2009)",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
+   }
   },
   {
    "id": "naklady-44",
@@ -5970,17 +6085,26 @@
      "Chci pravidelný příjem",
      "Nevím"
     ],
-    "od": "2006-11-16",
+    "od": "2008-06-26",
     "do": "2026-10-21"
    },
    "ocekavano": {
-    "max_propad_CZK_%": -55.1
+    "max_propad_CZK_%": -35.2
    },
-   "tolerance": "±0,3 p. b. (dluhopisy: web z měsíční řady, denně −21,3 %)",
-   "zdroj_overeni": "Yahoo chart API adjclose (VT/SPY/VGK/VYM denně, IBGS.AS denně) × kurzy ČNB rok.txt (kurz ≤ 4 dny starý); skripty/propady.py. Pozn.: S&P 500 od 6/2008 = −32,0 % (stejné období jako VT).",
+   "tolerance": "±0,3 p. b. (kurzy ECB na webu vs. ČNB v ověření, denní řada)",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po K1 (společný start všech kategorií = první den VT 26. 6. 2008): Yahoo v8 adjclose VYM denně × kurz ČNB rok.txt téhož dne (jinak poslední předchozí), max. propad z denních hodnot v Kč 26. 6. 2008 – 21. 10. 2026 = −35,17 % (vrchol 8. 9. 2008, dno 9. 3. 2009); stejně i do 20. 10. 2026 (skript scratchpad kv-skripty/propad_kviz.py, mimo kód webu). Dřív každý typ vlastní start (USA 1/2000 → −71,7 %), kvíz tak srovnával nesrovnatelné.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-20",
-   "zmeni_se_po_oprave": "K1 kvíz: po sjednocení startu propadů se období i hodnoty změní"
+   "datum_dat": "2026-10-21",
+   "dnes_selze": {
+    "chyba": "K1 kvíz: propady kategorií od různých startů",
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "8a5c37c",
+     "datum": "2026-10-23",
+     "overeno": "nezávisle 23. 10. 2026: Yahoo × ČNB od 26. 6. 2008 = −35,17 % (vrchol 8. 9. 2008, dno 9. 3. 2009)",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
+   }
   },
   {
    "id": "naklady-45",
@@ -5995,17 +6119,16 @@
      "Celý svět",
      "Nevím"
     ],
-    "od": "2008-01",
+    "od": "2008-06-26",
     "do": "2026-10-21"
    },
    "ocekavano": {
-    "max_propad_CZK_%": -21.1
+    "max_propad_CZK_%": -21.3
    },
-   "tolerance": "±0,3 p. b. (dluhopisy: web z měsíční řady, denně −21,3 %)",
-   "zdroj_overeni": "Yahoo chart API adjclose (VT/SPY/VGK/VYM denně, IBGS.AS denně) × kurzy ČNB rok.txt (kurz ≤ 4 dny starý); skripty/propady.py. Pozn.: S&P 500 od 6/2008 = −32,0 % (stejné období jako VT).",
+   "tolerance": "±0,3 p. b. (kurzy ECB na webu vs. ČNB v ověření, denní řada)",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po K1 (společný start všech kategorií = první den VT 26. 6. 2008): Yahoo v8 adjclose IBGS.AS (EUR) denně × kurz ČNB rok.txt téhož dne (jinak poslední předchozí), max. propad z denních hodnot v Kč 26. 6. 2008 – 21. 10. 2026 = −21,32 % (vrchol 13. 1. 2015, dno 1. 3. 2023); stejně i do 20. 10. 2026 (skript scratchpad kv-skripty/propad_kviz.py, mimo kód webu). Dřív každý typ vlastní start (USA 1/2000 → −71,7 %), kvíz tak srovnával nesrovnatelné.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-20",
-   "zmeni_se_po_oprave": "K1 kvíz: po sjednocení startu propadů se období i hodnoty změní"
+   "datum_dat": "2026-10-21"
   },
   {
    "id": "naklady-46",
@@ -6019,13 +6142,16 @@
    "ocekavano": {
     "horizont <3 roky": "Dluhopisové ETF (54 cest)",
     "riziko „Nechci velké propady“ a horizont ≥3 roky": "Portfolia s dluhopisy + druhá možnost = kategorie podle zaměření (36 cest)",
-    "jinak": "kategorie podle zaměření (72 cest)",
-    "Vyplácet na účet": "příklad = distribuční třída; jinak akumulační",
-    "zakazane_texty": "undefined, NaN, Infinity, null – 0 výskytů",
-    "technologie mimo klid": "varování „Technologie jsou volatilnější…“"
+    "riziko „Zvládnu střední výkyvy“ a horizont ≥3 roky": "Akcie s částí dluhopisů (umírněná portfolia) + druhá možnost = kategorie podle zaměření (36 cest)",
+    "riziko „Zvládnu velké výkyvy“ a horizont ≥3 roky": "kategorie podle zaměření, bez druhé možnosti (36 cest)",
+    "Vyplácet na účet": "příklad = distribuční třída; Reinvestovat = akumulační",
+    "horizont 3–10 let": "varování „Horizont 3–10 let je na akcie krátký…“ (54 cest), jinde ne",
+    "Chci pravidelný příjem + Reinvestovat": "upozornění „…to si odporuje…“ (6 cest), jinde ne",
+    "technologie, horizont ≥3 roky": "varování „Technologie jsou volatilnější…“",
+    "zakazane_texty": "undefined, NaN, Infinity, null – 0 výskytů"
    },
    "tolerance": "přesně",
-   "zdroj_overeni": "Průchod všech 162 cest v Chromiu 1440 (24 cest i WebKit 390×844) 22. 10. 2026, porovnáno s pravidly v textu otázek.",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po V15 a S17 (audit 22. 10. 2026): pravidla odvozena z textu otázek a rozhodnutí auditu – střední riziko dřív nic neměnilo (V15), teď vede k portfoliím, kde akcie tvoří většinu a zbytek dluhopisy; horizont 3–10 let nese fakt o délce propadu; příjem + reinvestice si odporují (S17). Funkce recommend ve vyberEtfData.ts tomu odpovídá; test prochází všech 162 cest v Chromiu (24 ve WebKitu) a kontroluje nadpis, druhou možnost, třídu příkladu a varování.",
    "zavisi_na_datu": false
   }
  ],

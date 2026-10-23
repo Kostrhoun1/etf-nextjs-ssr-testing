@@ -20,7 +20,7 @@
  *      bonus < 50 Kč, zákonné zaokrouhlení),
  *  V12/S25 nouzová rezerva (OSVČ 6–12, rodina se splátkami ≥ 6, „Dostatečná“ jen bez chybějící částky),
  *  S6 investiční kalkulačka (prázdný výnos/daň), S7 stroj času (nad max. → hláška, ne tichá 0), N1 „1 let“,
- *  N2 modelové výsledky na tisíce.
+ *  N2 modelové výsledky na 3 platné číslice, pod 100 000 Kč na stovky (upraveno 23. 10. 2026: na tisíce vynulovalo výnos).
  * Očekávané hodnoty jsou spočtené NEZÁVISLE (vzorce zákona / Python z holých dat ČNB a Yahoo), ne replikou kódu webu.
  *
  * SPUŠTĚNÍ:
@@ -346,8 +346,18 @@ const TESTY = {
     over(/mil\. Kč$/.test(await textQa(page, 'mc-p50')), 'Monte Carlo: 2 platné číslice (S22)', await textQa(page, 'mc-p50'));
   },
   async '/investicni-kalkulacka'(page) {
-    // N2: výchozí 100 000 + 5 000 měsíčně, 7 %, 20 let (zlatý případ investicni-00: 2 938 999) → na tisíce 2 939 000.
-    over(cislo(await textQa(page, 'invest-vysledek')) === 2_939_000, 'investiční: výsledek modelu na tisíce', await textQa(page, 'invest-vysledek'));
+    // N2 (upraveno 23. 10. 2026): výchozí 100 000 + 5 000 měsíčně, 7 %, 20 let (zlatý případ investicni-00: 2 938 998,75)
+    // → 3 platné číslice 2 940 000.
+    over(cislo(await textQa(page, 'invest-vysledek')) === 2_940_000, 'investiční: výsledek modelu na 3 platné číslice', await textQa(page, 'invest-vysledek'));
+    // N2 regrese: 500 Kč měsíčně, 7 %, 1 rok = anuita splatná předem 6 225,15 Kč → „6 200 Kč“ a výnos +200 Kč (dřív „6 000“ a „+0“).
+    await prepis(page, '#initial', '0');
+    await prepis(page, '#recurring', '500');
+    await prepis(page, '#period', '1');
+    const maly = await textQa(page, 'invest-vysledek');
+    const vynosMaly = norm(await page.locator('[data-sekce="kalk-vysledek"]').first().innerText()).match(/Výnos\s+\+([\d ]+) Kč/)?.[1];
+    over(cislo(maly) === 6200 && cislo(vynosMaly ?? '') === 200, 'investiční: malá částka nevynuluje výnos (6 200 Kč, +200 Kč)', `${maly}, výnos +${vynosMaly}`);
+    await prepis(page, '#recurring', '5000');
+    await prepis(page, '#period', '20');
     await prepis(page, '#initial', '');
     over((await page.locator('[data-vysledek-chybi]').count()) > 0, 'investiční: prázdný vklad → „—“');
     await prepis(page, '#initial', '100000');
