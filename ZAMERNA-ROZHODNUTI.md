@@ -1014,6 +1014,12 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
 - **Pod 1 rok se výnos NEanualizuje** (V8, zásada GIPS): API pošle `summary.cagr = null`, widget ukáže „Za období +x %“
   (celkový výnos, `celkovyVynos`), XIRR se skryje. Kolísavost, Sharpe, Sortino a VaR jsou „—“ při méně než 12 měsíčních
   výnosech (`MIN_MESICU_RIZIKA`). Reálný výnos pod rok se nepočítá. Nevracet „aby tam bylo číslo“ – 7 týdnů dávalo „40,8 % ročně“.
+  **Celý rok JE rok** (oprava hranice 23. 10. 2026, `pokryvaCelyRok` v `src/lib/backtest/simulate.ts`): rok se měří na
+  zadaném období (start → konec uživatele), když data krajní dny pokrývají až na neobchodní dny (≤ 5 dní). 1. 1.–31. 12.
+  i „posledních 12 měsíců“ (22. 10. 2025 → 21. 10. 2026) tak mají roční výnos = celkový výnos za rok (bez anualizace
+  360–364 dní mezi prvním a posledním obchodním dnem). Dřív kalendářní rok vracel null (2024: 2. 1. → 31. 12. = 0,997 roku).
+  Kolísavost u kalendářního roku zůstává „—“ (jen 11 měsíčních výnosů konec měsíce → konec měsíce) – záměrně se neměnilo,
+  protože přechod na řadu „první den + konce měsíců“ by posunul kolísavost/Sharpe všech ověřených backtestů.
 - **Součet vah: odchylka do 0,01 p. b. se normalizuje, větší = 400** (V9). Engine (runBacktest) navíc váhy sám normalizuje
   a při odchylce > 0,01 p. b. hodí výjimku – i serverové předpočty. Dřív prošlo 99–101 % bez normalizace (CAGR 10,14 % místo 10,70 %).
 - **Bez počátečního vkladu jde pravidelný vklad i první den** (S8). S počátečním vkladem první den ne – počáteční vklad JE

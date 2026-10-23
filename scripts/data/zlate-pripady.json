@@ -16,7 +16,8 @@
    "jen_varovani_klice = hodnoty kodifikují známou chybu; při neshodě jen varování, po opravě přepočítat a klíče přesunout do brány.",
    "zavisi_na_datu = true: hodnota platí k datum_dat; na produkci buď pevné do= v URL, nebo kotvu denně přepočítat (kotva.py / sim.py / vynosy_czk.py), jinak jen kontrola konzistence.",
    "Vyřazené případy jsou v poli vyrazeno s důvodem.",
-   "fire-01 a naklady-22 (původně vyřazené) jsou vrácené jako XFAIL s hodnotami po opravě (V2, V13); denní test je hlásí jako očekávané selhání, dokud se oprava nenasadí."
+   "fire-01 a naklady-22 (původně vyřazené) jsou vrácené jako XFAIL s hodnotami po opravě (V2, V13); denní test je hlásí jako očekávané selhání, dokud se oprava nenasadí.",
+   "dnes_selze.opraveno = oprava je v repu a hodnota nezávisle ověřená: proti produkci XFAIL/XPASS do nasazení, proti lokálu/náhledu přísně (SELHALO). Po nasazení a XPASS na produkci příznak dnes_selze smaž celý."
   ],
   "souhrn": {
    "investicni": {
@@ -26,29 +27,29 @@
    },
    "fire": {
     "pocet": 21,
-    "dnes_selze": 2,
+    "dnes_selze": 5,
     "zavisi_na_datu": 0
    },
    "backtest": {
-    "pocet": 45,
-    "dnes_selze": 8,
+    "pocet": 46,
+    "dnes_selze": 9,
     "zavisi_na_datu": 20
    },
    "osobni": {
     "pocet": 30,
-    "dnes_selze": 1,
+    "dnes_selze": 5,
     "zavisi_na_datu": 0
    },
    "naklady": {
     "pocet": 46,
-    "dnes_selze": 3,
+    "dnes_selze": 4,
     "zavisi_na_datu": 45
    }
   },
-  "celkem": 185,
+  "celkem": 186,
   "vyrazeno": 2,
   "test": "scripts/zlate-kalkulacky.mjs (denně .github/workflows/zlate-pripady.yml)",
-  "upraveno": "23. 10. 2026: po opravách auditu (bc8ea6b) – N2 tolerance investiční ±500 Kč, osobni-02 a osobni-06 (zaokrouhlení, doplatek), Monte Carlo fire-11 až fire-16 s předpoklady z historie ETF (V3). Příznaky dnes_selze ponechány – na produkci platí do nasazení."
+  "upraveno": "23. 10. 2026: po opravách auditu (bc8ea6b) – N2 tolerance investiční ±500 Kč, osobni-02 a osobni-06 (zaokrouhlení, doplatek), Monte Carlo fire-11 až fire-16 s předpoklady z historie ETF (V3). Příznaky dnes_selze ponechány – na produkci platí do nasazení. | 23. 10. 2026 (po sloučení oprav auditu): fire-01/05–09 přepočteny nezávislým lognormálním modelem (dřív replika kódu = kruh), fire-02 text podle S19, backtest-32–37 start 1. 7. 2008 (Yahoo × ČNB), backtest-40 262 nákupů, nový backtest-45 (celý rok); nezávisle ověřené XPASS dostaly dnes_selze.opraveno."
  },
  "pripady": [
   {
@@ -111,7 +112,8 @@
    },
    "zdroj_overeni": "Nezávislý přepočet uzavřeným vzorcem anuity (Python, model.py v audit-nastroju/investicni): FV = L(1+i)^n + PMT·((1+i)^n−1)/i·(1+i), i=(1+r)^(1/12)−1 (vklad na začátku měsíce, jak uvádí FAQ /investicni-kalkulacka); kotva: standardní vzorec budoucí hodnoty anuity splatné předem.",
    "overeno_v_ui": "Chromium 1440 + WebKit 390×844 hasTouch, 22. 10. 2026: shoda na korunu",
-   "zavisi_na_datu": false
+   "zavisi_na_datu": false,
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 po N2 (výsledky na tisíce): stránka ukazuje 6 000 Kč a „Výnos +0 Kč“, skutečný výnos je 225 Kč (FV 6 225, podíl 3,6 %). Očekávání 4 % zůstává (pravda); test podíl dopočtený ze zaokrouhlených Kč porovnává s tolerancí 100 × 500 / výsledek p. b. Vedlejší efekt N2 („Výnos +0 Kč“) nahlášen jako nález."
   },
   {
    "id": "investicni-02",
@@ -765,7 +767,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "V5 text „ani ne třetina“",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "FV obyčejné anuity 1 000 Kč/měs. při 7 %: 9 let 148 291, 18 let 420 918, podíl 0,3523 > 1/3 (přepočet 23. 10. 2026).",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -792,7 +800,8 @@
     "poznamka_N2": "N2 (23. 10. 2026): výsledky modelu na tisíce Kč → tolerance ±500 Kč"
    },
    "zdroj_overeni": "FV obyčejné roční anuity 7200·(1,07^n−1)/0,07; limit 48 000 Kč § 15 odst. 6 ZDP (2026).",
-   "zavisi_na_datu": false
+   "zavisi_na_datu": false,
+   "poznamka_23_10": "Test četl řádek „48 000 Kč“, tabulka má nově „48 000 Kč ročně“ → opraven selektor. Hodnoty: 0,15 × 48 000 = 7 200, 0,23 × 48 000 = 11 040."
   },
   {
    "id": "investicni-27",
@@ -822,7 +831,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "V4 /pruvodce r − TER",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "FV obyčejné anuity 10 000 Kč/měs., 20 let, čistý výnos (1,07)(1−TER)−1: 4 953 722 / 4 091 264 Kč (přepočet 23. 10. 2026).",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -1214,13 +1229,20 @@
    "tolerance": {
     "vek": 1
    },
-   "zdroj_overeni": "SOUHRN auditu 22. 10. 2026 (V2): nezávislý numpy model, 100 000 simulací, střed simulace exp(ln(1+r)/12+σ²/2)−1; po opravě V2 52/57/65 ±1 rok. Dnešní web (52/58/67) má střed o σ²/2 nižší.",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) a S19 – nezávislý numpy model mimo kód webu (scratchpad zl/fire_nezavisle.py, 200 000 cest, vlastní RNG; ověřeno i druhým semínkem): měsíčně vklad, pak růst exp(N(ln(1+r)/12, σ/√12)) v reálných Kč, cíl 25× ročních výdajů, věk = věk + round(roky) pro 10./50./90. percentil, milníky z mediánu hodnot na konci roku; předpoklady r/σ z src/lib/firePredpoklady.ts (2,0/7,6 – 4,6/9,2 – 6,2/11,0 %, samy nezávisle ověřené scripts/overeni-fire-predpoklady.mjs z Yahoo × ČNB × ČSÚ); kontrola modelu: medián CAGR 30 let 2,007 / 4,609 / 6,211 %. Tolerance ±1 rok = rozptyl webu se 600 simulacemi (bootstrap: sm. odchylka 0,4–0,95 roku). Roky do cíle 10./50./90. percentil: 21,5 / 27,25 / 35,17 let (dosaženo 99,8 % cest).",
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "V2 FIRE střed simulace bez σ²/2 (dnes 52/58/67)",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "nezávisle přepočteno 23. 10. 2026 (zl/*.py ve scratchpadu)",
+     "poznamka": "V2 opraveno v repu; na produkci ověřit po nasazení"
+    }
    },
-   "vraceno": "Původně vyřazený případ (kodifikoval chybu V2). Vrácen 22. 10. 2026 s hodnotami po opravě podle SOUHRN jako XFAIL – zezelená po opravě V2."
+   "vraceno": "Původně vyřazený případ (kodifikoval chybu V2). Vrácen 22. 10. 2026 s hodnotami po opravě podle SOUHRN jako XFAIL – zezelená po opravě V2.",
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) – dřívější hodnoty {\"kdyz_se_darilo\": 52, \"nejcasteji\": 57, \"kdyz_se_nedarilo\": 65} byly z přesné repliky STARÉHO kódu webu (kruh). Klíč „nejcasteji“ = karta „Obvykle (medián)“."
   },
   {
    "id": "fire-02",
@@ -1237,11 +1259,11 @@
     "strategie": "moderate"
    },
    "ocekavano": {
-    "text": "ani za 50 let nedosáhnete (do 68 let věku)",
+    "text": "nezávislosti do 50 let (do 68 let věku) nedosáhnete v žádné z 600 simulací",
     "cilova_castka_kc": 3000000
    },
    "tolerance": 0,
-   "zdroj_overeni": "Logika: 0 Kč bez vkladů zůstane 0; 10 000 × 300 = 3 000 000; 18 + 50 = 68.",
+   "zdroj_overeni": "Logika: 0 Kč bez vkladů zůstane 0 v každé simulaci (0 × růst = 0) → cíle nedosáhne žádná simulace; 10 000 × 12 × 25 = 3 000 000; 18 + 50 = 68. Po S19 (23. 10. 2026): „nedosáhnete“ jen když cíle nedosáhne ŽÁDNÁ simulace – tady správně (nezávislý model zl/fire_nezavisle.py: dosaženo 0,00 % cest).",
    "zavisi_na_datu": false
   },
   {
@@ -1304,16 +1326,18 @@
     "strategie": "conservative"
    },
    "ocekavano": {
-    "kdyz_se_darilo": 55,
-    "nejcasteji": 72,
+    "kdyz_se_darilo": 54,
+    "nejcasteji": 70,
     "kdyz_se_nedarilo": "— (ani do 90 let)"
    },
    "tolerance": {
-    "vek_presne": 0,
-    "vek_statisticky_median": 3
+    "vek": 1,
+    "nejcasteji": 2,
+    "poznamka": "Medián je tu citlivý na výběr 600 simulací: nezávisle 1 000 opakování po 600 cestách (zl/fire05_sum.py) – medián věku průměr 69,8, sm. odchylka 0,97; rozdělení 67: 0,6 %, 68: 7,9 %, 69: 28,8 %, 70: 40,3 %, 71: 19,2 %, 72: 3,0 %, 73: 0,2 %. ±2 roky pokryje 99,4 % (web se semínkem 20261017 ukazuje 68 = šum, ne chyba modelu)."
    },
-   "zdroj_overeni": "Přesná replika 55/72/—; numpy 100k: 16,3/34,1/≥50 let (=56/74/—), sd mediánu při 600 sim. 1,1 roku.",
-   "zavisi_na_datu": false
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) a S19 – nezávislý numpy model mimo kód webu (scratchpad zl/fire_nezavisle.py, 200 000 cest, vlastní RNG; ověřeno i druhým semínkem): měsíčně vklad, pak růst exp(N(ln(1+r)/12, σ/√12)) v reálných Kč, cíl 25× ročních výdajů, věk = věk + round(roky) pro 10./50./90. percentil, milníky z mediánu hodnot na konci roku; předpoklady r/σ z src/lib/firePredpoklady.ts (2,0/7,6 – 4,6/9,2 – 6,2/11,0 %, samy nezávisle ověřené scripts/overeni-fire-predpoklady.mjs z Yahoo × ČNB × ČSÚ); kontrola modelu: medián CAGR 30 let 2,007 / 4,609 / 6,211 %. Tolerance ±1 rok = rozptyl webu se 600 simulacemi (bootstrap: sm. odchylka 0,4–0,95 roku). Roky do cíle 10./50./90. percentil: 14,0 / 29,75 / nedosaženo (dosaženo jen 80,3 % cest → 90. percentil „—“).",
+   "zavisi_na_datu": false,
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) – dřívější hodnoty {\"kdyz_se_darilo\": 55, \"nejcasteji\": 72, \"kdyz_se_nedarilo\": \"— (ani do 90 let)\"} byly z přesné repliky STARÉHO kódu webu (kruh). Klíč „nejcasteji“ = karta „Obvykle (medián)“."
   },
   {
    "id": "fire-06",
@@ -1330,17 +1354,18 @@
     "strategie": "aggressive"
    },
    "ocekavano": {
-    "kdyz_se_darilo": 63,
-    "nejcasteji": 72,
+    "kdyz_se_darilo": 61,
+    "nejcasteji": 70,
     "kdyz_se_nedarilo": "— (ani do 75 let)",
     "prvni_rok": 33,
-    "polovina_cesty": 62
+    "polovina_cesty": 61
    },
    "tolerance": {
-    "vek_presne": 0
+    "vek": 1
    },
-   "zdroj_overeni": "Přesná replika 63/72/—, milníky 33 a 62; numpy 100k 37,8/47,6/≥50 let.",
-   "zavisi_na_datu": false
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) a S19 – nezávislý numpy model mimo kód webu (scratchpad zl/fire_nezavisle.py, 200 000 cest, vlastní RNG; ověřeno i druhým semínkem): měsíčně vklad, pak růst exp(N(ln(1+r)/12, σ/√12)) v reálných Kč, cíl 25× ročních výdajů, věk = věk + round(roky) pro 10./50./90. percentil, milníky z mediánu hodnot na konci roku; předpoklady r/σ z src/lib/firePredpoklady.ts (2,0/7,6 – 4,6/9,2 – 6,2/11,0 %, samy nezávisle ověřené scripts/overeni-fire-predpoklady.mjs z Yahoo × ČNB × ČSÚ); kontrola modelu: medián CAGR 30 let 2,007 / 4,609 / 6,211 %. Tolerance ±1 rok = rozptyl webu se 600 simulacemi (bootstrap: sm. odchylka 0,4–0,95 roku). Roky do cíle 10./50./90. percentil: 35,6 / 44,7 / nedosaženo (dosaženo 72,9 % cest).",
+   "zavisi_na_datu": false,
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) – dřívější hodnoty {\"kdyz_se_darilo\": 63, \"nejcasteji\": 72, \"kdyz_se_nedarilo\": \"— (ani do 75 let)\", \"prvni_rok\": 33, \"polovina_cesty\": 62} byly z přesné repliky STARÉHO kódu webu (kruh). Klíč „nejcasteji“ = karta „Obvykle (medián)“."
   },
   {
    "id": "fire-07",
@@ -1366,10 +1391,11 @@
     "polovina_cesty": 47
    },
    "tolerance": {
-    "vek_presne": 0
+    "vek": 1
    },
-   "zdroj_overeni": "Přesná replika; numpy 100k 14,6/18,3/23,3 let.",
-   "zavisi_na_datu": false
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) a S19 – nezávislý numpy model mimo kód webu (scratchpad zl/fire_nezavisle.py, 200 000 cest, vlastní RNG; ověřeno i druhým semínkem): měsíčně vklad, pak růst exp(N(ln(1+r)/12, σ/√12)) v reálných Kč, cíl 25× ročních výdajů, věk = věk + round(roky) pro 10./50./90. percentil, milníky z mediánu hodnot na konci roku; předpoklady r/σ z src/lib/firePredpoklady.ts (2,0/7,6 – 4,6/9,2 – 6,2/11,0 %, samy nezávisle ověřené scripts/overeni-fire-predpoklady.mjs z Yahoo × ČNB × ČSÚ); kontrola modelu: medián CAGR 30 let 2,007 / 4,609 / 6,211 %. Tolerance ±1 rok = rozptyl webu se 600 simulacemi (bootstrap: sm. odchylka 0,4–0,95 roku). Roky do cíle 10./50./90. percentil: 14,1 / 17,6 / 22,5 let (100 %).",
+   "zavisi_na_datu": false,
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) – dřívější hodnoty {\"kdyz_se_darilo\": 49, \"nejcasteji\": 53, \"kdyz_se_nedarilo\": 58, \"cilova_castka_kc\": 10500000, \"prvni_rok\": 36, \"polovina_cesty\": 47} byly z přesné repliky STARÉHO kódu webu (kruh). Klíč „nejcasteji“ = karta „Obvykle (medián)“."
   },
   {
    "id": "fire-08",
@@ -1388,16 +1414,17 @@
    },
    "ocekavano": {
     "pole_inflace": "4,9",
-    "kdyz_se_darilo": 57,
-    "nejcasteji": 66,
-    "kdyz_se_nedarilo": "— (ani do 80 let)",
-    "polovina_cesty": 53
+    "kdyz_se_darilo": 55,
+    "nejcasteji": 64,
+    "kdyz_se_nedarilo": 78,
+    "polovina_cesty": 52
    },
    "tolerance": {
-    "vek_presne": 0
+    "vek": 1
    },
-   "zdroj_overeni": "Přesná replika s inflací 4,9 % (při chybném 49 % → ořez 10 % by vyšlo 61/73/—). Chromium 1440 i WebKit 390×844 shodně.",
-   "zavisi_na_datu": false
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) a S19 – nezávislý numpy model mimo kód webu (scratchpad zl/fire_nezavisle.py, 200 000 cest, vlastní RNG; ověřeno i druhým semínkem): měsíčně vklad, pak růst exp(N(ln(1+r)/12, σ/√12)) v reálných Kč, cíl 25× ročních výdajů, věk = věk + round(roky) pro 10./50./90. percentil, milníky z mediánu hodnot na konci roku; předpoklady r/σ z src/lib/firePredpoklady.ts (2,0/7,6 – 4,6/9,2 – 6,2/11,0 %, samy nezávisle ověřené scripts/overeni-fire-predpoklady.mjs z Yahoo × ČNB × ČSÚ); kontrola modelu: medián CAGR 30 let 2,007 / 4,609 / 6,211 %. Tolerance ±1 rok = rozptyl webu se 600 simulacemi (bootstrap: sm. odchylka 0,4–0,95 roku). Roky do cíle 10./50./90. percentil: 25,25 / 34,1 / 47,9 let (dosaženo 92,4 % cest; při 600 simulacích ~1 % šance, že 90. percentil vyjde „—“).",
+   "zavisi_na_datu": false,
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) – dřívější hodnoty {\"pole_inflace\": \"4,9\", \"kdyz_se_darilo\": 57, \"nejcasteji\": 66, \"kdyz_se_nedarilo\": \"— (ani do 80 let)\", \"polovina_cesty\": 53} byly z přesné repliky STARÉHO kódu webu (kruh). Klíč „nejcasteji“ = karta „Obvykle (medián)“."
   },
   {
    "id": "fire-09",
@@ -1419,16 +1446,17 @@
     ]
    },
    "ocekavano": {
-    "kdyz_se_darilo": 54,
-    "nejcasteji": 59,
-    "kdyz_se_nedarilo": 68,
-    "polovina_cesty": 50
+    "kdyz_se_darilo": 53,
+    "nejcasteji": 58,
+    "kdyz_se_nedarilo": 66,
+    "polovina_cesty": 49
    },
    "tolerance": {
-    "vek_presne": 0
+    "vek": 1
    },
-   "zdroj_overeni": "Přesná replika (výdaj na konci 60. měsíce).",
-   "zavisi_na_datu": false
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) a S19 – nezávislý numpy model mimo kód webu (scratchpad zl/fire_nezavisle.py, 200 000 cest, vlastní RNG; ověřeno i druhým semínkem): měsíčně vklad, pak růst exp(N(ln(1+r)/12, σ/√12)) v reálných Kč, cíl 25× ročních výdajů, věk = věk + round(roky) pro 10./50./90. percentil, milníky z mediánu hodnot na konci roku; předpoklady r/σ z src/lib/firePredpoklady.ts (2,0/7,6 – 4,6/9,2 – 6,2/11,0 %, samy nezávisle ověřené scripts/overeni-fire-predpoklady.mjs z Yahoo × ČNB × ČSÚ); kontrola modelu: medián CAGR 30 let 2,007 / 4,609 / 6,211 %. Tolerance ±1 rok = rozptyl webu se 600 simulacemi (bootstrap: sm. odchylka 0,4–0,95 roku). Roky do cíle 10./50./90. percentil: 22,6 / 28,4 / 36,4 let (výdaj 300 000 Kč na konci 5. roku).",
+   "zavisi_na_datu": false,
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 po opravě V2 (lognormální model) – dřívější hodnoty {\"kdyz_se_darilo\": 54, \"nejcasteji\": 59, \"kdyz_se_nedarilo\": 68, \"polovina_cesty\": 50} byly z přesné repliky STARÉHO kódu webu (kruh). Klíč „nejcasteji“ = karta „Obvykle (medián)“."
   },
   {
    "id": "fire-10",
@@ -3303,24 +3331,25 @@
    "url": "/kolik-vydelaly-etf, /sp500-nebo-cely-svet",
    "vstupy": {
     "fond": "VT",
-    "od": "2008-07-02",
+    "od": "2008-07-01",
     "do": "2026-10-21",
     "vklad": 100000,
     "mena": "CZK"
    },
    "ocekavano": {
-    "konecna": 689000.0,
-    "cagr_pct": 11.1,
-    "max_pokles_pct": -32.1
+    "konecna": 677678.0,
+    "cagr_pct": 11.02,
+    "max_pokles_pct": -32.07
    },
    "tolerance": {
     "konecna": "±0,5 %",
     "cagr_pct": "±0,1",
     "max_pokles_pct": "±0,2"
    },
-   "zdroj_overeni": "Nezávislý simulátor skripty/sim.py: Yahoo Finance v8 chart adjclose (denní) × kurzy ČNB rok.txt; CAGR=(konec/začátek)^(1/roky)−1, roky=dny/365,25; kolísavost=σ měsíčních výnosů (konce měsíců)×√12; max. pokles z denních dat; web: VT 688 000/11,1/−32,1; SPY 1 221 000/14,7/−31,8; EFA 381 000/7,6/−34,1; EEM 307 000/6,3/−44,9; VGTSX 377 323/7,5/−34,3 – vše sedí",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě startu (1. 7. 2008 místo 2. 7.; 1. den v měsíci se už nevynechává) – nezávislý skript zl/bt_nezavisle.py (čistý Python): Yahoo Finance v8 adjclose denně × USD/CZK ČNB rok.txt (staženo 23. 10. 2026), nákup 1. 7. 2008, konec 21. 10. 2026, CAGR=(konec/začátek)^(365,25/dny)−1, max. pokles z denních hodnot v Kč. Web (ECB kurzy) se liší ≤ 0,1 %. VT: 100 000 Kč → 677 678 Kč  11.02 % ročně  max. pokles -32.07 %.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-21"
+   "datum_dat": "2026-10-21",
+   "poznamka_23_10": "Dřív start 2. 7. 2008: {\"konecna\": 689000.0, \"cagr_pct\": 11.1, \"max_pokles_pct\": -32.1} (VT 1. → 2. 7. 2008 +1,6 % i s kurzem)."
   },
   {
    "id": "backtest-33",
@@ -3330,24 +3359,25 @@
    "url": "/kolik-vydelaly-etf, /sp500-nebo-cely-svet",
    "vstupy": {
     "fond": "SPY",
-    "od": "2008-07-02",
+    "od": "2008-07-01",
     "do": "2026-10-21",
     "vklad": 100000,
     "mena": "CZK"
    },
    "ocekavano": {
-    "konecna": 1223000.0,
-    "cagr_pct": 14.7,
-    "max_pokles_pct": -31.8
+    "konecna": 1199860.0,
+    "cagr_pct": 14.54,
+    "max_pokles_pct": -31.82
    },
    "tolerance": {
     "konecna": "±0,5 %",
     "cagr_pct": "±0,1",
     "max_pokles_pct": "±0,2"
    },
-   "zdroj_overeni": "Nezávislý simulátor skripty/sim.py: Yahoo Finance v8 chart adjclose (denní) × kurzy ČNB rok.txt; CAGR=(konec/začátek)^(1/roky)−1, roky=dny/365,25; kolísavost=σ měsíčních výnosů (konce měsíců)×√12; max. pokles z denních dat; web: VT 688 000/11,1/−32,1; SPY 1 221 000/14,7/−31,8; EFA 381 000/7,6/−34,1; EEM 307 000/6,3/−44,9; VGTSX 377 323/7,5/−34,3 – vše sedí",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě startu (1. 7. 2008 místo 2. 7.; 1. den v měsíci se už nevynechává) – nezávislý skript zl/bt_nezavisle.py (čistý Python): Yahoo Finance v8 adjclose denně × USD/CZK ČNB rok.txt (staženo 23. 10. 2026), nákup 1. 7. 2008, konec 21. 10. 2026, CAGR=(konec/začátek)^(365,25/dny)−1, max. pokles z denních hodnot v Kč. Web (ECB kurzy) se liší ≤ 0,1 %. SPY: 100 000 Kč → 1 199 860 Kč  14.54 % ročně  max. pokles -31.82 %.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-21"
+   "datum_dat": "2026-10-21",
+   "poznamka_23_10": "Dřív start 2. 7. 2008: {\"konecna\": 1223000.0, \"cagr_pct\": 14.7, \"max_pokles_pct\": -31.8} (VT 1. → 2. 7. 2008 +1,6 % i s kurzem)."
   },
   {
    "id": "backtest-34",
@@ -3357,24 +3387,25 @@
    "url": "/kolik-vydelaly-etf, /sp500-nebo-cely-svet",
    "vstupy": {
     "fond": "EFA",
-    "od": "2008-07-02",
+    "od": "2008-07-01",
     "do": "2026-10-21",
     "vklad": 100000,
     "mena": "CZK"
    },
    "ocekavano": {
-    "konecna": 382000.0,
-    "cagr_pct": 7.6,
-    "max_pokles_pct": -34.1
+    "konecna": 374999.0,
+    "cagr_pct": 7.49,
+    "max_pokles_pct": -34.11
    },
    "tolerance": {
     "konecna": "±0,5 %",
     "cagr_pct": "±0,1",
     "max_pokles_pct": "±0,2"
    },
-   "zdroj_overeni": "Nezávislý simulátor skripty/sim.py: Yahoo Finance v8 chart adjclose (denní) × kurzy ČNB rok.txt; CAGR=(konec/začátek)^(1/roky)−1, roky=dny/365,25; kolísavost=σ měsíčních výnosů (konce měsíců)×√12; max. pokles z denních dat; web: VT 688 000/11,1/−32,1; SPY 1 221 000/14,7/−31,8; EFA 381 000/7,6/−34,1; EEM 307 000/6,3/−44,9; VGTSX 377 323/7,5/−34,3 – vše sedí",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě startu (1. 7. 2008 místo 2. 7.; 1. den v měsíci se už nevynechává) – nezávislý skript zl/bt_nezavisle.py (čistý Python): Yahoo Finance v8 adjclose denně × USD/CZK ČNB rok.txt (staženo 23. 10. 2026), nákup 1. 7. 2008, konec 21. 10. 2026, CAGR=(konec/začátek)^(365,25/dny)−1, max. pokles z denních hodnot v Kč. Web (ECB kurzy) se liší ≤ 0,1 %. EFA: 100 000 Kč → 374 999 Kč  7.49 % ročně  max. pokles -34.11 %.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-21"
+   "datum_dat": "2026-10-21",
+   "poznamka_23_10": "Dřív start 2. 7. 2008: {\"konecna\": 382000.0, \"cagr_pct\": 7.6, \"max_pokles_pct\": -34.1} (VT 1. → 2. 7. 2008 +1,6 % i s kurzem)."
   },
   {
    "id": "backtest-35",
@@ -3384,24 +3415,25 @@
    "url": "/kolik-vydelaly-etf, /sp500-nebo-cely-svet",
    "vstupy": {
     "fond": "EEM",
-    "od": "2008-07-02",
+    "od": "2008-07-01",
     "do": "2026-10-21",
     "vklad": 100000,
     "mena": "CZK"
    },
    "ocekavano": {
-    "konecna": 308000.0,
-    "cagr_pct": 6.3,
-    "max_pokles_pct": -44.9
+    "konecna": 298287.0,
+    "cagr_pct": 6.15,
+    "max_pokles_pct": -44.93
    },
    "tolerance": {
     "konecna": "±0,5 %",
     "cagr_pct": "±0,1",
     "max_pokles_pct": "±0,2"
    },
-   "zdroj_overeni": "Nezávislý simulátor skripty/sim.py: Yahoo Finance v8 chart adjclose (denní) × kurzy ČNB rok.txt; CAGR=(konec/začátek)^(1/roky)−1, roky=dny/365,25; kolísavost=σ měsíčních výnosů (konce měsíců)×√12; max. pokles z denních dat; web: VT 688 000/11,1/−32,1; SPY 1 221 000/14,7/−31,8; EFA 381 000/7,6/−34,1; EEM 307 000/6,3/−44,9; VGTSX 377 323/7,5/−34,3 – vše sedí",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě startu (1. 7. 2008 místo 2. 7.; 1. den v měsíci se už nevynechává) – nezávislý skript zl/bt_nezavisle.py (čistý Python): Yahoo Finance v8 adjclose denně × USD/CZK ČNB rok.txt (staženo 23. 10. 2026), nákup 1. 7. 2008, konec 21. 10. 2026, CAGR=(konec/začátek)^(365,25/dny)−1, max. pokles z denních hodnot v Kč. Web (ECB kurzy) se liší ≤ 0,1 %. EEM: 100 000 Kč → 298 287 Kč  6.15 % ročně  max. pokles -44.93 %.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-21"
+   "datum_dat": "2026-10-21",
+   "poznamka_23_10": "Dřív start 2. 7. 2008: {\"konecna\": 308000.0, \"cagr_pct\": 6.3, \"max_pokles_pct\": -44.9} (VT 1. → 2. 7. 2008 +1,6 % i s kurzem)."
   },
   {
    "id": "backtest-36",
@@ -3411,24 +3443,25 @@
    "url": "/kolik-vydelaly-etf, /sp500-nebo-cely-svet",
    "vstupy": {
     "fond": "VGTSX",
-    "od": "2008-07-02",
+    "od": "2008-07-01",
     "do": "2026-10-21",
     "vklad": 100000,
     "mena": "CZK"
    },
    "ocekavano": {
-    "konecna": 378000.0,
-    "cagr_pct": 7.5,
-    "max_pokles_pct": -34.3
+    "konecna": 369221.0,
+    "cagr_pct": 7.4,
+    "max_pokles_pct": -34.28
    },
    "tolerance": {
     "konecna": "±0,5 %",
     "cagr_pct": "±0,1",
     "max_pokles_pct": "±0,2"
    },
-   "zdroj_overeni": "Nezávislý simulátor skripty/sim.py: Yahoo Finance v8 chart adjclose (denní) × kurzy ČNB rok.txt; CAGR=(konec/začátek)^(1/roky)−1, roky=dny/365,25; kolísavost=σ měsíčních výnosů (konce měsíců)×√12; max. pokles z denních dat; web: VT 688 000/11,1/−32,1; SPY 1 221 000/14,7/−31,8; EFA 381 000/7,6/−34,1; EEM 307 000/6,3/−44,9; VGTSX 377 323/7,5/−34,3 – vše sedí",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě startu (1. 7. 2008 místo 2. 7.; 1. den v měsíci se už nevynechává) – nezávislý skript zl/bt_nezavisle.py (čistý Python): Yahoo Finance v8 adjclose denně × USD/CZK ČNB rok.txt (staženo 23. 10. 2026), nákup 1. 7. 2008, konec 21. 10. 2026, CAGR=(konec/začátek)^(365,25/dny)−1, max. pokles z denních hodnot v Kč. Web (ECB kurzy) se liší ≤ 0,1 %. VGTSX: 100 000 Kč → 369 221 Kč  7.4 % ročně  max. pokles -34.28 %.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-21"
+   "datum_dat": "2026-10-21",
+   "poznamka_23_10": "Dřív start 2. 7. 2008: {\"konecna\": 378000.0, \"cagr_pct\": 7.5, \"max_pokles_pct\": -34.3} (VT 1. → 2. 7. 2008 +1,6 % i s kurzem)."
   },
   {
    "id": "backtest-37",
@@ -3438,23 +3471,24 @@
    "url": "/kolik-vydelaly-etf",
    "vstupy": {
     "fond": "VT",
-    "od": "2008-07-02",
+    "od": "2008-07-01",
     "do": "2026-10-21",
     "pocatecni": 0,
     "mesicne": 5000
    },
    "ocekavano": {
-    "vlozeno": 1095000,
-    "pocet_vkladu": 219,
-    "konecna": 3581000.0
+    "vlozeno": 1100000,
+    "pocet_vkladu": 220,
+    "konecna": 3614642.0
    },
    "tolerance": {
     "vlozeno": "přesně",
     "konecna": "±0,5 %"
    },
-   "zdroj_overeni": "Nezávislý simulátor skripty/sim.py: Yahoo Finance v8 chart adjclose (denní) × kurzy ČNB rok.txt; CAGR=(konec/začátek)^(1/roky)−1, roky=dny/365,25; kolísavost=σ měsíčních výnosů (konce měsíců)×√12; max. pokles z denních dat; web 3 579 000 Kč",
+   "zdroj_overeni": "Přepočteno 23. 10. 2026 po opravě startu (1. 7. 2008 místo 2. 7.; 1. den v měsíci se už nevynechává) – nezávislý skript zl/bt_nezavisle.py (čistý Python): Yahoo Finance v8 adjclose denně × USD/CZK ČNB rok.txt (staženo 23. 10. 2026), nákup 1. 7. 2008, konec 21. 10. 2026, CAGR=(konec/začátek)^(365,25/dny)−1, max. pokles z denních hodnot v Kč. Web (ECB kurzy) se liší ≤ 0,1 %. Pravidelně 5 000 Kč 1. obchodní den každého měsíce 7/2008–10/2026 = 220 nákupů, vloženo 1 100 000 Kč, hodnota 3 614 642 Kč (VT).",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-21"
+   "datum_dat": "2026-10-21",
+   "poznamka_23_10": "Dřív 219 vkladů / 1 095 000 / 3 581 000 Kč (start 2. 7. 2008 vynechal červencový nákup)."
   },
   {
    "id": "backtest-38",
@@ -3608,7 +3642,7 @@
       "4 roky 7 měs."
      ]
     },
-    "sp500_nikdy_pod_vkladem": "67 z 263 (25 %)",
+    "sp500_nikdy_pod_vkladem": "67 z 262 (26 %)",
     "sp500_od_2004_nejdele": "8 let 1 měs."
    },
    "tolerance": {
@@ -3617,7 +3651,8 @@
    },
    "zdroj_overeni": "Nezávislý simulátor skripty/sim.py: Yahoo Finance v8 chart adjclose (denní) × kurzy ČNB rok.txt; CAGR=(konec/začátek)^(1/roky)−1, roky=dny/365,25; kolísavost=σ měsíčních výnosů (konce měsíců)×√12; max. pokles z denních dat + CPI ČSÚ CEN0101E (od 2015) a míra inflace ČSÚ (před 2015); skripty/podvodou.py",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10-21"
+   "datum_dat": "2026-10-21",
+   "poznamka_23_10": "Přepočteno 23. 10. 2026 (zl/minus_nezavisle.py, SPY adjclose × ČNB, konce měsíců): nákupů od 1/2000, po kterých je aspoň 5 let dat do 21. 10. 2026, je 262 (poslední 10/2021 = cena 30. 9. 2021; 11/2021 = cena 29. 10. 2021 má do 21. 10. 2026 jen 4 roky 11 měsíců). Nikdy pod vkladem 67 → 25,57 % = 26 %. Dřívějších 263 (25 %) počítalo i 11/2021 – chyba očekávání o jeden měsíc. Shodně tabulka „Po 5 letech (262 nákupů)“, po 1/2/3/10/15 letech 310/298/286/202/142."
   },
   {
    "id": "backtest-41",
@@ -3665,7 +3700,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "V8 backtest kratší než rok anualizuje",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "SPY × ČNB: 100 000 Kč 1. 9. 2026 + 5 000 Kč 1. 10. 2026 → 110 438 Kč k 21. 10. 2026 (v toleranci ±0,8 % od 109 671), celkový výnos +5,39 %; pravidlo GIPS (pod rok bez anualizace).",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -3690,7 +3731,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "V1 CisloInput tečka",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Specifikace V1 (ZAMERNA-ROZHODNUTI.md): „1.000“ v poli pro celé číslo = 1 000.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -3722,7 +3769,57 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "V9 API váhy 0,99–1,01 bez normalizace",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "SPY × ČNB 3. 1. 2005 → 21. 10. 2026: CAGR 10,701 % (= 100 % S&P 500), přepočet 23. 10. 2026.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
+   }
+  },
+  {
+   "id": "backtest-45",
+   "skupina": "backtest",
+   "typ": "hodnota",
+   "nastroj": "backtest – celý kalendářní rok (hranice V8)",
+   "url": "POST /api/backtest/simulate",
+   "vstupy": {
+    "portfolio": [
+     {
+      "indexCode": "sp500",
+      "weight": 1
+     }
+    ],
+    "startDate": "2023-01-01",
+    "endDate": "2023-12-31",
+    "initialAmount": 100000,
+    "rebalancingStrategy": "yearly",
+    "currency": "CZK"
+   },
+   "ocekavano": {
+    "prvniDen": "2023-01-03",
+    "amountInvested": 100000,
+    "netAssetValue": 123929,
+    "cagr_pct": 23.93
+   },
+   "tolerance": {
+    "netAssetValue": "±0,6 % (kurzy ČNB vs. ECB)",
+    "amountInvested": "přesně",
+    "cagr_pct": "±0,1 p. b. (roční výnos = celkový výnos za rok; anualizace 360 dní by dala 24,3 %, null = chyba)",
+    "prvniDen": "přesně"
+   },
+   "zdroj_overeni": "Nezávisle zl/bt_nezavisle.py: SPY adjclose × USD/CZK ČNB, 3. 1. 2023 → 29. 12. 2023 = +23,93 % (100 000 → 123 929 Kč); kotva 2024: SPY 2024 v USD +24,9 % (SSGA) × USD/CZK 22,376 → 24,237 (+8,3 %) = +35,3 % v Kč, skript 2. 1. → 31. 12. 2024 +35,13 %.",
+   "zavisi_na_datu": false,
+   "dnes_selze": {
+    "chyba": "V8 hranice: celý kalendářní rok (data 3. 1.–29. 12.) vracel roční výnos null (lokál) / anualizoval 360 dní (produkce 24,3 %)",
+    "kde": "produkce + build :3005 (oprava src/lib/backtest/simulate.ts pokryvaCelyRok, 23. 10. 2026)",
+    "opraveno": {
+     "commit": "oprava/zlate-pripady-po-oprave",
+     "datum": "2026-10-23",
+     "overeno": "SPY × ČNB 23,93 %",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -3843,7 +3940,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "strop sociálního pojištění 2 350 416 Kč ročně (kolo 8, 22. 10. 2026) – produkce ze 21. 10. ho nemá",
-    "kde": "jen produkce (do nasazení)"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Ručně ze zákona: strop VZ 2 350 416 Kč/rok (48 × 48 967) → 7,1 % × 2 350 416 / 12 = 13 907; 4,5 % × 200 000 = 9 000; záloha 15 % × 146 901 + 23 % × 53 099 = 34 248 − 2 570 = 31 678; čistá 145 415.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -3871,7 +3974,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "V11 štítek důchodce 0 %",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Ručně: pracující důchodce 2026 jen nemocenské 0,6 % × 30 000 = 180; 4,5 % = 1 350; 15 % × 30 000 − 2 570 = 1 930; čistá 26 540; štítek 0,6 %.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -3900,7 +4009,13 @@
    "tolerance_kc": 2,
    "dnes_selze": {
     "chyba": "S24 doplatek zdravotního pojištění pod minimální mzdou (opraveno v bc8ea6b, čeká na nasazení)",
-    "kde": "produkce + build :3005 do nasazení"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Ručně: 13,5 % z min. mzdy 22 400 = 3 024 − 9 % × 11 200 (1 008) = 2 016 doplatek zaměstnance; bonus 1 267 + 1 860 = 3 127 (příjem ≥ ½ min. mzdy); náklady 11 200 × 1,338 = 14 986.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -3950,7 +4065,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "strop sociálního pojištění 2 350 416 Kč ročně (kolo 8, 22. 10. 2026) – produkce ze 21. 10. ho nemá",
-    "kde": "jen produkce (do nasazení)"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Ručně: strop VZ → 13 907; 4,5 % × 1 000 000 = 45 000; 15 % × 146 901 + 23 % × 853 099 = 218 248 − 2 570 = 215 678; čistá 725 415.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -3970,7 +4091,13 @@
    "zavisi_na_datu": false,
    "dnes_selze": {
     "chyba": "prázdná hrubá mzda → „—“ místo výsledku (kolo 8, 22. 10. 2026) – produkce ze 21. 10. ukazuje 0 Kč a „NaN %“",
-    "kde": "jen produkce (do nasazení)"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Pravidlo č. 1 (prázdné pole = „—“), ZAMERNA-ROZHODNUTI.md kolo 8.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -5131,7 +5258,13 @@
    "zavisi_na_datu": "kurz ČNB",
    "dnes_selze": {
     "chyba": "V1 CisloInput tečka",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Specifikace V1 (ZAMERNA-ROZHODNUTI.md): „100.000“ = 100 000, nikdy výpočet pro 100 Kč.",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    }
   },
   {
@@ -5251,7 +5384,13 @@
    "zavisi_na_datu": "kurz ČNB",
    "dnes_selze": {
     "chyba": "V13 IBKR „od 74 Kč“ není spodní hranice",
-    "kde": "lokál + produkce"
+    "kde": "jen produkce (v repu opraveno, do nasazení)",
+    "opraveno": {
+     "commit": "792e9a1",
+     "datum": "2026-10-23",
+     "overeno": "Aritmetika: 1,25 EUR × 24,265 + 0,03 % × 2 000 = 30,9 Kč ≤ 32 Kč (ceník IBKR podle SOUHRN V13).",
+     "poznamka": "na produkci ověřit po nasazení"
+    }
    },
    "vraceno": "Původně vyřazený případ (kodifikoval chybu V13). Vrácen 22. 10. 2026 s hodnotou po opravě podle SOUHRN jako XFAIL – zezelená po opravě V13."
   },

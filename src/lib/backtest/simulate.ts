@@ -36,6 +36,28 @@ export interface SimulateRequestBody {
   }
 }
 
+const DEN_MS = 24 * 60 * 60 * 1000
+/** Nejdelší běžná burzovní přestávka (Velký pátek – Velikonoční pondělí, Vánoce/Nový rok na Xetře) – 4 dny + rezerva. */
+const MAX_NEOBCHODNI_DNY = 5
+
+/**
+ * Pokrývá zadané období aspoň jeden celý kalendářní rok? (oprava hranice V8, 23. 10. 2026)
+ * PROČ: V8 neanualizuje pod rok podle délky mezi PRVNÍM a POSLEDNÍM bodem dat. U kalendářního roku ale data začínají
+ * až prvním obchodním dnem a končí posledním (2024: 2. 1. → 31. 12. = 364 dní = 0,997 roku; 2023: 3. 1. → 29. 12. =
+ * 360 dní), takže celý rok vracel roční výnos null. Prahy „≥ 365 dní“ ani „≥ 12 měsíčních výnosů“ to neřeší
+ * (2023 má mezi body 360 dní a kalendářní rok má jen 11 měsíčních výnosů konec měsíce → konec měsíce).
+ * Proto se rok měří na ZADANÉM období (start/konec uživatele), pokud data krajní dny pokrývají až na neobchodní dny
+ * (≤ MAX_NEOBCHODNI_DNY); začínají-li data později nebo končí dřív, platí krajní body dat. Rok = konec ≥ start + 1 rok − 1 den.
+ */
+export function pokryvaCelyRok(start: Date, konec: Date, rada: Array<{ date: Date }>): boolean {
+  if (rada.length < 2 || Number.isNaN(start.getTime()) || Number.isNaN(konec.getTime())) return false
+  const prvni = rada[0].date, posledni = rada[rada.length - 1].date
+  const od = prvni.getTime() - start.getTime() <= MAX_NEOBCHODNI_DNY * DEN_MS ? start : prvni
+  const doKdy = konec.getTime() - posledni.getTime() <= MAX_NEOBCHODNI_DNY * DEN_MS ? konec : posledni
+  const zaRok = Date.UTC(od.getUTCFullYear() + 1, od.getUTCMonth(), od.getUTCDate())
+  return zaRok <= doKdy.getTime() + DEN_MS
+}
+
 /**
  * Spustí backtest a serializuje výsledek do JSON-safe podoby (datumy -> ISO).
  * Sdílené jádro pro POST /api/backtest/simulate i pro serverový předpočet
@@ -81,7 +103,9 @@ export async function simulateAndSerialize(body: SimulateRequestBody) {
   const malo = s.mesicnichVynosu < MIN_MESICU_RIZIKA
   const convertedSummary = {
     ...s,
-    cagr: s.obdobiLet >= 1 ? s.cagr : null,
+    // Celý rok (např. 1. 1.–31. 12.) je rok, i když první a poslední obchodní den leží uvnitř (V8 hranice, 23. 10. 2026):
+    // pak roční výnos = celkový výnos za rok (bez anualizace 360–364 dní). Jinak pod rok null.
+    cagr: s.obdobiLet >= 1 ? s.cagr : pokryvaCelyRok(startDate, endDate, result.marketNav ?? []) ? s.celkovyVynos : null,
     standardDeviation: malo ? null : s.standardDeviation,
     sharpeRatio: malo ? null : s.sharpeRatio,
     sortinoRatio: malo ? null : s.sortinoRatio,

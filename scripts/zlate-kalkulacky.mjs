@@ -19,6 +19,10 @@
  *               závislé na datu, když stránka už ukazuje novější data než zlatý případ (pak branou je konzistence).
  *   XFAIL     – případ má `dnes_selze` (chyba je potvrzená, oprava zatím není venku) a dnes selhal = očekávané.
  *   XPASS     – případ má `dnes_selze`, ale prošel → upozornění „chyba opravena? po ověření na produkci odeber příznak“.
+ *   `dnes_selze.opraveno` (oprava je v repu, hodnota nezávisle ověřená, čeká na nasazení): proti PRODUKCI dál XFAIL/XPASS
+ *               (stará produkce nesmí dělat poplach), proti lokálu/náhledu (jiný host než etfpruvodce.cz) se případ
+ *               vyhodnotí PŘÍSNĚ jako normální (selhání = SELHALO) – lokální build tak opravu opravdu hlídá.
+ *               Po nasazení produkce hlásí XPASS „oprava v repu … po nasazení odeber dnes_selze“; pak příznak smaž celý.
  *   NEOVĚŘENO – případ se nedal vyhodnotit (např. vyčerpaný limit volání API) → varování.
  * Kromě toho se na každé navštívené stránce nástroje hledají zakázané texty (undefined, NaN, „ a lety“, „za 2 let“…).
  *
@@ -37,6 +41,8 @@ import path from 'node:path';
 
 const ADRESAR = path.dirname(fileURLToPath(import.meta.url));
 const BASE = (process.argv[2] || process.env.BASE_URL || 'https://etfpruvodce.cz').replace(/\/$/, '');
+/** Běží test proti ostrému webu? (dnes_selze.opraveno: produkce = XFAIL/XPASS, jinde přísně) */
+const PRODUKCE = /(^|\.)etfpruvodce\.cz$/.test(new URL(BASE).hostname);
 const JEN = process.env.JEN ? process.env.JEN.split(',').map((s) => s.trim()).filter(Boolean) : null;
 const PROHLIZECE = (process.env.PROHLIZECE || 'chromium,webkit').split(',').map((s) => s.trim());
 const MAX_API = Number(process.env.MAX_API || 25);
@@ -339,7 +345,9 @@ R.investicniKalk = async (p, env) => {
       cNum('Za N let byste měli (Kč)', o['Za N let byste měli (Kč)'], precti(qa(s, 'invest-vysledek')) || precti(poStitku(s.radky, /^Za .+ byste měl/, KC)), t['Kč']),
       cNum('Vloženo (Kč)', o['Vloženo (Kč)'], precti(poStitku(s.radky, /^Vloženo$/, KC)), t['Kč']),
       cNum('V dnešních cenách při 2 % (Kč, na tisíce)', o['V dnešních cenách při 2 % (Kč, na tisíce)'], precti(dnes?.[1]), t['dnešní ceny'], { half: false }),
-      cNum('podíl výnosu (%)', o['podíl výnosu (%)'], precti(podil?.[1]), t['%'], { half: false }),
+      // Podíl dopočtený z „Výnos“ / „Za N let“ (věta chybí, když zobrazený výnos je 0) nese chybu zaokrouhlení na tisíce
+      // (N2, ±500 Kč) → tolerance v p. b. = 100 × ±Kč / výsledek (6 225 → „6 000 Kč“, výnos „+0 Kč“: podíl 0 vs. skutečně 3,6 %).
+      cNum('podíl výnosu (%)', o['podíl výnosu (%)'], precti(podil?.[1]), !podilVeta && vysledekKc?.v ? Math.max(t['%'], Math.ceil((100 * t['Kč']) / vysledekKc.v)) : t['%'], { half: false }),
     ],
   };
 };
@@ -450,7 +458,8 @@ R.dip = async (p, env) => {
   const s = await env.staticka('/dip');
   const o = p.ocekavano, tol = p.tolerance['Kč'];
   const pred = (re) => { const i = indexRadku(s.radky, re); return i > 0 ? s.radky[i - 1] : null; };
-  const vrat = radekTab(tabulka(s.tabulky, /JDE NA ODPOČET/i), /^48 000 Kč$/);
+  // první sloupec je „48 000 Kč ročně“ (dřív „48 000 Kč“); řádek „60 000 Kč ročně“ (strop) se nebere
+  const vrat = radekTab(tabulka(s.tabulky, /JDE NA ODPOČET/i), /^48 000 Kč( ročně)?$/);
   return {
     kontroly: [
       cNum('10 let', o['10 let'], precti(pred(/^po 10 letech reinvestování/)), tol),
@@ -541,11 +550,13 @@ R.fire = async (p, env) => {
     if (/^—/.test(hodnota)) return { raw: `— (${s.radky[i + 2]})`, pomlcka: true };
     return precti(hodnota);
   };
-  for (const [klic, re] of [['kdyz_se_darilo', /^Když se trhu dařilo$/], ['nejcasteji', /^Nejčastěji$/], ['kdyz_se_nedarilo', /^Když se nedařilo$/]]) {
+  for (const [klic, re] of [['kdyz_se_darilo', /^Když se trhu dařilo$/], ['nejcasteji', /^(Nejčastěji|Obvykle \(medián\))$/], ['kdyz_se_nedarilo', /^Když se nedařilo$/]]) {
     if (o[klic] === undefined) continue;
     const x = vek(re, klic);
+    // Tolerance může být i po klíči (rozptyl 600 simulací webu se liší podle percentilu – fire-05 medián).
+    const tolKlic = typeof p.tolerance?.[klic] === 'number' ? p.tolerance[klic] : tolVek;
     if (typeof o[klic] === 'string') k.push(cText(klic, o[klic], x ? norm(x.raw) : null));
-    else k.push(x?.pomlcka ? { klic, ocek: o[klic], skut: x.raw, ok: false, druh: 'hodnota' } : cNum(klic, o[klic], x, tolVek, { half: false }));
+    else k.push(x?.pomlcka ? { klic, ocek: o[klic], skut: x.raw, ok: false, druh: 'hodnota' } : cNum(klic, o[klic], x, tolKlic, { half: false }));
   }
   // Karta výsledku, nebo (cíl už splněn / nedosažitelný) věta „Cílová částka podle pravidla 4 % je … Kč; … dává … Kč měsíčně“.
   const cilova = precti(poStitku(s.radky, /^Cílová částka( \(|$)/, KC, { od, max: 4 })) || precti(s.text.match(/Cílová částka podle pravidla 4 % je ([\d ]+) Kč/)?.[1]) || precti(s.text.match(/Cílová částka \(\s*pravidlo 4 %\s*\) vychází na ([\d ]+) Kč/)?.[1]);
@@ -1404,12 +1415,14 @@ function vyhodnot(p, prohlizec, vysledek) {
   if (vysledek.kurzPozn) pozn.push(vysledek.kurzPozn);
   if (vysledek.neovereno) { stav = 'NEOVĚŘENO'; pozn.push(vysledek.neovereno); }
   // XPASS jen když se kontrola, kvůli které případ selhával, opravdu ověřila (blokujeXpass = klíč chyby se nedal přečíst)
-  else if (p.dnes_selze) stav = selhaneBrany.length || vysledek.chyba ? 'XFAIL' : brana.length && !kontroly.some((k) => k.blokujeXpass) ? 'XPASS' : 'NEOVĚŘENO';
+  else if (p.dnes_selze && !(p.dnes_selze.opraveno && !PRODUKCE)) stav = selhaneBrany.length || vysledek.chyba ? 'XFAIL' : brana.length && !kontroly.some((k) => k.blokujeXpass) ? 'XPASS' : 'NEOVĚŘENO';
   else if (vysledek.chyba || selhaneBrany.length) stav = 'SELHALO';
   else if (!brana.length && !varovani.length) stav = kontroly.some((k) => k.uroven === 'varovani') ? 'OK' : 'NEOVĚŘENO'; // data k jinému dni, hodnoty v toleranci
   else stav = varovani.length ? 'VAROVÁNÍ' : 'OK';
   if (p.zmeni_se_po_oprave && stav === 'SELHALO') pozn.push(`pozor: ${p.zmeni_se_po_oprave} – pokud byla oprava nasazena, přepočítej zlatý případ`);
-  return { id: p.id, nastroj: p.nastroj, url: p.url, prohlizec, stav, kontroly, selhaneBrany, varovani, pozn, chyba: p.dnes_selze?.chyba };
+  if (p.dnes_selze?.opraveno && !PRODUKCE) pozn.push(`oprava ${p.dnes_selze.opraveno.commit || ''} čeká na nasazení – mimo produkci se hodnotí přísně`);
+  const chyba = p.dnes_selze ? `${p.dnes_selze.chyba}${p.dnes_selze.opraveno && PRODUKCE ? ` – oprava v repu (${p.dnes_selze.opraveno.commit || p.dnes_selze.opraveno.datum}), po nasazení odeber dnes_selze` : ''}` : undefined;
+  return { id: p.id, nastroj: p.nastroj, url: p.url, prohlizec, stav, kontroly, selhaneBrany, varovani, pozn, chyba };
 }
 
 // ───────────────────────────── běh ─────────────────────────────
