@@ -30,7 +30,10 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import { ceskaZeme } from '@/lib/preklady';
 import { indexFonduLabel } from '@/utils/indexNormalization';
 
-export const revalidate = 86400;
+// 7 dní (ne 1 den): roboti Bingu/Seznamu procházejí stovky dvojic denně (25. 10. 2026: 355 různých za 12 h, 513 ISR
+// zápisů) a denní expirace je každý den přepisovala → hlavní zdroj ISR zápisů na free tieru Vercelu. Stránka ukazuje
+// „Data k …“, takže týdenní cache nic neskrývá (pravidlo č. 1). Viz ZAMERNA-ROZHODNUTI.md (ISR dvojic).
+export const revalidate = 604800;
 export const dynamicParams = true;
 
 /* Nejžádanější dvojice se předgenerují staticky; zbytek on-demand (seznam v src/lib/pairs.ts).

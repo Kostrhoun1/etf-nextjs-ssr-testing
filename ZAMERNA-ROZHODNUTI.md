@@ -90,6 +90,11 @@ prakticky zastaví. Fundamenty fondu se mění pomalu, měsíční cache je OK. 
 `/api/etf/screener`, tenhle interval se ho netýká. Po resetu cyklu lze vrátit na 7 dní. Nezkracuj bez důvodu.
 Vedlejší páka: **méně častý deploy** (každý deploy invaliduje ISR cache → nárazová vlna writes).
 
+**`/srovnani/[pair]` má `revalidate = 604800` (7 dní), ne 1 den. Není to překlep.** (25. 10. 2026)
+Po vyprázdnění cache detailů se stal hlavním zdrojem ISR zápisů: roboti procházejí stovky dvojic denně (za 12 h 355
+různých, 513 zápisů) a 1denní expirace je přepisovala každý den. Stránka ukazuje „Data k …“, takže starší cache je
+poctivě označená. Majitel nechce omezovat Bing/Seznam (žádný firewall ani noindex navíc) – proto delší cache, ne blokace.
+
 **Riziko (σ, Sharpe, Sortino) se počítá z MĚSÍČNÍCH výnosů, ne denních.** `calculateSummary`
 používá `resampleMonthEnd`. Není to nepřesnost — zdrojová denní data mají ojedinělé vadné ticky
 na začátku měsíce (splice denního ETF a měsíčního zdroje; např. `ftse_all_world` 2008-10-01 =
