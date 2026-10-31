@@ -33,7 +33,9 @@ export const TRHY: Trh[] = [
       'LU2903252349', 'IE000VAHT5T0', 'IE000CVUM3N6',
       // MSCI ACWI IMI (i malé firmy) – stejně jako FTSE Global All Cap (VALL) patří k celému světu; žebříček
       // i srovnávač ho mají (kolo 5, 19. 10. 2026: homepage je dřív vyřazovala a „Celý svět“ nesouhlasil).
-      'IE00B3YLTY66', 'IE000DD75KQ5'],
+      'IE00B3YLTY66', 'IE000DD75KQ5',
+      // Nové MSCI ACWI fondy (2026): Scalable/Xtrackers SCWD a Amundi Core WIDE – žebříček je má (31. 10. 2026).
+      'LU3444998531', 'LU3405679278'],
   },
   {
     id: 'world', label: 'MSCI World', index: 'vyspělé trhy', href: '/nejlepsi-etf/nejlepsi-msci-world-etf',
