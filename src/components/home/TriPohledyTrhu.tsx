@@ -134,7 +134,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
                   <span className={`hidden md:block text-right text-sm tabular-nums ${p.id === 'r1' ? 'text-slate-600' : f?.r1 == null || r.odlehle.some((o) => o.isin === f.isin) ? 'text-slate-500' : f.r1 >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                     {/* Fond s neověřeným výnosem (odlehlý) i tady „—“ – pravidlo č. 1. */}
                     {p.id === 'r1' ? terF(f?.ter ?? null) : pct(f && !r.odlehle.some((o) => o.isin === f.isin) ? f.r1 : null)}
-                    {/* Výnos fondu se zpožděnou řadou u zdroje platí k jinému dni – ukázat ho (src/lib/datumVynosu.ts). */}
+                    {/* Výnos fondu se zpožděnou řadou u zdroje platí k jinému dni – ukázat ho (src/lib/datumVynosu.ts; od 31. 10. 2026 i 1 den). */}
                     {p.id !== 'r1' && f?.r1 != null && f.returnsAsOf && r.pozadu.some((o) => o.isin === f.isin) && (
                       <span data-vynosy-k={f.returnsAsOf.slice(0, 10)} className="block whitespace-nowrap text-[11px] text-amber-700">k {datumKratce(f.returnsAsOf)}</span>
                     )}
@@ -149,7 +149,7 @@ export default function TriPohledyTrhu({ radky }: { radky: RadekTrhu[] }) {
             <p className="mt-2 text-xs text-slate-500 text-pretty">
               Fondy na stejný index se liší hlavně poplatkem a třídou, proto je rozdíl proti mediánu trhu malý.
               {radky.some((r) => r.odlehle.length > 0) && ' Fondy s neověřeným výnosem neukazujeme.'}
-              {radky.some((r) => r.pozadu.length > 0) && ' Fondy, jejichž ceny má zdroj o několik dní později, do mediánu nepočítáme.'}
+              {radky.some((r) => r.pozadu.length > 0) && ' Fondy, jejichž výnos platí k jinému dni než u ostatních, do mediánu nepočítáme.'}
             </p>
           )}
         </div>

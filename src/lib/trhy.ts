@@ -2,7 +2,7 @@ import { cache } from 'react';
 import { supabaseAdmin } from '@/lib/supabase';
 import { zobrazovanyTicker, platnyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { CERSTVOST_DNI, nabidkaOd } from '@/lib/etf-data';
-import { nejcastejsiDatumVynosu, vynosyPozadu } from '@/lib/datumVynosu';
+import { nejcastejsiDatumVynosu, datumVynosuIso } from '@/lib/datumVynosu';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
 import { RIZIKO_POLE, klicTridy, vynosTridNesedi, type RizikoPole, type VynosTridNesedi } from '@/lib/tridyFondu';
 import { sNeoverenymi } from '@/lib/vynosNeovereny';
@@ -41,8 +41,8 @@ export interface RadekTrhu {
   max: number | null;
   nejvykonnejsi: FondTrhu | null;
   odlehle: FondTrhu[];
-  /** Fondy s výnosy o víc než 3 pracovní dny staršími než většina (zpožděná řada u zdroje) – mimo medián
-   *  a „nejvýkonnější“ (srovnávala by se různá období); jejich výnos platí k jejich vlastnímu dni. */
+  /** Fondy s výnosem k JINÉMU dni než většina trhu (zpožděná řada u zdroje, i jen o 1 den – 31. 10. 2026) – mimo
+   *  medián, test odlehlé hodnoty a „nejvýkonnější“ (srovnávala by se různá období); výnos platí k jejich vlastnímu dni. */
   pozadu: FondTrhu[];
   nejstarsi: string | null;
 }
@@ -76,9 +76,17 @@ export const median = (xs: number[]) => {
 /** Čistý výpočet nad načtenými fondy (exportovaný kvůli testu odlehlé hodnoty). */
 export function spocitejTrh(trh: Trh, fondy: FondTrhu[], ted = Date.now()): RadekTrhu {
   const cerstve = fondy.filter((f) => f.scrapingDate && ted - new Date(f.scrapingDate).getTime() < CERSTVOST_DNI * 864e5);
-  const vetsina = nejcastejsiDatumVynosu(cerstve.map((f) => ({ returns_as_of: f.returnsAsOf, scraping_date: f.scrapingDate })));
-  const pozadu = cerstve.filter((f) => f.r1 != null && vynosyPozadu({ returns_as_of: f.returnsAsOf, scraping_date: f.scrapingDate }, vetsina));
-  const sVynosem = cerstve.filter((f) => f.r1 != null && !pozadu.includes(f));
+  // Medián, test odlehlé hodnoty i vítěz jen z fondů se STEJNÝM dnem výnosů jako většina (31. 10. 2026). Dřív se
+  // vyřazovaly jen fondy > MAX_ZPOZDENI_PRAC_DNI pozadu; tři třídy UBS MSCI EM s řadou zdroje o 1–2 dny pozadu
+  // (returns_as_of 26./27. 10. vs. většina 28. 10., EM mezitím +2,6 %) pak měly legitimně o ~2,5 p. b. nižší výnos
+  // 12 m a skončily jako „odlehlé“ (= neověřený výnos skrytý na celém webu), i když jsou ke svému dni správně.
+  // Fond s jiným dnem jde do `pozadu`: ukáže se s vlastním datem, nevyhrává a není „neověřený“ (ZAMERNA-ROZHODNUTI.md).
+  const sR1 = cerstve.filter((f) => f.r1 != null);
+  const den = (f: FondTrhu) => datumVynosuIso({ returns_as_of: f.returnsAsOf, scraping_date: f.scrapingDate });
+  const vetsina = nejcastejsiDatumVynosu(sR1.map((f) => ({ returns_as_of: f.returnsAsOf, scraping_date: f.scrapingDate })))
+    ?.toISOString().slice(0, 10) ?? null;
+  const pozadu = vetsina == null ? [] : sR1.filter((f) => den(f) !== vetsina);
+  const sVynosem = sR1.filter((f) => !pozadu.includes(f));
   const med0 = median(sVynosem.map((f) => f.r1!));
   const odlehle = med0 == null ? [] : sVynosem.filter((f) => Math.abs(f.r1! - med0) > ODLEHLA_PB);
   const platneVynosy = sVynosem.filter((f) => !odlehle.includes(f));

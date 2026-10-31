@@ -80,6 +80,19 @@ async function nactiFondy() {
   }
 }
 
+/** Fondy trhu se STEJNÝM dnem výnosů (returns_as_of) jako většina (při shodě novější den) – 31. 10. 2026.
+ *  Výnos 12 m fondu, jehož řada je u zdroje o 1–2 dny pozadu, je ke SVÉMU dni správně, ale na volatilním trhu se od
+ *  ostatních liší až o ~3 p. b. (UBS MSCI EM 27. 10. vs. trh 28. 10.: −2,5 p. b., ověřeno na řadě justETF a Xetra IS3N.DE).
+ *  Test odlehlé hodnoty (> 1,5 p. b. od mediánu) proto srovnává jen fondy k jednomu dni – stejně jako src/lib/trhy.ts,
+ *  ale nezávislá implementace z holých dat (ZAMERNA-ROZHODNUTI.md). */
+const sDnemVetsiny = (f) => {
+  const den = (x) => (x.returns_as_of ? String(x.returns_as_of).slice(0, 10) : 'bez dne');
+  const pocty = new Map();
+  for (const x of f) pocty.set(den(x), (pocty.get(den(x)) ?? 0) + 1);
+  const vetsina = [...pocty].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? 1 : -1))[0]?.[0];
+  return f.filter((x) => den(x) === vetsina);
+};
+
 const main = async () => {
   const fondy = await nactiFondy();
   const isinList = await fetch(ISIN_CSV).then((r) => (r.ok ? r.text() : ''))
@@ -456,7 +469,7 @@ const main = async () => {
       .map((m) => ({ id: m[1], isins: [...m[2].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
     if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
     const vse = trhy.flatMap((t) => t.isins);
-    const r = await fetch(`${URL_DB}?select=isin,name,return_1y_czk,scraping_date,primary_ticker,exchange_1_ticker&isin=in.(${vse.join(',')})`, {
+    const r = await fetch(`${URL_DB}?select=isin,name,return_1y_czk,scraping_date,returns_as_of,primary_ticker,exchange_1_ticker&isin=in.(${vse.join(',')})`, {
       headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
     }).then((x) => x.json());
     if (!Array.isArray(r)) throw new Error('neplatná odpověď DB');
@@ -465,10 +478,12 @@ const main = async () => {
     for (const t of trhy) {
       const f = t.isins.map((i) => podle.get(i)).filter(Boolean).filter((x) => x.scraping_date && dni(x) <= 14);
       chybi.push(...t.isins.filter((i) => !f.some((x) => x.isin === i)).map((i) => `${t.id}: ${i}`));
-      const v = f.filter((x) => x.return_1y_czk != null).map((x) => Number(x.return_1y_czk)).sort((a, b) => a - b);
-      if (v.length < 3) { poplach.push({ co: `Trh ${t.id} na homepage má jen ${v.length} fondů s daty`, ukazka: [] }); continue; }
+      // Jen fondy s výnosem ke dni většiny (31. 10. 2026, sDnemVetsiny) – fond o den pozadu není „mimo trh“.
+      const fv = sDnemVetsiny(f.filter((x) => x.return_1y_czk != null));
+      const v = fv.map((x) => Number(x.return_1y_czk)).sort((a, b) => a - b);
+      if (v.length < 3) { poplach.push({ co: `Trh ${t.id} na homepage má jen ${v.length} fondů s daty (ke dni většiny)`, ukazka: [] }); continue; }
       const med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
-      for (const x of f) if (x.return_1y_czk != null && Math.abs(Number(x.return_1y_czk) - med) > 1.5)
+      for (const x of fv) if (Math.abs(Number(x.return_1y_czk) - med) > 1.5)
         odlehle.push(`${t.id}: ${x.isin} ${String(x.name).slice(0, 34)} ${Number(x.return_1y_czk).toFixed(1)} % vs. medián ${med.toFixed(1)} %`);
     }
     if (odlehle.length) poplach.push({ co: `${odlehle.length} fondů má výnos 12 m mimo svůj trh (> 1,5 p. b. od mediánu) – vadná data u zdroje? Ověřit na burzovních cenách`, ukazka: odlehle.slice(0, 8) });
@@ -1927,11 +1942,12 @@ const main = async () => {
       const trhy = [...zdroj.matchAll(/id: '([a-z0-9]+)'[\s\S]*?href: '([^']+)',[\s\S]*?isins: \[([\s\S]*?)\]/g)]
         .map((m) => ({ id: m[1], href: m[2], isins: [...m[3].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
       if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
-      const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,return_1y_czk,scraping_date&isin=in.(${trhy.flatMap((t) => t.isins).join(',')})`, hlav).then((x) => x.json());
+      const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,return_1y_czk,scraping_date,returns_as_of&isin=in.(${trhy.flatMap((t) => t.isins).join(',')})`, hlav).then((x) => x.json());
       const podle = new Map(db.map((x) => [x.isin, x]));
       const odlehle = []; // { isin, ticker, trh, ref }
       for (const t of trhy) {
-        const f = t.isins.map((i) => podle.get(i)).filter(Boolean).filter((x) => x.scraping_date && dni(x) <= 14 && x.return_1y_czk != null);
+        // Jen fondy ke dni většiny (31. 10. 2026) – fond s jiným dnem výnosů web ukazuje s jeho datem, ne jako odlehlý.
+        const f = sDnemVetsiny(t.isins.map((i) => podle.get(i)).filter(Boolean).filter((x) => x.scraping_date && dni(x) <= 14 && x.return_1y_czk != null));
         const v = f.map((x) => Number(x.return_1y_czk)).sort((a, b) => a - b);
         if (v.length < 3) continue;
         const med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
@@ -2199,6 +2215,7 @@ const main = async () => {
   //      na 2 des. místa. Chytí i to, že zdroj den returns_as_of po stažení ještě přepsal (nebyl konečný).
   //  (b) returns_as_of není v budoucnosti, u ≤ 5 % čerstvých fondů je starší než 7 dní; po nasazení scraperu
   //      má returns_as_of ≥ 95 % čerstvých fondů a žádný fond nemá výnosy bez returns_as_of (tichá náhrada z profilu).
+  //  (b2) fond nebyl stažen dřív, než zdroj den returns_as_of přepsal na konečný (returns_as_of + 2 prac. dny 05:00 UTC).
   //  (c) web: detail fondu s jiným dnem výnosů než většina ukazuje SVŮJ den (data-vynosy-k), srovnávač mu dává _dv.
   try {
     const UA6 = { 'User-Agent': 'Mozilla/5.0 (compatible; etfpruvodce.cz kontrola dat)' };
@@ -2221,6 +2238,22 @@ const main = async () => {
     if (cerstve6.length && stare7.length / cerstve6.length > 0.05)
       poplach.push({ co: `${stare7.length} čerstvě stažených fondů (${(100 * stare7.length / cerstve6.length).toFixed(1)} %) má výnosy k dni staršímu než 7 dní (práh 5 %) – zdroj přestal posílat ceny, nebo scraper bere špatný den?`, ukazka: ukazka(stare7, (x) => `${x.isin} ${String(x.name).slice(0, 30)} k ${x.returns_as_of}`) });
     else if (stare7.length) varovani.push({ co: `${stare7.length} čerstvých fondů má výnosy k dni staršímu než 7 dní (zdroj nemá nové ceny – web u nich ukazuje jejich den)`, ukazka: ukazka(stare7, (x) => `${x.isin} ${String(x.name).slice(0, 30)} k ${x.returns_as_of}`) });
+    // (b2) Den výnosů musel být při stažení už KONEČNÝ (31. 10. 2026). Zdroj přepisuje předběžný bod dne D konečnou
+    //      hodnotou až kolem 04:00 UTC dne D + 2 pracovní dny; scraper (út–pá od 01:30 UTC) ale bral D = 2 pracovní dny
+    //      před stažením bez ohledu na hodinu → fondy stažené před ~04:00 UTC měly výnosy z předběžného bodu (30. 10. 2026:
+    //      2 373 fondů). Čistě z DB: čerstvý fond (stažený za posledních 7 dní) nesmí mít scraping_date (UTC) dřív než
+    //      returns_as_of + 2 pracovní dny v 05:00 UTC (hodina rezerva). Svátky neznáme – v den po svátku může hlásit navíc.
+    {
+      const utc = (s) => new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(String(s)) ? String(s) : `${s}Z`);
+      const konecnyOd = (d) => { // returns_as_of + 2 pracovní dny (po–pá), 05:00 UTC
+        const x = new Date(`${String(d).slice(0, 10)}T05:00:00Z`);
+        for (let n = 0; n < 2;) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() !== 0 && x.getUTCDay() !== 6) n++; }
+        return x;
+      };
+      const tyden = fondy.filter((x) => x.returns_as_of && x.scraping_date && (Date.now() - utc(x.scraping_date)) / 864e5 <= 7);
+      const predbezne = tyden.filter((x) => utc(x.scraping_date) < konecnyOd(x.returns_as_of));
+      if (predbezne.length) poplach.push({ co: `${predbezne.length} z ${tyden.length} fondů stažených za posledních 7 dní má výnosy k dni, který zdroj při stažení ještě nemusel mít konečný (stažení dřív než returns_as_of + 2 prac. dny 05:00 UTC) – výnosy z předběžného bodu; scraper bere den výnosů bez ohledu na hodinu stažení (etf-astro scraper/vynosy_z_rady.py)`, ukazka: ukazka(predbezne, (x) => `${x.isin} returns_as_of ${x.returns_as_of}, staženo ${utc(x.scraping_date).toISOString().slice(0, 16).replace('T', ' ')} UTC (konečný až od ${konecnyOd(x.returns_as_of).toISOString().slice(0, 16).replace('T', ' ')})`) });
+    }
     const poNasazeni = nasazenoOd ? cerstve6.filter((x) => new Date(x.scraping_date) > new Date(nasazenoOd.getTime() + 3600e3)) : [];
     if (!nasazenoOd) varovani.push({ co: 'Kolo6b: výpočet výnosů z denní řady (etf-astro scraper/vynosy_z_rady.py) ještě není v main scraperu, nebo GitHub API neodpovědělo – kontroly returns_as_of jen částečně', ukazka: [] });
     if (poNasazeni.length >= 500) {

@@ -1058,3 +1058,16 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   (60/40, Nobelovo), „velké výkyvy“ → akciový typ. Horizont 3–10 let → vždy upozornění s fakty o délce propadu (bez doporučení).
   „Chci pravidelný příjem“ + „Reinvestovat“ → upozornění na rozpor (S17). Pravidla = čistá funkce `recommend` ve vyberEtfData.ts;
   check-fund-data testuje všech 162 kombinací.
+
+## UBS MSCI EM: výnos o ~2,5 p. b. pod trhem není chyba – řada zdroje je o 1–2 dny pozadu (31. 10. 2026)
+
+- **Tři akumulační/UK třídy UBS na MSCI EM (LU0950674175, IE00B3Z3FS74, LU1126036976) mají řadu u justETF o 1–2 pracovní
+  dny pozadu** – returns_as_of 26./27. 10. 2026, ostatní EM fondy 28. 10. Jejich výnosy jsou ke SVÉMU returns_as_of správně
+  (ověřeno nezávisle na řadě justETF a na Xetra IS3N.DE: EM mezi 27. a 28. 10. +2,6 %). Na volatilní dny se proto jejich výnos
+  12 m liší od trhu až o ~3 p. b. **Neopravovat** (ani čísla, ani seznam trhů, ani NEOVERENE_VYNOSY).
+- **Odlehlé hodnoty se počítají jen mezi fondy se stejným dnem výnosů.** `spocitejTrh` (src/lib/trhy.ts) bere do mediánu,
+  testu > 1,5 p. b. i výběru „nejvýkonnější“ jen fondy s returns_as_of = den většiny; ostatní jdou do `pozadu` (na homepage
+  s vlastním datem „k 27. 10.“, nevyhrávají, NEJSOU „neověřené“). Dřív se vyřazovaly jen fondy > 3 pracovní dny pozadu
+  a tyhle třídy byly skryté jako „odlehlé“ na celém webu. Stejné pravidlo mají obě kopie testu v check-fund-data
+  (`sDnemVetsiny`), unit test `scripts/trhy.test.mjs` (`npm test`). Jinde (např. součty výnosů portfolií, getReturnsByIsins)
+  platí dál práh > 3 pracovní dny (`vynosyPozadu`, src/lib/datumVynosu.ts) – toho se tohle pravidlo netýká.

@@ -136,8 +136,9 @@ export default async function Metodika() {
           <p>
             Den výnosů má každý fond vlastní. U některých fondů má zdroj ceny o pár dní později; ty mají u výnosu své
             datum („výnosy k …“) a když jsou o víc než 3 pracovní dny pozadu, nepočítáme je do mediánů ani do výběru
-            nejvýkonnějšího fondu. „Data k …“ celé stránky je den, ke kterému platí výnosy většiny fondů. Když fond
-            v datech zdroje chybí, jeho datum zůstane staré a web to řekne (viz níže).
+            nejvýkonnějšího fondu. V přehledu trhů na hlavní stránce srovnáváme jen fondy se stejným dnem výnosů.
+            „Data k …“ celé stránky je den, ke kterému platí výnosy většiny fondů. Když fond v datech zdroje chybí,
+            jeho datum zůstane staré a web to řekne (viz níže).
           </p>
         </Sekce>
 
