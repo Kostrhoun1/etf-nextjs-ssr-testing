@@ -493,9 +493,12 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 
 ## Scraper: spouštění z Supabase pg_cron, jen pracovní dny ráno (20. 10. 2026)
 
-- **Hlavní spouštění = Supabase pg_cron: `scraper-spusteni` út–pá `30 1 * * 2-5` UTC (3:30 SELČ, hotovo ~8:00 před
-  otevřením Xetry) a `scraper-spusteni-pondeli` po `0 5 * * 1` UTC (víkendový přepis pátečního bodu u zdroje – v pondělí
-  raději později)**, které přes
+- **Hlavní spouštění = Supabase pg_cron: `scraper-spusteni` út–pá `0 5 * * 2-5` UTC a `scraper-spusteni-pondeli`
+  po `0 5 * * 1` UTC (7:00 SELČ / 6:00 SEČ, hotovo ~9:40 UTC)**. Do 31. 10. 2026 út–pá `30 1 * * 2-5` (hotovo před otevřením
+  Xetry) – ZMĚNĚNO rozhodnutím majitele 31. 10. 2026: justETF přepisuje bod D na konečný až ~04:00 UTC v D+2, takže fondy
+  stažené před 4. hodinou měly výnosy z předběžné ceny (30. 10.: ~2 370 fondů, VWCE YTD 19,03 místo 19,13 %, SPGP −1,4 %).
+  Otevření Xetry nevadí – scraper poslední (rozpracovaný) bod řady vždy vynechává. Pojistka i ve scraperu (etf-astro PR #3:
+  před 05:00 UTC mez 3 prac. dny, jinak 2) a kontrola „kolo6b (b2)“ v check-fund-data.mjs. Spouštění přes
   GitHub API spustí workflow `scrape.yml` (workflow_dispatch). Token = fine-grained PAT jen pro etf-astro, Actions: write,
   ve Vault jako `github_scraper_dispatch`, **platnost 1 rok (do ~20. 10. 2027) – včas obnovit**. GitHub plán v scrape.yml je
   jen ZÁLOHA (`23 8 * * 1-5`, job `hlidac` ji přeskočí, když ten den už běh proběhl/běží).
