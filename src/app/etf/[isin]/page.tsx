@@ -31,7 +31,8 @@ import { vynosTridText } from '@/lib/tridyFondu';
 import { duvodNeovereni, rizikoSkokem } from '@/lib/vynosNeovereny';
 import { TRHY } from '@/data/trhyDvojcata';
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
-import { kanonickaDvojice, dvojiceFondu, kuratorskaProIsiny } from '@/lib/pairs';
+import { odkazDvojiceDetailu, type FondProOdkaz } from '@/lib/odkazyDvojic';
+import { isinyDetailuKPredgenerovani } from '@/lib/prerender';
 import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
 import OdkazBurzy from './OdkazBurzy';
 import { datumVynosu, jineDatumVynosu, type SDatemVynosu } from '@/lib/datumVynosu';
@@ -83,9 +84,14 @@ function druhyTicker(row: Record<string, unknown> | null, hlavni: string | null)
   return (listingy.find((l) => /london/i.test(l.n) && l.c === 'USD') ?? listingy.find((l) => /london/i.test(l.n)))?.t ?? null;
 }
 
-/* Předgenerujeme jen pár nejznámějších fondů; zbytek se dogeneruje on-demand. */
+/* PŘEDGENEROVÁNÍ PŘI BUILDU (31. 10. 2026): VŠECHNY fondy, které mají detail (řádek s názvem – stejná podmínka jako
+   notFound() níže; src/lib/prerender.ts). Dřív jen 3 fondy a zbytek on-demand: každé nasazení na Vercelu začíná
+   s prázdnou ISR cache, roboti pak ~5 000 detailů renderovali na požádání ≈ 40 000 ISR zápisů a ~15–20 min CPU free
+   tieru. Předgenerovaná stránka stojí 0 zápisů (pokus 31. 10. 2026). Nový fond po buildu se dál vyrenderuje
+   na požádání (dynamicParams). Při chybě DB nebo podezřele malém seznamu build SPADNE (raději nenasadit než tiše vrátit
+   náklady). Seznam NEZKRACOVAT „kvůli rychlosti buildu“ – ZAMERNA-ROZHODNUTI.md (Předgenerování detailů a dvojic). */
 export async function generateStaticParams() {
-  return ['IE00B5BMR087', 'IE00BK5BQT80', 'IE00B4L5Y983'].map((isin) => ({ isin }));
+  return (await isinyDetailuKPredgenerovani()).map((isin) => ({ isin }));
 }
 
 export async function generateMetadata(
@@ -237,7 +243,6 @@ const zebricekFonduSRegionem = (canon: string, category: string | null, name: st
   const reg = ZEBRICEK_ZAMERENI.find(([re]) => re.test(focus ?? ''));
   return reg ? [reg[1], reg[2]] : z;
 };
-const TICKER_OK = /^[A-Za-z0-9]{1,12}$/;
 /** „sídlo v Irsku" – 6. pád (dřív „sídlo v Irsko"). Neznámá země → „sídlo: X". */
 const DOMICILE_LOK: Record<string, string> = {
   Ireland: 'v Irsku', Luxembourg: 'v Lucembursku', Germany: 'v Německu', France: 've Francii',
@@ -447,20 +452,9 @@ export default async function ETFDetailPreview(
   const tridaNesedi = (await tridyVynosNesedi()).get(etf.isin);
   const duvodB = duvodNeovereni(etf.isin) ?? (tridaNesedi ? vynosTridText(tridaNesedi, tridaNesedi.tickery) : null);
   const vynosySkryte = trhOdlehly != null || duvodB != null;
-  const souper = podobne.find((f) => f.primary_ticker && TICKER_OK.test(f.primary_ticker));
-  // Odkaz rovnou na KANONICKOU adresu dvojice (src/lib/pairs.ts) – dřív primární tickery v pořadí „tento vs. soupeř“,
-  // takže polovina odkazů mířila na tvar, který se přesměrovává (SEO audit 20. 10. 2026).
-  const parSlug = souper && etf.primary_ticker && TICKER_OK.test(etf.primary_ticker)
-    ? kanonickaDvojice({ isin: etf.isin, ticker: zobrazovanyTicker(etf as unknown as Record<string, unknown>) }, { isin: souper.isin, ticker: platnyTicker(souper.primary_ticker) })
-    : null;
-  // Kolo 6b (SEO): detail z hlavy (indexovaný Googlem) neodkazuje na NEkurátorskou dvojici (ta má googlebot noindex) –
-  // místo ní porovnání obou fondů; kurátorská dvojice zůstává. Ocas (googlebot noindex) odkazuje na dvojici jako dřív.
-  const parKuratorsky = !!(souper && kuratorskaProIsiny(etf.isin, souper.isin));
-  const parHref = !parSlug || !souper ? null
-    : parKuratorsky || !isHeadFund(etf.fund_size_numeric) ? `/srovnani/${parSlug}`
-    : `/srovnani/porovnani?isins=${etf.isin},${souper.isin}`;
-  // Kurátorská srovnání, ve kterých fond je („Srovnání s …“) – jediný interní odkaz na některé z nich (audit 20. 10. 2026).
-  const kuratorskaSrovnani = dvojiceFondu(etf.isin).filter((sl) => `/srovnani/${sl}` !== parHref);
+  // Odkaz „srovnat s …“ (soupeř, kanonická adresa dvojice, hlava → porovnání) a kurátorská srovnání fondu: JEDNA funkce
+  // src/lib/odkazyDvojic.ts – z ní počítá i seznam dvojic předgenerovaných při buildu (31. 10. 2026; dřív kód tady).
+  const { souper, parSlug, parKuratorsky, parHref, kuratorskaSrovnani } = odkazDvojiceDetailu(etf as unknown as FondProOdkaz, podobne);
   const distText = distLabelOf(dKind);
   const replText = replLabel(etf.replication);
   const domText = domLabel(etf.fund_domicile);

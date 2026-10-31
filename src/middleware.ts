@@ -2,30 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
 import { obracenaKuratorska } from '@/lib/pairs';
+import { isinPlatny } from '@/lib/isin';
 
 // Helper to detect if string is ISIN format (2 letters + 10 alphanumeric)
 function isISIN(str: string): boolean {
   return /^[A-Z]{2}[A-Z0-9]{10}$/i.test(str);
 }
 
-/**
- * Platný ISIN = formát + kontrolní číslice (Luhn přes číslice z písmen A=10…Z=35).
- * Ověřeno 17. 10. 2026: všech 5 146 ISINů v databázi projde, smyšlené (ZZ000000TEST,
- * překlep v poslední číslici) ne.
- */
-function isinPlatny(s: string): boolean {
-  if (!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(s)) return false;
-  const cifry = s.split('').map((c) => (c >= 'A' ? String(c.charCodeAt(0) - 55) : c)).join('');
-  let sum = 0;
-  let dvakrat = false;
-  for (let i = cifry.length - 1; i >= 0; i--) {
-    let d = cifry.charCodeAt(i) - 48;
-    if (dvakrat) { d *= 2; if (d > 9) d -= 9; }
-    sum += d;
-    dvakrat = !dvakrat;
-  }
-  return sum % 10 === 0;
-}
+// isinPlatny (formát + kontrolní číslice): src/lib/isin.ts – sdílí ho seznam předgenerovaných detailů (31. 10. 2026).
 
 /** Dvojice srovnání: „vwce-vs-iwda“ – jen písmena a číslice (hodnoty jdou do dotazu na DB). */
 const PAR_SROVNANI = /^[a-z0-9]{1,12}-vs-[a-z0-9]{1,12}$/i;

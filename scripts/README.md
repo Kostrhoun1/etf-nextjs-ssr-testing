@@ -28,6 +28,7 @@ nebo ji na produkci přeskoč (`R.jenLokalne('popis')`). Pevná sada se nesmí m
 1. Build v samostatném worktree / klonu (build za běhu `next dev` ve stejném adresáři rozbije dev server):
    ```bash
    npm ci && npm run build && npx next start -p 3005
+   node scripts/check-predgenerovani.mjs   # bez sítě: detaily a odkazované dvojice předgenerované (31. 10. 2026)
    ```
 2. V jiném terminálu (klíč z `.secrets/supabase.env`, nevypisovat):
    ```bash

@@ -15,11 +15,12 @@ import { terFmt, procenta, velikostFondu } from '@/lib/formatyCisel';
 const ter = (v: number | null) => terFmt(v);
 const pct = (v: number | null) => procenta(v);
 const money = (v: number | null, _cur?: string | null) => velikostFondu(v);
-import { POPULAR_PAIRS, KURATORSKE, KURATORSKE_ALIASY, kanonickaDvojice } from '@/lib/pairs';
+import { KURATORSKE } from '@/lib/pairs';
+import { parsePair, jeIsinSymbol, kanonikaDvojice } from '@/lib/odkazyDvojic';
+import { slugyDvojicKPredgenerovani } from '@/lib/prerender';
 import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
 import { seradBurzy } from '@/lib/detailFondu';
 import { distKind } from '@/utils/distribution';
-import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
 import { nactiDoplnkyFondu, tickerProCesko } from '@/lib/srovnaniRocni';
 import SrovnaniRocniVynosy from '@/components/design-preview/SrovnaniRocniVynosy';
 import ParametryDvojice from './ParametryDvojice';
@@ -36,30 +37,26 @@ import { indexFonduLabel } from '@/utils/indexNormalization';
 export const revalidate = 604800;
 export const dynamicParams = true;
 
-/* Nejžádanější dvojice se předgenerují staticky; zbytek on-demand (seznam v src/lib/pairs.ts).
-   Pozn.: vwce-vs-cspx má vlastní kurátorskou stránku (statická routa má přednost).
+/* PŘEDGENEROVÁNÍ PŘI BUILDU (31. 10. 2026): všechny dvojice, na které web odkazuje (detaily fondů, kurátorské
+   seznamy, sitemapa, POPULAR_PAIRS) – seznam počítá src/lib/prerender.ts TÝMIŽ funkcemi jako odkazy. Každé nasazení
+   na Vercelu začíná s prázdnou ISR cache a roboti pak dvojice renderovali na požádání (ISR zápisy + CPU free tieru);
+   předgenerovaná stránka stojí 0 zápisů (pokus 31. 10. 2026). Ostatní dvojice dál on-demand (dynamicParams).
+   Seznam NEZKRACOVAT „kvůli rychlosti buildu“ – ZAMERNA-ROZHODNUTI.md (Předgenerování detailů a dvojic).
+   Pozn.: vwce-vs-cspx má vlastní kurátorskou stránku (statická routa má přednost, v seznamu není).
    Kolo 3 (18. 10. 2026): srovnávač, ne poradce – „Rozdíly v kostce“ místo „Kdo vyhrává“, titulky bez
    „který koupit“, jedno jméno fondu (ticker z XETRA), kratší mobil. */
 
 export async function generateStaticParams() {
-  return POPULAR_PAIRS.map((pair) => ({ pair }));
+  return (await slugyDvojicKPredgenerovani()).map((pair) => ({ pair }));
 }
 
-/** "vwce-vs-iwda" → ["VWCE","IWDA"], nebo null pokud slug nemá tvar x-vs-y. */
-function parsePair(slug: string): [string, string] | null {
-  const parts = slug.toLowerCase().split('-vs-');
-  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
-  // Tickery jdou do filtru .or() v dotazu na DB → jen písmena a číslice (čárka/tečka by
-  // filtr rozšířily). Stejné pravidlo hlídá už middleware, tohle je pojistka.
-  if (!parts.every((p) => /^[a-z0-9]{1,12}$/.test(p))) return null;
-  return [parts[0].toUpperCase(), parts[1].toUpperCase()];
-}
+// parsePair (tvar adresy a povolené znaky), kanonická adresa a výběr fondu podle tickeru: src/lib/odkazyDvojic.ts –
+// sdílí je seznam předgenerovaných dvojic (src/lib/prerender.ts), aby se nerozešel se stránkou (31. 10. 2026).
 
 const num = (v: number | null | undefined) => (v == null || Number.isNaN(v) ? null : Number(v));
-const jeIsin = (x: string) => /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x);
 /** Ticker, pod kterým fond zobrazit: ten z URL (tak ho člověk hledal), u ISINu primární ticker. */
 const zobrazTicker = (urlTok: string, etf: ComparisonETF) =>
-  jeIsin(urlTok) ? (etf.primary_ticker && etf.primary_ticker !== '-' ? etf.primary_ticker : urlTok) : urlTok;
+  jeIsinSymbol(urlTok) ? (etf.primary_ticker && etf.primary_ticker !== '-' ? etf.primary_ticker : urlTok) : urlTok;
 /** Burzy fondu z polí exchange_N_* (jen pro odpověď „stejný fond"). Pořadí = sdílená funkce detailu (XETRA první,
  *  pak EUR burzy – src/lib/detailFondu.ts); dřív pořadí ze zdroje → u cspx-vs-sxr8 XETRA poslední (kolo 6b). */
 const burzy = (etf: ComparisonETF) => {
@@ -68,22 +65,6 @@ const burzy = (etf: ComparisonETF) => {
     burza: r[`exchange_${i + 1}_name`], ticker: r[`exchange_${i + 1}_ticker`], mena: r[`exchange_${i + 1}_currency`],
   })).filter((b) => b.burza && b.ticker && b.ticker !== '-'), (b) => ({ name: b.burza, currency: b.mena }));
 };
-
-/**
- * Kanonická adresa dvojice (SEO audit 20. 10. 2026, pravidlo v src/lib/pairs.ts): kurátorská dvojice je kanonická
- * sama (alias → hlavní kurátorská, bez přesměrování); ostatní tvary → kurátorská pro stejné fondy, jinak zobrazované
- * tickery abecedně. `presmerovat` = adresa se liší od kanonické → trvalé přesměrování.
- */
-function kanonika(pair: string, etf1: ComparisonETF, etf2: ComparisonETF, t1: string, t2: string) {
-  const slug = pair.toLowerCase();
-  if (KURATORSKE[slug]) return { kanon: KURATORSKE_ALIASY[slug] ?? slug, kuratorska: true, presmerovat: null as string | null };
-  const zt = (e: ComparisonETF) => zobrazovanyTicker(e as unknown as Record<string, unknown>);
-  let cil = kanonickaDvojice({ isin: etf1.isin, ticker: zt(etf1) }, { isin: etf2.isin, ticker: zt(etf2) });
-  // Tentýž fond pod dvěma tickery mimo kurátorský seznam: tickery z adresy (tak se lidé ptají), jen abecedně.
-  if (!cil && etf1.isin === etf2.isin && !jeIsin(t1) && !jeIsin(t2) && t1 !== t2) cil = [t1.toLowerCase(), t2.toLowerCase()].sort().join('-vs-');
-  const kanon = cil ?? slug;
-  return { kanon, kuratorska: !!KURATORSKE[kanon], presmerovat: kanon !== slug ? kanon : null };
-}
 
 export async function generateMetadata(
   { params }: { params: Promise<{ pair: string }> },
@@ -95,7 +76,7 @@ export async function generateMetadata(
   const data = await getComparisonETFData(t1, t2);
   if (!data) return { title: `${t1} vs ${t2}`, robots: { index: false, follow: false } };
   const k1 = zobrazTicker(t1, data.etf1), k2 = zobrazTicker(t2, data.etf2);
-  const { kanon, kuratorska } = kanonika(pair, data.etf1, data.etf2, t1, t2);
+  const { kanon, kuratorska } = kanonikaDvojice(pair, data.etf1, data.etf2, t1, t2);
   // Dvojice mimo kurátorský seznam: Google ne (nekonečný prostor kombinací = tenké duplicity), Bing/Seznam ano –
   // stejný princip jako ocas detailů fondů (experiment-index-detaily). Kurátorské dvojice indexují všichni.
   const robots = kuratorska ? undefined : { index: true, follow: true, googleBot: { index: false, follow: true } };
@@ -164,7 +145,7 @@ export default async function PairComparePage(
   // Jedna kanonická adresa na dvojici fondů (dřív jen ISIN → ticker; SEO audit 20. 10. 2026: obrácené pořadí a aliasy
   // tickerů byly duplicity s vlastním canonicalem). Cíl mimo kurátorský seznam se před přesměrováním ověří – jeho
   // tickery musí vést na tytéž fondy (ticker bývá u víc fondů), jinak by vznikla smyčka nebo jiné srovnání.
-  const { kanon, presmerovat } = kanonika(pair, etf1, etf2, t1, t2);
+  const { kanon, presmerovat } = kanonikaDvojice(pair, etf1, etf2, t1, t2);
   if (presmerovat) {
     let platny = !!KURATORSKE[presmerovat];
     if (!platny) {

@@ -6,6 +6,7 @@ import { nejcastejsiDatumVynosu, datumVynosuIso } from '@/lib/datumVynosu';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
 import { RIZIKO_POLE, klicTridy, vynosTridNesedi, type RizikoPole, type VynosTridNesedi } from '@/lib/tridyFondu';
 import { sNeoverenymi } from '@/lib/vynosNeovereny';
+import { jednouZaBuild } from '@/lib/buildMemo';
 
 /* Výpočet pro homepage sekci „Nejlevnější, největší a nejvýkonnější ETF podle trhu“.
    Jeden dotaz (~130 fondů) při ISR renderu, nic na návštěvníka. Pravidlo č. 1:
@@ -119,15 +120,19 @@ export function spocitejTrh(trh: Trh, fondy: FondTrhu[], ted = Date.now()): Rade
 }
 
 /** Jeden dotaz na fondy všech trhů (React cache) – z něj nactiTrhy, odlehleIsiny i kotvyRizika (žádný dotaz navíc). */
-const nactiFondyTrhu = cache(async (): Promise<Record<string, unknown>[] | null> => {
+async function dotazFondyTrhu(): Promise<Record<string, unknown>[]> {
   const isiny = TRHY.flatMap((t) => t.isins);
   const { data, error } = await supabaseAdmin
     .from('etf_funds')
     .select(`isin, name, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, scraping_date, returns_as_of, distribution_policy, ${RIZIKO_POLE.join(', ')}, ${SLOUPCE_TICKERU.join(', ')}`)
     .in('isin', isiny);
-  if (error || !data) return null; // raději sekci neukázat než ukázat nesmysl
+  if (error || !data) throw new Error(`fondy trhů: ${error?.message ?? 'bez dat'}`);
   return data as unknown as Record<string, unknown>[];
-});
+}
+// Při buildu jednou za proces a chyba = spadlý build (src/lib/buildMemo.ts, 31. 10. 2026); jinak jako dřív:
+// chyba = null (raději sekci neukázat než ukázat nesmysl).
+const nactiFondyTrhu = cache(async (): Promise<Record<string, unknown>[] | null> =>
+  jednouZaBuild('fondyTrhu', dotazFondyTrhu) ?? dotazFondyTrhu().catch(() => null));
 
 /** Výpočet trhů z načtených řádků (sdílí ho nactiTrhy a getScreenerRows – API route nemá React cache). */
 export function trhyZRadku(data: Record<string, unknown>[] | null): RadekTrhu[] | null {
@@ -170,22 +175,22 @@ export const odlehleIsiny = cache(async (): Promise<Set<string>> => {
  * Srovnávač (getScreenerRows) počítá totéž ze svých řádků bez dotazu navíc. Chyba dotazu = prázdná mapa (jako dřív).
  */
 export type TridaVynosNesedi = VynosTridNesedi & { tickery: string[] };
-export const tridyVynosNesedi = cache(async (): Promise<Map<string, TridaVynosNesedi>> => {
-  try {
-    const radky: Record<string, unknown>[] = [];
-    for (let od = 0; od < 20000; od += 1000) {
-      const { data, error } = await supabaseAdmin.from('etf_funds')
-        .select('isin, name, fund_provider, primary_ticker, returns_as_of, index_name, is_leveraged, return_1y, return_3y, return_5y')
-        .gte('scraping_date', nabidkaOd()).not('name', 'is', null).order('isin').range(od, od + 999);
-      if (error || !data) return new Map();
-      radky.push(...(data as Record<string, unknown>[]));
-      if (data.length < 1000) break;
-    }
-    return tridyZRadku(radky);
-  } catch {
-    return new Map();
+async function dotazTridy(): Promise<Map<string, TridaVynosNesedi>> {
+  const radky: Record<string, unknown>[] = [];
+  for (let od = 0; od < 20000; od += 1000) {
+    const { data, error } = await supabaseAdmin.from('etf_funds')
+      .select('isin, name, fund_provider, primary_ticker, returns_as_of, index_name, is_leveraged, return_1y, return_3y, return_5y')
+      .gte('scraping_date', nabidkaOd()).not('name', 'is', null).order('isin').range(od, od + 999);
+    if (error || !data) throw new Error(`třídy fondů: ${error?.message ?? 'bez dat'}`);
+    radky.push(...(data as Record<string, unknown>[]));
+    if (data.length < 1000) break;
   }
-});
+  return tridyZRadku(radky);
+}
+// Při buildu jednou za proces (~1,5 MB; bez toho 1,5 MB na KAŽDÝ předgenerovaný detail a dvojici) a chyba = spadlý build
+// (src/lib/buildMemo.ts, 31. 10. 2026). Mimo build jako dřív: React cache, chyba = prázdná mapa.
+export const tridyVynosNesedi = cache(async (): Promise<Map<string, TridaVynosNesedi>> =>
+  jednouZaBuild('tridyVynosNesedi', dotazTridy) ?? dotazTridy().catch(() => new Map()));
 /** Čistý výpočet (sdílí getScreenerRows): ISIN → období, třídy a jejich tickery. */
 export function tridyZRadku(radky: Record<string, unknown>[]): Map<string, TridaVynosNesedi> {
   const m = vynosTridNesedi(radky as unknown as Parameters<typeof vynosTridNesedi>[0]);

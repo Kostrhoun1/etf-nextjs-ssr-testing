@@ -108,6 +108,23 @@ const main = async () => {
 
   // ── POPLACH ──
   if (n < MIN_FONDU) poplach.push({ co: `Ve databázi je jen ${n} fondů (minimum ${MIN_FONDU})`, ukazka: [] });
+  // Předgenerování detailů při buildu (31. 10. 2026, src/lib/prerender.ts, ZAMERNA-ROZHODNUTI.md): build SPADNE, když fondů
+  // s detailem (neprázdný název + platná kontrolní číslice ISINu) je < MIN_DETAILU. Tady nezávislý přepočet z holých dat,
+  // ať se o tom víme dřív než při nasazení (spadlý build = nejde nasadit ani oprava).
+  const MIN_DETAILU = 4000; // = MIN_DETAILU v src/lib/prerender.ts
+  const luhnIsin = (s) => {
+    if (!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(s)) return false;
+    const c = [...s].map((z) => (z >= 'A' ? String(z.charCodeAt(0) - 55) : z)).join('');
+    let sum = 0;
+    for (let i = c.length - 1, k = 0; i >= 0; i--, k++) { let d = +c[i]; if (k % 2) { d *= 2; if (d > 9) d -= 9; } sum += d; }
+    return sum % 10 === 0;
+  };
+  const sDetailem = fondy.filter((x) => String(x.name ?? '').trim() && luhnIsin(String(x.isin)));
+  if (sDetailem.length < MIN_DETAILU)
+    poplach.push({ co: `Jen ${sDetailem.length} fondů má detail (minimum ${MIN_DETAILU}) – build webu teď spadne (src/lib/prerender.ts)`, ukazka: [] });
+  const neplatnyIsin = fondy.filter((x) => !luhnIsin(String(x.isin)));
+  if (neplatnyIsin.length)
+    varovani.push({ co: `${neplatnyIsin.length} fondů s neplatným ISINem (kontrolní číslice) – detail nejde otevřít (middleware) ani předgenerovat`, ukazka: ukazka(neplatnyIsin) });
   const stare30 = fondy.filter((x) => dni(x) > 30);
   if (stare30.length / n > MAX_STARE_30D)
     poplach.push({ co: `${stare30.length} fondů (${(100 * stare30.length / n).toFixed(1)} %) neaktualizováno přes 30 dní`, ukazka: ukazka(stare30) });

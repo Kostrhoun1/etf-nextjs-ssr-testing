@@ -9,6 +9,8 @@ import { nejcastejsiDatumVynosu, jineDatumVynosu, vynosyPozadu } from '@/lib/dat
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
+import { fetchProSupabase, jednouZaBuild } from '@/lib/buildMemo';
+import { COMPARISON_TICKER_FIELDS, jeIsinSymbol, vyberFondProSymbol } from '@/lib/odkazyDvojic';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
 import { sestavIndexy, type IndexOptionGroup } from '@/utils/indexNormalization';
 import { distKind, type DistKind } from '@/utils/distribution';
@@ -21,7 +23,8 @@ import { bezVynosuObdobi, bezOdlehlychVynosu, bezOdlehlehoVynosu } from '@/lib/v
 
 // Direct Supabase client for build-time data fetching (SSG/ISR).
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// fetchProSupabase: při buildu mimo datovou cache Nextu, jinak beze změny (src/lib/buildMemo.ts, 31. 10. 2026).
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { global: { fetch: fetchProSupabase } });
 
 // Types
 export interface ETFBasicInfo {
@@ -378,16 +381,76 @@ export interface PodobnyFond {
  * nepřidávají ani při shodném index_name (chybná data zdroje, audit 17. 10. 2026).
  * Kontrola: scripts/check-fund-data.mjs (blok kolo6 detail).
  */
+const PODOBNE_SLOUPCE = 'isin, name, primary_ticker, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, returns_as_of, scraping_date, index_name, investment_focus, category';
+type KandidatPodobnych = PodobnyFond & FondDetailu;
+const PODOBNE_LIMIT = 120;
+
+/** ILIKE vzor z prefixIndexu (jen doslovné znaky a „%“) → regulární výraz se stejným významem (bez ohledu na velikost
+ *  písmen, „%“ = cokoli). Pro build, kde se kandidáti vybírají z jedné načtené sady místo dotazu na každý fond. */
+export function ilikeRegex(vzor: string): RegExp {
+  return new RegExp(`^${vzor.split('%').map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')}$`, 'is');
+}
+
+/** Výběr z kandidátů (seřazených jako dotaz: velikost ↓, ISIN ↑): stejný klíč indexu, stejné zajištění, bez specifických. */
+function vyberPodobne(fond: FondDetailu & { isin: string }, kandidati: KandidatPodobnych[]): PodobnyFond[] {
+  const klic = klicPodobnych(indexDetailu(fond));
+  const zaj = zajisteniFondu(fond);
+  const specificky = SPECIFICKY_FOND.test(fond.name ?? '');
+  return kandidati
+    .filter((f) => klicPodobnych(indexDetailu(f)) === klic)
+    .filter((f) => { const h = zajisteniFondu(f); return h.isHedged === zaj.isHedged && h.hedgedCurrency === zaj.hedgedCurrency; })
+    .filter((f) => specificky || !SPECIFICKY_FOND.test(f.name))
+    .slice(0, 4)
+    .map(({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider, returns_as_of, scraping_date }) => ({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider: fund_provider ?? null, returns_as_of: returns_as_of ?? null, scraping_date: scraping_date ?? null }));
+}
+
+/** BUILD: všichni kandidáti podobných fondů jedním stránkovaným dotazem se STEJNÝMI filtry a řazením jako dotaz
+ *  v getPodobneFondy (bez filtru indexu) – jednou za proces (src/lib/buildMemo.ts). Dřív dotaz na každý detail. */
+async function vsichniKandidatiPodobnych(): Promise<KandidatPodobnych[]> {
+  const out: KandidatPodobnych[] = [];
+  for (let od = 0; od < 20000; od += 1000) {
+    const { data, error } = await supabaseAdmin
+      .from('etf_funds')
+      .select(PODOBNE_SLOUPCE)
+      .not('index_name', 'is', null)
+      .not('is_leveraged', 'is', true)
+      .not('name', 'is', null)
+      .gte('scraping_date', cerstveOd())
+      .not('fund_size_numeric', 'is', null)
+      .order('fund_size_numeric', { ascending: false })
+      .order('isin')
+      .range(od, od + 999);
+    if (error || !data) throw new Error(`kandidáti podobných fondů: ${error?.message ?? 'bez dat'}`);
+    out.push(...(data as unknown as KandidatPodobnych[]));
+    if (data.length < 1000) return out;
+  }
+  return out;
+}
+
+/**
+ * Podobné fondy pro detail. Při BUILDU z jedné sady načtené jednou za proces (vsichniKandidatiPodobnych) – a z TÉŽE
+ * funkce počítá seznam předgenerovaných dvojic (src/lib/prerender.ts), takže odkaz „srovnat s …“ na detailu a
+ * předgenerovaná dvojice se nemůžou rozejít (31. 10. 2026). Mimo build jeden dotaz na fond jako dřív. Řazení
+ * velikost ↓ a při shodě ISIN ↑ (dřív při shodné velikosti náhodné pořadí z DB) – obě cesty dávají totéž.
+ */
 export async function getPodobneFondy(fond: FondDetailu & { isin: string }): Promise<PodobnyFond[]> {
   const klic = klicPodobnych(indexDetailu(fond));
   const prefix = prefixIndexu(fond.index_name);
   if (!klic || !prefix) return [];
-  const zaj = zajisteniFondu(fond);
-  const specificky = SPECIFICKY_FOND.test(fond.name ?? '');
+  const vse = jednouZaBuild('kandidatiPodobnych', vsichniKandidatiPodobnych);
+  if (vse) {
+    const re = ilikeRegex(prefix);
+    const kandidati: KandidatPodobnych[] = [];
+    for (const f of await vse) {
+      if (f.isin !== fond.isin && re.test(f.index_name ?? '')) kandidati.push(f);
+      if (kandidati.length >= PODOBNE_LIMIT) break;
+    }
+    return vyberPodobne(fond, kandidati);
+  }
   try {
     const { data, error } = await supabaseAdmin
       .from('etf_funds')
-      .select('isin, name, primary_ticker, fund_provider, ter_numeric, fund_size_numeric, return_1y_czk, returns_as_of, scraping_date, index_name, investment_focus, category')
+      .select(PODOBNE_SLOUPCE)
       .ilike('index_name', prefix)
       .neq('isin', fond.isin)
       .not('is_leveraged', 'is', true)
@@ -395,14 +458,10 @@ export async function getPodobneFondy(fond: FondDetailu & { isin: string }): Pro
       .gte('scraping_date', cerstveOd())
       .not('fund_size_numeric', 'is', null)
       .order('fund_size_numeric', { ascending: false })
-      .limit(120);
+      .order('isin')
+      .limit(PODOBNE_LIMIT);
     if (error || !data) return [];
-    return (data as (PodobnyFond & FondDetailu)[])
-      .filter((f) => klicPodobnych(indexDetailu(f)) === klic)
-      .filter((f) => { const h = zajisteniFondu(f); return h.isHedged === zaj.isHedged && h.hedgedCurrency === zaj.hedgedCurrency; })
-      .filter((f) => specificky || !SPECIFICKY_FOND.test(f.name))
-      .slice(0, 4)
-      .map(({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider, returns_as_of, scraping_date }) => ({ isin, name, primary_ticker, ter_numeric, fund_size_numeric, return_1y_czk, fund_provider: fund_provider ?? null, returns_as_of: returns_as_of ?? null, scraping_date: scraping_date ?? null }));
+    return vyberPodobne(fond, data as unknown as KandidatPodobnych[]);
   } catch {
     return [];
   }
@@ -904,11 +963,7 @@ export interface ComparisonETF {
 /** Burzy fondu (pro odpověď „stejný fond, jiný ticker“ – kde a v jaké měně se obchoduje). */
 const COMPARISON_LISTING_FIELDS = Array.from({ length: 10 }, (_, i) => [`exchange_${i + 1}_name`, `exchange_${i + 1}_currency`]).flat();
 
-const COMPARISON_TICKER_FIELDS = [
-  'primary_ticker',
-  'exchange_1_ticker', 'exchange_2_ticker', 'exchange_3_ticker', 'exchange_4_ticker', 'exchange_5_ticker',
-  'exchange_6_ticker', 'exchange_7_ticker', 'exchange_8_ticker', 'exchange_9_ticker', 'exchange_10_ticker',
-] as const;
+// COMPARISON_TICKER_FIELDS + výběr fondu podle tickeru: src/lib/odkazyDvojic.ts (sdílí ho seznam předgenerovaných dvojic).
 
 /**
  * Načte plné metriky pro dvojici ETF podle tickerů (pro obohacený SSR obsah
@@ -921,9 +976,8 @@ export async function getComparisonETFData(
   try {
     // Symbol = ticker NEBO ISIN (lidé hledají i „ie00b5bmr087 vs ie00bfmxxd54“ – našeptávač
     // Googlu 17. 10. 2026). Hodnoty jsou už ověřené ([a-z0-9]{1,12}) v middleware i parsePair.
-    const jeIsin = (x: string) => /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(x.toUpperCase());
     const orConditions = [ticker1, ticker2]
-      .map(symbol => jeIsin(symbol)
+      .map(symbol => jeIsinSymbol(symbol)
         ? `isin.eq.${symbol.toUpperCase()}`
         : COMPARISON_TICKER_FIELDS.map(field => `${field}.eq.${symbol}`).join(','))
       .join(',');
@@ -951,27 +1005,9 @@ export async function getComparisonETFData(
       return null;
     }
 
-    const matches = (etf: Record<string, unknown>, ticker: string) =>
-      jeIsin(ticker)
-        ? String(etf.isin) === ticker.toUpperCase()
-        : COMPARISON_TICKER_FIELDS.some(f => (etf[f] as string)?.toUpperCase() === ticker.toUpperCase());
-
-    // Stejný ticker může mít víc fondů na různých burzách (SPYI = SPDR MSCI ACWI IMI na XETRA,
-    // ale i opční S&P 500 fond HANetf na LSE – /srovnani/vwce-vs-spyi ukazoval ten 1milionový,
-    // test s uživatelem 18. 10. 2026). Pořadí z DB je náhodné → vybrat: hlavní ticker fondu >
-    // ticker na XETRA > ostatní burzy; při shodě větší fond.
-    const skore = (etf: Record<string, unknown>, ticker: string) => {
-      const t = ticker.toUpperCase();
-      if (String(etf.primary_ticker ?? '').toUpperCase() === t) return 3;
-      for (let i = 1; i <= 10; i++) {
-        if (String(etf[`exchange_${i}_ticker`] ?? '').toUpperCase() === t && /xetra/i.test(String(etf[`exchange_${i}_name`] ?? ''))) return 2;
-      }
-      return 1;
-    };
+    // Výběr fondu pro ticker (hlavní ticker > XETRA > ostatní, při shodě větší fond): src/lib/odkazyDvojic.ts.
     const radky = data as unknown as Record<string, unknown>[];
-    const nejlepsi = (ticker: string) => radky
-      .filter(e => matches(e, ticker))
-      .sort((a, b) => skore(b, ticker) - skore(a, ticker) || Number(b.fund_size_numeric ?? 0) - Number(a.fund_size_numeric ?? 0))[0];
+    const nejlepsi = (ticker: string) => vyberFondProSymbol(radky, ticker);
     // Odlehlý výnos (src/lib/vynosNeovereny.ts): výnosy za období null – stejně jako detail fondu.
     const odlehle = await odlehleP;
     const etf1 = bezOdlehlehoVynosu(nejlepsi(ticker1) as unknown as ComparisonETF | undefined, odlehle) ?? undefined;

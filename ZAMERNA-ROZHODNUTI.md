@@ -95,6 +95,28 @@ Po vyprázdnění cache detailů se stal hlavním zdrojem ISR zápisů: roboti p
 různých, 513 zápisů) a 1denní expirace je přepisovala každý den. Stránka ukazuje „Data k …“, takže starší cache je
 poctivě označená. Majitel nechce omezovat Bing/Seznam (žádný firewall ani noindex navíc) – proto delší cache, ne blokace.
 
+**Předgenerování detailů a dvojic: VŠECHNY detaily fondů a všechny odkazované dvojice se generují při BUILDU.** (31. 10. 2026)
+Build tím trvá déle (lokálně ~4 min místo ~40 s, ~6 800 stránek) a `.next` má ~1,8 GB – **je to záměr, seznam
+nezkracuj „kvůli rychlosti buildu“.** Proč: každé nasazení na Vercelu má vlastní prázdnou ISR cache; roboti pak znovu
+prošli ~5 000 detailů a tisíce dvojic a každý render na požádání stál ~6–7 ISR zápisů + CPU Fluid → nasazení ≈ 40 000
+zápisů (Hobby limit 200 000 / 30 dní) a 15–20 min CPU (limit 4 h). Pokus 31. 10. 2026 na zkušebním projektu: stránky
+předgenerované přes `generateStaticParams` = **0 zápisů**, CPU buildu se do Fluid nepočítá. Placený plán, ořezání obsahu
+ani noindex/firewall pro Bing/Seznam majitel nechce.
+- Seznam počítá `src/lib/prerender.ts` TÝMIŽ funkcemi jako odkazy (`getPodobneFondy` + `odkazDvojiceDetailu`,
+  `kanonikaDvojice`, `vyberFondProSymbol` v `src/lib/odkazyDvojic.ts`) – odkaz a seznam se nesmí rozejít. Dvojice, které
+  by se přesměrovaly nebo vrátily 404, se nepředgenerovávají. Nový fond po buildu se vyrenderuje na požádání (`dynamicParams`).
+- **Build při chybě DB nebo podezřele krátkém seznamu SPADNE** (< 4 000 detailů, < 1 000 dvojic, 3 pokusy). Záměr: tichý
+  kratší seznam by vrátil render na požádání (a s ním zápisy a CPU) bez varování. Denní `check-fund-data.mjs` hlásí poplach,
+  když fondů s detailem klesne pod 4 000; po buildu `node scripts/check-predgenerovani.mjs` (každý odkazovaný pár předgenerovaný).
+- **Při buildu se velké sady načítají jednou za proces** (`jednouZaBuild`, `src/lib/buildMemo.ts`: třídy fondů, fondy trhů,
+  kandidáti podobných fondů) – bez toho by build stáhl ~12 GB ze Supabase (naměřeno ~113 MB). Mimo build (runtime) se
+  nepoužívá: paměť v teplé lambdě by držela stará data přes ISR přegenerování.
+- **Při buildu jdou dotazy na Supabase mimo datovou cache Nextu** (`fetchProSupabase`, `_nextOriginalFetch` jako engine.ts).
+  Jinak by build zapsal desítky tisíc položek do datové cache (na Vercelu přežívá nasazení) s nejasným dopadem na limit zápisů.
+  ISR interval dává stránkám `revalidate` segmentu, ne fetch – stránky zůstávají ISR (detail 30 dní, dvojice 7 dní).
+- Podobné fondy se řadí velikost ↓ a při shodě **ISIN ↑** (dřív náhodné pořadí z DB) – jinak by build a runtime mohly
+  při shodné velikosti vybrat jiného „soupeře“. Jediný rozdíl proti dřívějším stránkám (1 z 438 porovnaných, DE000A4AT2X6).
+
 **Riziko (σ, Sharpe, Sortino) se počítá z MĚSÍČNÍCH výnosů, ne denních.** `calculateSummary`
 používá `resampleMonthEnd`. Není to nepřesnost — zdrojová denní data mají ojedinělé vadné ticky
 na začátku měsíce (splice denního ETF a měsíčního zdroje; např. `ftse_all_world` 2008-10-01 =

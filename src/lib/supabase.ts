@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
+import { fetchProSupabase } from '@/lib/buildMemo';
 
 // Jen veřejný klíč – proč, viz src/lib/supabase-config.ts.
-export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// fetchProSupabase: při buildu mimo datovou cache Nextu, jinak beze změny (src/lib/buildMemo.ts, 31. 10. 2026).
+export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { global: { fetch: fetchProSupabase } });
 
 // Název „Admin“ je historický (dřív service role). Je to tentýž klient s veřejným klíčem;
 // ponechán, ať se nemusí přepisovat desítky importů.
