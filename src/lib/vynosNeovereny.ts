@@ -64,6 +64,7 @@ export const NEOVERENE_VYNOSY: Readonly<Record<string, NeoverenyVynos>> = {
   'XS2842095320': { ticker: '3LAA', druh: 'skok', den: '2024-06-28', overeno: '2026-10-22', dukaz: 'zdroj 28. 6. 2024 3,4e8 → 8,4e10 €, 2. 7. → 22,79; Milán 3LAA.MI ×0,98 / ×1,04; 3R −100 %' },
   'XS2842095676': { ticker: '3SNV', druh: 'skok', den: '2024-06-28', overeno: '2026-10-22', dukaz: 'zdroj 28. 6. 2024 4,5e9 → 2,7e12 €, 2. 7. → 23,35; Milán 3SNV.MI ×0,94 / ×1,06; 3R −100 %' },
   'XS2842095759': { ticker: '3SAA', druh: 'skok', den: '2024-06-28', overeno: '2026-10-22', dukaz: 'zdroj 28. 6. 2024 2,9e7 → 3,0e9 €, 2. 7. → 27,75 (ceny v miliardách €); 3R −100 %' },
+  'SE0026821282': { ticker: 'VRTN', druh: 'skok', den: '2025-11-18', overeno: '2026-10-31', dukaz: 'zdroj do 17. 11. 2025 7,2–8,2 €, 18. 11. → 1,91 (×0,25); Xetra VRTN.DE od začátku obchodování 7. 11. 2025 2,06–2,22 €, 17.→18. 11. 1,90 → 1,95; web 1R −82,6 %, burza od 11. 11. ≈ −38 %' },
   'IE00B8K7KM88': { ticker: '3USS', druh: 'skok', den: '2022-12-19', overeno: '2026-10-22', dukaz: 'zdroj 19. 12. 2022 7 127,38 → 56,48 (×0,008); Milán 3USS.MI 16.→19. 12. ×1,02; zasaženo 5R −99,9 %' },
   'XS2337090851': { ticker: '3BBE', druh: 'skok', den: '2022-01-03', overeno: '2026-10-22', dukaz: 'zdroj 3. 1. 2022 96,41 → 0,52 (×0,005); Xetra 3BBE.DE tehdy bez obchodu; zasaženo 5R −99,7 %' },
   'XS2656472193': { ticker: '3LTS', druh: 'skok', den: '2022-01-03', overeno: '2026-10-22', dukaz: 'zdroj 3. 1. 2022 435,93 → 76 384,85 (×175); Milán 3LTS.MI 30. 12.→4. 1. ×1,09; zasaženo 5R −99,6 %' },

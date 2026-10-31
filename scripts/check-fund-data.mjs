@@ -2259,17 +2259,20 @@ const main = async () => {
     //      hodnotou až kolem 04:00 UTC dne D + 2 pracovní dny; scraper (út–pá od 01:30 UTC) ale bral D = 2 pracovní dny
     //      před stažením bez ohledu na hodinu → fondy stažené před ~04:00 UTC měly výnosy z předběžného bodu (30. 10. 2026:
     //      2 373 fondů). Čistě z DB: čerstvý fond (stažený za posledních 7 dní) nesmí mít scraping_date (UTC) dřív než
-    //      returns_as_of + 2 pracovní dny v 05:00 UTC (hodina rezerva). Svátky neznáme – v den po svátku může hlásit navíc.
+    //      mez stažení = 2 pracovní dny zpět od dne stažení, před 05:00 UTC 3 (stejně jako mez_konecnosti ve scraperu).
+    //      Ne „returns_as_of + 2 pracovní dny“: v sobotu 31. 10. 2026 06:07 UTC byl čtvrteční bod už konečný (SXR8 29. 10.
+    //      −0,54 % = S&P 500 v EUR po americkém závěru, Xetra −0,45 %; páteční bod ještě kopíroval Xetru) – ruční
+    //      víkendové stažení tak hlásilo 4 209 falešných poplachů. Svátky neznáme – v den po svátku může hlásit navíc.
     {
       const utc = (s) => new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(String(s)) ? String(s) : `${s}Z`);
-      const konecnyOd = (d) => { // returns_as_of + 2 pracovní dny (po–pá), 05:00 UTC
-        const x = new Date(`${String(d).slice(0, 10)}T05:00:00Z`);
-        for (let n = 0; n < 2;) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() !== 0 && x.getUTCDay() !== 6) n++; }
-        return x;
+      const mezKonecnosti = (t) => { // poslední den, který je při stažení v čase t (UTC) už konečný
+        const x = new Date(`${t.toISOString().slice(0, 10)}T00:00:00Z`);
+        for (let n = 0, k = t.getUTCHours() >= 5 ? 2 : 3; n < k;) { x.setUTCDate(x.getUTCDate() - 1); if (x.getUTCDay() !== 0 && x.getUTCDay() !== 6) n++; }
+        return x.toISOString().slice(0, 10);
       };
       const tyden = fondy.filter((x) => x.returns_as_of && x.scraping_date && (Date.now() - utc(x.scraping_date)) / 864e5 <= 7);
-      const predbezne = tyden.filter((x) => utc(x.scraping_date) < konecnyOd(x.returns_as_of));
-      if (predbezne.length) poplach.push({ co: `${predbezne.length} z ${tyden.length} fondů stažených za posledních 7 dní má výnosy k dni, který zdroj při stažení ještě nemusel mít konečný (stažení dřív než returns_as_of + 2 prac. dny 05:00 UTC) – výnosy z předběžného bodu; scraper bere den výnosů bez ohledu na hodinu stažení (etf-astro scraper/vynosy_z_rady.py)`, ukazka: ukazka(predbezne, (x) => `${x.isin} returns_as_of ${x.returns_as_of}, staženo ${utc(x.scraping_date).toISOString().slice(0, 16).replace('T', ' ')} UTC (konečný až od ${konecnyOd(x.returns_as_of).toISOString().slice(0, 16).replace('T', ' ')})`) });
+      const predbezne = tyden.filter((x) => String(x.returns_as_of).slice(0, 10) > mezKonecnosti(utc(x.scraping_date)));
+      if (predbezne.length) poplach.push({ co: `${predbezne.length} z ${tyden.length} fondů stažených za posledních 7 dní má výnosy k dni, který zdroj při stažení ještě nemusel mít konečný (novější než 2 prac. dny před stažením, před 05:00 UTC 3) – výnosy z předběžného bodu; scraper nedodržel mez_konecnosti (etf-astro scraper/vynosy_z_rady.py)`, ukazka: ukazka(predbezne, (x) => `${x.isin} returns_as_of ${x.returns_as_of}, staženo ${utc(x.scraping_date).toISOString().slice(0, 16).replace('T', ' ')} UTC (konečný nejvýš ${mezKonecnosti(utc(x.scraping_date))})`) });
     }
     const poNasazeni = nasazenoOd ? cerstve6.filter((x) => new Date(x.scraping_date) > new Date(nasazenoOd.getTime() + 3600e3)) : [];
     if (!nasazenoOd) varovani.push({ co: 'Kolo6b: výpočet výnosů z denní řady (etf-astro scraper/vynosy_z_rady.py) ještě není v main scraperu, nebo GitHub API neodpovědělo – kontroly returns_as_of jen částečně', ukazka: [] });
