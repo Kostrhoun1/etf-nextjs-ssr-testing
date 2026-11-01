@@ -17,7 +17,7 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-24.04  # zafixováno 1.10.2026: ubuntu-latest od 19.10. přechází na Ubuntu 26 – přejít vědomě a otestovaně
-    timeout-minutes: 12
+    timeout-minutes: 45  # build s předgenerovanými detaily fondů trvá ~14 min (+ fronta), viz krok „Počkat na nasazení“
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,6 +27,18 @@ jobs:
         run: npm ci || npm install
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Počkat na nasazení tohoto commitu
+        run: |
+          # Od 1. 11. 2026 build předgeneruje ~6 800 stránek a trvá ~14 min; 10 pokusů po 30 s tak vždy proběhlo proti
+          # STARÉ verzi a po každém pushi přišel falešný e-mail. Čekáme, až produkce nese build-time novější než commit
+          # (<meta name="build-time">, layout.tsx). Nejvýš 30 min, pak se stejně zkontroluje (a případně selže).
+          commit=$(git log -1 --format=%ct)
+          for i in $(seq 1 60); do
+            bt=$(curl -s https://etfpruvodce.cz/ | grep -o 'name="build-time" content="[^"]*"' | sed 's/.*content="//;s/"$//')
+            if [ -n "$bt" ] && [ "$(date -d "$bt" +%s)" -ge "$commit" ]; then echo "Produkce: build $bt (commit $(date -u -d @$commit +%FT%TZ))"; exit 0; fi
+            sleep 30
+          done
+          echo "::warning::Build tohoto commitu se na produkci do 30 min neobjevil (build-time: ${bt:-chybí}) – kontroluji, co tam je."
       - name: Kontrola produkce (smoke + správnost, s čekáním na deploy)
         env:
           BASE_URL: https://etfpruvodce.cz
