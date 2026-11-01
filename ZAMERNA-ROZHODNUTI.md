@@ -1096,3 +1096,12 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   a tyhle třídy byly skryté jako „odlehlé“ na celém webu. Stejné pravidlo mají obě kopie testu v check-fund-data
   (`sDnemVetsiny`), unit test `scripts/trhy.test.mjs` (`npm test`). Jinde (např. součty výnosů portfolií, getReturnsByIsins)
   platí dál práh > 3 pracovní dny (`vynosyPozadu`, src/lib/datumVynosu.ts) – toho se tohle pravidlo netýká.
+
+## Výnos 12 m v Kč = výnos v EUR u fondů k 29. 10. 2026 není chyba – kurz ČNB byl oba dny stejný (1. 11. 2026)
+
+- **Stažení 31. 10. 2026: u 3 606 fondů s returns_as_of 29. 10. 2026 je `return_1y_czk` přesně rovno `return_1y`.** Kurz ČNB
+  EUR/CZK byl 29. 10. 2025 (#210) i 29. 10. 2026 (#208) shodně **24,335** – měnový efekt za 12 měsíců je nula. Ověřeno přímo
+  na denni_kurz.txt ČNB. YTD/3R/5R v Kč a všechna období v USD se od EUR liší normálně; fondy s jiným dnem výnosů (27. 10.:
+  24,325 → 24,340) také. **Neopravovat.** Shoda vydrží, dokud se tyto fondy znovu nestáhnou s novým dnem výnosů.
+- Pravidlo „stejné CAGR v různých měnách = chyba“ (CLAUDE.md) tu neplatí doslova – rozhoduje nezávislý přepočet kurzy ČNB ke
+  stejným dnům (check-fund-data, blok „Výnosy v Kč/USD nesedí s výnosem v EUR přepočteným kurzy ČNB/ECB“), ten shodu přijme.
