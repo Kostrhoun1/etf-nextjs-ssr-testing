@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Čas buildu do <meta name="build-time"> (layout.tsx). Detaily fondů jsou předgenerované s platností 30 dní
+  // a po nasazení vyprší všechny najednou → denní kontrola hlásí produkci starší 25 dní (1. 11. 2026).
+  env: {
+    BUILD_TIME: new Date().toISOString(),
+  },
   async headers() {
     return [
       // Indexovat smí jen ostrá doména. Náhledy (*.vercel.app), localhost atd. = noindex.

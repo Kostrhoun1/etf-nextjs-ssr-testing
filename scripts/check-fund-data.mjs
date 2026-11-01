@@ -378,6 +378,20 @@ const main = async () => {
     varovani.push({ co: `Kontrolu shody ceníků brokerů se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── Stáří nasazení (1. 11. 2026) ──
+  // Detaily fondů a dvojice jsou předgenerované při buildu s platností 30 dní (etf/[isin] revalidate 2592000): po nasazení
+  // vyprší všechny najednou a roboti by je přepočítali za pár dní ≈ 100 000+ ISR zápisů → auto-pauza free tieru. Každé
+  // nasazení je obnoví zdarma (build = 0 ISR zápisů). Proto: produkce starší než 25 dní = poplach (znovu nasadit).
+  try {
+    const html = await fetch(`${WEB_URL}/`).then((r) => (r.ok ? r.text() : ''));
+    const build = html.match(/<meta name="build-time" content="([^"]*)"/)?.[1];
+    const dni = build ? (Date.now() - Date.parse(build)) / 864e5 : NaN;
+    if (!build) varovani.push({ co: 'Homepage bez <meta name="build-time"> – stáří nasazení nejde ověřit (před nasazením 1. 11. 2026?)', ukazka: [] });
+    else if (!(dni >= 0 && dni <= 25)) poplach.push({ co: `Nasazení je staré ${Number.isFinite(dni) ? dni.toFixed(1) : '?'} dní (build ${build}): předgenerované detaily fondů vyprší po 30 dnech všechny najednou → ISR zápisy nad limit free tieru. Znovu nasadit (build je obnoví bez ISR zápisů).`, ukazka: [] });
+  } catch (e) {
+    varovani.push({ co: `Stáří nasazení se nepodařilo ověřit: ${e.message}`, ukazka: [] });
+  }
+
   // ── /kde-koupit: roční náklad konzistentní s nákupem ──
   // Kolo 5 (18. 10. 2026): IBKR „směnu stačí udělat jednou“, ale „za rok“ počítal směnu 12× (884 Kč místo ~408 Kč).
   // Řádky nesou data-za-nakup / data-za-rok (Kč, výchozí částka). Za rok nesmí být víc než 12 × za nákup a u IBKR

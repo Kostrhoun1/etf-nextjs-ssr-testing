@@ -86,6 +86,8 @@ export async function generateMetadata(): Promise<Metadata> {
     // Seznam Webmaster (search.seznam.cz/wmt) – ověření vlastnictví, osobní Seznam účet.
     // Neodstraňovat: bez něj Seznam Webmaster přestane ukazovat data o indexaci.
     'seznam-wmt': 'iFpr9DXojGjJlaJLLC30J107n0voWcrc',
+    // Stáří nasazení pro denní kontrolu (next.config.ts env.BUILD_TIME).
+    'build-time': process.env.BUILD_TIME ?? '',
   },
   verification: {
     google: 'xcO4Z-AnzPYJ288SOKyYz4KphoizdnaitN7V8e1yXKc',
