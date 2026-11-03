@@ -517,7 +517,9 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 
 - **Hlavní spouštění = Supabase pg_cron: `scraper-spusteni` út–pá `0 5 * * 2-5` UTC a `scraper-spusteni-pondeli`
   po `0 5 * * 1` UTC (7:00 SELČ / 6:00 SEČ, hotovo ~9:40 UTC)**. Do 31. 10. 2026 út–pá `30 1 * * 2-5` (hotovo před otevřením
-  Xetry) – ZMĚNĚNO rozhodnutím majitele 31. 10. 2026: justETF přepisuje bod D na konečný až ~04:00 UTC v D+2, takže fondy
+  Xetry) – ZMĚNĚNO rozhodnutím majitele 31. 10. 2026: justETF přepisuje bod D na konečný až ~04:00 UTC v D + 2 PRACOVNÍ
+  dny (o víkendu nepřepisuje: čtvrtek 29. 10. byl v sobotu 31. 10. ještě předběžný, YTD SXR8 19,61 → 19,94 %; etf-astro
+  PR #4 – víkendový běh bere nejvýš středu; check b2 = D + 2 prac. dny, NEUVOLŇOVAT – viz 3. 11. 2026), takže fondy
   stažené před 4. hodinou měly výnosy z předběžné ceny (30. 10.: ~2 370 fondů, VWCE YTD 19,03 místo 19,13 %, SPGP −1,4 %).
   Otevření Xetry nevadí – scraper poslední (rozpracovaný) bod řady vždy vynechává. Pojistka i ve scraperu (etf-astro PR #3:
   před 05:00 UTC mez 3 prac. dny, jinak 2) a kontrola „kolo6b (b2)“ v check-fund-data.mjs. Spouštění přes

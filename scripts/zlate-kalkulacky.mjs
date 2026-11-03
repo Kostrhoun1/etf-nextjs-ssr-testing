@@ -314,7 +314,9 @@ const nejlevnejsi = (model) => Object.entries(model).sort((a, b) => a[1][0] - b[
 
 /** Kurz, se kterým stránka počítá (datum z textu „kurzu ČNB k …“), stažený přímo z ČNB. */
 async function kurzStranky(text, pripad) {
-  const d = datum(text.match(/kurz\S* ČNB k (\d{1,2}\. ?\d{1,2}\. ?\d{4})/)?.[1] || '');
+  // \s* a /i (3. 11. 2026): stránka má „kurzu ČNB k“ + mezeru zvlášť (2 mezery / NBSP) a „Kurz ČNB k“ velkým K – dřív
+  // se datum nenašlo, test tiše počítal se zlatým kurzem 22. 10. a při kurzu 24,35 hlásil 874 ≠ 877 Kč (web měl pravdu).
+  const d = datum(norm(text).match(/kurz\S* ČNB k\s*(\d{1,2}\.\s?\d{1,2}\.\s?\d{4})/i)?.[1] || '');
   const zlaty = pripad.vstupy?.kurz_CNB;
   if (zlaty && d === zlaty.datum) return { eur: zlaty.eurCzk, usd: zlaty.usdCzk, datum: d, shoda: true };
   if (!d) return zlaty ? { eur: zlaty.eurCzk, usd: zlaty.usdCzk, datum: null, shoda: false, pozn: 'datum kurzu na stránce nenalezeno' } : null;

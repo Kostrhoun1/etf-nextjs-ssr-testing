@@ -546,10 +546,15 @@ const main = async () => {
   // vedla 2× pákovým WTI). Selhání = POPLACH – žebříčky jsou nejnavštěvovanější stránky z Bingu.
   // Rozcestník /zebricky počítá fondy žebříčků vlastním (JS) filtrem z jednoho dotazu, žebříček SQL dotazem
   // (src/lib/zebricky.ts vs. getTopETFsForCategory). Když se rozejdou, rozcestník slibuje jiný počet fondů.
+  // Každá stránka je z ISR cache (1 den) s vlastním „Data k …“: po stažení nových dat se může jedna obnovit dřív než druhá
+  // a počty fondů se pak liší oprávněně. Počty porovnáváme jen u stejného dne dat (3. 11. 2026).
+  const denDat = (h) => h.replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;|\u00a0/g, ' ').match(/Data k\s*(\d{1,2}\.\s?\d{1,2}\.\s?\d{4})/)?.[1]?.replace(/\s/g, '') ?? null;
+  let denRozcestniku = null;
   let pocetRozcestnik = new Map();
   try {
     const h = await fetch(`${WEB_URL}/zebricky`).then((r) => (r.ok ? r.text() : ''));
     pocetRozcestnik = new Map([...h.matchAll(/data-pocet="(\d+)" data-slug="([a-z0-9-]+)"/g)].map((m) => [m[2], Number(m[1])]));
+    denRozcestniku = denDat(h);
     if (!pocetRozcestnik.size) varovani.push({ co: 'Rozcestník /zebricky neukazuje počty fondů (data-pocet) – nenačetl se, nebo DB nedostupná', ukazka: [] });
   } catch { varovani.push({ co: 'Rozcestník /zebricky se nenačetl', ukazka: [] }); }
   const nesouhlasi = [];
@@ -560,7 +565,11 @@ const main = async () => {
     if (!html) { poplach.push({ co: `Žebříček /nejlepsi-etf/${z.slug} se nenačetl`, ukazka: [] }); continue; }
     const pocetZebricek = Number(html.match(/data-pocet-fondu="(\d+)"/)?.[1] ?? NaN);
     const pocetHub = pocetRozcestnik.get(z.slug);
-    if (pocetHub != null && Number.isFinite(pocetZebricek) && pocetHub !== pocetZebricek) nesouhlasi.push(`${z.slug}: rozcestník ${pocetHub}, žebříček ${pocetZebricek}`);
+    if (pocetHub != null && Number.isFinite(pocetZebricek) && pocetHub !== pocetZebricek) {
+      const denZ = denDat(html);
+      if (denZ && denRozcestniku && denZ !== denRozcestniku) varovani.push({ co: `${z.slug}: rozcestník ${pocetHub} fondů (data k ${denRozcestniku}), žebříček ${pocetZebricek} (data k ${denZ}) – jiný den dat, nesrovnávám`, ukazka: [] });
+      else nesouhlasi.push(`${z.slug}: rozcestník ${pocetHub}, žebříček ${pocetZebricek}`);
+    }
     // Indexové žebříčky: sekce „Co v kategorii je“ musí u většiny fondů poznat sledovaný index (data-index-pocet).
     // 18. 10. 2026 ukazovala „MSCI ACWI 6 z 24“ (ve skutečnosti 14) – index se bral jen z useknutého index_name.
     if (z.indexy) {
@@ -1991,8 +2000,14 @@ const main = async () => {
         let api = [];
         try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()); } catch { /* níže */ }
         if (!Array.isArray(api) || api.length < 1000) chyby.push('/api/etf/screener se nenačetl');
+        // Stránky a API jsou z ISR cache (1 den): po novém stažení můžou ukazovat VČEREJŠÍ data, kdy fond odlehlý nebyl
+        // (3. 11. 2026: BNP MSCI World odlehlý k 30. 10., srovnávač i žebříček ještě s daty k 29. 10. = 18,1 % v trhu).
+        // Porovnává se proto jen stránka se stejnými daty jako DB; jinak varování (s daty k dřívějšímu dni to chyba není).
+        const zastarale = [];
         for (const o of odlehle) {
           const r = Array.isArray(api) ? api.find((x) => x.isin === o.isin) : null;
+          const dbR1 = Number(podle.get(o.isin)?.return_1y_czk);
+          if (r && r.return_1y_czk != null && Math.abs(Number(r.return_1y_czk) - dbR1) > 0.051) { zastarale.push(`srovnávač ${o.isin}: ${r.return_1y_czk} % ≠ DB ${dbR1.toFixed(2)} % (data z cache)`); continue; }
           if (r && Object.entries(r).some(([k, v]) => OBDOBI.test(k) && v != null)) chyby.push(`srovnávač: ${o.isin} (výnos mimo trh ${o.trh.id}) ukazuje výnos za období`);
         }
         // b) žebříček trhu (data tabulky v RSC: r1/r3 ve všech měnách null)
@@ -2000,11 +2015,15 @@ const main = async () => {
         for (const o of odlehle) {
           if (!zebr.has(o.trh.href)) zebr.set(o.trh.href, rsc(await vem(o.trh.href)));
           const h = zebr.get(o.trh.href);
+          const denZ = (([, d, m, y]) => y && `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)(h.replace(/<[^>]*>/g, ' ').match(/Data k\s*(\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/) ?? []);
+          const denDb = String(podle.get(o.isin)?.returns_as_of ?? '').slice(0, 10);
+          if (denZ && denDb && denZ !== denDb) { zastarale.push(`žebříček ${o.trh.href}: data k ${denZ}, DB ${o.isin} k ${denDb}`); continue; }
           const i = h.indexOf(`"isin":"${o.isin}","nazev"`);
           if (i < 0) continue; // fond v tabulce žebříčku není (mimo 300 největších / filtr)
           const radek = h.slice(i, h.indexOf('"zajisteni"', i));
           if (/"r[13]":\{[^}]*-?\d/.test(radek)) chyby.push(`žebříček ${o.trh.href}: ${o.isin} má v tabulce číslo výnosu`);
         }
+        if (zastarale.length) varovani.push({ co: `Kolo 6b: odlehlý výnos se na ${zastarale.length} místech nekontroloval – stránka z cache má data k dřívějšímu dni`, ukazka: zastarale.slice(0, 6) });
         // c) porovnání (objekt fondu v RSC + vysvětlivka)
         for (const o of odlehle.slice(0, 3)) {
           if (!o.ref) continue;
@@ -2273,20 +2292,21 @@ const main = async () => {
     //      hodnotou až kolem 04:00 UTC dne D + 2 pracovní dny; scraper (út–pá od 01:30 UTC) ale bral D = 2 pracovní dny
     //      před stažením bez ohledu na hodinu → fondy stažené před ~04:00 UTC měly výnosy z předběžného bodu (30. 10. 2026:
     //      2 373 fondů). Čistě z DB: čerstvý fond (stažený za posledních 7 dní) nesmí mít scraping_date (UTC) dřív než
-    //      mez stažení = 2 pracovní dny zpět od dne stažení, před 05:00 UTC 3 (stejně jako mez_konecnosti ve scraperu).
-    //      Ne „returns_as_of + 2 pracovní dny“: v sobotu 31. 10. 2026 06:07 UTC byl čtvrteční bod už konečný (SXR8 29. 10.
-    //      −0,54 % = S&P 500 v EUR po americkém závěru, Xetra −0,45 %; páteční bod ještě kopíroval Xetru) – ruční
-    //      víkendové stažení tak hlásilo 4 209 falešných poplachů. Svátky neznáme – v den po svátku může hlásit navíc.
+    //      returns_as_of + 2 pracovní dny v 05:00 UTC (hodina rezerva). Svátky neznáme – v den po svátku může hlásit navíc.
+    //      POZOR (3. 11. 2026): 1. 11. jsem pravidlo chybně uvolnil na „2 prac. dny zpět od dne stažení“ podle sobotního
+    //      „důkazu“ (SXR8 29. 10. −0,54 % ≈ S&P v EUR z Yahoo) – ten byl náhoda: zdroj bod 29. 10. po sobotě přepsal
+    //      (YTD SXR8 k 29. 10. sobota 19,61 % → 19,94 %, 1R 17,90 → 18,23 %). Platí D + 2 PRACOVNÍ dny; víkendové stažení
+    //      (ruční) proto smí vzít nejvýš středu. Neuvolňovat bez porovnání bodu zdroje před a po přepisu.
     {
       const utc = (s) => new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(String(s)) ? String(s) : `${s}Z`);
-      const mezKonecnosti = (t) => { // poslední den, který je při stažení v čase t (UTC) už konečný
-        const x = new Date(`${t.toISOString().slice(0, 10)}T00:00:00Z`);
-        for (let n = 0, k = t.getUTCHours() >= 5 ? 2 : 3; n < k;) { x.setUTCDate(x.getUTCDate() - 1); if (x.getUTCDay() !== 0 && x.getUTCDay() !== 6) n++; }
-        return x.toISOString().slice(0, 10);
+      const konecnyOd = (d) => { // returns_as_of + 2 pracovní dny (po–pá), 05:00 UTC
+        const x = new Date(`${String(d).slice(0, 10)}T05:00:00Z`);
+        for (let n = 0; n < 2;) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() !== 0 && x.getUTCDay() !== 6) n++; }
+        return x;
       };
       const tyden = fondy.filter((x) => x.returns_as_of && x.scraping_date && (Date.now() - utc(x.scraping_date)) / 864e5 <= 7);
-      const predbezne = tyden.filter((x) => String(x.returns_as_of).slice(0, 10) > mezKonecnosti(utc(x.scraping_date)));
-      if (predbezne.length) poplach.push({ co: `${predbezne.length} z ${tyden.length} fondů stažených za posledních 7 dní má výnosy k dni, který zdroj při stažení ještě nemusel mít konečný (novější než 2 prac. dny před stažením, před 05:00 UTC 3) – výnosy z předběžného bodu; scraper nedodržel mez_konecnosti (etf-astro scraper/vynosy_z_rady.py)`, ukazka: ukazka(predbezne, (x) => `${x.isin} returns_as_of ${x.returns_as_of}, staženo ${utc(x.scraping_date).toISOString().slice(0, 16).replace('T', ' ')} UTC (konečný nejvýš ${mezKonecnosti(utc(x.scraping_date))})`) });
+      const predbezne = tyden.filter((x) => utc(x.scraping_date) < konecnyOd(x.returns_as_of));
+      if (predbezne.length) poplach.push({ co: `${predbezne.length} z ${tyden.length} fondů stažených za posledních 7 dní má výnosy k dni, který zdroj při stažení ještě nemusel mít konečný (stažení dřív než returns_as_of + 2 prac. dny 05:00 UTC) – výnosy z předběžného bodu; scraper nedodržel mez konečnosti (etf-astro scraper/vynosy_z_rady.py, mez_konecnosti)`, ukazka: ukazka(predbezne, (x) => `${x.isin} returns_as_of ${x.returns_as_of}, staženo ${utc(x.scraping_date).toISOString().slice(0, 16).replace('T', ' ')} UTC (konečný až od ${konecnyOd(x.returns_as_of).toISOString().slice(0, 16).replace('T', ' ')})`) });
     }
     const poNasazeni = nasazenoOd ? cerstve6.filter((x) => new Date(x.scraping_date) > new Date(nasazenoOd.getTime() + 3600e3)) : [];
     if (!nasazenoOd) varovani.push({ co: 'Kolo6b: výpočet výnosů z denní řady (etf-astro scraper/vynosy_z_rady.py) ještě není v main scraperu, nebo GitHub API neodpovědělo – kontroly returns_as_of jen částečně', ukazka: [] });
@@ -2640,7 +2660,14 @@ const main = async () => {
       // 7) Datum složení = holdings_as_of (ne den stažení): detail SXR8, žebříček S&P 500, článek S&P 500 vs. svět.
       const sk = detailSxr8.html.match(/data-slozeni-k="([^"]*)"/)?.[1];
       if (sk === undefined) chyby.push('/etf/IE00B5BMR087: u složení chybí datum (data-slozeni-k)');
-      else if (sk !== (slozeniDb.get('IE00B5BMR087') ?? '')) chyby.push(`/etf/IE00B5BMR087: složení k „${sk}“ ≠ DB holdings_as_of „${slozeniDb.get('IE00B5BMR087')}“`);
+      // Detail je předgenerovaný při buildu s platností 30 dní (od 1. 11. 2026): starší datum než DB = stránka z buildu před
+      // novějším stažením složení (2. 11.: 31. 8. vs. 30. 9.) – datované, ne chyba. Chyba je NOVĚJŠÍ datum než DB (= den
+      // stažení místo holdings_as_of, původní bug) nebo nesmysl.
+      else if (sk !== (slozeniDb.get('IE00B5BMR087') ?? '')) {
+        const db = slozeniDb.get('IE00B5BMR087') ?? '';
+        if (/^\d{4}-\d{2}-\d{2}$/.test(sk) && db && sk < db) varovani.push({ co: `/etf/IE00B5BMR087: složení k „${sk}“, DB už „${db}“ – detail z buildu před stažením nového složení (obnoví ho další nasazení)`, ukazka: [] });
+        else chyby.push(`/etf/IE00B5BMR087: složení k „${sk}“ ≠ DB holdings_as_of „${db}“`);
+      }
       const zsp = (await vem('/nejlepsi-etf/nejlepsi-sp500-etf')).html;
       if (/Rozložení podle sektorů|Geografické rozložení|Největší pozice ve fondu/.test(zsp) && !/data-slozeni-k=/.test(zsp)) chyby.push('/nejlepsi-etf/nejlepsi-sp500-etf: rozložení složení bez data (data-slozeni-k)');
       const sw = (await vem('/sp500-nebo-cely-svet')).html;
@@ -4030,6 +4057,9 @@ async function kontrolaKolo8Faktory(poplach, varovani) {
         const tag = d.html.match(/<section[^>]*data-sekce="faktor-cisla"[^>]*>/)?.[0];
         if (!tag) { chyby.push(`/faktorove-etf/${r.slug}: chybí blok čísel (data-sekce="faktor-cisla")`); continue; }
         const k = Number(attr(tag, 'data-konecna')), s = Number(attr(tag, 'data-sp-konecna')), v = attr(tag, 'data-vysledek');
+        // Jiný KONEC okna = stránky z ISR cache (1 den) obnovené před/po denní synchronizaci indexů (3. 11. 2026: detail
+        // momentum do 2. 11., přehled do 30. 10.) → čísla se oprávněně liší; varování. Jiný ZAČÁTEK = chyba výpočtu.
+        if (attr(tag, 'data-od') === r.od && attr(tag, 'data-do') !== r.do) { varovani.push({ co: `/faktorove-etf/${r.slug}: data do ${attr(tag, 'data-do')}, přehled do ${r.do} – stránky z cache z různých dnů, čísla nesrovnávám`, ukazka: [] }); continue; }
         if (attr(tag, 'data-od') !== r.od || attr(tag, 'data-do') !== r.do) chyby.push(`/faktorove-etf/${r.slug}: jiné okno než v přehledu (${attr(tag, 'data-od')}–${attr(tag, 'data-do')} vs ${r.od}–${r.do})`);
         if (Math.abs(k / r.k - 1) > 0.005 || Math.abs(s / r.s - 1) > 0.005) chyby.push(`/faktorove-etf/${r.slug}: jiná čísla než v přehledu (${k}/${s} vs ${r.k}/${r.s})`);
         if (v !== r.v) chyby.push(`/faktorove-etf/${r.slug}: výsledek „${v}“ vs přehled „${r.v}“`);
