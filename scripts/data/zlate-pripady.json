@@ -1815,7 +1815,7 @@
     "nasobek": 0.1
    },
    "zdroj_overeni": "Yahoo SPY/VGTSX/VT/AGG adj. close × denní kurz ČNB, CPI ČSÚ měsíčně (CEN0101B+CEN0101E): S&P 2000→2/2012, 2001→10/2013, 2002→1/2021; svět 2000→12/2012, 2001→7/2015, 2002→12/2023; 2003 2,96×, 2009 9,40×. Měsíc vyčerpání se liší až o 11 měsíců (jiná měsíční inflace před 2015) – testovat jen rok ±1.",
-   "zavisi_na_datu": false
+   "zavisi_na_datu": true, "datum_dat": "2026-10-29", "pozn_datum": "3. 11. 2026: článek počítá z nejnovějších dat – s daty k 2. 11. přibyl start (143/98) a násobek 2009 9,3× (SXR8 29. 10.→2. 11. −1,8 %). Hodnoty platí k datu dat 29. 10. 2026, jinak jen varování."
   },
   {
    "id": "fire-18",
@@ -1842,7 +1842,7 @@
    },
    "zdroj_overeni": "Nezávislý přepočet (ctyri_csu.py): S&P 28/142, svět 28/142, vyvážené 0/97 při 3–4,5 %, 3/97 při 5 %.",
    "vstupy_doplnil": "vedoucí auditu (statická stránka, vstupy z obsahu)",
-   "zavisi_na_datu": false
+   "zavisi_na_datu": true, "datum_dat": "2026-10-29", "pozn_datum": "3. 11. 2026: článek počítá z nejnovějších dat – s daty k 2. 11. přibyl start (143/98) a násobek 2009 9,3× (SXR8 29. 10.→2. 11. −1,8 %). Hodnoty platí k datu dat 29. 10. 2026, jinak jen varování."
   },
   {
    "id": "fire-19",
