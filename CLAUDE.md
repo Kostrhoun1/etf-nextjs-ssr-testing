@@ -35,9 +35,15 @@ roky „věrohodné" – nikdo je nezávisle nekontroloval. Podrobnosti: `PLAN-O
 - Bez cookie lišty a bez nástrojů vyžadujících souhlas. Bez témat úvěrů, hypoték a páky na dluh,
   bez kritiky bank.
 - Nasazovat MÁLO: opravy sbírat do balíku, produkční deploy nejvýš 1–2× týdně (rozhodnutí majitele 23. 10. 2026).
-  Každý deploy maže ISR cache a roboti pak znovu projdou ~5 000 detailů fondů ≈ 40 000 ISR zápisů během pár dní;
-  free tier Vercelu = 200 000 zápisů / 4 h CPU za klouzavých 30 dní, překročení = pozastavení webu. Před deployem
-  zkontrolovat usage (vercel.com/…/~/usage/isr-writes) a nasadit jen s rezervou ≥ 45 000 zápisů. Bez placeného plánu
-  a bez ořezávání obsahu stránek.
+  Free tier Vercelu = 200 000 ISR zápisů / 4 h Fluid Active CPU za klouzavých 30 dní, překročení = pozastavení webu.
+  Bez placeného plánu a bez ořezávání obsahu stránek.
+  - **Před deployem zkontrolovat usage** (vercel.com/…/~/usage – ISR Writes a Fluid Active CPU). Od 1. 11. 2026 build
+    předgeneruje všechny detaily fondů a dvojice (`src/lib/prerender.ts`) → deploy stojí ~0 ISR zápisů a build se do CPU
+    nepočítá (ověřeno: 1.–3. 11. ISR 167,7K → 163K). Rozhoduje proto **rezerva CPU: nasadit jen s rezervou ≥ 15 min**
+    a ISR zápisů ≥ 15 000 (rozhodnutí majitele 3. 11. 2026; dřív ≥ 45 000 zápisů, když deploy stál ~40 000).
+  - **Nejdéle po 25 dnech znovu nasadit**: předgenerované detaily mají platnost 30 dní a vyprší všechny najednou
+    (≈ 100 000+ ISR zápisů). Denní kontrola hlásí build starší 25 dní (`<meta name="build-time">`).
+  - Změna jen `scripts/`, `.github/` a `*.md` build nespustí (`vercel.json` ignoreCommand) – opravy kontrol mohou do main
+    kdykoli. Push větve staví náhled zbytečně (fronta 1 build) – zrušit.
 - Naše testy a kontroly NESMÍ procházet produkci hromadně (každý nový detail fondu = ISR zápis): proti produkci jen
   pevná malá sada stránek, široké kontroly proti lokálnímu buildu.
