@@ -1107,3 +1107,15 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   24,325 → 24,340) také. **Neopravovat.** Shoda vydrží, dokud se tyto fondy znovu nestáhnou s novým dnem výnosů.
 - Pravidlo „stejné CAGR v různých měnách = chyba“ (CLAUDE.md) tu neplatí doslova – rozhoduje nezávislý přepočet kurzy ČNB ke
   stejným dnům (check-fund-data, blok „Výnosy v Kč/USD nesedí s výnosem v EUR přepočteným kurzy ČNB/ECB“), ten shodu přijme.
+
+## Poplach (e-mail) jen když web ukazuje něco špatně a je potřeba zasáhnout (5. 11. 2026)
+
+- **Majitel 5. 11. 2026: „každý den nový e-mail s chybou“.** Denní kontrola (`check-fund-data.mjs`) posílá e-mail při
+  každém POPLACHU. Poplach = web ukazuje špatné číslo / chybí důležitá věc a člověk musí něco udělat. Co web řeší sám,
+  nebo co je časování cache, je VAROVÁNÍ (v reportu, bez e-mailu).
+- **Odlehlý výnos 1,5–5 p. b. od trhu = varování.** Fondy s jiným časem ocenění u zdroje (Invesco S&P 500 / Nasdaq swap,
+  BNP MSCI World, iShares EM IMI) jsou po prudším dni 1,5–2,5 p. b. od mediánu; web je sám skryje („—“) a další den se
+  srovnají. Poplach jen nad 5 p. b. (skutečně vadná data – VRTN −82 %, HASH −97 %) – `ODLEHLE_POPLACH_PB`.
+- **Stránky z ISR cache s jiným dnem dat než DB se nesrovnávají** (popisky žebříčků, rozcestník, srovnávač, faktorové
+  ETF, složení detailu) – varování. Nový malý fond (< 500 mil. €) v žebříčku, ne na homepage = varování.
+- **Neměnit zpět na poplach** bez toho, aby to chytalo něco, co web sám nevyřeší.
