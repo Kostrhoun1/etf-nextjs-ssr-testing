@@ -515,9 +515,15 @@ const main = async () => {
       if (v.length < 3) { poplach.push({ co: `Trh ${t.id} na homepage má jen ${v.length} fondů s daty (ke dni většiny)`, ukazka: [] }); continue; }
       const med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
       for (const x of fv) if (Math.abs(Number(x.return_1y_czk) - med) > 1.5)
-        odlehle.push(`${t.id}: ${x.isin} ${String(x.name).slice(0, 34)} ${Number(x.return_1y_czk).toFixed(1)} % vs. medián ${med.toFixed(1)} %`);
+        odlehle.push({ o: Math.abs(Number(x.return_1y_czk) - med), t: `${t.id}: ${x.isin} ${String(x.name).slice(0, 34)} ${Number(x.return_1y_czk).toFixed(1)} % vs. medián ${med.toFixed(1)} %` });
     }
-    if (odlehle.length) poplach.push({ co: `${odlehle.length} fondů má výnos 12 m mimo svůj trh (> 1,5 p. b. od mediánu) – vadná data u zdroje? Ověřit na burzovních cenách`, ukazka: odlehle.slice(0, 8) });
+    // 5. 11. 2026 (majitel: „každý den nový e-mail“): 1,5–5 p. b. od trhu je u fondů s jiným časem ocenění u zdroje
+    // (Invesco, swapové fondy, BNP) běžné po každém prudším dni – web je sám skryje („—“, spocitejTrh) a další den se
+    // srovnají. To je VAROVÁNÍ, ne poplach. Poplach jen > 5 p. b. (VRTN −82 %, HASH −97 % – skutečně vadná data).
+    const ODLEHLE_POPLACH_PB = 5;
+    const velke = odlehle.filter((x) => x.o > ODLEHLE_POPLACH_PB), male = odlehle.filter((x) => x.o <= ODLEHLE_POPLACH_PB);
+    if (velke.length) poplach.push({ co: `${velke.length} fondů má výnos 12 m o víc než ${ODLEHLE_POPLACH_PB} p. b. mimo svůj trh – vadná data u zdroje? Ověřit na burzovních cenách`, ukazka: velke.map((x) => x.t).slice(0, 8) });
+    if (male.length) varovani.push({ co: `${male.length} fondů má výnos 12 m 1,5–${ODLEHLE_POPLACH_PB} p. b. mimo svůj trh (jiný čas ocenění u zdroje; web je skrývá „—“)`, ukazka: male.map((x) => x.t).slice(0, 8) });
     if (chybi.length) varovani.push({ co: `${chybi.length} fondů ze seznamu trhů chybí nebo nemá čerstvá data`, ukazka: chybi.slice(0, 6) });
     // ÚPLNOST: velký fond na index trhu, který v seznamu chybí (a není ve VYJIMKY) = poplach.
     const vyjimky = new Set([...(zdroj.match(/VYJIMKY[\s\S]*?\};/)?.[0] ?? '').matchAll(/([A-Z]{2}[A-Z0-9]{10}):/g)].map((m) => m[1]));
@@ -860,7 +866,7 @@ const main = async () => {
       if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
       const vyjimky = new Set([...(zdroj.match(/VYJIMKY[\s\S]*?\};/)?.[0] ?? '').matchAll(/([A-Z]{2}[A-Z0-9]{10}):/g)].map((m) => m[1]));
       const PRESNE = new Set(['svet', 'world', 'sp500', 'nasdaq', 'em']);
-      const nesedi = [];
+      const nesedi = [], nesediMale = [];
       for (const t of trhy) {
         const stranka = await html(`/nejlepsi-etf/${t.slug}`);
         const zeb = isinyZPayloadu(stranka);
@@ -874,9 +880,12 @@ const main = async () => {
         const pravidloHome = (n) => zajistena(n) || VARIANTA.test(n || '');
         const chybiNaHome = PRESNE.has(t.id) ? [...zeb].filter((i) => !t.isins.includes(i) && !vyjimky.has(i) && !pravidloHome(podle.get(i)?.name)) : [];
         for (const i of chybiVZeb) nesedi.push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} je na homepage, v žebříčku ne`);
-        for (const i of chybiNaHome) nesedi.push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} je v žebříčku, na homepage ne`);
+        // 5. 11. 2026: nový malý fond v žebříčku (comdirect S&P All World, 100 mil. €, TER 0,4 %, bez ročního výnosu) nemůže
+        // na homepage vyhrát → varování. Poplach jen u fondu ≥ 500 mil. € (stejný práh jako „velké fondy chybí v trhu“).
+        for (const i of chybiNaHome) (Number(podle.get(i)?.fund_size_numeric) >= 500 ? nesedi : nesediMale).push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} (${Math.round(Number(podle.get(i)?.fund_size_numeric) || 0)} mil. €) je v žebříčku, na homepage ne`);
       }
       if (nesedi.length) poplach.push({ co: `Trhy na homepage nesouhlasí s výběrem žebříčku/srovnávače (${nesedi.length}) – src/data/trhyDvojcata.ts`, ukazka: nesedi.slice(0, 8) });
+      if (nesediMale.length) varovani.push({ co: `Malé fondy (< 500 mil. €) v žebříčku, ne na homepage (${nesediMale.length}) – doplnit do src/data/trhyDvojcata.ts nebo VYJIMKY`, ukazka: nesediMale.slice(0, 8) });
       // Evropský žebříček: kontrola výše našla mimoevropské (MSCI World ex Europe, STOXX World), peněžní trh, sektory
       // STOXX 600 a 2× pákový LevDAX. Nic z toho tam nepatří (nameExcludes v etf-data.ts).
       const evr = isinyZPayloadu(await html('/nejlepsi-etf/nejlepsi-evropske-etf'));
@@ -1992,9 +2001,12 @@ const main = async () => {
         if (v.length < 3) continue;
         const med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
         const ok = f.filter((x) => Math.abs(Number(x.return_1y_czk) - med) <= 1.5);
-        for (const x of f) if (Math.abs(Number(x.return_1y_czk) - med) > 1.5) odlehle.push({ isin: x.isin, ticker: x.primary_ticker, trh: t, ref: ok[0]?.isin });
+        for (const x of f) if (Math.abs(Number(x.return_1y_czk) - med) > 1.5) odlehle.push({ isin: x.isin, ticker: x.primary_ticker, trh: t, ref: ok[0]?.isin, o: Math.abs(Number(x.return_1y_czk) - med) });
       }
       const OBDOBI = /^(return_(ytd|1y|3y|5y)(_czk|_usd)?)$/;
+      // 5. 11. 2026: fond 1,5–5 p. b. od trhu (jiný čas ocenění u zdroje) se na stránce vykreslené během stahování může
+      // ještě ukázat s číslem – varování; chyba (e-mail) jen u > 5 p. b. (skutečně vadná data).
+      const mirne = [];
       if (odlehle.length) {
         // a) srovnávač (API pro klienta)
         let api = [];
@@ -2008,7 +2020,7 @@ const main = async () => {
           const r = Array.isArray(api) ? api.find((x) => x.isin === o.isin) : null;
           const dbR1 = Number(podle.get(o.isin)?.return_1y_czk);
           if (r && r.return_1y_czk != null && Math.abs(Number(r.return_1y_czk) - dbR1) > 0.051) { zastarale.push(`srovnávač ${o.isin}: ${r.return_1y_czk} % ≠ DB ${dbR1.toFixed(2)} % (data z cache)`); continue; }
-          if (r && Object.entries(r).some(([k, v]) => OBDOBI.test(k) && v != null)) chyby.push(`srovnávač: ${o.isin} (výnos mimo trh ${o.trh.id}) ukazuje výnos za období`);
+          if (r && Object.entries(r).some(([k, v]) => OBDOBI.test(k) && v != null)) (o.o > 5 ? chyby : mirne).push(`srovnávač: ${o.isin} (výnos mimo trh ${o.trh.id}) ukazuje výnos za období`);
         }
         // b) žebříček trhu (data tabulky v RSC: r1/r3 ve všech měnách null)
         const zebr = new Map();
@@ -2021,7 +2033,7 @@ const main = async () => {
           const i = h.indexOf(`"isin":"${o.isin}","nazev"`);
           if (i < 0) continue; // fond v tabulce žebříčku není (mimo 300 největších / filtr)
           const radek = h.slice(i, h.indexOf('"zajisteni"', i));
-          if (/"r[13]":\{[^}]*-?\d/.test(radek)) chyby.push(`žebříček ${o.trh.href}: ${o.isin} má v tabulce číslo výnosu`);
+          if (/"r[13]":\{[^}]*-?\d/.test(radek)) (o.o > 5 ? chyby : mirne).push(`žebříček ${o.trh.href}: ${o.isin} má v tabulce číslo výnosu`);
         }
         if (zastarale.length) varovani.push({ co: `Kolo 6b: odlehlý výnos se na ${zastarale.length} místech nekontroloval – stránka z cache má data k dřívějšímu dni`, ukazka: zastarale.slice(0, 6) });
         // c) porovnání (objekt fondu v RSC + vysvětlivka)
@@ -2034,7 +2046,7 @@ const main = async () => {
           const konec = i < 0 ? -1 : h.indexOf('"isin":"', i + 10);
           const obj = i < 0 ? '' : h.slice(i, konec < 0 ? i + 20000 : Math.min(konec, i + 20000));
           const cisla = [...obj.matchAll(/"(return_(?:ytd|1y|3y|5y)(?:_czk|_usd)?)":(-?\d[\d.]*)/g)].map((m) => `${m[1]}=${m[2]}`);
-          if (cisla.length) chyby.push(`porovnání: ${o.isin} posílá výnos za období (${cisla.slice(0, 3).join(', ')})`);
+          if (cisla.length) (o.o > 5 ? chyby : mirne).push(`porovnání: ${o.isin} posílá výnos za období (${cisla.slice(0, 3).join(', ')})`);
           if (!/Podtržená „—“ u výnosu/.test(text(h))) chyby.push(`porovnání ${o.isin}: chybí vysvětlivka podtržené „—“ u výnosu`);
         }
         // d) našeptávač
@@ -2043,15 +2055,16 @@ const main = async () => {
           try {
             const s = await fetch(`${WEB_URL}/api/etf/search?q=${encodeURIComponent(o.ticker)}`).then((x) => x.json());
             const r = (s.results ?? []).find((x) => x.isin === o.isin);
-            if (r && r.r1_czk != null) chyby.push(`hledání „${o.ticker}“: ${o.isin} ukazuje výnos 12 m ${r.r1_czk} %`);
+            if (r && r.r1_czk != null) (o.o > 5 ? chyby : mirne).push(`hledání „${o.ticker}“: ${o.isin} ukazuje výnos 12 m ${r.r1_czk} %`);
           } catch { /* hledání nedostupné – hlásí jiné kontroly */ }
         }
         // e) detail fondu (původní pravidlo – pojistka)
         for (const o of odlehle.slice(0, 3).filter((x) => R.detaily([x.isin], 'Kolo 6b (e): detail fondu s odlehlým výnosem').length)) {
           const h = await vem(`/etf/${o.isin}`);
-          if (h && !/Výnosy za období neukazujeme/.test(text(h))) chyby.push(`detail ${o.isin}: výnos mimo trh bez vysvětlení „Výnosy za období neukazujeme“`);
+          if (h && !/Výnosy za období neukazujeme/.test(text(h))) (o.o > 5 ? chyby : mirne).push(`detail ${o.isin}: výnos mimo trh bez vysvětlení „Výnosy za období neukazujeme“`);
         }
       }
+      if (mirne.length) varovani.push({ co: `Kolo 6b: fond 1,5–5 p. b. mimo trh ještě s číslem výnosu (${mirne.length}) – stránka vykreslená během stahování, další obnova ho skryje`, ukazka: mirne.slice(0, 6) });
 
       // 2) Kotva tříd: P500 (Invesco S&P 500 Acc) max. pokles 3 roky – když sedí s mediánem ostatních fondů na S&P 500
       //    (bez tříd Invesco S&P 500), nesmí být „—“ (ověřeno nezávisle: −22,61 %, Martin 21. 10. 2026).
