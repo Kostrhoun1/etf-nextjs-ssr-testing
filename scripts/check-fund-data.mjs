@@ -2543,7 +2543,12 @@ const main = async () => {
       if (/čtyřnásob|8–9 % ročně/.test(kv)) chyby.push('/kolik-vydelaly-etf: staré napevno zapsané „čtyřnásobek / 8–9 % ročně“');
       const vtSw = sw.match(/Celý svět \(fond VT\) (\d+,\d) %/)?.[1];
       const vtKv = kv.match(/Akcie celého světa \(fond VT\) – roční zhodnocení od \d{1,2}\. 7\. 2008 (\d+,\d) %/)?.[1];
-      if (!vtSw || !vtKv || vtSw !== vtKv) chyby.push(`/kolik-vydelaly-etf: roční zhodnocení VT ${vtKv} % ≠ /sp500-nebo-cely-svet ${vtSw} %`);
+      // Obě stránky jsou z ISR cache (1 den) s „Klíčová čísla k …“: po synchronizaci indexů může mít každá data k jinému
+      // dni (6. 11. 2026: 10,7 vs. 11,0 % – druhý den obě 10,7 %). Rozdíl jen u stejného dne = chyba.
+      const denK = (x) => x.match(/Klíčová čísla k (\d{1,2}\.\s?\d{1,2}\.\s?\d{4})/)?.[1]?.replace(/\s/g, '');
+      if (!vtSw || !vtKv) chyby.push(`/kolik-vydelaly-etf: roční zhodnocení VT ${vtKv} % / /sp500-nebo-cely-svet ${vtSw} % – nenačteno`);
+      else if (vtSw !== vtKv && denK(kv) && denK(sw) && denK(kv) !== denK(sw)) varovani.push({ co: `VT ${vtKv} % (/kolik-vydelaly-etf k ${denK(kv)}) vs ${vtSw} % (/sp500-nebo-cely-svet k ${denK(sw)}) – stránky z cache z různých dnů, nesrovnávám`, ukazka: [] });
+      else if (vtSw !== vtKv) chyby.push(`/kolik-vydelaly-etf: roční zhodnocení VT ${vtKv} % ≠ /sp500-nebo-cely-svet ${vtSw} %`);
 
       // 6) Inflace ČSÚ: poslední měsíc řady (src/lib/backtest/inflation.ts) – ČSÚ zveřejňuje kolem 10. dne následujícího měsíce.
       const infl = readFileSync('src/lib/backtest/inflation.ts', 'utf8');
@@ -2702,7 +2707,15 @@ const main = async () => {
         const volBt = 100 * Number(bt?.summary?.standardDeviation);
         if (!Number.isFinite(volClanek) || !Number.isFinite(volBt) || Math.abs(volClanek - volBt) > 0.15) chyby.push(`/sp500-nebo-cely-svet: kolísavost S&P 500 ${volClanek} % ≠ backtest ${volBt.toFixed(2)} %`);
         const cagrBt = 100 * Number(bt?.summary?.cagr);
-        if (kcKlic && Math.abs(Number(kcKlic.replace(',', '.')) - cagrBt) > 0.06) chyby.push(`/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % ≠ backtest ${cagrBt.toFixed(2)} %`);
+        // Backtest počítá s daty k dnešku, článek je z ISR cache (1 den) s „Klíčová čísla k …“ (7. 11. 2026: 14,4 vs. 14,19 %
+        // s daty o den starší). Konec dat backtestu = začátek + obdobiLet; liší-li se od dne článku o víc než 1 den → varování.
+        const konecBt = new Date(Date.parse('2008-07-01') + Number(bt?.summary?.obdobiLet) * 365.25 * 864e5);
+        const denCl = (t.match(/Klíčová čísla k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/) ?? []).slice(1);
+        const odchylkaDni = denCl.length === 3 ? Math.abs(Date.UTC(+denCl[2], +denCl[1] - 1, +denCl[0]) - konecBt.getTime()) / 864e5 : NaN;
+        if (kcKlic && Math.abs(Number(kcKlic.replace(',', '.')) - cagrBt) > 0.06) {
+          if (odchylkaDni > 1.5) varovani.push({ co: `/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % vs backtest ${cagrBt.toFixed(2)} % – článek k ${denCl.join('. ')}, backtest k ${konecBt.toISOString().slice(0, 10)}, nesrovnávám`, ukazka: [] });
+          else chyby.push(`/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % ≠ backtest ${cagrBt.toFixed(2)} %`);
+        }
       } catch (e) { varovani.push({ co: `kolo7: backtest pro kontrolu kolísavosti nešel zavolat: ${e.message}`, ukazka: [] }); }
       const propadClanek = sw.match(/data-max-propad-sp-kc="(-?[\d.]+)"/)?.[1];
       const propadKv = text((await vem('/kolik-vydelaly-etf')).html).match(/Nejhlubší propad v Kč (−|-)(\d+) %/)?.[2];
