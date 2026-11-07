@@ -1,8 +1,8 @@
 /**
  * Platný ISIN = formát + kontrolní číslice (Luhn přes číslice z písmen A=10…Z=35).
  * Ověřeno 17. 10. 2026: všech 5 146 ISINů v databázi projde, smyšlené (ZZ000000TEST,
- * překlep v poslední číslici) ne. Sdílí middleware (neplatný ISIN = statická 404 bez DB) a seznam
- * předgenerovaných detailů (src/lib/prerender.ts) – nepředgenerovávat stránku, ke které middleware nepustí.
+ * překlep v poslední číslici) ne. Sdílí detail fondu (neplatný ISIN = 404 bez dotazu do DB, `overAdresu` v
+ * src/app/etf/[isin]/page.tsx; dřív middleware, zrušen 7. 11. 2026) a seznam předgenerovaných detailů (src/lib/prerender.ts).
  */
 export function isinPlatny(s: string): boolean {
   if (!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(s)) return false;

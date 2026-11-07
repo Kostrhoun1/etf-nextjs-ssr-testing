@@ -7,6 +7,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { TrendingUp, ArrowLeft, ArrowRight, Coins, Layers, Landmark, Info, Wallet, HelpCircle, ChevronDown, Equal, Database, LineChart } from 'lucide-react';
 import { getComparisonETFData, type ComparisonETF , getDataDatum } from '@/lib/etf-data';
+import { obracenaKuratorska } from '@/lib/pairs';
 import { SrovnaniSoubojKarta } from '@/components/design-preview/SrovnaniCompareUI';
 import { getPairContent } from '@/components/design-preview/pairContent';
 import { terFmt, procenta, velikostFondu } from '@/lib/formatyCisel';
@@ -136,6 +137,10 @@ export default async function PairComparePage(
   { params }: { params: Promise<{ pair: string }> },
 ) {
   const { pair } = await params;
+  // Dřív middleware (zrušen 7. 11. 2026 – 37 % výpočetního času free tieru): velká písmena → malá a obrácené pořadí
+  // kurátorské dvojice → hlavní, bez dotazu do DB. Předgenerované dvojice sem vůbec nedojdou.
+  const cilBezDb = obracenaKuratorska(pair) ?? (pair !== pair.toLowerCase() ? pair.toLowerCase() : null);
+  if (cilBezDb) permanentRedirect(`/srovnani/${cilBezDb}`);
   const parsed = parsePair(pair);
   if (!parsed) notFound();
   const [t1, t2] = parsed;

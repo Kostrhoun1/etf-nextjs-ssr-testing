@@ -1631,7 +1631,7 @@ const main = async () => {
       const r = await fetch(`${WEB_URL}${s}`, { redirect: 'manual' });
       if (r.status !== 404) spatne.push(`${s}: HTTP ${r.status}`);
     }
-    if (spatne.length) poplach.push({ co: 'Nesmyslná adresa fondu/dvojice nevrací 404 – middleware neběží? (matcher v src/middleware.ts)', ukazka: spatne });
+    if (spatne.length) poplach.push({ co: 'Nesmyslná adresa fondu/dvojice nevrací 404 (overAdresu v src/app/etf/[isin]/page.tsx, parsePair v src/app/srovnani/[pair]/page.tsx; middleware zrušen 7. 11. 2026)', ukazka: spatne });
   } catch (e) {
     varovani.push({ co: `Kontrolu indexace a middleware se nepodařilo provést: ${e.message}`, ukazka: [] });
   }

@@ -3,7 +3,8 @@ import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
 import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { isinPlatny } from '@/lib/isin';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { ETF } from '@/types/etf';
 import {
@@ -94,10 +95,21 @@ export async function generateStaticParams() {
   return (await isinyDetailuKPredgenerovani()).map((isin) => ({ isin }));
 }
 
+/* Adresa detailu bez middlewaru (7. 11. 2026: middleware běžel u KAŽDÉHO požadavku na /etf/… a bral 37 % výpočetního
+   času free tieru – 1 h 30 min z 4 h; v 99,6 % případů jen pustil požadavek dál). Předgenerované detaily se servírují
+   bez funkce; sem dojdou jen adresy mimo build: ISIN malými písmeny → 301 na velká, neplatný ISIN (kontrolní číslice)
+   → 404 BEZ dotazu do DB. */
+function overAdresu(isin: string) {
+  const velka = isin.toUpperCase();
+  if (isin !== velka && isinPlatny(velka)) permanentRedirect(`/etf/${velka}`);
+  if (!isinPlatny(isin)) notFound();
+}
+
 export async function generateMetadata(
   { params }: { params: Promise<{ isin: string }> },
 ): Promise<Metadata> {
   const { isin } = await params;
+  overAdresu(isin);
   const { data } = await supabaseAdmin
     .from('etf_funds')
     .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, returns_as_of, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', ') + ', ' + Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_currency`).join(', '))
@@ -343,6 +355,7 @@ export default async function ETFDetailPreview(
   { params }: { params: Promise<{ isin: string }> },
 ) {
   const { isin } = await params;
+  overAdresu(isin);
   const { data } = await supabaseAdmin.from('etf_funds').select('*').eq('isin', isin).single();
   // Fond bez názvu = rozbitý řádek ze scraperu (12 k 17. 10. 2026, bez TER, měny i data vzniku).
   if (!data || !String((data as { name?: string }).name ?? '').trim()) notFound();
