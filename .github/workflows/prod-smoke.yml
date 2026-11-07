@@ -17,6 +17,9 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-24.04  # zafixováno 1.10.2026: ubuntu-latest od 19.10. přechází na Ubuntu 26 – přejít vědomě a otestovaně
+    # Selhání NEPOSÍLÁ e-mail majiteli (rozhodnutí 7. 11. 2026): běh skončí zeleně, neúspěšný job zůstane v historii
+    # a vyhodnotí ho denní úloha Claude „Denní kontrola webu“ (scripts/denni-kontrola.md) – sama najde příčinu a opraví.
+    continue-on-error: true
     timeout-minutes: 45  # build s předgenerovanými detaily fondů trvá ~14 min (+ fronta), viz krok „Počkat na nasazení“
     steps:
       - uses: actions/checkout@v4

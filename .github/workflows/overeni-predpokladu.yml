@@ -11,6 +11,9 @@ on:
 jobs:
   overeni:
     runs-on: ubuntu-24.04
+    # Selhání NEPOSÍLÁ e-mail majiteli (rozhodnutí 7. 11. 2026): běh skončí zeleně, neúspěšný job zůstane v historii
+    # a vyhodnotí ho denní úloha Claude „Denní kontrola webu“ (scripts/denni-kontrola.md) – sama najde příčinu a opraví.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
