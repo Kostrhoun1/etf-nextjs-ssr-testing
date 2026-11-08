@@ -43,8 +43,10 @@ roky „věrohodné" – nikdo je nezávisle nekontroloval. Podrobnosti: `PLAN-O
     nepočítá (ověřeno: 1.–3. 11. ISR 167,7K → 163K). Rozhoduje proto **rezerva CPU: nasadit jen s rezervou ≥ 15 min**
     a ISR zápisů ≥ 15 000 (rozhodnutí majitele 3. 11. 2026; dřív ≥ 45 000 zápisů, když deploy stál ~40 000).
   - **Nejdéle po 25 dnech znovu nasadit**: předgenerované detaily mají platnost 30 dní a vyprší všechny najednou
-    (≈ 100 000+ ISR zápisů). Denní kontrola hlásí build starší 25 dní (`<meta name="build-time">`).
-  - Změna jen `scripts/`, `.github/` a `*.md` build nespustí (`vercel.json` ignoreCommand) – opravy kontrol mohou do main
-    kdykoli. Push větve staví náhled zbytečně (fronta 1 build) – zrušit.
+    (≈ 100 000+ ISR zápisů). Od 8. 11. 2026 to dělá **automaticky týdenní přestavba** (sobota 03:00 UTC,
+    `.github/workflows/tydenni-prestavba.yml`, deploy hook v secretu `VERCEL_DEPLOY_HOOK`; build pustí
+    `scripts/vercel-ignore.sh`, když je poslední nasazení starší 6 dní). Denní kontrola hlásí build starší 25 dní.
+  - Změna jen `scripts/`, `.github/` a `*.md` build nespustí (`vercel.json` ignoreCommand → `scripts/vercel-ignore.sh`) –
+    opravy kontrol mohou do main kdykoli. Push větve staví náhled zbytečně (fronta 1 build) – zrušit.
 - Naše testy a kontroly NESMÍ procházet produkci hromadně (každý nový detail fondu = ISR zápis): proti produkci jen
   pevná malá sada stránek, široké kontroly proti lokálnímu buildu.

@@ -1,0 +1,25 @@
+# Týdenní přestavba produkce (8. 11. 2026, PLAN-LISTOPAD-2026.md 1.2): web běží bez zásahů majitele.
+# Build předgeneruje detaily fondů a dvojice z aktuálních dat (0 ISR zápisů, build se do limitů free tieru nepočítá),
+# takže detaily nejsou nikdy starší než týden a nevyprší (platnost 30 dní, všechny najednou).
+# Sobota 03:00 UTC: po pátečním scraperu, mimo provoz. Deploy hook = adresa, která umí jen spustit build main
+# (secret VERCEL_DEPLOY_HOOK). Build pustí scripts/vercel-ignore.sh (poslední nasazení starší 6 dní).
+# Smoke test a zlaté případy běží po něm (sobota 04:00 a 04:30 UTC).
+name: Týdenní přestavba webu
+
+on:
+  schedule:
+    - cron: '0 3 * * 6'
+  workflow_dispatch:
+
+jobs:
+  prestavba:
+    runs-on: ubuntu-24.04
+    # Selhání NEPOSÍLÁ e-mail majiteli (rozhodnutí 7. 11. 2026): vyhodnotí ho denní úloha Claude (scripts/denni-kontrola.md).
+    continue-on-error: true
+    steps:
+      - name: Spustit build produkce (deploy hook)
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          [ -n "$HOOK" ] || { echo "::error::chybí secret VERCEL_DEPLOY_HOOK"; exit 1; }
+          curl -fsS -X POST "$HOOK" | sed -E 's/"id":"[^"]*"/"id":"…"/'

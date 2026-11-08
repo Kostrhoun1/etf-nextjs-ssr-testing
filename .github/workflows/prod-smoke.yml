@@ -10,8 +10,10 @@ name: Prod smoke test
 on:
   push:
     branches: [main] # po každém deployi na produkci
+    # Změna jen skriptů/workflow/dokumentace web nenasazuje (scripts/vercel-ignore.sh) – není co testovat.
+    paths-ignore: ['scripts/**', '.github/**', '**.md']
   schedule:
-    - cron: '0 6 * * *' # 1× denně (06:00 UTC ~ 08:00 CEST) jako pojistka
+    - cron: '0 4 * * 6'  # 1× týdně (sobota) po týdenní přestavbě – 8. 11. 2026, šetří výpočetní čas free tieru
   workflow_dispatch: {} # ruční spuštění tlačítkem
 
 jobs:

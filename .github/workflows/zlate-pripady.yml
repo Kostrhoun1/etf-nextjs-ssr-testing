@@ -11,8 +11,8 @@ name: Zlaté případy nástrojů
 
 on:
   schedule:
-    # Noční scraper (etf-astro, pg_cron út–pá 01:30 / po 05:00 UTC) a sync indexů doběhnou dřív → 06:30 UTC.
-    - cron: '30 6 * * *'
+    # Sobota 04:30 UTC: po týdenní přestavbě (03:00) a smoke testu (04:00).
+    - cron: '30 4 * * 6'  # 1× týdně po týdenní přestavbě (8. 11. 2026, šetří výpočetní čas free tieru)
   workflow_dispatch:
 
 jobs:
