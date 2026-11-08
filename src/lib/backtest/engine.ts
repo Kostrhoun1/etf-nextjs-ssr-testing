@@ -301,8 +301,22 @@ async function nactiVseStrankovane<R>(
   const vse: R[] = []
   const STRANKA = 1000
   for (let od = 0; ; od += STRANKA) {
-    const { data, error } = await dotaz(od, od + STRANKA - 1)
-    if (error) throw new Error(`Načtení dat (${popis}) selhalo: ${error.message}`)
+    // Přechodná chyba spojení (8. 11. 2026: build na Pro s víc souběžnými stránkami → „data se nenačetla“ a spadlé
+    // nasazení) se zkusí znovu (1 s, 3 s). Až po 3. neúspěchu výjimka – nikdy tichá useknutá řada.
+    let data: R[] | null = null
+    for (let pokus = 0; ; pokus++) {
+      let chyba: string | null
+      try {
+        const r = await dotaz(od, od + STRANKA - 1)
+        data = r.data
+        chyba = r.error ? r.error.message : null
+      } catch (e) {
+        chyba = e instanceof Error ? e.message : String(e)
+      }
+      if (!chyba) break
+      if (pokus >= 2) throw new Error(`Načtení dat (${popis}) selhalo: ${chyba}`)
+      await new Promise((ok) => setTimeout(ok, pokus === 0 ? 1000 : 3000))
+    }
     if (!data || data.length === 0) break
     vse.push(...data)
     if (data.length < STRANKA) break
