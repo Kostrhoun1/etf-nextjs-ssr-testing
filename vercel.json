@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "ignoreCommand": "git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . ':(exclude)scripts' ':(exclude).github' ':(exclude)*.md'",
+  "ignoreCommand": "git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . ':(exclude)scripts' ':(exclude).github' ':(exclude)*.md' 2>/dev/null && exit 0 || exit 1",
   "redirects": [
     {
       "source": "/etf-pruvodce",
