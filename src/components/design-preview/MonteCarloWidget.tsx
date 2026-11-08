@@ -23,6 +23,7 @@ import {
 import InfoTip from '@/components/design-preview/InfoTip';
 import { CisloPole } from '@/components/CisloInput';
 import { MC_PREDPOKLADY, type McAktivum } from '@/lib/monteCarloPredpoklady';
+import { runMonteCarloSimulation, seminko, sanceText, type AssetAllocation, type SimulationResult } from '@/lib/monteCarloJadro';
 
 /**
  * Interaktivní jádro Monte Carlo simulátoru portfolia – redesign.
@@ -40,136 +41,12 @@ import { MC_PREDPOKLADY, type McAktivum } from '@/lib/monteCarloPredpoklady';
 // ===== Typy =====
 type AssetClass = McAktivum;
 
-type AssetAllocation = Record<AssetClass, number>;
 
-interface SimulationResult {
-  year: number;
-  percentile5: number;
-  percentile25: number;
-  percentile50: number;
-  percentile75: number;
-  percentile95: number;
-  mean: number;
-}
 
-// ===== VÝPOČET (model aktiv z historie ETF, src/lib/monteCarloPredpoklady.ts) =====
+// ===== VÝPOČET: src/lib/monteCarloJadro.ts (antitetické cesty, testy v scripts/monteCarlo.test.mjs) =====
 
-// Roční výnos (CAGR) a kolísání aktiv – z historie, se zdrojem a datem.
+// Popisky a předpoklady aktiv (výnos, kolísání) – pro editor alokace a tabulku předpokladů.
 const ASSETS = MC_PREDPOKLADY.aktiva;
-
-const ASSET_KEYS: AssetClass[] = MC_PREDPOKLADY.poradi;
-
-const CORRELATION_MATRIX: number[][] = MC_PREDPOKLADY.korelace;
-
-function choleskyDecomposition(matrix: number[][]): number[][] {
-  const n = matrix.length;
-  const L = Array.from({ length: n }, () => Array(n).fill(0));
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j <= i; j++) {
-      let sum = 0;
-      for (let k = 0; k < j; k++) sum += L[i][k] * L[j][k];
-      if (i === j) L[i][j] = Math.sqrt(matrix[i][i] - sum);
-      else L[i][j] = (matrix[i][j] - sum) / L[j][j];
-    }
-  }
-  return L;
-}
-const CHOLESKY = choleskyDecomposition(CORRELATION_MATRIX);
-
-// Deterministický generátor náhody (Mulberry32) – nahrazuje Math.random().
-// Stejné semínko ⇒ stejná posloupnost ⇒ konzistentní výsledky.
-function createRng(seed: number): () => number {
-  let a = seed >>> 0;
-  return function () {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function generateCorrelatedStandardNormals(rng: () => number): number[] {
-  const n = ASSET_KEYS.length;
-  const z: number[] = Array.from({ length: n }, () => {
-    // Box–Muller pro N(0,1); rng() je z [0, 1) → 1 − rng() z (0, 1], log(0) = −∞ nenastane (N6).
-    const u = 1 - rng();
-    const v = rng();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  });
-  const correlated: number[] = [];
-  for (let i = 0; i < n; i++) {
-    let sum = 0;
-    for (let k = 0; k <= i; k++) sum += CHOLESKY[i][k] * z[k];
-    correlated.push(sum);
-  }
-  return correlated;
-}
-
-function generateMonthlyReturns(rng: () => number): number[] {
-  const normals = generateCorrelatedStandardNormals(rng);
-  return ASSET_KEYS.map((key, i) => {
-    const annualR = ASSETS[key].annualReturn;
-    const vol = ASSETS[key].volatility;
-    const monthlyMu = Math.log(1 + annualR) / 12;
-    const monthlySigma = vol / Math.sqrt(12);
-    return Math.exp(monthlyMu + monthlySigma * normals[i]) - 1;
-  });
-}
-
-interface SimulationParameters {
-  allocation: AssetAllocation;
-  initialInvestment: number;
-  monthlyContribution: number;
-  years: number;
-  simulations: number;
-  seed: number;
-}
-
-function runMonteCarloSimulation(params: SimulationParameters): SimulationResult[] {
-  const { allocation, initialInvestment, monthlyContribution, years, simulations, seed } = params;
-  const nAssets = ASSET_KEYS.length;
-  const monthsTotal = years * 12;
-  const allSimulations: number[][] = [];
-  const rng = createRng(seed);
-
-  for (let sim = 0; sim < simulations; sim++) {
-    let value = initialInvestment;
-    const values: number[] = [initialInvestment];
-
-    for (let month = 1; month <= monthsTotal; month++) {
-      value += monthlyContribution;
-      const rets = generateMonthlyReturns(rng);
-      let portRet = 0;
-      for (let i = 0; i < nAssets; i++) {
-        const key = ASSET_KEYS[i];
-        const weight = allocation[key];
-        portRet += (weight / 100) * rets[i];
-      }
-      value = value * (1 + portRet);
-      if (month % 12 === 0) values.push(value);
-    }
-    allSimulations.push(values);
-  }
-
-  const results: SimulationResult[] = [];
-  for (let year = 0; year <= years; year++) {
-    const yearVals = allSimulations.map((sim) => sim[year]).sort((a, b) => a - b);
-    const p = (q: number) => yearVals[Math.floor(simulations * q)];
-    const mean = yearVals.reduce((acc, v) => acc + v, 0) / yearVals.length;
-    results.push({
-      year,
-      percentile5: p(0.05),
-      percentile25: p(0.25),
-      percentile50: p(0.5),
-      percentile75: p(0.75),
-      percentile95: p(0.95),
-      mean,
-    });
-  }
-  return results;
-}
-// ===== KONEC převzaté logiky =====
 
 // ===== Modelová portfolia (kompaktní volba alokace) =====
 const PRESETS: { id: string; name: string; desc: string; allocation: AssetAllocation }[] = [
@@ -362,16 +239,11 @@ export default function MonteCarloWidget() {
     if (totalAllocation !== 100 || !vstupyOk) return;
     setIsLoading(true);
     // Deterministické semínko odvozené ze vstupů: stejné zadání ⇒ stejný výsledek.
-    const seed =
-      (initialInvestment * 31 +
-        monthlyContribution * 17 +
-        investmentPeriod * 7 +
-        simulations * 13 +
-        totalAllocation) >>> 0 || 1;
+    const seed = seminko(initialInvestment, monthlyContribution, investmentPeriod, simulations, totalAllocation);
 
     // necháme prohlížeč vykreslit stav „počítám“ a teprve pak spustíme výpočet
     setTimeout(() => {
-      const res = runMonteCarloSimulation({
+      const { results: res, konecne } = runMonteCarloSimulation({
         allocation,
         initialInvestment,
         monthlyContribution,
@@ -380,24 +252,8 @@ export default function MonteCarloWidget() {
         seed,
       });
 
-      // Pravděpodobnost dosažení cíle: podíl simulací, jejichž konečná hodnota ≥ cíl.
-      // Replikuje běh simulací stejným semínkem a počítá zásah cíle v posledním roce.
-      let reached = 0;
-      const monthsTotal = investmentPeriod * 12;
-      const rng2 = createRng(seed);
-      for (let sim = 0; sim < simulations; sim++) {
-        let value = initialInvestment;
-        for (let month = 1; month <= monthsTotal; month++) {
-          value += monthlyContribution;
-          const rets = generateMonthlyReturns(rng2);
-          let portRet = 0;
-          for (let i = 0; i < ASSET_KEYS.length; i++) {
-            portRet += (allocation[ASSET_KEYS[i]] / 100) * rets[i];
-          }
-          value = value * (1 + portRet);
-        }
-        if (value >= goalAmount) reached++;
-      }
+      // Pravděpodobnost dosažení cíle: podíl TĚCHŽE simulovaných cest, jejichž konečná hodnota ≥ cíl.
+      const reached = konecne.filter((v) => v >= goalAmount).length;
       const probGoal = simulations > 0 ? (reached / simulations) * 100 : 0;
 
       setResults(res);
@@ -640,7 +496,7 @@ export default function MonteCarloWidget() {
                       Šance dosáhnout {fmtCZK(ranWith.goal)} za {ranWith.years} {ranWith.years === 1 ? 'rok' : ranWith.years >= 2 && ranWith.years <= 4 ? 'roky' : 'let'}
                     </p>
                     <p className="text-2xl font-bold text-slate-900 tabular-nums" data-qa="mc-sance">
-                      {ranWith.probGoal.toFixed(0)} %
+                      {sanceText(ranWith.probGoal)} %
                     </p>
                   </div>
                 </div>

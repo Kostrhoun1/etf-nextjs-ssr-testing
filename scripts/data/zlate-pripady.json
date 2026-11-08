@@ -1659,10 +1659,7 @@
    "zdroj_overeni": "Nezávislý numpy model (200 000 cest, scratchpad mc_numpy.py): měsíční log výnos ~ N(ln(1+r)/12, σ/√12), korelace Choleského rozkladem, vklad na začátku měsíce; předpoklady = MC_PREDPOKLADY (src/lib/monteCarloPredpoklady.ts, ověřené proti Yahoo skriptem scripts/monte-carlo-predpoklady.mjs). Tolerance = 3 sm. odchylky odhadu percentilu při daném počtu scénářů (400 opakovaných výběrů). Kontrola modelu: fire-11 vychází 1,61 / 2,71 / 4,76 mil., šance 38 % – shodně s nezávislým modelem opravářů (1 608 685 / 2 714 818 / 4 768 609, 38,2 %). Úprava 23. 10. 2026 po opravách auditu (vylepseni-stranek bc8ea6b), hodnoty od opravářů ověřené nezávisle (koordinátor auditu)",
    "zavisi_na_datu": false,
    "poznamka_vedouciho": "Branou je statistická tolerance (3σ). Seed webu se nezkoumá – přesná shoda se nepožaduje.",
-   "dnes_selze": {
-    "chyba": "V3 Monte Carlo – nové předpoklady z historie ETF (opraveno v bc8ea6b, čeká na nasazení)",
-    "kde": "produkce + build :3005 do nasazení"
-   }
+   "dnes_selze": {"chyba": "semínko webu 15 542 250 dávalo medián 15,33 mil. (−3,5σ, 600 scénářů) – ne chyba modelu ani zlatého případu", "kde": "jen produkce (v repu opraveno, do nasazení)", "opraveno": {"commit": "antitetické cesty v src/lib/monteCarloJadro.ts", "datum": "2026-11-08", "overeno": "nezávislý numpy model 200 000 cest: 7 834 221 / 16 777 584 / 37 211 462; jádro se semínkem webu 8 322 287 / 16 880 216 / 35 369 044; scripts/monteCarlo.test.mjs"}}
   },
   {
    "id": "fire-15",
