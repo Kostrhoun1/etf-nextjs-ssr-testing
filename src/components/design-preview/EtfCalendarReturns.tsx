@@ -21,10 +21,13 @@ const pct = (v: number | null) => procenta(v);
 export default function EtfCalendarReturns({ cols }: { cols: CalCol[] }) {
   const [cur] = useCurrency();
   const [aktivni, setAktivni] = useState<number | null>(null);
-  const data = cols.map((c) => ({ ...c, v: c.vals[cur] })).filter((c) => c.v != null);
-  if (data.length === 0) return null;
-  const maxKl = Math.max(0, ...data.map((c) => c.v!));
-  const maxZap = Math.max(0, ...data.map((c) => -c.v!));
+  // Rok, který má výnos v jiné měně, ale ne ve zvolené (chybí přepočet), zůstává jako „—“ – dřív tiše zmizel a návštěvník
+  // viděl 2023 a 2025 bez 2024 (8. 11. 2026, pravidlo č. 1: raději „—“ než díra bez vysvětlení).
+  const data = cols.map((c) => ({ ...c, v: c.vals[cur] }));
+  const sCisly = data.filter((c) => c.v != null);
+  if (sCisly.length === 0) return null;
+  const maxKl = Math.max(0, ...sCisly.map((c) => c.v!));
+  const maxZap = Math.max(0, ...sCisly.map((c) => -c.v!));
   const rozsah = maxKl + maxZap || 1;
   const VYSKA = 168;
   const hKl = (maxKl / rozsah) * VYSKA;
@@ -34,6 +37,12 @@ export default function EtfCalendarReturns({ cols }: { cols: CalCol[] }) {
     <div>
       <div className="grid gap-1.5 sm:gap-4" style={{ gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))` }}>
         {data.map((c, i) => {
+          if (c.v == null) return (
+            <div key={c.year} className="flex flex-col items-center justify-end py-1" title={`Přepočet do ${curLabel[cur]} za tento rok chybí`}>
+              <span className="text-sm text-slate-400" aria-label={`${c.ytd ? `Letos (${c.year})` : c.year}: v ${curLabel[cur]} není k dispozici`}>—</span>
+              <span className="mt-1.5 text-xs text-slate-500 tabular-nums">{c.ytd ? 'letos' : c.year}</span>
+            </div>
+          );
           const pos = c.v! >= 0;
           const h = Math.max(2, (Math.abs(c.v!) / rozsah) * VYSKA);
           const barva = pos ? (c.ytd ? 'bg-emerald-400' : 'bg-emerald-600') : (c.ytd ? 'bg-red-400' : 'bg-red-600');

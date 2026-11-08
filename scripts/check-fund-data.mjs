@@ -311,6 +311,33 @@ const main = async () => {
     varovani.push({ co: `Kontrolu ročních výnosů v Kč/USD se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── CHYBĚJÍCÍ PŘEPOČET DO KČ/USD (8. 11. 2026) ──
+  // EUR výnos je, ale _czk/_usd chybí → web ukáže „—“ (a rok z grafu ročních výnosů zmizí). Historie: 18. 10. 10 fondů
+  // (převod se spouštěl jen s výnosem za období), 21. 9. 4 fondy Janus bez USD (výpadek kurzu se v converteru scraperu
+  // uložil do cache jako None pro zbytek běhu). Také obráceně: Kč/USD bez EUR = přepočet ze starých dat.
+  try {
+    const OBD_P = ['2022', '2023', '2024', '2025', 'ytd', '1y', '3y', '5y'];
+    const sel = ['isin', 'name', 'scraping_date', ...OBD_P.flatMap((o) => [`return_${o}`, `return_${o}_czk`, `return_${o}_usd`])].join(',');
+    const filtr = OBD_P.flatMap((o) => [
+      `and(return_${o}.not.is.null,return_${o}_czk.is.null)`,
+      `and(return_${o}.not.is.null,return_${o}_usd.is.null)`,
+      `and(return_${o}.is.null,or(return_${o}_czk.not.is.null,return_${o}_usd.not.is.null))`,
+    ]).join(',');
+    const r = await fetch(`${URL_DB}?select=${sel}&or=(${filtr})&order=isin`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((x) => x.json());
+    if (!Array.isArray(r)) throw new Error('neplatná odpověď DB');
+    const stari = (f) => (Date.now() - Date.parse(String(f.scraping_date).replace(/(\d)$/, '$1Z'))) / 864e5; // stáří VŽDY ze scraping_date
+    const popis = (f) => `${f.isin} ${String(f.name).slice(0, 30)}: ` + OBD_P.flatMap((o) => {
+      const e = f[`return_${o}`], c = f[`return_${o}_czk`], u = f[`return_${o}_usd`];
+      if (e != null) return [c == null && `${o} Kč`, u == null && `${o} USD`].filter(Boolean);
+      return c != null || u != null ? [`${o} Kč/USD bez EUR`] : [];
+    }).join(', ');
+    const cerstve = r.filter((f) => stari(f) <= 3), stare = r.filter((f) => stari(f) > 3);
+    if (cerstve.length) poplach.push({ co: `${cerstve.length} čerstvých fondů má EUR výnos bez přepočtu do Kč/USD (nebo naopak) – výpadek kurzu ve scraperu?`, ukazka: cerstve.slice(0, 6).map(popis) });
+    if (stare.length) varovani.push({ co: `${stare.length} fondů se starými daty (> 3 dny) má EUR výnos bez přepočtu do Kč/USD – web ukazuje „—“`, ukazka: stare.slice(0, 6).map(popis) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu chybějícího přepočtu Kč/USD se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── KÓD: tichý fallback EUR → Kč/USD ──
   // 18. 10. 2026: detail fondu ukazoval při chybějícím přepočtu výnos v EUR jako výnos v Kč
   // (`return_<rok>_czk ?? return_<rok>`), stejně tak homepage/infografiky u 1R. Pravidlo č. 1: raději „—“.
