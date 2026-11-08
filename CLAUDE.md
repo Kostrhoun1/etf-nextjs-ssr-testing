@@ -32,8 +32,9 @@ roky „věrohodné" – nikdo je nezávisle nekontroloval. Podrobnosti: `PLAN-O
   „opravou" čehokoli podivného.
 - Plán oprav a růstu s aktuálním stavem: `PLAN-OPRAV-2026-10.md`.
 - Scraper a noční joby jsou v repu `etf-astro` (`/Users/tomaskostrhoun/Documents/etf-astro`).
-- Bez cookie lišty a bez nástrojů vyžadujících souhlas. Bez témat úvěrů, hypoték a páky na dluh,
-  bez kritiky bank.
+- Bez cookie lišty a bez nástrojů vyžadujících souhlas. Bez článků o úvěrech a páce na dluh, bez kritiky bank.
+  Kalkulačky na `/kalkulacky` (i hypoteční a úvěrové) jsou v pořádku a zůstávají – rozhodnutí majitele 8. 11. 2026
+  („nejsou v rozporu s mojí prací“).
 - Nasazovat MÁLO: opravy sbírat do balíku, produkční deploy nejvýš 1–2× týdně (rozhodnutí majitele 23. 10. 2026).
   Free tier Vercelu = 200 000 ISR zápisů / 4 h Fluid Active CPU za klouzavých 30 dní, překročení = pozastavení webu.
   Bez placeného plánu a bez ořezávání obsahu stránek.

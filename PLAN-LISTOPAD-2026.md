@@ -52,7 +52,7 @@ při buildu (build se do limitů nepočítá).
 
 ## Na rozhodnutí majitele
 
-- `/kalkulacky` zmiňuje hypotéky a úvěry (redakční hranice) – odstranit?
+- ✅ `/kalkulacky` s hypoteční a úvěrovou kalkulačkou zůstávají (majitel 8. 11.: nejsou v rozporu s jeho prací).
 - Bing Webmaster Tools – ověřit web (jen majitel, přihlášení).
 - Supabase: upgrade Postgresu, Auth OTP/uniklá hesla (tlačítka v dashboardu, jen majitel).
 
