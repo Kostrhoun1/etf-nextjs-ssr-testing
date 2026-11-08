@@ -2183,9 +2183,12 @@ const main = async () => {
         }
       }
 
-      // 2) ISIN malými písmeny → 301 na velká (dřív 404).
+      // 2) ISIN malými písmeny → trvalé přesměrování na velká (dřív 404).
+      //    Trvalé = 301 NEBO 308: od zrušení middleware (7. 11. 2026) dělá přesměrování permanentRedirect() v detailu/dvojici,
+      //    které vrací 308. Google 308 bere stejně jako 301 (ZAMERNA-ROZHODNUTI.md). Chyba = dočasné (302/307), jiný cíl, 404.
+      const trvale = (st) => st === 301 || st === 308;
       const male = await vem('/etf/ie00b5bmr087', { redirect: 'manual' });
-      if (male.status !== 301 || !/\/etf\/IE00B5BMR087$/.test(male.loc)) chyby.push(`/etf/ie00b5bmr087 → ${male.status} ${male.loc} (má být 301 na /etf/IE00B5BMR087)`);
+      if (!trvale(male.status) || !/\/etf\/IE00B5BMR087$/.test(male.loc)) chyby.push(`/etf/ie00b5bmr087 → ${male.status} ${male.loc} (má být 301/308 na /etf/IE00B5BMR087)`);
 
       // 3) Dvojice srovnání: obrácená kurátorská → 301 na hlavní; alias → canonical na hlavní; nekurátorská → googlebot noindex
       //    a obrácená nekurátorská → přesměrování na abecední tvar; kurátorské dvojice ukazují fondy z pairs.ts (KURATORSKE).
@@ -2195,9 +2198,9 @@ const main = async () => {
       if (Object.keys(kur).length < 15) throw new Error(`KURATORSKE v pairs.ts nenalezeny (${Object.keys(kur).length})`);
       const hlavni = Object.keys(kur).filter((s) => !aliasy[s]);
       const obr = await vem('/srovnani/iwda-vs-vwce', { redirect: 'manual' });
-      if (obr.status !== 301 || !/\/srovnani\/vwce-vs-iwda$/.test(obr.loc)) chyby.push(`/srovnani/iwda-vs-vwce → ${obr.status} ${obr.loc} (má být 301 na vwce-vs-iwda)`);
+      if (!trvale(obr.status) || !/\/srovnani\/vwce-vs-iwda$/.test(obr.loc)) chyby.push(`/srovnani/iwda-vs-vwce → ${obr.status} ${obr.loc} (má být 301/308 na vwce-vs-iwda)`);
       const velka = await vem('/srovnani/VWCE-vs-IWDA', { redirect: 'manual' });
-      if (velka.status !== 301 || !/\/srovnani\/vwce-vs-iwda$/.test(velka.loc)) chyby.push(`/srovnani/VWCE-vs-IWDA → ${velka.status} ${velka.loc} (má být 301 na malá písmena)`);
+      if (!trvale(velka.status) || !/\/srovnani\/vwce-vs-iwda$/.test(velka.loc)) chyby.push(`/srovnani/VWCE-vs-IWDA → ${velka.status} ${velka.loc} (má být 301/308 na malá písmena)`);
       const odkazyNaDvojice = new Set();
       // Na produkci jen kurátorské dvojice z pevné sady (hlavní + vwce-vs-eunl); aliasy a „osiřelé“ jen lokálně.
       const kurVyber = R.cesty(Object.keys(kur).map((x) => `/srovnani/${x}`), 'Kurátorské dvojice (kolo6 seo): aliasy').map((c) => c.slice('/srovnani/'.length));

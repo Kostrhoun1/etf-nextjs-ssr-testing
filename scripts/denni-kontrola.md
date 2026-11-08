@@ -84,6 +84,8 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
 | Den | CPU | Fast Origin Transfer | ISR Writes | Pozn. |
 |---|---|---|---|---|
 | 7.–8. 11. (~14 h provozu) | 3 min 22 s | 276 MB | 1 190 | před blokací robotů; SE Ranking 529 / Ahrefs 101 / Meta 62 požadavků za 12 h |
+| 7. 11. (Vercel, den UTC) | 3 min | 268 MB | 1 120 | 571 volání funkcí |
+| 8. 11. (do 10:30 UTC) | 3 min | 144 MB | 6 100 | 5 produkčních nasazení ráno (Build CPU 5 h = 1,09 $ z kreditu Pro); ISR nad cílem kvůli nasazením – sledovat 9. 11. |
 
 ## Dočasný stav (aktualizovat)
 
@@ -99,3 +101,10 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   dál vypnuté. Commity 900ff8c a 0ad3240 (ráno nepushnuté) poslány do main.
 - 8. 11. 2026: majitel koupil Pro (web byl v noci pozastaven) – viz „Návrat na free tier“. robots.txt blokuje SEO roboty
   (34adb54). etf-astro PR #5 sloučen (scraper bez e-mailů).
+- 8. 11. 2026 10:30 UTC (denní kontrola): web běží (200, build 8. 11. 10:14). Workflow zlaté případy a smoke test jsou zase
+  zapnuté (1× týdně). Poplachy kontroly dat 7. 11. večer (20×) = web pozastavený (HTTP 402), ne chyba dat. Dnes 2 poplachy:
+  (1) přesměrování 308 místo 301 – správně, kontrola přijímá 301/308 (ZAMERNA); (2) VBTC – zašuměná řada zdroje, ověřeno
+  Xetra/Paris/BTC-EUR → přidán do NEOVERENE_VYNOSY (commit na `vylepseni-stranek`, **NEnasazeno** – dnes už 5 nasazení;
+  jede s příštím nasazením, do té doby kontrola hlásí „VBTC: srovnávač ukazuje výnos za období“). Otevřené (varování):
+  16 položek NEOVERENE_VYNOSY už neplatí – před smazáním ověřit každou burzou.
+

@@ -707,7 +707,8 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Pravidlo pro zlato/bitcoin NENÍ „odchylka od mediánu skupiny“** – ověřeno na 130 dnech: fondy oceňované v jinou denní
   dobu (LBMA fix vs. závěr Xetry vs. 22:00) se legitimně rozcházejí až o 2,2 p. b. (zlato) a 4 p. b. (bitcoin) ve všech
   obdobích stejným směrem. Rozhoduje vlastní šum řady (≥ 1,1 % a ≥ 2,5× medián skupiny) A výnos 1M i 1R vedle vlastní burzy
-  o > 1,5 p. b. stejným směrem. VBTC (šum 0,97 %, burza 1M +1,7 / 1R −0,4) proto chybou NENÍ.
+  o > 1,5 p. b. stejným směrem. VBTC (šum 0,97 %, burza 1M +1,7 / 1R −0,4) proto 22. 10. chybou NEBYL; 8. 11. 2026 už ano
+  (šum 1,26 %, ×3,7; k 4. 11. zdroj 1M −9,87 / 1R −23,50 % vs. Xetra −5,53 / −20,46 %, BTC-EUR −6,85 / −19,08 %) → NEOVERENE_VYNOSY.
 - **Ověřené extrémy – skutečnost, neopravovat (22. 10. 2026, burza v EUR ke stejnému dni):** LSMC 3R +302 % (CHIP.MI
   +302 %), FAMMWS 3R +314 % (+295 %, řídký obchod), 3BAL 3R +1 224 % (3BAL.L +1 222 %), 3ITL 3R +384 % (+382 %), IBEXA
   3R +344 % (+344 %), 5MIB 3R +752 % (+770 %), LCFE 3R +315 % (+306 %), Polygon (POLY/VPOL/CPYG) 3R −81 až −84 % (burza
@@ -739,6 +740,10 @@ jen na homepage. Neodstraňovat z detailu ani porovnání, nepřidávat na homep
 - **Dvojice srovnání – pravidlo pořadí:** kurátorský alias (`vwce-vs-eunl`) = 200 + canonical na hlavní dvojici
   (`vwce-vs-iwda`), jeho obrácené pořadí (`eunl-vs-vwce`) = 301 ROVNOU na hlavní dvojici (ne na alias – žádný řetěz
   přesměrování). Obojí končí na stejné kanonické adrese; že alias sám nepřesměrovává, je záměr kola 6 (viz výše).
+- **Trvalé přesměrování je od 7. 11. 2026 HTTP 308, ne 301** (ISIN malými písmeny, obrácená/velká písmena dvojice).
+  Middleware (vracel 301) byl zrušen kvůli CPU free tieru; přesměrování dělá `permanentRedirect()` v detailu/dvojici = 308.
+  Google 308 bere jako 301 (trvalé, přenáší signály). Kontrola (check-fund-data.mjs, SEO kolo 6) přijímá 301 i 308;
+  chyba je jen dočasné přesměrování (302/307), jiný cíl nebo 404. Nevracet middleware kvůli „správnému“ 301.
 - **Popisky pěti žebříčků se záměrně liší podle záměru stránky** (`ZAMER` v src/lib/zebrickySeo.ts): nejlepsi-etf-2026 =
   tři největší fondy, nejlevnejsi = nejnižší TER (počet fondů s minimem + první tři podle pravidla karty), sp500 = index,
   americke = medián výnosu trhu, akumulacni = třída. Dřív měly všechny stejné jádro „Nejnižší TER má SPYL… Největší je SXR8…“.
