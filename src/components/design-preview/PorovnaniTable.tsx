@@ -16,7 +16,7 @@ import { cislo, procenta, terText, velikostText } from '@/lib/formatSrovnavac';
 import { RIZIKO_NESEDI_TEXT, type RizikoPole } from '@/lib/tridyFondu';
 import { VYPLATA_ACC, VYPLATA_DIST, DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
 import { cistyNazevPozice, slucPozice, seradBurzy, jeDluhovyProdukt, pravniStrukturaText } from '@/lib/detailFondu';
-import { VYNOS_NEOVERENY_TEXT, rokNeovereny } from '@/lib/vynosNeovereny';
+import { VYNOS_NEOVERENY_TEXT, ROK_NEOVERENY_TEXT, rokNeovereny } from '@/lib/vynosNeovereny';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
 const num = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
@@ -149,8 +149,8 @@ const age = (inc: string | null) => {
 
 /* Barevná procentní buňka pro výnos (zelená = kladný, červená = záporný – nic jiného).
    `neovereny` = výnos fondu mimo svůj trh (src/lib/vynosNeovereny.ts) → podtržená „—“ s vysvětlivkou jako na detailu. */
-function Perf({ v, neovereny = false }: { v: number | null; neovereny?: boolean }) {
-  if (neovereny) return <span title={VYNOS_NEOVERENY_TEXT} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({VYNOS_NEOVERENY_TEXT})</span></span>;
+function Perf({ v, neovereny = false, text = VYNOS_NEOVERENY_TEXT }: { v: number | null; neovereny?: boolean; text?: string }) {
+  if (neovereny) return <span title={text} className="cursor-help text-slate-400 underline decoration-dotted decoration-slate-300 underline-offset-2">—<span className="sr-only"> ({text})</span></span>;
   if (v == null) return <span className="text-slate-400">—</span>;
   return <span className={`tabular-nums font-medium ${v >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{pct(v)}</span>;
 }
@@ -280,7 +280,7 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
     ? rokNeovereny(e.isin, Number(period), num(raw(e)[`return_${period}`]))
     : !!e._vynosNeovereny);
   const perf = (period: string, label: string): Row => ({
-    label, cell: (e) => <Perf v={neov(e, period) ? null : ret(e, period)} neovereny={neov(e, period)} />,
+    label, cell: (e) => <Perf v={neov(e, period) ? null : ret(e, period)} neovereny={neov(e, period)} text={/^\d{4}$/.test(period) ? ROK_NEOVERENY_TEXT : VYNOS_NEOVERENY_TEXT} />,
     nej: { v: (e) => (neov(e, period) ? null : ret(e, period)), smer: 1, fmt: pct },
     omit: etfs.every((e) => ret(e, period) == null),
   });
