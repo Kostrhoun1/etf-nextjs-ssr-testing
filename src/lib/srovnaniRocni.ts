@@ -3,6 +3,7 @@
  * roční výnosy (graf obou fondů v Kč), největší země a datum dat fondu (scraping_date – pravidlo č. 1:
  * stáří dat se měří scraping_date, ne globálním datem). getComparisonETFData tyto sloupce nenačítá.
  */
+import { rokNeovereny } from '@/lib/vynosNeovereny';
 import { supabaseAdmin } from '@/lib/supabase';
 import { nactiTrhy } from '@/lib/trhy';
 
@@ -42,8 +43,9 @@ export async function nactiDoplnkyFondu(isins: string[]): Promise<Record<string,
       const odlehly = odlehle.has(isin);
       const roky: RokVynosu[] = ROKY.map((rok) => ({
         rok,
-        // Bez přepočtu NEukazovat EUR jako Kč/USD (stejně jako detail fondu).
-        v: { EUR: num(radek[`return_${rok}`]), CZK: num(radek[`return_${rok}_czk`]), USD: num(radek[`return_${rok}_usd`]) },
+        // Bez přepočtu NEukazovat EUR jako Kč/USD (stejně jako detail fondu). Rok chybný u zdroje (seznam C) → null.
+        v: rokNeovereny(isin, rok, num(radek[`return_${rok}`])) ? { EUR: null, CZK: null, USD: null }
+          : { EUR: num(radek[`return_${rok}`]), CZK: num(radek[`return_${rok}_czk`]), USD: num(radek[`return_${rok}_usd`]) },
       }));
       const letos = new Date().getFullYear();
       if (!odlehly) roky.push({ rok: letos, ytd: true, v: { EUR: num(radek.return_ytd), CZK: num(radek.return_ytd_czk), USD: num(radek.return_ytd_usd) } });

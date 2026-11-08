@@ -311,6 +311,37 @@ const main = async () => {
     varovani.push({ co: `Kontrolu ročních výnosů v Kč/USD se nepodařilo provést: ${e.message}`, ukazka: [] });
   }
 
+  // ── KOLO9 KALENDÁŘ: nesmyslné kalendářní roky (8. 11. 2026) ──
+  // Pákové ETP: zdroj má v řadě neupravené konsolidace/dělení → roky +790 % (burza −55 %), −100 % u živého produktu.
+  // Kalendářní roky jdou z profilu zdroje, ne z denní řady, scraper je nevynuluje. Ruční seznam C: NEOVERENE_ROKY
+  // v src/lib/vynosNeovereny.ts; rok ≤ −99,95 % web skrývá i bez seznamu. Tady: (a) čerstvý fond s rokem ≥ +300 % nebo
+  // ≤ −99,95 % mimo seznam = VAROVÁNÍ „ověřit burzou (Yahoo × ČNB) a případně přidat do NEOVERENE_ROKY“;
+  // (b) položka seznamu, jejíž rok už v DB není = varování „smazat“.
+  try {
+    const zdrojN = readFileSync('src/lib/vynosNeovereny.ts', 'utf8');
+    const usek = (od, po) => zdrojN.slice(zdrojN.indexOf(od), po ? zdrojN.indexOf(po) : undefined);
+    const seznamC = new Map([...usek('export const NEOVERENE_ROKY', 'export const OVERENE_EXTREMNI_ROKY').matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '[^']*', roky: \[([\d, ]+)\]/g)].map((m) => [m[1], m[2].split(',').map((x) => Number(x.trim()))]));
+    if (seznamC.size < 10) throw new Error(`v NEOVERENE_ROKY jsem našel jen ${seznamC.size} položek (změnil se formát?)`);
+    // Ověřené skutečné extrémy (OVERENE_EXTREMNI_ROKY) se nehlásí – stejný formát řádku jako seznam C.
+    const overene = new Map([...usek('export const OVERENE_EXTREMNI_ROKY', 'export const ROK_PODEZRELY_POD').matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '[^']*', roky: \[([\d, ]+)\]/g)].map((m) => [m[1], m[2].split(',').map((x) => Number(x.trim()))]));
+    const ROKY_K = [2021, 2022, 2023, 2024, 2025];
+    const filtr = ROKY_K.flatMap((y) => [`return_${y}.gte.300`, `return_${y}.lte.-99.95`]).join(',');
+    const sel = ['isin', 'name', 'primary_ticker', 'scraping_date', 'is_leveraged', ...ROKY_K.map((y) => `return_${y}`)].join(',');
+    const r = await fetch(`${URL_DB}?select=${sel}&or=(${filtr})&order=isin`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((x) => x.json());
+    if (!Array.isArray(r)) throw new Error('neplatná odpověď DB');
+    const cerstvy = (f) => (Date.now() - Date.parse(String(f.scraping_date).replace(/(\d)$/, '$1Z'))) / 864e5 <= 7;
+    const nove = r.filter(cerstvy).flatMap((f) => ROKY_K.filter((y) => {
+      const v = f[`return_${y}`] == null ? null : Number(f[`return_${y}`]);
+      return v != null && (v >= 300 || v <= -99.95) && !seznamC.get(f.isin)?.includes(y) && !overene.get(f.isin)?.includes(y);
+    }).map((y) => `${f.isin} ${f.primary_ticker ?? ''} ${y}: ${Number(f[`return_${y}`]).toFixed(1)} %${Number(f[`return_${y}`]) <= -99.95 ? ' (web skrývá pojistkou)' : ''}`));
+    if (nove.length) varovani.push({ co: `Kolo9: ${nove.length} kalendářních roků ≥ +300 % nebo ≤ −99,95 % mimo NEOVERENE_ROKY – ověřit burzou (Yahoo × ČNB); chyba zdroje → přidat do seznamu C`, ukazka: nove.slice(0, 10) });
+    const db = await fetch(`${URL_DB}?select=isin,${ROKY_K.map((y) => `return_${y}`).join(',')}&isin=in.(${[...seznamC.keys()].join(',')})`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((x) => x.json());
+    const neplati = [...seznamC].flatMap(([isin, roky]) => roky.filter((y) => db.find((f) => f.isin === isin)?.[`return_${y}`] == null).map((y) => `${isin} ${y}`));
+    if (neplati.length) varovani.push({ co: `Kolo9: položky NEOVERENE_ROKY, jejichž rok už v DB není (zdroj ho vyřadil) – smazat ze seznamu: ${neplati.length}`, ukazka: neplati.slice(0, 8) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu kalendářních roků (kolo9) se nepodařilo provést: ${e.message}`, ukazka: [] });
+  }
+
   // ── CHYBĚJÍCÍ PŘEPOČET DO KČ/USD (8. 11. 2026) ──
   // EUR výnos je, ale _czk/_usd chybí → web ukáže „—“ (a rok z grafu ročních výnosů zmizí). Historie: 18. 10. 10 fondů
   // (převod se spouštěl jen s výnosem za období), 21. 9. 4 fondy Janus bez USD (výpadek kurzu se v converteru scraperu

@@ -16,7 +16,7 @@ import { cislo, procenta, terText, velikostText } from '@/lib/formatSrovnavac';
 import { RIZIKO_NESEDI_TEXT, type RizikoPole } from '@/lib/tridyFondu';
 import { VYPLATA_ACC, VYPLATA_DIST, DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
 import { cistyNazevPozice, slucPozice, seradBurzy, jeDluhovyProdukt, pravniStrukturaText } from '@/lib/detailFondu';
-import { VYNOS_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
+import { VYNOS_NEOVERENY_TEXT, rokNeovereny } from '@/lib/vynosNeovereny';
 
 const raw = (e: ComparisonETF) => e as unknown as Record<string, unknown>;
 const num = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
@@ -275,10 +275,13 @@ export default function PorovnaniTable({ etfs, rokDat }: { etfs: ComparisonETF[]
   const ret = (e: ComparisonETF, period: string) => pickReturn(raw(e), period, cur);
 
   // Kalendářní roky („2024“) zůstávají i u fondu s odlehlým výnosem – opožděná dnešní cena je neovlivní (jako detail).
-  const neov = (e: ComparisonETF, period: string) => !!e._vynosNeovereny && !/^\d{4}$/.test(period);
+  // Výjimka: rok chybný u zdroje (seznam C, src/lib/vynosNeovereny.ts) nebo ≤ −99,95 % (8. 11. 2026).
+  const neov = (e: ComparisonETF, period: string) => (/^\d{4}$/.test(period)
+    ? rokNeovereny(e.isin, Number(period), num(raw(e)[`return_${period}`]))
+    : !!e._vynosNeovereny);
   const perf = (period: string, label: string): Row => ({
-    label, cell: (e) => <Perf v={ret(e, period)} neovereny={neov(e, period)} />,
-    nej: { v: (e) => ret(e, period), smer: 1, fmt: pct },
+    label, cell: (e) => <Perf v={neov(e, period) ? null : ret(e, period)} neovereny={neov(e, period)} />,
+    nej: { v: (e) => (neov(e, period) ? null : ret(e, period)), smer: 1, fmt: pct },
     omit: etfs.every((e) => ret(e, period) == null),
   });
   /* Krátká období (1M/3M/6M) máme JEN v eurech (ZAMERNA-ROZHODNUTI.md) → vždy EUR a tak i popsané,

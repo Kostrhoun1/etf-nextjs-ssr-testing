@@ -29,7 +29,7 @@ import { prirazeniFondu, type FondProPrirazeni } from '@/lib/backtest/fondNaInde
 import { INDEX_BY_CODE } from '@/lib/backtest/indexes';
 import { nactiTrhy, odlehleIsiny, tridyVynosNesedi } from '@/lib/trhy';
 import { vynosTridText } from '@/lib/tridyFondu';
-import { duvodNeovereni, rizikoSkokem } from '@/lib/vynosNeovereny';
+import { duvodNeovereni, rizikoSkokem, rokNeovereny, ROK_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
 import { TRHY } from '@/data/trhyDvojcata';
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { odkazDvojiceDetailu, type FondProOdkaz } from '@/lib/odkazyDvojic';
@@ -487,17 +487,22 @@ export default async function ETFDetailPreview(
 
   // roční (kalendářní) výnosy – měnově citlivé (return_<rok>_czk/_usd v DB jsou)
   const currentYear = today.getFullYear();
+  // Chybný kalendářní rok u zdroje (seznam C v src/lib/vynosNeovereny.ts nebo rok ≤ −99,95 %) → „—“ ve všech měnách.
+  const rokSkryt = (y: number) => rokNeovereny(isin, y, num(r[`return_${y}`] as number));
   const calCols: CalCol[] = [2021, 2022, 2023, 2024, 2025]
     .map((y) => ({
       year: y,
-      vals: {
+      vals: rokSkryt(y) ? { EUR: null, CZK: null, USD: null } : {
         EUR: num(r[`return_${y}`] as number),
         // Bez přepočtu NEukazovat EUR jako Kč/USD (18. 10. 2026: tichý fallback u 10 fondů + fondů mimo nabídku).
         CZK: num(r[`return_${y}_czk`] as number),
         USD: num(r[`return_${y}_usd`] as number),
       },
+      skryty: rokSkryt(y),
     }))
-    .filter((c) => c.vals.EUR != null || c.vals.CZK != null || c.vals.USD != null);
+    .filter((c) => c.skryty || c.vals.EUR != null || c.vals.CZK != null || c.vals.USD != null)
+    .map(({ skryty: _s, ...c }) => c);
+  const nejakyRokSkryty = [2021, 2022, 2023, 2024, 2025].some(rokSkryt);
   // letošní rok (YTD) jako poslední, viditelně odlišený sloupec
   const ytdCol: CalCol = {
     year: currentYear,
@@ -1034,6 +1039,7 @@ export default async function ETFDetailPreview(
           <div className="grid gap-4 lg:grid-cols-5 items-start">
             <div className="lg:col-span-3 min-w-0">
               <GrafVykonnosti cols={calCols2} prazdno={vznik && vznik.getFullYear() >= currentYear - 1 ? `Fond vznikl ${vznikText} – celý kalendářní rok zatím nemá za sebou.` : 'Výnosy po jednotlivých letech zdroj dat u tohoto fondu neuvádí.'} />
+              {nejakyRokSkryty && <p className="mt-2 text-xs text-slate-500" data-rok-neovereny>{ROK_NEOVERENY_TEXT}</p>}
             </div>
             <div className="lg:col-span-2 min-w-0">
               {/* Pravidlo č. 1: u fondu s výnosem mimo trh (opožděná cena u zdroje) výnosy za období neukazovat („—“). */}
