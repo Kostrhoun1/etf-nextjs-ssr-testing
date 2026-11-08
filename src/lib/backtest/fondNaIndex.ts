@@ -82,10 +82,14 @@ export function prirazeniFondu(f: FondProPrirazeni): Prirazeni | null {
     if (!/\d/.test(jmeno.replace(/UCITS.*$/i, ''))) return { indexCode: 'eur_govt_bond', shoda: 'blizky', zdroj: 'eurové státní dluhopisy celkově (fond XGLE)' };
     return null;
   }
-  // Eurové firemní dluhopisy ZATÍM NE: řada eur_corp_bond má vadné body na konci měsíců (ve všední den,
-  // filtr enginu je nechytá) – i zdrojový fond IEAC proti skutečnosti ±0,7 p. b./rok (17. 10. 2026).
-  // Vrátit po úklidu dat (PLAN-OPRAV: úklid vadných bodů v historii indexů).
-  if (/(euro|eur) corp(orate)? bond/i.test(jmeno)) return null;
+  // Eurové firemní dluhopisy – vráceno 8. 11. 2026: po úklidu indexů (18. 10.) má řada eur_corp_bond všech 4 465 bodů
+  // shodných s IEAC.L a roční výnosy 2022–2025 sedí s Xetrou (EUN5) a Amsterdamem do 0,3 p. b. (2022: −13,4 / −13,4 /
+  // −13,6 %). Dřívější „±0,7 p. b.“ byl rozdíl justETF proti burzám (2022 −14,1 %), ne vada řady. Jen široký index:
+  // krátké/dlouhé splatnosti, high yield a jen finanční / bez finančních firem mají jiný výnos i riziko.
+  if (/(euro|eur|€) corp(orate)? bond/i.test(jmeno)) {
+    if (/high yield|financial|\b(0-3|1-3|0-5|1-5|3-5|5-7|7-10|10\+|15\+)\s*(yr|y|year|years)?\b/i.test(jmeno)) return null;
+    return { indexCode: 'eur_corp_bond', shoda: ish && /core/i.test(jmeno) ? 'stejny' : 'blizky', zdroj: 'eurové firemní dluhopisy (fond IEAC)' };
+  }
   if (/bond|treasury|gilt|t-bill|money market/i.test(jmeno)) return null;
 
   // ── AKCIE (přísný tvar názvu) ──

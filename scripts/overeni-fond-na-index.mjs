@@ -3,9 +3,15 @@
  * OVĚŘENÍ přiřazení fond → index pro backtest (src/lib/backtest/fondNaIndex.ts).
  * Projde všechny fondy v DB, vypíše počty po indexech a vzorky + podezřelé případy, které je
  * potřeba projít okem (pravidlo č. 1: raději žádné přiřazení než špatné).
- * SPUŠTĚNÍ: SUPABASE_KEY=<publishable> node --experimental-strip-types scripts/overeni-fond-na-index.mjs
+ * SPUŠTĚNÍ: SUPABASE_KEY=<publishable> node scripts/overeni-fond-na-index.mjs
+ * (TS přes jiti s aliasem @ → src, jako scripts/trhy.test.mjs – fondNaIndex.ts importuje @/utils/hedgingDetection.)
  */
-import { prirazeniFondu } from '../src/lib/backtest/fondNaIndex.ts';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+const require = createRequire(import.meta.url);
+const jiti = require('jiti')(fileURLToPath(import.meta.url), { alias: { '@': fileURLToPath(new URL('../src', import.meta.url)) }, interopDefault: true });
+const { prirazeniFondu } = jiti('../src/lib/backtest/fondNaIndex.ts');
 const KEY = process.env.SUPABASE_KEY;
 const URL_DB = 'https://nbhwnatadyubiuadfakx.supabase.co/rest/v1/etf_funds';
 const fondy = [];
