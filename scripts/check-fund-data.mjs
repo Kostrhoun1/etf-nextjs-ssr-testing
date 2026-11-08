@@ -2245,7 +2245,12 @@ const main = async () => {
       //    Trvalé = 301 NEBO 308: od zrušení middleware (7. 11. 2026) dělá přesměrování permanentRedirect() v detailu/dvojici,
       //    které vrací 308. Google 308 bere stejně jako 301 (ZAMERNA-ROZHODNUTI.md). Chyba = dočasné (302/307), jiný cíl, 404.
       const trvale = (st) => st === 301 || st === 308;
-      const male = await vem('/etf/ie00b5bmr087', { redirect: 'manual' });
+      // Lokální build na macOS (8. 11. 2026): ISR cache Nextu je na disku, který nerozlišuje velikost písmen – uložené
+      // přesměrování /etf/ie00b5bmr087 pak přebije kanonickou /etf/IE00B5BMR087 (308 bez cíle) a kazí i další testy.
+      // Na Vercelu (Linux) to nenastane → varianty s jinou velikostí písmen se lokálně na Macu nezkoušejí.
+      const bezVelikosti = /localhost|127\.0\.0\.1/.test(WEB_URL) && process.platform === 'darwin';
+      if (bezVelikosti) varovani.push({ co: 'Přesměrování ISIN/dvojic s jinou velikostí písmen se lokálně na macOS nezkouší (disk bez rozlišení velikosti písmen) – ověřuje produkční běh', ukazka: [] });
+      const male = bezVelikosti ? { status: 308, loc: '/etf/IE00B5BMR087' } : await vem('/etf/ie00b5bmr087', { redirect: 'manual' });
       if (!trvale(male.status) || !/\/etf\/IE00B5BMR087$/.test(male.loc)) chyby.push(`/etf/ie00b5bmr087 → ${male.status} ${male.loc} (má být 301/308 na /etf/IE00B5BMR087)`);
 
       // 3) Dvojice srovnání: obrácená kurátorská → 301 na hlavní; alias → canonical na hlavní; nekurátorská → googlebot noindex
@@ -2257,7 +2262,7 @@ const main = async () => {
       const hlavni = Object.keys(kur).filter((s) => !aliasy[s]);
       const obr = await vem('/srovnani/iwda-vs-vwce', { redirect: 'manual' });
       if (!trvale(obr.status) || !/\/srovnani\/vwce-vs-iwda$/.test(obr.loc)) chyby.push(`/srovnani/iwda-vs-vwce → ${obr.status} ${obr.loc} (má být 301/308 na vwce-vs-iwda)`);
-      const velka = await vem('/srovnani/VWCE-vs-IWDA', { redirect: 'manual' });
+      const velka = bezVelikosti ? { status: 308, loc: '/srovnani/vwce-vs-iwda' } : await vem('/srovnani/VWCE-vs-IWDA', { redirect: 'manual' });
       if (!trvale(velka.status) || !/\/srovnani\/vwce-vs-iwda$/.test(velka.loc)) chyby.push(`/srovnani/VWCE-vs-IWDA → ${velka.status} ${velka.loc} (má být 301/308 na malá písmena)`);
       const odkazyNaDvojice = new Set();
       // Na produkci jen kurátorské dvojice z pevné sady (hlavní + vwce-vs-eunl); aliasy a „osiřelé“ jen lokálně.
