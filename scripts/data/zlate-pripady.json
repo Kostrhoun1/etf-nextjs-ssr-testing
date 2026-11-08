@@ -5505,10 +5505,7 @@
    "zdroj_overeni": "Kontrola smyslu: stejná hodnota zdroje (−20,45) musí mít jedno zobrazení; zaokrouhlení „od nuly“ (justETF uvádí −20,45 %). Dnes detail −20,4 %, porovnání −20,5 %.",
    "zavisi_na_datu": true,
    "datum_dat": "2026-10-20",
-   "dnes_selze": {
-    "chyba": "S13 zaokrouhlení záporných čísel",
-    "kde": "lokál + produkce"
-   }
+   "dnes_selze": {"chyba": "S13 zaokrouhlení záporných čísel", "kde": "jen produkce (v repu opraveno, do nasazení)", "opraveno": {"commit": "zaokrouhli() v src/lib/formatyCisel.ts", "datum": "2026-11-08", "overeno": "scripts/formatyCisel.test.mjs: −20,45 → −20,5 (od nuly, jako justETF)"}}
   },
   {
    "id": "naklady-29",

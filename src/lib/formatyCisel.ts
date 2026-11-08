@@ -11,17 +11,25 @@
 export const NBSP = ' ';
 export const MINUS = '−';
 
+/** Zaokrouhlení půlek OD NULY a bez chyby binárního zápisu (8. 11. 2026, zlatý případ naklady-28): −20,45 se v double
+ *  uloží jako −20,4499999…, takže Math.round dával −20,4 a jinde −20,5. Teď vždy −20,5 / 20,5 (jako justETF). */
+export function zaokrouhli(v: number, des = 1): number {
+  const k = 10 ** des;
+  const r = Math.sign(v) * Math.round(Math.abs(v) * k * (1 + Number.EPSILON) + 1e-9) / k;
+  return r || 0;
+}
+
 /** Číslo v češtině s pevným počtem desetinných míst a skutečným minusem. */
 export function cislo(v: number, des = 1): string {
   // Zaokrouhlení na zobrazená místa PŘED znaménkem: −0,04 → „0,0“, ne „−0,0“.
-  const r = Math.round(v * 10 ** des) / 10 ** des || 0;
+  const r = zaokrouhli(v, des);
   return r.toLocaleString('cs-CZ', { minimumFractionDigits: des, maximumFractionDigits: des }).replace('-', MINUS);
 }
 
 /** Výnos „+12,5 %“ / „−15,9 %“ / „—“. `znamenko: false` = bez „+“ (kolísavost, dividendový výnos). */
 export function procenta(v: number | null | undefined, des = 1, znamenko = true): string {
   if (v == null || Number.isNaN(Number(v))) return '—';
-  const r = Math.round(Number(v) * 10 ** des) / 10 ** des || 0;
+  const r = zaokrouhli(Number(v), des);
   return `${znamenko && r > 0 ? '+' : ''}${cislo(r, des)}${NBSP}%`;
 }
 
