@@ -1858,7 +1858,7 @@
    "nastroj": "/fire – tabulky",
    "url": "/fire",
    "vstupy": {
-    "realny_vynos": 0.05,
+    "realny_vynos": 0.046,
     "start": 0,
     "cil": "25× výdaje"
    },
@@ -1867,24 +1867,20 @@
     "cil_35000": 10.5,
     "cil_50000": 15.0,
     "cil_75000": 22.5,
-    "roky_10pct": 51,
-    "roky_20pct": 37,
-    "roky_30pct": 28,
+    "roky_10pct": 54,
+    "roky_20pct": 38,
+    "roky_30pct": 29,
     "roky_40pct": 22,
     "roky_50pct": 17,
     "roky_60pct": 12.5,
-    "roky_70pct": 8.8
+    "roky_70pct": 9
    },
    "tolerance": {
     "mil": 0.05,
     "roky": 0.5
    },
-   "zdroj_overeni": "Anuita FV = s·((1,05^n−1)/0,05) = 25·(1−s), vklad na konci roku (fire_tabulka.py): 51,4/36,7/28,0/21,6/16,6/12,4/8,8 let; web u 70 % uvádí ~8,5.",
-   "zavisi_na_datu": false,
-   "dnes_selze": {
-    "chyba": "K3 nenasazené opravy (/fire „~8,5 roku“)",
-    "kde": "build :3005 + produkce (HEAD opraven)"
-   }
+   "zdroj_overeni": "Anuita FV = s·((1+r)^n−1)/r = 25·(1−s), vklad na konci roku, r = 4,6 % reálně (FIRE_PREDPOKLADY.moderate – audit 22. 10. 2026 S1, týdně ověřováno proti VT+XGLE × ČNB). Nezávisle 8. 11. 2026: vzorec i simulace rok po roku v Pythonu 54,01/38,30/28,99/22,29/17,02/12,65/8,91 roku; web zaokrouhluje pod 15 let na půl roku (12,5; 9). Dřív 5 % (51/37/28…) – předpoklad bez zdroje.",
+   "zavisi_na_datu": false
   },
   {
    "id": "backtest-00",
