@@ -1135,3 +1135,16 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   ChatGPT-User, PerplexityBot, ClaudeBot, GPTBot, meta-externalagent = Meta AI). Majitel 8. 11. 2026: „chceme, aby AI
   naše stránky znalo“. Hlídá check-fund-data (blok robots – poplach).
 - Blokace je trvalá, ne dočasná. Odblokovat jen na výslovný pokyn majitele.
+
+## Supabase: vypnutá úloha yfinance-etf-update a ponechaná upozornění poradce (8. 11. 2026)
+
+- **pg_cron `yfinance-etf-update` (jobid 1) je VYPNUTÁ (active = false), ne smazaná.** Volala každých 15 min edge funkci
+  `fetch-yfinance-data` se zakázaným legacy klíčem → HTTP 401 (96× denně). Funkci nepoužívá žádný kód webu ani scraperu
+  a do žádné tabulky nezapisuje (pozůstatek staré verze webu). **Nezapínat** bez důvodu; kdyby byla potřeba, nejdřív nový
+  klíč (sb_secret) a tabulka, kam zapisuje.
+- Po upgradu na Postgres 17.11 (8. 11. 2026) poradce Supabase hlásí jen:
+  - `pg_net` v public – přesun = smazat a znovu vytvořit rozšíření (ztráta net._http_response, výpadek pg_cron úloh
+    spouštějících scraper) → ponecháno, riziko > přínos;
+  - Auth OTP / uniklá hesla – web nemá uživatelské účty (jen správa newsletteru); ochrana proti uniklým heslům je
+    placená funkce → ponecháno.
+- `load_yahoo_daily` má pevný search_path (public, extensions, pg_temp) – migrace `load_yahoo_daily_search_path`.
