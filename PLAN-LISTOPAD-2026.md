@@ -61,3 +61,6 @@ při buildu (build se do limitů nepočítá).
 | Datum | Hotovo |
 |---|---|
 | 8. 11. | robots.txt blokuje SEO roboty (Meta AI povolena); opakování načtení dat při buildu; ignoreCommand odolný; plán sepsán |
+| 8. 11. | Postgres 15.8 → 17.11 (7 min výpadek, data a pg_cron ověřeny); Bing Webmaster Tools ověřen + sitemap |
+| 8. 11. | 1.2 ✅ týdenní přestavba (deploy hook, sobota 03:00 UTC; ověřeno: hook → build → `scripts/vercel-ignore.sh`); 1.3 ✅ smoke + zlaté případy 1× týdně, znovu zapnuté; 1.4 ◐ 20 zlatých případů odznačeno (XPASS), naklady-28 zaokrouhlení opraveno (zaokrouhli, test), fire-21 = chyba testu (4,6 % reálně, nezávisle přepočteno), fire-14 Monte Carlo – prověřuje nezávislý agent; 1.5 ✅ regiony opravené už 18. 10. (zobrazení v řádku → týden 3) |
+| 8. 11. | Nové do týdne 2: pg_cron `yfinance-etf-update` volá edge funkci se zakázaným legacy klíčem (HTTP 401 každých 15 min) – opravit nebo zrušit |
