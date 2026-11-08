@@ -57,6 +57,34 @@ gh run list --repo Kostrhoun1/etf-astro --workflow scrape.yml --limit 3     # sc
 Krátce česky (vykat): co se našlo, co je opravené a ověřené, co čeká na jeho rozhodnutí. Když je vše v pořádku,
 jedna věta. Žádné e-maily, žádné dlouhé výpisy.
 
+## Návrat na free tier (Hobby) – hlavní cíl do 7. 12. 2026
+
+Majitel 8. 11. 2026: Vercel web 7. 11. v noci pozastavil (vyčerpaný free tier), majitel musel koupit Pro a **chce ho od
+příštího měsíce zrušit** (Pro období 7. 11.–7. 12. 2026). Po návratu na Hobby se limity počítají za klouzavých 30 dní,
+takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cíle (= ~60 % limitu za 30 dní):
+
+| Metrika (Vercel → Usage, Pro: „Consumption Breakdown“ Daily) | Limit Hobby / 30 dní | Cíl za den |
+|---|---|---|
+| Fluid Active CPU | 4 h | ≤ 5 min |
+| Fast Origin Transfer | 10 GB | ≤ 200 MB |
+| ISR Writes | 200 000 | ≤ 4 000 |
+| Function Invocations | 1 000 000 | ≤ 20 000 |
+
+- Každý den zapsat do tabulky níže včerejší hodnoty a podíl robotů (projekt → Observability → CDN Requests →
+  Bot Name). Nad cílem 2 dny po sobě = najít příčinu (Observability → Functions / CDN Requests: Routes, Bot Name)
+  a snížit ji – bez placeného plánu a bez ořezávání obsahu.
+- **Do 1. 12. 2026 napsat majiteli verdikt**: součet za 7. 11.–dosud a odhad do 7. 12. pod limity → „Pro můžete zrušit“
+  (v nastavení týmu → Billing → Downgrade to Hobby; majitel sám, je to platba). Jinak co ještě chybí.
+- Opatření hotová: middleware zrušen (7. 11., −37 % CPU), detaily a dvojice předgenerované při buildu (1. 11.),
+  robots.txt blokuje komerční SEO roboty a sběr dat pro AI (8. 11., SE Ranking + Ahrefs + Meta = ~70 % požadavků).
+- Další možnosti, kdyby to nestačilo: `/srovnani/[pair]` `dynamicParams = false` (nepředgenerované dvojice = 404 místo
+  funkce), `/srovnani/porovnani` cache na CDN, firewall pravidlo na roboty, kteří robots.txt nerespektují (jen ty –
+  nikdy vyhledávače).
+
+| Den | CPU | Fast Origin Transfer | ISR Writes | Pozn. |
+|---|---|---|---|---|
+| 7.–8. 11. (~14 h provozu) | 3 min 22 s | 276 MB | 1 190 | před blokací robotů; SE Ranking 529 / Ahrefs 101 / Meta 62 požadavků za 12 h |
+
 ## Dočasný stav (aktualizovat)
 
 - 7. 11. 2026: Fluid CPU 4 h 4 min / 4 h → Vercel ohlásil pozastavení účtu (majitel zvolil čekat, ne platit). Middleware
@@ -64,8 +92,10 @@ jedna věta. Žádné e-maily, žádné dlouhé výpisy.
   (`gh workflow enable … --repo Kostrhoun1/etf-nextjs-ssr-testing`), až bude rezerva CPU ≥ 30 min. Je-li web
   pozastavený (HTTP 503 DEPLOYMENT_PAUSED) a CPU za 30 dní < 3 h 50 min, obnovit (Vercel MCP `unpause_project`,
   projekt `prj_W5TD9N7mjshpeusA4WOrgAeQtAFl`, tým `team_TNG9C04p1rIA9ArFY7oOKnU1`) a majiteli to napsat.
-- etf-astro PR #5 (scraper bez e-mailů) čeká na sloučení majitelem.
+- etf-astro PR #5 (scraper bez e-mailů) – sloučen 7. 11. 2026.
 - 7. 11. 2026 13:30 (denní kontrola): web běží (200, build 7. 11. 07:31 – bez middleware). Za 30 dní: CPU **4 h 5 min / 4 h**
   (denně ~9–12 min, první dny okna ~3–6 min → nad limitem ještě několik dní; efekt zrušení middleware vidět od 8. 11.),
   ISR 171K / 200K, **Fast Origin Transfer 6,9 / 10 GB** (další limit – sledovat). Workflow zlaté případy a smoke test
   dál vypnuté. Commity 900ff8c a 0ad3240 (ráno nepushnuté) poslány do main.
+- 8. 11. 2026: majitel koupil Pro (web byl v noci pozastaven) – viz „Návrat na free tier“. robots.txt blokuje SEO roboty
+  (34adb54). etf-astro PR #5 sloučen (scraper bez e-mailů).

@@ -1630,7 +1630,7 @@ const main = async () => {
     // vyhledávání NESMÍ být zablokované – skupina s jejich jménem (nebo „*“) nesmí mít „Disallow: /“.
     const rtxt = await fetch(`${WEB_URL}/robots.txt`).then((r) => (r.ok ? r.text() : ''));
     const skupiny = rtxt.split(/\n\s*\n/).map((g) => ({ ua: [...g.matchAll(/^User-Agent:\s*(\S+)/gim)].map((m) => m[1].toLowerCase()), vse: /^Disallow:\s*\/\s*$/im.test(g) }));
-    const CHRANENI = ['*', 'googlebot', 'bingbot', 'seznambot', 'applebot', 'duckduckbot', 'oai-searchbot', 'chatgpt-user', 'perplexitybot', 'claudebot', 'gptbot'];
+    const CHRANENI = ['*', 'googlebot', 'bingbot', 'seznambot', 'applebot', 'duckduckbot', 'oai-searchbot', 'chatgpt-user', 'perplexitybot', 'claudebot', 'gptbot', 'meta-externalagent'];
     const zablokovani = CHRANENI.filter((b) => skupiny.some((g) => g.vse && g.ua.includes(b)));
     if (!rtxt) varovani.push({ co: 'robots.txt se nenačetl', ukazka: [] });
     else if (zablokovani.length) poplach.push({ co: 'robots.txt blokuje vyhledávače / AI vyhledávání (src/app/robots.ts)', ukazka: zablokovani });
