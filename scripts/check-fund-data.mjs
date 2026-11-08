@@ -1626,6 +1626,14 @@ const main = async () => {
       if (ostra && /noindex/i.test(robots)) noindex.push(`${s}: ${robots}`);
     }
     if (noindex.length) poplach.push({ co: 'Ostrá doména posílá X-Robots-Tag noindex – stránky vypadnou z vyhledávačů (next.config.ts headers)', ukazka: noindex });
+    // robots.txt (8. 11. 2026): blokují se jen komerční SEO roboti a sběr dat pro AI (src/app/robots.ts). Vyhledávače a AI
+    // vyhledávání NESMÍ být zablokované – skupina s jejich jménem (nebo „*“) nesmí mít „Disallow: /“.
+    const rtxt = await fetch(`${WEB_URL}/robots.txt`).then((r) => (r.ok ? r.text() : ''));
+    const skupiny = rtxt.split(/\n\s*\n/).map((g) => ({ ua: [...g.matchAll(/^User-Agent:\s*(\S+)/gim)].map((m) => m[1].toLowerCase()), vse: /^Disallow:\s*\/\s*$/im.test(g) }));
+    const CHRANENI = ['*', 'googlebot', 'bingbot', 'seznambot', 'applebot', 'duckduckbot', 'oai-searchbot', 'chatgpt-user', 'perplexitybot', 'claudebot', 'gptbot'];
+    const zablokovani = CHRANENI.filter((b) => skupiny.some((g) => g.vse && g.ua.includes(b)));
+    if (!rtxt) varovani.push({ co: 'robots.txt se nenačetl', ukazka: [] });
+    else if (zablokovani.length) poplach.push({ co: 'robots.txt blokuje vyhledávače / AI vyhledávání (src/app/robots.ts)', ukazka: zablokovani });
     const spatne = [];
     for (const s of ['/etf/ZZ000000TEST', '/srovnani/nesmysl']) {
       const r = await fetch(`${WEB_URL}${s}`, { redirect: 'manual' });

@@ -6,9 +6,21 @@ import { MetadataRoute } from 'next'
 // pro sociální sítě (og:image). Twitterbot robots.txt respektuje – bez výjimky by karty na X přišly
 // o obrázek. Aby se /api/og samo neindexovalo, posílá X-Robots-Tag: noindex (next.config.ts).
 // Kontrola: scripts/check-fund-data.mjs (blok kolo6 seo).
+// 8. 11. 2026: komerční SEO roboti a sběr dat pro trénink AI bez přínosu pro web. Za 12 h (7.–8. 11.) SE Ranking 529,
+// Ahrefs 101, Meta AI 62 požadavků – víc než všechny vyhledávače dohromady (Bing 7). Procházeli tisíce detailů fondů
+// mimo cache CDN = většina přenosu z originu (Fast Origin Transfer 6,9 GB / 10 GB free tieru) i výpočetního času; free
+// tier se kvůli tomu 7. 11. vyčerpal. NEBLOKOVAT vyhledávače (Google, Bing, Seznam, Apple, DuckDuckGo) ani AI vyhledávání
+// (OAI-SearchBot, ChatGPT-User, PerplexityBot, ClaudeBot, GPTBot) – hlídá scripts/check-fund-data.mjs (blok robots).
+const BLOKOVANI_ROBOTI = [
+  'SERankingBacklinksBot', 'SERankingBot', 'AhrefsBot', 'AhrefsSiteAudit', 'SemrushBot', 'SiteAuditBot', 'MJ12bot',
+  'DotBot', 'DataForSeoBot', 'BLEXBot', 'Barkrowler', 'serpstatbot', 'PetalBot', 'Bytespider', 'meta-externalagent',
+  'Baiduspider',
+];
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
+      { userAgent: BLOKOVANI_ROBOTI, disallow: '/' },
       {
         userAgent: '*',
         allow: ['/', '/api/og'],

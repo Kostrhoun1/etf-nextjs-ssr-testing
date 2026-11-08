@@ -1119,3 +1119,13 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
 - **Stránky z ISR cache s jiným dnem dat než DB se nesrovnávají** (popisky žebříčků, rozcestník, srovnávač, faktorové
   ETF, složení detailu) – varování. Nový malý fond (< 500 mil. €) v žebříčku, ne na homepage = varování.
 - **Neměnit zpět na poplach** bez toho, aby to chytalo něco, co web sám nevyřeší.
+
+## robots.txt blokuje komerční SEO roboty a sběr dat pro AI – trvale (8. 11. 2026)
+
+- **Zablokovaní** (`src/app/robots.ts`, `BLOKOVANI_ROBOTI`): SE Ranking, Ahrefs, Semrush, Majestic, DotBot, DataForSEO,
+  BLEXBot, Barkrowler, Serpstat, PetalBot, Bytespider, meta-externalagent, Baiduspider. Za 12 h 7.–8. 11. 2026 jen SE
+  Ranking 529 a Ahrefs 101 požadavků (Bing 7) – procházeli tisíce detailů mimo cache CDN, brali většinu přenosu z originu
+  i výpočetního času a 7. 11. vyčerpali free tier Vercelu (web pozastaven, majitel musel koupit Pro). Návštěvníky nepřivádějí.
+- **NIKDY neblokovat** vyhledávače (Google, Bing, Seznam, Apple, DuckDuckGo) ani AI vyhledávání (OAI-SearchBot,
+  ChatGPT-User, PerplexityBot, ClaudeBot, GPTBot). Hlídá check-fund-data (blok robots – poplach).
+- Blokace je trvalá, ne dočasná. Odblokovat jen na výslovný pokyn majitele.
