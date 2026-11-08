@@ -273,7 +273,7 @@ const main = async () => {
   const kurzECB = async (d) => (await fetch(`https://api.frankfurter.dev/v1/${d}?base=EUR&symbols=USD`).then((r) => r.json())).rates?.USD ?? null;
   try {
     const rokNyni = new Date().getFullYear();
-    const roky = [rokNyni - 2, rokNyni - 1].filter((y) => y >= 2022 && y <= 2025); // sloupce return_2021–2025
+    const roky = [rokNyni - 2, rokNyni - 1].filter((y) => y >= 2022 && y <= 2027); // sloupce return_2021–2027 (2026/27 od 8. 11. 2026)
     // VŠECHNY fondy, ne vzorek: 17. 10. 2026 nahrál zrušený běh se starým kódem 550 fondů se špatnými
     // ročními výnosy (VUAA, VWCE…) – vzorek 3 fondů by to chytil jen náhodou. Výpočet je levný.
     // VŠECHNY fondy včetně těch mimo nabídku: web je dál ukazuje. 17.–18. 10. 2026 tu bylo okno „jen
@@ -324,7 +324,7 @@ const main = async () => {
     if (seznamC.size < 10) throw new Error(`v NEOVERENE_ROKY jsem našel jen ${seznamC.size} položek (změnil se formát?)`);
     // Ověřené skutečné extrémy (OVERENE_EXTREMNI_ROKY) se nehlásí – stejný formát řádku jako seznam C.
     const overene = new Map([...usek('export const OVERENE_EXTREMNI_ROKY', 'export const ROK_PODEZRELY_POD').matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker: '[^']*', roky: \[([\d, ]+)\]/g)].map((m) => [m[1], m[2].split(',').map((x) => Number(x.trim()))]));
-    const ROKY_K = [2021, 2022, 2023, 2024, 2025];
+    const ROKY_K = [2021, 2022, 2023, 2024, 2025, 2026, 2027].filter((y) => y < new Date().getUTCFullYear());
     const filtr = ROKY_K.flatMap((y) => [`return_${y}.gte.300`, `return_${y}.lte.-99.95`]).join(',');
     const sel = ['isin', 'name', 'primary_ticker', 'scraping_date', 'is_leveraged', ...ROKY_K.map((y) => `return_${y}`)].join(',');
     const r = await fetch(`${URL_DB}?select=${sel}&or=(${filtr})&order=isin`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((x) => x.json());
@@ -1720,7 +1720,7 @@ const main = async () => {
       const KOTVY_FX = ['IE00B5BMR087', 'IE00BK5BQT80', 'IE00B4L5Y983', 'IE00BKM4GZ66', 'IE00B4ND3602', 'IE00B3F81R35',
         'IE00B3ZW0K18', 'LU0290358497', 'IE00B8GKDB10']; // SXR8 VWCE EUNL EMIM SGLN EUN5 IBCF XEON VHYL
       const PRAH_FX = 0.15;
-      const OBD = ['1m', '3m', '6m', 'ytd', '1y', '3y', '5y', '2021', '2022', '2023', '2024', '2025'];
+      const OBD = ['1m', '3m', '6m', 'ytd', '1y', '3y', '5y', '2021', '2022', '2023', '2024', '2025', '2026', '2027']; // 2026/27: sloupce od 8. 11. 2026
       const MES = { '1m': 1, '3m': 3, '6m': 6, '1y': 12, '3y': 36, '5y': 60 };
       const denDat = (stazeno) => { // kopie src/lib/datumCen.ts
         const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false }).formatToParts(stazeno);

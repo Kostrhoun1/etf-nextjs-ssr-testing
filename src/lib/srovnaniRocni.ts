@@ -3,6 +3,7 @@
  * roční výnosy (graf obou fondů v Kč), největší země a datum dat fondu (scraping_date – pravidlo č. 1:
  * stáří dat se měří scraping_date, ne globálním datem). getComparisonETFData tyto sloupce nenačítá.
  */
+import { KALENDARNI_ROKY } from '@/lib/kalendarniRoky';
 import { rokNeovereny } from '@/lib/vynosNeovereny';
 import { supabaseAdmin } from '@/lib/supabase';
 import { nactiTrhy } from '@/lib/trhy';
@@ -21,7 +22,8 @@ export interface DoplnekFondu {
   odlehly: boolean;
 }
 
-const ROKY = [2021, 2022, 2023, 2024, 2025];
+// Jeden seznam let pro celý web (src/lib/kalendarniRoky.ts); sloupce 2026/2027 v DB jsou (8. 11. 2026).
+const ROKY = [...KALENDARNI_ROKY];
 const num = (v: unknown) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
 
 export async function nactiDoplnkyFondu(isins: string[]): Promise<Record<string, DoplnekFondu>> {

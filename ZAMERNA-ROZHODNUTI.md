@@ -1148,3 +1148,12 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   - Auth OTP / uniklá hesla – web nemá uživatelské účty (jen správa newsletteru); ochrana proti uniklým heslům je
     placená funkce → ponecháno.
 - `load_yahoo_daily` má pevný search_path (public, extensions, pg_temp) – migrace `load_yahoo_daily_search_path`.
+
+## Kalendářní roky 2026 a 2027 jsou v DB předem (8. 11. 2026)
+
+- Sloupce `return_2026/_czk/_usd` a `return_2027/_czk/_usd` přidány se souhlasem majitele (migrace
+  `etf_funds_kalendarni_roky_2026_2027`). Do ledna 2027 jsou **prázdné – to je správně**. justETF přidá rok 2026 v lednu
+  2027 a scraper (etf-astro `performance_converter.KALENDARNI_ROKY`) ho začne plnit sám.
+- Web bere roky z jednoho seznamu `src/lib/kalendarniRoky.ts` a ukazuje jen uzavřené roky s daty. Uzavřený rok, který
+  zdroj přestane uvádět (v lednu vyřadí nejstarší), scraper v DB nepřepíše na null (etf-astro PR #7).
+- Rok 2028+: přidat do `KALENDARNI_ROKY` na webu i ve scraperu + migrace sloupců.

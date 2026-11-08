@@ -5,6 +5,7 @@ import MobileMenu from '@/components/design-preview/MobileMenu';
 import SiteNav from '@/components/design-preview/SiteNav';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { isinPlatny } from '@/lib/isin';
+import { uzavreneRoky } from '@/lib/kalendarniRoky';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { ETF } from '@/types/etf';
 import {
@@ -489,7 +490,7 @@ export default async function ETFDetailPreview(
   const currentYear = today.getFullYear();
   // Chybný kalendářní rok u zdroje (seznam C v src/lib/vynosNeovereny.ts nebo rok ≤ −99,95 %) → „—“ ve všech měnách.
   const rokSkryt = (y: number) => rokNeovereny(isin, y, num(r[`return_${y}`] as number));
-  const calCols: CalCol[] = [2021, 2022, 2023, 2024, 2025]
+  const calCols: CalCol[] = uzavreneRoky(today)
     .map((y) => ({
       year: y,
       vals: rokSkryt(y) ? { EUR: null, CZK: null, USD: null } : {
@@ -502,7 +503,7 @@ export default async function ETFDetailPreview(
     }))
     .filter((c) => c.skryty || c.vals.EUR != null || c.vals.CZK != null || c.vals.USD != null)
     .map(({ skryty: _s, ...c }) => c);
-  const nejakyRokSkryty = [2021, 2022, 2023, 2024, 2025].some(rokSkryt);
+  const nejakyRokSkryty = uzavreneRoky(today).some(rokSkryt);
   // letošní rok (YTD) jako poslední, viditelně odlišený sloupec
   const ytdCol: CalCol = {
     year: currentYear,
