@@ -3862,6 +3862,10 @@ const main = async () => {
       const posledni = [...czk.matchAll(/'(\d{4}-\d{2})':/g)].map((m) => m[1]).sort().at(-1);
       const hranice = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 3, 1)).toISOString().slice(0, 7);
       if (!posledni || posledni < hranice) upoz.push(`Bezriziková sazba (Sharpe) končí ${posledni} – spusťte scripts/backtest/generuj-cpi-a-sazby.py`);
+      // CPI (8. 11. 2026, režim bez údržby): ČSÚ zveřejní měsíc zhruba do 15. dne následujícího → víc než 3 měsíce pozadu
+      // = nikdo nedoplnil; reálné výnosy by končily dřív než data (engine za posledním CPI reálná čísla neukáže).
+      const posledniCpi = Object.keys(cpi).sort().at(-1);
+      if (!posledniCpi || posledniCpi < hranice) upoz.push(`CPI (reálné výnosy) končí ${posledniCpi} – spusťte scripts/backtest/generuj-cpi-a-sazby.py`);
     } catch (e) {
       upoz.push(`Statickou kontrolu CPI/sazeb nešlo provést: ${e.message}`);
     }
