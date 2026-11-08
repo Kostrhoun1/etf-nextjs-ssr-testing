@@ -77,10 +77,10 @@ export const INDEXES: IndexDef[] = [
     dataIsNetOfFees: true, sourceTer: 0.000945, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B5BMR087', name: 'iShares Core S&P 500', ter: 0.0007 } },
   { code: 'us_total_market', ticker: 'VTI', currency: 'USD', name: 'Celý americký trh', group: 'region', since: '2001-06-15',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0005, /* VTI 0,07 % (2001–2011) → 0,03 % (od 4/2019); časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B52SFT06', name: 'iShares MSCI USA (nejbližší)', ter: 0.0003 } },
   { code: 'msci_eafe', ticker: 'EFA', currency: 'USD', name: 'Vyspělé trhy mimo USA', group: 'region', since: '2001-08-27',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0034, /* EFA 0,35 % (do 11/2011) → 0,32 % (od 12/2017); časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00085PWS28', name: 'Amundi MSCI World ex USA (nejbližší)', ter: 0.0015 } },
   { code: 'ftse_europe', ticker: 'VGK', currency: 'USD', name: 'Evropa', group: 'region', since: '2005-03-10',
     dataIsNetOfFees: true, sourceTer: 0.0006, inBacktest: true, inDashboard: true, managed: true,
@@ -94,7 +94,7 @@ export const INDEXES: IndexDef[] = [
   // POZOR: VGTSX je podílový FOND, ne ETF — proto historie až od 1996 (ETF tehdy neexistovalo).
   // Dohledáno 15.7.2026 podle shody data startu (1996-04-29) a hodnoty (0,00 %). Nikde to nebylo zapsáno.
   { code: 'world_ex_us', ticker: 'VGTSX', currency: 'USD', name: 'Svět mimo USA (vyspělé i EM)', group: 'region', since: '1996-04-29',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0025, /* VGTSX 0,32 % (do 2011, před 2010 nedoloženo – konzervativně první doložená) → 0,17 % (od 2018); časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj je podílový fond Vanguard (VGTSX) — proto sahá až do 1996.',
     // Fond k nákupu musí být UCITS (18. 10. 2026: dřív americký VXUS US9219097683 – pro Čecha nekoupitelný).
     // Nejbližší evropský fond: FTSE All-World ex US (vyspělé i rozvíjející se trhy mimo USA, bez malých firem).
@@ -115,10 +115,10 @@ export const INDEXES: IndexDef[] = [
     note: 'Americký sektor (S&P 500), ne globální.',
   })),
   { code: 'sector_real_estate', ticker: 'XLRE', currency: 'USD', name: 'Nemovitosti', group: 'sector', since: '2015-10-08',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0011, /* XLRE net 0,14 % (2015–2017) → 0,08 % (od 2025); časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     note: 'Americký sektor (S&P 500). Data až od 2015 — GICS sektor Real Estate tehdy teprve vznikl, není to díra v datech.' },
   { code: 'sector_communication', ticker: 'XLC', currency: 'USD', name: 'Komunikační služby', group: 'sector', since: '2018-06-19',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0011, /* XLC net 0,13 % (2018–2020) → 0,08 % (od 2025); časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     note: 'Americký sektor (S&P 500). Data až od 2018 — GICS sektor tehdy teprve vznikl, není to díra v datech.' },
 
   // ─────────────── FAKTORY / STYLY ───────────────
@@ -139,21 +139,21 @@ export const INDEXES: IndexDef[] = [
     proxyEtf: { isin: 'IE000LRGEN55', name: 'Vanguard Russell 2000 US Small-Cap', ter: 0.002 } },
   { code: 'us_dividend', ticker: 'VYM', currency: 'USD', name: 'Dividendové akcie – US', group: 'factor', since: '2006-11-16',
     proxyEtf: { isin: 'IE000V04SL39', name: 'Xtrackers MSCI USA High Dividend (nejbližší)', ter: 0.0025 },
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0011, /* VYM 0,20 % (2006–2011) → 0,04 % (od 2/2026); časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj FTSE High Dividend Yield (USA). Evropský ETF na přesně tento index neexistuje — nejblíž je US high-dividend s jinou metodikou.' },
   { code: 'us_min_vol', ticker: 'USMV', currency: 'USD', name: 'Minimální volatilita – US', group: 'factor', since: '2011-10-20',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0015, /* USMV 0,15 % od startu 2011 beze změny; časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj MSCI USA Minimum Volatility.',
     proxyEtf: { isin: 'IE00BDB7J586', name: 'Xtrackers MSCI USA Min Volatility', ter: 0.002 } },
   // SPLICED: data před `splicedFrom` jsou dopočtená z Kenneth French Data Library (zpětný chod od kotevní
   // ceny ETF). Yahoo tuhle historii NEMÁ → upsert ji přirozeně nepřepíše. Nikdy nemazat!
   // Viz scripts/backtest/data/README.md a build_factor_extensions.py.
   { code: 'us_momentum', ticker: 'MTUM', currency: 'USD', name: 'Momentum – US', group: 'factor', since: '1999-12-31',
-    splicedFrom: '2013-04-01', dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    splicedFrom: '2013-04-01', dataIsNetOfFees: true, sourceTer: 0.0015, /* MTUM 0,15 % od 2013 beze změny (úsek před 2013-04 dopočtený bez poplatku – konstanta se použije také); časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj MSCI USA Momentum. Historie před 2013 dopočtena z Ken French (US BIG HiPRIOR, nekalibrováno — běží ~0,7 pb/rok pod ETF, konzervativní směr), po 2013 ETF MTUM.',
     proxyEtf: { isin: 'IE00BD1F4N50', name: 'iShares Edge MSCI USA Momentum Factor', ter: 0.002 } },
   { code: 'us_quality', ticker: 'QUAL', currency: 'USD', name: 'Quality – US (kvalitní firmy)', group: 'factor', since: '1999-12-31',
-    splicedFrom: '2013-07-01', dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    splicedFrom: '2013-07-01', dataIsNetOfFees: true, sourceTer: 0.0015, /* QUAL 0,15 % od 2013 beze změny; časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     note: 'Zdroj MSCI USA Quality. Historie před 2013 dopočtena z Ken French (Hi 30 op. ziskovost, kalibrováno −1,89 %/rok na překryv s ETF vč. poplatku), po 2013 ETF QUAL.',
     proxyEtf: { isin: 'IE00BD1F4L37', name: 'iShares Edge MSCI USA Quality Factor', ter: 0.002 } },
 
@@ -213,7 +213,7 @@ export const INDEXES: IndexDef[] = [
     dataIsNetOfFees: true, sourceTer: 0.004, inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00B4ND3602', name: 'iShares Physical Gold', ter: 0.0012 } },
   { code: 'commodities', ticker: 'DBC', currency: 'USD', name: 'Komodity (diverzifikované)', group: 'commodity', since: '2006-02-06',
-    dataIsNetOfFees: true, inBacktest: true, inDashboard: true, managed: true,
+    dataIsNetOfFees: true, sourceTer: 0.0087, /* DBC hrubý 0,79 % (do 1/2010) → 0,89 % (management 0,85 + brokerage ~0,04); waiver 0,07 % nezapočten; časově vážený průměr za období dat, prospekty emitenta (SEC EDGAR 497K/10-K), ověřeno 8. 11. 2026 */ inBacktest: true, inDashboard: true, managed: true,
     proxyEtf: { isin: 'IE00BDFL4P12', name: 'iShares Diversified Commodity', ter: 0.0019 } },
 ]
 
