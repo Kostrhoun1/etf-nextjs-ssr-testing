@@ -4090,6 +4090,9 @@ async function kontrolaKolo8Faktory(poplach, varovani) {
         .replace(/href=\{?['"`][^'"`]*['"`]\}?/g, ' ')
         .replace(/\['\/[^']*',/g, ' ');
       zdroj.split('\n').forEach((r, i) => { for (const [re, co] of ZAKAZANE) { const m = r.match(re); if (m) staticke.push(`${s}:${i + 1} ${co}: „${m[0]}“`); } });
+      // Výpadek načtení fondů nesmí skončit v ISR cache jako hláška (9. 11. 2026: 3 detaily den bez fondů) –
+      // nactiFondyFaktoru se nepolyká přes .catch(() => null), při null stránka vyhodí výjimku.
+      if (/nactiFondyFaktoru\(\)\s*\.catch/.test(zdroj)) staticke.push(`${s}: nactiFondyFaktoru().catch(…) – výpadek DB by se uložil do ISR cache; při chybě vyhodit výjimku`);
     }
 
     // 2) Živá kontrola.

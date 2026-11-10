@@ -262,6 +262,10 @@ výjimku. Záměr: Next při ISR ponechá poslední dobrou verzi (jinak by den v
 načíst“). Při buildu bez dat build selže – to je správně (raději nenasadit). Homepage blok s číslem se
 naopak jen skryje, když jsou data starší 7 dní.
 
+Totéž od 10. 11. 2026 `/faktorove-etf` a jeho 6 detailů: když se nenačtou fondy (`nactiFondyFaktoru`), stránka
+vyhodí výjimku. 9. 11. 2026 se jinak hláška „Údaje o fondech se teď nepodařilo načíst“ uložila do ISR cache
+na celý den u 3 detailů. Hlídá statická kontrola kolo 8 v `scripts/check-fund-data.mjs`.
+
 ## „Největší český průvodce ETF fondy“ zůstává (rozhodnutí majitele 18. 10. 2026)
 
 Ve strukturovaných datech (src/components/SEO/AuthorSchema.tsx – description a slogan) je tvrzení
