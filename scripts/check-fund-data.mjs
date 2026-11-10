@@ -937,13 +937,15 @@ const main = async () => {
         const VARIANTA = /\bPEA\b|Emergent|\bMin TE\b|ex[- ]?China|\bAsia\b|Latin|EMEA|ESG|\bSRI\b|Screened|\bCTB\b|Climate|Paris|\bPAB\b|Islamic|Socially|Responsible|Transition|Selection|Universal|Enhanced|Active|Research|Multi-?Factor|Internet|Quant|\b3D\b|Focus|Equal/i;
         const pravidloHome = (n) => zajistena(n) || VARIANTA.test(n || '');
         const chybiNaHome = PRESNE.has(t.id) ? [...zeb].filter((i) => !t.isins.includes(i) && !vyjimky.has(i) && !pravidloHome(podle.get(i)?.name)) : [];
-        for (const i of chybiVZeb) nesedi.push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} je na homepage, v žebříčku ne`);
+        // 10. 11. 2026: UBS Nasdaq-100 dis (101 mil. €) překročil práh 100 mil. € – žebříček z ISR cache byl ze dne, kdy byl
+        // pod prahem (za 40 min se obnovil a fond měl). Fond u prahu (< 110 mil. €) = časování cache → varování.
+        for (const i of chybiVZeb) (Number(podle.get(i)?.fund_size_numeric) < 110 ? nesediMale : nesedi).push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} (${Math.round(Number(podle.get(i)?.fund_size_numeric) || 0)} mil. €) je na homepage, v žebříčku ne${Number(podle.get(i)?.fund_size_numeric) < 110 ? ' – velikost u prahu 100 mil. €, žebříček z cache může být z jiného dne' : ''}`);
         // 5. 11. 2026: nový malý fond v žebříčku (comdirect S&P All World, 100 mil. €, TER 0,4 %, bez ročního výnosu) nemůže
         // na homepage vyhrát → varování. Poplach jen u fondu ≥ 500 mil. € (stejný práh jako „velké fondy chybí v trhu“).
         for (const i of chybiNaHome) (Number(podle.get(i)?.fund_size_numeric) >= 500 ? nesedi : nesediMale).push(`${t.id}: ${i} ${String(podle.get(i)?.name ?? '').slice(0, 40)} (${Math.round(Number(podle.get(i)?.fund_size_numeric) || 0)} mil. €) je v žebříčku, na homepage ne`);
       }
       if (nesedi.length) poplach.push({ co: `Trhy na homepage nesouhlasí s výběrem žebříčku/srovnávače (${nesedi.length}) – src/data/trhyDvojcata.ts`, ukazka: nesedi.slice(0, 8) });
-      if (nesediMale.length) varovani.push({ co: `Malé fondy (< 500 mil. €) v žebříčku, ne na homepage (${nesediMale.length}) – doplnit do src/data/trhyDvojcata.ts nebo VYJIMKY`, ukazka: nesediMale.slice(0, 8) });
+      if (nesediMale.length) varovani.push({ co: `Malé fondy v žebříčku, ne na homepage (< 500 mil. €), nebo na homepage, ne v žebříčku (u prahu 100 mil. €) (${nesediMale.length}) – doplnit do src/data/trhyDvojcata.ts nebo VYJIMKY / počkat na obnovu cache`, ukazka: nesediMale.slice(0, 8) });
       // Evropský žebříček: kontrola výše našla mimoevropské (MSCI World ex Europe, STOXX World), peněžní trh, sektory
       // STOXX 600 a 2× pákový LevDAX. Nic z toho tam nepatří (nameExcludes v etf-data.ts).
       const evr = isinyZPayloadu(await html('/nejlepsi-etf/nejlepsi-evropske-etf'));
