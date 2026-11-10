@@ -80,9 +80,12 @@ export interface FactorConfig {
 async function nactiKontext(slug: FaktorSlug): Promise<Kontext | null> {
   const [vse, fondyVse, terSp] = await Promise.all([
     nactiFaktory(),
-    nactiFondyFaktoru().catch(() => null),
+    nactiFondyFaktoru(),
     nactiTerSp500().catch(() => null),
   ]);
+  // Výpadek DB = výjimka, ne hláška „nepodařilo se načíst“: Next při ISR ponechá poslední dobrou verzi
+  // (9. 11. 2026 se hláška uložila do cache na den u 3 detailů). ZAMERNA-ROZHODNUTI.md „Články z dat“.
+  if (!fondyVse) throw new Error('[faktory] fondy se nenačetly – ponechávám předchozí verzi stránky');
   const f = vse.faktory[slug];
   if (!f) return null;
   const fondy = fondyVse?.[slug] ?? null;

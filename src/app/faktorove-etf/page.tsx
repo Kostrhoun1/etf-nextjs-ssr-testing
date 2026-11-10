@@ -61,9 +61,11 @@ export default async function FaktoroveEtf() {
   const upraveno = upravenoDlouze('/faktorove-etf'); // datum úpravy TEXTU (redakce.ts), ne den dat
   const [v, fondy, terSp] = await Promise.all([
     nactiFaktory().catch((e) => { console.error('[faktory] výpočet selhal:', e); return null as FaktoryVysledek | null; }),
-    nactiFondyFaktoru().catch(() => null),
+    nactiFondyFaktoru(),
     nactiTerSp500().catch(() => null),
   ]);
+  // Výpadek DB = výjimka → ISR ponechá poslední dobrou verzi (ne den visící hláška). Viz FactorDetail.tsx.
+  if (!fondy) throw new Error('[faktory] fondy se nenačetly – ponechávám předchozí verzi stránky');
   const radky = FAKTORY_DEF.map((d) => ({ def: d, f: v?.faktory[d.slug] ?? null }));
   const vitezove = v?.kompletni ? porazily(v) : null;
   const roc = v?.rocenka ?? null;
