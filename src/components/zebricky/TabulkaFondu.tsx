@@ -330,6 +330,9 @@ export default function TabulkaFondu({
           <button type="button" onClick={() => setPocet((p) => p + 40)} className="inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
             <ChevronDown className="w-4 h-4" /> Zobrazit další {Math.min(40, zbyva)} {zbyva > 40 ? `(zbývá ${zbyva})` : ''}
           </button>
+        ) : castecne ? (
+          // 3.4: konec načtených řádků velkého žebříčku – zbytek kategorie je ve srovnávači (odkaz vpravo).
+          <span className="text-xs text-slate-500">Tabulka nese {n0(radky.length)} z {n0(celkem)} fondů žebříčku, ostatní najdete ve srovnávači.</span>
         ) : <span />}
         <Link href={srovnavac.href} className="inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-teal-700 hover:text-teal-800">
           {srovnavac.text} <ArrowRight className="w-4 h-4" />

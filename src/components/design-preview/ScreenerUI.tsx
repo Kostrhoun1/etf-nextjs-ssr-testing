@@ -224,11 +224,17 @@ function HedgeChip({ h }: { h: string }) {
 interface PoctyNabidky { trh: (id: string) => number; index: (label: string, i: number, g: IndexOptionGroupLite) => number | undefined }
 type IndexOptionGroupLite = ScreenerOptions['indexGroups'][number];
 
+/** Kolik indexů ukazuje sbalená skupina poskytovatele v nabídce (desktop, bez hledání). */
+const NA_SKUPINU = 8;
+
 function IndexList({ options, vybrane, setVybrane, pocty, vcZajist, setVcZajist, kompakt = false, autoFocus = false }: {
   options: ScreenerOptions; vybrane: string[]; setVybrane: (v: string[]) => void; pocty: PoctyNabidky;
   vcZajist: boolean; setVcZajist: (v: boolean) => void; kompakt?: boolean; autoFocus?: boolean;
 }) {
   const [hledat, setHledat] = useState('');
+  // 3.5 (11. 11. 2026): nabídka měla ~760 indexů v jednom seznamu. Bez hledání ukazuje skupina poskytovatele jen
+  // NA_SKUPINU nejčastějších (podle počtu fondů) + už vybrané, zbytek tlačítkem „další“ nebo hledáním. Nic se neztratí.
+  const [rozbalene, setRozbalene] = useState<Set<string>>(() => new Set());
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { if (autoFocus) inputRef.current?.focus(); }, [autoFocus]);
   const h = hledat.trim().toLowerCase();
@@ -237,7 +243,13 @@ function IndexList({ options, vybrane, setVybrane, pocty, vcZajist, setVcZajist,
   // Kompaktní režim (panel na mobilu): bez hledání jen trhy + populární + už vybrané – 200 položek
   // v posuvném panelu by se nedaly projít; ostatní indexy najde hledání.
   const skupiny = options.indexGroups
-    .map((g) => ({ ...g, idx: g.options.map((o, i) => i).filter((i) => (h ? g.options[i].toLowerCase().includes(h) : !kompakt || g.heading === 'Populární indexy' || vybrane.includes(g.options[i]))) }))
+    .map((g) => {
+      const vse = g.options.map((o, i) => i).filter((i) => (h ? g.options[i].toLowerCase().includes(h) : !kompakt || g.heading === 'Populární indexy' || vybrane.includes(g.options[i])));
+      // Desktop bez hledání: skupina sbalená na NA_SKUPINU položek (pořadí = počet fondů sestupně, viz sestavIndexy).
+      const sbalit = !h && !kompakt && g.heading !== 'Populární indexy' && !rozbalene.has(g.heading) && vse.length > NA_SKUPINU + 2;
+      const idx = sbalit ? vse.filter((i, poradi) => poradi < NA_SKUPINU || vybrane.includes(g.options[i])) : vse;
+      return { ...g, idx, skryto: vse.length - idx.length };
+    })
     .filter((g) => g.idx.length > 0);
   const vsech = options.indexGroups.reduce((n, g) => n + g.options.length, 0);
   const Polozka = ({ v, label, note, count }: { v: string; label: string; note?: string; count?: number }) => {
@@ -279,6 +291,12 @@ function IndexList({ options, vybrane, setVybrane, pocty, vcZajist, setVcZajist,
           <div key={g.heading} className="mb-2">
             <p className="px-2 pt-1 pb-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.heading}</p>
             {g.idx.map((i) => <Polozka key={g.options[i]} v={g.options[i]} label={g.options[i]} count={pocty.index(g.options[i], i, g)} />)}
+            {g.skryto > 0 && (
+              <button type="button" onClick={() => setRozbalene((r) => new Set(r).add(g.heading))}
+                className="w-full rounded-md px-2 py-1 text-left text-xs font-medium text-teal-700 hover:bg-slate-50 hover:text-teal-800">
+                + další {g.skryto.toLocaleString('cs-CZ')} {g.skryto === 1 ? 'index' : g.skryto <= 4 ? 'indexy' : 'indexů'} {g.heading === 'Ostatní indexy' ? 'v ostatních' : g.heading}
+              </button>
+            )}
           </div>
         ))}
         {trhy.length === 0 && skupiny.length === 0 && <p className="px-2 py-3 text-sm text-slate-500">Žádný index neodpovídá.</p>}

@@ -10,10 +10,10 @@ import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
 import SrovnaniBrokeruClient from '@/components/design-preview/SrovnaniBrokeruClient';
 import { reviewHref } from '@/components/design-preview/brokerReviewHref';
 import { RoboKarta, FaqSeznam, AutorBox, doporuceniProfily } from '@/components/design-preview/brokerUI';
-import { brokeriAbecedne, roboPoradci, cenikyOverenyIso, cenikyOverenyStr } from '@/data/brokerData';
+import { brokeriAbecedne, roboPoradci, cenikyOverenyIso, cenikyOverenyStr, prikladNakupu } from '@/data/brokerData';
 import { getTotalETFCount } from '@/lib/etf-data';
 import { clanekSchema } from '@/lib/redakce';
-import { nactiKurzCnb } from '@/lib/kurzCnb';
+import { nactiKurzCnb, datumKurzu } from '@/lib/kurzCnb';
 import { titulek } from '@/lib/seoTitulek';
 
 /* /srovnani-brokeru = DETAILNÍ TABULKA parametrů. Průvodce „kde koupit“ (rozhodnutí + spočítané náklady)
@@ -31,6 +31,9 @@ export const metadata: Metadata = {
 /* Brokeři ABECEDNĚ, robo-poradce zvlášť na konci. Skóre /100 zrušeno rozhodnutím majitele 19. 10. 2026 (působilo jako
    doporučení) – ZAMERNA-ROZHODNUTI.md. */
 const ordered = [...brokeriAbecedne, ...roboPoradci];
+
+/** Částka spočítaného řádku tabulky (typický měsíční nákup; recenze ukazují 2 000 Kč, /kde-koupit libovolnou částku). */
+const CASTKA_TABULKA = 5000;
 
 const FAQ = [
   {
@@ -62,6 +65,13 @@ export default async function SrovnaniBrokeruPage() {
   // Štítek „pro koho“ v hlavičce tabulky = stejné doporučení jako na /kde-koupit (jeden zdroj).
   const profil: Record<string, string> = {};
   for (const p of doporuceniProfily(kurzy)) profil[p.brokerId] ??= p.profil;
+  // 3.6: spočítaný řádek „Nákup za 5 000 Kč celkem“ – stejný model jako „Nákup za 2 000 Kč“ v recenzích (prikladNakupu).
+  // Bez kurzu ČNB řádek vůbec není (raději nic než částka bez kurzu).
+  const priklad = kurzy ? {
+    castka: CASTKA_TABULKA,
+    tip: `Poplatek za nákup + směna korun na eura při nákupu evropského ETF za ${CASTKA_TABULKA.toLocaleString('cs-CZ')} Kč (burza Xetra, u DEGIRO ETF Selection Tradegate). Kurz ČNB k ${datumKurzu(kurzy)}. „od“ = část nákladu ceník neuvádí.`,
+    hodnoty: Object.fromEntries(brokeriAbecedne.map((b) => [b.id, prikladNakupu(b, CASTKA_TABULKA, kurzy)])),
+  } : null;
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -123,6 +133,7 @@ export default async function SrovnaniBrokeruPage() {
           </p>
           <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
             <span>Ceníky ověřeny <time dateTime={cenikyOverenyIso}>{cenikyOverenyStr}</time></span>
+            {kurzy && <><span aria-hidden>·</span><span>kurz ČNB k{'\u00a0'}{datumKurzu(kurzy)}</span></>}
             <span aria-hidden>·</span>
             <span>bez provizí a reklamy</span>
             <span aria-hidden>·</span>
@@ -132,7 +143,7 @@ export default async function SrovnaniBrokeruPage() {
 
         <section data-sekce="tabulka" className="space-y-3">
           <h2 className="sr-only">Srovnávací tabulka brokerů</h2>
-          <SrovnaniBrokeruClient profil={profil} />
+          <SrovnaniBrokeruClient profil={profil} priklad={priklad} />
           <RoboKarta />
           <Link href="/kde-koupit#verdikt" className="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm transition-colors hover:border-teal-300">
             <span><span className="font-medium text-slate-900">Který broker sedí na vaši situaci</span> <span className="text-slate-500">– a kolik vás stojí nákup pro vaši částku</span></span>

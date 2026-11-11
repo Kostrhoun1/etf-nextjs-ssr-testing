@@ -407,6 +407,32 @@ export function castiPrikladu(n: NakladNakupu): { provize: number; smena: number
   return { provize, smena, celkem: smena == null ? null : Math.round((provize + smena) * 10) / 10 };
 }
 
+/* ---------- Příklad nákupu jako text – JEDNO znění pro recenze (2 000 Kč) i srovnávací tabulku (5 000 Kč) ----------
+   3.6 (listopad 2026): tabulka /srovnani-brokeru měla jen poplatek v EUR a směnu v %, kolik nákup stojí v korunách
+   bylo jen na /kde-koupit. Řádek „Nákup za 5 000 Kč“ počítá stejný model (nakladNakupu + castiPrikladu) jako recenze.
+   „od“ = část nákladu neznáme (Fio směna v kurzu banky, IBKR případný poplatek burzy). Bez kurzu ČNB „—“ (pravidlo č. 1).
+   Hlídá scripts/check-fund-data.mjs (audit naklady – nezávislý vzorec z ceníků, kolo8 obsah – součet částí). */
+const kcPrikladu = (v: number) =>
+  `${v < 10 ? v.toLocaleString('cs-CZ', { maximumFractionDigits: 1 }) : Math.round(v).toLocaleString('cs-CZ')}${nbsp}Kč`;
+// Kladný podíl pod 0,005 % by se zaokrouhlil na „0 %“ → „< 0,01 %“ (audit nákladů 22. 10. 2026, N18).
+const procPrikladu = (v: number) => (v > 0 && v < 0.005
+  ? `<${nbsp}0,01${nbsp}%`
+  : `${v.toLocaleString('cs-CZ', { maximumFractionDigits: v < 1 ? 2 : 1 })}${nbsp}%`);
+
+export function prikladNakupu(b: Broker, castkaKc: number, k: Kurzy | null): { v: string; pozn?: string; data?: Record<string, string> } {
+  const n = k && !b.robo ? nakladNakupu(b, castkaKc, k) : null;
+  const cp = n ? castiPrikladu(n) : null;
+  if (!n || !cp) return { v: '—' };
+  const v = cp.celkem == null ? `od ${kcPrikladu(cp.provize)}`
+    : `${n.plusBurza ? 'od ' : ''}${kcPrikladu(cp.celkem)} (${procPrikladu((cp.celkem / castkaKc) * 100)})`;
+  // DEGIRO: poplatek platí pro ETF Selection (Tradegate); ostatní ETF dráž – ať to číslo nevypadá jako cena každého ETF.
+  const poplatek = `poplatek ${kcPrikladu(cp.provize)}${b.nakup?.ostatniEtfEur != null ? ' (ETF Selection)' : ''}`;
+  const pozn = cp.smena == null ? `${poplatek} + směna v kurzu banky (výši neznáme)`
+    : `${poplatek} + směna ${kcPrikladu(cp.smena)}${n.plusBurza ? ' + případně poplatek burzy (u IBKR jen někdy)' : ''}`;
+  // Denní kontrola: celkem|poplatek|směna (zaokrouhlené části) a částka, pro kterou platí.
+  return { v, pozn, data: { 'data-priklad': `${cp.celkem ?? ''}|${cp.provize}|${cp.smena ?? ''}`, 'data-priklad-castka': String(castkaKc), 'data-priklad-broker': b.id } };
+}
+
 /** Robo-poradce: roční poplatek v Kč z celé hodnoty portfolia (sazba podle objemu platí na CELÝ majetek).
  *  `slevaPct` = sleva za fixaci (Portu 0–40 %). null = broker nemá sazby robo-poradce. */
 export function rocniPoplatekRobo(b: Broker, hodnotaKc: number, slevaPct = 0): { sazba: number; kc: number } | null {

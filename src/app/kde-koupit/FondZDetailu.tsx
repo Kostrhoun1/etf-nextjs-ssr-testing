@@ -22,7 +22,7 @@ export function FondHero({ children }: { children: ReactNode }) {
       <Link href={`/etf/${fond.isin}`} className="inline-flex items-center gap-1 text-xs font-medium text-slate-300 hover:text-white">
         <ArrowLeft className="h-3.5 w-3.5" /> Zpět na {jmeno}
       </Link>
-      <h1 className="mt-1.5 text-2xl md:text-3xl font-bold tracking-tight leading-tight">Kde koupit {jmeno}</h1>
+      <h1 className="mt-1.5 text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight">Kde koupit {jmeno}</h1>
       <p className="mt-1.5 text-sm md:text-base text-slate-200">
         {fond.name}
         <span className="text-slate-500"> · </span>

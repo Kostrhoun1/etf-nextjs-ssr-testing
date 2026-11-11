@@ -42,6 +42,12 @@ export const dynamicParams = true;
 /** Kolik fondů posíláme do tabulky (největší napřed). Větší kategorie (dluhopisy, akcie) odkazují
  *  na srovnávač – stovky řádků v HTML by stránku zpomalily a nikdo je nečte. */
 const MAX_V_TABULCE = 300;
+/** 3.4 (11. 11. 2026): kategorie do PLNA_DO fondů má v tabulce VŠECHNY fondy (dřív ESG 403 → jen 300 největších).
+ *  Nad tím (Největší, Nejlevnější, akciové, dluhopisové, akumulační, distribuční – 780 až 2 300 fondů) zůstává 300 řádků
+ *  a odkaz na srovnávač se stejným prahem velikosti a řazením (celý seznam tam běží na klientu nad cachovaným API).
+ *  Plná tabulka by u nich byla +0,4–0,5 MB HTML (měřeno 11. 11.: 300 řádků = 71 kB dat). Počet se zjistí dotazem count
+ *  (getCategoryCount) PŘED výpisem – stejné dva dotazy jako dřív, jen za sebou; CPU za běhu se nemění (čekání na DB). */
+const PLNA_DO = 500;
 
 /**
  * Kterou dimenzi složení preferovat v infografice podle typu kategorie.
@@ -71,13 +77,20 @@ const WORLD_INDEX_SLUGS = new Set([
 
 /* Proklik do srovnávače s předvyplněným filtrem – jen tam, kde filtr srovnávače odpovídá kategorii
    (index = kanonický název z src/utils/indexNormalization.ts, kat = třída aktiv). Jinde obecný odkaz. */
-const SROVNAVAC: Record<string, { q: string; text: string }> = {
+/* Odkaz pod tabulkou. `prah: true` = přidat práh velikosti žebříčku (minvel), ať srovnávač neukáže tisíce fondů pod prahem.
+   3.4: i velké žebříčky nad PLNA_DO (Největší, Nejlevnější, akumulační, distribuční) mají odkaz na celý seznam ve srovnávači
+   se stejným řazením jako tabulka – dřív končily u 300 řádků jen obecným „Všechny fondy ve srovnávači“. */
+const SROVNAVAC: Record<string, { q: string; text: string; prah?: boolean }> = {
+  'nejlepsi-etf-2026': { q: '', text: 'Všechny fondy ve srovnávači', prah: true },
+  'nejlevnejsi-etf': { q: 'sort=ter&smer=asc', text: 'Všechny fondy podle TER ve srovnávači', prah: true },
+  'nejlepsi-akumulacni-etf': { q: 'vyplata=acc', text: 'Všechny akumulační fondy ve srovnávači', prah: true },
+  'nejlepsi-distribucni-etf': { q: 'vyplata=dist', text: 'Všechny distribuční fondy ve srovnávači', prah: true },
   'nejlepsi-sp500-etf': { q: `index=${encodeURIComponent('S&P 500')}`, text: 'Fondy na S&P 500 ve srovnávači' },
   'nejlepsi-msci-world-etf': { q: `index=${encodeURIComponent('MSCI World')}`, text: 'Fondy na MSCI World ve srovnávači' },
   'nejlepsi-nasdaq-etf': { q: `index=${encodeURIComponent('Nasdaq 100')}`, text: 'Fondy na Nasdaq-100 ve srovnávači' },
-  'nejlepsi-akciove-etf': { q: 'kat=Akcie', text: 'Všechny akciové fondy ve srovnávači' },
-  'nejlepsi-dluhopisove-etf': { q: 'kat=Dluhopisy', text: 'Všechny dluhopisové fondy ve srovnávači' },
-  'nejlepsi-komoditni-etf': { q: 'kat=Komodity', text: 'Všechny komoditní fondy ve srovnávači' },
+  'nejlepsi-akciove-etf': { q: 'kat=Akcie', text: 'Všechny akciové fondy ve srovnávači', prah: true },
+  'nejlepsi-dluhopisove-etf': { q: 'kat=Dluhopisy', text: 'Všechny dluhopisové fondy ve srovnávači', prah: true },
+  'nejlepsi-komoditni-etf': { q: 'kat=Komodity', text: 'Všechny komoditní fondy ve srovnávači', prah: true },
 };
 
 /* Související průvodce a analýzy (SEO audit kola 6): žebříček = srovnání VŠECH fondů („nejlepší S&P 500 ETF“),
@@ -288,12 +301,10 @@ export function generateStaticParams() {
  *  takže titulek/popisek nemůžou ukázat jiné číslo než stránka a metadata nepřidávají žádný dotaz (free tier). */
 const nactiZebricek = reactCache(async (slug: string) => {
   const cfg = categoryConfigs[slug];
-  const [all, pocetDb, dataDatum, odlehle] = await Promise.all([
-    getTopETFsForCategory({ ...cfg, limit: MAX_V_TABULCE }),
-    getCategoryCount(cfg),
-    getDataDatum(),
-    odlehleIsiny(),
-  ]);
+  const [pocetDb, dataDatum, odlehle] = await Promise.all([getCategoryCount(cfg), getDataDatum(), odlehleIsiny()]);
+  // Počet neznámý (chyba dotazu) → bezpečně 300 (dřívější chování), ne neomezený výpis.
+  const limit = pocetDb != null && pocetDb <= PLNA_DO ? PLNA_DO : MAX_V_TABULCE;
+  const all = await getTopETFsForCategory({ ...cfg, limit });
   // Kolo 6b: fond s výnosem mimo svůj trh (src/lib/vynosNeovereny.ts) – výnosy null → „—“ v tabulce, mimo karty/medián/odpověď.
   const etfs = bezOdlehlychVynosu(all, odlehle).filter((e) => e.ter_numeric != null || e.fund_size_numeric != null);
   // Počet fondů v kategorii: z DB (count), jinak aspoň kolik jsme načetli – nikdy nevymyšlený.
@@ -587,7 +598,7 @@ export default async function CategoryDetailPreview(
   // Odkaz „všechny … fondy“ nese i práh velikosti žebříčku – jinak srovnávač ukáže tisíce fondů místo počtu
   // ze žebříčku (kolo 6: „1 782 akciových“ vs. srovnávač bez prahu).
   const srovnavac = !sr ? { href: '/srovnani', text: 'Všechny fondy ve srovnávači' }
-    : sr.q.startsWith('kat=') ? { href: `/srovnani?${sr.q}&minvel=${prah}`, text: `${sr.text} (nad ${prah}\u00a0mil.\u00a0€)` }
+    : sr.prah ? { href: `/srovnani?${[sr.q, `minvel=${prah}`].filter(Boolean).join('&')}`, text: `${sr.text} (nad ${prah}\u00a0mil.\u00a0€)` }
     : { href: `/srovnani?${sr.q}`, text: sr.text };
 
   // Infografika „co v tom je“ – složení největšího fondu kategorie. Rozložení podle zemí jen když

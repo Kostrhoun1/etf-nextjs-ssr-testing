@@ -1279,6 +1279,34 @@ R.recenze = async (p, env) => {
   return { datum: kurz?.datum, kurzZlaty: zlaty, kontroly: k };
 };
 
+/* /srovnani-brokeru – spočítaný řádek „Nákup za 5 000 Kč celkem“ (3.6, 11. 11. 2026). Nezávislý vzorec z ceníků
+   (stejné zdroje jako naklady-19…23), ne kód webu. Čte ZOBRAZENÝ text buňky (span s data-priklad-castka). */
+R.srovnaniBrokeru = async (p, env) => {
+  const s = await env.staticka(p.url);
+  const kurz = await kurzStranky(s.text, p);
+  const zlaty = kurz && kurz.datum === p.vstupy.kurz_CNB?.datum;
+  const eur = kurz?.eur ?? p.vstupy.kurz_CNB.eurCzk, usd = kurz?.usd ?? p.vstupy.kurz_CNB.usdCzk;
+  const kc = p.vstupy.castka_Kc, e = kc / eur;
+  const bunka = (id) => s.atributy.find((x) => x.a['data-priklad-castka'] === String(kc) && x.a['data-priklad-broker'] === id)?.text ?? null;
+  const o = p.ocekavano, k = [];
+  const model = {
+    trading212: 0.0015 * kc,
+    xtb: 0.005 * kc,
+    degiro: 1 * eur,
+    // IBKR Tiered 0,05 % (min. 1,25 EUR) + vypořádání Xetra 0,02 EUR + 0,0008 % + regulační 0,01 EUR; směna min(0,03 %, max(0,002 %, 2 USD)).
+    // Nezaokrouhleně – web sčítá části zaokrouhlené na celé Kč, tolerance ±1 Kč to pokrývá.
+    ibkr: (Math.max(0.0005 * e, 1.25) + 0.03 + 0.000008 * e) * eur + Math.min(0.0003 * kc, Math.max(0.00002 * kc, 2 * usd)),
+    fio: (e <= 1400 ? 3.95 : e <= 3000 ? 4.95 : Math.max(0.0015 * e, 6.95)) * eur,
+  };
+  for (const id of ['trading212', 'xtb', 'degiro']) k.push(cNum(`${id}.celkem_Kc`, zlaty ? o[`${id}.celkem_Kc`] : model[id], precti(bunka(id)), 1, { half: false }));
+  const ib = precti(bunka('ibkr'));
+  k.push(cNum('ibkr.celkem_Kc', zlaty ? o['ibkr.celkem_Kc'] : model.ibkr, ib, 1, { half: false }));
+  k.push(cBool('ibkr – „od“', /^od /.test(norm(bunka('ibkr') || '')), '„od …“ (poplatek burzy jen někdy)', { skut: bunka('ibkr') }));
+  k.push(cNum('fio.poplatek_Kc', zlaty ? o['fio.poplatek_Kc'] : model.fio, precti(bunka('fio')), 1, { half: false }));
+  k.push(cBool('fio – „od“', /^od /.test(norm(bunka('fio') || '')), '„od …“ (směna v kurzu banky)', { skut: bunka('fio') }));
+  return { datum: kurz?.datum, kurzZlaty: zlaty, kontroly: k };
+};
+
 /* Detail fondu: CZK / EUR / USD */
 async function vynosyDetailu(page) {
   const s = await snimek(page);
@@ -1458,6 +1486,7 @@ function ridic(p) {
   if (u === '/kde-koupit') return R.naklady;
   if (u.startsWith('/kde-koupit?isin=')) return R.nakladyIsin;
   if (u.startsWith('/recenze/')) return R.recenze;
+  if (u === '/srovnani-brokeru') return R.srovnaniBrokeru;
   if (id === 'naklady-28') return R.zaokrouhleni;
   if (u.startsWith('/etf/')) return R.detail;
   if (u.startsWith('/srovnani/porovnani')) return R.porovnaniUsd;

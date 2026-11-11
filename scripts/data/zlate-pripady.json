@@ -5959,6 +5959,31 @@
    "tolerance": "přesně",
    "zdroj_overeni": "Přepočteno 23. 10. 2026 po V15 a S17 (audit 22. 10. 2026): pravidla odvozena z textu otázek a rozhodnutí auditu – střední riziko dřív nic neměnilo (V15), teď vede k portfoliím, kde akcie tvoří většinu a zbytek dluhopisy; horizont 3–10 let nese fakt o délce propadu; příjem + reinvestice si odporují (S17). Funkce recommend ve vyberEtfData.ts tomu odpovídá; test prochází všech 162 cest v Chromiu (24 ve WebKitu) a kontroluje nadpis, druhou možnost, třídu příkladu a varování.",
    "zavisi_na_datu": false
+  },
+  {
+   "id": "naklady-47",
+   "skupina": "naklady",
+   "typ": "hodnota",
+   "nastroj": "Srovnání brokerů – Nákup za 5 000 Kč celkem",
+   "url": "/srovnani-brokeru",
+   "vstupy": {
+    "castka_Kc": 5000,
+    "kurz_CNB": {
+     "eurCzk": 24.265,
+     "usdCzk": 21.651,
+     "datum": "2026-10-22"
+    }
+   },
+   "ocekavano": {
+    "trading212.celkem_Kc": 7.5,
+    "xtb.celkem_Kc": 25,
+    "degiro.celkem_Kc": 24.27,
+    "ibkr.celkem_Kc": 32.6,
+    "fio.poplatek_Kc": 95.85
+   },
+   "tolerance": "±1 Kč",
+   "zdroj_overeni": "Oficiální ceníky staženy 22. 10. 2026: DEGIRO Přehled poplatků degiro.cz/data/pdf/cs/Prehled_poplatku.pdf (Rates from 01-01-2026: ETF Selection 0 € + manipulační 1 €, ostatní burzy 2 € + 1 €, EUR↔CZK zdarma); XTB xtb.com/cz/soubory/tabulkapoplatkuaprovizi20102026.pdf (OMI 0 % do 100 000 EUR/měs., konverze 0,5 %); Trading 212 helpcentre.trading212.com „What is the FX fee?“ (0,15 %); IBKR interactivebrokers.ie/en/pricing/commissions-stocks-europe.php (Germany Tiered 0,05 %, min 1,25 €, max 29 €) + commissions-spot-currencies.php (0,20 bp, min 2 USD); Fio fio.cz/docs/cz/C_zaklad.pdf (účinnost 1. 7. 2026, XETRA ≤1400 € 3,95 €, ≤3000 € 4,95 €, nad 0,15 % min 6,95 €); kurz ČNB 22. 10. 2026 (rok.txt): EUR 24,265, USD 21,651. Přepočet: skripty/model_naklady.py (Python, bez kódu webu). Přepočet 11. 11. 2026 ručně z ceníků pro 5 000 Kč (206,06 EUR): T212 0,15 % = 7,5 Kč; XTB 0,5 % = 25 Kč; DEGIRO ETF Selection 1 EUR = 24 Kč; IBKR (1,25 + 0,02 + 0,0016 + 0,01) EUR = 31,1 Kč + automatická směna 0,03 % = 1,5 Kč → 32,6 Kč, na webu „od 32–33 Kč“ (součet částí zaokrouhlených na Kč); Fio do 1 400 EUR 3,95 EUR = 96 Kč + směna v kurzu banky → „od 96 Kč“.",
+   "zavisi_na_datu": "kurz ČNB"
   }
  ],
  "vyrazeno": [

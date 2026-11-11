@@ -172,26 +172,29 @@ export default async function KdeKoupitPage() {
             Klientský kontext, ať stránka zůstane statická (ISR). Kolo 5: dřív samostatný box nad hero = dvě hlavičky. */}
         <FondProvider>
         {/* HERO */}
-        <section data-sekce="hero" className="pb-8">
-          <div className="rounded-2xl bg-slate-900 text-white px-5 py-6 md:px-9 md:py-8">
+        {/* 3.6 (11. 11. 2026): mobilní hlavička kompaktní – úvodní věta (kalkulačka ji říká popiskem „Kolik investujete
+            měsíčně“), autor a „bez provizí“ jen od sm; datum ceníků a kurzu zůstává. Dřív tmavý box ~390 px a první
+            řádek kalkulačky až pod okrajem obrazovky. */}
+        <section data-sekce="hero" className="pb-5 md:pb-8">
+          <div className="rounded-2xl bg-slate-900 text-white px-4 py-4 sm:px-5 sm:py-6 md:px-9 md:py-8">
             <div className="md:flex md:items-end md:justify-between gap-10">
               <div className="max-w-xl">
                 <FondHero>
-                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">Kde koupit ETF v Česku {year}</h1>
-                  <p className="mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight">Kde koupit ETF v Česku {year}</h1>
+                  <p className="hidden sm:block mt-2 text-slate-300 text-sm md:text-base leading-relaxed">
                     Zadejte, kolik investujete měsíčně, a uvidíte, kolik vás nákup ETF u každého brokera stojí – poplatek i směna korun na eura.
                   </p>
                   {ukazka && kurzy && (
-                    <p data-odpoved="kde-koupit" data-broker-odpoved={ukazka.b.id} data-kc-odpoved={ukazka.kc.toFixed(2)} className="mt-2 text-slate-200 text-sm md:text-base leading-relaxed">
+                    <p data-odpoved="kde-koupit" data-broker-odpoved={ukazka.b.id} data-kc-odpoved={ukazka.kc.toFixed(2)} className="mt-1.5 sm:mt-2 text-slate-200 text-[13px] sm:text-sm md:text-base leading-relaxed">
                       Podle ceníků ověřených {cenikyOverenyStr} a kurzu ČNB k{'\u00a0'}{datumKurzu(kurzy)} vychází nákup ETF za 2{'\u00a0'}000{'\u00a0'}Kč nejlevněji
                       u <strong className="text-white">{ukazka.jmeno}</strong>: {kcPresne(ukazka.kc)} včetně směny korun na eura. U jiných částek se pořadí mění.
                     </p>
                   )}
                 </FondHero>
-                <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
-                  <span className="inline-flex items-center gap-1.5"><AutorZnak tmavy /><Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link></span>
+                <p className="mt-2.5 sm:mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-400">
+                  <span className="hidden sm:inline-flex items-center gap-1.5"><AutorZnak tmavy /><Link href="/o-nas" className="text-slate-200 hover:text-white">Tomáš Kostrhoun</Link></span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /><span>Ceníky ověřeny {cenikyOverenyStr}</span></span>
-                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /><span>Bez provizí a reklamy</span></span>
+                  <span className="hidden sm:inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /><span>Bez provizí a reklamy</span></span>
                 </p>
               </div>
               {/* Tři fakta – jen desktop; na mobilu je hned pod hero živý přepočet (stejná čísla, bez duplicity).

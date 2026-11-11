@@ -1179,3 +1179,24 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
 - **`run=1` posune stránku ke kartě výsledku**, jen když karta není nahoře (mobil).
 - Hlídá denní kontrola (check-fund-data.mjs, kolo5 A): `data-kontrola-backtest` na /backtest = konečná hodnota a stáří dat
   předpočtu proti živému API.
+
+## Žebříčky, srovnávač a brokeři – týden 3, body 3.4–3.6 (11. 11. 2026)
+
+- **Tabulka žebříčku nese VŠECHNY fondy kategorie jen do 500 fondů** (`PLNA_DO` v nejlepsi-etf/[slug]/page.tsx; dřív strop
+  300 – ESG s 403 fondy byl useknutý). Nad 500 (Největší 2 295, Nejlevnější 2 289, akciové 1 766, akumulační 1 515,
+  dluhopisové 825, distribuční 780 k 11. 11.) zůstává 300 řádků + věta „Tabulka nese 300 z N fondů, ostatní najdete ve
+  srovnávači“ a odkaz do srovnávače se stejným prahem velikosti (`minvel`) a řazením. Záměr: plná tabulka by byla
+  +0,4–0,5 MB HTML na stránku (300 řádků = 71 kB dat, měřeno 11. 11.) a delší ISR render. Nezvedat strop bez měření.
+- **„Celý svět“ na /zebricky = VWCE (FTSE All-World), ne EUNL.** Opraveno už 18. 10. (filtr žebříčku); od 11. 11. rozcestník
+  nese `data-nejvetsi` a denní kontrola (blok 12) hlásí POPLACH, když název největšího fondu (z DB) není index celého světa.
+- **Nabídka indexů ve srovnávači je na desktopu sbalená**: skupina poskytovatele ukazuje 8 indexů s nejvíc fondy + vybrané,
+  zbytek tlačítkem „+ další N …“ nebo hledáním (dřív ~760 položek pod sebou). ICE a J.P. Morgan mají vlastní skupinu.
+- **Aktivně řízené fondy nemají „index“** (`jeCistyIndex` odmítá „Active“ – stejné pravidlo jako AKTIVNI v detailFondu.ts).
+  J.P. Morgan „… Research Enhanced Index Equity Active“ apod. je název strategie ze zdroje, ne index → v nabídce indexů
+  nejsou, v porovnání „—“, na detailu „žádný (aktivně řízený fond)“. Nevracet.
+- **Recenze brokera počítá „Nákup za 2 000 Kč“, tabulka /srovnani-brokeru „Nákup za 5 000 Kč“ – dvě částky záměrně**
+  (recenze = malý pravidelný nákup, tabulka = typický měsíční nákup; /kde-koupit libovolná částka). Text i čísla z jedné
+  funkce `prikladNakupu` (src/data/brokerData.ts). U DEGIRO platí pro ETF Selection (v poznámce), u IBKR a Fio „od“.
+  Hlídá check-fund-data (audit naklady B2 – nezávislý vzorec z ceníků) a zlatý případ naklady-47.
+- **/kde-koupit na mobilu: hero bez úvodní věty, autora a „bez provizí“** (jsou od 640 px). Datum ceníků a odpověď
+  s kurzem ČNB zůstávají. Záměr: kalkulačka nákladů má být na první obrazovce.

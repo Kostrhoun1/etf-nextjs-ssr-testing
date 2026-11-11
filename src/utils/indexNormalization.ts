@@ -83,6 +83,9 @@ export function getIndexProvider(label: string): string {
   if (n.startsWith('solactive')) return 'Solactive';
   if (n.includes('iboxx') || n.includes('markit')) return 'iBoxx';
   if (n.startsWith('dax') || n.startsWith('tecdax') || n.startsWith('mdax')) return 'DAX';
+  // 3.5 (11. 11. 2026): „Ostatní indexy“ měly 124 položek – ICE a J.P. Morgan (dluhopisové indexy) mají vlastní skupinu.
+  if (n.startsWith('ice ')) return 'ICE';
+  if (/^j\.?\s?p\.?\s?morgan\b/.test(n)) return 'J.P. Morgan';
   return 'Ostatní indexy';
 }
 
@@ -194,6 +197,10 @@ const JEDNOSLOVNE = new Set(['dax', 'mdax', 'sdax', 'tecdax', 'smi', 'topix', 'a
 /** Je klíč indexu dost čistý pro nabídku? (poskytovatel na začátku, nic useknutého). */
 export function jeCistyIndex(klic: string): boolean {
   if (!klic || !POSKYTOVATEL_INDEXU.test(klic)) return false;
+  // 3.5 (11. 11. 2026): aktivně řízené fondy (J.P. Morgan „… Research Enhanced Index Equity Active“, „… Bond Active“) mají
+  // v řádku „Index“ u zdroje název vlastní strategie – to není index (stejné pravidlo jako AKTIVNI v src/lib/detailFondu.ts).
+  // Dřív ~50 takových „indexů“ v nabídce srovnávače a „Sledovaný index“ u porovnání; detail teď ukáže „žádný (aktivně řízený fond)“.
+  if (/\bactive\b/i.test(klic)) return false;
   const slova = klic.split(' ');
   if (slova.length === 1) return JEDNOSLOVNE.has(klic);
   // „Bloomberg U“ (z „U.S.“) = scraper název useknul na „.“ (další případy chytá jeUseknutyIndex)
