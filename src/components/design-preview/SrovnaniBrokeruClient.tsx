@@ -17,9 +17,22 @@ import type { Broker } from '@/types/broker/index';
    které denní kontrola porovnává s /kde-koupit – mobilní výběr je záměrně nemá (jinak by se počítaly dvakrát).
    Robo-poradce Portu v tabulce brokerů není (karta pod tabulkou). */
 
-type Hodnota = { v: string; pozn?: string; ano?: boolean; data?: Record<string, string> };
+export type Hodnota = { v: string; pozn?: string; ano?: boolean; data?: Record<string, string> };
 interface Radek { nazev: string; tip?: string; hodnota: (b: Broker) => Hodnota }
 
+
+/** Spočítaný řádek „Nákup za 5 000 Kč“ (3.6): hodnoty počítá server (prikladNakupu v brokerData + kurz ČNB s datem). */
+export interface PrikladRadek { castka: number; tip: string; hodnoty: Record<string, Hodnota> }
+
+function radky(priklad: PrikladRadek | null): Radek[] {
+  if (!priklad) return RADKY;
+  const r: Radek = {
+    nazev: `Nákup za ${priklad.castka.toLocaleString('cs-CZ')} Kč celkem`,
+    tip: priklad.tip,
+    hodnota: (b) => priklad.hodnoty[b.id] ?? { v: '—' },
+  };
+  return [RADKY[0], RADKY[1], r, ...RADKY.slice(2)];
+}
 
 const RADKY: Radek[] = [
   {
@@ -93,8 +106,9 @@ function Logo({ id }: { id: string }) {
 const ZAHLAVI = 'sticky top-14 z-20 bg-slate-50 shadow-[0_1px_0_0_rgb(226_232_240)]';
 
 /** Desktop (md+): celá tabulka, záhlaví se při scrollu drží pod hlavičkou webu. */
-function Tabulka({ profil }: { profil: Record<string, string> }) {
+function Tabulka({ profil, priklad }: { profil: Record<string, string>; priklad: PrikladRadek | null }) {
   const brokeri = brokeriAbecedne;
+  const RADKY = radky(priklad);
   return (
     <table className="hidden w-full table-fixed text-sm md:table">
       <colgroup>
@@ -142,8 +156,9 @@ function Tabulka({ profil }: { profil: Record<string, string> }) {
 }
 
 /** Mobil (< md): dva brokeři vedle sebe, výběr nahoře; výchozí první dva abecedně. */
-function DvaBrokeri({ profil }: { profil: Record<string, string> }) {
+function DvaBrokeri({ profil, priklad }: { profil: Record<string, string>; priklad: PrikladRadek | null }) {
   const brokeri = brokeriAbecedne;
+  const RADKY = radky(priklad);
   // Výchozí dvojice = první dva abecedně (neutrálně; dřív XTB vs Trading 212 = nejvyšší skóre, zrušeno 19. 10. 2026).
   const [a, setA] = useState(brokeri[0].id);
   const [b, setB] = useState(brokeri[1].id);
@@ -200,11 +215,11 @@ function DvaBrokeri({ profil }: { profil: Record<string, string> }) {
 }
 
 /** profil = krátký štítek „pro koho“ ze sdíleného doporučení (předává server, ať se neliší od /kde-koupit). */
-export default function SrovnaniBrokeruClient({ profil }: { profil: Record<string, string> }) {
+export default function SrovnaniBrokeruClient({ profil, priklad = null }: { profil: Record<string, string>; priklad?: PrikladRadek | null }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
-      <Tabulka profil={profil} />
-      <DvaBrokeri profil={profil} />
+      <Tabulka profil={profil} priklad={priklad} />
+      <DvaBrokeri profil={profil} priklad={priklad} />
     </div>
   );
 }
