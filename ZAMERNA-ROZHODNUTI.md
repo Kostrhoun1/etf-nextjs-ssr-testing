@@ -274,7 +274,8 @@ do `MONTHLY_CPI`, přepočítej je: `python3 -I scripts/overeni-realne-kalkulack
 `src/components/design-preview/MobilniVysledek.tsx` (FIRE, poplatky, nouzová rezerva, čistý plat, hypotéka, úvěr, kurzový
 dopad) a `souhrnVysledku` v investiční kalkulačce. Dřív byl výsledek 900–2 000 px pod začátkem kalkulačky (vstupy v jednom
 sloupci). Pruh bere hotová čísla od widgetu (žádný vlastní výpočet), nemá `data-qa` a má jiný popisek než hlavní panel –
-zlaté případy čtou hlavní panel. Na desktopu se neukazuje. Edukační sekce, které stály NAD kalkulačkou („Jak se počítá…“,
+zlaté případy čtou hlavní panel. Na desktopu se neukazuje. Výjimka: investiční kalkulačka vykresluje stejný souhrn dvakrát
+(mobil nad vstupy / desktop v kartě), obě kopie mají `data-qa="invest-vysledek"` a viditelná je vždy jen jedna. Edukační sekce, které stály NAD kalkulačkou („Jak se počítá…“,
 „Proč na TER záleží“…), jsou POD ní; tlačítko „Spustit kalkulačku“ v úvodu je na mobilu skryté (kalkulačka je hned pod ním).
 Kalkulačka poplatků má výsledkový panel PŘED grafem. Tabulka „Vývoj po letech“ v investiční kalkulačce je sbalená
 (`<details>`, zlatý případ ji rozbalí). Úvod investiční kalkulačky ukazuje číslo výchozího scénáře karty „A jak by to

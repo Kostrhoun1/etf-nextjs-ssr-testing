@@ -1256,7 +1256,7 @@
     "chyba": "3.7 přepínač „V dnešních korunách“ ve stroji času – nová funkce, na produkci zatím není",
     "kde": "jen produkce (v repu hotovo, do nasazení)",
     "opraveno": {
-     "commit": "větev worktree-agent-aba9d197c46a0748c",
+     "commit": "237552e",
      "datum": "2026-11-11",
      "overeno": "nezávisle 11. 11. 2026: Yahoo SPY × ČNB, CPI ČSÚ CEN0101B/E → 4 068 570 Kč / vklady 1 428 958 Kč",
      "poznamka": "na produkci ověřit po nasazení, pak dnes_selze smazat"
@@ -1295,7 +1295,7 @@
     "chyba": "3.7 přepínač „V dnešních korunách“ ve stroji času – nová funkce, na produkci zatím není",
     "kde": "jen produkce (v repu hotovo, do nasazení)",
     "opraveno": {
-     "commit": "větev worktree-agent-aba9d197c46a0748c",
+     "commit": "237552e",
      "datum": "2026-11-11",
      "overeno": "nezávisle 11. 11. 2026: Yahoo VT × ČNB, CPI ČSÚ CEN0101B/E → 2 933 239 Kč / vklady 1 428 958 Kč",
      "poznamka": "na produkci ověřit po nasazení, pak dnes_selze smazat"
