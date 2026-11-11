@@ -50,3 +50,7 @@ roky „věrohodné" – nikdo je nezávisle nekontroloval. Podrobnosti: `PLAN-O
     opravy kontrol mohou do main kdykoli. Push větve staví náhled zbytečně (fronta 1 build) – zrušit.
 - Naše testy a kontroly NESMÍ procházet produkci hromadně (každý nový detail fondu = ISR zápis): proti produkci jen
   pevná malá sada stránek, široké kontroly proti lokálnímu buildu.
+- Kopie repa po agentech (`.claude/worktrees`, každá až 2,4 GB) se samy nemažou, jakmile agent commitne → disk Macu se
+  11. 11. 2026 zaplnil (46 kopií = 17 GB). **Po sloučení větve agenta kopii hned odstranit**: `bash scripts/uklid-worktree.sh`
+  (výpis) / `--smazat` (jen čisté a sloučené kopie, přes `git worktree remove` + `git branch -d`). Agenti si `node_modules`
+  nelinkují instalací, ale symlinkem na hlavní repo, a po ověření smažou svou `.next`.

@@ -52,6 +52,12 @@ gh run list --repo Kostrhoun1/etf-astro --workflow scrape.yml --limit 3     # sc
   nejvýš 1–2× týdně) a ověřit na produkci (pevná sada stránek). Mimo pravidla → zeptat se majitele.
 - Nikdy: placený plán, mazání dat, force push, zásah do pracovního adresáře `etf-astro` (jen worktree + PR).
 
+## 3a. Jednou týdně (v pondělí): úklid kopií repa po agentech
+
+- `bash scripts/uklid-worktree.sh --smazat` – odstraní jen čisté kopie, jejichž větev je celá v origin/main (přes
+  `git worktree remove`, nikdy rm). Kopii „OBSAHUJE PRÁCI“ nemazat, jen uvést ve shrnutí majiteli (zavedeno 11. 11. 2026,
+  disk Macu byl plný). Známá výjimka: `vibrant-carson-dccb3a` (necommitnutý úklid outlierů indexů z 19. 7.) – čeká na prověření.
+
 ## 3b. Jednou měsíčně (po 15. dni, kdy ČSÚ zveřejní inflaci)
 
 - `python3 scripts/backtest/generuj-cpi-a-sazby.py` – doplní měsíční CPI (src/lib/backtest/inflation.ts) a bezrizikové
