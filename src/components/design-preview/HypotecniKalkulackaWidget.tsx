@@ -13,6 +13,7 @@ import {
 import { Home, Percent, Wallet, Coins, AlertTriangle, Banknote } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import MobilniVysledek from '@/components/design-preview/MobilniVysledek';
 
 /**
  * Interaktivní jádro hypoteční kalkulačky – redesign.
@@ -173,6 +174,10 @@ export default function HypotecniKalkulackaWidget() {
 
   return (
     <div className="space-y-4">
+      {/* 3.2: výsledek nahoře na mobilu */}
+      {hasData && summary && (
+        <MobilniVysledek cil="hypo-vysledek" stitek="Splátka každý měsíc" hodnota={fmtCZK(Math.round(summary.monthlyPayment))} />
+      )}
       {/* Vstupní parametry */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">
@@ -282,6 +287,7 @@ export default function HypotecniKalkulackaWidget() {
       </div>
 
       {/* Souhrn výsledků */}
+      <div id="hypo-vysledek" className="scroll-mt-20" />
       {!vstupyOk && <VysledekChybi />}
       {hasData && summary && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

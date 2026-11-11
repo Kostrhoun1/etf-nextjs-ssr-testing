@@ -91,5 +91,14 @@ export function inflationFactor(startDate: string | Date, endDate: string | Date
   return b / a
 }
 
+/**
+ * Index PŘESNĚ daného měsíce (YYYY-MM) – bez držení poslední hodnoty za koncem řady. null = ČSÚ index
+ * ještě nezveřejnil (nebo měsíc před 1/1996). Pro „v dnešních korunách“ ve stroji času: za posledním
+ * zveřejněným měsícem reálná čísla neukazujeme.
+ */
+export function cpiMesic(ym: string): number | null {
+  return MONTHLY_CPI[ym] ?? null
+}
+
 /** Poslední měsíc, pro který máme oficiální index (pro popisky „data k…“). */
 export const CPI_LAST_MONTH = LAST_MONTHLY

@@ -158,14 +158,16 @@ export default async function FeeCalculatorPreview() {
                   </span>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2.5">
+                {/* 3.2: na mobilu bez tlačítek – kalkulačka je hned pod úvodem */}
+                <div className="mt-5 hidden md:flex flex-wrap gap-2.5">
                   <Link href="#kalkulacka" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit kalkulačku</Link>
                   <Link href="/srovnani" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Najít levný ETF</Link>
                 </div>
               </div>
 
               {/* Živé mini-metriky */}
-              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
+              {/* Mobil: třetí karta přes celou šířku – „≈ 4 417 000 Kč“ se do třetiny nevešlo a přetékalo (3.2, 11. 11. 2026). */}
+              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 gap-2.5">
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Nejlevnější ETF (TER)</p>
                   <p className="text-lg font-bold tabular-nums">{ter(lowestTer?.ter_numeric ?? null)}</p>
@@ -176,7 +178,7 @@ export default async function FeeCalculatorPreview() {
                   <p className="text-lg font-bold tabular-nums">~1,8 %</p>
                   <p className="text-xs text-slate-400">aktivní správa</p>
                 </div>
-                <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
+                <div className="col-span-2 sm:col-span-1 rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Modelový rozdíl / 30 let</p>
                   <p className="text-lg font-bold tabular-nums text-emerald-400" data-model-rozdil={Math.round(modelDiff)}>≈ {modelDiffStr}</p>
                   <p className="text-xs text-slate-400">výchozí vstupy, model 7 % ročně</p>
@@ -186,9 +188,15 @@ export default async function FeeCalculatorPreview() {
           </div>
         </section>
 
-        {/* PROČ NA TER ZÁLEŽÍ – edukace NAD kalkulačkou */}
+        {/* KALKULAČKA */}
+        <section id="kalkulacka" className="pb-10 scroll-mt-16">
+          <SectionHead title="Spočítejte si dopad poplatku" desc="Zadejte svůj případ. Stejný vklad i výnos trhu, jediný rozdíl je roční poplatek." />
+          <FeeCalculatorWidget />
+        </section>
+
+        {/* PROČ NA TER ZÁLEŽÍ – edukace POD kalkulačkou (3.2, 11. 11. 2026: dřív nad ní – výsledek byl na mobilu ~2 000 px dolů) */}
         <section className="pb-10">
-          <SectionHead title="Proč na TER záleží" desc="Krátké vysvětlení, než si spočítáte vlastní případ." />
+          <SectionHead title="Proč na TER záleží" desc="Krátké vysvětlení k výpočtu výše." />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <p className="text-sm text-slate-600 leading-relaxed">
               Poplatek se strhává <strong className="text-slate-900">každý rok z celé hodnoty portfolia</strong> – i z částky,
@@ -216,12 +224,6 @@ export default async function FeeCalculatorPreview() {
               ))}
             </ul>
           </div>
-        </section>
-
-        {/* KALKULAČKA */}
-        <section id="kalkulacka" className="pb-10 scroll-mt-16">
-          <SectionHead title="Spočítejte si dopad poplatku" desc="Zadejte svůj případ. Stejný vklad i výnos trhu, jediný rozdíl je roční poplatek." />
-          <FeeCalculatorWidget />
         </section>
 
         {/* CO JE TER – edukace vetkaná */}

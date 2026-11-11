@@ -8,6 +8,7 @@ import {
 import { TrendingUp, AlertTriangle, Sparkles, Flame, ChevronDown } from 'lucide-react';
 import CisloInput, { CisloPole, VysledekChybi } from '@/components/CisloInput';
 import { FIRE_PREDPOKLADY } from '@/lib/firePredpoklady';
+import MobilniVysledek from '@/components/design-preview/MobilniVysledek';
 import InfoTip from '@/components/design-preview/InfoTip';
 
 /**
@@ -367,6 +368,18 @@ export default function FireKalkulackaWidget() {
 
   return (
     <div className="space-y-4">
+      {/* 3.2: výsledek nahoře na mobilu (hlavní panel je pod vstupy) */}
+      {range && result && hydrated && (
+        warnNoFire ? (
+          <MobilniVysledek cil="fire-vysledek" stitek="Rok nezávislosti" hodnota={`ne do ${konecHorizontu} let`}
+            doplnek={range.podilDosazeno === 0 ? 'v žádné simulaci' : `cíl jen v ${podilText} simulací`} />
+        ) : uzMate ? (
+          <MobilniVysledek cil="fire-vysledek" stitek="Rok nezávislosti" hodnota="cíl už máte" doplnek={`cílová částka ${fmtCZK(range.targetReal)}`} />
+        ) : (
+          <MobilniVysledek cil="fire-vysledek" stitek="Nezávislost obvykle (medián) kolem" hodnota={`${medAge} let`}
+            doplnek={<>{slowAge == null ? `když se nedaří, ani do ${konecHorizontu} let` : fastAge === slowAge ? null : `rozsah ${fastAge}–${slowAge} let`} · cíl {fmtCZK(range.targetReal)} v dnešních cenách</>} />
+        )
+      )}
       {/* Vstupní parametry */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <div className="flex items-center justify-between gap-3 mb-4">
@@ -529,6 +542,7 @@ export default function FireKalkulackaWidget() {
       </details>
 
       {/* Výsledkový panel */}
+      <div id="fire-vysledek" className="scroll-mt-20" />
       {!range || !result ? (
         <VysledekChybi co={chybi || undefined} />
       ) : warnNoFire ? (

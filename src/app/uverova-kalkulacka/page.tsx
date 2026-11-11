@@ -117,14 +117,15 @@ export default async function UverovaKalkulackaPreview() {
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výsledky v korunách</span>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2.5">
+                {/* 3.2: na mobilu bez tlačítek – kalkulačka je hned pod úvodem */}
+                <div className="mt-5 hidden md:flex flex-wrap gap-2.5">
                   <Link href="#kalkulacka" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit kalkulačku</Link>
                   <Link href="/investicni-kalkulacka" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Místo úvěru investovat?</Link>
                 </div>
               </div>
 
               {/* Mini-přehled pojmů – ikonové karty (BEZ schématu/šipek) */}
-              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
+              <div className="mt-6 md:mt-0 md:w-72 shrink-0 hidden md:grid md:grid-cols-1 gap-2.5">
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Zadáte</p>
                   <p className="text-lg font-bold tabular-nums">Výše a sazba</p>

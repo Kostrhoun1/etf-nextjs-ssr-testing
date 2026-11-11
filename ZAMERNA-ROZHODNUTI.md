@@ -255,6 +255,32 @@ Totéž u „Vyvážené 60/40“ (od 7/2008 60 % VT + 40 % AGG). Ověřeno: mě
 přímý backtest VT (rozdíl 1e-15). Starty před 7/2008 jsou aproximace – stránky to uvádějí v metodice.
 Odkaz „Podrobně v backtestu“ používá složení platné pro zvolený rok (`slozeniProStart`).
 
+## Stroj času „V dnešních korunách“ končí posledním měsícem inflace ČSÚ, ne dnešním dnem (3.7, 11. 11. 2026)
+
+`src/lib/strojCasuVypocet.ts` (`spocitejStrojRealne`), přepínač ve `StrojCasuWidget.tsx`, odkaz `?ceny=dnesni`.
+Reálný pohled ukazuje stav ke konci POSLEDNÍHO měsíce indexu ČSÚ (`CPI_LAST_MONTH`, např. 9/2026), i když nominální
+„Dnes byste měli“ je k poslednímu dni dat (např. 10. 11. 2026). **Vypadá to jako starší číslo – je to záměr** (pravidlo č. 1):
+za zveřejněným měsícem nevíme, o kolik ceny vzrostly, a „dnešní“ hodnota v zářijových cenách by míchala dvě data.
+Vklady se přepočítávají indexem měsíce vkladu (CPI[konec]/CPI[m]), hodnota portfolia indexem měsíce konce; „nejhorší
+chvíle“ je propad KUPNÍ SÍLY (NAV/CPI). Dřívější řádek „Po inflaci: vklady odpovídají v dnešních cenách …“ (držel za koncem
+indexu poslední hodnotu, `vlozenoVDnesnichCenach`) je pryč. Ověřeno nezávisle 11. 11. 2026 (Yahoo × ČNB, CSV ČSÚ):
+S&P 500 / celý svět 5 000 Kč měsíčně od 2010 → 4 068 570 / 2 933 239 Kč (web 4 068 373 / 2 933 088), vklady 1 428 958 Kč
+(shoda na korunu). Hlídají zlaté případy investicni-43/44 (hodnota platí, dokud ČSÚ nepřidá měsíc). Až se doplní nový měsíc
+do `MONTHLY_CPI`, přepočítej je: `python3 -I scripts/overeni-realne-kalkulacky.py <den dat> <měsíc CPI>` (z holých dat, bez kódu webu).
+
+## Kalkulačky: výsledek dvakrát na mobilu a vysvětlení POD kalkulačkou (3.2, 11. 11. 2026)
+
+**Na mobilu (< md) je hlavní výsledek kalkulačky NAD vstupy a pak znovu v plném panelu pod nimi – záměr, ne duplicita.**
+`src/components/design-preview/MobilniVysledek.tsx` (FIRE, poplatky, nouzová rezerva, čistý plat, hypotéka, úvěr, kurzový
+dopad) a `souhrnVysledku` v investiční kalkulačce. Dřív byl výsledek 900–2 000 px pod začátkem kalkulačky (vstupy v jednom
+sloupci). Pruh bere hotová čísla od widgetu (žádný vlastní výpočet), nemá `data-qa` a má jiný popisek než hlavní panel –
+zlaté případy čtou hlavní panel. Na desktopu se neukazuje. Výjimka: investiční kalkulačka vykresluje stejný souhrn dvakrát
+(mobil nad vstupy / desktop v kartě), obě kopie mají `data-qa="invest-vysledek"` a viditelná je vždy jen jedna. Edukační sekce, které stály NAD kalkulačkou („Jak se počítá…“,
+„Proč na TER záleží“…), jsou POD ní; tlačítko „Spustit kalkulačku“ v úvodu je na mobilu skryté (kalkulačka je hned pod ním).
+Kalkulačka poplatků má výsledkový panel PŘED grafem. Tabulka „Vývoj po letech“ v investiční kalkulačce je sbalená
+(`<details>`, zlatý případ ji rozbalí). Úvod investiční kalkulačky ukazuje číslo výchozího scénáře karty „A jak by to
+dopadlo doopravdy?“ (stejný výpočet při ISR) – jen když jsou data ≤ 7 dní stará; ověřeno `scripts/overeni-realne-kalkulacky.py`.
+
 ## Články z dat: chybějící data = výjimka, ne prázdná stránka (17. 10. 2026)
 
 `/stroj-casu`, `/sp500-nebo-cely-svet`, `/jak-dlouho-v-minusu`, `/pravidlo-4-procent` při chybě dat VYHODÍ

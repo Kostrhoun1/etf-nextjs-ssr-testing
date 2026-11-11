@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Wallet, TrendingDown, Receipt, BadgePercent, Building2, AlertTriangle } from 'lucide-react';
 import InfoTip from './InfoTip';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import MobilniVysledek from '@/components/design-preview/MobilniVysledek';
 
 /**
  * Interaktivní jádro kalkulačky čisté mzdy 2026 (design systém teal/slate).
@@ -248,6 +249,11 @@ export default function CistyPlatWidget() {
 
   return (
     <div className="space-y-4">
+      {/* 3.2: výsledek nahoře na mobilu */}
+      {data && (
+        <MobilniVysledek cil="cisty-plat-vysledek" stitek={`Na účet měsíčně${data.socialCapped ? ' (průměr za rok)' : ''}`} hodnota={fmtCZK(data.netSalary)}
+          doplnek={`${netShare.toFixed(1).replace('.', ',')} % z hrubé mzdy${data.taxBonus > 0 ? ' (včetně daňového bonusu)' : ''}`} />
+      )}
       {/* Vstupy */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">
@@ -351,6 +357,7 @@ export default function CistyPlatWidget() {
         <VysledekChybi co={grossSalary == null || grossSalary <= 0 ? 'hrubou mzdu' : 'počet dětí'} />
       ) : (<>
       {/* Hlavní výsledek */}
+      <div id="cisty-plat-vysledek" className="scroll-mt-20" />
       <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">
         <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
           <Wallet className="w-4 h-4" /> Vaše čistá mzda

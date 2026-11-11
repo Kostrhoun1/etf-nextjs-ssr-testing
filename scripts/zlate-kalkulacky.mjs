@@ -350,6 +350,10 @@ async function investicniVstupy(page, v) {
 R.investicniMale = async (p, env) => {
   const page = await env.nova(p.url);
   await investicniVstupy(page, p.vstupy);
+  // Tabulka „Vývoj po letech“ je od 11. 11. 2026 (3.2) sbalená v <details> → rozbalit, jinak není v innerText.
+  const detTab = page.locator('details[data-sekce="kalk-tabulka"]').first();
+  if (await detTab.count() && (await detTab.getAttribute('open')) === null) await klikni(page, detTab.locator('summary').first());
+  await page.waitForTimeout(150);
   const s = await snimek(page);
   const o = p.ocekavano, k = [];
   const hodnota = precti(qa(s, 'invest-vysledek'));
@@ -423,6 +427,10 @@ R.doopravdy = async (p, env) => {
   const xirr = t.match(/zhodnocovaly ([\d,]+) % ročně/);
   const propad = t.match(/Největší propad ([−-][\d,]+) % \((\d+\/\d{4}) → (\d+\/\d{4})\)/);
   const navrat = t.match(/vrátila v (\d+\/\d{4})/);
+  // Úvod stránky (3.2, 11. 11. 2026) ukazuje číslo téhož výchozího scénáře – musí se rovnat kartě (stejný výpočet při ISR).
+  const uvod = s.atributy.find((x) => x.a['data-qa'] === 'kalk-uvod-cislo');
+  const kontrolaUvodu = uvod ? [cBool('úvod = karta „doopravdy“', precti(hodnota?.[1]) && Math.abs(Number(uvod.a['data-hodnota']) - precti(hodnota[1]).v) <= 1, 'stejné číslo v úvodu i v kartě',
+    { druh: 'konzistence', skut: `úvod ${uvod.a['data-hodnota']} vs karta ${hodnota?.[1]}` })] : [];
   return {
     datum: datum(t.match(/Data k ([^\n,]*\d{4})/)?.[1]),
     kontroly: [
@@ -432,6 +440,7 @@ R.doopravdy = async (p, env) => {
       cNum('max. propad %', o['max. propad %'], precti(propad?.[1]), pb),
       cText('vrchol→dno', o['vrchol→dno'], propad ? `${propad[2]} → ${propad[3]}` : null),
       cText('návrat', o['návrat'], navrat?.[1] ?? null),
+      ...kontrolaUvodu,
     ],
   };
 };
@@ -557,6 +566,30 @@ R.strojCasu = async (p, env) => {
     k.push(cNum('konzistence: vloženo = naráz + měsíčně × počet měsíců', v.naraz + v.mesicne * pocet, vlozeno, 0, { half: false, druh: 'konzistence' }));
   }
   return { stranky: [page], datum: dn, kontroly: k };
+};
+
+/* Stroj času – „V dnešních korunách“ (3.7, 11. 11. 2026). Reálný výpočet končí posledním měsícem indexu ČSÚ
+   (data-stroj-realne = YYYY-MM) → hodnota platí, dokud ČSÚ nepřidá další měsíc; pak jen konzistence a varování. */
+R.strojCasuRealne = async (p, env) => {
+  const page = await env.nova(p.url);
+  await cekejNaText(page, /Dnes byste měli zhruba|Po inflaci, v cenách/).catch(() => {});
+  const tl = page.getByRole('button', { name: 'V dnešních korunách' }).first();
+  if (await tl.getAttribute('aria-pressed').catch(() => null) !== 'true') await klikni(page, tl).catch(() => {});
+  await page.waitForTimeout(300);
+  const el = page.locator('[data-stroj-realne]').first();
+  const mesic = await el.getAttribute('data-stroj-realne').catch(() => null);
+  const h = Number(await el.getAttribute('data-hodnota').catch(() => NaN));
+  const v = Number(await el.getAttribute('data-vlozeno').catch(() => NaN));
+  const text = norm(await el.innerText().catch(() => ''));
+  const o = p.ocekavano, k = [];
+  k.push(cNum('hodnota po inflaci (Kč)', o['hodnota po inflaci (Kč)'], Number.isFinite(h) && h ? cislo(h) : null, 0, { rel: p.tolerance['relativně'] }));
+  k.push(cNum('vklady v dnešních cenách (Kč)', o['vklady v dnešních cenách (Kč)'], Number.isFinite(v) && v ? cislo(v) : null, 0, { rel: p.tolerance['vklady relativně'] }));
+  // Zobrazené (zaokrouhlené) číslo musí odpovídat přesné hodnotě v atributu – stránka neukazuje jiné číslo, než ověřujeme.
+  const zobr = precti(text.match(/byste měli zhruba\s*([\d ,]+(?: mil\.)? Kč)/)?.[1]);
+  k.push(cBool('zobrazená hodnota = data-hodnota (zaokrouhleně)', zobr && Number.isFinite(h) && Math.abs(zobr.v - h) <= (/mil\./.test(zobr.raw) ? 50000 : 0.005 * h + 1), 'stejné číslo',
+    { druh: 'konzistence', skut: `${zobr?.raw} vs ${h}` }));
+  k.push(cBool('reálný výpočet končí posledním měsícem indexu ČSÚ', !!mesic && /^\d{4}-\d{2}$/.test(mesic), 'YYYY-MM v data-stroj-realne', { druh: 'konzistence', skut: mesic }));
+  return { stranky: [page], datum: mesic, kontroly: k };
 };
 
 /* FIRE kalkulačka */
@@ -1462,6 +1495,7 @@ function ridic(p) {
   if (u === '/investovani-pro-deti') return R.deti;
   if (u === '/dip') return R.dip;
   if (u === '/pruvodce') return R.pruvodce;
+  if (u.startsWith('/stroj-casu') && /[?&]ceny=dnesni/.test(u)) return R.strojCasuRealne;
   if (u.startsWith('/stroj-casu')) return R.strojCasu;
   if (u === '/fire-kalkulacka') return R.fire;
   if (u === '/monte-carlo') return R.monteCarlo;

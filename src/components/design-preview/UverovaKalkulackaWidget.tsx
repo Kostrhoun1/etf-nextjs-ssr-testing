@@ -13,6 +13,7 @@ import {
 import { Wallet, Coins, TrendingDown, Percent, AlertTriangle, Banknote  } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import MobilniVysledek from '@/components/design-preview/MobilniVysledek';
 
 /**
  * Interaktivní jádro úvěrové kalkulačky (spotřebitelský úvěr) – redesign.
@@ -175,6 +176,10 @@ export default function UverovaKalkulackaWidget() {
 
   return (
     <div className="space-y-4">
+      {/* 3.2: výsledek nahoře na mobilu */}
+      {hasData && summary && (
+        <MobilniVysledek cil="uver-vysledek" stitek="Splátka každý měsíc" hodnota={fmtCZK(summary.monthlyPayment)} />
+      )}
       {/* Vstupní parametry */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">
@@ -245,6 +250,7 @@ export default function UverovaKalkulackaWidget() {
       </div>
 
       {/* Souhrn výsledků */}
+      <div id="uver-vysledek" className="scroll-mt-20" />
       {!hasData && <VysledekChybi />}
       {hasData && summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { TrendingUp, ShieldCheck } from 'lucide-react';
+import PatickaSloupec from '@/components/design-preview/PatickaSloupec';
 
 /* Sdílená patička webu – vkládá se GLOBÁLNĚ v layout.tsx, takže ji má každá
    stránka konzistentně (dřív si ji každá kopírovala sama a na klíčových
@@ -59,40 +60,32 @@ export default function SiteFooter() {
   const year = new Date().getFullYear();
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
-        {/* Mobil: odkazové sloupce po dvou (dřív pod sebou → patička 978 px; UX audit 17. 10. 2026) */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:gap-y-8 md:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
+      <div className="max-w-6xl mx-auto px-4 py-6 md:py-10">
+        {/* Mobil (3.8, 11. 11. 2026): odkazové sloupce sbalené do řádků s tlačítkem (PatickaSloupec) – patička
+            842 px → ~500 px bez ořezání obsahu. Dřív po dvou sloupcích (a ještě dřív pod sebou → 978 px). */}
+        <div className="grid grid-cols-1 gap-y-4 md:gap-x-6 md:gap-y-8 md:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
           {/* Brand + USP */}
-          <div className="col-span-2 md:col-span-1 min-w-0">
+          <div className="min-w-0">
             <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-slate-900">
               <span className="flex items-center justify-center w-7 h-7 rounded-md bg-teal-700 text-white"><TrendingUp className="w-4 h-4" strokeWidth={2.5} /></span>
               ETF průvodce.cz
             </Link>
-            <p className="mt-3 text-sm text-slate-500 leading-relaxed max-w-xs">
+            <p className="mt-2 md:mt-3 text-sm text-slate-500 leading-relaxed max-w-xs">
               Nezávislý průvodce ETF pro české investory. Výnosy přepočtené do korun, srovnání, kalkulačky a vzdělávací obsah.
             </p>
-            <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-teal-700">
+            <p className="mt-2 md:mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-teal-700">
               <ShieldCheck className="w-3.5 h-3.5" /> Nezávislé a nekomerční — bez provizí a reklam
             </p>
           </div>
 
-          {/* Odkazové sloupce */}
-          {COLUMNS.map((col) => (
-            <nav key={col.heading} aria-label={col.heading}>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{col.heading}</p>
-              <ul className="mt-3 space-y-2">
-                {col.links.map((l) => (
-                  <li key={l.href}>
-                    <Link href={l.href} className="text-sm text-slate-600 hover:text-teal-700">{l.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          {/* Odkazové sloupce (mobil: sbalitelné řádky v jednom bloku) */}
+          <div className="border-t border-slate-100 md:contents md:border-0">
+            {COLUMNS.map((col) => <PatickaSloupec key={col.heading} nadpis={col.heading} odkazy={col.links} />)}
+          </div>
         </div>
 
         {/* Spodní lišta: copyright + disclaimer */}
-        <div className="mt-8 md:mt-10 pt-5 md:pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="mt-5 md:mt-10 pt-4 md:pt-6 md:border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             <span>© {year} ETF průvodce.cz</span>
             <Link href="/o-nas" className="hover:text-teal-700">O nás</Link>

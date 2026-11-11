@@ -120,14 +120,15 @@ export default async function MonteCarloPreview() {
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Výnosy aktiv v USD, bez kurzu koruny</span>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2.5">
+                {/* 3.2: na mobilu bez tlačítek – kalkulačka je hned pod úvodem */}
+                <div className="mt-5 hidden md:flex flex-wrap gap-2.5">
                   <Link href="#simulator" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit simulátor</Link>
                   <Link href="/investicni-kalkulacka" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Klasická kalkulačka</Link>
                 </div>
               </div>
 
               {/* Co dostanete – ikonové karty, BEZ šipek */}
-              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
+              <div className="mt-6 md:mt-0 md:w-72 shrink-0 hidden md:grid md:grid-cols-1 gap-2.5">
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Vstupujete</p>
                   <p className="text-lg font-bold tabular-nums">Vklady + výnos</p>
@@ -148,9 +149,15 @@ export default async function MonteCarloPreview() {
           </div>
         </section>
 
-        {/* PROČ ROZSAH MÍSTO JEDNOHO ČÍSLA – edukace NAD simulátorem */}
+        {/* SIMULÁTOR */}
+        <section id="simulator" className="pb-10 scroll-mt-16">
+          <SectionHead title="Spusťte si vlastní simulaci" desc="Zadejte vklady, horizont a složení portfolia. Simulátor vygeneruje scénáře a zobrazí pásma i šanci na dosažení cíle." />
+          <MonteCarloWidget />
+        </section>
+
+        {/* PROČ ROZSAH MÍSTO JEDNOHO ČÍSLA – edukace POD simulátorem (3.2, 11. 11. 2026: dřív nad ním) */}
         <section className="pb-10">
-          <SectionHead title="Proč se dívat na rozsah, ne na jedno číslo" desc="Krátké vysvětlení principu, než spustíte vlastní simulaci." />
+          <SectionHead title="Proč se dívat na rozsah, ne na jedno číslo" desc="Krátké vysvětlení principu simulace výše." />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <p className="text-sm text-slate-600 leading-relaxed">
               Klasická kalkulačka počítá s jedním pevným výnosem a dá vám jedno číslo. Jenže trh
@@ -163,12 +170,6 @@ export default async function MonteCarloPreview() {
               <span>Výsledkem není předpověď, ale <strong>pravděpodobnost</strong> – například „v 70 % scénářů portfolio dosáhne cíle“.</span>
             </div>
           </div>
-        </section>
-
-        {/* SIMULÁTOR */}
-        <section id="simulator" className="pb-10 scroll-mt-16">
-          <SectionHead title="Spusťte si vlastní simulaci" desc="Zadejte vklady, horizont a složení portfolia. Simulátor vygeneruje scénáře a zobrazí pásma i šanci na dosažení cíle." />
-          <MonteCarloWidget />
         </section>
 
         {/* JAK TO FUNGUJE – ikonové karty, BEZ schémat a šipek */}

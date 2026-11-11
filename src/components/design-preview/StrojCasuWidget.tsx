@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import CisloInput, { CisloHlaska, type CisloStav } from '@/components/CisloInput';
 import Link from 'next/link';
 import { ArrowRight, Share2, Check, History, Minus, Plus } from 'lucide-react';
-import { STROJ_PRESETY, spocitejStroj, vlozenoVDnesnichCenach, slozeniProStart, type StrojRada } from '@/lib/strojCasuVypocet';
-import { CPI_LAST_MONTH } from '@/lib/backtest/inflation';
+import { STROJ_PRESETY, spocitejStroj, spocitejStrojRealne, slozeniProStart, type StrojRada } from '@/lib/strojCasuVypocet';
+import { CPI_LAST_MONTH, cpiMesic } from '@/lib/backtest/inflation';
 
 /* Korunový stroj času (Vlna 6, 17. 10. 2026). Data = měsíční řady hodnoty portfolia v Kč
    spočítané na serveru STEJNÝM enginem jako backtest (src/lib/strojCasu.ts); tady se jen násobí –
@@ -28,6 +28,8 @@ const fmtHodnota = (v: number) => {
 const MESICE_6P = ['lednu', 'únoru', 'březnu', 'dubnu', 'květnu', 'červnu', 'červenci', 'srpnu', 'září', 'říjnu', 'listopadu', 'prosinci'];
 const vMesici = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE_6P[m - 1]} ${y}`; };
 const MESICE_1P = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
+const MESICE_2P = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+const mesic2p = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE_2P[m - 1]} ${y}`; };
 const mesic1p = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${MESICE_1P[m - 1]} ${y}`; };
 const datum = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ', { timeZone: 'UTC' }).replace(/ /g, ' ');
 
@@ -41,7 +43,10 @@ const ROKY_PRIBEH: { rok: number; popis: string }[] = [
 
 interface Ulozeno { co: string; mesicne: number; naraz: number; od: number; hodnota: number; den: string }
 
-function Graf({ prubeh }: { prubeh: { mesic: string; hodnota: number; vlozeno: number }[] }) {
+/** Měsíc ve tvaru „9/2026“ (popisek konce osy u reálného pohledu). */
+const mesLomeno = (ym: string) => { const [y, m] = ym.split('-').map(Number); return `${m}/${y}`; };
+
+function Graf({ prubeh, konec = 'dnes', realne = false }: { prubeh: { mesic: string; hodnota: number; vlozeno: number }[]; konec?: string; realne?: boolean }) {
   if (prubeh.length < 2) return null;
   const W = 640, H = 220, pad = 6, padR = 4;
   const max = Math.max(...prubeh.map((p) => Math.max(p.hodnota, p.vlozeno)));
@@ -54,7 +59,9 @@ function Graf({ prubeh }: { prubeh: { mesic: string; hodnota: number; vlozeno: n
   return (
     <figure>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img"
-        aria-label={`Hodnota investice se změnila z ${fmtKc(prvni.hodnota)} v roce ${prvni.mesic.slice(0, 4)} na ${fmtHodnota(posledni.hodnota)} dnes; vloženo celkem ${fmtKc(posledni.vlozeno)}.`}>
+        aria-label={realne
+          ? `Hodnota investice po inflaci (v cenách ${konec}) se změnila z ${fmtKc(prvni.hodnota)} v roce ${prvni.mesic.slice(0, 4)} na ${fmtHodnota(posledni.hodnota)} v ${konec}; vklady v cenách ${konec} celkem ${fmtKc(posledni.vlozeno)}.`
+          : `Hodnota investice se změnila z ${fmtKc(prvni.hodnota)} v roce ${prvni.mesic.slice(0, 4)} na ${fmtHodnota(posledni.hodnota)} dnes; vloženo celkem ${fmtKc(posledni.vlozeno)}.`}>
         <path d={plocha} fill="rgb(15 118 110 / 0.10)" />
         <path d={cesta('vlozeno')} fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" />
         <path d={cesta('hodnota')} fill="none" stroke="#0f766e" strokeWidth="2.25" />
@@ -62,11 +69,11 @@ function Graf({ prubeh }: { prubeh: { mesic: string; hodnota: number; vlozeno: n
       </svg>
       {/* Roky jako HTML – v SVG by na mobilu měly ~5 px a první by se ořízl */}
       <div className="mt-1 flex justify-between text-xs text-slate-500 tabular-nums" aria-hidden="true">
-        <span>{prvni.mesic.slice(0, 4)}</span><span>{stred.mesic.slice(0, 4)}</span><span>dnes</span>
+        <span>{prvni.mesic.slice(0, 4)}</span><span>{stred.mesic.slice(0, 4)}</span><span>{konec}</span>
       </div>
       <figcaption className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
         <span className="inline-flex items-center gap-1.5"><span className="inline-block h-0.5 w-4 bg-teal-700" /> hodnota {fmtHodnota(posledni.hodnota)}</span>
-        <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t border-dashed border-slate-400" /> vloženo {fmtKc(posledni.vlozeno)}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block w-4 border-t border-dashed border-slate-400" /> {realne ? 'vklady v dnešních cenách' : 'vloženo'} {realne ? fmtHodnota(posledni.vlozeno) : fmtKc(posledni.vlozeno)}</span>
       </figcaption>
     </figure>
   );
@@ -88,6 +95,8 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
   const spatne = (st: CisloStav) => st === 'mimo' || st === 'necele' || st === 'nejasne' || st === 'neplatne';
   const vstupNeplatny = spatne(stavMes) || spatne(stavNar);
   const [od, setOd] = useState(2010);
+  // 3.7 (11. 11. 2026): „v dnešních korunách“ = po inflaci ČSÚ, jen do posledního zveřejněného měsíce indexu.
+  const [realne, setRealne] = useState(false);
   const [minule, setMinule] = useState<Ulozeno | null>(null);
   const [pripraveno, setPripraveno] = useState(false); // až po přečtení URL/uloženého scénáře
   const [zkopirovano, setZkopirovano] = useState(false);
@@ -113,6 +122,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
       if (/^\d+$/.test(p.get('mesicne') ?? '')) setMesicne(Math.min(1_000_000, Number(p.get('mesicne'))));
       if (/^\d+$/.test(p.get('naraz') ?? '')) setNaraz(Math.min(100_000_000, Number(p.get('naraz'))));
       if (/^\d{4}$/.test(p.get('od') ?? '')) setOd(Number(p.get('od')));
+      if (p.get('ceny') === 'dnesni') setRealne(true);
     } else if (u && dostupne.some((x) => x.id === u!.co)) {
       setCo(u.co); setMesicne(u.mesicne); setNaraz(u.naraz); setOd(u.od);
     }
@@ -127,8 +137,10 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     [rada, rokStartu, mesicne, naraz, prazdne, vstupNeplatny],
   );
 
-  const vlozenoReal = useMemo(
-    () => (rada && !prazdne && !vstupNeplatny ? vlozenoVDnesnichCenach(rada, `${rokStartu}-01`, mesicne, naraz) : null),
+  // Reálný pohled: výpočet končí posledním měsícem indexu ČSÚ (CPI_LAST_MONTH) a vše je v jeho cenách.
+  // null (start po posledním měsíci indexu, chybí index) → přepínač ukáže „—“ s vysvětlením, žádný odhad.
+  const vysledekReal = useMemo(
+    () => (rada && !prazdne && !vstupNeplatny ? spocitejStrojRealne(rada, `${rokStartu}-01`, mesicne, naraz, cpiMesic, CPI_LAST_MONTH) : null),
     [rada, rokStartu, mesicne, naraz, prazdne, vstupNeplatny],
   );
 
@@ -137,6 +149,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     if (!pripraveno || !vysledek || !rada) return;
     const p = new URLSearchParams({ co, mesicne: String(mesicne), od: String(rokStartu) });
     if (naraz > 0) p.set('naraz', String(naraz));
+    if (realne) p.set('ceny', 'dnesni');
     window.history.replaceState(null, '', `${window.location.pathname}?${p}`);
     const t = setTimeout(() => {
       try { localStorage.setItem(ULOZENO_KLIC, JSON.stringify({ co, mesicne, naraz, od: rokStartu, hodnota: vysledek.hodnota, den: rada.posledniDen } satisfies Ulozeno)); } catch { /* bez úložiště */ }
@@ -144,7 +157,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
       setHlaseni(`Dnes zhruba ${fmtHodnota(vysledek.hodnota)}, vloženo ${fmtKc(vysledek.vlozeno)}.`);
     }, 600);
     return () => clearTimeout(t);
-  }, [pripraveno, co, mesicne, naraz, rokStartu, vysledek, rada]);
+  }, [pripraveno, co, mesicne, naraz, rokStartu, vysledek, rada, realne]);
 
   // 3) Mobil: pruh s výsledkem, když hlavní číslo není vidět (úpravy vstupů nad ním).
   useEffect(() => {
@@ -153,7 +166,7 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
     const io = new IntersectionObserver(([e]) => setVysledekVidet(e.isIntersecting), { threshold: 0.5 });
     io.observe(el);
     return () => io.disconnect();
-  }, [vysledek]);
+  }, [vysledek, realne, vysledekReal]);
 
   // „Od minulé návštěvy“: jen TENTÝŽ scénář a jen když jsou mezitím novější data.
   const zmena = minule && vysledek && rada && minule.co === co && minule.mesicne === mesicne
@@ -256,24 +269,50 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
             <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">Zadejte měsíční nebo jednorázovou částku.</p>
           ) : (
             <>
-              <p className="text-sm text-slate-600">Dnes byste měli zhruba</p>
-              <p ref={cisloRef} className="mt-1 text-4xl md:text-5xl font-bold tracking-tight text-slate-900 tabular-nums">{fmtHodnota(vysledek.hodnota)}</p>
-              <p className="mt-2 text-sm text-slate-600">
-                Vloženo <strong className="text-slate-900 tabular-nums">{fmtKc(vysledek.vlozeno)}</strong>
-                {' · '}
-                {zisk >= 0 ? 'zisk' : 'ztráta'} <strong className={`tabular-nums ${zisk >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{zisk >= 0 ? '+' : '−'}{fmtHodnota(Math.abs(zisk))}</strong>
-              </p>
-              {vlozenoReal !== null && (() => {
-                const realne = vysledek.hodnota - vlozenoReal;
-                return (
-                  <p className="mt-1.5 text-sm text-slate-600">
-                    Po inflaci: vklady odpovídají v dnešních cenách <span className="tabular-nums">{fmtHodnota(vlozenoReal)}</span>
-                    {' · '}reálně {realne >= 0 ? 'navíc' : 'méně'}{' '}
-                    <strong className={`tabular-nums ${realne >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{realne >= 0 ? '+' : '−'}{fmtHodnota(Math.abs(realne))}</strong>
+              {/* 3.7 (11. 11. 2026): přepínač nominálně / v dnešních korunách (po inflaci ČSÚ). */}
+              <div role="group" aria-label="Jak ukázat částky" className="mb-4 inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+                {([[false, 'V korunách'], [true, 'V dnešních korunách']] as const).map(([r, t]) => (
+                  <button key={t} type="button" aria-pressed={realne === r} onClick={() => setRealne(r)} data-track={`stroj-ceny:${r ? 'dnesni' : 'nominalne'}`}
+                    className={`min-h-[40px] rounded-md px-3 text-sm font-medium transition-colors ${realne === r ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+              {!realne ? (
+                <>
+                  <p className="text-sm text-slate-600">Dnes byste měli zhruba</p>
+                  <p ref={cisloRef} className="mt-1 text-4xl md:text-5xl font-bold tracking-tight text-slate-900 tabular-nums">{fmtHodnota(vysledek.hodnota)}</p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Vloženo <strong className="text-slate-900 tabular-nums">{fmtKc(vysledek.vlozeno)}</strong>
+                    {' · '}
+                    {zisk >= 0 ? 'zisk' : 'ztráta'} <strong className={`tabular-nums ${zisk >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{zisk >= 0 ? '+' : '−'}{fmtHodnota(Math.abs(zisk))}</strong>
                   </p>
+                  <p className="mt-1.5 text-xs text-slate-500">Částky bez vlivu inflace – kolik korun byste měli a kolik jste vložili.</p>
+                </>
+              ) : !vysledekReal ? (
+                <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600" data-vysledek-chybi>
+                  <span className="font-bold text-slate-400">—</span> Po inflaci zatím nelze: ČSÚ zveřejnil index cen jen do {mesic1p(CPI_LAST_MONTH)}.
+                </p>
+              ) : (() => {
+                const zr = vysledekReal.hodnota - vysledekReal.vlozeno;
+                const konecReal = `${Number(vysledekReal.cenyMesic.slice(5))}/${vysledekReal.cenyMesic.slice(0, 4)}`;
+                return (
+                  <div data-stroj-realne={vysledekReal.cenyMesic} data-hodnota={Math.round(vysledekReal.hodnota)} data-vlozeno={Math.round(vysledekReal.vlozeno)}>
+                    <p className="text-sm text-slate-600">Po inflaci, v cenách {mesic2p(vysledekReal.cenyMesic)}, byste měli zhruba</p>
+                    <p ref={cisloRef} className="mt-1 text-4xl md:text-5xl font-bold tracking-tight text-slate-900 tabular-nums">{fmtHodnota(vysledekReal.hodnota)}</p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Vklady v dnešních cenách <strong className="text-slate-900 tabular-nums">{fmtHodnota(vysledekReal.vlozeno)}</strong>
+                      {' · '}
+                      reálně {zr >= 0 ? 'navíc' : 'méně'} <strong className={`tabular-nums ${zr >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>{zr >= 0 ? '+' : '−'}{fmtHodnota(Math.abs(zr))}</strong>
+                    </p>
+                    <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+                      Stav ke konci {konecReal} – poslední měsíc, za který ČSÚ zveřejnil inflaci; za pozdější dny reálná čísla neukazujeme.
+                      Vloženo nominálně {fmtKc(vysledekReal.vlozenoNominalne)}; každý vklad přepočítáme na ceny {konecReal} podle růstu cen od jeho měsíce.
+                    </p>
+                  </div>
                 );
               })()}
-              {zmena && Math.abs(zmena.rozdil) >= 1 && (
+              {zmena && !realne && Math.abs(zmena.rozdil) >= 1 && (
                 <p className="mt-3 flex flex-wrap items-center gap-x-1.5 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900">
                   <History className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span>
@@ -283,14 +322,24 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
                   </span>
                 </p>
               )}
-              <div className="mt-4"><Graf prubeh={vysledek.prubeh} /></div>
-              {vysledek.nejhorsiPropad && (
-                <p className="mt-3 text-sm text-slate-600">
-                  Nejhorší chvíle: v {vMesici(vysledek.nejhorsiPropad.mesic)} mělo portfolio o{' '}
-                  <strong className="text-red-700 tabular-nums">{Math.abs(vysledek.nejhorsiPropad.hloubka * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} %</strong> méně než na předchozím vrcholu.
-                  {zisk > 0 && ' Kdo tehdy neprodal, je dnes v zisku.'}
-                </p>
-              )}
+              {(() => {
+                const v = realne ? vysledekReal : vysledek;
+                if (!v) return null;
+                const z = v.hodnota - v.vlozeno;
+                return (
+                  <>
+                    <div className="mt-4"><Graf prubeh={v.prubeh} realne={realne} konec={realne && vysledekReal ? mesLomeno(vysledekReal.cenyMesic) : 'dnes'} /></div>
+                    {v.nejhorsiPropad && (
+                      <p className="mt-3 text-sm text-slate-600">
+                        Nejhorší chvíle: v {vMesici(v.nejhorsiPropad.mesic)} mělo portfolio o{' '}
+                        <strong className="text-red-700 tabular-nums">{Math.abs(v.nejhorsiPropad.hloubka * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 0 })} %</strong>
+                        {realne ? ' menší kupní sílu než na předchozím vrcholu (po inflaci).' : ' méně než na předchozím vrcholu.'}
+                        {z > 0 && (realne ? ' Kdo tehdy neprodal, je i po inflaci v zisku.' : ' Kdo tehdy neprodal, je dnes v zisku.')}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
               <div className="mt-5 flex flex-wrap gap-3">
                 <button type="button" onClick={sdilet} className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-teal-700 px-4 text-sm font-medium text-white hover:bg-teal-800">
                   {zkopirovano ? <><Check className="w-4 h-4" /> Zkopírováno</> : <><Share2 className="w-4 h-4" /> Sdílet výsledek</>}
@@ -316,11 +365,20 @@ export default function StrojCasuWidget({ rady }: { rady: StrojRada[] }) {
       </p>
 
       {/* Mobil: výsledek stále na očích, když je hlavní číslo mimo obrazovku */}
-      {pripraveno && vysledek && !prazdne && !vysledekVidet && (
+      {pripraveno && vysledek && !prazdne && !vysledekVidet && !(realne && !vysledekReal) && (
         <button type="button" onClick={() => cisloRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           className="md:hidden fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-white/95 px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] text-left backdrop-blur shadow-[0_-4px_12px_rgba(15,23,42,0.06)]">
-          <span className="text-xs text-slate-500">Dnes ≈ <span className="block text-base font-bold text-slate-900 tabular-nums">{fmtHodnota(vysledek.hodnota)}</span></span>
-          <span className="text-xs text-slate-500 text-right">vloženo<span className="block text-sm font-semibold text-slate-700 tabular-nums">{fmtKc(vysledek.vlozeno)}</span></span>
+          {realne && vysledekReal ? (
+            <>
+              <span className="text-xs text-slate-500">Po inflaci ≈ <span className="block text-base font-bold text-slate-900 tabular-nums">{fmtHodnota(vysledekReal.hodnota)}</span></span>
+              <span className="text-xs text-slate-500 text-right">vklady v dnešních cenách<span className="block text-sm font-semibold text-slate-700 tabular-nums">{fmtHodnota(vysledekReal.vlozeno)}</span></span>
+            </>
+          ) : (
+            <>
+              <span className="text-xs text-slate-500">Dnes ≈ <span className="block text-base font-bold text-slate-900 tabular-nums">{fmtHodnota(vysledek.hodnota)}</span></span>
+              <span className="text-xs text-slate-500 text-right">vloženo<span className="block text-sm font-semibold text-slate-700 tabular-nums">{fmtKc(vysledek.vlozeno)}</span></span>
+            </>
+          )}
         </button>
       )}
     </div>

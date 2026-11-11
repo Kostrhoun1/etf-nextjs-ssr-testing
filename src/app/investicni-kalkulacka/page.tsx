@@ -54,6 +54,14 @@ export default async function InvesticniKalkulackaPreview() {
     console.error('[kalkulacka] výchozí historický scénář selhal:', e);
   }
 
+  /* Úvod s jedním skutečným číslem v Kč (3.2, 11. 11. 2026, vzor backtest): výchozí scénář karty „doopravdy“
+     (spočítaný výše při ISR – žádný výpočet navíc). Jen čerstvá data (≤ 7 dní, jako homepage); jinak úvod bez čísla.
+     Ověřeno nezávisle (Yahoo SPY × ČNB) – zlatý případ investicni-40 hlídá číslo karty, úvod ukazuje totéž. */
+  const uvodCislo = skutecnost && Date.now() - Date.parse(skutecnost.posledniDen) < 7 * 864e5 ? skutecnost : null;
+  const fmtMil1 = (v: number) => `${(v / 1e6).toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}\u00a0mil.\u00a0Kč`;
+  const fmtDenUvod = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ', { timeZone: 'UTC' }).replace(/ /g, '\u00a0');
+  const mesicUvod = (iso: string) => { const d = new Date(iso); return `${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
+
   /* ---------- FAQ + JSON-LD ---------- */
   const faqs = [
     {
@@ -136,8 +144,18 @@ export default async function InvesticniKalkulackaPreview() {
           <p className="mt-1.5 text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed">
             Na kolik narostou vaše peníze díky{' '}
             <InfoTip label="Výnosy se reinvestují a samy dál vydělávají – úrok z úroku. Čím delší horizont, tím silnější efekt.">složenému úročení</InfoTip>
-            {' '}– jednorázový i pravidelný vklad, výsledek v korunách se počítá hned.
+            {' '}– vklad na začátku i pravidelný vklad, výsledek v korunách se počítá hned.
           </p>
+          {uvodCislo && (
+            <p className="mt-2 text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed" data-qa="kalk-uvod-cislo" data-hodnota={Math.round(uvodCislo.hodnota)}>
+              Na skutečných datech: kdo by od {mesicUvod(uvodCislo.prvniDen)} vložil 100&nbsp;000 Kč do S&amp;P 500 a pak posílal 5&nbsp;000 Kč
+              měsíčně, měl by k {fmtDenUvod(uvodCislo.posledniDen)} zhruba{' '}
+              <strong className="font-semibold text-slate-900 tabular-nums whitespace-nowrap">{fmtMil1(uvodCislo.hodnota)}</strong>{' '}
+              (vloženo {fmtMil1(uvodCislo.vlozeno)}, před daní) – i přes propad o{' '}
+              <span className="tabular-nums whitespace-nowrap">{Math.round(Math.abs(uvodCislo.maxPokles) * 100)} %</span> v letech {new Date(uvodCislo.vrcholPoklesu ?? uvodCislo.dnoPoklesu).getUTCFullYear()}–{new Date(uvodCislo.dnoPoklesu).getUTCFullYear()}.
+              {' '}<a href="#kalk-backtest" className="font-medium text-teal-700 hover:underline whitespace-nowrap">Podrobně níže</a>
+            </p>
+          )}
         </section>
 
         <section id="kalkulacka" className="pb-12 scroll-mt-16">

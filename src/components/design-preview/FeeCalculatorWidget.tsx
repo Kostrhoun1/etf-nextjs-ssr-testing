@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TrendingDown, Landmark, AlertTriangle, Sparkles } from 'lucide-react';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import MobilniVysledek from '@/components/design-preview/MobilniVysledek';
 
 /**
  * Interaktivní jádro kalkulačky poplatků – PRESKINOVANÁ verze.
@@ -226,6 +227,11 @@ export default function FeeCalculatorWidget() {
 
   return (
     <div className="space-y-4">
+      {/* 3.2: výsledek nahoře na mobilu */}
+      {vstupyOk && !warnSameOrHigher && (
+        <MobilniVysledek cil="poplatky-vysledek" stitek={`Za ${investmentPeriod} ${let_(investmentPeriod)} s levným ETF navíc`} hodnota={fmtTis(valueDifference)}
+          doplnek={`poplatek ${etfTER.toLocaleString('cs-CZ')} % vs. ${activeTER.toLocaleString('cs-CZ')} % ročně`} />
+      )}
       {/* Vstupní parametry */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">
@@ -301,18 +307,8 @@ export default function FeeCalculatorWidget() {
         )}
       </div>
 
-      {/* Graf vývoje hodnoty portfolia */}
-      {vstupyOk && etfSeries.length > 1 && !warnSameOrHigher && (
-        <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Vývoj hodnoty portfolia v čase</p>
-          <FeeChart etf={etfSeries} active={activeSeries} years={investmentPeriod} etfTER={etfTER} activeTER={activeTER} />
-          <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-            Obě křivky mají stejný vklad i tržní výnos – rozevírají se jen kvůli rozdílnému poplatku. Tyrkysová plocha mezi nimi je to, o co budete mít za {investmentPeriod} {let_(investmentPeriod)} méně – zaplacené poplatky i zhodnocení, o které vás připravily.
-          </p>
-        </div>
-      )}
-
-      {/* Výsledkový panel */}
+      {/* Výsledkový panel – PŘED grafem (3.2, 11. 11. 2026: dřív až pod ním, na mobilu ~2 000 px dolů) */}
+      <div id="poplatky-vysledek" className="scroll-mt-20" />
       {!vstupyOk ? (
         <VysledekChybi />
       ) : warnSameOrHigher ? (
@@ -355,6 +351,17 @@ export default function FeeCalculatorWidget() {
           </p>
         </div>
       )}
+      {/* Graf vývoje hodnoty portfolia */}
+      {vstupyOk && etfSeries.length > 1 && !warnSameOrHigher && (
+        <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">Vývoj hodnoty portfolia v čase</p>
+          <FeeChart etf={etfSeries} active={activeSeries} years={investmentPeriod} etfTER={etfTER} activeTER={activeTER} />
+          <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+            Obě křivky mají stejný vklad i tržní výnos – rozevírají se jen kvůli rozdílnému poplatku. Tyrkysová plocha mezi nimi je to, o co budete mít za {investmentPeriod} {let_(investmentPeriod)} méně – zaplacené poplatky i zhodnocení, o které vás připravily.
+          </p>
+        </div>
+      )}
+
     </div>
   );
 }

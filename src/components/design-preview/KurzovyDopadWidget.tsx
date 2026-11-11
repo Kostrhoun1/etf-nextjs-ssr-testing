@@ -15,6 +15,7 @@ import {
 import { DollarSign, Coins, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react';
 import InfoTip from '@/components/design-preview/InfoTip';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import MobilniVysledek from '@/components/design-preview/MobilniVysledek';
 import { kulateKroky } from '@/lib/osyGrafu';
 import { KURZ_KOLISAVOST } from '@/lib/kurzovaKolisavost';
 
@@ -328,6 +329,11 @@ export default function KurzovyDopadWidget() {
 
   return (
     <div className="space-y-4">
+      {/* 3.2: výsledek nahoře na mobilu (shrnutí rizika je pod vstupy, grafem a scénáři) */}
+      {hasValue && (
+        <MobilniVysledek cil="kurz-vysledek" stitek="Možná roční ztráta jen z kurzu (95 %)" hodnota={fmtCZK(results.riskMetrics.valueAtRisk)}
+          doplnek={`kolísavost z kurzu ${fmtP1(results.riskMetrics.portfolioVolatility)} ročně · kurzová expozice ${fmtP1(exposurePct)}`} />
+      )}
       {/* Vstupní parametry */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">Parametry portfolia</p>
@@ -569,6 +575,7 @@ export default function KurzovyDopadWidget() {
       )}
 
       {/* Rizikové metriky + doporučení */}
+      <div id="kurz-vysledek" className="scroll-mt-20" />
       {hasValue && (
         <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7">
           <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
