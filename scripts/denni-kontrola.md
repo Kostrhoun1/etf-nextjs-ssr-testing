@@ -128,4 +128,9 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   value v pořádku). Oprava: při výpadku stránka vyhodí výjimku → ISR ponechá poslední dobrou verzi + statická kontrola
   (commit na `vylepseni-stranek`, **NEnasazeno** – src/, jede s příštím nasazením). Produkce se sama obnoví při přegenerování
   po ~23:36 UTC 10. 11.; noční kontrola 10. 11. ještě může hlásit totéž (dostane starou verzi) – 11. 11. ověřit, že zmizelo.
-
+- 11. 11. 2026 11:30 UTC (denní kontrola): web běží (200, build 8. 11. 15:48), scraper dnes 5 158 fondů, joby zelené kromě
+  kontroly dat 10. 11. 21:22 UTC – POPLACH faktorové ETF (minimalni-volatilita, momentum, quality) = očekávaná stará ISR verze
+  z 9. 11.; ověřeno curl 11. 11.: všechny tři stránky už mají blok fondů a hlášku o výpadku ne (přegenerováno ~04:15 UTC).
+  Oprava (výjimka při výpadku) dál čeká na nasazení. **Usage Vercelu dnes nepřečteno**: v Chromu se po přihlášení zobrazuje
+  celostránková výzva „Secure Your Account with 2FA“ a automatické kliknutí na „Skip Setup“ nebylo schváleno – majitel ji
+  musí jednou odkliknout (nebo 2FA nastavit). Řádek tabulky za 10.–11. 11. chybí.
