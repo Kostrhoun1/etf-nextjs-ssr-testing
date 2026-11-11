@@ -350,6 +350,10 @@ async function investicniVstupy(page, v) {
 R.investicniMale = async (p, env) => {
   const page = await env.nova(p.url);
   await investicniVstupy(page, p.vstupy);
+  // Tabulka „Vývoj po letech“ je od 11. 11. 2026 (3.2) sbalená v <details> → rozbalit, jinak není v innerText.
+  const detTab = page.locator('details[data-sekce="kalk-tabulka"]').first();
+  if (await detTab.count() && (await detTab.getAttribute('open')) === null) await klikni(page, detTab.locator('summary').first());
+  await page.waitForTimeout(150);
   const s = await snimek(page);
   const o = p.ocekavano, k = [];
   const hodnota = precti(qa(s, 'invest-vysledek'));
@@ -423,6 +427,10 @@ R.doopravdy = async (p, env) => {
   const xirr = t.match(/zhodnocovaly ([\d,]+) % ročně/);
   const propad = t.match(/Největší propad ([−-][\d,]+) % \((\d+\/\d{4}) → (\d+\/\d{4})\)/);
   const navrat = t.match(/vrátila v (\d+\/\d{4})/);
+  // Úvod stránky (3.2, 11. 11. 2026) ukazuje číslo téhož výchozího scénáře – musí se rovnat kartě (stejný výpočet při ISR).
+  const uvod = s.atributy.find((x) => x.a['data-qa'] === 'kalk-uvod-cislo');
+  const kontrolaUvodu = uvod ? [cBool('úvod = karta „doopravdy“', precti(hodnota?.[1]) && Math.abs(Number(uvod.a['data-hodnota']) - precti(hodnota[1]).v) <= 1, 'stejné číslo v úvodu i v kartě',
+    { druh: 'konzistence', skut: `úvod ${uvod.a['data-hodnota']} vs karta ${hodnota?.[1]}` })] : [];
   return {
     datum: datum(t.match(/Data k ([^\n,]*\d{4})/)?.[1]),
     kontroly: [
@@ -432,6 +440,7 @@ R.doopravdy = async (p, env) => {
       cNum('max. propad %', o['max. propad %'], precti(propad?.[1]), pb),
       cText('vrchol→dno', o['vrchol→dno'], propad ? `${propad[2]} → ${propad[3]}` : null),
       cText('návrat', o['návrat'], navrat?.[1] ?? null),
+      ...kontrolaUvodu,
     ],
   };
 };

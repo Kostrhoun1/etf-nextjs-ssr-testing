@@ -334,9 +334,52 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
   const frekvenceText = recurringFrequency === 'monthly' ? 'měsíčně' : 'ročně';
   const vDnesnichCenach = hasData ? finalResult.netValue / Math.pow(1 + INFLACE_CIL_CNB, investmentPeriod) : 0;
 
+  /* Souhrn výsledku (velké číslo + vloženo/výnos). Revize (3.2, 11. 11. 2026): na mobilu NAHOŘE nad vstupy – dřív
+     ~760 px dolů pod vstupy a rychlými volbami. Na desktopu v pravé (plovoucí) kartě jako dřív. Vykreslí se dvakrát,
+     viditelný je vždy jen jeden (lg:hidden / hidden lg:block). */
+  const souhrnVysledku = (mobil: boolean) => hasData && (
+    <>
+      <p className="text-sm text-slate-600">
+        Za {investmentPeriod} {let_(investmentPeriod)} byste měli{taxRate > 0 ? ' (po dani)' : ''}
+      </p>
+      <p ref={mobil ? setCisloEl : undefined} className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1" data-qa="invest-vysledek">{fmtCZK(hodnotaZobr)}</p>
+      {(() => {
+        const seg = [
+          { label: 'Vloženo', v: finalResult.totalInvested, color: 'bg-slate-300' },
+          { label: 'Výnos', v: Math.max(0, zisk), color: 'bg-teal-500' },
+        ];
+        const total = seg.reduce((s, x) => s + x.v, 0) || 1;
+        return (
+          <>
+            <div className="mt-3 md:mt-4 flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+              {seg.map((s) => <div key={s.label} className={s.color} style={{ width: `${(s.v / total) * 100}%` }} />)}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-slate-600">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-slate-300" />
+                Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(finalResult.totalInvested)}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-teal-500" />
+                Výnos{taxRate > 0 ? ' po dani' : ''} <span className="font-semibold tabular-nums text-teal-700">+{fmtCZK(Math.max(0, zisk))}</span>
+              </span>
+            </div>
+          </>
+        );
+      })()}
+    </>
+  );
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
+        {/* ===== VÝSLEDEK NAHOŘE (mobil a tablet) ===== */}
+        {hasData ? (
+          <div id="vysledek" data-sekce="kalk-vysledek" className="lg:hidden scroll-mt-20 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            {souhrnVysledku(true)}
+          </div>
+        ) : <VysledekChybi className="lg:hidden" />}
+
         {/* ===== VSTUPY ===== */}
         <div data-sekce="kalk-vstupy" className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-3">Vaše investice</h2>
@@ -344,7 +387,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
             <div className="col-span-1">
               <NumberField
                 id="initial"
-                label="Jednorázový vklad"
+                label="Vklad na začátku"
                 value={initialInvestmentV}
                 min={0}
                 max={50000000}
@@ -409,8 +452,8 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               {historicke.length > 0 && (
                 <div className="mt-2.5 rounded-lg bg-teal-50/70 border border-teal-100 p-2.5">
                   <p className="text-xs text-teal-900 flex items-center gap-1 flex-wrap">
-                    Průměrný roční výnos trhu v Kč, {fmtMesic(historicke[0].odMesic)} – {fmtDen(historicke[0].doDen)} (společné období všech tří)
-                    <InfoTip label="Kolik trh v korunách průměrně vydělal za rok, kdyby se 1. 1. 2004 vložila jedna částka a nechala se ležet. Spočítáno ze skutečných cen fondů, po jejich poplatcích, před daní. Celý svět: do června 2008 (kdy fond na celý svět ještě nebyl) počítáme 60 % akcií USA a 40 % akcií mimo USA. 60/40 = 60 % akcie celého světa a 40 % americké dluhopisy v dolarech. Začátek v jiném roce vyjde jinak. Je to minulost, ne předpověď. (Fondy SPY, VT, VGTSX a AGG.)">
+                    Průměrný roční výnos trhu v Kč, {fmtMesic(historicke[0].odMesic)} – {fmtDen(historicke[0].doDen)} – klepnutím dosadíte
+                    <InfoTip label="Kolik trh v korunách průměrně vydělal za rok, kdyby se 1. 1. 2004 vložila jedna částka a nechala se ležet. Všechny tři volby za stejné období. Spočítáno ze skutečných cen fondů, po jejich poplatcích, před daní. Celý svět: do června 2008 (kdy fond na celý svět ještě nebyl) počítáme 60 % akcií USA a 40 % akcií mimo USA. 60/40 = 60 % akcie celého světa a 40 % americké dluhopisy v dolarech. Začátek v jiném roce vyjde jinak. Je to minulost, ne předpověď. (Fondy SPY, VT, VGTSX a AGG.)">
                       <span className="sr-only">odkud jsou čísla</span>
                     </InfoTip>
                   </p>
@@ -462,40 +505,12 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
           </details>
         </div>
 
-        {/* ===== VÝSLEDEK – velké číslo + graf (desktop vpravo, mobil hned pod vstupy) ===== */}
-        {!hasData && <VysledekChybi />}
+        {/* ===== VÝSLEDEK – velké číslo + graf (desktop vpravo; na mobilu jen graf – číslo je nahoře) ===== */}
+        {!hasData && <VysledekChybi className="hidden lg:block" />}
         {hasData && (
-          <div id="vysledek" ref={vysledekRef} data-sekce="kalk-vysledek" className="lg:sticky lg:top-[4.5rem] scroll-mt-20 rounded-xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
-            <p className="text-sm text-slate-600">
-              Za {investmentPeriod} {let_(investmentPeriod)} byste měli{taxRate > 0 ? ' (po dani)' : ''}
-            </p>
-            <p ref={setCisloEl} className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums text-slate-900 mt-1" data-qa="invest-vysledek">{fmtCZK(hodnotaZobr)}</p>
-            {(() => {
-              const seg = [
-                { label: 'Vloženo', v: finalResult.totalInvested, color: 'bg-slate-300' },
-                { label: 'Výnos', v: Math.max(0, zisk), color: 'bg-teal-500' },
-              ];
-              const total = seg.reduce((s, x) => s + x.v, 0) || 1;
-              return (
-                <>
-                  <div className="mt-4 flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    {seg.map((s) => <div key={s.label} className={s.color} style={{ width: `${(s.v / total) * 100}%` }} />)}
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-slate-600">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-slate-300" />
-                      Vloženo <span className="font-semibold tabular-nums text-slate-800">{fmtCZK(finalResult.totalInvested)}</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-teal-500" />
-                      Výnos{taxRate > 0 ? ' po dani' : ''} <span className="font-semibold tabular-nums text-teal-700">+{fmtCZK(Math.max(0, zisk))}</span>
-                    </span>
-                  </div>
-                </>
-              );
-            })()}
-
-            <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div id="vysledek-graf" ref={vysledekRef} data-sekce="kalk-vysledek-graf" className="lg:sticky lg:top-[4.5rem] scroll-mt-20 rounded-xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
+            <div className="hidden lg:block">{souhrnVysledku(false)}</div>
+            <div className="lg:mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p className="text-xs font-medium text-slate-700">Hodnota v Kč podle let</p>
               <p className="flex items-center gap-3 text-xs text-slate-500">
                 <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-slate-300" /> vloženo</span>
@@ -572,7 +587,7 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
           </div>
 
           {/* Stejné vklady na skutečných datech – SKUTEČNÉ číslo, ne jen odkaz (revize 18. 10. 2026) */}
-          <div data-sekce="kalk-backtest" className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 md:p-6" aria-busy={skutecnostStav === 'pocitam'}>
+          <div id="kalk-backtest" data-sekce="kalk-backtest" className="scroll-mt-20 flex flex-col rounded-xl border border-slate-200 bg-white p-5 md:p-6" aria-busy={skutecnostStav === 'pocitam'}>
             <p className="text-base font-semibold text-slate-900">A jak by to dopadlo doopravdy?</p>
             <p className="mt-1 text-sm text-slate-600 leading-relaxed">
               Stejné vklady {scenar.doCeho} od {fmtMesic(scenar.start)} na skutečných historických datech v Kč
@@ -634,12 +649,17 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
 
       {/* TABULKA PO LETECH – milníky, všechny roky na rozklik. Na mobilu Rok / Vloženo / Hodnota. */}
       {hasData && (
-        <div data-sekce="kalk-tabulka" className="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
-          <div className="flex items-baseline justify-between gap-3 flex-wrap">
-            <h3 className="text-sm font-semibold text-slate-900">Vývoj po letech</h3>
-            <p className="text-xs text-slate-500">Hodnoty na konci roku{taxRate > 0 ? ', po zdanění' : ''}</p>
-          </div>
-          <table className="mt-3 w-full text-sm">
+        // Revize (3.2, 11. 11. 2026): tabulka sbalená – na mobilu jinak ~600 px, které většina nečte. Obsah zůstává v HTML.
+        <details data-sekce="kalk-tabulka" className="group rounded-xl border border-slate-200 bg-white">
+          <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 md:px-5 rounded-xl hover:bg-slate-50">
+            <span>
+              <span className="block text-sm font-semibold text-slate-900">Vývoj po letech (tabulka)</span>
+              <span className="block text-xs text-slate-500">Hodnoty na konci roku{taxRate > 0 ? ', po zdanění' : ''} – vloženo, výnos a hodnota</span>
+            </span>
+            <ChevronDown className="w-4 h-4 shrink-0 text-slate-500 group-open:rotate-180 transition-transform" aria-hidden="true" />
+          </summary>
+          <div className="px-4 pb-4 md:px-5 md:pb-5">
+          <table className="w-full text-sm">
             <thead>
               {/* Plovoucí záhlaví (hlavička webu h-14) – po „Zobrazit všechny roky“ až 50 řádků. */}
               <tr className="text-slate-500 text-xs [&>th]:sticky [&>th]:top-14 [&>th]:z-10 [&>th]:bg-slate-50">
@@ -679,7 +699,8 @@ export default function InvesticniKalkulackaWidget({ historicke = [], skutecnost
               <ChevronDown className={`w-4 h-4 transition-transform ${vsechnyRoky ? 'rotate-180' : ''}`} />
             </button>
           ) : null}
-        </div>
+          </div>
+        </details>
       )}
 
       {/* Mobil: výsledek v liště dole, jen když velké číslo není na obrazovce. */}
