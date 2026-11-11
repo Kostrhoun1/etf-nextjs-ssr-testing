@@ -1161,3 +1161,21 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
 - Web bere roky z jednoho seznamu `src/lib/kalendarniRoky.ts` a ukazuje jen uzavřené roky s daty. Uzavřený rok, který
   zdroj přestane uvádět (v lednu vyřadí nejstarší), scraper v DB nepřepíše na null (etf-astro PR #7).
 - Rok 2028+: přidat do `KALENDARNI_ROKY` na webu i ve scraperu + migrace sloupců.
+
+## /backtest: výsledek po otevření je předpočet ze serveru, API až po změně vstupů (11. 11. 2026, úkol 3.1)
+
+- **Výchozí scénář (100 % S&P 500 od 1/2005, 100 000 Kč + 5 000 Kč měsíčně) a scénář z odkazu FB/Media (Buffett 90/10,
+  301 z `/buffettovo-portfolio`) se počítají při renderu stránky** (build + ISR jednou denně) STEJNOU cestou jako
+  POST /api/backtest/simulate (`pripravPozadavek` → `simulateAndSerialize`) a jsou v HTML. Prohlížeč API nevolá,
+  dokud návštěvník nezmění vstupy. Ne chyba, že po načtení v síti žádný požadavek na API není (`data-zdroj-vysledku="predpocet"`).
+- **Revalidate 1 den, ne jen build se sobotní přestavbou:** data přibývají každý pracovní den a po první změně vstupu počítá
+  API do dneška – týden starý předpočet by vedle něj ukazoval jiné „Data k …“. Jedno přegenerování = 2 výpočty (~0,3 s CPU).
+- **V HTML je zkrácený výsledek** (`zkratProWidget`, ~40 kB/scénář): první bod měsíce + poslední bod, 5 největších propadů,
+  bez měsíčních výnosů. Graf má proto méně bodů než po výpočtu přes API – čísla (konečná hodnota, CAGR, propady, XIRR,
+  vloženo) jsou totožná (`scripts/backtestPredpocet.test.mjs`, bez sítě).
+- **Předpočet se použije jen při PŘESNÉ shodě vstupů výpočtu** (`klicPredpoctu`: složky a váhy, poplatek fondu, start, částky,
+  vklady, vyvažování, měna), bez porovnání a bez vlastního konce (`do=`). Jinak API. Nový odkaz pro FB = přidat scénář do
+  `SCENARE_Z_ODKAZU` (`src/lib/backtest/predpocitaneScenare.ts`); bez toho odkaz funguje, jen počítá přes API.
+- **`run=1` posune stránku ke kartě výsledku**, jen když karta není nahoře (mobil).
+- Hlídá denní kontrola (check-fund-data.mjs, kolo5 A): `data-kontrola-backtest` na /backtest = konečná hodnota a stáří dat
+  předpočtu proti živému API.

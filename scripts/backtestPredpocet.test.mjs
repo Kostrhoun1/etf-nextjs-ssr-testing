@@ -131,6 +131,20 @@ async function porovnej(nazev, telo) {
     `${nazev}: XIRR`,
   );
 
+  // Kontrolní údaj pro denní kontrolu (check-fund-data.mjs, kolo5 A): tělo, které z něj kontrola sestaví, má stejné
+  // vstupy výpočtu jako předpočet, a nese konečnou hodnotu a konec dat.
+  const [odkaz, cagr, nav] = pred.kontrola.split('|');
+  const q = new URL(odkaz, 'https://x').searchParams;
+  const teloKontroly = {
+    portfolio: q.get('slozeni').split(',').map((x) => x.split(':')).map(([c, w]) => ({ isin: c, name: c, indexCode: c, weight: Number(w) / 100, ter: 0 })),
+    startDate: q.get('start'), initialAmount: Number(q.get('amount')), currency: q.get('mena') || 'CZK', rebalancingStrategy: q.get('vyvazovani') || 'yearly',
+    ...(q.get('freq') !== 'none' && Number(q.get('vklad')) > 0 ? { contributions: { amount: Number(q.get('vklad')), frequency: q.get('freq') } } : {}),
+  };
+  assert.equal(klicPredpoctu(teloKontroly), pred.klic, `${nazev}: kontrolní odkaz ${odkaz}`);
+  assert.equal(Number(nav), api.summary.netAssetValue);
+  assert.equal(Number(cagr), api.summary.cagr);
+  assert.equal(q.get('do'), api.evolution.at(-1).date.slice(0, 10));
+
   // Do HTML jen zlomek odpovědi API (cíl úkolu: stránka nenaroste o víc než ~100 kB).
   const velikost = JSON.stringify(pred.vysledek).length;
   assert.ok(velikost < 60_000, `${nazev}: předpočet má ${velikost} B`);

@@ -96,13 +96,35 @@ export function zkratProWidget(r: Awaited<ReturnType<typeof simulateAndSerialize
  * `konecDne` = den renderu (build / denní ISR). Při chybě null → widget zavolá API nebo ukáže formulář
  * (raději nic než špatně).
  */
-export async function predpocitejProWidget(telo: TeloScenare, konecDne: string): Promise<{ klic: string; vysledek: BacktestResult } | null> {
+export async function predpocitejProWidget(telo: TeloScenare, konecDne: string): Promise<{ klic: string; vysledek: BacktestResult; kontrola: string } | null> {
   try {
     const pripraveno = pripravPozadavek({ ...telo, endDate: konecDne })
     if (!pripraveno.ok) throw new Error(pripraveno.error)
-    return { klic: klicPredpoctu(telo), vysledek: zkratProWidget(await simulateAndSerialize(pripraveno.body)) }
+    const r = await simulateAndSerialize(pripraveno.body)
+    const vysledek = zkratProWidget(r)
+    const konec = vysledek.evolution[vysledek.evolution.length - 1]?.date.slice(0, 10) ?? konecDne
+    return { klic: klicPredpoctu(telo), vysledek, kontrola: kontrolniUdaj(telo, konec, r.summary.cagr, r.summary.netAssetValue, r.kurzyDo) }
   } catch (e) {
     console.error('[predpocet] backtest pro /backtest selhal:', e)
     return null
   }
+}
+
+/**
+ * Kontrolní údaj `data-kontrola-backtest` (formát modelových portfolií: odkaz|cagr|konečná hodnota|kurz posledního bodu).
+ * Denní kontrola (check-fund-data.mjs, kolo5 A) podle něj zavolá API se stejnými vstupy do téhož dne a porovná konečnou
+ * hodnotu i stáří dat předpočtu na produkci (pravidlo č. 1, bod 6). Odkaz je zároveň platný odkaz do backtestu.
+ */
+function kontrolniUdaj(telo: TeloScenare, konec: string, cagr: number | null, nav: number, kurzyDo?: string): string {
+  const q = new URLSearchParams({
+    slozeni: telo.portfolio.filter((p) => p.weight > 0).map((p) => `${p.indexCode}:${Math.round(p.weight * 1e6) / 1e4}`).join(','),
+    start: telo.startDate,
+    amount: String(telo.initialAmount),
+    vklad: String(telo.contributions?.amount ?? 0),
+    freq: telo.contributions?.frequency ?? 'none',
+    do: konec,
+  })
+  if (telo.rebalancingStrategy !== 'yearly') q.set('vyvazovani', telo.rebalancingStrategy)
+  if (telo.currency !== 'CZK') q.set('mena', telo.currency)
+  return `/backtest?${q.toString().replace(/%3A/g, ':').replace(/%2C/g, ',')}|${cagr ?? ''}|${nav}|${kurzyDo ?? ''}`
 }

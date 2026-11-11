@@ -55,14 +55,17 @@ async function predpocitejScenare() {
     predpocitejProWidget(TELO_VYCHOZI, dnes),
     ...SCENARE_Z_ODKAZU.map((s) => predpocitejProWidget(s.telo, dnes)),
   ]);
+  const spocitane = zOdkazu.filter((x): x is NonNullable<typeof x> => x != null);
   return {
     vychozi: vychozi?.vysledek ?? null,
-    zOdkazu: zOdkazu.filter((x): x is NonNullable<typeof x> => x != null),
+    // Do widgetu jen klíč a výsledek; kontrolní údaje (pro denní kontrolu) jdou do HTML zvlášť.
+    zOdkazu: spocitane.map(({ klic, vysledek }) => ({ klic, vysledek })),
+    kontroly: [vychozi, ...spocitane].filter((x): x is NonNullable<typeof x> => x != null).map((x) => x.kontrola),
   };
 }
 
 export default async function BacktestPreview() {
-  const { vychozi, zOdkazu } = await predpocitejScenare();
+  const { vychozi, zOdkazu, kontroly } = await predpocitejScenare();
   const posledniDen = vychozi?.evolution[vychozi.evolution.length - 1]?.date;
   const datumDat = posledniDen
     ? new Date(posledniDen).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -174,6 +177,8 @@ export default async function BacktestPreview() {
         {/* NÁSTROJ – výsledek výchozího scénáře a scénářů z odkazů je předpočítaný na serveru */}
         <section id="backtest" className="pb-12 scroll-mt-16">
           <BacktestWidget initialResult={vychozi} predpocty={zOdkazu} />
+          {/* Kontrolní údaje předpočtů: denní kontrola (check-fund-data.mjs, kolo5 A) je porovná s živým API. */}
+          {kontroly.map((k) => <span key={k} hidden data-kontrola-backtest={k} />)}
         </section>
 
         {/* FAQ (sem se přesunulo i „Jak výsledky správně číst“) */}
