@@ -197,7 +197,21 @@ z řady SPY. Teď mají VŠECHNY fondy stejnou kostru: sloupce kalendářních v
 1R/3R/5R fondu v úvodu a „10 000 Kč před 1/3/5 lety → dnes“ spočtené z `return_*_czk` fondu – vše ke stejnému
 dni (datumCen(scraping_date)). Časovou řadu cen fondu zatím nemáme; až bude (denní NAV fondu), lze čáru vrátit
 z ní. Delší historie indexu patří do backtestu (odkaz „Delší historie indexu v backtestu“), kde je proxy popsaná.
-**Nevracet graf z `index_historical_data` na detail.**
+**Nevracet graf z `index_historical_data` na detail** – s JEDINOU výjimkou níže (3.3).
+
+**Graf „Vývoj indexu … v Kč“ na detailu – jen při přesné shodě indexu (varianta A, majitel 11. 11. 2026, úkol 3.3).**
+Ukazuje se JEN u fondů, kde `prirazeniFondu` (src/lib/backtest/fondNaIndex.ts) vrátí `shoda === 'stejny'` (fond sleduje
+přesně index, ze kterého máme historii – S&P 500, zlato, MSCI EM, Russell, iShares dluhopisy…; 11. 11. 2026 v DB 109 fondů).
+U `'blizky'` (VWCE = FTSE All-World × data VT, MSCI Europe × VGK…) a bez přiřazení graf NENÍ – to není chyba, nedoplňovat.
+Je to čára INDEXU (cena podílu zdrojového fondu backtestu včetně vyplacených výnosů × kurz ECB, konce měsíců), NE cena
+fondu na stránce: nadpis „Vývoj indexu S&P 500 v Kč“, pod ním „Podle fondu SPY (zdroj dat backtestu), ne cena tohoto
+fondu; poplatky fondů se liší“ a „Data k …“. Záměrně BEZ procent a „kolik by bylo“ (výnosy fondu jsou jinde na stránce
+a nesmí se plést). Osa Y je hladina v Kč za 1 podíl zdrojového fondu – neladit ji na „10 000 Kč“ ani na výnos. U zlata (GLD)
+popisek BEZ „včetně výnosů“ – nic nevyplácí (a check-fund-data hlídá „reinvest“ na detailu zlata).
+Data stejnou cestou jako backtest (src/lib/vyvojIndexu.ts), počítá se při buildu (detail je předgenerovaný; řada indexu
+se načte jednou za proces). Výpadek dat při buildu = build spadne; za běhu = stránka bez grafu. U fondu, který JE zdrojem
+dat (IBGS, IEAC – manifest `sourceIsin`), text říká „Z cen tohoto fondu na burze …“. Nezávislé ověření:
+scripts/overeni-graf-indexu.py (Yahoo × ČNB); denně check-fund-data.mjs (blok „graf indexu“); test scripts/vyvojIndexu.test.mjs.
 
 **Krátkodobé výnosy (1M/3M/6M) jsou v EUR** a tak jsou i popsané – data je v jiné měně nemají.
 

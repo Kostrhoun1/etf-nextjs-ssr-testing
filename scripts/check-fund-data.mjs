@@ -3379,6 +3379,7 @@ const main = async () => {
   await kontrolaKolo7Mobil(poplach, varovani); // blok „kolo7 mobil“ – definice na konci souboru
   await kontrolaKolo8Faktory(poplach, varovani); // blok „kolo8 faktory“ – definice na konci souboru
   await kontrolaKolo8Obsah(poplach, varovani); // blok „kolo8 obsah“ – definice na konci souboru
+  await kontrolaGrafIndexu(poplach, varovani); // blok „graf indexu“ (3.3, 11. 11. 2026) – definice na konci souboru
 
   // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
   //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
@@ -4336,3 +4337,57 @@ async function kontrolaKolo8Obsah(poplach, varovani) {
   }
 }
 // --- konec kolo8 obsah ---
+// --- graf indexu --- (3.3, 11. 11. 2026; pravidlo č. 1, bod 4 – každá novinka má kontrolu)
+// Detail fondu ukazuje graf „Vývoj indexu … v Kč“ JEN při přesné shodě indexu (prirazeniFondu → 'stejny',
+// src/lib/vyvojIndexu.ts). Hlídá se:
+//  a) SXR8 (S&P 500) a SGLN (zlato) graf MAJÍ, je označený jako index / zdrojový fond (data-oznaceni="index", text
+//     „ne cena tohoto fondu“), nadpis „Vývoj …“ a v grafu není žádné procento (nesmí se plést s výnosem fondu),
+//  b) VWCE ('blizky' – FTSE All-World × data VT) a EUNL (MSCI World, bez přiřazení) graf NEMAJÍ,
+//  c) poslední bod grafu (data-do) není o moc starší než data v DB (min. z posledního dne indexu a kurzů):
+//     > 14 dní = POPLACH (vynechaná týdenní přestavba – detaily jsou předgenerované při buildu), > 8 dní = varování.
+//     Proč ne 7: přestavba je 1× týdně (sobota) a staví z dat do čtvrtka/pátku; před další přestavbou je rozdíl běžně
+//     7–8 dní, po přeskočené přestavbě (scripts/vercel-ignore.sh – nasazení mladší 6 dní) až ~11 dní.
+// Značka nasazení: data-graf-indexu-verze na sekci Výkonnost; bez ní (produkce před nasazením) jen varování.
+async function kontrolaGrafIndexu(poplach, varovani) {
+  const chyby = [];
+  try {
+    const hl = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const posledni = async (tabulka, filtr = '') => (await fetch(`${URL_DB.replace('etf_funds', tabulka)}?select=date${filtr}&order=date.desc&limit=1`, hl).then((r) => r.json()))?.[0]?.date ?? null;
+    const fxDo = await posledni('exchange_rates_historical');
+    const dnu = (a, b) => Math.round((Date.parse(a) - Date.parse(b)) / 864e5);
+    const MA = { IE00B5BMR087: ['SXR8', 'sp500'], IE00B4ND3602: ['SGLN', 'gold'] };
+    const NEMA = { IE00BK5BQT80: 'VWCE (FTSE All-World – jen podobný index)', IE00B4L5Y983: 'EUNL (MSCI World – bez historie indexu)' };
+    let nasazeno = null;
+    for (const isin of R.detaily([...Object.keys(MA), ...Object.keys(NEMA)], 'Graf indexu (3.3)')) {
+      const html = (await fetch(`${WEB_URL}/etf/${isin}`).then((r) => (r.ok ? r.text() : ''))).replace(/<!-- -->/g, '');
+      if (!html) { chyby.push(`/etf/${isin}: stránka se nenačetla`); continue; }
+      const znacka = /data-graf-indexu-verze="1"/.test(html);
+      nasazeno = nasazeno === null ? znacka : nasazeno && znacka;
+      const fig = html.match(/<figure[^>]*data-graf-indexu="[^"]*"[\s\S]*?<\/figure>/)?.[0] ?? null;
+      if (NEMA[isin]) { if (fig) chyby.push(`/etf/${isin} ${NEMA[isin]}: graf indexu se NEMÁ ukazovat`); continue; }
+      const [tk, kod] = MA[isin];
+      if (!fig) { chyby.push(`/etf/${isin} ${tk}: chybí graf vývoje indexu v Kč`); continue; }
+      const atr = (n) => fig.match(new RegExp(`data-${n}="([^"]*)"`))?.[1] ?? null;
+      if (atr('graf-indexu') !== kod) chyby.push(`/etf/${isin} ${tk}: graf je z indexu „${atr('graf-indexu')}“, čekáno ${kod}`);
+      const txt = fig.replace(/<[^>]+>/g, ' ').replace(/&nbsp;| /g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
+      if (atr('oznaceni') !== 'index' || !/ne cena tohoto fondu/.test(txt)) chyby.push(`/etf/${isin} ${tk}: graf není jednoznačně označený jako index (data-oznaceni / „ne cena tohoto fondu“)`);
+      if (!/<h3[^>]*>\s*Vývoj (indexu|ceny) /.test(fig)) chyby.push(`/etf/${isin} ${tk}: nadpis grafu není „Vývoj indexu/ceny … v Kč“`);
+      if (/%/.test(txt)) chyby.push(`/etf/${isin} ${tk}: v grafu indexu je procento – nesmí se plést s výnosem fondu`);
+      const doDne = atr('do');
+      if (!doDne || !/Data k \d/.test(txt)) { chyby.push(`/etf/${isin} ${tk}: graf bez data posledního bodu`); continue; }
+      const kontrola = (atr('kontrola') ?? '').split('|');
+      if (kontrola.length !== 3 || kontrola.some((k) => !/^\d{4}-\d{2}-\d{2}:\d+(\.\d+)?$/.test(k)) || !kontrola[2].startsWith(doDne)) chyby.push(`/etf/${isin} ${tk}: data-kontrola „${atr('kontrola')}“ nesedí s posledním bodem ${doDne}`);
+      const indexDo = await posledni('index_historical_data', `&index_code=eq.${kod}`);
+      const dbDo = [indexDo, fxDo].filter(Boolean).sort()[0];
+      if (!dbDo) { varovani.push({ co: `Graf indexu (3.3): poslední den dat ${kod} v DB nezjištěn`, ukazka: [] }); continue; }
+      const stari = dnu(dbDo, doDne);
+      if (stari > 14) chyby.push(`/etf/${isin} ${tk}: graf končí ${doDne}, data v DB jsou do ${dbDo} (${stari} dní) – neproběhla týdenní přestavba?`);
+      else if (stari > 8) varovani.push({ co: `Graf indexu (3.3) na /etf/${isin} končí ${doDne}, DB má data do ${dbDo} (${stari} dní; přestavba 1× týdně)`, ukazka: [] });
+      else if (stari < 0) chyby.push(`/etf/${isin} ${tk}: graf končí ${doDne} – POZDĚJI než data v DB (${dbDo})?`);
+    }
+    if (chyby.length) (nasazeno ? poplach : varovani).push({ co: `Graf vývoje indexu v Kč na detailu (3.3)${nasazeno ? '' : ' – produkce ještě bez grafu (před nasazením)'}: ${chyby.length} nálezů`, ukazka: chyby.slice(0, 10) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu grafu indexu (3.3) se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+  }
+}
+// --- konec graf indexu ---

@@ -15,6 +15,8 @@ import InfoTip from '@/components/design-preview/InfoTip';
 import CompareButton from '@/components/design-preview/CompareButton';
 import EmitentLogo from '@/components/home/EmitentLogo';
 import GrafVykonnosti from './GrafVykonnosti';
+import GrafIndexuKc from './GrafIndexuKc';
+import { vyvojIndexuProFond } from '@/lib/vyvojIndexu';
 import HeroVynosy from './HeroVynosy';
 import CurrencyToggle from '@/components/design-preview/CurrencyToggle';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
@@ -455,6 +457,9 @@ export default async function ETFDetailPreview(
   const btTer = etf.ter_numeric == null ? null : Number(etf.ter_numeric) / 100;
   // Odkaz jen když umíme fond poctivě spočítat: přiřazený index se známým poplatkem zdroje a známé TER fondu.
   const btCode = btFond && btTer !== null && Number.isFinite(btTer) && INDEX_BY_CODE[btFond.indexCode]?.sourceTer !== undefined ? btFond.indexCode : undefined;
+  // 3.3 (varianta A, majitel 11. 11. 2026): graf vývoje INDEXU v Kč jen při přesné shodě indexu ('stejny'); 'blizky' a bez
+  // přiřazení bez grafu. Data = stejná cesta jako backtest, při buildu jednou za proces (src/lib/vyvojIndexu.ts).
+  const vyvojIndexu = await vyvojIndexuProFond(etf.isin, btFond);
   const [zebricekHref, zebricekLabel] = zebricekFonduSRegionem(canonIdx, (etf as unknown as { category?: string | null }).category ?? null, etf.name || '', etf.isin, (r.investment_focus as string | null) ?? null);
   const podobne = await getPodobneFondy({ ...fondProIndex, isin: etf.isin });
   // Fond s výnosem mimo svůj trh (> 1,5 p. b. od mediánu fondů na stejný index, src/lib/trhy.ts) –
@@ -606,8 +611,8 @@ export default async function ETFDetailPreview(
   const burzyText = (n: number) => (n === 1 ? '1 další burze' : `${n} dalších burzách`);
 
   const tkHlavni = hlavniTicker; // v odkazech stejné jméno jako v úvodu (XETRA)
-  // Graf vývoje podle indexu/proxy fondu ZRUŠEN (rozhodnutí majitele 18. 10. 2026) – na detailu jen data fondu.
-  // Proxy a delší historie indexu patří do backtestu (tam je popsaná). Backtest počítá v Kč až od prvního
+  // Graf vývoje podle indexu/proxy fondu ZRUŠEN 18. 10. 2026; od 11. 11. 2026 (3.3, varianta A) jen graf INDEXU v Kč
+  // při přesné shodě indexu, jednoznačně označený (GrafIndexuKc níže). Proxy a delší historie patří do backtestu. Backtest počítá v Kč až od prvního
   // kurzu (30. 12. 1999) → od roku max(začátek řady, 2000); +7 dní: řada z posledních dnů roku = od dalšího roku.
   const btOdRok = btCode
     ? Math.max(new Date(new Date(INDEX_BY_CODE[btCode].since).getTime() + 7 * 864e5).getUTCFullYear(), 2000)
@@ -987,7 +992,7 @@ export default async function ETFDetailPreview(
         )}
 
         {/* VÝKONNOST – stejná kostra pro všechny fondy: karta grafu (čára indexu / roční sloupce) + doplňkové výnosy */}
-        <section data-sekce="vykonnost" className="pb-10">
+        <section data-sekce="vykonnost" data-graf-indexu-verze="1" className="pb-10">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Výkonnost</h2>
             {/* Nový fond má jen údaje v EUR (od vzniku, měsíce) – přepínač Kč/EUR/USD by nic nepřepnul (kolo 6b). */}
@@ -1064,6 +1069,11 @@ export default async function ETFDetailPreview(
               </EtfReturns>
             </div>
           </div>
+          )}
+          {vyvojIndexu && (
+            <div className="mt-4">
+              <GrafIndexuKc vyvoj={vyvojIndexu} odkazBacktestu={btCode ? `/backtest?fondy=${etf.isin}:100&run=1` : undefined} />
+            </div>
           )}
         </section>
 
