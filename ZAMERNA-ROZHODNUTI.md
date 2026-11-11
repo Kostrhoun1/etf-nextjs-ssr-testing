@@ -266,7 +266,19 @@ chvíle“ je propad KUPNÍ SÍLY (NAV/CPI). Dřívější řádek „Po inflaci
 indexu poslední hodnotu, `vlozenoVDnesnichCenach`) je pryč. Ověřeno nezávisle 11. 11. 2026 (Yahoo × ČNB, CSV ČSÚ):
 S&P 500 / celý svět 5 000 Kč měsíčně od 2010 → 4 068 570 / 2 933 239 Kč (web 4 068 373 / 2 933 088), vklady 1 428 958 Kč
 (shoda na korunu). Hlídají zlaté případy investicni-43/44 (hodnota platí, dokud ČSÚ nepřidá měsíc). Až se doplní nový měsíc
-do `MONTHLY_CPI`, přepočítej je (`scratchpad overeni/stroj_realne.py` – postup popsaný v `zdroj_overeni`).
+do `MONTHLY_CPI`, přepočítej je: `python3 -I scripts/overeni-realne-kalkulacky.py <den dat> <měsíc CPI>` (z holých dat, bez kódu webu).
+
+## Kalkulačky: výsledek dvakrát na mobilu a vysvětlení POD kalkulačkou (3.2, 11. 11. 2026)
+
+**Na mobilu (< md) je hlavní výsledek kalkulačky NAD vstupy a pak znovu v plném panelu pod nimi – záměr, ne duplicita.**
+`src/components/design-preview/MobilniVysledek.tsx` (FIRE, poplatky, nouzová rezerva, čistý plat, hypotéka, úvěr, kurzový
+dopad) a `souhrnVysledku` v investiční kalkulačce. Dřív byl výsledek 900–2 000 px pod začátkem kalkulačky (vstupy v jednom
+sloupci). Pruh bere hotová čísla od widgetu (žádný vlastní výpočet), nemá `data-qa` a má jiný popisek než hlavní panel –
+zlaté případy čtou hlavní panel. Na desktopu se neukazuje. Edukační sekce, které stály NAD kalkulačkou („Jak se počítá…“,
+„Proč na TER záleží“…), jsou POD ní; tlačítko „Spustit kalkulačku“ v úvodu je na mobilu skryté (kalkulačka je hned pod ním).
+Kalkulačka poplatků má výsledkový panel PŘED grafem. Tabulka „Vývoj po letech“ v investiční kalkulačce je sbalená
+(`<details>`, zlatý případ ji rozbalí). Úvod investiční kalkulačky ukazuje číslo výchozího scénáře karty „A jak by to
+dopadlo doopravdy?“ (stejný výpočet při ISR) – jen když jsou data ≤ 7 dní stará; ověřeno `scripts/overeni-realne-kalkulacky.py`.
 
 ## Články z dat: chybějící data = výjimka, ne prázdná stránka (17. 10. 2026)
 

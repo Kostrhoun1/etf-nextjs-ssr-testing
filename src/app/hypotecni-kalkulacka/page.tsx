@@ -132,14 +132,15 @@ export default async function HypotecniKalkulackaPreview() {
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> Aktualizováno {upraveno}</span>
                   <span className="inline-flex items-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Výsledky v korunách</span>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2.5">
+                {/* 3.2: na mobilu bez tlačítek – kalkulačka je hned pod úvodem */}
+                <div className="mt-5 hidden md:flex flex-wrap gap-2.5">
                   <Link href="#kalkulacka" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">Spustit kalkulačku</Link>
                   <Link href="/investicni-kalkulacka" className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">Investiční kalkulačka</Link>
                 </div>
               </div>
 
               {/* Mini-přehled, co kalkulačka dělá */}
-              <div className="mt-6 md:mt-0 md:w-72 shrink-0 grid grid-cols-3 md:grid-cols-1 gap-2.5">
+              <div className="mt-6 md:mt-0 md:w-72 shrink-0 hidden md:grid md:grid-cols-1 gap-2.5">
                 <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3">
                   <p className="text-xs text-slate-400">Zadáte</p>
                   <p className="text-lg font-bold tabular-nums">Cena + úvěr</p>
@@ -160,9 +161,15 @@ export default async function HypotecniKalkulackaPreview() {
           </div>
         </section>
 
-        {/* CO JE HYPOTÉKA – krátká edukace NAD kalkulačkou */}
+        {/* KALKULAČKA */}
+        <section id="kalkulacka" className="pb-10 scroll-mt-16">
+          <SectionHead title="Spočítejte si splátku hypotéky" desc="Zadejte cenu nemovitosti, výši úvěru, sazbu a dobu splatnosti. Výsledek i graf se přepočítají hned." />
+          <HypotecniKalkulackaWidget />
+        </section>
+
+        {/* CO JE HYPOTÉKA – krátká edukace POD kalkulačkou (3.2, 11. 11. 2026: dřív nad ní – výsledek byl na mobilu ~2 000 px dolů) */}
         <section className="pb-10">
-          <SectionHead title="Co se počítá u hypotéky" desc="Krátké vysvětlení, než si spočítáte vlastní případ." />
+          <SectionHead title="Co se počítá u hypotéky" desc="Krátké vysvětlení k výpočtu výše." />
           <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <p className="text-sm text-slate-600 leading-relaxed">
               Hypotéka je dlouhodobý úvěr na bydlení zajištěný nemovitostí. Splácíte ho{' '}
@@ -175,12 +182,6 @@ export default async function HypotecniKalkulackaPreview() {
               <span>Na začátku tvoří většinu splátky <strong>úrok</strong>, ke konci převažuje <strong>úmor jistiny</strong> – proto dluh zpočátku klesá pomalu.</span>
             </div>
           </div>
-        </section>
-
-        {/* KALKULAČKA */}
-        <section id="kalkulacka" className="pb-10 scroll-mt-16">
-          <SectionHead title="Spočítejte si splátku hypotéky" desc="Zadejte cenu nemovitosti, výši úvěru, sazbu a dobu splatnosti. Výsledek i graf se přepočítají hned." />
-          <HypotecniKalkulackaWidget />
         </section>
 
         {/* Z ČEHO SE SKLÁDÁ SPLÁTKA – ikonové vysvětlivky (bez schémat/šipek) */}

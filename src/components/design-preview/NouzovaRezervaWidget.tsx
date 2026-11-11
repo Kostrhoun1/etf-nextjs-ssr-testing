@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { CisloPole, VysledekChybi } from '@/components/CisloInput';
+import MobilniVysledek from '@/components/design-preview/MobilniVysledek';
 
 /**
  * Interaktivní jádro kalkulačky nouzové rezervy.
@@ -318,6 +319,11 @@ export default function NouzovaRezervaWidget() {
 
   return (
     <div className="space-y-4">
+      {/* 3.2: výsledek nahoře na mobilu */}
+      {r && priority && (
+        <MobilniVysledek cil="nouzova-vysledek-cil" stitek="Doporučená rezerva" hodnota={fmtCZK(r.recommendedAmount)}
+          doplnek={`${mesice(r.recommendedMonths)} nezbytných výdajů`} />
+      )}
       {/* Vstupní parametry */}
       <div className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-4">
@@ -471,6 +477,7 @@ export default function NouzovaRezervaWidget() {
         <VysledekChybi co={chybi || undefined} />
       ) : (<>
       {/* Hlavní výsledkový panel */}
+      <div id="nouzova-vysledek-cil" className="scroll-mt-20" />
       <div className="rounded-2xl bg-teal-700 text-white p-5 md:p-7" data-qa="nouzova-vysledek">
         <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-teal-100">
           <ShieldAlert className="w-4 h-4" /> Doporučená nouzová rezerva
