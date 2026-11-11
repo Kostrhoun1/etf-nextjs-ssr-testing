@@ -255,6 +255,19 @@ Totéž u „Vyvážené 60/40“ (od 7/2008 60 % VT + 40 % AGG). Ověřeno: mě
 přímý backtest VT (rozdíl 1e-15). Starty před 7/2008 jsou aproximace – stránky to uvádějí v metodice.
 Odkaz „Podrobně v backtestu“ používá složení platné pro zvolený rok (`slozeniProStart`).
 
+## Stroj času „V dnešních korunách“ končí posledním měsícem inflace ČSÚ, ne dnešním dnem (3.7, 11. 11. 2026)
+
+`src/lib/strojCasuVypocet.ts` (`spocitejStrojRealne`), přepínač ve `StrojCasuWidget.tsx`, odkaz `?ceny=dnesni`.
+Reálný pohled ukazuje stav ke konci POSLEDNÍHO měsíce indexu ČSÚ (`CPI_LAST_MONTH`, např. 9/2026), i když nominální
+„Dnes byste měli“ je k poslednímu dni dat (např. 10. 11. 2026). **Vypadá to jako starší číslo – je to záměr** (pravidlo č. 1):
+za zveřejněným měsícem nevíme, o kolik ceny vzrostly, a „dnešní“ hodnota v zářijových cenách by míchala dvě data.
+Vklady se přepočítávají indexem měsíce vkladu (CPI[konec]/CPI[m]), hodnota portfolia indexem měsíce konce; „nejhorší
+chvíle“ je propad KUPNÍ SÍLY (NAV/CPI). Dřívější řádek „Po inflaci: vklady odpovídají v dnešních cenách …“ (držel za koncem
+indexu poslední hodnotu, `vlozenoVDnesnichCenach`) je pryč. Ověřeno nezávisle 11. 11. 2026 (Yahoo × ČNB, CSV ČSÚ):
+S&P 500 / celý svět 5 000 Kč měsíčně od 2010 → 4 068 570 / 2 933 239 Kč (web 4 068 373 / 2 933 088), vklady 1 428 958 Kč
+(shoda na korunu). Hlídají zlaté případy investicni-43/44 (hodnota platí, dokud ČSÚ nepřidá měsíc). Až se doplní nový měsíc
+do `MONTHLY_CPI`, přepočítej je (`scratchpad overeni/stroj_realne.py` – postup popsaný v `zdroj_overeni`).
+
 ## Články z dat: chybějící data = výjimka, ne prázdná stránka (17. 10. 2026)
 
 `/stroj-casu`, `/sp500-nebo-cely-svet`, `/jak-dlouho-v-minusu`, `/pravidlo-4-procent` při chybě dat VYHODÍ

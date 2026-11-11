@@ -559,6 +559,30 @@ R.strojCasu = async (p, env) => {
   return { stranky: [page], datum: dn, kontroly: k };
 };
 
+/* Stroj času – „V dnešních korunách“ (3.7, 11. 11. 2026). Reálný výpočet končí posledním měsícem indexu ČSÚ
+   (data-stroj-realne = YYYY-MM) → hodnota platí, dokud ČSÚ nepřidá další měsíc; pak jen konzistence a varování. */
+R.strojCasuRealne = async (p, env) => {
+  const page = await env.nova(p.url);
+  await cekejNaText(page, /Dnes byste měli zhruba|Po inflaci, v cenách/).catch(() => {});
+  const tl = page.getByRole('button', { name: 'V dnešních korunách' }).first();
+  if (await tl.getAttribute('aria-pressed').catch(() => null) !== 'true') await klikni(page, tl).catch(() => {});
+  await page.waitForTimeout(300);
+  const el = page.locator('[data-stroj-realne]').first();
+  const mesic = await el.getAttribute('data-stroj-realne').catch(() => null);
+  const h = Number(await el.getAttribute('data-hodnota').catch(() => NaN));
+  const v = Number(await el.getAttribute('data-vlozeno').catch(() => NaN));
+  const text = norm(await el.innerText().catch(() => ''));
+  const o = p.ocekavano, k = [];
+  k.push(cNum('hodnota po inflaci (Kč)', o['hodnota po inflaci (Kč)'], Number.isFinite(h) && h ? cislo(h) : null, 0, { rel: p.tolerance['relativně'] }));
+  k.push(cNum('vklady v dnešních cenách (Kč)', o['vklady v dnešních cenách (Kč)'], Number.isFinite(v) && v ? cislo(v) : null, 0, { rel: p.tolerance['vklady relativně'] }));
+  // Zobrazené (zaokrouhlené) číslo musí odpovídat přesné hodnotě v atributu – stránka neukazuje jiné číslo, než ověřujeme.
+  const zobr = precti(text.match(/byste měli zhruba\s*([\d ,]+(?: mil\.)? Kč)/)?.[1]);
+  k.push(cBool('zobrazená hodnota = data-hodnota (zaokrouhleně)', zobr && Number.isFinite(h) && Math.abs(zobr.v - h) <= (/mil\./.test(zobr.raw) ? 50000 : 0.005 * h + 1), 'stejné číslo',
+    { druh: 'konzistence', skut: `${zobr?.raw} vs ${h}` }));
+  k.push(cBool('reálný výpočet končí posledním měsícem indexu ČSÚ', !!mesic && /^\d{4}-\d{2}$/.test(mesic), 'YYYY-MM v data-stroj-realne', { druh: 'konzistence', skut: mesic }));
+  return { stranky: [page], datum: mesic, kontroly: k };
+};
+
 /* FIRE kalkulačka */
 R.fire = async (p, env) => {
   const page = await env.nova('/fire-kalkulacka');
@@ -1434,6 +1458,7 @@ function ridic(p) {
   if (u === '/investovani-pro-deti') return R.deti;
   if (u === '/dip') return R.dip;
   if (u === '/pruvodce') return R.pruvodce;
+  if (u.startsWith('/stroj-casu') && /[?&]ceny=dnesni/.test(u)) return R.strojCasuRealne;
   if (u.startsWith('/stroj-casu')) return R.strojCasu;
   if (u === '/fire-kalkulacka') return R.fire;
   if (u === '/monte-carlo') return R.monteCarlo;

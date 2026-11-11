@@ -1225,6 +1225,84 @@
    "zdroj_overeni": "Anuita splatná předem (Decimal, mimo kód webu), i = 1,01^(1/12) − 1: FV po 1/2/3 letech 1 206,49 / 2 425,05 / 3 655,79 Kč, výnos za rok = rozdíl hodnot − vklady 1 200 Kč = 6,49 / 18,56 / 30,74 Kč (≥ 0). Před opravou tabulka ukazovala −200, −200, +800 Kč (rozdíl dvou čísel na tisíce)."
   },
   {
+   "id": "investicni-43",
+   "skupina": "investicni",
+   "typ": "hodnota",
+   "nastroj": "Korunový stroj času – v dnešních korunách (po inflaci ČSÚ)",
+   "url": "/stroj-casu?co=sp500&mesicne=5000&naraz=0&od=2010&ceny=dnesni",
+   "pripad": "sp500 5000/měs + 0 od 2010, v cenách posledního měsíce indexu ČSÚ",
+   "vstupy": {
+    "co": "sp500",
+    "mesicne": 5000,
+    "naraz": 0,
+    "od": 2010,
+    "ceny": "dnesni"
+   },
+   "ocekavano": {
+    "hodnota po inflaci (Kč)": 4068570,
+    "vklady v dnešních cenách (Kč)": 1428958,
+    "vloženo nominálně (Kč)": 1005000,
+    "ceny měsíce": "2026-09"
+   },
+   "tolerance": {
+    "relativně": 0.01,
+    "vklady relativně": 0.002,
+    "poznamka": "hodnota: web kurzy ECB a vlastní DB vs. kotva ČNB × Yahoo (rozdíl 11. 11. 2026: −0,005 %); vklady: stejný index ČSÚ (rozdíl 0)"
+   },
+   "zdroj_overeni": "Nezávislý přepočet 11. 11. 2026 (Python, mimo kód webu, scratchpad overeni/stroj_realne.py): Yahoo v8 adj. close SPY denně × kurz ČNB USD rok.txt (den bez kurzu = poslední předchozí), měsíční hodnota = poslední obchodní den měsíce; vklad na začátku měsíce m koupí za cenu konce m−1; konec = 9/2026 (poslední měsíc indexu ČSÚ); vklady × CPI[2026-09]/CPI[m] z holých CSV ČSÚ CEN0101B (do 2014) a CEN0101E (od 2015), báze 2015 = 100 (kontrolně báze 2005/2025 zřetězené: vklady 1 428 612 Kč, rozdíl < 0,1 %). Kotva inflace: roční průměry z měsíčního indexu sedí na publikovanou míru inflace ČSÚ 2010–2025 (max. odchylka 0,06 p. b.). Kotva cen: Yahoo × ČNB (web počítá z vlastní DB a kurzů ECB). Výsledek: hodnota 4 068 570 Kč, vklady v cenách 9/2026 1 428 958 Kč; web (data-hodnota) 4 068 373 Kč.",
+   "zavisi_na_datu": true,
+   "datum_dat": "2026-09",
+   "dnes_selze": {
+    "chyba": "3.7 přepínač „V dnešních korunách“ ve stroji času – nová funkce, na produkci zatím není",
+    "kde": "jen produkce (v repu hotovo, do nasazení)",
+    "opraveno": {
+     "commit": "větev worktree-agent-aba9d197c46a0748c",
+     "datum": "2026-11-11",
+     "overeno": "nezávisle 11. 11. 2026: Yahoo SPY × ČNB, CPI ČSÚ CEN0101B/E → 4 068 570 Kč / vklady 1 428 958 Kč",
+     "poznamka": "na produkci ověřit po nasazení, pak dnes_selze smazat"
+    }
+   }
+  },
+  {
+   "id": "investicni-44",
+   "skupina": "investicni",
+   "typ": "hodnota",
+   "nastroj": "Korunový stroj času – v dnešních korunách (po inflaci ČSÚ)",
+   "url": "/stroj-casu?co=svet&mesicne=5000&naraz=0&od=2010&ceny=dnesni",
+   "pripad": "svet 5000/měs + 0 od 2010, v cenách posledního měsíce indexu ČSÚ",
+   "vstupy": {
+    "co": "svet",
+    "mesicne": 5000,
+    "naraz": 0,
+    "od": 2010,
+    "ceny": "dnesni"
+   },
+   "ocekavano": {
+    "hodnota po inflaci (Kč)": 2933239,
+    "vklady v dnešních cenách (Kč)": 1428958,
+    "vloženo nominálně (Kč)": 1005000,
+    "ceny měsíce": "2026-09"
+   },
+   "tolerance": {
+    "relativně": 0.01,
+    "vklady relativně": 0.002,
+    "poznamka": "hodnota: web kurzy ECB a vlastní DB vs. kotva ČNB × Yahoo (rozdíl 11. 11. 2026: −0,005 %); vklady: stejný index ČSÚ (rozdíl 0)"
+   },
+   "zdroj_overeni": "Nezávislý přepočet 11. 11. 2026 (Python, mimo kód webu, scratchpad overeni/stroj_realne.py): Yahoo v8 adj. close VT denně × kurz ČNB USD rok.txt (den bez kurzu = poslední předchozí), měsíční hodnota = poslední obchodní den měsíce; vklad na začátku měsíce m koupí za cenu konce m−1; konec = 9/2026 (poslední měsíc indexu ČSÚ); vklady × CPI[2026-09]/CPI[m] z holých CSV ČSÚ CEN0101B (do 2014) a CEN0101E (od 2015), báze 2015 = 100 (kontrolně báze 2005/2025 zřetězené: vklady 1 428 612 Kč, rozdíl < 0,1 %). Kotva inflace: roční průměry z měsíčního indexu sedí na publikovanou míru inflace ČSÚ 2010–2025 (max. odchylka 0,06 p. b.). Kotva cen: Yahoo × ČNB (web počítá z vlastní DB a kurzů ECB). Výsledek: hodnota 2 933 239 Kč, vklady v cenách 9/2026 1 428 958 Kč; web (data-hodnota) 2 933 088 Kč.",
+   "zavisi_na_datu": true,
+   "datum_dat": "2026-09",
+   "dnes_selze": {
+    "chyba": "3.7 přepínač „V dnešních korunách“ ve stroji času – nová funkce, na produkci zatím není",
+    "kde": "jen produkce (v repu hotovo, do nasazení)",
+    "opraveno": {
+     "commit": "větev worktree-agent-aba9d197c46a0748c",
+     "datum": "2026-11-11",
+     "overeno": "nezávisle 11. 11. 2026: Yahoo VT × ČNB, CPI ČSÚ CEN0101B/E → 2 933 239 Kč / vklady 1 428 958 Kč",
+     "poznamka": "na produkci ověřit po nasazení, pak dnes_selze smazat"
+    }
+   }
+  },
+  {
    "id": "fire-00",
    "skupina": "fire",
    "typ": "hodnota",
