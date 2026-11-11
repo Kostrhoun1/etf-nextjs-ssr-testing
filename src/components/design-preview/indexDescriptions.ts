@@ -46,6 +46,17 @@ const EXACT: Record<string, Omit<IndexInfo, 'label'>> = {
     holdings: '~4 300 firem',
     what: 'Velké a střední firmy z vyspělých i rozvíjejících se trhů (přes 90 % globální investovatelné kapitalizace). Přímý konkurent MSCI ACWI, obvykle drží o něco více titulů.',
   },
+  // 11. 11. 2026: v žebříčku „Celý svět“ byly FTSE Global All Cap (VALL/VGLA) a Solactive GBS (Amundi Prime All Country
+  // World) po 2 fondech bez popisu → karta chyběla a „Co v kategorii je“ pokrylo jen 22 z 28 fondů (poplach check-fund-data).
+  'ftse global all cap': {
+    provider: 'FTSE Russell',
+    holdings: '~10 200 firem', // FTSE Russell factsheet k 30. 9. 2026: 10 222 složek (viz /svetove-etf-indexy)
+    what: 'Velké, střední i malé firmy z vyspělých i rozvíjejících se trhů – nejširší index celého světa od FTSE. Proti FTSE All-World navíc malé firmy (kolem 9 % hodnoty indexu).',
+  },
+  'solactive gbs global markets large & mid cap': {
+    provider: 'Solactive',
+    what: 'Velké a střední firmy z vyspělých i rozvíjejících se trhů, vážené tržní kapitalizací – levnější obdoba MSCI ACWI a FTSE All-World (sleduje ji Amundi Prime All Country World).',
+  },
   'msci emerging markets': {
     provider: 'MSCI',
     holdings: '~1 400 firem',

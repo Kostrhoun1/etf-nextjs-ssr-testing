@@ -108,7 +108,8 @@ function Radek({ slug, s }: { slug: string; s: SouhrnZebricku | null }) {
   const r1 = s?.nejvetsi?.r1 ?? null;
   const nv = s?.nejvetsi;
   return (
-    <li data-pocet={s?.pocet ?? ''} data-slug={slug} data-ter-od={s?.nejlevnejsi?.ter ?? ''} data-r1={r1 ?? ''}>
+    // data-nejvetsi (3.4, 11. 11. 2026): ISIN největšího fondu – denní kontrola hlídá, že u „Celý svět“ to není fond na MSCI World.
+    <li data-pocet={s?.pocet ?? ''} data-slug={slug} data-ter-od={s?.nejlevnejsi?.ter ?? ''} data-r1={r1 ?? ''} data-nejvetsi={nv?.isin ?? ''}>
       <Link
         href={catHref(slug)}
         className="group grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_6.5rem_1rem] items-center gap-x-3 px-4 py-2.5 min-h-[3.25rem] hover:bg-teal-50/50 transition-colors"
