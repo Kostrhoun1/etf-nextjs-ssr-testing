@@ -3760,14 +3760,14 @@
     "sp500": "2005-01-03 → 2026-10-21, nominální CAGR 10,7032 %"
    },
    "ocekavano": {
-    "cpi_faktor": 1.982,
-    "inflace_pa_pct": 3.19,
-    "realny_cagr_pct": 7.28
+    "cpi_faktor": 1.9913,
+    "inflace_pa_pct": 3.21,
+    "realny_cagr_pct": 7.26
    },
    "tolerance": {
     "realny_cagr_pct": "±0,02"
    },
-   "zdroj_overeni": "ČSÚ CEN0101E (2026-09 = 159,2, báze 2015) + míra inflace ČSÚ 2004–2014; nezávislý výpočet",
+   "zdroj_overeni": "ČSÚ CEN0101B 2005-01 = 80,2 a CEN0101E 2026-10 = 159,7 (báze 2015, CSV ČSÚ, bez kódu webu); 2005-01-03 → 2026-10-21 = 21,80 roku: faktor 1,9913, inflace 3,2105 % ročně, reálný CAGR = 1,107032/1,032105 − 1 = 7,2596 % (přepočteno 11. 11. 2026 po zveřejnění CPI 10/2026; dřív se konec deflovaly zářím 159,2).",
    "zavisi_na_datu": false
   },
   {
