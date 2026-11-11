@@ -190,7 +190,8 @@ export function spocitejStrojRealne(
     vlozeno: vlozenoReal,
     hodnota: prubeh[prubeh.length - 1].hodnota,
     prubeh,
-    nejhorsiPropad: propad && propad.hloubka < 0 ? propad : null,
+    // −1e-9: podíl dvou deflovaných hodnot nese chybu plovoucí čárky (−1e-16 není propad).
+    nejhorsiPropad: propad && propad.hloubka < -1e-9 ? propad : null,
     cenyMesic: mesicI(iKonec),
     vlozenoNominalne: vlozenoNom,
   };
