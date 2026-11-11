@@ -1108,6 +1108,16 @@ const main = async () => {
         else if (Number(m[1].replace(/\D/g, '')) !== a - b) poplach.push({ co: '/zebricky: vysvětlený rozdíl počtů nesedí', ukazka: [`text ${m[1]}, skutečně ${a - b}`] });
         if (a - b > 20) varovani.push({ co: `/zebricky: nejlevnějších je o ${a - b} méně – víc než jen produkty s TER 0 %? Prověřit`, ukazka: [] });
       }
+      // 3.4 (11. 11. 2026): „Celý svět“ na rozcestníku ukazuje výnos NEJVĚTŠÍHO fondu žebříčku. Dřív to byl EUNL (MSCI World =
+      // jen vyspělé trhy). Název fondu z DB (ne z kódu webu) musí být index celého světu (All-World/ACWI/All Country/Global All Cap).
+      const nvSvet = t.match(/data-slug="nejlepsi-celosvetove-etf"[^>]*data-nejvetsi="([A-Z0-9]*)"/)?.[1];
+      if (nvSvet) {
+        const f = fondy.find((x) => x.isin === nvSvet);
+        const jmeno = f?.name ?? '';
+        if (!f) varovani.push({ co: `/zebricky: největší fond „Celý svět“ ${nvSvet} není v databázi`, ukazka: [] });
+        else if (!/all[- ]world|acwi|all country|ac world|global all[- ]?cap/i.test(jmeno) || /\bMSCI World\b/i.test(jmeno))
+          poplach.push({ co: `/zebricky: „Celý svět“ ukazuje jako největší fond ${nvSvet} (${jmeno}) – není to index celého světa (MSCI World = jen vyspělé trhy)`, ukazka: [] });
+      }
     } catch (e) {
       varovani.push({ co: `Kontrolu počtů na /zebricky se nepodařilo provést: ${e.message}`, ukazka: [] });
     }
@@ -3744,6 +3754,28 @@ const main = async () => {
         if (celkem != null && celkem > 32) cil.push(`/recenze/ibkr: příklad za 2 000 Kč „od ${celkem} Kč“ > 32 Kč (V13)`);
         if (celkem != null && smena != null && Math.abs(celkem - (provize + smena)) > 0.051) cil.push(`/recenze/ibkr: ${celkem} ≠ ${provize} + ${smena}`);
       }
+      // B2) /srovnani-brokeru – spočítaný řádek „Nákup za 5 000 Kč celkem“ (3.6, 11. 11. 2026) proti nezávislému vzorci.
+      //     Fio: směnu ceník neuvádí → jen „od“ poplatek 3,95 EUR (do 1 400 EUR objemu). Celkem = součet zaokrouhlených částí.
+      {
+        const sb = await vem('/srovnani-brokeru');
+        const radky5 = [...sb.matchAll(/data-broker="([a-z0-9]+)"[^>]*>\s*<span[^>]*data-priklad="([^"]*)" data-priklad-castka="(\d+)"/g)];
+        for (const [, id, hodnota, castka] of radky5) {
+          const kc = Number(castka);
+          const [celkem, provize, smena] = hodnota.split('|').map((x) => (x === '' ? null : Number(x)));
+          if (celkem != null && smena != null && Math.abs(celkem - (provize + smena)) > 0.051) cil.push(`/srovnani-brokeru ${id}: nákup za ${kc} Kč ${celkem} ≠ ${provize} + ${smena}`);
+          if (id === 'fio') {
+            const ocek = (kc / EUR <= 1400 ? 3.95 : kc / EUR <= 3000 ? 4.95 : Math.max(0.0015 * kc / EUR, 6.95)) * EUR;
+            if (celkem != null || smena != null) cil.push(`/srovnani-brokeru fio: směna má být neznámá („od“), stránka ${hodnota}`);
+            if (Math.abs(provize - ocek) > tol(ocek)) cil.push(`/srovnani-brokeru fio: poplatek za ${kc} Kč ${provize} Kč, nezávislý vzorec ${ocek.toFixed(2)} Kč`);
+            continue;
+          }
+          if (!model[id]) continue;
+          const ocek = model[id](kc);
+          if (celkem == null || Math.abs(celkem - ocek) > tol(ocek)) cil.push(`/srovnani-brokeru ${id}: nákup za ${kc} Kč ${celkem} Kč, nezávislý vzorec ${ocek.toFixed(2)} Kč`);
+        }
+        // Před nasazením řádek na produkci není → tiché přeskočení; po nasazení musí mít všech 5 brokerů.
+        if (radky5.length && radky5.length !== 5) cil.push(`/srovnani-brokeru: řádek „Nákup za 5 000 Kč“ má ${radky5.length} brokerů místo 5`);
+      }
       if (KARTA_PLACENA.test(recXtb.replace(/&nbsp;|&#160;/g, ' '))) cil.push('/recenze/xtb: „platba kartou 0,77 %“ – vklad kartou je od 20. 10. 2026 zdarma (V14)');
       if (nasazeno && !/Tradegate/.test(recDegiro)) chybyN.push('/recenze/degiro: chybí „Tradegate“ (ETF Selection, S15)');
       if (!nasazeno) varN.push('Audit nákladů: produkce ještě nemá opravy (bez data-hranice na /kde-koupit) – živé kontroly jen jako varování');
@@ -4244,9 +4276,11 @@ async function kontrolaKolo8Obsah(poplach, varovani) {
       if (celkem != null && smena != null && Math.abs(celkem - (provize + smena)) > 0.051) chyby.push(`/recenze/${b}: příklad nákupu ${celkem} Kč ≠ poplatek ${provize} + směna ${smena}`);
     }
     // statický test: recenze počítá součet z castiPrikladu (zaokrouhlené části), ne z nezaokrouhleného n.celkemKc
+    // 3.6 (11. 11. 2026): text příkladu je sdílený prikladNakupu v brokerData.ts (recenze 2 000 Kč i tabulka /srovnani-brokeru 5 000 Kč).
     const rec = readFileSync('src/app/recenze/[broker]/page.tsx', 'utf8');
-    if (!/castiPrikladu\(n\)/.test(rec) || /kc\(n\.celkemKc\)/.test(rec)) chyby.push('recenze/[broker]/page.tsx: součet příkladu se nepočítá ze zaokrouhlených částí (castiPrikladu)');
     const bd = readFileSync('src/data/brokerData.ts', 'utf8');
+    const fnPriklad = bd.match(/export function prikladNakupu[\s\S]*?\n}\n/)?.[0] ?? '';
+    if (!/prikladNakupu\(/.test(rec) || !/castiPrikladu\(n\)/.test(fnPriklad) || /celkemKc\)/.test(fnPriklad)) chyby.push('příklad nákupu (recenze / prikladNakupu v brokerData.ts): součet se nepočítá ze zaokrouhlených částí (castiPrikladu)');
     if (/Zahrnut v poplatku/.test(bd)) chyby.push('brokerData.ts: „Zahrnut v poplatku“ (má být „Zahrnuta“ – směna)');
     for (const re of [/cennePapiry: 'max\. 20 000 EUR \(Garanční fond OCP\)'/, /cennePapiry: 'max\. 20 000 EUR \(německý/, /kyperský fond ICF\)'/])
       if (re.test(bd)) chyby.push(`brokerData.ts: ochrana bez „90 %“ (${re.source.slice(0, 40)}…) – garanční fondy vyplácí 90 %, max. 20 000 EUR`);
