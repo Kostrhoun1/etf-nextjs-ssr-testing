@@ -1251,17 +1251,7 @@
    },
    "zdroj_overeni": "Nezávislý přepočet 11. 11. 2026 (Python, mimo kód webu, scripts/overeni-realne-kalkulacky.py): Yahoo v8 adj. close SPY denně × kurz ČNB USD rok.txt (den bez kurzu = poslední předchozí), měsíční hodnota = poslední obchodní den měsíce; vklad na začátku měsíce m koupí za cenu konce m−1; konec = 9/2026 (poslední měsíc indexu ČSÚ); vklady × CPI[2026-09]/CPI[m] z holých CSV ČSÚ CEN0101B (do 2014) a CEN0101E (od 2015), báze 2015 = 100 (kontrolně báze 2005/2025 zřetězené: vklady 1 428 612 Kč, rozdíl < 0,1 %). Kotva inflace: roční průměry z měsíčního indexu sedí na publikovanou míru inflace ČSÚ 2010–2025 (max. odchylka 0,06 p. b.). Kotva cen: Yahoo × ČNB (web počítá z vlastní DB a kurzů ECB). Výsledek: hodnota 4 068 570 Kč, vklady v cenách 9/2026 1 428 958 Kč; web (data-hodnota) 4 068 373 Kč.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10",
-   "dnes_selze": {
-    "chyba": "3.7 přepínač „V dnešních korunách“ ve stroji času – nová funkce, na produkci zatím není",
-    "kde": "jen produkce (v repu hotovo, do nasazení)",
-    "opraveno": {
-     "commit": "237552e",
-     "datum": "2026-11-11",
-     "overeno": "nezávisle 11. 11. 2026: Yahoo SPY × ČNB, CPI ČSÚ CEN0101B/E → 4 068 570 Kč / vklady 1 428 958 Kč",
-     "poznamka": "na produkci ověřit po nasazení, pak dnes_selze smazat"
-    }
-   }
+   "datum_dat": "2026-10"
   },
   {
    "id": "investicni-44",
@@ -1290,17 +1280,7 @@
    },
    "zdroj_overeni": "Nezávislý přepočet 11. 11. 2026 (Python, mimo kód webu, scripts/overeni-realne-kalkulacky.py): Yahoo v8 adj. close VT denně × kurz ČNB USD rok.txt (den bez kurzu = poslední předchozí), měsíční hodnota = poslední obchodní den měsíce; vklad na začátku měsíce m koupí za cenu konce m−1; konec = 9/2026 (poslední měsíc indexu ČSÚ); vklady × CPI[2026-09]/CPI[m] z holých CSV ČSÚ CEN0101B (do 2014) a CEN0101E (od 2015), báze 2015 = 100 (kontrolně báze 2005/2025 zřetězené: vklady 1 428 612 Kč, rozdíl < 0,1 %). Kotva inflace: roční průměry z měsíčního indexu sedí na publikovanou míru inflace ČSÚ 2010–2025 (max. odchylka 0,06 p. b.). Kotva cen: Yahoo × ČNB (web počítá z vlastní DB a kurzů ECB). Výsledek: hodnota 2 933 239 Kč, vklady v cenách 9/2026 1 428 958 Kč; web (data-hodnota) 2 933 088 Kč.",
    "zavisi_na_datu": true,
-   "datum_dat": "2026-10",
-   "dnes_selze": {
-    "chyba": "3.7 přepínač „V dnešních korunách“ ve stroji času – nová funkce, na produkci zatím není",
-    "kde": "jen produkce (v repu hotovo, do nasazení)",
-    "opraveno": {
-     "commit": "237552e",
-     "datum": "2026-11-11",
-     "overeno": "nezávisle 11. 11. 2026: Yahoo VT × ČNB, CPI ČSÚ CEN0101B/E → 2 933 239 Kč / vklady 1 428 958 Kč",
-     "poznamka": "na produkci ověřit po nasazení, pak dnes_selze smazat"
-    }
-   }
+   "datum_dat": "2026-10"
   },
   {
    "id": "fire-00",
