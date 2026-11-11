@@ -10,10 +10,10 @@ import {
 import { SectionHead } from '@/components/design-preview/CategoryUI';
 import { FaqSeznam } from '@/components/design-preview/brokerUI';
 import InfoTip from '@/components/design-preview/InfoTip';
-import BacktestWidget, { type BacktestResult } from '@/components/design-preview/BacktestWidget';
-import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
+import BacktestWidget from '@/components/design-preview/BacktestWidget';
+import { TELO_VYCHOZI, SCENARE_Z_ODKAZU } from '@/lib/backtest/predpocitaneScenare';
+import { predpocitejProWidget } from '@/lib/backtest/predpocet';
 import InvestmentDisclaimer from '@/components/SEO/InvestmentDisclaimer';
-import { simulateAndSerialize } from '@/lib/backtest/simulate';
 import { ogImage } from '@/lib/ogImage';
 import { titulek } from '@/lib/seoTitulek';
 
@@ -36,45 +36,33 @@ export const metadata: Metadata = {
 };
 
 /**
- * Výchozí scénář (100 % S&P 500, od 1/2005, 100 000 Kč + 5 000 Kč měsíčně) spočítaný při ISR renderu
- * STEJNÝM jádrem a STEJNÝM tělem požadavku jako widget (VYCHOZI_SCENAR) → číslo a graf jsou vidět hned
- * po načtení, bez kliknutí a bez volání API (revize 18. 10. 2026: 19 s na zobrazení, výsledek nikdo neviděl).
- * Do HTML jde jen to, co widget kreslí: denní řada → první bod měsíce + poslední bod, bez měsíčních
- * výnosů, z propadů jen 5 nejhlubších. Při chybě null → widget ukáže formulář (raději nic než špatně).
+ * VÝSLEDEK HNED PO OTEVŘENÍ (result-first; revize 18. 10. 2026, úkol 3.1 listopadu 2026).
+ * Výchozí scénář (100 % S&P 500 od 1/2005, 100 000 Kč + 5 000 Kč měsíčně) a scénáře, na které vedou odkazy z FB
+ * a Media (`SCENARE_Z_ODKAZU`, dnes Buffettovo 90/10), se spočítají při renderu stránky STEJNOU cestou jako
+ * POST /api/backtest/simulate (pripravPozadavek → simulateAndSerialize) a vloží se do HTML zkrácené na to, co widget
+ * kreslí (`zkratProWidget`). Prohlížeč pak API nevolá – až po změně vstupů.
+ *
+ * KDY SE POČÍTÁ: při buildu (do limitů Vercelu se nepočítá) a pak nejvýš jednou denně při ISR (revalidate 1 den,
+ * stejně jako ostatní stránky s předpočtem – kratší ani no-store NEPOUŽÍVAT, viz ZAMERNA-ROZHODNUTI.md „kolo 5 A“).
+ * Jedno přegenerování = 2 výpočty nad týmiž daty z mezipaměti (~0,3 s CPU) místo výpočtu při každé návštěvě.
+ * Denně, ne jen při sobotní přestavbě: indexy a kurzy přibývají každý pracovní den a živé API po první změně
+ * vstupu počítá do dneška – týden starý předpočet by vedle něj ukazoval jiné „Data k …“. Datum posledního bodu
+ * je u výsledku i v patičce (každé číslo má datum). Při chybě null → widget zavolá API (raději nic než špatně).
  */
-async function predpocitejVychozi(): Promise<BacktestResult | null> {
-  try {
-    const r = await simulateAndSerialize({
-      ...VYCHOZI_SCENAR,
-      endDate: new Date().toISOString().split('T')[0],
-    });
-    const mesicni: { date: string; value: number }[] = [];
-    let posledni = '';
-    for (const p of r.evolution) {
-      const k = p.date.slice(0, 7);
-      if (k !== posledni) { mesicni.push(p); posledni = k; }
-    }
-    const konec = r.evolution[r.evolution.length - 1];
-    if (konec && mesicni[mesicni.length - 1] !== konec) mesicni.push(konec);
-    const nejhlubsi = [...r.risk.allDrawdowns].sort((a, b) => a.depth - b.depth).slice(0, 5);
-    return {
-      evolution: mesicni,
-      summary: r.summary,
-      returns: { annualReturns: r.returns.annualReturns },
-      inflation: r.inflation,
-      risk: { maxDrawdown: r.risk.maxDrawdown, allDrawdowns: nejhlubsi, valueAtRisk95: r.risk.valueAtRisk95, podilPodVaR: r.risk.podilPodVaR },
-      stressPeriods: r.stressPeriods,
-      drawdownSeries: r.drawdownSeries,
-      rollingReturns: r.rollingReturns,
-    } as BacktestResult;
-  } catch (e) {
-    console.error('[backtest] předpočet výchozího scénáře selhal:', e);
-    return null;
-  }
+async function predpocitejScenare() {
+  const dnes = new Date().toISOString().split('T')[0];
+  const [vychozi, ...zOdkazu] = await Promise.all([
+    predpocitejProWidget(TELO_VYCHOZI, dnes),
+    ...SCENARE_Z_ODKAZU.map((s) => predpocitejProWidget(s.telo, dnes)),
+  ]);
+  return {
+    vychozi: vychozi?.vysledek ?? null,
+    zOdkazu: zOdkazu.filter((x): x is NonNullable<typeof x> => x != null),
+  };
 }
 
 export default async function BacktestPreview() {
-  const vychozi = await predpocitejVychozi();
+  const { vychozi, zOdkazu } = await predpocitejScenare();
   const posledniDen = vychozi?.evolution[vychozi.evolution.length - 1]?.date;
   const datumDat = posledniDen
     ? new Date(posledniDen).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -183,9 +171,9 @@ export default async function BacktestPreview() {
           </p>
         </section>
 
-        {/* NÁSTROJ – výsledek výchozího scénáře je předpočítaný na serveru */}
+        {/* NÁSTROJ – výsledek výchozího scénáře a scénářů z odkazů je předpočítaný na serveru */}
         <section id="backtest" className="pb-12 scroll-mt-16">
-          <BacktestWidget initialResult={vychozi} />
+          <BacktestWidget initialResult={vychozi} predpocty={zOdkazu} />
         </section>
 
         {/* FAQ (sem se přesunulo i „Jak výsledky správně číst“) */}

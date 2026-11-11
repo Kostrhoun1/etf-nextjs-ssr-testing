@@ -6,7 +6,9 @@
  * Teď se výchozí varianta (Kč) spočítá jednou při ISR renderu stránky stejným jádrem jako API
  * (`simulateAndSerialize`) – čísla jsou tedy totožná – a prohlížeč volá API jen po přepnutí měny.
  */
-import { simulateAndSerialize, type Currency } from './simulate'
+import { simulateAndSerialize, pripravPozadavek, type Currency } from './simulate'
+import { klicPredpoctu, type TeloScenare } from './predpocitaneScenare'
+import type { BacktestResult } from '@/components/design-preview/BacktestWidget'
 
 export interface PortfolioVysledek {
   summary: { cagr: number; standardDeviation: number; netAssetValue: number; amountInvested: number }
@@ -54,6 +56,53 @@ export async function predpocitejPortfolio(items: Polozka[], start: string, cur:
     }
   } catch (e) {
     console.error('[predpocet] backtest portfolia selhal:', e)
+    return null
+  }
+}
+
+/* ===== Stránka /backtest: předpočet výsledku pro widget (úkol 3.1, 11. 11. 2026) ===== */
+
+/**
+ * Zkrátí odpověď API na to, co widget /backtest opravdu kreslí (plná odpověď ~450 kB, zkrácená ~40 kB):
+ * denní řada → první bod každého měsíce + poslední bod (graf kreslí ~400 bodů; vklady widget rekonstruuje z prvního
+ * obchodního dne měsíce/čtvrtletí/roku = právě z těchto bodů, takže „vloženo“ i XIRR vyjdou stejně jako z denní řady),
+ * bez měsíčních výnosů, horizontů a Monte Carla, z propadů jen 5 nejhlubších (tabulka víc neukazuje).
+ * Hodnoty se NEzaokrouhlují – čísla jsou bit po bitu ta z API (hlídá scripts/backtestPredpocet.test.mjs).
+ */
+export function zkratProWidget(r: Awaited<ReturnType<typeof simulateAndSerialize>>): BacktestResult {
+  const mesicni: { date: string; value: number }[] = []
+  let posledni = ''
+  for (const p of r.evolution) {
+    const k = p.date.slice(0, 7)
+    if (k !== posledni) { mesicni.push(p); posledni = k }
+  }
+  const konec = r.evolution[r.evolution.length - 1]
+  if (konec && mesicni[mesicni.length - 1] !== konec) mesicni.push(konec)
+  const nejhlubsi = [...r.risk.allDrawdowns].sort((a, b) => a.depth - b.depth).slice(0, 5)
+  return {
+    evolution: mesicni,
+    summary: r.summary,
+    returns: { annualReturns: r.returns.annualReturns },
+    ...(r.inflation ? { inflation: r.inflation } : {}),
+    risk: { maxDrawdown: r.risk.maxDrawdown, allDrawdowns: nejhlubsi, valueAtRisk95: r.risk.valueAtRisk95, podilPodVaR: r.risk.podilPodVaR },
+    stressPeriods: r.stressPeriods,
+    drawdownSeries: r.drawdownSeries,
+    rollingReturns: r.rollingReturns,
+  } as BacktestResult
+}
+
+/**
+ * Předpočet jednoho scénáře STEJNOU cestou jako POST /api/backtest/simulate (pripravPozadavek → simulateAndSerialize).
+ * `konecDne` = den renderu (build / denní ISR). Při chybě null → widget zavolá API nebo ukáže formulář
+ * (raději nic než špatně).
+ */
+export async function predpocitejProWidget(telo: TeloScenare, konecDne: string): Promise<{ klic: string; vysledek: BacktestResult } | null> {
+  try {
+    const pripraveno = pripravPozadavek({ ...telo, endDate: konecDne })
+    if (!pripraveno.ok) throw new Error(pripraveno.error)
+    return { klic: klicPredpoctu(telo), vysledek: zkratProWidget(await simulateAndSerialize(pripraveno.body)) }
+  } catch (e) {
+    console.error('[predpocet] backtest pro /backtest selhal:', e)
     return null
   }
 }

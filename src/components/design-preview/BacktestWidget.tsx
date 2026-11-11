@@ -29,6 +29,7 @@ import { INDEX_BY_CODE, type IndexDef } from '@/lib/backtest/indexes';
 import type { RebalancingStrategy } from '@/lib/backtest/types';
 import { STRESS_WINDOWS } from '@/lib/backtest/calculations';
 import { VYCHOZI_SCENAR } from '@/lib/backtest/vychoziScenar';
+import { klicPredpoctu, TELO_VYCHOZI } from '@/lib/backtest/predpocitaneScenare';
 import { kulateKroky, fmtOsa, fmtOsaPct } from '@/lib/osyGrafu';
 import { vkladyVCase, zhodnoceniVkladu } from '@/lib/backtest/zhodnoceniVkladu';
 
@@ -301,11 +302,24 @@ const indexNameByCode = (code: string) =>
   AVAILABLE_INDEXES.find((i) => i.indexCode === code)?.name ?? code;
 const zdrojSlozky = (code: string) => AVAILABLE_INDEXES.find((i) => i.indexCode === code)?.zdroj ?? '';
 
-export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmount, defaultContribFreq, initialResult }: {
+export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmount, defaultContribFreq, initialResult, predpocty }: {
   defaultPreset?: string; defaultStart?: string; defaultAmount?: number; defaultContribFreq?: ContributionFrequency;
   /** Výsledek výchozího scénáře spočítaný na serveru (result-first: číslo a graf hned po načtení). */
   initialResult?: BacktestResult | null;
+  /** Další scénáře spočítané na serveru (odkazy z FB/Media, src/lib/backtest/predpocitaneScenare.ts) – klíč = vstupy výpočtu. */
+  predpocty?: { klic: string; vysledek: BacktestResult }[];
 } = {}) {
+  /* PŘEDPOČTY (úkol 3.1, 11. 11. 2026): klíč těla požadavku → výsledek ze serveru. Použije se jen při PŘESNÉ shodě
+     vstupů výpočtu, bez porovnání a bez vlastního konce období; jinak normální volání API. Výchozí scénář platí jen
+     pro výchozí widget (bez defaultPreset/defaultStart… z embedu). */
+  const mapaPredpoctu = useMemo(() => {
+    const m = new Map<string, BacktestResult>();
+    if (initialResult && !defaultPreset && !defaultStart && defaultAmount == null && !defaultContribFreq) m.set(klicPredpoctu(TELO_VYCHOZI), initialResult);
+    for (const p of predpocty ?? []) m.set(p.klic, p.vysledek);
+    return m;
+    // Props se po načtení nemění.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [currency, setCurrency] = useState<Currency>('CZK');
   const [selectedETFs, setSelectedETFs] = useState<SelectedETF[]>(() => {
     const seeded = defaultPreset ? presetToETFs(defaultPreset) : [];
@@ -323,6 +337,8 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
   const [contributionAmount, setContributionAmount] = useState(VYCHOZI_SCENAR.contributions.amount);
   const [contributionFrequency, setContributionFrequency] = useState<ContributionFrequency>(defaultContribFreq ?? VYCHOZI_SCENAR.contributions.frequency);
   const [result, setResult] = useState<BacktestResult | null>(initialResult ?? null);
+  /** Odkud je zobrazený výsledek: předpočet ze serveru (bez volání API), nebo API. Atribut pro kontroly a nápovědu. */
+  const [zdrojVysledku, setZdrojVysledku] = useState<'predpocet' | 'api' | null>(initialResult ? 'predpocet' : null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultCurrency, setResultCurrency] = useState<Currency>('CZK');
@@ -479,14 +495,41 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     }
     // Každý běh má pořadové číslo – výsledek staršího běhu, který doběhne později, se zahodí.
     const beh = ++behRef.current;
-    setLoading(true);
-    setError(null);
     const konfigBehu = konfig;
     const popisBehu = popisNastaveni(cur);
+    const contributions = contributionFrequency !== 'none' && contributionAmount > 0
+      ? { amount: contributionAmount, frequency: contributionFrequency as 'monthly' | 'quarterly' | 'yearly' }
+      : undefined;
+    // Složky s vahou 0 % se neposílají (přidaná třída aktiv začíná na 0 %) – výsledek = portfolio bez nich.
+    const mainPortfolio = selectedETFs.filter((etf) => etf.weight > 0).map((etf) => ({
+      isin: etf.isin, name: etf.name, weight: etf.weight / 100, ter: etf.ter, indexCode: etf.indexCode,
+      // Konkrétní fond: data zdrojového fondu přepočtená na poplatek vybraného fondu.
+      ...(etf.fond?.prepocet ? { feeOverride: etf.fond.ter } : {}),
+    }));
+
+    /* PŘEDPOČET ZE SERVERU (úkol 3.1): tytéž vstupy jako předpočítaný scénář (výchozí, odkaz z FB) → výsledek
+       z HTML stránky, bez volání API (= bez výpočetního času na Vercelu). Spočítaný STEJNOU cestou jako API
+       (scripts/backtestPredpocet.test.mjs). Jen „do dneška“ a bez porovnání – jinak API. */
+    const predpocet = !compareIds.length && endDate === new Date().toISOString().split('T')[0]
+      ? mapaPredpoctu.get(klicPredpoctu({ portfolio: mainPortfolio, startDate, initialAmount, rebalancingStrategy: rebalancing, currency: cur, contributions }))
+      : undefined;
+    if (predpocet) {
+      setError(null);
+      setZkraceniPorovnanim(null);
+      setResult(predpocet);
+      setZdrojVysledku('predpocet');
+      setVysledekPro(konfigBehu);
+      setPopisVysledku(popisBehu);
+      setResultCurrency(cur);
+      setComparison(null);
+      setLoading(false);
+      setCekamNaUrl(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
     try {
-      const contributions = contributionFrequency !== 'none' && contributionAmount > 0
-        ? { amount: contributionAmount, frequency: contributionFrequency as 'monthly' | 'quarterly' | 'yearly' }
-        : undefined;
 
       // Jeden běh backtestu se stejnými parametry (částky, měna) – jen jiné složení a případně jiný start.
       const simulateOne = async (
@@ -508,12 +551,6 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
         return response.json() as Promise<BacktestResult>;
       };
 
-      // Složky s vahou 0 % se neposílají (přidaná třída aktiv začíná na 0 %) – výsledek = portfolio bez nich.
-      const mainPortfolio = selectedETFs.filter((etf) => etf.weight > 0).map((etf) => ({
-        isin: etf.isin, name: etf.name, weight: etf.weight / 100, ter: etf.ter, indexCode: etf.indexCode,
-        // Konkrétní fond: data zdrojového fondu přepočtená na poplatek vybraného fondu.
-        ...(etf.fond?.prepocet ? { feeOverride: etf.fond.ter } : {}),
-      }));
       const compPortfolios = compareIds.map((id) => {
         const preset = PRESET_PORTFOLIOS.find((p) => p.id === id)!;
         return preset.etfs.map((item) => {
@@ -551,6 +588,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       setZkraceniPorovnanim(zkraceni && zkraceni.puvodne < zkraceni.od ? zkraceni : null);
 
       setResult(mainData);
+      setZdrojVysledku('api');
       setVysledekPro(konfigBehu);
       setPopisVysledku(popisBehu);
       setResultCurrency(cur);
@@ -656,6 +694,15 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
       }, 80));
     }
     urlRestored.current = true;
+    /* Odkaz s run=1 (FB, Medium, detail fondu → „spočítej“): rovnou k výsledku (úkol 3.1). Karta výsledku stojí na
+       stejném místě i během výpočtu (skeleton), takže se posouvá hned a nic pod ní neposkočí. Jen když karta není
+       nahoře – na desktopu bývá vidět celá, na mobilu ji odsune nadpis a úvod. */
+    if (p.get('run') === '1') {
+      requestAnimationFrame(() => {
+        const el = vysledekRef.current;
+        if (el && el.getBoundingClientRect().top > 140) el.scrollIntoView({ block: 'start' });
+      });
+    }
     // Jen jednou při načtení stránky.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -851,7 +898,7 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
     <div className="space-y-8">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
         {/* ===== VÝSLEDEK (mobil: první; desktop: vpravo, lepkavý) ===== */}
-        <div id="vysledek" ref={vysledekRef} data-sekce="backtest-vysledek" className="lg:order-2 lg:sticky lg:top-[4.5rem] space-y-3 scroll-mt-20">
+        <div id="vysledek" ref={vysledekRef} data-sekce="backtest-vysledek" data-zdroj-vysledku={zdrojVysledku ?? undefined} className="lg:order-2 lg:sticky lg:top-[4.5rem] space-y-3 scroll-mt-20">
           {bezVkladu && (
             <div role="alert" className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" />
@@ -916,6 +963,13 @@ export default function BacktestWidget({ defaultPreset, defaultStart, defaultAmo
                     <Pencil className="w-3.5 h-3.5" /> Upravit
                   </a>
                 </div>
+                {/* Výsledek po otevření (výchozí scénář nebo scénář z odkazu) je spočítaný předem – návštěvník má
+                    pochopit, že je to jen příklad a strategii si může změnit (úkol 3.1, UX: srozumitelnost > úplnost). */}
+                {zdrojVysledku === 'predpocet' && (
+                  <p data-sekce="backtest-napoveda-zmeny" className="mt-2 text-xs text-slate-600 leading-relaxed">
+                    Jiná strategie? <a href="#nastaveni" className="font-medium text-teal-700 hover:underline">Změňte portfolio, vklady nebo období</a> – výsledek se přepočítá sám.
+                  </p>
+                )}
 
                 {zkraceniPorovnanim && (
                   <p className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 leading-relaxed">

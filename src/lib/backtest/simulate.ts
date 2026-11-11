@@ -7,6 +7,7 @@ import {
 } from '@/lib/backtest/calculations'
 import type { BacktestInput, RebalancingStrategy } from '@/lib/backtest/types'
 import { MIN_MESICU_RIZIKA } from '@/lib/backtest/calculations'
+import { INDEX_BY_CODE } from '@/lib/backtest/indexes'
 
 /** Mění se s každou opravou metodiky, kterou má denní kontrola rozlišit (nasazeno / ještě ne). */
 export const METODIKA_BACKTESTU = '2026-10-22'
@@ -33,6 +34,67 @@ export interface SimulateRequestBody {
   contributions?: {
     amount: number
     frequency: 'monthly' | 'quarterly' | 'yearly'
+  }
+}
+
+/* Limity: endpoint je veřejný a bez přihlášení. Bez nich šel jedním požadavkem zatížit CPU
+   (libovolně dlouhé portfolio, forecastYears=1000 drží v paměti 12 mil. čísel) – na free tieru
+   Vercelu přímá cesta k vyčerpání Fluid CPU. Zjištěno 17. 10. 2026. */
+const MAX_SLOZEK = 15
+const MAX_LET_PROGNOZY = 50
+/** Povolená odchylka součtu vah od 1 (= 0,01 procentního bodu, přesnost formuláře backtestu). */
+const TOLERANCE_VAH = 1e-4
+
+export type PripravenyPozadavek = { ok: true; body: SimulateRequestBody } | { ok: false; error: string }
+
+/**
+ * Validace a normalizace těla požadavku – JEDINÁ cesta pro POST /api/backtest/simulate i pro serverový předpočet
+ * stránky /backtest (úkol 3.1, 11. 11. 2026). Dřív byla jen v route.ts; předpočet ji obcházel, takže „stejné vstupy“
+ * nemusely znamenat stejné tělo pro engine (např. normalizace vah). Vrací kopii, vstup nemění.
+ */
+export function pripravPozadavek(raw: SimulateRequestBody): PripravenyPozadavek {
+  if (!raw || !Array.isArray(raw.portfolio) || raw.portfolio.length === 0 || raw.portfolio.length > MAX_SLOZEK) {
+    return { ok: false, error: `Portfolio musí mít 1 až ${MAX_SLOZEK} složek.` }
+  }
+  // Jen indexy z manifestu – ať nejde z venku poslat libovolný kód do dotazů nad databází.
+  // Poplatek konkrétního fondu: jen rozumné číslo (0–3 % ročně), a jen u indexu se známým poplatkem
+  // zdroje (sourceTer) – jinak by se poplatek odečetl dvakrát (pravidlo č. 1).
+  const spatnyPoplatek = raw.portfolio.find((item) => item.feeOverride !== undefined && (
+    typeof item.feeOverride !== 'number' || !Number.isFinite(item.feeOverride) || item.feeOverride < 0 || item.feeOverride > 0.03 ||
+    INDEX_BY_CODE[item.indexCode]?.sourceTer === undefined))
+  if (spatnyPoplatek) return { ok: false, error: 'Neplatný poplatek fondu' }
+  const neznamy = raw.portfolio.find((item) => !INDEX_BY_CODE[item.indexCode])
+  if (neznamy) return { ok: false, error: `Neznámá třída aktiv: ${String(neznamy.indexCode).slice(0, 40)}` }
+
+  if (!raw.startDate || !raw.endDate) return { ok: false, error: 'Chybí počáteční nebo koncové datum.' }
+
+  // Váhy: jen konečná nezáporná čísla. Složky s vahou 0 engine vynechá (výsledek = portfolio bez nich);
+  // dřív 0 % shodilo výsledek na null a UI ukázalo „0 Kč, ztráta −100 %“ (revize 19. 10. 2026).
+  if (raw.portfolio.some((item) => typeof item.weight !== 'number' || !Number.isFinite(item.weight) || item.weight < 0)) {
+    return { ok: false, error: 'Váha složky musí být číslo od 0 do 100 %.' }
+  }
+  if (!raw.portfolio.some((item) => item.weight > 0)) {
+    return { ok: false, error: 'Alespoň jedna složka musí mít nenulovou váhu.' }
+  }
+
+  // Součet vah = 100 % (audit 22. 10. 2026, V9). Dřív prošlo cokoli v 99–101 % BEZ normalizace: váha 0,995 tiše
+  // „ztratila“ 0,5 % portfolia při každém vyvážení (S&P 500 od 2005: CAGR 10,14 % místo 10,70 %).
+  // ROZHODNUTÍ: mimo ±0,01 procentního bodu (TOLERANCE_VAH) → 400; uvnitř se váhy NORMALIZUJÍ na přesně 1
+  // (zbytky plovoucí čárky typu 7,5 + 7,5 + … a zaokrouhlení formuláře na setiny procenta). Výsledek pak
+  // vždy odpovídá portfoliu, jehož váhy dávají 100 %.
+  const totalWeight = raw.portfolio.reduce((sum, item) => sum + item.weight, 0)
+  if (Math.abs(totalWeight - 1) > TOLERANCE_VAH) {
+    return { ok: false, error: `Váhy složek musí dát dohromady 100 % (teď ${(totalWeight * 100).toLocaleString('cs-CZ', { maximumFractionDigits: 4 })} %).` }
+  }
+  return {
+    ok: true,
+    body: {
+      ...raw,
+      ...(raw.forecastYears != null
+        ? { forecastYears: Math.min(Math.max(Math.round(Number(raw.forecastYears) || 10), 1), MAX_LET_PROGNOZY) }
+        : {}),
+      portfolio: raw.portfolio.map((item) => ({ ...item, weight: item.weight / totalWeight })),
+    },
   }
 }
 
