@@ -1508,6 +1508,12 @@ const main = async () => {
       const nasazeno = radky.size > 0; // před nasazením kola 6 rozcestník atributy data-ter-od/data-r1 nemá
       const slugy = nasazeno ? [...radky.keys()] : [...new Set([...rozc.matchAll(/href="\/nejlepsi-etf\/([a-z0-9-]+)"/g)].map((m) => m[1]))];
       const chyby = [], varuj = [], titulky = new Map(), popisky = new Map(), kOvereni = [];
+      // Statická kontrola (12. 11. 2026): výpadek načtení dne dat nesmí skončit v ISR cache jako stránka bez „Data k“,
+      // bez odpovědi nahoře a s obecným popiskem (11. 11. 2026 žebříček vládních dluhopisů, 24 h) – stránka musí vyhodit výjimku.
+      try {
+        const zdrojZ = readFileSync('src/app/nejlepsi-etf/[slug]/page.tsx', 'utf8');
+        if (!/if \(!dataDatum\) throw new Error/.test(zdrojZ)) chyby.push('src/app/nejlepsi-etf/[slug]/page.tsx: chybí „if (!dataDatum) throw“ – výpadek dne dat by se uložil do ISR cache');
+      } catch { /* kontrola běží i bez zdrojáků */ }
       for (const slug of slugy) {
         const t = await html(`/nejlepsi-etf/${slug}`);
         if (!t) { chyby.push(`${slug}: stránka se nenačetla`); continue; }

@@ -673,12 +673,15 @@ export async function getFeaturedETFs(): Promise<{
    Cacheováno pro celý render (dedup napříč generateMetadata + komponentou). */
 const _dataDate = reactCache(async (): Promise<Date | null> => {
   try {
-    const { data, error } = await supabaseAdmin
+    const dotaz = () => supabaseAdmin
       .from('etf_funds')
       .select('scraping_date, returns_as_of')
       .not('scraping_date', 'is', null)
       .order('scraping_date', { ascending: false })
       .limit(1000);
+    let { data, error } = await dotaz();
+    // Jeden opakovaný pokus: přechodná chyba dotazu jinak nechala stránku den bez data (11. 11. 2026, žebříček vládních dluhopisů).
+    if (error || !data?.length) { await new Promise((r) => setTimeout(r, 400)); ({ data, error } = await dotaz()); }
     if (error || !data?.length) return null;
     const radky = data as { scraping_date: string | null; returns_as_of: string | null }[];
     const sVynosy = radky.filter((r) => r.returns_as_of);

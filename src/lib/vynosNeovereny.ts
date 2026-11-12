@@ -84,6 +84,7 @@ export const NEOVERENE_VYNOSY: Readonly<Record<string, NeoverenyVynos>> = {
   'IE0006IP4XZ8': { ticker: 'USAC', druh: 'burza', overeno: '2026-10-22', dukaz: 'Amundi MSCI USA ESG Broad Transition Acc 3,2 mld. €: zdroj 1R +5,35 % k 16. 10.; burza USAC.PA 16. 10. 2025→2026 +18,71 %; třída Dist LYYB +17,80 % (LUSA.MI +17,95 %); justETF totéž co zdroj' },
   'LU2090063327': { ticker: 'LYSM', druh: 'burza', overeno: '2026-10-22', dukaz: 'Amundi MSCI Semiconductors Dist: zdroj 3R +274,3 % k 16. 10. vs Acc LSMC +302,2 % (CHIP.MI +301,9 %) při 1R 56,6 vs 57,1 % – poměr 3R 7,5 %, 1R 0,3 %; burza Dist v EUR na Yahoo není' },
   'DE000A1E0HS6': { ticker: 'XAD6', druh: 'burza', overeno: '2026-10-22', dukaz: 'Xtrackers Physical Silver ETC (EUR): zdroj 5R +108,3 %, burza XAD6.MI 20. 10. 2021→2026 +142,0 %; medián stříbra (4 fondy) +144,6 %' },
+  'FR0011122233': { ticker: '', druh: 'burza', overeno: '2026-11-12', dukaz: 'Amundi CAC 40 UCITS ETF J (třída bez tickeru, velikost 0): zdroj k 6. 11. 2026 1R +2,30 % / 3R +42,44 %; burza CAC.PA (třída Dist, Yahoo adjclose) k 6. 11. +5,48 % / +26,75 %; třídy LYY 3R +28,5 %, VOOP +26,6 %' },
 };
 export const NEOVERENE_ISINY: ReadonlySet<string> = new Set(Object.keys(NEOVERENE_VYNOSY));
 
@@ -97,6 +98,7 @@ export const NEOVERENE_ISINY: ReadonlySet<string> = new Set(Object.keys(NEOVEREN
  */
 export interface NeoverenyRok { ticker: string; roky: number[]; den?: string; overeno: string; dukaz: string }
 export const NEOVERENE_ROKY: Readonly<Record<string, NeoverenyRok>> = {
+  'FR0011122233': { ticker: '', roky: [2024, 2025], overeno: '2026-11-12', dukaz: 'Amundi CAC 40 UCITS ETF J: zdroj 2024 +25,25 % / 2025 +10,74 %; burza CAC.PA (Yahoo adjclose) +0,77 % / +13,81 %; třídy LYY a VOOP u zdroje +0,68 % / +13,97 %' },
   'IE00B7Y34M31': { ticker: '3USL', roky: [2022], den: '2022-12-19', overeno: '2026-11-08', dukaz: 'zdroj 16.→19. 12. 2022 1,99 → 38,69 € (×19,4, neupravená konsolidace) → 2022 +817,7 %; burza 3USL.L −54,7 %, 3LUS.L −54,8 %, 3USL.MI −55,6 %; model 3× S&P 500 TR −51 %' },
   'IE00B8K7KM88': { ticker: '3USS', roky: [2022], den: '2022-12-19', overeno: '2026-11-08', dukaz: 'zdroj 2022 −98,9 %; burza 3USS.L +44,1 %, 3USS.MI +48,2 %, 3ULS.L +43,0 % (skok 19. 12. 2022 neutralizován)' },
   'XS2819843900': { ticker: '3NGL', roky: [2024], overeno: '2026-11-08', dukaz: 'zdroj 2024 +6 879 % (konsolidace 22. 7. 2024 neupravená); burza 3NGL.L −85,0 %, 3LNG.L −84,9 %, 3NGL.MI −83,9 %' },

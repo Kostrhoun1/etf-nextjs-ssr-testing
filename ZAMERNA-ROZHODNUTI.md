@@ -306,6 +306,10 @@ Totéž od 10. 11. 2026 `/faktorove-etf` a jeho 6 detailů: když se nenačtou f
 vyhodí výjimku. 9. 11. 2026 se jinak hláška „Údaje o fondech se teď nepodařilo načíst“ uložila do ISR cache
 na celý den u 3 detailů. Hlídá statická kontrola kolo 8 v `scripts/check-fund-data.mjs`.
 
+Totéž od 12. 11. 2026 žebříčky `/nejlepsi-etf/[slug]`: když se nenačte den dat (`getDataDatum()` = null), stránka vyhodí
+výjimku. 11. 11. 2026 se žebříček vládních dluhopisů vykreslil bez „Data k“, bez odpovědi nahoře a s obecným popiskem
+a zůstal tak 24 h v ISR cache. Při buildu bez dne dat build selže – záměr. Hlídá statická kontrola (kolo6 seo zebricky).
+
 ## „Největší český průvodce ETF fondy“ zůstává (rozhodnutí majitele 18. 10. 2026)
 
 Ve strukturovaných datech (src/components/SEO/AuthorSchema.tsx – description a slogan) je tvrzení

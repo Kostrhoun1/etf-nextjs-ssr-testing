@@ -302,6 +302,10 @@ export function generateStaticParams() {
 const nactiZebricek = reactCache(async (slug: string) => {
   const cfg = categoryConfigs[slug];
   const [pocetDb, dataDatum, odlehle] = await Promise.all([getCategoryCount(cfg), getDataDatum(), odlehleIsiny()]);
+  // Výpadek načtení dne dat = výjimka → ISR ponechá poslední dobrou verzi. 11. 11. 2026 se žebříček vládních dluhopisů
+  // vykreslil bez „Data k“, bez odpovědi nahoře a s obecným popiskem a zůstal tak 24 h v ISR cache (pravidlo č. 1: každé
+  // číslo má datum). Hlídá statická kontrola v scripts/check-fund-data.mjs (kolo6 seo zebricky).
+  if (!dataDatum) throw new Error(`[zebricek ${slug}] den dat se nenačetl – ponechávám předchozí verzi stránky`);
   // Počet neznámý (chyba dotazu) → bezpečně 300 (dřívější chování), ne neomezený výpis.
   const limit = pocetDb != null && pocetDb <= PLNA_DO ? PLNA_DO : MAX_V_TABULCE;
   const all = await getTopETFsForCategory({ ...cfg, limit });
