@@ -687,13 +687,17 @@ const main = async () => {
   try {
     const html = await fetch(`${WEB_URL}/stroj-casu`).then((r) => (r.ok ? r.text() : ''));
     const text = html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|\u00a0/g, ' ').replace(/\s+/g, ' ');
-    const m = /Vloženo 1 010 000 Kč/.test(text) ? text.match(/Dnes byste měli zhruba ([0-9]+(?:,[0-9])?) mil\. Kč/) : null;
     // Backtest končí ke dni „Data k …“ ze stránky (je v ISR cache – jinak by denní pohyb trhu
     // mezi renderem a kontrolou dělal falešný poplach).
     const dk = text.match(/[Dd]ata k ([0-9]{1,2})\. ([0-9]{1,2})\. ([0-9]{4})/);
     const konecDat = dk ? `${dk[3]}-${dk[2].padStart(2, '0')}-${dk[1].padStart(2, '0')}` : new Date().toISOString().slice(0, 10);
+    // Vklad výchozího scénáře roste každý měsíc o 5 000 Kč (1/2010 až měsíc „Data k“ včetně). Dřív tu bylo natvrdo
+    // „1 010 000 Kč“ (říjen 2026) → od 1. 11. 2026 kontrola jen varovala a číslo neověřovala (opraveno 12. 11. 2026).
+    const vlozeno = ((Number(konecDat.slice(0, 4)) - 2010) * 12 + Number(konecDat.slice(5, 7))) * 5000;
+    const vlozenoText = vlozeno.toLocaleString('cs-CZ').replace(/\s/g, ' ');
+    const m = new RegExp(`vloženo(?: celkem)? ${vlozenoText} Kč`, 'i').test(text) ? text.match(/Dnes byste měli zhruba ([0-9]+(?:,[0-9])?) mil\. Kč/) : null;
     if (!m) {
-      varovani.push({ co: 'Stroj času neukazuje výchozí scénář (5 000 Kč měsíčně od 2010, vloženo 1 010 000 Kč) – změněný výchozí stav, nebo chyba', ukazka: [] });
+      varovani.push({ co: `Stroj času neukazuje výchozí scénář (5 000 Kč měsíčně od 2010, vloženo ${vlozenoText} Kč) – změněný výchozí stav, nebo chyba`, ukazka: [] });
     } else {
       const web = Number(m[1].replace(',', '.')) * 1e6;
       const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, {

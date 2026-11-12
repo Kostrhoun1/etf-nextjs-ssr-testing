@@ -102,6 +102,7 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
 | 8. 11. (celý den UTC) | 11 min | 561 MB | 10 830 | 2 210 volání funkcí; nad cílem jen kvůli 6 nasazením (po každém se plní nová cache) – jednorázové |
 | 9. 11. (do ~10 UTC) | 21 s | 28 MB | 187 | 167 volání; tempo hluboko pod cílem. Za období Pro (od 7. 11.) celkem 14 min / 857 MB / 12,1K ISR |
 | 9. 11. 10 UTC → 10. 11. 11 UTC | ~6 min | ~150 MB | ~3,45K | CPU lehce nad cílem 5 min (1. den) – sledovat 11. 11. Za období Pro celkem 20 min / 1 GB / 15,55K ISR / 4,38K volání; kredit 1,99 / 20 $ |
+| 10. 11. 11 UTC → 12. 11. 11 UTC (2 dny) | ~13 min (6,5/den) | ~0,9 GB (9. 11. ~285 MB, 10. 11. ~275 MB, 11. 11. ~470 MB) | ~10,3K (5,1K/den) | **nad cílem 2 dny po sobě** (CPU, přenos i ISR); 11. 11. tři nasazení. Za období Pro celkem **33 min / 1,89 GB / 25,84K ISR / 7,24K volání**; kredit 3,25 / 20 $. Odhad do 7. 12.: CPU ~3 h (limit 4 h), **přenos ~9–10,5 GB (limit 10 GB) – nejtěsnější**. Největší spotřebitel CPU za 3 dny: `/srovnani/porovnani` 646 volání, 4 min, P75 4,3 s (noindex, bez cache, 167 kB na odpověď); dál `/api/backtest/simulate` 1 min, `/api/ev` 38 s |
 
 ## Dočasný stav (aktualizovat)
 
@@ -140,3 +141,18 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   Oprava (výjimka při výpadku) dál čeká na nasazení. **Usage Vercelu dnes nepřečteno**: v Chromu se po přihlášení zobrazuje
   celostránková výzva „Secure Your Account with 2FA“ a automatické kliknutí na „Skip Setup“ nebylo schváleno – majitel ji
   musí jednou odkliknout (nebo 2FA nastavit). Řádek tabulky za 10.–11. 11. chybí.
+- 12. 11. 2026 11–13 UTC (denní kontrola): web běží (200, build 11. 11. 20:00 = main 233670a, vše dřív „NEnasazené“ je venku),
+  scraper dnes v pořádku, joby zelené kromě kontroly dat 11. 11. 22:05 UTC – **2 poplachy, jedna příčina**:
+  `/nejlepsi-etf/nejlepsi-vladni-dluhopisy-etf` se po nasazení (20:23 UTC) vykreslil bez dne dat (`getDataDatum()` vrátil null –
+  přechodná chyba dotazu) → chybí „Data k“, odpověď nahoře a popisek je obecný; v ISR cache do ~20:23 UTC 12. 11., pak se sám
+  obnoví (ostatní žebříčky v pořádku, ověřeno curl). Oprava: při chybějícím dni dat stránka vyhodí výjimku (ISR ponechá dobrou
+  verzi) + 1 opakovaný pokus dotazu + statická kontrola. **Commit jen lokálně na `vylepseni-stranek`, NEpushnuto** (je v src/ →
+  push do main = nasazení; 11. 11. už byla tři). **Poslat do main v pátek 13. 11. večer** (nahradí sobotní týdenní přestavbu –
+  ta se pak přeskočí, takže žádné nasazení navíc) a ověřit na produkci. Ve stejném commitu: `FR0011122233` Amundi CAC 40 J
+  (zdroj 3R +42,4 %, 2024 +25,3 %; burza CAC.PA +26,8 % / +0,8 %) do NEOVERENE_VYNOSY a NEOVERENE_ROKY – do nasazení web
+  u této třídy (bez tickeru, velikost 0) ukazuje chybná čísla.
+  Do main posláno hned: kontrola stroje času měla vklad natvrdo „1 010 000 Kč“ (říjen) → od 1. 11. číslo neověřovala, jen varovala;
+  teď vklad počítá z měsíce „Data k“ (ověřeno proti produkci: web 2,9 mil. Kč, backtest 2,904 mil. Kč).
+  Usage Vercelu dnes přečteno (výzva k 2FA je už jen banner) – viz tabulka; **otevřené: spotřeba 2 dny nad cílem**, zítra zjistit,
+  kdo volá `/srovnani/porovnani` (Observability → CDN Requests → Bot Name / Routes) a co dělá přenos v dny nasazení;
+  návrh k rozhodnutí majitele: stránku porovnání dát na CDN cache nebo ji robotům zakázat v robots.txt (je noindex).
