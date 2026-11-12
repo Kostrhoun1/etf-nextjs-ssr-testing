@@ -32,6 +32,16 @@ const nextConfig: NextConfig = {
         source: '/api/og',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
       },
+      // /srovnani/porovnani?isins=… je kvůli searchParams dynamická (každé volání = funkce): 12. 11. 2026 největší
+      // spotřebitel CPU i přenosu z originu (646 volání / 3 dny, P75 4,3 s, 167 kB). Majitel 12. 11.: dát na CDN cache.
+      // Vercel-CDN-Cache-Control čte jen CDN Vercelu (má přednost před `private, no-store`, které posílá Next), klíč
+      // cache = celá URL i s ?isins= (a RSC požadavky mají vlastní ?_rsc=). Prohlížeč dál dostává no-store.
+      // Pravidlo č. 1: stránka ukazuje „Data k“ s dnem výnosů, takže verze stará až ~1 den není vydávaná za dnešní
+      // (detaily fondů jsou předgenerované na týden). Kontrola: check-fund-data blok „porovnání z CDN“.
+      {
+        source: '/srovnani/porovnani',
+        headers: [{ key: 'Vercel-CDN-Cache-Control', value: 'max-age=43200, stale-while-revalidate=43200' }],
+      },
     ];
   },
   async redirects() {

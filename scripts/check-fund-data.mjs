@@ -3390,6 +3390,7 @@ const main = async () => {
   await kontrolaKolo8Faktory(poplach, varovani); // blok „kolo8 faktory“ – definice na konci souboru
   await kontrolaKolo8Obsah(poplach, varovani); // blok „kolo8 obsah“ – definice na konci souboru
   await kontrolaGrafIndexu(poplach, varovani); // blok „graf indexu“ (3.3, 11. 11. 2026) – definice na konci souboru
+  await kontrolaPorovnaniCdn(poplach, varovani); // blok „porovnání z CDN“ (12. 11. 2026) – definice na konci souboru
 
   // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
   //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
@@ -4401,3 +4402,37 @@ async function kontrolaGrafIndexu(poplach, varovani) {
   }
 }
 // --- konec graf indexu ---
+// --- porovnání z CDN --- (12. 11. 2026; majitel: dát /srovnani/porovnani na CDN cache)
+// /srovnani/porovnani?isins=… je dynamická (searchParams) a byla největším spotřebitelem CPU a přenosu z originu
+// (návrat na free tier Vercelu, limit 10 GB přenosu / 30 dní). next.config.ts posílá Vercel-CDN-Cache-Control.
+//  a) statika: pravidlo v next.config.ts existuje (smazání = POPLACH – bez něj hrozí překročení limitu a pozastavení webu),
+//  b) lokální build: odpověď hlavičku nese (next start přidává hlavičky z next.config),
+//  c) produkce: druhé načtení téže pevné URL (VWCE × SXR8 – z pevné sady, stránka není ISR, nic nezapisuje) musí přijít
+//     z CDN (x-vercel-cache HIT/STALE); MISS dvakrát = varování (cache nefunguje, spotřeba poroste) a stránka musí mít „Data k“.
+async function kontrolaPorovnaniCdn(poplach, varovani) {
+  const chyby = [];
+  try {
+    const { readFileSync } = await import('node:fs');
+    const cfg = readFileSync(new URL('../next.config.ts', import.meta.url), 'utf8');
+    if (!/source:\s*'\/srovnani\/porovnani'[\s\S]{0,200}Vercel-CDN-Cache-Control/.test(cfg)) {
+      poplach.push({ co: 'Porovnání z CDN: v next.config.ts chybí pravidlo Vercel-CDN-Cache-Control pro /srovnani/porovnani (bez cache hrozí překročení limitu přenosu free tieru)', ukazka: [] });
+    }
+    const url = `${WEB_URL}/srovnani/porovnani?isins=IE00BK5BQT80,IE00B5BMR087`;
+    const r1 = await fetch(url);
+    const html = await r1.text();
+    if (!r1.ok) chyby.push(`HTTP ${r1.status} ${url}`);
+    if (!/Data k/.test(html)) chyby.push('stránka porovnání bez „Data k“ (pravidlo č. 1 – verze z cache musí nést den dat)');
+    if (R.produkce) {
+      const r2 = await fetch(url);
+      await r2.text();
+      const c1 = r1.headers.get('x-vercel-cache'), c2 = r2.headers.get('x-vercel-cache');
+      if (!/HIT|STALE/i.test(c2 || '')) chyby.push(`druhé načtení nepřišlo z CDN (x-vercel-cache: ${c1} → ${c2})`);
+    } else if (!r1.headers.get('vercel-cdn-cache-control')) {
+      chyby.push('lokální odpověď nemá hlavičku Vercel-CDN-Cache-Control (next.config.ts headers)');
+    }
+    if (chyby.length) varovani.push({ co: `Porovnání z CDN (/srovnani/porovnani): ${chyby.length} nálezů`, ukazka: chyby });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu porovnání z CDN se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+  }
+}
+// --- konec porovnání z CDN ---

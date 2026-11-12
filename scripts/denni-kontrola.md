@@ -147,7 +147,7 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   přechodná chyba dotazu) → chybí „Data k“, odpověď nahoře a popisek je obecný; v ISR cache do ~20:23 UTC 12. 11., pak se sám
   obnoví (ostatní žebříčky v pořádku, ověřeno curl). Oprava: při chybějícím dni dat stránka vyhodí výjimku (ISR ponechá dobrou
   verzi) + 1 opakovaný pokus dotazu + statická kontrola. **Commit jen lokálně na `vylepseni-stranek`, NEpushnuto** (je v src/ →
-  push do main = nasazení; 11. 11. už byla tři). **Poslat do main v pátek 13. 11. večer** (nahradí sobotní týdenní přestavbu –
+  push do main = nasazení; 11. 11. už byla tři). ~~Poslat do main v pátek 13. 11. večer~~ → **posláno už 12. 11. odpoledne spolu s CDN cache porovnání (majitel 12. 11.)** (nahradí sobotní týdenní přestavbu –
   ta se pak přeskočí, takže žádné nasazení navíc) a ověřit na produkci. Ve stejném commitu: `FR0011122233` Amundi CAC 40 J
   (zdroj 3R +42,4 %, 2024 +25,3 %; burza CAC.PA +26,8 % / +0,8 %) do NEOVERENE_VYNOSY a NEOVERENE_ROKY – do nasazení web
   u této třídy (bez tickeru, velikost 0) ukazuje chybná čísla.
@@ -156,3 +156,6 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   Usage Vercelu dnes přečteno (výzva k 2FA je už jen banner) – viz tabulka; **otevřené: spotřeba 2 dny nad cílem**, zítra zjistit,
   kdo volá `/srovnani/porovnani` (Observability → CDN Requests → Bot Name / Routes) a co dělá přenos v dny nasazení;
   návrh k rozhodnutí majitele: stránku porovnání dát na CDN cache nebo ji robotům zakázat v robots.txt (je noindex).
+  → **Rozhodnuto 12. 11.: CDN cache** (next.config.ts `Vercel-CDN-Cache-Control: max-age=43200, swr=43200` na
+  /srovnani/porovnani; kontrola check-fund-data blok „porovnání z CDN“). Od 13. 11. v tabulce sledovat, jestli CPU a přenos
+  klesly; když ne, zjistit (Observability → Bot Name), kdo stránku volá, a zvážit zákaz v robots.txt.
