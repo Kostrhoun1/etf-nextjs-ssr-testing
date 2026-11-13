@@ -182,7 +182,13 @@ const main = async () => {
   if (zaseklé.length) varovani.push({ co: `${zaseklé.length} fondů je v nabídce, ale scraper je přes 90 dní neaktualizoval`, ukazka: ukazka(zaseklé, (x) => `${x.isin} ${String(x.name).slice(0, 34)} (data z ${String(x.scraping_date || x.updated_at).slice(0, 10)})`) });
   const paka = fondy.filter((x) => x.is_leveraged && CYKLUS.test(x.name || '') && !/(\d(\.\d+)?x\b|leverag|inverse|daily short)/i.test(x.name || '')); // VIX „Short-Term Futures 2.25x“ je páka opravdu
   if (paka.length) varovani.push({ co: `${paka.length} fondů s krátkou durací označených jako pákové (skryté ve srovnávači)`, ukazka: ukazka(paka) });
-  const extrem = fondy.filter((x) => !x.is_leveraged && x.return_1y != null && Math.abs(Number(x.return_1y)) > 150);
+  // Extrémní roční výnos ověřený burzou (Yahoo × kurz ECB) – 30 dní po ověření se nehlásí, pak se varování vrátí
+  // (číslo se mezitím změnilo, ověřit znovu). Důkaz: ZAMERNA-ROZHODNUTI.md „Ověřené podivné hodnoty“.
+  const OVERENE_EXTREMNI_1R = {
+    XS2872233403: '2026-11-13', // WisdomTree European Natural Gas: zdroj +204,7 % (EUR) k 11. 11.; EGAS.L +189,1 % v GBp × GBP/EUR = +204,4 %
+  };
+  const overenoNedavno = (isin) => OVERENE_EXTREMNI_1R[isin] && (Date.now() - new Date(OVERENE_EXTREMNI_1R[isin]).getTime()) / 864e5 <= 30;
+  const extrem = fondy.filter((x) => !x.is_leveraged && x.return_1y != null && Math.abs(Number(x.return_1y)) > 150 && !overenoNedavno(x.isin));
   if (extrem.length) varovani.push({ co: `${extrem.length} NEpákových fondů s ročním výnosem přes ±150 % – ověřit, jestli je číslo skutečné`, ukazka: ukazka(extrem, (x) => `${x.isin} ${String(x.name).slice(0, 34)} ${x.return_1y} %`) });
   // ── ÚPLNOST: ticker, index, kategorie peněžního trhu (revize webu 18. 10. 2026) ──
   // Parser burz hledal tabulku podle textu „exchange“ → trefil popis fondu nebo tabulku základních údajů
@@ -743,10 +749,16 @@ const main = async () => {
         const q = new URL(odkaz, WEB_URL).searchParams;
         const portfolio = (q.get('slozeni') || '').split(',').map((x) => x.split(':')).filter(([c, w]) => c && Number(w) > 0)
           .map(([c, w]) => ({ isin: c, name: c, indexCode: c, weight: Number(w) / 100, ter: 0 }));
-        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, {
-          method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ portfolio, startDate: q.get('start'), endDate: q.get('do') || new Date().toISOString().slice(0, 10), initialAmount: Number(q.get('amount') || 100000), currency: 'CZK', rebalancingStrategy: q.get('vyvazovani') || 'yearly' }),
-        }).then((r) => r.json()).catch(() => null);
+        // Až 3 pokusy: jednorázové selhání volání (13. 11. 2026: 2 z 6 výpočtů „nešlo spočítat“, hned potom API vrátilo
+        // přesně číslo stránky) není chyba webu. Poplach až když výpočet nevrátí číslo ani napotřetí.
+        let bt = null;
+        for (let pokus = 0; pokus < 3 && !Number.isFinite(bt?.summary?.cagr); pokus++) {
+          if (pokus) await new Promise((r) => setTimeout(r, 5000));
+          bt = await fetch(`${WEB_URL}/api/backtest/simulate`, {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ portfolio, startDate: q.get('start'), endDate: q.get('do') || new Date().toISOString().slice(0, 10), initialAmount: Number(q.get('amount') || 100000), currency: 'CZK', rebalancingStrategy: q.get('vyvazovani') || 'yearly' }),
+          }).then((r) => r.json()).catch(() => null);
+        }
         const api = bt?.summary?.cagr, web = Number(cagrStr);
         overeno++;
         // Náhradní index (evropské akcie za nemovitosti, dluhopisy eurozóny za globální agregát, Russell 2000 za small
@@ -3192,7 +3204,14 @@ const main = async () => {
       const velWeb = kcSp.match(/Největší fond (\d+,\d) mld\. €/)?.[1];
       const cspx = await fetch(`${URL_DB}?select=fund_size_numeric&isin=eq.IE00B5BMR087`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
       const velDb = cspx?.[0]?.fund_size_numeric != null ? (cspx[0].fund_size_numeric / 1000).toFixed(1).replace('.', ',') : null;
-      if (kcSp && (!velWeb || velWeb !== velDb)) chyby.push(`/nejlepsi-etf/nejlepsi-sp500-etf: Klíčová čísla – největší fond ${velWeb} mld. € ≠ DB ${velDb} mld. €`);
+      // Stránka je v ISR cache až 24 h, DB se přepíše každé ráno (scraper 05:00 UTC) → velikost ze včerejška je správně
+      // (13. 11. 2026: web 136,9 × DB 139,9). Rozdíl do 5 % = varování; větší nebo chybějící číslo = jiný fond / chyba → poplach.
+      const cislo = (x) => Number(String(x).replace(',', '.'));
+      if (kcSp && (!velWeb || velWeb !== velDb)) {
+        const hlaska = `/nejlepsi-etf/nejlepsi-sp500-etf: Klíčová čísla – největší fond ${velWeb} mld. € ≠ DB ${velDb} mld. €`;
+        if (velWeb && velDb && Math.abs(cislo(velWeb) / cislo(velDb) - 1) <= 0.05) varovani.push({ co: 'Žebříček S&P 500: velikost největšího fondu z cache před dnešním stažením (rozdíl do 5 %)', ukazka: [hlaska] });
+        else chyby.push(hlaska);
+      }
 
       // 9) Prolinkování slabě odkazovaných stránek (dřív 1–4 příchozí odkazy): počet různých stránek ze sitemapy s odkazem.
       const odkazyNa = new Map();

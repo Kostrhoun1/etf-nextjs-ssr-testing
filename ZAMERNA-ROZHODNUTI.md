@@ -332,6 +332,12 @@ ZŮSTÁVÁ** – majitel 18. 10. 2026: „když jsi u modelových portfolií dal
   Yahoo 4GLD.DE od 30. 12.: −0,78 %. SGLN v USD −3,15 %, přepočteno do EUR (EUR/USD 1,1747 → 1,1242) +1,2 %.
   Rozdíl je jen den, od kterého se letošní výnos počítá. Výnos za 1R je u obou stejný (+1,49 / +1,37 %).
 
+- **WisdomTree European Natural Gas ETC (XS2872233403, EGAS) +204,7 % za rok v EUR (13. 11. 2026):** skutečnost.
+  Burza EGAS.L (Yahoo, GBp) 11. 11. 2025 → 11. 11. 2026: 1 682,25 → 4 863,50 = +189,1 %; kurz GBP/EUR (ECB) 1,1358 → 1,1959
+  → v EUR +204,4 % (zdroj +204,71 %). Letošní výnos zdroj +239,2 %, z Londýna vychází +248 % – rozdíl je v ceně k 31. 12.
+  (Londýn 31. 12. neobchodoval, nese cenu z 30. 12.; plyn se ten týden hýbal o 3–5 % denně) – přesný základ zdroje NEOVĚŘEN.
+  Kontrola (`OVERENE_EXTREMNI_1R` v check-fund-data.mjs) roční výnos 30 dní nehlásí, pak chce nové ověření.
+
 ## Detail fondu: sektory, složení, komodity (revize kola 4, 18. 10. 2026)
 
 - **Sektory jsou v klasifikaci zdroje dat (pravděpodobně FactSet RBICS, úroveň Economy) – NE TRBC ani GICS. Čísla sedí,

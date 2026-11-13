@@ -161,3 +161,14 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   → **Rozhodnuto 12. 11.: CDN cache** (next.config.ts `Vercel-CDN-Cache-Control: max-age=43200, swr=43200` na
   /srovnani/porovnani; kontrola check-fund-data blok „porovnání z CDN“). Od 13. 11. v tabulce sledovat, jestli CPU a přenos
   klesly; když ne, zjistit (Observability → Bot Name), kdo stránku volá, a zvážit zákaz v robots.txt.
+- 13. 11. 2026 11 UTC (denní kontrola): web běží (200, build 12. 11. 17:30 = main 11724d9), scraper dnes 5 167 fondů, všechny joby
+  zelené, kontrola dat 12. 11. 21:53 UTC **bez poplachu**. Opravy z 12. 11. ověřeny na produkci: žebříček vládních dluhopisů má
+  „Data k 10. 11. 2026“, detail `FR0011122233` výnosy za období neukazuje, `/srovnani/porovnani` 2. požadavek HIT z CDN.
+  Varování „roční výnos přes ±150 %“ (WisdomTree European Natural Gas, hlášeno denně od 8. 11.) ověřeno burzou – skutečnost
+  (ZAMERNA-ROZHODNUTI.md), kontrola ho 30 dní po ověření nehlásí (`OVERENE_EXTREMNI_1R`). Usage Vercelu přečteno ráno (~08 UTC,
+  řádek v tabulce) – podruhé už ne. **Čeká na majitele:** `Disallow: /srovnani/porovnani` v robots.txt (robot webarchiv.cz dělá
+  ~70 % volání té stránky, CDN cache na unikátní URL nepomáhá; přenos míří na 9,5–11 GB z limitu 10 GB).
+  Polední běh kontroly proti produkci ukázal 2 falešné poplachy (noční běh je neměl): (1) modelová portfolia „nešlo spočítat“ u 2 z 6 –
+  jednorázové selhání volání `/api/backtest/simulate`, opakované volání vrátilo přesně číslo stránky → kontrola volá až 3×;
+  (2) žebříček S&P 500 „největší fond 136,9 × DB 139,9 mld. €“ – stránka z ISR cache před ranním stažením → rozdíl do 5 % je
+  varování, větší poplach. Po úpravě běh proti produkci bez poplachu.
