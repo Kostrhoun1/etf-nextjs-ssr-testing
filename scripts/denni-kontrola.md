@@ -105,6 +105,7 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
 | 10. 11. 11 UTC → 12. 11. 11 UTC (2 dny) | ~13 min (6,5/den) | ~0,9 GB (9. 11. ~285 MB, 10. 11. ~275 MB, 11. 11. ~470 MB) | ~10,3K (5,1K/den) | **nad cílem 2 dny po sobě** (CPU, přenos i ISR); 11. 11. tři nasazení. Za období Pro celkem **33 min / 1,89 GB / 25,84K ISR / 7,24K volání**; kredit 3,25 / 20 $. Odhad do 7. 12.: CPU ~3 h (limit 4 h), **přenos ~9–10,5 GB (limit 10 GB) – nejtěsnější**. Největší spotřebitel CPU za 3 dny: `/srovnani/porovnani` 646 volání, 4 min, P75 4,3 s (noindex, bez cache, 167 kB na odpověď); dál `/api/backtest/simulate` 1 min, `/api/ev` 38 s |
 | 12. 11. (Vercel, den UTC) | 6 min 17 s | 405 MB | 4 701 | 1 419 volání funkcí; nad cílem CPU, přenos i ISR (3. den po sobě). 17:30 UTC nasazena CDN cache pro `/srovnani/porovnani` |
 | 13. 11. (do ~08 UTC) | 2 min 52 s | 107 MB | 2 987 | 1 126 volání za 8 h. **CDN cache porovnání technicky funguje (curl: 1. MISS, 2. HIT), ale spotřebu nesnížila**: za 12 h po nasazení (12. 11. ~20 UTC → 13. 11. ~08 UTC) mělo `/srovnani/porovnani` 254 volání funkce, CPU 2 min, P75 3,89 s, z CDN jen 1,2 % (248 z 258 požadavků MISS) – tempo ~500/den proti ~215/den před tím. Příčina: 180 z ~256 požadavků dělá archivační robot Národní knihovny `heritrix/3.7.0 (webarchiv.cz)`, každý na jinou kombinaci ISIN → každá URL je v cache poprvé. V záložce Bot Name není (Vercel ho nezná), je vidět jen v rozpadu User Agent. Druhý spotřebitel: `/srovnani/[pair]` 1K volání, CPU 1 min, z CDN 3,7 % (kdo volá, neověřeno – Chrome ztrácel spojení). Za období Pro celkem **40 min 47 s / ~2,2–2,4 GB (dashboard ukazuje „2 GB“, přesný součet nepřečten) / 32,06K ISR / 9,42K volání**; kredit 3,70 / 20 $. Odhad do 7. 12. (tempo 6,35 dne × 30): CPU ~3 h 15 min (limit 4 h), **přenos ~9,5–11 GB (limit 10 GB) – na hraně až nad**, ISR ~150K (limit 200K), volání ~45K. Návrh dalšího kroku (čeká na majitele): `Disallow: /srovnani/porovnani` v robots.txt pro všechny roboty (stránka je noindex, vyhledávače o nic nepřijdou; heritrix robots.txt respektuje) a prověřit, kdo volá `/srovnani/[pair]` |
+| 13. 11. ~08 UTC → 14. 11. ~12 UTC (28 h) | ~5 min (4,5/den) | ~0,3–0,4 GB (~300 MB/den, odhad z účtované částky 0,16 $ ÷ 0,06 $/GB = ~2,67 GB za období) | ~3,2K (2,7K/den) | 1,3K volání. CPU a ISR **v cíli**, přenos dál nad cílem 200 MB/den. Za období Pro celkem **46 min / ~2,7 GB (dashboard „3 GB“) / 35,25K ISR / 10,74K volání**; kredit 4,13 / 20 $. Odhad do 7. 12. (7,5 dne × 4): CPU ~3 h 05 min, ISR ~140K, volání ~43K, **přenos ~10,7 GB (limit 10 GB) – nad limitem**; návrh `Disallow: /srovnani/porovnani` dál čeká na majitele |
 
 ## Dočasný stav (aktualizovat)
 
@@ -172,3 +173,14 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   jednorázové selhání volání `/api/backtest/simulate`, opakované volání vrátilo přesně číslo stránky → kontrola volá až 3×;
   (2) žebříček S&P 500 „největší fond 136,9 × DB 139,9 mld. €“ – stránka z ISR cache před ranním stažením → rozdíl do 5 % je
   varování, větší poplach. Po úpravě běh proti produkci bez poplachu.
+- 14. 11. 2026 12 UTC (denní kontrola, sobota): web běží (200, build 12. 11. 17:30 = main 11724d9). Za 26 h všechny joby zelené
+  a **bez poplachu**: kontrola dat 13. 11. 21:28 UTC (13 známých varování), zlaté případy (258 OK, 0 selhalo), smoke test, sync
+  indexů (37 indexů OK), scraper 13. 11. (5 167 fondů; v sobotu neběží). Týdenní přestavba se spustila 10:02 UTC a Vercel ji
+  podle `vercel-ignore.sh` přeskočil (poslední nasazení 12. 11., mladší 6 dní) – build-time se nezměnil. Usage viz tabulka:
+  CPU a ISR v cíli, **přenos (Fast Origin Transfer) míří na ~10,7 GB z limitu 10 GB** → rozhodnutí majitele o
+  `Disallow: /srovnani/porovnani` v robots.txt je potřeba dřív, než se rozhodne o zrušení Pro (verdikt do 1. 12.).
+  Otevřené drobnosti (jen úklid kontrol, ne chyba webu): zlaté případy hlásí 4× XPASS (opravené vady „za 1 let“, „NaN % z hrubé“,
+  „splatnosti 1 let“, nevyprázdnitelné pole) – smazat ze ZNAME_TEXTY / ZNAME_VADY v `zlate-kalkulacky.mjs` a pustit běh;
+  17 položek NEOVERENE_VYNOSY už neplatí – před smazáním ověřit každou burzou.
+  Dnes nefungovalo: `gh run list/view` se zasekává (použít `gh api repos/…/actions/runs` a `…/actions/jobs/<id>/logs`),
+  konektory Vercel a Supabase MCP neodpovídaly (nasazení ověřeno přes build-time, počet fondů přes REST API).
