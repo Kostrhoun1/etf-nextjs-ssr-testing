@@ -1735,6 +1735,17 @@ const main = async () => {
     const zablokovani = CHRANENI.filter((b) => skupiny.some((g) => g.vse && g.ua.includes(b)));
     if (!rtxt) varovani.push({ co: 'robots.txt se nenačetl', ukazka: [] });
     else if (zablokovani.length) poplach.push({ co: 'robots.txt blokuje vyhledávače / AI vyhledávání (src/app/robots.ts)', ukazka: zablokovani });
+    // 15. 11. 2026: archivační robot (heritrix, webarchiv.cz) nesmí na /srovnani/porovnani (přenos z originu, src/app/robots.ts);
+    // jeho skupina musí mít i obecné zákazy (robot s vlastní skupinou „*“ ignoruje) a porovnání nesmí být zakázané nikomu jinému.
+    if (rtxt) {
+      const her = rtxt.split(/\n\s*\n/).find((g) => /^User-Agent:\s*heritrix\s*$/im.test(g)) || '';
+      const hv = [];
+      if (!/^Disallow:\s*\/srovnani\/porovnani\s*$/im.test(her)) hv.push('heritrix: chybí Disallow: /srovnani/porovnani');
+      if (!/^Disallow:\s*\/api\/\s*$/im.test(her)) hv.push('heritrix: chybí obecné zákazy (Disallow: /api/)');
+      const jinde = rtxt.split(/\n\s*\n/).filter((g) => g !== her && /^Disallow:\s*\/srovnani\/porovnani/im.test(g));
+      if (jinde.length) hv.push('Disallow: /srovnani/porovnani i v jiné skupině než heritrix');
+      if (hv.length) varovani.push({ co: 'robots.txt: pravidlo pro archivačního robota (heritrix) nesedí', ukazka: hv });
+    }
     const spatne = [];
     for (const s of ['/etf/ZZ000000TEST', '/srovnani/nesmysl']) {
       const r = await fetch(`${WEB_URL}${s}`, { redirect: 'manual' });

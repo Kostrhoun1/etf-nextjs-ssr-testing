@@ -16,20 +16,29 @@ const BLOKOVANI_ROBOTI = [
   'DotBot', 'DataForSeoBot', 'BLEXBot', 'Barkrowler', 'serpstatbot', 'PetalBot', 'Bytespider', 'Baiduspider',
 ];
 
+const ZAKAZANO_VSEM = [
+  '/private/',
+  '/admin/',
+  '/api/',
+  '/_next/data/',  // Prevent duplicate JSON content
+  '/*?_rsc=*',     // Block RSC parameter URLs
+];
+
+// 15. 11. 2026 (majitel): archivační robot Národní knihovny (webarchiv.cz, `heritrix/3.7.0`) procházel
+// /srovnani/porovnani?isins=… s tisíci kombinací fondů – každá URL nová → CDN cache nepomohla (1,2 % z cache), hlavní
+// zbývající spotřebitel přenosu z originu (limit free tieru 10 GB / 30 dní). Stránka je noindex. Zákaz JEN pro tohoto
+// robota a JEN porovnání – zbytek webu archivovat smí. Robot s vlastní skupinou ignoruje skupinu „*“, proto i ZAKAZANO_VSEM.
+const ARCHIVACNI_ROBOTI = ['heritrix'];
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       { userAgent: BLOKOVANI_ROBOTI, disallow: '/' },
+      { userAgent: ARCHIVACNI_ROBOTI, allow: ['/', '/api/og'], disallow: [...ZAKAZANO_VSEM, '/srovnani/porovnani'] },
       {
         userAgent: '*',
         allow: ['/', '/api/og'],
-        disallow: [
-          '/private/',
-          '/admin/',
-          '/api/',
-          '/_next/data/',  // Prevent duplicate JSON content
-          '/*?_rsc=*',     // Block RSC parameter URLs
-        ],
+        disallow: ZAKAZANO_VSEM,
       },
     ],
     sitemap: 'https://etfpruvodce.cz/sitemap.xml',
