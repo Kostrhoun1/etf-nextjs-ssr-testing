@@ -1745,6 +1745,16 @@ const main = async () => {
       const jinde = rtxt.split(/\n\s*\n/).filter((g) => g !== her && /^Disallow:\s*\/srovnani\/porovnani/im.test(g));
       if (jinde.length) hv.push('Disallow: /srovnani/porovnani i v jiné skupině než heritrix');
       if (hv.length) varovani.push({ co: 'robots.txt: pravidlo pro archivačního robota (heritrix) nesedí', ukazka: hv });
+      // 17. 11. 2026 (majitel): Meta AI (meta-externalagent) bez detailů fondů a srovnání (čtení ISR cache a přenos z originu
+      // free tieru). Jeho skupina musí mít /etf/, /srovnani/ i obecné zákazy; vyhledávače a „*“ detaily zakázané mít NESMÍ.
+      const meta = rtxt.split(/\n\s*\n/).find((g) => /^User-Agent:\s*meta-externalagent\s*$/im.test(g)) || '';
+      const mv = [];
+      if (!/^Disallow:\s*\/etf\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí Disallow: /etf/');
+      if (!/^Disallow:\s*\/srovnani\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí Disallow: /srovnani/');
+      if (!/^Disallow:\s*\/api\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí obecné zákazy (Disallow: /api/)');
+      if (mv.length) varovani.push({ co: 'robots.txt: omezení Meta AI na detaily fondů nesedí (src/app/robots.ts) – hrozí překročení free tieru', ukazka: mv });
+      const detailyJinde = rtxt.split(/\n\s*\n/).filter((g) => g !== meta && !/^Disallow:\s*\/\s*$/im.test(g) && /^Disallow:\s*\/(etf|srovnani)\/\s*$/im.test(g));
+      if (detailyJinde.length) poplach.push({ co: 'robots.txt zakazuje detaily fondů / srovnání i jiným robotům než Meta AI (src/app/robots.ts)', ukazka: detailyJinde.map((g) => g.split('\n')[0]) });
     }
     const spatne = [];
     for (const s of ['/etf/ZZ000000TEST', '/srovnani/nesmysl']) {

@@ -81,7 +81,26 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
 | Fluid Active CPU | 4 h | ≤ 5 min |
 | Fast Origin Transfer | 10 GB | ≤ 200 MB |
 | ISR Writes | 200 000 | ≤ 4 000 |
+| **ISR Reads** (od 17. 11.; ~/usage/isr-reads) | 1 000 000 | ≤ 25 000 |
 | Function Invocations | 1 000 000 | ≤ 20 000 |
+
+**Kontrola všech limitů Hobby 17. 11. 2026** (Pro 7.–17. 11. = 10,5 dne → přepočet na 30 dní; limity z vercel.com/pricing
+a /docs/plans/hobby): CDN Requests 140K → ~400K / 1 mil. ✓; Fast Data Transfer 3 GB → ~9 / 100 GB ✓; Provisioned Memory
+15,5 → ~44 / 360 GB-h ✓; Active CPU 1 h → ~2 h 55 min / 4 h ✓; Invocations 14,6K → ~42K / 1 mil. ✓; ISR Writes 44K → ~127K /
+200K ✓; obrázky 35 / 5K ✓; Web Analytics 100 / 50K ✓; **ISR Reads 379K → ~1,0 mil. / 1 mil. ✗ (klidný den 30–37K)** a
+**Fast Origin Transfer ~3,5 GB → ~10 / 10 GB ✗**. Obě jsou TOTÉŽ: stránka, kterou CDN nemá v regionu v cache, se čte z ISR
+úložiště (iad1) – čtení se počítá po 8 kB nekomprimované stránky (detail fondu ~190 kB = ~24 jednotek) a stejná data tečou
+jako přenos z originu. Za 12 h: `/etf/[isin]` 48 MB (46 %), `/api/etf/screener` 11 MB (4 MB na jedno čtení), `/srovnani/[pair]`
+11 MB, `/nejlepsi-etf/[slug]` 6 MB, `/` 4 MB. Roboti na CDN za 12 h: **meta-externalagent 232 (z cache 18 %)**, applebot 114,
+bingbot 96, seznambot 27, oai-searchbot 33 (vyhledávače se neomezují). → Majitel 17. 11.: Meta AI bez detailů fondů a srovnání
+(`src/app/robots.ts`, odhad −20–25 %). Hobby nemá vlastní limit buildů, které nás omezují (45 min/build, náš build ~14 min na
+2 vCPU; 100 nasazení/den), repo je osobní účet GitHubu (Hobby nepodporuje repa organizací) – v pořádku. Nejasné: „Deployment
+Storage 10 GB“ u Hobby (Pro ukazuje 8 GB-měsíců za 10 dní); před 7. 11. na Hobby pozastavení nezpůsobilo, mazání starých
+nasazení dělá retenční politika.
+
+**Kdyby po přechodu na Hobby web stejně stál** (HTTP 402/503 „DEPLOYMENT_PAUSED“ nebo e-mail Vercelu o limitu): majitel
+v Settings → Billing → Upgrade to Pro (1 minuta, platba – jen on); po upgradu web hned běží (ověřeno 7.–8. 11.). Pak zjistit,
+která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po návratu pod limity.
 
 - Každý den zapsat do tabulky níže včerejší hodnoty a podíl robotů (projekt → Observability → CDN Requests →
   Bot Name). Nad cílem 2 dny po sobě = najít příčinu (Observability → Functions / CDN Requests: Routes, Bot Name)

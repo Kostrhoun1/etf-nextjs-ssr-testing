@@ -36,7 +36,10 @@ roky „věrohodné" – nikdo je nezávisle nekontroloval. Podrobnosti: `PLAN-O
   Kalkulačky na `/kalkulacky` (i hypoteční a úvěrové) jsou v pořádku a zůstávají – rozhodnutí majitele 8. 11. 2026
   („nejsou v rozporu s mojí prací“).
 - Nasazovat MÁLO: opravy sbírat do balíku, produkční deploy nejvýš 1–2× týdně (rozhodnutí majitele 23. 10. 2026).
-  Free tier Vercelu = 200 000 ISR zápisů / 4 h Fluid Active CPU za klouzavých 30 dní, překročení = pozastavení webu.
+  Free tier Vercelu = 200 000 ISR zápisů / 4 h Fluid Active CPU / **1 mil. ISR čtení / 10 GB Fast Origin Transfer** za klouzavých
+  30 dní, překročení = pozastavení webu. Čtení a přenos rostou s roboty na dlouhém ocasu detailů fondů (stránka mimo cache CDN
+  ≈ 24 čtení po 8 kB) – 17. 11. 2026 na hraně, proto Meta AI bez detailů (`src/app/robots.ts`). Stav a limity:
+  `scripts/denni-kontrola.md` „Návrat na free tier“.
   Bez placeného plánu a bez ořezávání obsahu stránek.
   - **Před deployem zkontrolovat usage** (vercel.com/…/~/usage – ISR Writes a Fluid Active CPU). Od 1. 11. 2026 build
     předgeneruje všechny detaily fondů a dvojice (`src/lib/prerender.ts`) → deploy stojí ~0 ISR zápisů a build se do CPU
