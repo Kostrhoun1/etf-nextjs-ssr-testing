@@ -108,6 +108,7 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
 | 13. 11. ~08 UTC → 14. 11. ~12 UTC (28 h) | ~5 min (4,5/den) | ~0,3–0,4 GB (~300 MB/den, odhad z účtované částky 0,16 $ ÷ 0,06 $/GB = ~2,67 GB za období) | ~3,2K (2,7K/den) | 1,3K volání. CPU a ISR **v cíli**, přenos dál nad cílem 200 MB/den. Za období Pro celkem **46 min / ~2,7 GB (dashboard „3 GB“) / 35,25K ISR / 10,74K volání**; kredit 4,13 / 20 $. Odhad do 7. 12. (7,5 dne × 4): CPU ~3 h 05 min, ISR ~140K, volání ~43K, **přenos ~10,7 GB (limit 10 GB) – nad limitem**; návrh `Disallow: /srovnani/porovnani` dál čeká na majitele |
 | 14. 11. ~12 UTC → 15. 11. ~12 UTC (24 h) | ~4 min | ~0,3 GB (odhad z účtované částky 0,18 $ ÷ 0,06 $/GB = ~3,0 GB za období) | ~1,7K | ~0,8K volání, žádné nasazení. CPU a ISR **v cíli**, přenos dál nad cílem 200 MB/den. Za období Pro celkem **50 min / ~3,0 GB / 36,96K ISR / 11,52K volání**; kredit 4,20 / 20 $. Odhad do 7. 12. (8,5 dne × 3,53): CPU ~2 h 55 min, ISR ~130K, volání ~41K, **přenos ~10,6 GB (limit 10 GB)**; samotné tempo posledních 3 dnů (~300 MB/den) by dalo ~9 GB – na hraně. Návrh `Disallow: /srovnani/porovnani` dál čeká na majitele |
 | 15. 11. ~12 UTC → 16. 11. ~10:40 UTC (22,5 h) | ~5,7 min | ~0,2–0,3 GB (odhad z účtované částky 0,19 $ ÷ 0,06 $/GB = ~3,2 GB za období; krok 0,01 $ = 167 MB) | ~4,1K | ~1,2K volání; 1 nasazení 15. 11. 19:30 UTC (robots.txt heritrix) – CPU a ISR lehce nad cílem jen kvůli němu (graf: 15. 11. ~4,8 min a ~3,5K ISR za celý den). Za období Pro celkem **55 min 44 s / ~3,2 GB (dashboard „3 GB“) / 41,06K ISR / 12,69K volání**; kredit 4,72 / 20 $. Odhad do 7. 12. (9,44 dne × 3,18): CPU ~2 h 57 min, ISR ~131K, volání ~40K, **přenos ~10 GB (limit 10 GB) – na hraně**. Zákaz `/srovnani/porovnani` pro heritrix je venku teprve 15 h – účinek vyhodnotit 17.–18. 11. (Observability → `/srovnani/porovnani` volání/den, dřív ~500) |
+| 16. 11. ~10:40 UTC → 17. 11. ~10:50 UTC (24 h) | ~5,3 min | ~0,3 GB (odhad z účtované částky 0,21 $ ÷ 0,06 $/GB = ~3,5 GB za období; dashboard „4 GB“) | ~3,2K | ~1,8K volání, žádné nasazení (graf: 16. 11. ~5,8 min CPU za celý den). CPU těsně nad cílem, ISR v cíli, přenos dál ~300 MB/den. Za období Pro celkem **1 h 1 min / ~3,5 GB / 44,3K ISR / 14,47K volání**; kredit 4,91 / 20 $. Odhad do 7. 12. (10,45 dne × 2,87): CPU ~2 h 55 min, ISR ~127K, volání ~42K, **přenos ~10 GB (limit 10 GB) – na hraně**. `/srovnani/porovnani` za 7 dní 1,5K požadavků (~215/den); pokles po zákazu pro heritrix v hodinovém grafu zatím není zřetelný – vyhodnotit 18. 11. (rozpad User Agent) |
 
 ## Dočasný stav (aktualizovat)
 
@@ -203,3 +204,13 @@ takže spotřeba za 7. 11.–7. 12. musí být POD limity s rezervou. Denní cí
   `laughing-borg-11b67e`** (571 MB, 5 souborů ve `scripts/` z 11. 11. večer – splice-kotvy.json, sync-indexes, kontrola integrity
   indexů, check-fund-data; nemazat, čeká na majitele: dokončit, nebo zahodit). Měsíční CPI: hotovo 11. 11. (data do 2026-10).
   Otevřené drobnosti beze změny (4× XPASS ve zlatých případech, 17 položek NEOVERENE_VYNOSY k ověření burzou).
+- 17. 11. 2026 11 UTC (denní kontrola, úterý): web běží (200, build 15. 11. 19:30 = main 78cc7ee), scraper dnes 5 179 fondů. Joby zelené
+  kromě kontroly dat 16. 11. 23:47 UTC – **1 poplach: „poslední běh scraperu neuložil 10 fondů“** (XZMD, V3RP, VRVA, 2B7Q, 2B7R,
+  BJLD, BJLF, HYDUS…). Příčina (log scraperu 16. 11.): zdroj u nich mezi 08:35 a 09:07 UTC vrátil profil bez názvu a bez tabulek
+  („Performance tabulka nenalezena“) a scraper je záměrně nezapsal („Nezapisuji N fondů bez názvu“) – žádné přetečení ani pád dávky.
+  Web chybu neměl: fondy den ukazovaly data ze 13. 11. se svým datem; dnešní běh je všechny uložil (ověřeno v DB, výnosy k 13. 11.).
+  Kontrola upravena (kolo7 D): jednorázové vynechání je varování, poplach až od 10 fondů neuložených 2+ pracovní dny po sobě nebo
+  50 najednou; hláška jmenuje obě příčiny. Možné zlepšení scraperu (nedělal jsem, web to nekazí): na konci běhu zopakovat fondy bez názvu.
+  Usage viz tabulka: přenos dál na hraně (~10 GB z 10 GB do 7. 12.); účinek zákazu `/srovnani/porovnani` pro heritrix vyhodnotit 18. 11.
+  Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek NEOVERENE_VYNOSY k ověření burzou, kopie `laughing-borg-11b67e`
+  a `vibrant-carson-dccb3a` s necommitnutou prací (čeká na majitele).

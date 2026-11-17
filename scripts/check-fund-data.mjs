@@ -2924,7 +2924,7 @@ const main = async () => {
     };
     const prvniBurza = async (f, jenEur, rozsah, div) => { for (const s of burzyFondu(f, jenEur)) { const y = await yahoo7(s, rozsah, div); if (y && y.rada.length > 40) return { sym: s, ...y }; } return null; };
     const konecVynosu = (f) => (f.returns_as_of ? String(f.returns_as_of).slice(0, 10) : String(f.scraping_date ?? '').slice(0, 10));
-    const nalezy = { A: [], B: [], C: [], Cstare: [], D: [], E: [], smazat: [], nejde: [], web: [] };
+    const nalezy = { A: [], B: [], C: [], Cstare: [], D: [], Dopak: [], E: [], smazat: [], nejde: [], web: [] };
     try {
       // Seznam ověřených chyb (jeden fond = jeden řádek v src/lib/vynosNeovereny.ts).
       const zdrojSeznamu = readFileSync('src/lib/vynosNeovereny.ts', 'utf8');
@@ -3044,12 +3044,26 @@ const main = async () => {
         for (const d of chybi) (dnu7(d.den, dnes7) > 21 ? nalezy.Cstare : nalezy.C).push(`${f.isin} ${f.primary_ticker} (${y.sym}): ex ${d.den} ${d.castka} ${y.mena} ≈ ${(100 * d.castka / posl).toFixed(2)} % ceny – zdroj ji nemá`);
       }
 
-      // D) Fondy z ISIN.csv, které poslední běh scraperu neuložil (dávka 5 fondů padá na jednom přetečení).
+      // D) Fondy z ISIN.csv, které poslední běh scraperu neuložil. Dvě známé příčiny: dávka 5 fondů padá na jednom
+      //    přetečení („Chunk N: Failed to upload“), nebo zdroj vrátil profil bez názvu a scraper fond záměrně
+      //    nezapsal („Nezapisuji N fondů bez názvu“ – 16. 11. 2026 takto 10 fondů, další den se uložily samy).
+      //    Jednorázové vynechání (1 pracovní den) web nekazí – detail ukazuje vlastní den dat → jen varování.
+      //    Poplach až když fond chybí 2+ pracovní dny po sobě (Dopak) nebo je jich najednou hodně.
       if (isinList.size > 4000) {
         const posledni = fondy.map((x) => String(x.scraping_date ?? '')).sort().at(-1);
         const hranice = new Date(new Date(`${posledni}Z`).getTime() - 12 * 3600e3).toISOString().slice(0, 19);
-        nalezy.D = fondy.filter((x) => isinList.has(x.isin) && x.scraping_date && String(x.scraping_date) < hranice && dni(x) <= 30)
-          .map((x) => `${x.isin} ${x.primary_ticker ?? ''} ${String(x.name ?? '').slice(0, 30)} – data z ${String(x.scraping_date).slice(0, 16)}`);
+        const pracDnu = (od, doDne) => { // počet pracovních dnů v (od, doDne]
+          let n = 0;
+          for (let t = new Date(`${od}T00:00:00Z`).getTime() + 864e5, k = new Date(`${doDne}T00:00:00Z`).getTime(); t <= k; t += 864e5) {
+            const d = new Date(t).getUTCDay();
+            if (d !== 0 && d !== 6) n++;
+          }
+          return n;
+        };
+        const neulozene = fondy.filter((x) => isinList.has(x.isin) && x.scraping_date && String(x.scraping_date) < hranice && dni(x) <= 30);
+        const popis = (x) => `${x.isin} ${x.primary_ticker ?? ''} ${String(x.name ?? '').slice(0, 30)} – data z ${String(x.scraping_date).slice(0, 16)}`;
+        nalezy.D = neulozene.map(popis);
+        nalezy.Dopak = neulozene.filter((x) => pracDnu(String(x.scraping_date).slice(0, 10), posledni.slice(0, 10)) >= 2).map(popis);
       }
 
       // E) Velký čerstvý fond bez dne výnosů (všechny výnosy za období null) – BTCW.
@@ -3072,8 +3086,10 @@ const main = async () => {
       if (nalezy.B.length) poplach.push({ co: `Produkt bez tržní kotvy se zašuměnou řadou zdroje (kolo7 B) – výnos k jednomu dni nesedí s burzou; ověřit a přidat do NEOVERENE_VYNOSY: ${nalezy.B.length}`, ukazka: nalezy.B.slice(0, 10) });
       if (nalezy.Cstare.length) poplach.push({ co: `Zdroj dat přes 3 týdny nemá vyplacenou dividendu distribuční třídy (kolo7 C) – výnos s dividendami je nižší; přidat do NEOVERENE_VYNOSY: ${nalezy.Cstare.length}`, ukazka: nalezy.Cstare.slice(0, 10) });
       if (nalezy.C.length) varovani.push({ co: `Zdroj dat zatím nemá nedávnou dividendu distribuční třídy (kolo7 C; obvykle ji doplní do 3 týdnů) – výnos s dividendami je do té doby nižší: ${nalezy.C.length}`, ukazka: nalezy.C.slice(0, 12) });
-      if (nalezy.D.length >= 10) poplach.push({ co: `Poslední běh scraperu neuložil ${nalezy.D.length} fondů ze seznamu ISIN (kolo7 D) – v logu „Chunk N: Failed to upload“ (numeric field overflow shodí celou dávku 5 fondů); oprava: etf-astro vynosy_z_rady.py MAX_VYNOS_PCT + upload po jednom při chybě dávky`, ukazka: nalezy.D.slice(0, 8) });
-      else if (nalezy.D.length) varovani.push({ co: `Poslední běh scraperu neuložil ${nalezy.D.length} fondů ze seznamu ISIN (kolo7 D)`, ukazka: nalezy.D });
+      const Dnavod = 'v logu scraperu hledej „Chunk N: Failed to upload“ (numeric field overflow shodí dávku 5 fondů; oprava etf-astro vynosy_z_rady.py MAX_VYNOS_PCT) nebo „Nezapisuji N fondů bez názvu“ (zdroj vrátil prázdný profil)';
+      if (nalezy.Dopak.length >= 10) poplach.push({ co: `Scraper 2+ pracovní dny po sobě neuložil ${nalezy.Dopak.length} fondů ze seznamu ISIN (kolo7 D) – ${Dnavod}`, ukazka: nalezy.Dopak.slice(0, 8) });
+      else if (nalezy.D.length >= 50) poplach.push({ co: `Poslední běh scraperu neuložil ${nalezy.D.length} fondů ze seznamu ISIN (kolo7 D) – ${Dnavod}`, ukazka: nalezy.D.slice(0, 8) });
+      else if (nalezy.D.length) varovani.push({ co: `Poslední běh scraperu neuložil ${nalezy.D.length} fondů ze seznamu ISIN (kolo7 D; z toho ${nalezy.Dopak.length} už 2+ pracovní dny) – poplach až od 10 opakovaně nebo 50 najednou; ${Dnavod}`, ukazka: nalezy.D.slice(0, 12) });
       if (nalezy.E.length) varovani.push({ co: `Velké čerstvé fondy bez dne výnosů – všechny výnosy za období „—“ (kolo7 E; BTCW: díra s cenou 0 u zdroje, oprava etf-astro oprava/btcw-vynosy)`, ukazka: nalezy.E.slice(0, 8) });
       if (nalezy.smazat.length) varovani.push({ co: `NEOVERENE_VYNOSY (src/lib/vynosNeovereny.ts): položky, které už neplatí – smazat ze seznamu: ${nalezy.smazat.length}`, ukazka: nalezy.smazat });
       if (nalezy.nejde.length) varovani.push({ co: `Kontrolu kolo7 nešlo u části fondů provést: ${nalezy.nejde.length}`, ukazka: nalezy.nejde.slice(0, 6) });
