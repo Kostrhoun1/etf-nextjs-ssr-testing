@@ -24,6 +24,10 @@ gh run list --repo Kostrhoun1/etf-astro --workflow scrape.yml --limit 3     # sc
 - **Prod smoke test**, **Sync indexů**, **Ověření předpokladů** (pondělí), **IndexNow**: neúspěšný job = řešit.
 - **Scraper** (etf-astro): neúspěšný job nebo méně než ~5 000 fondů se `scraping_date` dnes (v pracovní den po
   ~10:00 UTC) = řešit. Dotaz přes Supabase MCP (projekt `nbhwnatadyubiuadfakx`).
+  Když ranní běh skončí `cancelled` (půlky narazily na limit 359 min – typicky výpadek zdroje, v logu „Network error
+  scraping … Read timed out / 502“) a v DB dnes není nic: ověřit, že zdroj zase odpovídá, a pustit ho znovu
+  (`gh workflow run scrape.yml --repo Kostrhoun1/etf-astro --ref main`) – naváže z checkpointů (platí 20 h, stejná verze
+  kódu), zbytek trvá ~2 h. Plánovaná záloha by to udělala sama, ale GitHub ji spouští až ~17:40–18:40 UTC (18. 11. 2026).
 - **Vercel free tier** (Claude v Chromu, jen čtení): `https://vercel.com/tomas-projects-43fd2658/~/usage` – ISR Writes
   a Fluid Active CPU za klouzavých 30 dní (limit 200 000 / 4 h; nad limit = pozastavení webu). Denní spotřebu CPU
   přečíst z grafu `…/usage/vercel-functions-fluid-cpu-duration?period=daily`. Rezerva CPU < 30 min = řešit (co ji
@@ -129,6 +133,7 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
 | 15. 11. ~12 UTC → 16. 11. ~10:40 UTC (22,5 h) | ~5,7 min | ~0,2–0,3 GB (odhad z účtované částky 0,19 $ ÷ 0,06 $/GB = ~3,2 GB za období; krok 0,01 $ = 167 MB) | ~4,1K | ~1,2K volání; 1 nasazení 15. 11. 19:30 UTC (robots.txt heritrix) – CPU a ISR lehce nad cílem jen kvůli němu (graf: 15. 11. ~4,8 min a ~3,5K ISR za celý den). Za období Pro celkem **55 min 44 s / ~3,2 GB (dashboard „3 GB“) / 41,06K ISR / 12,69K volání**; kredit 4,72 / 20 $. Odhad do 7. 12. (9,44 dne × 3,18): CPU ~2 h 57 min, ISR ~131K, volání ~40K, **přenos ~10 GB (limit 10 GB) – na hraně**. Zákaz `/srovnani/porovnani` pro heritrix je venku teprve 15 h – účinek vyhodnotit 17.–18. 11. (Observability → `/srovnani/porovnani` volání/den, dřív ~500) |
 | 16. 11. ~10:40 UTC → 17. 11. ~10:50 UTC (24 h) | ~5,3 min | ~0,3 GB (odhad z účtované částky 0,21 $ ÷ 0,06 $/GB = ~3,5 GB za období; dashboard „4 GB“) | ~3,2K | ~1,8K volání, žádné nasazení (graf: 16. 11. ~5,8 min CPU za celý den). CPU těsně nad cílem, ISR v cíli, přenos dál ~300 MB/den. Za období Pro celkem **1 h 1 min / ~3,5 GB / 44,3K ISR / 14,47K volání**; kredit 4,91 / 20 $. Odhad do 7. 12. (10,45 dne × 2,87): CPU ~2 h 55 min, ISR ~127K, volání ~42K, **přenos ~10 GB (limit 10 GB) – na hraně**. `/srovnani/porovnani` za 7 dní 1,5K požadavků (~215/den); pokles po zákazu pro heritrix v hodinovém grafu zatím není zřetelný – vyhodnotit 18. 11. (rozpad User Agent) |
 | **17. 11. ~16:30 UTC – verdikt k zrušení Pro (klouzavých 30 dní, 18. 10.–17. 11., Usage → „Last 30 Days“)** | **4 h 5 min / 4 h (102 %) ✗** | 8,77 GB / 10 GB (88 %) | 160,3K / 200K (80 %) | **Dnes Pro NERUŠIT** – CPU za 30 dní je nad limitem (v okně jsou ještě dny před 7. 11. po 9–13 min). ISR Reads 846,4K / 1 mil. (85 %), volání funkcí 117,2K / 1 mil. (12 %). Denní hodnoty odečtené z grafů (výška sloupců × součet): ISR Reads 13.–16. 11. 33,1K / 37,0K / 31,4K / 31,1K (průměr 33,1K), přenos 331 / 320 / 295 / 285 MB (308 MB), CPU ~5,5 min, ISR Writes ~3,65K, volání ~1,4K. **Pozor: ISR Reads a přenos v okně do začátku prosince ROSTOU** – vypadávají říjnové dny (reads ~15–20K, přenos ~150–250 MB) a nahrazují je dny po ~33K / ~308 MB. Odhad okna ke dni 2. / 3. / 4. / 5. / 6. 12. při tempu 13.–16. 11. (bez účinku zákazu Meta AI): CPU 2 h 52 / 2 h 46 / 2 h 41 / 2 h 41 / 2 h 35 min ✓; ISR Writes 111K / 111K / 111K / 112K / 105K ✓; volání 47K–38K ✓; **ISR Reads 991K / 983K / 975K / 972K / 949K (95–99 % – pod limitem, ale nad hranicí 90 %)**; **přenos 9,23 / 9,15 / 9,10 / 9,10 / 8,82 GB (88–92 %)**. Se zákazem Meta AI −20 %: ISR Reads 885K / 870K / 855K / 846K / 816K, přenos 8,2 / 8,1 / 8,0 / 7,9 / 7,6 GB – vše pod 90 %. Aby 6. 12. vyšly ISR Reads pod 900K, musí denní čtení klesnout aspoň o ~7,5 % (pod ~30,7K/den); pro přenos pod 9 GB stačí i dnešní tempo. Zákaz Meta AI (`Disallow: /etf/`, `/srovnani/`) je na produkci ověřen (curl robots.txt 17. 11.), účinek zatím nejde změřit – první celý den je 18. 11. **Předběžný verdikt: zrušit 6. 12.** (nejnižší okno u všech metrik; 7. 12. se Pro obnoví), dřívější den jen když denní ISR Reads od 18. 11. klesnou pod ~27K (pak vychází už 2. 12.). Potvrdit 1.–2. 12. ze skutečných čísel. Když ISR Reads zůstanou ≥ 33K/den, vychází 6. 12. na 95 % limitu – bez rezervy; pak buď najít další čtení mimo cache (druhý největší robot, `/api/etf/screener` 4 MB na čtení), nebo nechat Pro ještě měsíc |
+| 18. 11. | nepřečteno | nepřečteno | nepřečteno | **Usage dnes nepřečteno**: rozšíření Claude v Chromu nebylo připojené, vestavěný prohlížeč není u Vercelu přihlášený, konektor Vercel vrací 404 (billing „Plan not found“, observability „not found“). Účinek zákazů (heritrix na `/srovnani/porovnani`, Meta AI na detaily) proto vyhodnotit 19. 11. z grafů za 17.–18. 11. Pozor: `vercel api …` ve zdejším CLI 48.1.6 NENÍ příkaz – CLI ho vyloží jako `vercel deploy <cesta>` (skončilo chybou „Can't deploy more than one path“, nic se nenasadilo); nepoužívat |
 
 ## Dočasný stav (aktualizovat)
 
@@ -234,3 +239,26 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   Usage viz tabulka: přenos dál na hraně (~10 GB z 10 GB do 7. 12.); účinek zákazu `/srovnani/porovnani` pro heritrix vyhodnotit 18. 11.
   Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek NEOVERENE_VYNOSY k ověření burzou, kopie `laughing-borg-11b67e`
   a `vibrant-carson-dccb3a` s necommitnutou prací (čeká na majitele).
+- 18. 11. 2026 11–14 UTC (denní kontrola, středa): web běží (200, build 17. 11. 16:03 = main 85d919d – nasazení robots.txt pro Meta AI).
+  Noční joby zelené, kontrola dat 17. 11. 23:03 UTC **bez poplachu**. **Nález: ranní scraper neuložil nic** – běh 05:00 UTC skončil
+  `cancelled`, obě půlky narazily na limit 359 min při 67 % (v DB v 11:18 UTC 0 fondů s dnešním `scraping_date`). Příčina (log):
+  výpadek zdroje 05:47–08:55 UTC („Read timed out“, „502 Bad Gateway“, ~250 chyb na půlku; každý fond 4 pokusy po 30 s) – za 3 hodiny
+  jen ~20 fondů; scraper nahrává do DB až na konci půlky, takže limit zahodil i hotových 1 700 + 1 750 fondů. Web chybu neměl (ukazoval
+  data ze 17. 11. se svým dnem „k 13. 11.“). Oprava: zdroj ověřen (profil 200 za 0,3 s), scraper spuštěn znovu 11:36 UTC
+  (`workflow_dispatch`), navázal z checkpointů a 13:36 UTC skončil úspěšně včetně kontroly nahrání: **5 171 fondů s dnešním datem**,
+  4 223 s výnosy k 16. 11., 804 k 13. 11. (podíl ~15 % stejný ve všech hodinách stažení – opožděná řada zdroje, ne výpadek), 0 bez názvu.
+  Nezávislé ověření dne: S&P 500 TR (Yahoo ^SP500TR) 14. 11. 2025 → 16. 11. 2026 +11,42 % v USD × kurz ECB 1,1648 → 1,1014 = +17,83 %
+  v EUR před poplatky; SXR8 v DB +17,56 % EUR / +18,63 % Kč (přepočet kurzem ECB 24,198 → 24,428: +18,68 %). Pokles proti včerejším
+  +19,1 % je skutečný (USA 16. 11. −1,9 %). Kontrola dat po stažení (ruční běh 13:39 UTC): **bez poplachu**, 22 varování; nová prověřena:
+  (1) 10 fondů dnes neuloženo (zdroj vrátil profil bez názvu) – jednorázové, mají data ze 17. 11.; (2) COPA WisdomTree Copper
+  (1,5 mld. €) a dalších 16 fondů má dnes výnosy za období „—“ – chart API zdroje při výpadku nevrátilo řadu, zítra se doplní;
+  (3) Brazílie 4BRZ +8,2 % k 13. 11. × IQQB +3,1 % k 16. 11. – skutečnost: IQQB.DE (Xetra, s dividendami) k 13. 11. +7,2 %, k 16. 11.
+  +3,8 % (Brazílie 16. 11. −3,3 %) a fondy se liší trvale (2025 u zdroje 31,5 × 28,8 %); (4) 36B1 Dist +3,7 % × SLME Acc +5,4 %
+  ke stejnému dni – známá chybějící dividenda zdroje u 36B1 (burza 36B1.DE s dividendami +4,8 až +5,0 %; SLME je v `OVERENY_VYNOS_TRIDY`).
+  Srovnávač ještě ukazuje obě (cache z 12:26 UTC s daty k 13. 11., rozdíl 1,45 % těsně pod prahem 1,5 %); po obnovení cache
+  (do ~12:30 UTC 19. 11.) pravidlo tříd u 36B1 ukáže „—“ – **19. 11. ověřit** (`/api/etf/screener`, IE00BDDRDW15 `_vynX`).
+  (5) EBUA × EBUD (Eurizon EM Bond, +6,4 × 0,0 %, hlášeno 2. den): burzou neověřitelné (Yahoo listing nemá, velikost u zdroje chybí) – otevřené.
+  Možné zlepšení scraperu (nedělal jsem; etf-astro, přes PR): nahrávat do DB po dávkách, ne až na konci půlky, a při výpadku zdroje
+  zkrátit čekání (4 × 30 s na fond) – jinak výpadek zdroje ≥ 1,5 h znamená den bez dat až do opakování.
+  Usage Vercelu dnes **nepřečteno** (viz tabulka). Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek NEOVERENE_VYNOSY
+  k ověření burzou, kopie `laughing-borg-11b67e` a `vibrant-carson-dccb3a` s necommitnutou prací (čeká na majitele).
