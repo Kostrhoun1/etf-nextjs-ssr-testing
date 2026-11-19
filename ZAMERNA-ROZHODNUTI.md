@@ -111,6 +111,9 @@ ani noindex/firewall pro Bing/Seznam majitel nechce.
 - **Při buildu se velké sady načítají jednou za proces** (`jednouZaBuild`, `src/lib/buildMemo.ts`: třídy fondů, fondy trhů,
   kandidáti podobných fondů) – bez toho by build stáhl ~12 GB ze Supabase (naměřeno ~113 MB). Mimo build (runtime) se
   nepoužívá: paměť v teplé lambdě by držela stará data přes ISR přegenerování.
+- **Build má pevně 2 workery × 4 stránky** (`next.config.ts` `experimental.cpus` / `staticGenerationMaxConcurrency`,
+  19. 11. 2026). Na 8jádrovém stroji Pro jinak ~56 souběžných renderů → databáze Supabase free tieru nestíhala a build 2× spadl.
+  S omezením build trvá ~10 min (limit 45). Nezvyšovat kvůli „rychlejšímu buildu“.
 - **Za běhu jsou třídy fondů a fondy trhů v paměti instance nejvýš 1 h** (`vPametiNaCas`, `TRIDY_TTL_MS`, 19. 11. 2026).
   Supabase free tier (5 GB odchozích dat / měsíc) byl překročen: obě sady (~1,5 MB) se stahovaly při každém přegenerování
   dvojice, žebříčku, detailu a porovnání (~5 300 dotazů / 24 h). Hodinová kopie nevadí – scraper mění data jednou denně
