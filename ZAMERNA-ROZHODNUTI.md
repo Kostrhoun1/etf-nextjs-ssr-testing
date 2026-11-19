@@ -111,6 +111,10 @@ ani noindex/firewall pro Bing/Seznam majitel nechce.
 - **Při buildu se velké sady načítají jednou za proces** (`jednouZaBuild`, `src/lib/buildMemo.ts`: třídy fondů, fondy trhů,
   kandidáti podobných fondů) – bez toho by build stáhl ~12 GB ze Supabase (naměřeno ~113 MB). Mimo build (runtime) se
   nepoužívá: paměť v teplé lambdě by držela stará data přes ISR přegenerování.
+- **Za běhu jsou třídy fondů a fondy trhů v paměti instance nejvýš 1 h** (`vPametiNaCas`, `TRIDY_TTL_MS`, 19. 11. 2026).
+  Supabase free tier (5 GB odchozích dat / měsíc) byl překročen: obě sady (~1,5 MB) se stahovaly při každém přegenerování
+  dvojice, žebříčku, detailu a porovnání (~5 300 dotazů / 24 h). Hodinová kopie nevadí – scraper mění data jednou denně
+  a „Data k“ berou stránky z vlastních dotazů. Neprodlužovat nad 6 h a neodstraňovat (hlídá check-fund-data „egress Supabase“).
 - **Při buildu jdou dotazy na Supabase mimo datovou cache Nextu** (`fetchProSupabase`, `_nextOriginalFetch` jako engine.ts).
   Jinak by build zapsal desítky tisíc položek do datové cache (na Vercelu přežívá nasazení) s nejasným dopadem na limit zápisů.
   ISR interval dává stránkám `revalidate` segmentu, ne fetch – stránky zůstávají ISR (detail 30 dní, dvojice 7 dní).

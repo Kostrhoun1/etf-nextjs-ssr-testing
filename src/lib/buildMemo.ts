@@ -49,6 +49,26 @@ export function jednouZaBuild<T>(klic: string, nacti: () => Promise<T>): Promise
 }
 
 /**
+ * RUNTIME (19. 11. 2026): velká sada nejvýš `ttlMs` stará v paměti běžící instance funkce (Fluid compute ji sdílí mezi
+ * požadavky). Důvod: Supabase free tier 5 GB odchozích dat / měsíc překročen – třídy fondů (~1,5 MB, ~5 200 řádků) se
+ * stahovaly při KAŽDÉM přegenerování dvojice, žebříčku, detailu i porovnání (~5 300 dotazů / 24 h ≈ 4,6 mil. řádků).
+ * Pravidlo č. 1: zdroj (scraper) se mění jednou denně, data jsou tak nejvýš o `ttlMs` starší než v DB – stránky s „Data k“
+ * berou datum z vlastních dotazů, ne odsud. Chyba se nepamatuje (další požadavek zkusí znovu). Při buildu se nepoužívá
+ * (tam `jednouZaBuild`). Kontrola: scripts/check-fund-data.mjs blok „egress Supabase“.
+ */
+export function vPametiNaCas<T>(klic: string, ttlMs: number, nacti: () => Promise<T>): Promise<T> {
+  const g = globalThis as unknown as { __etfRuntimeMemo?: Map<string, { kdy: number; p: Promise<unknown> }> };
+  const m = (g.__etfRuntimeMemo ??= new Map());
+  const ted = Date.now();
+  const z = m.get(klic);
+  if (z && ted - z.kdy < ttlMs) return z.p as Promise<T>;
+  const p = nacti();
+  m.set(klic, { kdy: ted, p });
+  p.catch(() => { if (m.get(klic)?.p === p) m.delete(klic); });
+  return p;
+}
+
+/**
  * Fetch pro Supabase klienty stránek. Při BUILDU původní (nezáplatovaný) fetch Nextu – dotazy se tak nezapisují do datové
  * cache Nextu (na Vercelu vzdálená cache, která přežívá nasazení; ~8 000 stránek × několik dotazů by byly desítky tisíc
  * zápisů s nejasným dopadem na limit ISR zápisů free tieru). Stránka tím o nic nepřijde: ISR interval jí dává `revalidate`

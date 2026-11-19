@@ -3475,6 +3475,7 @@ const main = async () => {
   await kontrolaKolo8Obsah(poplach, varovani); // blok „kolo8 obsah“ – definice na konci souboru
   await kontrolaGrafIndexu(poplach, varovani); // blok „graf indexu“ (3.3, 11. 11. 2026) – definice na konci souboru
   await kontrolaPorovnaniCdn(poplach, varovani); // blok „porovnání z CDN“ (12. 11. 2026) – definice na konci souboru
+  await kontrolaEgressSupabase(poplach); // blok „egress Supabase“ (19. 11. 2026) – definice na konci souboru
 
   // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
   //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
@@ -4520,3 +4521,27 @@ async function kontrolaPorovnaniCdn(poplach, varovani) {
   }
 }
 // --- konec porovnání z CDN ---
+
+// --- egress Supabase (19. 11. 2026) ---
+// Supabase free tier: 5 GB odchozích dat / měsíc; 19. 11. 2026 překročeno (odklad do 19. 12., pak omezení = web bez dat).
+// Příčina: třídy fondů (~5 200 řádků, ~1,5 MB) a fondy trhů se za běhu stahovaly při KAŽDÉM přegenerování stránky
+// (~5 300 dotazů / 24 h). Oprava: `vPametiNaCas` (src/lib/buildMemo.ts) – nejvýš 1 h stará kopie v paměti instance.
+// Statická kontrola, že se paměť z velkých načítání nevytratí a TTL zůstane krátké (pravidlo č. 1: data nejvýš hodiny stará).
+async function kontrolaEgressSupabase(poplach) {
+  try {
+    const { readFileSync } = await import('node:fs');
+    const trhy = readFileSync(new URL('../src/lib/trhy.ts', import.meta.url), 'utf8');
+    const memo = readFileSync(new URL('../src/lib/buildMemo.ts', import.meta.url), 'utf8');
+    const chyby = [];
+    for (const k of ['tridyVynosNesedi', 'fondyTrhu']) {
+      if (!new RegExp(`vPametiNaCas\\('${k}'`).test(trhy)) chyby.push(`src/lib/trhy.ts: ${k} za běhu bez vPametiNaCas (dotaz při každém přegenerování stránky)`);
+    }
+    const ttl = trhy.match(/TRIDY_TTL_MS\s*=\s*([\d\s*]+);/);
+    const ms = ttl ? Function(`return ${ttl[1]}`)() : NaN;
+    if (!(ms > 0 && ms <= 6 * 3600 * 1000)) chyby.push(`TRIDY_TTL_MS = ${ttl ? ttl[1] : '?'} – musí být 0 < TTL ≤ 6 h (stará data vs. egress)`);
+    if (!/export function vPametiNaCas/.test(memo)) chyby.push('src/lib/buildMemo.ts: chybí vPametiNaCas');
+    if (chyby.length) poplach.push({ co: 'Egress Supabase: velké sady fondů se za běhu stahují bez paměti – hrozí překročení free tieru Supabase (5 GB/měsíc) a omezení databáze', ukazka: chyby });
+  } catch (e) {
+    poplach.push({ co: 'Egress Supabase: kontrolu nešlo provést', ukazka: [String(e?.message ?? e)] });
+  }
+}
