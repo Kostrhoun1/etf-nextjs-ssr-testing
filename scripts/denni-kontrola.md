@@ -138,6 +138,14 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
 
 ## Dočasný stav (aktualizovat)
 
+- **19. 11. 2026: Supabase free tier – překročen egress (5 GB / měsíc; e-mail Supabase, odklad do 19. 12. 2026, pak omezení
+  databáze = web bez dat).** Příčina z edge logů (Supabase MCP `query_logs`, source `edge_logs`): dotaz tříd fondů
+  (`select=isin,name,fund_provider,primary_ticker,returns_as_of,index_name,is_leveraged,return_1y,return_3y,return_5y`)
+  ~5 300× / 24 h z funkcí Vercelu = ~4,6 mil. řádků. Oprava 1815076 (`vPametiNaCas`, 1 h v paměti instance) nasazena 19. 11.
+  **Každý den do 19. 12. ověřit**: počet těchto dotazů za 24 h (`query_logs`: `count()` where `request.search` like
+  `%is_leveraged%return_5y%`) – cíl < 500 (dřív ~5 300); egress v Supabase dashboardu (Org → Usage → Egress) tempo
+  < 150 MB/den. Když neklesne, najít další velký dotaz (`content_range` = počet řádků, viz dotaz v commitu).
+
 - 7. 11. 2026: Fluid CPU 4 h 4 min / 4 h → Vercel ohlásil pozastavení účtu (majitel zvolil čekat, ne platit). Middleware
   zrušen (37 % CPU). **Vypnuté workflow** `zlate-pripady.yml` a `prod-smoke.yml` (šetří CPU) – znovu zapnout
   (`gh workflow enable … --repo Kostrhoun1/etf-nextjs-ssr-testing`), až bude rezerva CPU ≥ 30 min. Je-li web
