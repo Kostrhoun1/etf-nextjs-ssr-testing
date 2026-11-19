@@ -85,6 +85,7 @@ export const NEOVERENE_VYNOSY: Readonly<Record<string, NeoverenyVynos>> = {
   'LU2090063327': { ticker: 'LYSM', druh: 'burza', overeno: '2026-10-22', dukaz: 'Amundi MSCI Semiconductors Dist: zdroj 3R +274,3 % k 16. 10. vs Acc LSMC +302,2 % (CHIP.MI +301,9 %) při 1R 56,6 vs 57,1 % – poměr 3R 7,5 %, 1R 0,3 %; burza Dist v EUR na Yahoo není' },
   'DE000A1E0HS6': { ticker: 'XAD6', druh: 'burza', overeno: '2026-10-22', dukaz: 'Xtrackers Physical Silver ETC (EUR): zdroj 5R +108,3 %, burza XAD6.MI 20. 10. 2021→2026 +142,0 %; medián stříbra (4 fondy) +144,6 %' },
   'FR0011122233': { ticker: '', druh: 'burza', overeno: '2026-11-12', dukaz: 'Amundi CAC 40 UCITS ETF J (třída bez tickeru, velikost 0): zdroj k 6. 11. 2026 1R +2,30 % / 3R +42,44 %; burza CAC.PA (třída Dist, Yahoo adjclose) k 6. 11. +5,48 % / +26,75 %; třídy LYY 3R +28,5 %, VOOP +26,6 %' },
+  'IE000Y36NRJ2': { ticker: 'EBUD', druh: 'burza', overeno: '2026-11-19', dukaz: 'CO Eurizon SLJ EM Bond Strategic Income Dist: zdroj u této třídy nepočítá výplaty – seznam dividend prázdný, řada „s dividendami“ = bez nich, čtvrtletní schody proti Acc EBUA; od vzniku 11. 3. 2025 do 17. 11. 2026 Dist −2,99 % vs. Acc +5,64 %; 1R k 16. 11. zdroj +0,61 % vs. Acc +6,41 %; burza na Yahoo není' },
 };
 export const NEOVERENE_ISINY: ReadonlySet<string> = new Set(Object.keys(NEOVERENE_VYNOSY));
 
