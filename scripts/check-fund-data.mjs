@@ -1883,13 +1883,22 @@ const main = async () => {
     // Švýcarské fondy (ISIN CH…) vynecháváme: zdroj má jejich NAV o dny pozadu (20. 10. 2026 řada CSGOLD končila
     // 16. 10.) → 1 m ≈ −0,8 % proti −2,6 % u ostatních; s nimi by medián ujel a EWG2 by prošel.
     {
-      const zlato = fondy.filter((x) => x.index_name === 'Gold' && !x.is_leveraged && dni(x) <= 3 && !x.isin.startsWith('CH'));
+      // Fondy z NEOVERENE_VYNOSY (EWG2, TMGD – ověřený šum řady) web ukazuje s „—“ → do skupiny ani do nálezů nepatří;
+      // jinak varování hlásí známý případ pokaždé, když šum přesáhne 2 % (19. 11. 2026: 4 z 5 nálezů).
+      let skryte = new Set();
+      try { const zn = readFileSync('src/lib/vynosNeovereny.ts', 'utf8'); skryte = new Set([...zn.slice(zn.indexOf('export const NEOVERENE_VYNOSY'), zn.indexOf('export const NEOVERENE_ROKY')).matchAll(/'([A-Z]{2}[A-Z0-9]{10})': \{ ticker:/g)].map((m) => m[1])); } catch { /* bez seznamu hlásíme vše */ }
+      const zlato = fondy.filter((x) => x.index_name === 'Gold' && !x.is_leveraged && dni(x) <= 3 && !x.isin.startsWith('CH') && !skryte.has(x.isin));
+      // Ověřená skutečnost (burza): fond za ostatními zaostává doopravdy. 180 dní po ověření se nehlásí, pak znovu ověřit.
+      const OVERENE_ZLATO = {
+        DE000PS7G0L8: '2026-11-19', // BNPP Gold ETC (BNQJ, 7 mil. €): zdroj 3R +86,95 % k 17. 11.; Xetra BNQJ.DE 169,92 → 318,18 = +87,25 % (Xetra-Gold +92,86 %); zaostává rovnoměrně ~1 % ročně
+      };
+      const zlatoOvereno = (isin) => OVERENE_ZLATO[isin] && (Date.now() - new Date(OVERENE_ZLATO[isin]).getTime()) / 864e5 <= 180;
       const nalezy = [];
       for (const o of ['1m', '1y', '3y']) {
         const h = zlato.filter((x) => x[`return_${o}`] != null).map((x) => ({ x, f: 1 + Number(x[`return_${o}`]) / 100 }));
         if (h.length < 6) continue;
         const s = h.map((y) => y.f).sort((a, b) => a - b), med = s[Math.floor(s.length / 2)];
-        for (const y of h) if (Math.abs(y.f / med - 1) > 0.02) nalezy.push(`${o}: ${y.x.primary_ticker || y.x.isin} ${f2((y.f - 1) * 100)} % vs medián ${f2((med - 1) * 100)} % (${String(y.x.name).slice(0, 30)})`);
+        for (const y of h) if (Math.abs(y.f / med - 1) > 0.02 && !zlatoOvereno(y.x.isin)) nalezy.push(`${o}: ${y.x.primary_ticker || y.x.isin} ${f2((y.f - 1) * 100)} % vs medián ${f2((med - 1) * 100)} % (${String(y.x.name).slice(0, 30)})`);
       }
       if (nalezy.length) varovani.push({ co: `${nalezy.length}× výnos fyzického zlata se liší od ostatních zlatých ETC o víc než 2 % (vadná cenová řada zdroje?)`, ukazka: nalezy.slice(0, 8) });
     }
@@ -2368,8 +2377,13 @@ const main = async () => {
       const home = (await vem('/')).html;
       const nTitul = titul(home).match(/Srovnání ([\d\s\u00a0\u202f]+)\+/)?.[1]?.replace(/\D/g, '');
       const nOrg = JSON.stringify(ldJson(home)).match(/více než ([\d\s\u00a0\u202f]+) ETF fondů/)?.[1]?.replace(/\D/g, '');
-      const nLlms = (await vem('/llms.txt')).html.match(/compares ([\d,]+)\+/)?.[1]?.replace(/\D/g, '');
-      if (!nTitul || nTitul !== nOrg || nTitul !== nLlms) chyby.push(`Počet fondů nesedí: titulek homepage ${nTitul}, Organization ${nOrg}, llms.txt ${nLlms}`);
+      const llms = (await vem('/llms.txt')).html;
+      const nLlms = llms.match(/compares ([\d,]+)\+/)?.[1]?.replace(/\D/g, '');
+      // /llms.txt při chybě dotazu na počet fondů vynechá číslo („It compares UCITS ETFs“ – raději žádné než špatné) a tahle
+      // verze zůstane den v ISR cache (18. 11. 2026). Web nic špatně neukazuje → varování; JINÉ číslo je dál poplach.
+      const llmsBezCisla = !nLlms && /It compares UCITS ETFs/.test(llms);
+      if (nTitul && nTitul === nOrg && llmsBezCisla) varovani.push({ co: '/llms.txt je bez počtu fondů (při obnově se nenačetl počet z DB; obnoví se sám do 24 h) – trvá-li víc dní, prověřit getTotalETFCount', ukazka: [`titulek homepage a Organization ${nTitul}`] });
+      else if (!nTitul || nTitul !== nOrg || nTitul !== nLlms) chyby.push(`Počet fondů nesedí: titulek homepage ${nTitul}, Organization ${nOrg}, llms.txt ${nLlms}`);
 
       // 7) Redakční stránky: Article s autorem, vydavatelem, datePublished ≤ dateModified ≤ dnes; JSON-LD parsovatelné; bez hodnocení.
       const dnes = new Date().toISOString().slice(0, 10);
@@ -2631,7 +2645,21 @@ const main = async () => {
       for (const z of zebricky) if (![...(odkazyNa.get(z) ?? [])].some((src) => src.startsWith('/nejlepsi-etf/'))) chyby.push(`${z}: žádný odkaz z jiného žebříčku („Související žebříčky“)`);
       if (!nacteno.get('/')?.html.includes('href="/nejlepsi-etf/nejlepsi-etf-2026"')) chyby.push('homepage bez odkazu na /nejlepsi-etf/nejlepsi-etf-2026');
       const osirele = headIsiny.filter((i) => !odkazyNa.has(`/etf/${i}`));
-      if (osirele.length) chyby.push(`Osiřelé detaily fondů ze sitemapy (bez vnitřního odkazu): ${osirele.length} – ${osirele.slice(0, 8).join(', ')}`);
+      // Fond u prahu hlavy (HEAD_MIN_SIZE): sitemapa i žebříčky jsou z ISR cache (1 den) z různých hodin – když velikost
+      // mezi tím přejde přes práh, je den v sitemapě bez odkazu (18. 11. 2026: 4UBQ 1 967 a AMEI 1 951 mil. € u prahu 2 000).
+      // Do 5 % od prahu (nebo už pod ním) = varování, srovná se samo; větší fond bez odkazu je dál poplach.
+      if (osirele.length) {
+        const prah = Number(readFileSync('src/lib/etf-head.ts', 'utf8').match(/HEAD_MIN_SIZE = (\d+)/)?.[1]);
+        let vel = new Map();
+        try {
+          const r = await fetch(`${URL_DB}?select=isin,primary_ticker,fund_size_numeric&isin=in.(${osirele.join(',')})`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((x) => x.json());
+          vel = new Map((Array.isArray(r) ? r : []).map((x) => [x.isin, x]));
+        } catch { /* bez velikostí zůstane poplach */ }
+        const uPrahu = (i) => { const v = Number(vel.get(i)?.fund_size_numeric); return Number.isFinite(prah) && vel.has(i) && Number.isFinite(v) && v < prah * 1.05; };
+        const hranicni = osirele.filter(uPrahu), skutecne = osirele.filter((i) => !uPrahu(i));
+        if (skutecne.length) chyby.push(`Osiřelé detaily fondů ze sitemapy (bez vnitřního odkazu): ${skutecne.length} – ${skutecne.slice(0, 8).join(', ')}`);
+        if (hranicni.length) varovani.push({ co: `Detaily fondů v sitemapě bez vnitřního odkazu, velikost u prahu hlavy ${prah} mil. € (${hranicni.length}) – sitemapa a žebříčky z cache různých hodin, srovná se do dne`, ukazka: hranicni.slice(0, 8).map((i) => `${i} ${vel.get(i)?.primary_ticker ?? ''} ${Math.round(Number(vel.get(i)?.fund_size_numeric))} mil. €`) });
+      }
 
       // 3) Statické stránky: „Aktualizováno“ = datum úpravy TEXTU (src/lib/redakce.ts), Article s dateModified = totéž,
       //    image, autor, vydavatel; BreadcrumbList. Dřív „Aktualizováno {den dat fondů}“ – posouvalo se denně.

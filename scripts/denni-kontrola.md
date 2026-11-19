@@ -263,3 +263,22 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   zkrátit čekání (4 × 30 s na fond) – jinak výpadek zdroje ≥ 1,5 h znamená den bez dat až do opakování.
   Usage Vercelu dnes **nepřečteno** (viz tabulka). Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek NEOVERENE_VYNOSY
   k ověření burzou, kopie `laughing-borg-11b67e` a `vibrant-carson-dccb3a` s necommitnutou prací (čeká na majitele).
+- 19. 11. 2026 10:30–12 UTC (denní kontrola, čtvrtek): web běží (200, build 17. 11. 16:03 = main 85d919d), scraper dnes v pořádku
+  (5 185 fondů s dnešním datem, 4 238 s výnosy k 17. 11., 0 bez názvu), sync indexů zelený. Kontrola dat 18. 11. 22:39 UTC –
+  **2 poplachy, oba falešné (web chybu neměl)**: (1) „počet fondů nesedí – llms.txt undefined“: `/llms.txt` se 18. 11. ~17:53 UTC
+  obnovil ve chvíli, kdy se nenačetl počet fondů z DB, a vypsal větu bez čísla (záměr „raději žádné než špatné“); verze je den
+  v ISR cache, sama se obnoví. Kontrola: llms.txt bez čísla = varování, jiné číslo dál poplach. (2) „osiřelé detaily ze sitemapy“
+  4UBQ a AMEI: fondy klesly těsně pod práh hlavy 2 000 mil. € (DB dnes 1 967 a 1 951), sitemapa z cache je ještě měla, žebříčky
+  už ne; dnes v sitemapě nejsou. Kontrola: fond do 5 % od prahu = varování, větší dál poplach. Varování „zlato“ (5×): EWG2 a TMGD
+  jsou známý šum řady zdroje a web je skrývá („—“, NEOVERENE_VYNOSY) → kontrola je ze skupiny vynechává; BNQJ 3R +87 × +92 %
+  ověřeno burzou – skutečnost (ZAMERNA-ROZHODNUTI.md, `OVERENE_ZLATO`). Po úpravách běh proti produkci bez poplachu (16 varování).
+  Včerejší body: 36B1 ve srovnávači má výnosy „—“ (`_vynX`) ✓; COPA má v DB výnosy k 17. 11. ✓ (srovnávač z cache je ukáže po obnově).
+  **Nález – web ukazuje špatné číslo, čeká na nasazení:** EBUD (IE000Y36NRJ2, Eurizon SLJ EM Bond Dist, velikost u zdroje chybí)
+  má 1R +0,6 %, akumulační třída EBUA +5,9 %. Holá řada zdroje: seznam dividend prázdný, řada „s dividendami“ = bez nich, čtvrtletní
+  schody proti EBUA; od vzniku 11. 3. 2025 Dist −2,99 % × Acc +5,64 % → zdroj u Dist nepočítá výplaty. Pravidlo tříd ho nechytí
+  (výnosy k 16. × 17. 11.). Oprava (položka v NEOVERENE_VYNOSY → „—“) je připravená na místní větvi `oprava/ebud-neovereny`
+  (jen `src/lib/vynosNeovereny.ts`), **NEnasazeno**: pravidlo rezervy CPU ≥ 15 min dnes neplatí (4 h 1 min / 4 h) a každé nasazení
+  stojí ~15–25K ISR čtení → rozhodnutí majitele (hned, nebo s balíkem do ~25. 11. spolu s roboty). Do nasazení kontrola dál hlásí
+  varování kolo8 B. Návrh do téhož balíku: `/llms.txt` při nenačteném počtu vyhodit výjimku (ISR ponechá poslední dobrou verzi).
+  Usage Vercelu přečteno ráno (řádek 19. 11. v tabulce). Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek
+  NEOVERENE_VYNOSY k ověření burzou, kopie `laughing-borg-11b67e` a `vibrant-carson-dccb3a` s necommitnutou prací (čeká na majitele).

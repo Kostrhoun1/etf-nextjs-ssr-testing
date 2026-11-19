@@ -338,6 +338,11 @@ ZŮSTÁVÁ** – majitel 18. 10. 2026: „když jsi u modelových portfolií dal
   (Londýn 31. 12. neobchodoval, nese cenu z 30. 12.; plyn se ten týden hýbal o 3–5 % denně) – přesný základ zdroje NEOVĚŘEN.
   Kontrola (`OVERENE_EXTREMNI_1R` v check-fund-data.mjs) roční výnos 30 dní nehlásí, pak chce nové ověření.
 
+- **BNPP Gold ETC (DE000PS7G0L8, BNQJ, 7 mil. €) za 3 roky +87 %, ostatní fyzické zlato +92 % (19. 11. 2026):** skutečnost.
+  Burza Xetra BNQJ.DE 17. 11. 2023 → 17. 11. 2026: 169,92 → 318,18 = +87,25 % (zdroj +86,95 %); Xetra-Gold +92,86 %. Poměr řad
+  zdroje BNQJ / Xetra-Gold klesá rovnoměrně (~1 % ročně, bez skoku) – produkt za zlatem zaostává doopravdy. Kontrola zlata
+  (`OVERENE_ZLATO` v check-fund-data.mjs) ho 180 dní nehlásí, pak chce nové ověření.
+
 ## Detail fondu: sektory, složení, komodity (revize kola 4, 18. 10. 2026)
 
 - **Sektory jsou v klasifikaci zdroje dat (pravděpodobně FactSet RBICS, úroveň Economy) – NE TRBC ani GICS. Čísla sedí,
