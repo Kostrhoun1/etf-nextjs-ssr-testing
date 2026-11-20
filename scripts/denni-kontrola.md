@@ -144,7 +144,8 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   (`select=isin,name,fund_provider,primary_ticker,returns_as_of,index_name,is_leveraged,return_1y,return_3y,return_5y`)
   ~5 300× / 24 h z funkcí Vercelu = ~4,6 mil. řádků. Oprava 1815076 (`vPametiNaCas`, 1 h v paměti instance) nasazena 19. 11.
   **Každý den do 19. 12. ověřit**: počet těchto dotazů za 24 h (`query_logs`: `count()` where `request.search` like
-  `%is_leveraged%return_5y%`) – cíl < 500 (dřív ~5 300); egress v Supabase dashboardu (Org → Usage → Egress) tempo
+  `%is_leveraged%return_5y%` **and `request.method` = 'GET'** – bez toho se započítá ~1 040 zápisů scraperu
+  `python-httpx` kolem 09:40 UTC, jejichž seznam sloupců vzoru také odpovídá) – cíl < 500 (dřív ~5 300); egress v Supabase dashboardu (Org → Usage → Egress) tempo
   < 150 MB/den. Když neklesne, najít další velký dotaz (`content_range` = počet řádků, viz dotaz v commitu).
 
 - 7. 11. 2026: Fluid CPU 4 h 4 min / 4 h → Vercel ohlásil pozastavení účtu (majitel zvolil čekat, ne platit). Middleware
@@ -291,3 +292,18 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   varování kolo8 B. Návrh do téhož balíku: `/llms.txt` při nenačteném počtu vyhodit výjimku (ISR ponechá poslední dobrou verzi).
   Usage Vercelu přečteno ráno (řádek 19. 11. v tabulce). Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek
   NEOVERENE_VYNOSY k ověření burzou, kopie `laughing-borg-11b67e` a `vibrant-carson-dccb3a` s necommitnutou prací (čeká na majitele).
+- 20. 11. 2026 10:30–11 UTC (denní kontrola, pátek): web běží (200, build 19. 11. 18:10 = main 8a9cd4f). Za 26 h všechny joby zelené
+  a **bez poplachu**: kontrola dat 19. 11. 22:43 UTC (12 známých varování), 2× smoke test a IndexNow po nasazeních 19. 11., sync
+  indexů, scraper 20. 11. (5 184 fondů s dnešním `scraping_date`, 4 237 s výnosy k 18. 11., 832 k 17. 11., 0 bez názvu).
+  **Egress Supabase – oprava z 19. 11. funguje**: dotaz tříd fondů z webu (GET, klient `node`) 209× za 15,5 h od nasazení
+  = ~325 / 24 h (cíl < 500, dřív ~5 300; před nasazením 84–434 za hodinu, po něm 6–24). Špička 1 050 v 09:00–10:00 UTC nebyl web:
+  1 038 z toho jsou zápisy scraperu (POST, `python-httpx`, dávky po 5 fondech) – postup výše upřesněn o `request.method`.
+  Dashboard Supabase (Org → Usage → Egress) **nepřečten** – Chrome u Supabase není přihlášený (heslo zadává jen majitel).
+  Drobnost k egressu (nedělal jsem; etf-astro, přes PR, malý přínos): scraper zapisuje s `Prefer: return=representation`, takže
+  databáze každý den pošle zpět všech 5 184 celých řádků (38,5 MB JSON před kompresí) a `final_scraper.py` `_upsert` návrat
+  nepoužívá → `returning='minimal'`. Usage Vercelu přečteno ráno (~09 UTC, řádek 20. 11. v tabulce) – podruhé už ne.
+  **Čeká na majitele (beze změny):** nasazení opravy EBUD (větev `oprava/ebud-neovereny`; web dál ukazuje 1R +0,6 % místo „—“,
+  kontrola hlásí varování kolo8 B) – nejlépe jedním balíkem do ~25. 11. s roboty (amazonbot, claudebot, příp. meta-webindexer
+  do `AI_ROBOTI_BEZ_DETAILU`) a `/llms.txt` s výjimkou; jinak počítat s Pro i v prosinci (ISR Reads 950K / 1 mil., přenos 9,37 / 10 GB).
+  Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek NEOVERENE_VYNOSY k ověření burzou, kopie `laughing-borg-11b67e`
+  a `vibrant-carson-dccb3a` s necommitnutou prací.
