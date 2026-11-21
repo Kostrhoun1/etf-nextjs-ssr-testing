@@ -115,6 +115,12 @@ export default function RootLayout({
         <AuthorSchema />
       </head>
       <body className={`${inter.className} antialiased overflow-x-clip`}>
+        {/* Společné značky ikon: ikona vysvětlivky ⓘ se na stránce opakuje až 21× – místo celého SVG u každé jen
+            <use href="#ik-info"> (odlehčení HTML, viz globals.css „.tip-ik“). Nulový rozměr, ne display:none
+            (některé prohlížeče pak <use> nevykreslí). */}
+        <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
+          <symbol id="ik-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></symbol>
+        </svg>
         {/* Přístupnost: z klávesnice/čtečky rovnou na obsah, bez procházení navigace. */}
         <a href="#obsah" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-teal-800 focus:shadow-lg focus:ring-2 focus:ring-teal-600">Přeskočit na obsah</a>
         <GoogleAnalytics measurementId="G-JYJPWHLMZX" />

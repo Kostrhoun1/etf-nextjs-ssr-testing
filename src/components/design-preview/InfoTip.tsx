@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Info } from 'lucide-react';
 
 /**
  * Vysvětlivky pojmů – JEDNO řešení pro celý web (InfoTip v textu i HeadTip v hlavičce srovnávače).
@@ -120,9 +119,10 @@ export function TipTlacitko({
           else if (zdroj === 'hover' || (zdroj === 'focus' && Date.now() - otevrenoV.current < 400)) setZdroj('click');
           else zavri();
         }}
-        className={`inline-flex items-center justify-center align-middle rounded text-slate-400 hover:text-teal-700 focus:outline-none focus-visible:text-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500/40 ${maly ? 'p-1.5 -m-1' : 'p-2 -m-2'} ${className}`}
+        // Vzhled v globals.css (.tip-btn, .tip-ik) a ikona ze společné značky #ik-info v layoutu – viz komentář tam.
+        className={`tip-btn${maly ? ' tip-btn-m' : ''}${className ? ` ${className}` : ''}`}
       >
-        <Info className={maly ? 'w-3 h-3' : 'w-3.5 h-3.5'} aria-hidden="true" />
+        <svg className={maly ? 'tip-ik tip-ik-m' : 'tip-ik'} viewBox="0 0 24 24" aria-hidden="true"><use href="#ik-info" /></svg>
       </button>
       {open && typeof document !== 'undefined' && createPortal(
         <span
@@ -161,7 +161,7 @@ export default function InfoTip({
   label: React.ReactNode;
 }) {
   return (
-    <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
+    <span className="tip-obal">
       <span>{children}</span>
       <TipTlacitko obsah={label} />
     </span>
