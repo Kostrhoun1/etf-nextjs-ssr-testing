@@ -164,6 +164,22 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   (~1/min, ~7 % původního objemu). Když se varování pro „postgres“ vrátí (další aktualizace Supabase), postup zopakovat –
   nejdřív REINDEX, až potom REFRESH; pořadí neobracet (REFRESH jen schová varování, případně rozbité indexy neopraví).
   **Pozor na kvótu Log Query** (45 / 100 GB za období): dotazy `query_logs` jen na úzká okna, ne opakovaně celé dny.
+- **21. 11. 2026: BALÍK „NÁVRAT NA FREE TIER“ (majitel: žádné placené služby).** Co čtení ISR cache tvoří (Vercel
+  Observability → ISR, 30 dní, 938K jednotek): `/etf/[isin]` 445K, `/api/etf/screener` 79K, `/srovnani/[pair]` 78K,
+  `/nejlepsi-etf/[slug]` 54K, `/` 33K. Detaily: jen 23 % požadavků z cache CDN (roboti jdou na dlouhý ocas jednou → vždy
+  čtení). Roboti za klidný den (CDN Requests → Bot Name): amazonbot ~790 (53 % z cache), meta-webindexer ~490 (1,6 %),
+  bingbot ~280, applebot ~200, seznambot ~170; meta-externalagent po zákazu 17. 11. jen 63 (dodržuje). 8.–21. 11. bylo
+  10 ostrých nasazení za 13 dní (každé maže cache CDN). Balík (jedno nasazení 21. 11.):
+  roboti Meta/Amazon jen velké fondy · srovnávač sloupcově (458 → 186 jednotek) · detail 208,8 → 178,6 kB (26 → 22
+  jednotek; průměr detailu v buildu 124,7 kB = 15,7 jednotky) · homepage 6 h · build ~29 000 → ~8 300 dotazů na Supabase.
+  Ověřeno lokálním buildem větve (6 812 stránek, check-fund-data proti němu bez poplachu, metadata v <head>).
+  **Po nasazení sledovat denně (cíl do zrušení Pro ~7.–9. 12.):**
+  1. čtení ISR za den: cíl ≤ 20K (klidný den před balíkem 33–39K); přenos z originu ≤ 200 MB/den;
+  2. Bot Name: meta-webindexer a amazonbot – požadavky na `/etf/` mají do pár dní klesnout na jednotky procent
+     (smějí jen ~345 velkých fondů); když ne (robot pravidlo nedodržuje), nahlásit majiteli – další krok je jeho rozhodnutí;
+  3. počet ostrých nasazení za posledních 7 dní (Vercel → Deployments, Production, Ready): víc než 1 = nahlásit a zapsat proč;
+  4. Supabase: Log Ingestion za den ≤ 25 MB (dřív ~40), egress ≤ 150 MB/den; sobotní přestavba ≤ ~9 000 dotazů;
+  5. CH0109967858 a CH0116015352 (UBS CMCI Oil SF): u poklesu za 3 roky má být „—“ + věta o třídách (oprava limitu kandidátů).
 
 - 7. 11. 2026: Fluid CPU 4 h 4 min / 4 h → Vercel ohlásil pozastavení účtu (majitel zvolil čekat, ne platit). Middleware
   zrušen (37 % CPU). **Vypnuté workflow** `zlate-pripady.yml` a `prod-smoke.yml` (šetří CPU) – znovu zapnout
