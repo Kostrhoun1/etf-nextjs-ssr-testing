@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
@@ -34,7 +35,7 @@ import { nactiTrhy, odlehleIsiny, tridyVynosNesedi } from '@/lib/trhy';
 import { vynosTridText } from '@/lib/tridyFondu';
 import { duvodNeovereni, rizikoSkokem, rokNeovereny, ROK_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
 import { TRHY } from '@/data/trhyDvojcata';
-import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
+import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
 import { odkazDvojiceDetailu, type FondProOdkaz } from '@/lib/odkazyDvojic';
 import { isinyDetailuKPredgenerovani } from '@/lib/prerender';
 import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
@@ -108,15 +109,19 @@ function overAdresu(isin: string) {
   if (!isinPlatny(isin)) notFound();
 }
 
+/** Řádek fondu JEDNOU na render (React cache): generateMetadata i stránka čtou tentýž řádek. Dřív dva dotazy na každý
+ *  detail (metadata si vybírala ~40 sloupců, stránka `*`) = při buildu ~5 300 dotazů na Supabase navíc (21. 11. 2026). */
+const nactiFond = cache(async (isin: string): Promise<Record<string, unknown> | null> => {
+  const { data } = await supabaseAdmin.from('etf_funds').select('*').eq('isin', isin).single();
+  return (data as Record<string, unknown> | null) ?? null;
+});
+
 export async function generateMetadata(
   { params }: { params: Promise<{ isin: string }> },
 ): Promise<Metadata> {
   const { isin } = await params;
   overAdresu(isin);
-  const { data } = await supabaseAdmin
-    .from('etf_funds')
-    .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, returns_as_of, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', ') + ', ' + Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_currency`).join(', '))
-    .eq('isin', isin).single();
+  const data = await nactiFond(isin);
   const fund = data as Record<string, unknown> | null;
   const name = (fund?.name as string) || 'ETF fond';
   // Zobrazovaný ticker (jeden pro celý web, src/lib/ticker.ts) první – stejný jako hero, srovnávač a žebříčky.
@@ -359,11 +364,11 @@ export default async function ETFDetailPreview(
 ) {
   const { isin } = await params;
   overAdresu(isin);
-  const { data } = await supabaseAdmin.from('etf_funds').select('*').eq('isin', isin).single();
+  const data = await nactiFond(isin);
   // Fond bez názvu = rozbitý řádek ze scraperu (12 k 17. 10. 2026, bez TER, měny i data vzniku).
   if (!data || !String((data as { name?: string }).name ?? '').trim()) notFound();
 
-  const etf = data as ETF;
+  const etf = data as unknown as ETF;
   // CZK přepočty (NEJSOU v typu ETF, ale jsou v DB)
   const r = data as Record<string, unknown>;
   const czk = {
