@@ -22,7 +22,10 @@ import { TrendingUp, ArrowRight, Globe, LineChart, Building2, ChevronDown, Check
 import { BARVY_SLOZEK } from '@/components/design-preview/portfolioData';
 import { jineDatumVynosu, datumVynosuIso } from '@/lib/datumVynosu';
 
-export const revalidate = 3600;
+// 21. 11. 2026 (návrat na free tier Vercelu): 6 h místo 1 h. Hodinová platnost znamenala ~177 čtení ISR cache denně
+// (každý region CDN si stránku po hodině čte znovu) = 33 000 jednotek / 30 dní z limitu 1 mil. Data fondů se mění jednou
+// denně (noční scraper), stránka ukazuje den dat; 6 h = nejvýš čtvrt dne zpoždění za DB, čtení klesne ~6×.
+export const revalidate = 21600;
 export async function generateMetadata(): Promise<Metadata> {
   const pocet = await getETFCountLabel();
   return {
