@@ -30,6 +30,19 @@ import { vytvorRezim } from './lib/cil.mjs';
 
 const KEY = process.env.SUPABASE_KEY;
 const WEB_URL = process.env.WEB_URL || 'https://etfpruvodce.cz'; // pro test proti lokálnímu buildu
+
+// 21. 11. 2026: /api/etf/screener posílá řádky sloupcově { v: 2, k: [klíče], n: povinných, r: [[hodnoty]] } (úspora čtení
+// ISR cache Vercelu, src/lib/screenerFormat.ts). Tady NEZÁVISLÉ rozbalení (ne import z webu); umí i původní pole objektů
+// (před nasazením). Nepovinný klíč (index ≥ n) s null = v řádku chybí. Cokoli jiného projde beze změny (kontroly pak
+// samy ohlásí, že se API nenačetlo).
+const rozbalSrovnavac = (j) => {
+  if (!j || Array.isArray(j) || j.v !== 2 || !Array.isArray(j.k) || !Array.isArray(j.r)) return j;
+  return j.r.map((radek) => {
+    const o = {};
+    j.k.forEach((klic, i) => { const h = i < radek.length ? radek[i] : null; if (!(i >= j.n && h === null)) o[klic] = h; });
+    return o;
+  });
+};
 /** Režim cíle: na produkci jen pevná sada dynamických stránek; fetch na dynamickou stránku mimo ni se neodešle. */
 const R = vytvorRezim(WEB_URL, 'check-fund-data');
 R.hlidejFetch();
@@ -518,7 +531,7 @@ const main = async () => {
   // fondů „Celosvětově“). Region se teď bere jen z investment_focus (src/utils/regionClassification.ts).
   // Nezávislá kontrola z NÁZVU fondu: fond s jednou zemí v názvu musí mít tu zemi; komodita/krypto žádný region.
   try {
-    const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json());
+    const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json()).then(rozbalSrovnavac);
     if (!Array.isArray(rows) || rows.length < 1000) throw new Error('API srovnávače nevrátilo data');
     if (!rows.some((r) => r._region === 'Jižní Korea')) {
       varovani.push({ co: 'Srovnávač na produkci ještě nemá novou klasifikaci regionu (před nasazením) – kontrola regionu vynechána', ukazka: [] });
@@ -1075,7 +1088,7 @@ const main = async () => {
     // 6) JEDEN TICKER: detail zlata ukazoval PPFB (XETRA), zbytek webu SGLN. Top 50 fondů podle velikosti:
     //    ticker v hlavičce detailu (data-ticker) = ticker ve srovnávači (/api/etf/screener).
     try {
-      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json());
+      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json()).then(rozbalSrovnavac);
       if (!Array.isArray(rows)) throw new Error('API srovnávače nevrátilo data');
       // Lokálně top 50 podle velikosti (mění se s daty → na produkci by každý den sahalo na nové detaily = ISR zápisy);
       // na produkci pevná sada PROD_DETAILY (scripts/lib/cil.mjs).
@@ -2159,7 +2172,7 @@ const main = async () => {
       if (odlehle.length) {
         // a) srovnávač (API pro klienta)
         let api = [];
-        try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()); } catch { /* níže */ }
+        try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).then(rozbalSrovnavac); } catch { /* níže */ }
         if (!Array.isArray(api) || api.length < 1000) chyby.push('/api/etf/screener se nenačetl');
         // Stránky a API jsou z ISR cache (1 den): po novém stažení můžou ukazovat VČEREJŠÍ data, kdy fond odlehlý nebyl
         // (3. 11. 2026: BNP MSCI World odlehlý k 30. 10., srovnávač i žebříček ještě s daty k 29. 10. = 18,1 % v trhu).
@@ -2585,7 +2598,7 @@ const main = async () => {
           if (!m) spatne.push(`${x.isin}: detail neukazuje den výnosů (DB ${x.returns_as_of}, většina ${vetsina})`);
           else if (m[1] > String(x.returns_as_of).slice(0, 10)) spatne.push(`${x.isin}: detail ukazuje ${m[1]}, DB má výnosy k ${x.returns_as_of}`);
         }
-        const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).then(rozbalSrovnavac).catch(() => null);
         if (Array.isArray(rows)) {
           const podle = new Map(rows.map((r) => [r.isin, r]));
           // Srovnávač se cachuje 24 h → jen fondy pozadu o víc než 3 pracovní dny (ty byly pozadu i včera).
@@ -3121,7 +3134,7 @@ const main = async () => {
       // F) Web: fond ze seznamu nesmí mít ve srovnávači výnos za období. Zapojení seznamu do src/lib/trhy.ts (odlehleZTrhu)
       //    pozná kontrola podle značky _vynX u fondů seznamu; dokud žádný značku nemá, je to jen varování (před nasazením).
       let api = [];
-      try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()); } catch { /* níže */ }
+      try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).then(rozbalSrovnavac); } catch { /* níže */ }
       if (Array.isArray(api) && api.length > 1000) {
         const OBD7 = /^(return_(1m|3m|6m|ytd|1y|3y|5y)(_czk|_usd)?)$/;
         const radky = api.filter((x) => seznam.has(x.isin));
@@ -3404,7 +3417,7 @@ const main = async () => {
       }
 
       // (b) SROVNÁVAČ ─────────────────────────────────────────────────────────────────────────────────────
-      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).then(rozbalSrovnavac).catch(() => null);
       if (!Array.isArray(rows)) upozorneni.push('/api/etf/screener se nenačetl');
       else {
         const vNabidce = fondy.filter((x) => x.name && x.returns_as_of && dni(x) <= 30);
@@ -3596,7 +3609,7 @@ const main = async () => {
         const zbytek = m[2].replace(/\(.*?\)/g, ' ').replace(TRIDA8, ' ').replace(/[^a-z0-9]+/gi, ' ').trim().toLowerCase();
         return `${f.fund_provider}|${m[1].toLowerCase().replace(/\s+/g, ' ').trim()}|${zbytek}`;
       };
-      const api8 = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).catch(() => null);
+      const api8 = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).then(rozbalSrovnavac).catch(() => null);
       const radky8 = Array.isArray(api8) ? api8 : api8?.rows;
       if (!Array.isArray(radky8) || radky8.length < 1000) throw new Error('/api/etf/screener se nenačetl');
       const web8 = new Map(radky8.map((r) => [r.isin, r]));
