@@ -148,6 +148,22 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   `%is_leveraged%return_5y%` **and `request.method` = 'GET'** – bez toho se započítá ~1 040 zápisů scraperu
   `python-httpx` kolem 09:40 UTC, jejichž seznam sloupců vzoru také odpovídá) – cíl < 500 (dřív ~5 300); egress v Supabase dashboardu (Org → Usage → Egress) tempo
   < 150 MB/den. Když neklesne, najít další velký dotaz (`content_range` = počet řádků, viz dotaz v commitu).
+- **21. 11. 2026: stav Supabase z dashboardu (Org → Usage, období 2. 11.–2. 12.) a údržba databáze.** Egress 6,09 / 5 GB
+  (toto období už je přes limit a zůstane; nové začíná 2. 12.). Denní egress z grafu (výška sloupců × součet období):
+  běžné dny před opravou 150–320 MB, 8. 11. ~1,07 GB a 11. 11. ~1,2 GB (dny s několika buildy), 19. 11. ~420 MB (3 buildy),
+  **20. 11. ~55 MB** → cíl < 150 MB/den splněn. **Log Ingestion 2,55 / 1 GB (255 %)** – podle Supabase se začne počítat
+  „po skončení přechodné lhůty začátkem 2027“. Dvě příčiny: (1) build = ~100 000 dotazů ≈ 0,6 GB logů (řeší balík
+  `balik-free-tier`: build z jednoho snímku dat), (2) Postgres při každém připojení psal varování „database "postgres" has
+  a collation version mismatch“ (~10 800×/den = přes polovinu klidového objemu; glibc 2.39 → 2.40 po aktualizaci Supabase).
+  **Údržba 21. 11. ~08:43 UTC (souhlas majitele):** `REINDEX TABLE CONCURRENTLY` na `public.etf_funds`,
+  `index_historical_data`, `web_events`, `app_admins`, `newsletter_subscribers`, `supabase_migrations.schema_migrations`
+  (všechny indexy s výchozím řazením textu, bez zamykání), potom `ALTER DATABASE postgres REFRESH COLLATION VERSION`.
+  Ověřeno: před i po 5 271 fondů / 5 271 různých ISIN, 220 243 řádků historie indexů, žádný neplatný index, web i hledání
+  fondů odpovídají, varování pro „postgres“ v logu od 08:44 UTC 0. **Nešlo (jen Supabase má práva):** indexy ve schématech
+  auth / storage / cron / vault / realtime (dohromady ~250 řádků, většinou migrace) a `template1` – jeho varování zůstává
+  (~1/min, ~7 % původního objemu). Když se varování pro „postgres“ vrátí (další aktualizace Supabase), postup zopakovat –
+  nejdřív REINDEX, až potom REFRESH; pořadí neobracet (REFRESH jen schová varování, případně rozbité indexy neopraví).
+  **Pozor na kvótu Log Query** (45 / 100 GB za období): dotazy `query_logs` jen na úzká okna, ne opakovaně celé dny.
 
 - 7. 11. 2026: Fluid CPU 4 h 4 min / 4 h → Vercel ohlásil pozastavení účtu (majitel zvolil čekat, ne platit). Middleware
   zrušen (37 % CPU). **Vypnuté workflow** `zlate-pripady.yml` a `prod-smoke.yml` (šetří CPU) – znovu zapnout
