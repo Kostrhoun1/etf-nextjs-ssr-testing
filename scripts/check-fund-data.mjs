@@ -3499,6 +3499,7 @@ const main = async () => {
   await kontrolaGrafIndexu(poplach, varovani); // blok „graf indexu“ (3.3, 11. 11. 2026) – definice na konci souboru
   await kontrolaPorovnaniCdn(poplach, varovani); // blok „porovnání z CDN“ (12. 11. 2026) – definice na konci souboru
   await kontrolaEgressSupabase(poplach); // blok „egress Supabase“ (19. 11. 2026) – definice na konci souboru
+  await kontrolaVahyStranek(varovani); // blok „váha stránek“ (21. 11. 2026) – definice na konci souboru
 
   // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
   //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
@@ -4566,5 +4567,38 @@ async function kontrolaEgressSupabase(poplach) {
     if (chyby.length) poplach.push({ co: 'Egress Supabase: velké sady fondů se za běhu stahují bez paměti – hrozí překročení free tieru Supabase (5 GB/měsíc) a omezení databáze', ukazka: chyby });
   } catch (e) {
     poplach.push({ co: 'Egress Supabase: kontrolu nešlo provést', ukazka: [String(e?.message ?? e)] });
+  }
+}
+
+// ── VÁHA STRÁNEK (21. 11. 2026, návrat na free tier Vercelu) ──
+// Vercel počítá čtení ISR cache po 8 kB NEZABALENÉ stránky (limit Hobby 1 mil. jednotek / 30 dní, překročení = pozastavení
+// webu) a přenos z originu stejně. 21. 11. 2026 odlehčeno: detail fondu IE00B5BMR087 208,8 → 178,6 kB (26 → 22 jednotek;
+// vysvětlivky ⓘ přes společnou značku, opakované řetězce tříd jako pojmenované třídy v globals.css), /api/etf/screener
+// 3,75 → 1,52 MB (458 → 186 jednotek; sloupcový tvar, src/lib/screenerFormat.ts). Kontrola hlídá, aby váha tiše nenarostla
+// zpět. Jen VAROVÁNÍ (web funguje správně, jen dráž) – a jen dvě pevné adresy (žádné procházení produkce).
+async function kontrolaVahyStranek(varovani) {
+  try {
+    const bajty = async (cesta) => {
+      const r = await fetch(`${WEB_URL}${cesta}`, { headers: { 'Accept-Encoding': 'identity' } });
+      if (!r.ok) return null;
+      const t = await r.text();
+      return { n: Buffer.byteLength(t), t };
+    };
+    const nalezy = [];
+    const detail = await bajty('/etf/IE00B5BMR087');
+    if (!detail) nalezy.push('detail IE00B5BMR087 se nenačetl');
+    else if (!detail.t.includes('#ik-info')) {
+      varovani.push({ co: 'Váha stránek: produkce ještě bez odlehčení z 21. 11. 2026 (před nasazením balíku) – kontrola váhy vynechána', ukazka: [] });
+      return;
+    } else if (detail.n > 24 * 8192) nalezy.push(`detail IE00B5BMR087 má ${(detail.n / 1000).toFixed(1)} kB = ${Math.ceil(detail.n / 8192)} jednotek čtení (po odlehčení 178,6 kB = 22; práh 24)`);
+    const scr = await bajty('/api/etf/screener');
+    if (!scr) nalezy.push('/api/etf/screener se nenačetl');
+    else {
+      if (!scr.t.startsWith('{"v":2')) nalezy.push('/api/etf/screener není ve sloupcovém tvaru (zabalRadky vrátil původní pole – nepovinný klíč se skutečným null? src/lib/screenerFormat.ts)');
+      if (scr.n > 1.9e6) nalezy.push(`/api/etf/screener má ${(scr.n / 1e6).toFixed(2)} MB = ${Math.ceil(scr.n / 8192)} jednotek čtení (po odlehčení 1,52 MB = 186; práh 1,9 MB)`);
+    }
+    if (nalezy.length) varovani.push({ co: 'Váha stránek narostla – víc čtení ISR cache a přenosu z originu (limity free tieru Vercelu; scripts/denni-kontrola.md „Návrat na free tier“)', ukazka: nalezy });
+  } catch (e) {
+    varovani.push({ co: `Kontrola váhy stránek neproběhla: ${e.message}`, ukazka: [] });
   }
 }
