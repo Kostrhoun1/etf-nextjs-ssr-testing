@@ -1218,6 +1218,30 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
 - **Hlídá:** `scripts/check-fund-data.mjs` (blok robots: tři roboti ve skupině, 200–800 výjimek, největší fondy mezi nimi,
   Allow před Disallow; poplach, kdyby detaily zakazovala jiná skupina).
 
+## Balík „návrat na free tier“ – co vypadá divně a je záměr (21. 11. 2026)
+
+Majitel 21. 11. 2026: žádné placené služby (Vercel ani Supabase), bez ztráty kvality a funkčnosti. Měření a důvody:
+`scripts/denni-kontrola.md` („Návrat na free tier“). Nevracet zpět „pro čitelnost“:
+
+- **`/api/etf/screener` nevrací pole objektů, ale `{ v: 2, k, n, r }`** (`src/lib/screenerFormat.ts`). Stejná data, klíče
+  jen jednou: 3,75 → 1,52 MB = 458 → 186 jednotek čtení ISR cache na jedno čtení. Prohlížeč (`ScreenerUI`) i kontroly
+  (`rozbalSrovnavac` v check-fund-data) umí obojí. Test `scripts/screenerFormat.test.mjs`.
+- **Pojmenované třídy v `globals.css` (`.tip-btn`, `.d-rad3`, `.d-fakt`, `.pata-odkaz`, …) místo řetězců Tailwindu
+  a ikona vysvětlivky jako `<use href="#ik-info">`** (značka jednou v `layout.tsx`). Detail fondu 208,8 → 178,6 kB
+  (26 → 22 jednotek), každý řetězec tříd je v HTML dvakrát (i v datech pro hydrataci). Vzhled je stejný (ověřeno otiskem
+  vypočtených stylů všech prvků před/po, desktop i mobil). Nový opakovaný prvek na detailu = raději pojmenovaná třída.
+- **Homepage má platnost 6 h, ne 1 h** (`src/app/page.tsx`): hodinová = ~177 čtení ISR cache denně.
+- **`getTotalETFCount` drží číslo 1 h v paměti instance a při buildu ho čte jednou** (dřív dotaz 2× na každou stránku =
+  třetina všech dotazů buildu). Při buildu chyba nebo < 1 000 fondů = výjimka, build spadne.
+- **Detail fondu čte řádek fondu jednou** (`nactiFond` s React cache) pro metadata i stránku; **třídy téhož fondu se při
+  buildu berou z jednoho hromadného dotazu** (`tridyTehozFondu`). Build: ~29 000 → ~8 300 dotazů na Supabase.
+  Limit kandidátů 1 000 (dřív 60 bez řazení – u 20 fondů „UBS ETF (CH) …“ se 435 kandidáty vybíral náhodně).
+- **`scripts/vercel-ignore.sh` se ptá živého webu na čas buildu** (curl na homepage): stáří produkce nesmí záviset na
+  hloubce klonu Vercelu, jinak by po týdnu bez nasazení každý push poznámek nasadil web (a smazal cache CDN).
+- **Nasazení maže cache CDN** – po každém nasazení roboti znovu načtou tisíce stránek z ISR cache. 8.–21. 11. bylo
+  10 ostrých nasazení za 13 dní a čtení skončila na 96 % limitu. Mimo týdenní přestavbu nasazovat jen opravu, která
+  nepočká (chyba v datech – pravidlo č. 1 má přednost), a napsat to do zprávy commitu.
+
 ## Supabase: vypnutá úloha yfinance-etf-update a ponechaná upozornění poradce (8. 11. 2026)
 
 - **pg_cron `yfinance-etf-update` (jobid 1) je VYPNUTÁ (active = false), ne smazaná.** Volala každých 15 min edge funkci
