@@ -1202,6 +1202,22 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   naše stránky znalo“. Hlídá check-fund-data (blok robots – poplach).
 - Blokace je trvalá, ne dočasná. Odblokovat jen na výslovný pokyn majitele.
 
+## Roboti Meta AI a Amazonu smějí jen na detaily velkých fondů – „prostřední varianta“ (21. 11. 2026)
+
+- **Co:** `meta-externalagent`, `meta-webindexer` a `Amazonbot` mají v `robots.txt` společnou skupinu: smějí na celý web
+  včetně detailů ~330–350 největších fondů (hlava katalogu, `HEAD_MIN_SIZE` v `src/lib/etf-head.ts`, řádky
+  `Allow: /etf/<ISIN>`), NESMĚJÍ na ostatní detaily fondů (`Disallow: /etf/`) a na srovnání (`Disallow: /srovnani/`).
+- **Proč:** rozhodnutí majitele 21. 11. 2026 („už žádné placené služby“, „udělej prostřední variantu“). Tihle dva roboti
+  dělali odhadem 45 % čtení ISR cache klidného dne (meta-webindexer ~490 požadavků/den, 1,6 % z cache CDN; Amazonbot
+  ~790/den, 53 % z cache) a z Meta AI ani Amazonu nepřišla za 90 dní žádná návštěva. Majitel se ale bojí, že úplným
+  zákazem detailů přijde o budoucí návštěvy z AI → výjimka pro velké fondy. Bez omezení ~83 % limitu Hobby, s ním ~50 %.
+- **Není to chyba:** ve skupině záměrně CHYBÍ `Allow: /` – je zbytečné a parser „první shoda“ by kvůli němu ignoroval
+  všechny zákazy pod ním. Stovky řádků `Allow` jsou záměr, ne nafouknutý soubor (~10 kB). Seznam je z DB, obnovuje se denně.
+- **Nerozšiřovat** na vyhledávače ani AI vyhledávání (Google, Bing, Seznam, Apple, DuckDuckGo, OAI-SearchBot, ChatGPT-User,
+  GPTBot, ClaudeBot, PerplexityBot) – ty vidí vše. Další robot do skupiny jen po rozhodnutí majitele.
+- **Hlídá:** `scripts/check-fund-data.mjs` (blok robots: tři roboti ve skupině, 200–800 výjimek, největší fondy mezi nimi,
+  Allow před Disallow; poplach, kdyby detaily zakazovala jiná skupina).
+
 ## Supabase: vypnutá úloha yfinance-etf-update a ponechaná upozornění poradce (8. 11. 2026)
 
 - **pg_cron `yfinance-etf-update` (jobid 1) je VYPNUTÁ (active = false), ne smazaná.** Volala každých 15 min edge funkci

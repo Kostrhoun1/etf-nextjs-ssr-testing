@@ -1731,7 +1731,7 @@ const main = async () => {
     // vyhledávání NESMÍ být zablokované – skupina s jejich jménem (nebo „*“) nesmí mít „Disallow: /“.
     const rtxt = await fetch(`${WEB_URL}/robots.txt`).then((r) => (r.ok ? r.text() : ''));
     const skupiny = rtxt.split(/\n\s*\n/).map((g) => ({ ua: [...g.matchAll(/^User-Agent:\s*(\S+)/gim)].map((m) => m[1].toLowerCase()), vse: /^Disallow:\s*\/\s*$/im.test(g) }));
-    const CHRANENI = ['*', 'googlebot', 'bingbot', 'seznambot', 'applebot', 'duckduckbot', 'oai-searchbot', 'chatgpt-user', 'perplexitybot', 'claudebot', 'gptbot', 'meta-externalagent'];
+    const CHRANENI = ['*', 'googlebot', 'bingbot', 'seznambot', 'applebot', 'duckduckbot', 'oai-searchbot', 'chatgpt-user', 'perplexitybot', 'claudebot', 'gptbot', 'meta-externalagent', 'meta-webindexer', 'amazonbot'];
     const zablokovani = CHRANENI.filter((b) => skupiny.some((g) => g.vse && g.ua.includes(b)));
     if (!rtxt) varovani.push({ co: 'robots.txt se nenačetl', ukazka: [] });
     else if (zablokovani.length) poplach.push({ co: 'robots.txt blokuje vyhledávače / AI vyhledávání (src/app/robots.ts)', ukazka: zablokovani });
@@ -1746,15 +1746,25 @@ const main = async () => {
       if (jinde.length) hv.push('Disallow: /srovnani/porovnani i v jiné skupině než heritrix');
       if (hv.length) varovani.push({ co: 'robots.txt: pravidlo pro archivačního robota (heritrix) nesedí', ukazka: hv });
       // 17. 11. 2026 (majitel): Meta AI (meta-externalagent) bez detailů fondů a srovnání (čtení ISR cache a přenos z originu
-      // free tieru). Jeho skupina musí mít /etf/, /srovnani/ i obecné zákazy; vyhledávače a „*“ detaily zakázané mít NESMÍ.
+      // free tieru). 21. 11. 2026 (majitel, „prostřední varianta“): stejná skupina i pro meta-webindexer a Amazonbot a všichni
+      // tři smějí na detaily ~330 největších fondů (Allow: /etf/<ISIN>), ne na dlouhý ocas a dvojice. Skupina musí mít /etf/,
+      // /srovnani/ i obecné zákazy A výjimky pro velké fondy; vyhledávače a „*“ detaily zakázané mít NESMÍ.
+      const AI_VELKE = ['meta-externalagent', 'meta-webindexer', 'amazonbot'];
       const meta = rtxt.split(/\n\s*\n/).find((g) => /^User-Agent:\s*meta-externalagent\s*$/im.test(g)) || '';
       const mv = [];
-      if (!/^Disallow:\s*\/etf\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí Disallow: /etf/');
-      if (!/^Disallow:\s*\/srovnani\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí Disallow: /srovnani/');
-      if (!/^Disallow:\s*\/api\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí obecné zákazy (Disallow: /api/)');
-      if (mv.length) varovani.push({ co: 'robots.txt: omezení Meta AI na detaily fondů nesedí (src/app/robots.ts) – hrozí překročení free tieru', ukazka: mv });
+      const uaMeta = [...meta.matchAll(/^User-Agent:\s*(\S+)/gim)].map((m) => m[1].toLowerCase());
+      for (const r of AI_VELKE) if (!uaMeta.includes(r)) mv.push(`${r}: chybí ve skupině s omezením detailů`);
+      if (!/^Disallow:\s*\/etf\/\s*$/im.test(meta)) mv.push('chybí Disallow: /etf/');
+      if (!/^Disallow:\s*\/srovnani\/\s*$/im.test(meta)) mv.push('chybí Disallow: /srovnani/');
+      if (!/^Disallow:\s*\/api\/\s*$/im.test(meta)) mv.push('chybí obecné zákazy (Disallow: /api/)');
+      const vyjimky = [...meta.matchAll(/^Allow:\s*\/etf\/([A-Z0-9]{12})\s*$/gim)].map((m) => m[1]);
+      // Počet výjimek = hlava katalogu (~330). Méně než 200 nebo víc než 800 = výjimky se rozbily (prázdná hlava / celý katalog).
+      if (vyjimky.length < 200 || vyjimky.length > 800) mv.push(`výjimek pro velké fondy je ${vyjimky.length} (čeká se 200–800)`);
+      for (const isin of ['IE00B5BMR087', 'IE00BK5BQT80']) if (!vyjimky.includes(isin)) mv.push(`mezi výjimkami chybí ${isin} (největší fondy)`);
+      if (meta && meta.search(/^Allow:\s*\/etf\//im) > meta.search(/^Disallow:\s*\/etf\/\s*$/im)) mv.push('Allow: /etf/<ISIN> musí být ve výpisu PŘED Disallow: /etf/');
+      if (mv.length) varovani.push({ co: 'robots.txt: omezení AI robotů (Meta, Amazon) na velké fondy nesedí (src/app/robots.ts) – hrozí překročení free tieru nebo ztráta výjimek', ukazka: mv });
       const detailyJinde = rtxt.split(/\n\s*\n/).filter((g) => g !== meta && !/^Disallow:\s*\/\s*$/im.test(g) && /^Disallow:\s*\/(etf|srovnani)\/\s*$/im.test(g));
-      if (detailyJinde.length) poplach.push({ co: 'robots.txt zakazuje detaily fondů / srovnání i jiným robotům než Meta AI (src/app/robots.ts)', ukazka: detailyJinde.map((g) => g.split('\n')[0]) });
+      if (detailyJinde.length) poplach.push({ co: 'robots.txt zakazuje detaily fondů / srovnání i jiným robotům než Meta AI a Amazonbot (src/app/robots.ts)', ukazka: detailyJinde.map((g) => g.split('\n')[0]) });
     }
     const spatne = [];
     for (const s of ['/etf/ZZ000000TEST', '/srovnani/nesmysl']) {

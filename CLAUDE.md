@@ -38,7 +38,8 @@ roky „věrohodné" – nikdo je nezávisle nekontroloval. Podrobnosti: `PLAN-O
 - Nasazovat MÁLO: opravy sbírat do balíku, produkční deploy nejvýš 1–2× týdně (rozhodnutí majitele 23. 10. 2026).
   Free tier Vercelu = 200 000 ISR zápisů / 4 h Fluid Active CPU / **1 mil. ISR čtení / 10 GB Fast Origin Transfer** za klouzavých
   30 dní, překročení = pozastavení webu. Čtení a přenos rostou s roboty na dlouhém ocasu detailů fondů (stránka mimo cache CDN
-  ≈ 24 čtení po 8 kB) – 17. 11. 2026 na hraně, proto Meta AI bez detailů (`src/app/robots.ts`). Stav a limity:
+  ≈ 24 čtení po 8 kB) – 17. 11. 2026 na hraně, proto roboti Meta AI a Amazonu jen na detaily ~330 největších fondů
+  (`src/app/robots.ts`, rozhodnutí majitele 17. a 21. 11.). Stav a limity:
   `scripts/denni-kontrola.md` „Návrat na free tier“.
   Bez placeného plánu a bez ořezávání obsahu stránek.
   - **Před deployem zkontrolovat usage** (vercel.com/…/~/usage – ISR Writes a Fluid Active CPU). Od 1. 11. 2026 build
