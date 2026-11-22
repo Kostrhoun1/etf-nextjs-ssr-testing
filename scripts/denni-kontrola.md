@@ -341,3 +341,19 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   do `AI_ROBOTI_BEZ_DETAILU`) a `/llms.txt` s výjimkou; jinak počítat s Pro i v prosinci (ISR Reads 950K / 1 mil., přenos 9,37 / 10 GB).
   Otevřené beze změny: 4× XPASS ve zlatých případech, 17 položek NEOVERENE_VYNOSY k ověření burzou, kopie `laughing-borg-11b67e`
   a `vibrant-carson-dccb3a` s necommitnutou prací.
+- 22. 11. 2026 10:30–11 UTC (denní kontrola, neděle): web běží (200, build 21. 11. 09:11 = balík free tier). Za 26 h joby zelené
+  (zlaté případy 0 selhalo / 0 XPASS, smoke test, sync indexů; týdenní přestavba 21. 11. přeskočena – nasazení mladší 6 dní; scraper
+  o víkendu neběží, pátek v pořádku) kromě kontroly dat 21. 11. 20:58 UTC – **1 poplach, falešný**: „/sp500-nebo-cely-svet: S&P 500
+  od 2008 14,2 % ≠ backtest 13,95 %“. Obě čísla správně: článek z ISR cache je k 19. 11., backtest měl data k 20. 11. a S&P 500
+  20. 11. spadl o 3,6 % (Yahoo: SPY 715,87 → 689,81; ČNB USD 22,219 → 22,262 → v Kč −3,46 %; web 1 143 367 → 1 103 842 Kč = −3,46 %).
+  Nezávislý přepočet čísla článku: SPY s dividendami 92,125 (1. 7. 2008) → 715,87 (19. 11. 2026) × kurz ČNB 15,102 → 22,219
+  = 1 143 240 Kč ze 100 000 Kč = 14,17 % ročně (web 1 143 367 Kč, 14,2 %). Kontrola dřív tolerovala jen rozdíl > 1,5 dne → teď
+  backtest volá s koncem v den článku („Klíčová čísla k …“), takže porovnává stejný den vždy (ověřeno: backtest k 19. 11. vrací
+  přesně 1 143 367 Kč); jiný konec dat = varování. Běh proti produkci po úpravě: bez poplachu, 14 známých varování.
+  Balík, bod 5: CH0109967858 má u poklesu za 3 roky „—“ + větu o třídách ✓. Supabase: dotaz tříd fondů (GET) 371 / 24 h ✓ (cíl < 500).
+  Usage Vercelu přečteno ráno (~08 UTC, řádek 22. 11. v tabulce) – podruhé už ne.
+  **Čeká na majitele:** (1) oprava EBUD (IE000Y36NRJ2) v balíku 21. 11. NEBYLA – větev `oprava/ebud-neovereny` není v main, web dál
+  ukazuje 1R +1,0 % v Kč (akumulační třída EBUA +6,1 %; zdroj u Dist nepočítá výplaty) místo „—“. Návrh: poslat do main v pátek
+  27. 11. večer místo sobotní přestavby 28. 11. (jedno nasazení, žádné navíc), nebo hned – rozhodnutí majitele (4 nasazení za 7 dní,
+  čtení ISR 99,5 %). (2) Sobotní přestavby 28. 11. a 5. 12. – nechat, nebo vynechat (viz řádek 22. 11. v tabulce).
+  Otevřené beze změny: 18 položek NEOVERENE_VYNOSY k ověření burzou, kopie `laughing-borg-11b67e` a `vibrant-carson-dccb3a`.

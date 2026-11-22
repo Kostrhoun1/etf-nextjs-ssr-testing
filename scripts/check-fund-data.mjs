@@ -2891,18 +2891,20 @@ const main = async () => {
       if (/denních (log-)?výnosů/.test(t)) chyby.push('/sp500-nebo-cely-svet: kolísavost z denních výnosů (web jinde z měsíčních)');
       const volClanek = Number((t.match(/kolísal S&P 500 v korunách o (\d+,\d) %/)?.[1] ?? '').replace(',', '.'));
       try {
-        const dnes = new Date().toISOString().slice(0, 10);
-        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ portfolio: [{ isin: 'sp500', name: 'sp500', weight: 1, ter: 0, indexCode: 'sp500' }], startDate: '2008-07-01', endDate: dnes, initialAmount: 100000, rebalancingStrategy: 'yearly', currency: 'CZK' }) }).then((r) => r.json());
+        // Backtest končí dnem článku („Klíčová čísla k …“), ne dneškem: článek je z ISR cache (1 den) a backtest má data
+        // o den novější – 21. 11. 2026 poplach 14,2 vs. 13,95 %, obě čísla správně (S&P 500 20. 11. −3,6 %, ověřeno Yahoo + ČNB).
+        const denCl = (t.match(/Klíčová čísla k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/) ?? []).slice(1);
+        const konecDotazu = denCl.length === 3 ? `${denCl[2]}-${denCl[1].padStart(2, '0')}-${denCl[0].padStart(2, '0')}` : new Date().toISOString().slice(0, 10);
+        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ portfolio: [{ isin: 'sp500', name: 'sp500', weight: 1, ter: 0, indexCode: 'sp500' }], startDate: '2008-07-01', endDate: konecDotazu, initialAmount: 100000, rebalancingStrategy: 'yearly', currency: 'CZK' }) }).then((r) => r.json());
         const volBt = 100 * Number(bt?.summary?.standardDeviation);
         if (!Number.isFinite(volClanek) || !Number.isFinite(volBt) || Math.abs(volClanek - volBt) > 0.15) chyby.push(`/sp500-nebo-cely-svet: kolísavost S&P 500 ${volClanek} % ≠ backtest ${volBt.toFixed(2)} %`);
         const cagrBt = 100 * Number(bt?.summary?.cagr);
-        // Backtest počítá s daty k dnešku, článek je z ISR cache (1 den) s „Klíčová čísla k …“ (7. 11. 2026: 14,4 vs. 14,19 %
-        // s daty o den starší). Konec dat backtestu = začátek + obdobiLet; liší-li se od dne článku o víc než 1 den → varování.
+        // Pojistka, kdyby backtest přesto skončil jiným dnem než článek (článek bez dne, víkend, chybějící bod):
+        // konec dat backtestu = začátek + obdobiLet; liší-li se od dne článku o víc než půl dne → varování, nesrovnávám.
         const konecBt = new Date(Date.parse('2008-07-01') + Number(bt?.summary?.obdobiLet) * 365.25 * 864e5);
-        const denCl = (t.match(/Klíčová čísla k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/) ?? []).slice(1);
         const odchylkaDni = denCl.length === 3 ? Math.abs(Date.UTC(+denCl[2], +denCl[1] - 1, +denCl[0]) - konecBt.getTime()) / 864e5 : NaN;
         if (kcKlic && Math.abs(Number(kcKlic.replace(',', '.')) - cagrBt) > 0.06) {
-          if (odchylkaDni > 1.5) varovani.push({ co: `/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % vs backtest ${cagrBt.toFixed(2)} % – článek k ${denCl.join('. ')}, backtest k ${konecBt.toISOString().slice(0, 10)}, nesrovnávám`, ukazka: [] });
+          if (!(odchylkaDni <= 0.5)) varovani.push({ co: `/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % vs backtest ${cagrBt.toFixed(2)} % – článek k ${denCl.join('. ')}, backtest k ${konecBt.toISOString().slice(0, 10)}, nesrovnávám`, ukazka: [] });
           else chyby.push(`/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % ≠ backtest ${cagrBt.toFixed(2)} %`);
         }
       } catch (e) { varovani.push({ co: `kolo7: backtest pro kontrolu kolísavosti nešel zavolat: ${e.message}`, ukazka: [] }); }
