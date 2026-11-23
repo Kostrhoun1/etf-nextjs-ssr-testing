@@ -3565,6 +3565,7 @@ const main = async () => {
   await kontrolaPorovnaniCdn(poplach, varovani); // blok „porovnání z CDN“ (12. 11. 2026) – definice na konci souboru
   await kontrolaEgressSupabase(poplach); // blok „egress Supabase“ (19. 11. 2026) – definice na konci souboru
   await kontrolaVahyStranek(varovani); // blok „váha stránek“ (21. 11. 2026) – definice na konci souboru
+  await kontrolaSkokyIndexu(poplach, varovani); // blok „skoky indexů“ (split MTUM/QUAL, 11. 11. 2026) – definice na konci souboru
 
   // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
   //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
@@ -4671,3 +4672,54 @@ async function kontrolaVahyStranek(varovani) {
     varovani.push({ co: `Kontrola váhy stránek neproběhla: ${e.message}`, ukazka: [] });
   }
 }
+
+// --- skoky indexů --- (11. 11. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+// MTUM a QUAL měly 5. 11. 2026 split 4:1. Nedělní plný resync (sync-indexes.mjs) přepsal ETF část řady novou škálou,
+// dopočtená akademická část (Ken French) zůstala na staré → v DB umělý pád −75 % a /faktorove-etf/momentum ukazovalo
+// +2,1 % ročně a nejhorší rok 2013 −66 %. Integrity check po syncu to nehlídal a jeho selhání e-mail neposílá.
+//  A) SPLICE: výnos v kotevní den prodloužené řady = výnos akademické řady (scripts/backtest/data/splice-kotvy.json
+//     + factor_extensions.csv); odchylka > 0,2 p. b. = zlom škály → POPLACH.
+//  B) SKOK: denní pohyb > 25 % v posledních 70 dnech u kteréhokoli indexu (zlom po splitu z přírůstkového syncu leží
+//     ~30 dní zpátky; skutečný největší denní pohyb v celé historii je ~−17 %) → POPLACH. Celou historii hlídá
+//     check_index_integrity.py (SKOK) po každém syncu.
+async function kontrolaSkokyIndexu(poplach, varovani) {
+  const chyby = [];
+  try {
+    const hl = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const URL_IDX = URL_DB.replace('etf_funds', 'index_historical_data');
+    const kotvy = JSON.parse(readFileSync(new URL('./backtest/data/splice-kotvy.json', import.meta.url), 'utf8'));
+    const posledni = {};
+    for (const r of readFileSync(new URL('./backtest/data/factor_extensions.csv', import.meta.url), 'utf8').trim().split('\n').slice(1)) {
+      const [c, d, p] = r.split(','); posledni[c] = { d, p: Number(p) };
+    }
+    for (const [kod, k] of Object.entries(kotvy)) {
+      if (kod.startsWith('_')) continue;
+      const pa = posledni[kod];
+      if (!pa) { chyby.push(`${kod}: v factor_extensions.csv chybí akademická řada`); continue; }
+      const b = await fetch(`${URL_IDX}?select=date,close_price&index_code=eq.${kod}&date=in.(${pa.d},${k.den})`, hl).then((r) => r.json());
+      const cena = Object.fromEntries((Array.isArray(b) ? b : []).map((x) => [x.date, Number(x.close_price)]));
+      if (!cena[pa.d] || !cena[k.den]) { chyby.push(`${kod}: v DB chybí ${pa.d} nebo ${k.den}`); continue; }
+      const skutecne = cena[k.den] / cena[pa.d] - 1, ocekavano = k.cena / pa.p - 1;
+      if (Math.abs(skutecne - ocekavano) > 0.002) chyby.push(`${kod} ${k.den}: výnos ${(skutecne * 100).toFixed(2)} %, akademický ${(ocekavano * 100).toFixed(2)} % – zlom škály (split/dividenda ETF), sync-indexes zásada 10`);
+    }
+    const od = new Date(Date.now() - 70 * 864e5).toISOString().slice(0, 10);
+    const rady = {};
+    for (let off = 0; ; off += 1000) {
+      const b = await fetch(`${URL_IDX}?select=index_code,date,close_price&date=gte.${od}&order=index_code,date&limit=1000&offset=${off}`, hl).then((r) => r.json());
+      if (!Array.isArray(b)) throw new Error('index_historical_data: neočekávaná odpověď');
+      for (const x of b) (rady[x.index_code] ??= []).push([x.date, Number(x.close_price)]);
+      if (b.length < 1000) break;
+    }
+    if (Object.keys(rady).length < 30) chyby.push(`za posledních 70 dní má data jen ${Object.keys(rady).length} indexů (čekáno ~37)`);
+    for (const [kod, r] of Object.entries(rady)) {
+      for (let i = 1; i < r.length; i++) {
+        const z = r[i][1] / r[i - 1][1] - 1;
+        if (Math.abs(z) > 0.25) chyby.push(`${kod} ${r[i][0]}: denní pohyb ${(z * 100).toFixed(1)} % – zlom škály (split?), ne trh`);
+      }
+    }
+    if (chyby.length) poplach.push({ co: `Historie indexů (backtest, faktory, graf indexu): ${chyby.length}× zlom škály`, ukazka: chyby.slice(0, 8) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu skoků v historii indexů se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+  }
+}
+// --- konec skoky indexů ---
