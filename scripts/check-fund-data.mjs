@@ -1598,7 +1598,15 @@ const main = async () => {
         if (vel && V && stejnyDen) {
           overeno++;
           const mil = cislo(vel[1]) * (vel[2] === 'mld' ? 1000 : 1);
-          if (Math.abs(mil - Number(V.fund_size_numeric)) > (vel[2] === 'mld' ? 51 : 1)) chyby.push(`${k.slug}: popisek velikost ${vel[1]} ${vel[2]}. €, DB ${V.fund_size_numeric} mil. € (${k.velky})`);
+          // Velikost se v DB přepíše při KAŽDÉM stažení, i když den výnosů fondu zůstane stejný (opožděná řada) nebo se stránka
+          // vykreslí během stahování → stránka z ISR cache nese včerejší velikost (24. 11. 2026: 10,5 mld. × DB 10 352 mil.).
+          // Rozdíl do 5 % = varování, větší (jiný fond, chyba) = poplach.
+          const rozdilVel = Math.abs(mil - Number(V.fund_size_numeric));
+          if (rozdilVel > (vel[2] === 'mld' ? 51 : 1)) {
+            const h = `${k.slug}: popisek velikost ${vel[1]} ${vel[2]}. €, DB ${V.fund_size_numeric} mil. € (${k.velky})`;
+            if (rozdilVel / Number(V.fund_size_numeric) <= 0.05) varuj.push(`${h} – cache před posledním stažením (do 5 %)`);
+            else chyby.push(h);
+          }
         }
         const r1 = k.popisek.match(/za 12 měsíců v Kč ([+−-][\d,]+) %/)?.[1];
         // Výnos se mění každý den: stránka z ISR cache (žebříčky 1 den) nese „Data k D“ a výnos k D. Porovnávat jen
@@ -3292,14 +3300,20 @@ const main = async () => {
       }
       const kcSp = text(H('/nejlepsi-etf/nejlepsi-sp500-etf').match(/<section data-sekce="klicova-cisla"[\s\S]*?<\/section>/)?.[0] ?? '');
       const velWeb = kcSp.match(/Největší fond (\d+,\d) mld\. €/)?.[1];
-      const cspx = await fetch(`${URL_DB}?select=fund_size_numeric&isin=eq.IE00B5BMR087`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+      const cspx = await fetch(`${URL_DB}?select=fund_size_numeric,returns_as_of&isin=eq.IE00B5BMR087`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
       const velDb = cspx?.[0]?.fund_size_numeric != null ? (cspx[0].fund_size_numeric / 1000).toFixed(1).replace('.', ',') : null;
       // Stránka je v ISR cache až 24 h, DB se přepíše každé ráno (scraper 05:00 UTC) → velikost ze včerejška je správně
       // (13. 11. 2026: web 136,9 × DB 139,9). Rozdíl do 5 % = varování; větší nebo chybějící číslo = jiný fond / chyba → poplach.
       const cislo = (x) => Number(String(x).replace(',', '.'));
       if (kcSp && (!velWeb || velWeb !== velDb)) {
         const hlaska = `/nejlepsi-etf/nejlepsi-sp500-etf: Klíčová čísla – největší fond ${velWeb} mld. € ≠ DB ${velDb} mld. €`;
-        if (velWeb && velDb && Math.abs(cislo(velWeb) / cislo(velDb) - 1) <= 0.05) varovani.push({ co: 'Žebříček S&P 500: velikost největšího fondu z cache před dnešním stažením (rozdíl do 5 %)', ukazka: [hlaska] });
+        // 24. 11. 2026: web 136,7 (k 19. 11.) × DB 129,0 (k 20. 11.) = −5,6 % – trh 20. 11. spadl o 3,6 % (Yahoo SPY), práh 5 %
+        // nestačil. Když stránka sama uvádí STARŠÍ den než DB („Klíčová čísla k D“ ≠ den výnosů fondu), je číslo poctivě
+        // označené → varování do 15 %; při stejném dni dál 5 %.
+        const denWeb = kcSp.match(/Klíčová čísla k (\d{1,2}\. \d{1,2}\. \d{4})/)?.[1];
+        const denDbSp = cspx?.[0]?.returns_as_of ? (([y, m, d]) => `${+d}. ${+m}. ${y}`)(cspx[0].returns_as_of.split('-')) : null;
+        const prah = denWeb && denDbSp && denWeb !== denDbSp ? 0.15 : 0.05;
+        if (velWeb && velDb && Math.abs(cislo(velWeb) / cislo(velDb) - 1) <= prah) varovani.push({ co: `Žebříček S&P 500: velikost největšího fondu z cache před posledním stažením (stránka k ${denWeb ?? '?'}, DB k ${denDbSp ?? '?'}, rozdíl do ${prah * 100} %)`, ukazka: [hlaska] });
         else chyby.push(hlaska);
       }
 
@@ -4534,10 +4548,14 @@ async function kontrolaPorovnaniCdn(poplach, varovani) {
     if (!r1.ok) chyby.push(`HTTP ${r1.status} ${url}`);
     if (!/Data k/.test(html)) chyby.push('stránka porovnání bez „Data k“ (pravidlo č. 1 – verze z cache musí nést den dat)');
     if (R.produkce) {
-      const r2 = await fetch(url);
-      await r2.text();
-      const c1 = r1.headers.get('x-vercel-cache'), c2 = r2.headers.get('x-vercel-cache');
-      if (!/HIT|STALE/i.test(c2 || '')) chyby.push(`druhé načtení nepřišlo z CDN (x-vercel-cache: ${c1} → ${c2})`);
+      // Druhý požadavek může dorazit dřív, než CDN první odpověď uloží, nebo do jiného uzlu (24. 11. 2026 MISS → MISS,
+      // ruční ověření MISS → HIT) → až 3 další pokusy po 2 s.
+      const c1 = r1.headers.get('x-vercel-cache'); const dalsi = [];
+      for (let i = 0; i < 3 && !/HIT|STALE/i.test(dalsi.at(-1) || ''); i++) {
+        if (i) await new Promise((ok) => setTimeout(ok, 2000));
+        const r2 = await fetch(url); await r2.text(); dalsi.push(r2.headers.get('x-vercel-cache'));
+      }
+      if (!/HIT|STALE/i.test(dalsi.at(-1) || '')) chyby.push(`ani čtvrté načtení nepřišlo z CDN (x-vercel-cache: ${c1} → ${dalsi.join(' → ')})`);
     } else if (!r1.headers.get('vercel-cdn-cache-control')) {
       chyby.push('lokální odpověď nemá hlavičku Vercel-CDN-Cache-Control (next.config.ts headers)');
     }
