@@ -183,6 +183,17 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   3. počet ostrých nasazení za posledních 7 dní (Vercel → Deployments, Production, Ready): víc než 1 = nahlásit a zapsat proč;
   4. Supabase: Log Ingestion za den ≤ 25 MB (dřív ~40), egress ≤ 150 MB/den; sobotní přestavba ≤ ~9 000 dotazů;
   5. CH0109967858 a CH0116015352 (UBS CMCI Oil SF): u poklesu za 3 roky má být „—“ + věta o třídách (oprava limitu kandidátů).
+- **26. 11. 2026: Supabase po balíku (dashboard Org → Usage, období 2. 11.–2. 12.; denní hodnoty = výška sloupce × součet
+  období / součet výšek).** Egress 6,525 / 5 GB (130 %, toto období zůstane přes limit; nové od 2. 12.). Egress za den
+  21. / 22. / 23. / 24. / 25. 11.: ~141 (lokální + ostrý build) / 79 / 54 / 58 / 66 MB → cíl ≤ 150 MB/den ✓; při ~65 MB/den
+  a sobotních přestavbách vyjde 2.–19. 12. ~1,5 GB z 5 GB. **Log Ingestion 2,746 / 1 GB (275 %)**: za den 20. / 21. / 22. /
+  23. / 24. / 25. 11.: ~40 / 52 / 27 / 31 / 31 / 32 MB → po údržbě 21. 11. pokles jen o ~25 %, **cíl ≤ 25 MB/den NESPLNĚN**
+  (~0,9–1,0 GB/měsíc = na hraně limitu 1 GB; počítá se až od začátku 2027). V logu za noc 25.→26. 11. (6 h): edge_logs
+  513 řádků, postgres_logs 369 (z toho 359× varování kolace `template1`, ~1/min – jen Supabase má práva), postgrest_logs
+  žádné. Další krok: zjistit, co dashboard počítá navíc proti délce záznamů (denní provoz se scraperem ~2 000 zápisů), a
+  zda jde varování `template1` odstranit přes podporu Supabase. Log Query 53,4 / 100 GB.
+  Pondělní jednorázová zpráva majiteli (23. 11.) NEPROBĚHLA – naplánovaný běh skončil na týdenním limitu účtu Claude
+  (obnovil se 25. 11.); 23.–24. 11. proto chybí i řádky denní kontroly Vercelu. Majitel informován 26. 11.
 
 - 25. 11. 2026 13–20 UTC (denní kontrola, středa; **23. a 24. 11. úloha neproběhla** – v souboru po 22. 11. nic není, proto
   projity běhy od 22. 11. večer): web běží (200, build 21. 11. 09:11 = balík free tier), scraper dnes 5 200 fondů (4 252 s výnosy
