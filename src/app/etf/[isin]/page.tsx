@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import HeaderSearch from '@/components/design-preview/HeaderSearch';
@@ -34,7 +35,7 @@ import { nactiTrhy, odlehleIsiny, tridyVynosNesedi } from '@/lib/trhy';
 import { vynosTridText } from '@/lib/tridyFondu';
 import { duvodNeovereni, rizikoSkokem, rokNeovereny, ROK_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
 import { TRHY } from '@/data/trhyDvojcata';
-import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
+import { platnyTicker, zobrazovanyTicker } from '@/lib/ticker';
 import { odkazDvojiceDetailu, type FondProOdkaz } from '@/lib/odkazyDvojic';
 import { isinyDetailuKPredgenerovani } from '@/lib/prerender';
 import DalsiSrovnani from '@/components/design-preview/DalsiSrovnani';
@@ -108,15 +109,19 @@ function overAdresu(isin: string) {
   if (!isinPlatny(isin)) notFound();
 }
 
+/** Řádek fondu JEDNOU na render (React cache): generateMetadata i stránka čtou tentýž řádek. Dřív dva dotazy na každý
+ *  detail (metadata si vybírala ~40 sloupců, stránka `*`) = při buildu ~5 300 dotazů na Supabase navíc (21. 11. 2026). */
+const nactiFond = cache(async (isin: string): Promise<Record<string, unknown> | null> => {
+  const { data } = await supabaseAdmin.from('etf_funds').select('*').eq('isin', isin).single();
+  return (data as Record<string, unknown> | null) ?? null;
+});
+
 export async function generateMetadata(
   { params }: { params: Promise<{ isin: string }> },
 ): Promise<Metadata> {
   const { isin } = await params;
   overAdresu(isin);
-  const { data } = await supabaseAdmin
-    .from('etf_funds')
-    .select('name, fund_size_numeric, ter_numeric, return_1y_czk, scraping_date, returns_as_of, distribution_policy, distribution_frequency, ' + SLOUPCE_TICKERU.join(', ') + ', ' + Array.from({ length: 10 }, (_, i) => `exchange_${i + 1}_currency`).join(', '))
-    .eq('isin', isin).single();
+  const data = await nactiFond(isin);
   const fund = data as Record<string, unknown> | null;
   const name = (fund?.name as string) || 'ETF fond';
   // Zobrazovaný ticker (jeden pro celý web, src/lib/ticker.ts) první – stejný jako hero, srovnávač a žebříčky.
@@ -320,13 +325,13 @@ function WeightRow({ label, weight, max }: { label: string; weight: number; max:
   const w = Math.min(100, (weight / max) * 100);
   const ostatni = /^(Ostatní|Other)$/i.test(label.trim());
   return (
-    <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(2.5rem,1fr)_3.75rem] items-center gap-3 py-2">
+    <div className="d-rad3">
       {/* line-clamp-2 (kolo 6b): „Samsung Electronics (2 druhy akcií)“ se na mobilu useklo před závorkou */}
       <span className={`line-clamp-2 text-sm leading-snug ${ostatni ? 'text-slate-500' : 'text-slate-700'}`} title={label}>{label}</span>
-      <span className="h-2 rounded-full bg-slate-100 overflow-hidden">
+      <span className="d-pruh">
         <span className={`block h-full rounded-full ${ostatni ? 'bg-slate-300' : 'bg-teal-600'}`} style={{ width: `${w}%` }} />
       </span>
-      <span className="text-right text-sm tabular-nums font-medium text-slate-700">
+      <span className="d-cislo">
         {procenta(weight, 1, false)}
       </span>
     </div>
@@ -359,11 +364,11 @@ export default async function ETFDetailPreview(
 ) {
   const { isin } = await params;
   overAdresu(isin);
-  const { data } = await supabaseAdmin.from('etf_funds').select('*').eq('isin', isin).single();
+  const data = await nactiFond(isin);
   // Fond bez názvu = rozbitý řádek ze scraperu (12 k 17. 10. 2026, bez TER, měny i data vzniku).
   if (!data || !String((data as { name?: string }).name ?? '').trim()) notFound();
 
-  const etf = data as ETF;
+  const etf = data as unknown as ETF;
   // CZK přepočty (NEJSOU v typu ETF, ale jsou v DB)
   const r = data as Record<string, unknown>;
   const czk = {
@@ -954,10 +959,10 @@ export default async function ETFDetailPreview(
                     se lepil na „Velikost fondu“ ~4 px). */}
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-1 md:gap-y-0 md:divide-y md:divide-white/10">
                   {faktaHero.map(([k, v], i) => (
-                    <div key={i} className="min-w-0 md:flex md:items-baseline md:justify-between md:gap-3 md:py-[7px] md:first:pt-0">
+                    <div key={i} className="d-hero-r">
                       <dt className="text-[11px] md:text-xs text-slate-400">{k}</dt>
                       {/* Kolo 6: žádné truncate – useknutá čísla („Vyplácí 3,4…“) jsou horší než zalomení. */}
-                      <dd className="text-sm font-semibold text-white tabular-nums break-words leading-snug md:text-right">{v}</dd>
+                      <dd className="d-hero-h">{v}</dd>
                     </div>
                   ))}
                 </dl>
@@ -1229,9 +1234,9 @@ export default async function ETFDetailPreview(
               {[faktaTabulka.slice(0, Math.ceil(faktaTabulka.length / 2)), faktaTabulka.slice(Math.ceil(faktaTabulka.length / 2))].map((sloupec, si) => (
                 <div key={si} className="divide-y divide-slate-100 border-t border-slate-100 first:border-t-0 md:border-t-0">
                   {sloupec.map(([k, v], i) => (
-                    <div key={i} className="flex items-baseline justify-between gap-4 px-4 py-2.5 text-sm">
+                    <div key={i} className="d-fakt">
                       <dt className="text-slate-500 shrink-0">{k}</dt>
-                      <dd className="min-w-0 text-right font-medium text-slate-900 tabular-nums">{v}</dd>
+                      <dd className="d-fakt-h">{v}</dd>
                     </div>
                   ))}
                 </div>
@@ -1272,7 +1277,7 @@ export default async function ETFDetailPreview(
                   </summary>
                   <ul className="divide-y divide-slate-100 border-t border-slate-100">
                     {dalsiBurzy.map((e, i) => (
-                      <li key={i} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
+                      <li key={i} className="d-burza">
                         <span className="text-slate-600">{e.name}</span>
                         <span className="tabular-nums"><strong className="font-semibold text-slate-900">{e.ticker}</strong> <span className="text-slate-500">· {e.currency || '—'}</span></span>
                       </li>
@@ -1305,7 +1310,7 @@ export default async function ETFDetailPreview(
                           <EmitentLogo nazev={f.name} size={28} monogram={f.fund_provider} />
                           <span className="flex-1 min-w-0">
                             {/* line-clamp-2 místo truncate: konec názvu nese Acc/Dist a „(2 druhy akcií)“ (kolo 6b) */}
-                            <span className="block line-clamp-2 text-sm font-medium leading-snug text-slate-900">{f.name}</span>
+                            <span className="d-podobny">{f.name}</span>
                             <span className="block text-xs text-slate-500 tabular-nums">{platnyTicker(f.primary_ticker) ?? f.isin} · TER {ter(f.ter_numeric)} · {money(f.fund_size_numeric)}</span>
                           </span>
                           <span className="shrink-0 text-right">

@@ -19,6 +19,7 @@ import { procenta, terText, velikostText } from '@/lib/formatSrovnavac';
 import { RIZIKO_NESEDI_TEXT } from '@/lib/tridyFondu';
 import { VYNOS_NEOVERENY_TEXT } from '@/lib/vynosNeovereny';
 import { DIV_VYNOS_ACC, DIV_VYNOS_ACC_TIP } from '@/lib/dividendyFondu';
+import { rozbalRadky } from '@/lib/screenerFormat';
 
 type SortKey = 'name' | 'ter' | 'size' | 'ytd' | 'r1' | 'r3' | 'r5' | 'div' | 'vol';
 type SortDir = 'asc' | 'desc';
@@ -453,8 +454,10 @@ export default function ScreenerUI({
     let cancelled = false;
     fetch('/api/etf/screener')
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((data: ScreenerRow[]) => {
-        if (cancelled || !Array.isArray(data) || data.length === 0) return;
+      .then((odpoved: unknown) => {
+        // API posílá řádky sloupcově (src/lib/screenerFormat.ts); rozbalRadky umí i původní pole objektů.
+        const data = rozbalRadky<ScreenerRow>(odpoved);
+        if (cancelled || !data || data.length === 0) return;
         setRows(data);
         setFull(true);
       })

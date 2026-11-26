@@ -111,6 +111,13 @@ ani noindex/firewall pro Bing/Seznam majitel nechce.
 - **Při buildu se velké sady načítají jednou za proces** (`jednouZaBuild`, `src/lib/buildMemo.ts`: třídy fondů, fondy trhů,
   kandidáti podobných fondů) – bez toho by build stáhl ~12 GB ze Supabase (naměřeno ~113 MB). Mimo build (runtime) se
   nepoužívá: paměť v teplé lambdě by držela stará data přes ISR přegenerování.
+- **Build má pevně 2 workery × 4 stránky** (`next.config.ts` `experimental.cpus` / `staticGenerationMaxConcurrency`,
+  19. 11. 2026). Na 8jádrovém stroji Pro jinak ~56 souběžných renderů → databáze Supabase free tieru nestíhala a build 2× spadl.
+  S omezením build trvá ~10 min (limit 45). Nezvyšovat kvůli „rychlejšímu buildu“.
+- **Za běhu jsou třídy fondů a fondy trhů v paměti instance nejvýš 1 h** (`vPametiNaCas`, `TRIDY_TTL_MS`, 19. 11. 2026).
+  Supabase free tier (5 GB odchozích dat / měsíc) byl překročen: obě sady (~1,5 MB) se stahovaly při každém přegenerování
+  dvojice, žebříčku, detailu a porovnání (~5 300 dotazů / 24 h). Hodinová kopie nevadí – scraper mění data jednou denně
+  a „Data k“ berou stránky z vlastních dotazů. Neprodlužovat nad 6 h a neodstraňovat (hlídá check-fund-data „egress Supabase“).
 - **Při buildu jdou dotazy na Supabase mimo datovou cache Nextu** (`fetchProSupabase`, `_nextOriginalFetch` jako engine.ts).
   Jinak by build zapsal desítky tisíc položek do datové cache (na Vercelu přežívá nasazení) s nejasným dopadem na limit zápisů.
   ISR interval dává stránkám `revalidate` segmentu, ne fetch – stránky zůstávají ISR (detail 30 dní, dvojice 7 dní).
@@ -1194,6 +1201,46 @@ Hlídá `scripts/check-fund-data.mjs` (blok „kolo8 obsah“). Zdroje ověřeny
   ChatGPT-User, PerplexityBot, ClaudeBot, GPTBot, meta-externalagent = Meta AI). Majitel 8. 11. 2026: „chceme, aby AI
   naše stránky znalo“. Hlídá check-fund-data (blok robots – poplach).
 - Blokace je trvalá, ne dočasná. Odblokovat jen na výslovný pokyn majitele.
+
+## Roboti Meta AI a Amazonu smějí jen na detaily velkých fondů – „prostřední varianta“ (21. 11. 2026)
+
+- **Co:** `meta-externalagent`, `meta-webindexer` a `Amazonbot` mají v `robots.txt` společnou skupinu: smějí na celý web
+  včetně detailů ~330–350 největších fondů (hlava katalogu, `HEAD_MIN_SIZE` v `src/lib/etf-head.ts`, řádky
+  `Allow: /etf/<ISIN>`), NESMĚJÍ na ostatní detaily fondů (`Disallow: /etf/`) a na srovnání (`Disallow: /srovnani/`).
+- **Proč:** rozhodnutí majitele 21. 11. 2026 („už žádné placené služby“, „udělej prostřední variantu“). Tihle dva roboti
+  dělali odhadem 45 % čtení ISR cache klidného dne (meta-webindexer ~490 požadavků/den, 1,6 % z cache CDN; Amazonbot
+  ~790/den, 53 % z cache) a z Meta AI ani Amazonu nepřišla za 90 dní žádná návštěva. Majitel se ale bojí, že úplným
+  zákazem detailů přijde o budoucí návštěvy z AI → výjimka pro velké fondy. Bez omezení ~83 % limitu Hobby, s ním ~50 %.
+- **Není to chyba:** ve skupině záměrně CHYBÍ `Allow: /` – je zbytečné a parser „první shoda“ by kvůli němu ignoroval
+  všechny zákazy pod ním. Stovky řádků `Allow` jsou záměr, ne nafouknutý soubor (~10 kB). Seznam je z DB, obnovuje se denně.
+- **Nerozšiřovat** na vyhledávače ani AI vyhledávání (Google, Bing, Seznam, Apple, DuckDuckGo, OAI-SearchBot, ChatGPT-User,
+  GPTBot, ClaudeBot, PerplexityBot) – ty vidí vše. Další robot do skupiny jen po rozhodnutí majitele.
+- **Hlídá:** `scripts/check-fund-data.mjs` (blok robots: tři roboti ve skupině, 200–800 výjimek, největší fondy mezi nimi,
+  Allow před Disallow; poplach, kdyby detaily zakazovala jiná skupina).
+
+## Balík „návrat na free tier“ – co vypadá divně a je záměr (21. 11. 2026)
+
+Majitel 21. 11. 2026: žádné placené služby (Vercel ani Supabase), bez ztráty kvality a funkčnosti. Měření a důvody:
+`scripts/denni-kontrola.md` („Návrat na free tier“). Nevracet zpět „pro čitelnost“:
+
+- **`/api/etf/screener` nevrací pole objektů, ale `{ v: 2, k, n, r }`** (`src/lib/screenerFormat.ts`). Stejná data, klíče
+  jen jednou: 3,75 → 1,52 MB = 458 → 186 jednotek čtení ISR cache na jedno čtení. Prohlížeč (`ScreenerUI`) i kontroly
+  (`rozbalSrovnavac` v check-fund-data) umí obojí. Test `scripts/screenerFormat.test.mjs`.
+- **Pojmenované třídy v `globals.css` (`.tip-btn`, `.d-rad3`, `.d-fakt`, `.pata-odkaz`, …) místo řetězců Tailwindu
+  a ikona vysvětlivky jako `<use href="#ik-info">`** (značka jednou v `layout.tsx`). Detail fondu 208,8 → 178,6 kB
+  (26 → 22 jednotek), každý řetězec tříd je v HTML dvakrát (i v datech pro hydrataci). Vzhled je stejný (ověřeno otiskem
+  vypočtených stylů všech prvků před/po, desktop i mobil). Nový opakovaný prvek na detailu = raději pojmenovaná třída.
+- **Homepage má platnost 6 h, ne 1 h** (`src/app/page.tsx`): hodinová = ~177 čtení ISR cache denně.
+- **`getTotalETFCount` drží číslo 1 h v paměti instance a při buildu ho čte jednou** (dřív dotaz 2× na každou stránku =
+  třetina všech dotazů buildu). Při buildu chyba nebo < 1 000 fondů = výjimka, build spadne.
+- **Detail fondu čte řádek fondu jednou** (`nactiFond` s React cache) pro metadata i stránku; **třídy téhož fondu se při
+  buildu berou z jednoho hromadného dotazu** (`tridyTehozFondu`). Build: ~29 000 → ~8 300 dotazů na Supabase.
+  Limit kandidátů 1 000 (dřív 60 bez řazení – u 20 fondů „UBS ETF (CH) …“ se 435 kandidáty vybíral náhodně).
+- **`scripts/vercel-ignore.sh` se ptá živého webu na čas buildu** (curl na homepage): stáří produkce nesmí záviset na
+  hloubce klonu Vercelu, jinak by po týdnu bez nasazení každý push poznámek nasadil web (a smazal cache CDN).
+- **Nasazení maže cache CDN** – po každém nasazení roboti znovu načtou tisíce stránek z ISR cache. 8.–21. 11. bylo
+  10 ostrých nasazení za 13 dní a čtení skončila na 96 % limitu. Mimo týdenní přestavbu nasazovat jen opravu, která
+  nepočká (chyba v datech – pravidlo č. 1 má přednost), a napsat to do zprávy commitu.
 
 ## Supabase: vypnutá úloha yfinance-etf-update a ponechaná upozornění poradce (8. 11. 2026)
 

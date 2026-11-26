@@ -30,6 +30,19 @@ import { vytvorRezim } from './lib/cil.mjs';
 
 const KEY = process.env.SUPABASE_KEY;
 const WEB_URL = process.env.WEB_URL || 'https://etfpruvodce.cz'; // pro test proti lokálnímu buildu
+
+// 21. 11. 2026: /api/etf/screener posílá řádky sloupcově { v: 2, k: [klíče], n: povinných, r: [[hodnoty]] } (úspora čtení
+// ISR cache Vercelu, src/lib/screenerFormat.ts). Tady NEZÁVISLÉ rozbalení (ne import z webu); umí i původní pole objektů
+// (před nasazením). Nepovinný klíč (index ≥ n) s null = v řádku chybí. Cokoli jiného projde beze změny (kontroly pak
+// samy ohlásí, že se API nenačetlo).
+const rozbalSrovnavac = (j) => {
+  if (!j || Array.isArray(j) || j.v !== 2 || !Array.isArray(j.k) || !Array.isArray(j.r)) return j;
+  return j.r.map((radek) => {
+    const o = {};
+    j.k.forEach((klic, i) => { const h = i < radek.length ? radek[i] : null; if (!(i >= j.n && h === null)) o[klic] = h; });
+    return o;
+  });
+};
 /** Režim cíle: na produkci jen pevná sada dynamických stránek; fetch na dynamickou stránku mimo ni se neodešle. */
 const R = vytvorRezim(WEB_URL, 'check-fund-data');
 R.hlidejFetch();
@@ -518,7 +531,7 @@ const main = async () => {
   // fondů „Celosvětově“). Region se teď bere jen z investment_focus (src/utils/regionClassification.ts).
   // Nezávislá kontrola z NÁZVU fondu: fond s jednou zemí v názvu musí mít tu zemi; komodita/krypto žádný region.
   try {
-    const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json());
+    const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json()).then(rozbalSrovnavac);
     if (!Array.isArray(rows) || rows.length < 1000) throw new Error('API srovnávače nevrátilo data');
     if (!rows.some((r) => r._region === 'Jižní Korea')) {
       varovani.push({ co: 'Srovnávač na produkci ještě nemá novou klasifikaci regionu (před nasazením) – kontrola regionu vynechána', ukazka: [] });
@@ -1075,7 +1088,7 @@ const main = async () => {
     // 6) JEDEN TICKER: detail zlata ukazoval PPFB (XETRA), zbytek webu SGLN. Top 50 fondů podle velikosti:
     //    ticker v hlavičce detailu (data-ticker) = ticker ve srovnávači (/api/etf/screener).
     try {
-      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json());
+      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => r.json()).then(rozbalSrovnavac);
       if (!Array.isArray(rows)) throw new Error('API srovnávače nevrátilo data');
       // Lokálně top 50 podle velikosti (mění se s daty → na produkci by každý den sahalo na nové detaily = ISR zápisy);
       // na produkci pevná sada PROD_DETAILY (scripts/lib/cil.mjs).
@@ -1585,7 +1598,15 @@ const main = async () => {
         if (vel && V && stejnyDen) {
           overeno++;
           const mil = cislo(vel[1]) * (vel[2] === 'mld' ? 1000 : 1);
-          if (Math.abs(mil - Number(V.fund_size_numeric)) > (vel[2] === 'mld' ? 51 : 1)) chyby.push(`${k.slug}: popisek velikost ${vel[1]} ${vel[2]}. €, DB ${V.fund_size_numeric} mil. € (${k.velky})`);
+          // Velikost se v DB přepíše při KAŽDÉM stažení, i když den výnosů fondu zůstane stejný (opožděná řada) nebo se stránka
+          // vykreslí během stahování → stránka z ISR cache nese včerejší velikost (24. 11. 2026: 10,5 mld. × DB 10 352 mil.).
+          // Rozdíl do 5 % = varování, větší (jiný fond, chyba) = poplach.
+          const rozdilVel = Math.abs(mil - Number(V.fund_size_numeric));
+          if (rozdilVel > (vel[2] === 'mld' ? 51 : 1)) {
+            const h = `${k.slug}: popisek velikost ${vel[1]} ${vel[2]}. €, DB ${V.fund_size_numeric} mil. € (${k.velky})`;
+            if (rozdilVel / Number(V.fund_size_numeric) <= 0.05) varuj.push(`${h} – cache před posledním stažením (do 5 %)`);
+            else chyby.push(h);
+          }
         }
         const r1 = k.popisek.match(/za 12 měsíců v Kč ([+−-][\d,]+) %/)?.[1];
         // Výnos se mění každý den: stránka z ISR cache (žebříčky 1 den) nese „Data k D“ a výnos k D. Porovnávat jen
@@ -1731,7 +1752,7 @@ const main = async () => {
     // vyhledávání NESMÍ být zablokované – skupina s jejich jménem (nebo „*“) nesmí mít „Disallow: /“.
     const rtxt = await fetch(`${WEB_URL}/robots.txt`).then((r) => (r.ok ? r.text() : ''));
     const skupiny = rtxt.split(/\n\s*\n/).map((g) => ({ ua: [...g.matchAll(/^User-Agent:\s*(\S+)/gim)].map((m) => m[1].toLowerCase()), vse: /^Disallow:\s*\/\s*$/im.test(g) }));
-    const CHRANENI = ['*', 'googlebot', 'bingbot', 'seznambot', 'applebot', 'duckduckbot', 'oai-searchbot', 'chatgpt-user', 'perplexitybot', 'claudebot', 'gptbot', 'meta-externalagent'];
+    const CHRANENI = ['*', 'googlebot', 'bingbot', 'seznambot', 'applebot', 'duckduckbot', 'oai-searchbot', 'chatgpt-user', 'perplexitybot', 'claudebot', 'gptbot', 'meta-externalagent', 'meta-webindexer', 'amazonbot'];
     const zablokovani = CHRANENI.filter((b) => skupiny.some((g) => g.vse && g.ua.includes(b)));
     if (!rtxt) varovani.push({ co: 'robots.txt se nenačetl', ukazka: [] });
     else if (zablokovani.length) poplach.push({ co: 'robots.txt blokuje vyhledávače / AI vyhledávání (src/app/robots.ts)', ukazka: zablokovani });
@@ -1746,15 +1767,25 @@ const main = async () => {
       if (jinde.length) hv.push('Disallow: /srovnani/porovnani i v jiné skupině než heritrix');
       if (hv.length) varovani.push({ co: 'robots.txt: pravidlo pro archivačního robota (heritrix) nesedí', ukazka: hv });
       // 17. 11. 2026 (majitel): Meta AI (meta-externalagent) bez detailů fondů a srovnání (čtení ISR cache a přenos z originu
-      // free tieru). Jeho skupina musí mít /etf/, /srovnani/ i obecné zákazy; vyhledávače a „*“ detaily zakázané mít NESMÍ.
+      // free tieru). 21. 11. 2026 (majitel, „prostřední varianta“): stejná skupina i pro meta-webindexer a Amazonbot a všichni
+      // tři smějí na detaily ~330 největších fondů (Allow: /etf/<ISIN>), ne na dlouhý ocas a dvojice. Skupina musí mít /etf/,
+      // /srovnani/ i obecné zákazy A výjimky pro velké fondy; vyhledávače a „*“ detaily zakázané mít NESMÍ.
+      const AI_VELKE = ['meta-externalagent', 'meta-webindexer', 'amazonbot'];
       const meta = rtxt.split(/\n\s*\n/).find((g) => /^User-Agent:\s*meta-externalagent\s*$/im.test(g)) || '';
       const mv = [];
-      if (!/^Disallow:\s*\/etf\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí Disallow: /etf/');
-      if (!/^Disallow:\s*\/srovnani\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí Disallow: /srovnani/');
-      if (!/^Disallow:\s*\/api\/\s*$/im.test(meta)) mv.push('meta-externalagent: chybí obecné zákazy (Disallow: /api/)');
-      if (mv.length) varovani.push({ co: 'robots.txt: omezení Meta AI na detaily fondů nesedí (src/app/robots.ts) – hrozí překročení free tieru', ukazka: mv });
+      const uaMeta = [...meta.matchAll(/^User-Agent:\s*(\S+)/gim)].map((m) => m[1].toLowerCase());
+      for (const r of AI_VELKE) if (!uaMeta.includes(r)) mv.push(`${r}: chybí ve skupině s omezením detailů`);
+      if (!/^Disallow:\s*\/etf\/\s*$/im.test(meta)) mv.push('chybí Disallow: /etf/');
+      if (!/^Disallow:\s*\/srovnani\/\s*$/im.test(meta)) mv.push('chybí Disallow: /srovnani/');
+      if (!/^Disallow:\s*\/api\/\s*$/im.test(meta)) mv.push('chybí obecné zákazy (Disallow: /api/)');
+      const vyjimky = [...meta.matchAll(/^Allow:\s*\/etf\/([A-Z0-9]{12})\s*$/gim)].map((m) => m[1]);
+      // Počet výjimek = hlava katalogu (~330). Méně než 200 nebo víc než 800 = výjimky se rozbily (prázdná hlava / celý katalog).
+      if (vyjimky.length < 200 || vyjimky.length > 800) mv.push(`výjimek pro velké fondy je ${vyjimky.length} (čeká se 200–800)`);
+      for (const isin of ['IE00B5BMR087', 'IE00BK5BQT80']) if (!vyjimky.includes(isin)) mv.push(`mezi výjimkami chybí ${isin} (největší fondy)`);
+      if (meta && meta.search(/^Allow:\s*\/etf\//im) > meta.search(/^Disallow:\s*\/etf\/\s*$/im)) mv.push('Allow: /etf/<ISIN> musí být ve výpisu PŘED Disallow: /etf/');
+      if (mv.length) varovani.push({ co: 'robots.txt: omezení AI robotů (Meta, Amazon) na velké fondy nesedí (src/app/robots.ts) – hrozí překročení free tieru nebo ztráta výjimek', ukazka: mv });
       const detailyJinde = rtxt.split(/\n\s*\n/).filter((g) => g !== meta && !/^Disallow:\s*\/\s*$/im.test(g) && /^Disallow:\s*\/(etf|srovnani)\/\s*$/im.test(g));
-      if (detailyJinde.length) poplach.push({ co: 'robots.txt zakazuje detaily fondů / srovnání i jiným robotům než Meta AI (src/app/robots.ts)', ukazka: detailyJinde.map((g) => g.split('\n')[0]) });
+      if (detailyJinde.length) poplach.push({ co: 'robots.txt zakazuje detaily fondů / srovnání i jiným robotům než Meta AI a Amazonbot (src/app/robots.ts)', ukazka: detailyJinde.map((g) => g.split('\n')[0]) });
     }
     const spatne = [];
     for (const s of ['/etf/ZZ000000TEST', '/srovnani/nesmysl']) {
@@ -2149,7 +2180,7 @@ const main = async () => {
       if (odlehle.length) {
         // a) srovnávač (API pro klienta)
         let api = [];
-        try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()); } catch { /* níže */ }
+        try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).then(rozbalSrovnavac); } catch { /* níže */ }
         if (!Array.isArray(api) || api.length < 1000) chyby.push('/api/etf/screener se nenačetl');
         // Stránky a API jsou z ISR cache (1 den): po novém stažení můžou ukazovat VČEREJŠÍ data, kdy fond odlehlý nebyl
         // (3. 11. 2026: BNP MSCI World odlehlý k 30. 10., srovnávač i žebříček ještě s daty k 29. 10. = 18,1 % v trhu).
@@ -2575,7 +2606,7 @@ const main = async () => {
           if (!m) spatne.push(`${x.isin}: detail neukazuje den výnosů (DB ${x.returns_as_of}, většina ${vetsina})`);
           else if (m[1] > String(x.returns_as_of).slice(0, 10)) spatne.push(`${x.isin}: detail ukazuje ${m[1]}, DB má výnosy k ${x.returns_as_of}`);
         }
-        const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).then(rozbalSrovnavac).catch(() => null);
         if (Array.isArray(rows)) {
           const podle = new Map(rows.map((r) => [r.isin, r]));
           // Srovnávač se cachuje 24 h → jen fondy pozadu o víc než 3 pracovní dny (ty byly pozadu i včera).
@@ -2868,18 +2899,20 @@ const main = async () => {
       if (/denních (log-)?výnosů/.test(t)) chyby.push('/sp500-nebo-cely-svet: kolísavost z denních výnosů (web jinde z měsíčních)');
       const volClanek = Number((t.match(/kolísal S&P 500 v korunách o (\d+,\d) %/)?.[1] ?? '').replace(',', '.'));
       try {
-        const dnes = new Date().toISOString().slice(0, 10);
-        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ portfolio: [{ isin: 'sp500', name: 'sp500', weight: 1, ter: 0, indexCode: 'sp500' }], startDate: '2008-07-01', endDate: dnes, initialAmount: 100000, rebalancingStrategy: 'yearly', currency: 'CZK' }) }).then((r) => r.json());
+        // Backtest končí dnem článku („Klíčová čísla k …“), ne dneškem: článek je z ISR cache (1 den) a backtest má data
+        // o den novější – 21. 11. 2026 poplach 14,2 vs. 13,95 %, obě čísla správně (S&P 500 20. 11. −3,6 %, ověřeno Yahoo + ČNB).
+        const denCl = (t.match(/Klíčová čísla k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/) ?? []).slice(1);
+        const konecDotazu = denCl.length === 3 ? `${denCl[2]}-${denCl[1].padStart(2, '0')}-${denCl[0].padStart(2, '0')}` : new Date().toISOString().slice(0, 10);
+        const bt = await fetch(`${WEB_URL}/api/backtest/simulate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ portfolio: [{ isin: 'sp500', name: 'sp500', weight: 1, ter: 0, indexCode: 'sp500' }], startDate: '2008-07-01', endDate: konecDotazu, initialAmount: 100000, rebalancingStrategy: 'yearly', currency: 'CZK' }) }).then((r) => r.json());
         const volBt = 100 * Number(bt?.summary?.standardDeviation);
         if (!Number.isFinite(volClanek) || !Number.isFinite(volBt) || Math.abs(volClanek - volBt) > 0.15) chyby.push(`/sp500-nebo-cely-svet: kolísavost S&P 500 ${volClanek} % ≠ backtest ${volBt.toFixed(2)} %`);
         const cagrBt = 100 * Number(bt?.summary?.cagr);
-        // Backtest počítá s daty k dnešku, článek je z ISR cache (1 den) s „Klíčová čísla k …“ (7. 11. 2026: 14,4 vs. 14,19 %
-        // s daty o den starší). Konec dat backtestu = začátek + obdobiLet; liší-li se od dne článku o víc než 1 den → varování.
+        // Pojistka, kdyby backtest přesto skončil jiným dnem než článek (článek bez dne, víkend, chybějící bod):
+        // konec dat backtestu = začátek + obdobiLet; liší-li se od dne článku o víc než půl dne → varování, nesrovnávám.
         const konecBt = new Date(Date.parse('2008-07-01') + Number(bt?.summary?.obdobiLet) * 365.25 * 864e5);
-        const denCl = (t.match(/Klíčová čísla k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})/) ?? []).slice(1);
         const odchylkaDni = denCl.length === 3 ? Math.abs(Date.UTC(+denCl[2], +denCl[1] - 1, +denCl[0]) - konecBt.getTime()) / 864e5 : NaN;
         if (kcKlic && Math.abs(Number(kcKlic.replace(',', '.')) - cagrBt) > 0.06) {
-          if (odchylkaDni > 1.5) varovani.push({ co: `/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % vs backtest ${cagrBt.toFixed(2)} % – článek k ${denCl.join('. ')}, backtest k ${konecBt.toISOString().slice(0, 10)}, nesrovnávám`, ukazka: [] });
+          if (!(odchylkaDni <= 0.5)) varovani.push({ co: `/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % vs backtest ${cagrBt.toFixed(2)} % – článek k ${denCl.join('. ')}, backtest k ${konecBt.toISOString().slice(0, 10)}, nesrovnávám`, ukazka: [] });
           else chyby.push(`/sp500-nebo-cely-svet: S&P 500 od 2008 ${kcKlic} % ≠ backtest ${cagrBt.toFixed(2)} %`);
         }
       } catch (e) { varovani.push({ co: `kolo7: backtest pro kontrolu kolísavosti nešel zavolat: ${e.message}`, ukazka: [] }); }
@@ -3111,7 +3144,7 @@ const main = async () => {
       // F) Web: fond ze seznamu nesmí mít ve srovnávači výnos za období. Zapojení seznamu do src/lib/trhy.ts (odlehleZTrhu)
       //    pozná kontrola podle značky _vynX u fondů seznamu; dokud žádný značku nemá, je to jen varování (před nasazením).
       let api = [];
-      try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()); } catch { /* níže */ }
+      try { api = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).then(rozbalSrovnavac); } catch { /* níže */ }
       if (Array.isArray(api) && api.length > 1000) {
         const OBD7 = /^(return_(1m|3m|6m|ytd|1y|3y|5y)(_czk|_usd)?)$/;
         const radky = api.filter((x) => seznam.has(x.isin));
@@ -3267,14 +3300,20 @@ const main = async () => {
       }
       const kcSp = text(H('/nejlepsi-etf/nejlepsi-sp500-etf').match(/<section data-sekce="klicova-cisla"[\s\S]*?<\/section>/)?.[0] ?? '');
       const velWeb = kcSp.match(/Největší fond (\d+,\d) mld\. €/)?.[1];
-      const cspx = await fetch(`${URL_DB}?select=fund_size_numeric&isin=eq.IE00B5BMR087`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
+      const cspx = await fetch(`${URL_DB}?select=fund_size_numeric,returns_as_of&isin=eq.IE00B5BMR087`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
       const velDb = cspx?.[0]?.fund_size_numeric != null ? (cspx[0].fund_size_numeric / 1000).toFixed(1).replace('.', ',') : null;
       // Stránka je v ISR cache až 24 h, DB se přepíše každé ráno (scraper 05:00 UTC) → velikost ze včerejška je správně
       // (13. 11. 2026: web 136,9 × DB 139,9). Rozdíl do 5 % = varování; větší nebo chybějící číslo = jiný fond / chyba → poplach.
       const cislo = (x) => Number(String(x).replace(',', '.'));
       if (kcSp && (!velWeb || velWeb !== velDb)) {
         const hlaska = `/nejlepsi-etf/nejlepsi-sp500-etf: Klíčová čísla – největší fond ${velWeb} mld. € ≠ DB ${velDb} mld. €`;
-        if (velWeb && velDb && Math.abs(cislo(velWeb) / cislo(velDb) - 1) <= 0.05) varovani.push({ co: 'Žebříček S&P 500: velikost největšího fondu z cache před dnešním stažením (rozdíl do 5 %)', ukazka: [hlaska] });
+        // 24. 11. 2026: web 136,7 (k 19. 11.) × DB 129,0 (k 20. 11.) = −5,6 % – trh 20. 11. spadl o 3,6 % (Yahoo SPY), práh 5 %
+        // nestačil. Když stránka sama uvádí STARŠÍ den než DB („Klíčová čísla k D“ ≠ den výnosů fondu), je číslo poctivě
+        // označené → varování do 15 %; při stejném dni dál 5 %.
+        const denWeb = kcSp.match(/Klíčová čísla k (\d{1,2}\. \d{1,2}\. \d{4})/)?.[1];
+        const denDbSp = cspx?.[0]?.returns_as_of ? (([y, m, d]) => `${+d}. ${+m}. ${y}`)(cspx[0].returns_as_of.split('-')) : null;
+        const prah = denWeb && denDbSp && denWeb !== denDbSp ? 0.15 : 0.05;
+        if (velWeb && velDb && Math.abs(cislo(velWeb) / cislo(velDb) - 1) <= prah) varovani.push({ co: `Žebříček S&P 500: velikost největšího fondu z cache před posledním stažením (stránka k ${denWeb ?? '?'}, DB k ${denDbSp ?? '?'}, rozdíl do ${prah * 100} %)`, ukazka: [hlaska] });
         else chyby.push(hlaska);
       }
 
@@ -3394,7 +3433,7 @@ const main = async () => {
       }
 
       // (b) SROVNÁVAČ ─────────────────────────────────────────────────────────────────────────────────────
-      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      const rows = await fetch(`${WEB_URL}/api/etf/screener`).then((r) => (r.ok ? r.json() : null)).then(rozbalSrovnavac).catch(() => null);
       if (!Array.isArray(rows)) upozorneni.push('/api/etf/screener se nenačetl');
       else {
         const vNabidce = fondy.filter((x) => x.name && x.returns_as_of && dni(x) <= 30);
@@ -3475,6 +3514,8 @@ const main = async () => {
   await kontrolaKolo8Obsah(poplach, varovani); // blok „kolo8 obsah“ – definice na konci souboru
   await kontrolaGrafIndexu(poplach, varovani); // blok „graf indexu“ (3.3, 11. 11. 2026) – definice na konci souboru
   await kontrolaPorovnaniCdn(poplach, varovani); // blok „porovnání z CDN“ (12. 11. 2026) – definice na konci souboru
+  await kontrolaEgressSupabase(poplach); // blok „egress Supabase“ (19. 11. 2026) – definice na konci souboru
+  await kontrolaVahyStranek(varovani); // blok „váha stránek“ (21. 11. 2026) – definice na konci souboru
 
   // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
   //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
@@ -3585,7 +3626,7 @@ const main = async () => {
         const zbytek = m[2].replace(/\(.*?\)/g, ' ').replace(TRIDA8, ' ').replace(/[^a-z0-9]+/gi, ' ').trim().toLowerCase();
         return `${f.fund_provider}|${m[1].toLowerCase().replace(/\s+/g, ' ').trim()}|${zbytek}`;
       };
-      const api8 = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).catch(() => null);
+      const api8 = await fetch(`${WEB_URL}/api/etf/screener`).then((x) => x.json()).then(rozbalSrovnavac).catch(() => null);
       const radky8 = Array.isArray(api8) ? api8 : api8?.rows;
       if (!Array.isArray(radky8) || radky8.length < 1000) throw new Error('/api/etf/screener se nenačetl');
       const web8 = new Map(radky8.map((r) => [r.isin, r]));
@@ -4507,10 +4548,14 @@ async function kontrolaPorovnaniCdn(poplach, varovani) {
     if (!r1.ok) chyby.push(`HTTP ${r1.status} ${url}`);
     if (!/Data k/.test(html)) chyby.push('stránka porovnání bez „Data k“ (pravidlo č. 1 – verze z cache musí nést den dat)');
     if (R.produkce) {
-      const r2 = await fetch(url);
-      await r2.text();
-      const c1 = r1.headers.get('x-vercel-cache'), c2 = r2.headers.get('x-vercel-cache');
-      if (!/HIT|STALE/i.test(c2 || '')) chyby.push(`druhé načtení nepřišlo z CDN (x-vercel-cache: ${c1} → ${c2})`);
+      // Druhý požadavek může dorazit dřív, než CDN první odpověď uloží, nebo do jiného uzlu (24. 11. 2026 MISS → MISS,
+      // ruční ověření MISS → HIT) → až 3 další pokusy po 2 s.
+      const c1 = r1.headers.get('x-vercel-cache'); const dalsi = [];
+      for (let i = 0; i < 3 && !/HIT|STALE/i.test(dalsi.at(-1) || ''); i++) {
+        if (i) await new Promise((ok) => setTimeout(ok, 2000));
+        const r2 = await fetch(url); await r2.text(); dalsi.push(r2.headers.get('x-vercel-cache'));
+      }
+      if (!/HIT|STALE/i.test(dalsi.at(-1) || '')) chyby.push(`ani čtvrté načtení nepřišlo z CDN (x-vercel-cache: ${c1} → ${dalsi.join(' → ')})`);
     } else if (!r1.headers.get('vercel-cdn-cache-control')) {
       chyby.push('lokální odpověď nemá hlavičku Vercel-CDN-Cache-Control (next.config.ts headers)');
     }
@@ -4520,3 +4565,60 @@ async function kontrolaPorovnaniCdn(poplach, varovani) {
   }
 }
 // --- konec porovnání z CDN ---
+
+// --- egress Supabase (19. 11. 2026) ---
+// Supabase free tier: 5 GB odchozích dat / měsíc; 19. 11. 2026 překročeno (odklad do 19. 12., pak omezení = web bez dat).
+// Příčina: třídy fondů (~5 200 řádků, ~1,5 MB) a fondy trhů se za běhu stahovaly při KAŽDÉM přegenerování stránky
+// (~5 300 dotazů / 24 h). Oprava: `vPametiNaCas` (src/lib/buildMemo.ts) – nejvýš 1 h stará kopie v paměti instance.
+// Statická kontrola, že se paměť z velkých načítání nevytratí a TTL zůstane krátké (pravidlo č. 1: data nejvýš hodiny stará).
+async function kontrolaEgressSupabase(poplach) {
+  try {
+    const { readFileSync } = await import('node:fs');
+    const trhy = readFileSync(new URL('../src/lib/trhy.ts', import.meta.url), 'utf8');
+    const memo = readFileSync(new URL('../src/lib/buildMemo.ts', import.meta.url), 'utf8');
+    const chyby = [];
+    for (const k of ['tridyVynosNesedi', 'fondyTrhu']) {
+      if (!new RegExp(`vPametiNaCas\\('${k}'`).test(trhy)) chyby.push(`src/lib/trhy.ts: ${k} za běhu bez vPametiNaCas (dotaz při každém přegenerování stránky)`);
+    }
+    const ttl = trhy.match(/TRIDY_TTL_MS\s*=\s*([\d\s*]+);/);
+    const ms = ttl ? Function(`return ${ttl[1]}`)() : NaN;
+    if (!(ms > 0 && ms <= 6 * 3600 * 1000)) chyby.push(`TRIDY_TTL_MS = ${ttl ? ttl[1] : '?'} – musí být 0 < TTL ≤ 6 h (stará data vs. egress)`);
+    if (!/export function vPametiNaCas/.test(memo)) chyby.push('src/lib/buildMemo.ts: chybí vPametiNaCas');
+    if (chyby.length) poplach.push({ co: 'Egress Supabase: velké sady fondů se za běhu stahují bez paměti – hrozí překročení free tieru Supabase (5 GB/měsíc) a omezení databáze', ukazka: chyby });
+  } catch (e) {
+    poplach.push({ co: 'Egress Supabase: kontrolu nešlo provést', ukazka: [String(e?.message ?? e)] });
+  }
+}
+
+// ── VÁHA STRÁNEK (21. 11. 2026, návrat na free tier Vercelu) ──
+// Vercel počítá čtení ISR cache po 8 kB NEZABALENÉ stránky (limit Hobby 1 mil. jednotek / 30 dní, překročení = pozastavení
+// webu) a přenos z originu stejně. 21. 11. 2026 odlehčeno: detail fondu IE00B5BMR087 208,8 → 178,6 kB (26 → 22 jednotek;
+// vysvětlivky ⓘ přes společnou značku, opakované řetězce tříd jako pojmenované třídy v globals.css), /api/etf/screener
+// 3,75 → 1,52 MB (458 → 186 jednotek; sloupcový tvar, src/lib/screenerFormat.ts). Kontrola hlídá, aby váha tiše nenarostla
+// zpět. Jen VAROVÁNÍ (web funguje správně, jen dráž) – a jen dvě pevné adresy (žádné procházení produkce).
+async function kontrolaVahyStranek(varovani) {
+  try {
+    const bajty = async (cesta) => {
+      const r = await fetch(`${WEB_URL}${cesta}`, { headers: { 'Accept-Encoding': 'identity' } });
+      if (!r.ok) return null;
+      const t = await r.text();
+      return { n: Buffer.byteLength(t), t };
+    };
+    const nalezy = [];
+    const detail = await bajty('/etf/IE00B5BMR087');
+    if (!detail) nalezy.push('detail IE00B5BMR087 se nenačetl');
+    else if (!detail.t.includes('#ik-info')) {
+      varovani.push({ co: 'Váha stránek: produkce ještě bez odlehčení z 21. 11. 2026 (před nasazením balíku) – kontrola váhy vynechána', ukazka: [] });
+      return;
+    } else if (detail.n > 24 * 8192) nalezy.push(`detail IE00B5BMR087 má ${(detail.n / 1000).toFixed(1)} kB = ${Math.ceil(detail.n / 8192)} jednotek čtení (po odlehčení 178,6 kB = 22; práh 24)`);
+    const scr = await bajty('/api/etf/screener');
+    if (!scr) nalezy.push('/api/etf/screener se nenačetl');
+    else {
+      if (!scr.t.startsWith('{"v":2')) nalezy.push('/api/etf/screener není ve sloupcovém tvaru (zabalRadky vrátil původní pole – nepovinný klíč se skutečným null? src/lib/screenerFormat.ts)');
+      if (scr.n > 1.9e6) nalezy.push(`/api/etf/screener má ${(scr.n / 1e6).toFixed(2)} MB = ${Math.ceil(scr.n / 8192)} jednotek čtení (po odlehčení 1,52 MB = 186; práh 1,9 MB)`);
+    }
+    if (nalezy.length) varovani.push({ co: 'Váha stránek narostla – víc čtení ISR cache a přenosu z originu (limity free tieru Vercelu; scripts/denni-kontrola.md „Návrat na free tier“)', ukazka: nalezy });
+  } catch (e) {
+    varovani.push({ co: `Kontrola váhy stránek neproběhla: ${e.message}`, ukazka: [] });
+  }
+}

@@ -9,7 +9,7 @@ import { nejcastejsiDatumVynosu, jineDatumVynosu, vynosyPozadu } from '@/lib/dat
 import { platnyTicker, zobrazovanyTicker, SLOUPCE_TICKERU } from '@/lib/ticker';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-config';
-import { fetchProSupabase, jednouZaBuild } from '@/lib/buildMemo';
+import { fetchProSupabase, jednouZaBuild, vPametiNaCas, JE_BUILD } from '@/lib/buildMemo';
 import { COMPARISON_TICKER_FIELDS, jeIsinSymbol, vyberFondProSymbol } from '@/lib/odkazyDvojic';
 import { classifyRegion, buildRegionOptions } from '@/utils/regionClassification';
 import { sestavIndexy, type IndexOptionGroup } from '@/utils/indexNormalization';
@@ -754,23 +754,31 @@ export function jeVNabidce(e: { name: string | null; scraping_date: string | nul
 }
 
 /** Počet fondů v nabídce = výchozí výsledek srovnávače (viz výše). 0 = chyba dotazu. */
+async function dotazPocetFondu(): Promise<number> {
+  const { count, error } = await supabaseAdmin
+    .from('etf_funds')
+    .select('isin', { count: 'exact', head: true })
+    .not('name', 'is', null)
+    .neq('name', '')
+    .not('is_leveraged', 'is', true)
+    .gte('scraping_date', nabidkaOd());
+  if (error) throw new Error(`počet fondů se nenačetl – ${error.message}`);
+  // Při buildu se číslo zapeče do tisíců stránek: nula nebo pár fondů je výpadek dat, ne skutečnost → výjimka (build spadne).
+  if (JE_BUILD && (count ?? 0) < 1000) throw new Error(`počet fondů v nabídce je ${count ?? 0} (< 1 000) – výpadek dat?`);
+  return count || 0;
+}
+
+/** Jak dlouho smí běžící instance držet počet fondů v paměti (mění se nejvýš jednou denně po scraperu). */
+const POCET_TTL_MS = 60 * 60 * 1000;
+
 export async function getTotalETFCount(): Promise<number> {
+  // 21. 11. 2026: počet volá kořenový layout → dřív dotaz (HEAD count) 2× na KAŽDOU stránku, při buildu ~10 200 dotazů
+  // z ~29 000 (logy Supabase 19. 11.). Teď jednou za build (na worker) a za běhu nejvýš 1× za hodinu na instanci.
+  // Chyba při buildu = výjimka (jako ostatní jednouZaBuild); za běhu jako dřív 0 → volající mají vlastní text bez čísla.
   try {
-    const { count, error } = await supabaseAdmin
-      .from('etf_funds')
-      .select('isin', { count: 'exact', head: true })
-      .not('name', 'is', null)
-      .neq('name', '')
-      .not('is_leveraged', 'is', true)
-      .gte('scraping_date', nabidkaOd());
-
-    if (error) {
-      console.error('Error getting ETF count:', error);
-      return 0;
-    }
-
-    return count || 0;
+    return await (jednouZaBuild('pocetFondu', dotazPocetFondu) ?? vPametiNaCas('pocetFondu', POCET_TTL_MS, dotazPocetFondu));
   } catch (error) {
+    if (JE_BUILD) throw error;
     console.error('Error in getTotalETFCount:', error);
     return 0;
   }
@@ -1031,14 +1039,42 @@ export async function getComparisonETFData(
 
 type TridaRiziko = { isin: string; name: string | null; fund_provider: string | null } & Partial<Record<RizikoPole, number | null>>;
 
-/** Ostatní třídy téhož fondu (stejný poskytovatel a název před „UCITS ETF“) s rizikovými ukazateli. */
-async function tridyTehozFondu(e: { name?: string | null; fund_provider?: string | null }): Promise<TridaRiziko[]> {
+const SLOUPCE_TRID_RIZIKA = 'isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y, max_drawdown_1y, max_drawdown_3y, max_drawdown_5y';
+
+/** Všechny fondy v nabídce se sloupci rizika – pro build (jeden dotaz po 1 000 místo dotazu na každý detail). */
+async function dotazVsechnyTridyRizika(): Promise<TridaRiziko[]> {
+  const out: TridaRiziko[] = [];
+  const od = nabidkaOd();
+  for (let from = 0; from < 50000; from += 1000) {
+    const { data, error } = await supabaseAdmin.from('etf_funds').select(SLOUPCE_TRID_RIZIKA)
+      .gte('scraping_date', od).order('isin').range(from, from + 999);
+    if (error || !data) throw new Error(`třídy fondů (riziko) se nenačetly – ${error?.message ?? 'bez dat'}`);
+    out.push(...(data as unknown as TridaRiziko[]));
+    if (data.length < 1000) return out;
+  }
+  throw new Error('třídy fondů (riziko): přes 50 000 řádků – nečekané');
+}
+
+/** Ostatní třídy téhož fondu (stejný poskytovatel a název před „UCITS ETF“) s rizikovými ukazateli.
+ *  Je to jen výběr KANDIDÁTŮ – skutečné třídy seskupí rizikoNesedi (klicTridy); kandidát navíc neškodí, chybějící ano.
+ *  21. 11. 2026: při buildu z jednoho hromadného dotazu na worker (dřív dotaz na každý detail = ~5 100 z ~29 000 dotazů
+ *  buildu). Stejné podmínky jako dotaz níže: stejný poskytovatel, název začíná základem (bez ohledu na velikost písmen),
+ *  fond v nabídce. Shoda ověřena otiskem proti SQL nad celou DB (5 080 fondů, 21. 11. 2026).
+ *  Limit zvednut z 60 na 1 000: 20 fondů „UBS ETF (CH) …“ má základ jen „UBS“ → 435 kandidátů a limit 60 bez řazení
+ *  z nich vybíral náhodných 60 (skutečná třída mohla vypadnout). Hromadná cesta limit nemá. */
+export async function tridyTehozFondu(e: { name?: string | null; fund_provider?: string | null }): Promise<TridaRiziko[]> {
   const zaklad = String(e.name ?? '').match(/^(.*)\b(?:UCITS\s+)?(?:ETF|ETC|ETP|ETN)\b/i)?.[1]?.trim();
   if (!zaklad || !e.fund_provider) return [];
+  const vzor = zaklad.replace(/[%_]/g, '');
+  const hromadne = jednouZaBuild('tridyRizika', dotazVsechnyTridyRizika);
+  if (hromadne) {
+    const zacatek = vzor.toLowerCase();
+    return (await hromadne).filter((f) => f.fund_provider === e.fund_provider && String(f.name ?? '').toLowerCase().startsWith(zacatek));
+  }
   const { data: d } = await supabaseAdmin.from('etf_funds')
-    .select('isin, name, fund_provider, volatility_1y, volatility_3y, volatility_5y, max_drawdown_1y, max_drawdown_3y, max_drawdown_5y')
-    .eq('fund_provider', e.fund_provider).ilike('name', `${zaklad.replace(/[%_]/g, '')}%`)
-    .gte('scraping_date', nabidkaOd()).limit(60);
+    .select(SLOUPCE_TRID_RIZIKA)
+    .eq('fund_provider', e.fund_provider).ilike('name', `${vzor}%`)
+    .gte('scraping_date', nabidkaOd()).limit(1000);
   return (d ?? []) as TridaRiziko[];
 }
 
@@ -1050,7 +1086,9 @@ export async function rizikoNesediFondu(e: TridaRiziko): Promise<RizikoPole[]> {
     const tridy = new Map(sourozenci.map((f) => [f.isin, f]));
     tridy.set(e.isin, e);
     return rizikoNesedi([...tridy.values()], undefined, kotvy).get(e.isin) ?? [];
-  } catch {
+  } catch (chyba) {
+    // Při buildu chybu nespolknout: stránky by se na 30 dní upekly bez kontroly rizika (pravidlo č. 1) → build spadne.
+    if (JE_BUILD) throw chyba;
     return [];
   }
 }

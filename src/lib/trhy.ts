@@ -6,7 +6,7 @@ import { nejcastejsiDatumVynosu, datumVynosuIso } from '@/lib/datumVynosu';
 import { TRHY, ODLEHLA_PB, MIN_VELIKOST_VITEZE, MIN_FONDU, type Trh } from '@/data/trhyDvojcata';
 import { RIZIKO_POLE, klicTridy, vynosTridNesedi, type RizikoPole, type VynosTridNesedi } from '@/lib/tridyFondu';
 import { sNeoverenymi } from '@/lib/vynosNeovereny';
-import { jednouZaBuild } from '@/lib/buildMemo';
+import { jednouZaBuild, vPametiNaCas } from '@/lib/buildMemo';
 
 /* Výpočet pro homepage sekci „Nejlevnější, největší a nejvýkonnější ETF podle trhu“.
    Jeden dotaz (~130 fondů) při ISR renderu, nic na návštěvníka. Pravidlo č. 1:
@@ -132,7 +132,7 @@ async function dotazFondyTrhu(): Promise<Record<string, unknown>[]> {
 // Při buildu jednou za proces a chyba = spadlý build (src/lib/buildMemo.ts, 31. 10. 2026); jinak jako dřív:
 // chyba = null (raději sekci neukázat než ukázat nesmysl).
 const nactiFondyTrhu = cache(async (): Promise<Record<string, unknown>[] | null> =>
-  jednouZaBuild('fondyTrhu', dotazFondyTrhu) ?? dotazFondyTrhu().catch(() => null));
+  jednouZaBuild('fondyTrhu', dotazFondyTrhu) ?? vPametiNaCas('fondyTrhu', TRIDY_TTL_MS, dotazFondyTrhu).catch(() => null));
 
 /** Výpočet trhů z načtených řádků (sdílí ho nactiTrhy a getScreenerRows – API route nemá React cache). */
 export function trhyZRadku(data: Record<string, unknown>[] | null): RadekTrhu[] | null {
@@ -189,8 +189,11 @@ async function dotazTridy(): Promise<Map<string, TridaVynosNesedi>> {
 }
 // Při buildu jednou za proces (~1,5 MB; bez toho 1,5 MB na KAŽDÝ předgenerovaný detail a dvojici) a chyba = spadlý build
 // (src/lib/buildMemo.ts, 31. 10. 2026). Mimo build jako dřív: React cache, chyba = prázdná mapa.
+// Za běhu nejvýš 1 h stará kopie v paměti instance (19. 11. 2026: překročený egress Supabase – dřív dotaz při každém
+// přegenerování stránky, src/lib/buildMemo.ts `vPametiNaCas`).
+export const TRIDY_TTL_MS = 60 * 60 * 1000;
 export const tridyVynosNesedi = cache(async (): Promise<Map<string, TridaVynosNesedi>> =>
-  jednouZaBuild('tridyVynosNesedi', dotazTridy) ?? dotazTridy().catch(() => new Map()));
+  jednouZaBuild('tridyVynosNesedi', dotazTridy) ?? vPametiNaCas('tridyVynosNesedi', TRIDY_TTL_MS, dotazTridy).catch(() => new Map()));
 /** Čistý výpočet (sdílí getScreenerRows): ISIN → období, třídy a jejich tickery. */
 export function tridyZRadku(radky: Record<string, unknown>[]): Map<string, TridaVynosNesedi> {
   const m = vynosTridNesedi(radky as unknown as Parameters<typeof vynosTridNesedi>[0]);

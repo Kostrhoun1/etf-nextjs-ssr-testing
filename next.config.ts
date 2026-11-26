@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // 19. 11. 2026: build předgeneruje ~6 800 stránek a každá se ptá Supabase. Na stroji Vercel Pro (8 jader) Next pustil
+  // 7 workerů × 8 stránek = ~56 renderů najednou → databáze free tieru Supabase nestíhala (odpovědi 10–100 s, 500/503,
+  // „statement timeout“) a build 2× spadl. Na Hobby (2 vCPU) běžel 1 worker × 8 a build vždy prošel (~14 min, limit 45).
+  // Proto pevně 2 workery × 4 stránky = 8 souběžných renderů nezávisle na stroji.
+  experimental: {
+    cpus: 2,
+    staticGenerationMaxConcurrency: 4,
+  },
   // Čas buildu do <meta name="build-time"> (layout.tsx). Detaily fondů jsou předgenerované s platností 30 dní
   // a po nasazení vyprší všechny najednou → denní kontrola hlásí produkci starší 25 dní (1. 11. 2026).
   env: {

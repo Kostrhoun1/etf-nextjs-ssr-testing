@@ -43,7 +43,7 @@ export default function DalsiSrovnani({ aktualni, isiny = [], nadpis = 'Další 
       <ul className="mt-3 grid gap-2 sm:grid-cols-2">
         {vyber.map(({ s }) => (
           <li key={s}>
-            <Link href={`/srovnani/${s}`} prefetch={false} className="flex h-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm hover:border-teal-300">
+            <Link href={`/srovnani/${s}`} prefetch={false} className="d-dalsi">
               <span className="min-w-0">
                 <span className="block font-semibold text-slate-900">{nazevDvojice(s)}</span>
                 {POPISKY_DVOJIC[s] && <span className="block text-xs text-slate-500">{POPISKY_DVOJIC[s]}</span>}

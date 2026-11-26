@@ -28,7 +28,7 @@ export function FaqSeznam({ items }: { items: readonly { q: string; a: string }[
     <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
       {items.map((f) => (
         <details key={f.q} className="group">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-[15px] font-medium text-slate-900 hover:bg-slate-50">
+          <summary className="faq-sum">
             <h3 className="font-medium">{f.q}</h3>
             <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
           </summary>
