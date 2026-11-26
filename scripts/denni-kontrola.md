@@ -205,6 +205,25 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   sobotní přestavbu 28. 11., ta se pak přeskočí → žádné nasazení navíc; rezerva CPU 37 min ≥ 15 ✓, poslední nasazení 21. 11.).
   (2) Sobotní přestavba 5. 12. – nechat, nebo vynechat (−20K čtení v okně pro zrušení Pro; detaily platí do ~21. 12.).
   (3) Verdikt k zrušení Pro do 1. 12.: podle dnešních čísel čtení i CPU 6. 12. vycházejí pod limit; chybí potvrdit přenos.
+- 26. 11. 2026 11:30–14:30 UTC (denní kontrola, čtvrtek): web běží (200, build 21. 11. 09:11), scraper dnes 5 200 fondů (4 252 s výnosy
+  k 24. 11., 820 k 23. 11., 0 bez názvu), sync indexů zelený. Usage Vercelu dnes přečetla souběžná úloha (řádek 26. 11. v tabulce:
+  CPU 3 h 20 min, rezerva 40 min; denní cíle plněny 3 dny). Kontrola dat 25. 11. 21:19 a 23:43 UTC: **4 poplachy = 2 příčiny**.
+  **(1) XMCM (LU2675291913, Xtrackers MSCI EM Swap, 199 mil. €) 1R +20,9 % Kč × medián trhu EM +15,1 %, žebříček EM ho ukázal
+  s číslem – falešný poplach, číslo je skutečné.** Nezávisle (Yahoo, Xetra, s dividendami, EUR): XMCM.DE k 23. 11. +19,1 %,
+  XMME.DE +18,6 %, EUNM.DE +19,0 %, IS3N.DE +17,3 %; Xetra EM po dnech 20. / 23. / 24. / 25. / 26. 11.: −5,1 / +6,8 / −3,6 / −3,4 / +4,4 %.
+  Swapový fond zdroj oceňuje evropským závěrem, fyzické fondy NAV z asijských závěrů → v takovém týdnu se ke stejnému dni liší
+  o 4–6 p. b. (totéž varování kotvy IS3N: zdroj 12,7 × Xetra 17,3 %). Dnes (k 24. 11.) je XMCM naopak 2,8 p. b. POD mediánem
+  (zdroj 14,4 %, Xetra 13,3 %). Kontrola upravena (`overenoBurzou`): odlehlý výnos > 5 p. b., který sedí do 2,5 p. b. s cenami
+  vlastního listingu fondu na Xetře, je varování; bez tickeru / listingu / odpovědi Yahoo nebo když nesedí, dál poplach (zkouška:
+  XMCM skutečná čísla = ověřeno, vymyšlených 30 % = neověřeno, fyzický XMME proti Xetře = neověřeno).
+  **(2) WOR2 (IE000XBYQE47, Amundi Core MSCI World 2 Acc, vznik 30. 9. 2026, TER 0,06 %, 784 mil. €) chybí v seznamu trhů na homepage
+  – skutečný nedostatek webu**: fond 25. 11. přerostl 500 mil. €; v žebříčku MSCI World je, v tabulce trhů na homepage ne (při řazení
+  podle TER by byl první). Oprava je připravená na větvi `oprava/ebud-neovereny` (e46f497, spolu s EBUD) – **jde ven zítra 27. 11.
+  plánovaným nasazením** (místo sobotní přestavby); do té doby kontrola hlásí 2 poplachy (trhy × žebříček) – očekávané. TER 0,06 %
+  před nasazením ověřit u emitenta (Amundi) – dnes neověřeno.
+  **Dnes neověřeno:** Supabase (dotaz tříd, egress – konektor v této relaci není), místní běh `check-fund-data.mjs` se znovu zasekl
+  (uspávání Macu) → úprava ověřena ručním během workflow na GitHubu.
+  **Čeká na majitele (beze změny):** sobotní přestavba 5. 12. – nechat, nebo vynechat; verdikt k zrušení Pro do 1. 12.
 - 7. 11. 2026: Fluid CPU 4 h 4 min / 4 h → Vercel ohlásil pozastavení účtu (majitel zvolil čekat, ne platit). Middleware
   zrušen (37 % CPU). **Vypnuté workflow** `zlate-pripady.yml` a `prod-smoke.yml` (šetří CPU) – znovu zapnout
   (`gh workflow enable … --repo Kostrhoun1/etf-nextjs-ssr-testing`), až bude rezerva CPU ≥ 30 min. Je-li web
