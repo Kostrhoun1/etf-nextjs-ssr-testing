@@ -135,6 +135,18 @@ zahazovalo SKUTEČNÁ data (60/40: dno 1. 3. 2023, max. pokles −20,5 % místo 
 Dřívější tvrzení „vynechání i správného bodu je neškodné“ NEPLATILO. `bezVadnychTicku` teď v denních úsecích vynechává JEN
 body v nepracovní dny všech burz zdrojových fondů (so, ne, 1. 1., 25. 12.). Odlehlé body podle velikosti výkyvu NEFILTROVAT:
 skutečné dny (1. 4. 2020, 13. 11. 2008 EEM +13 %/−10 %) vypadají stejně. Čistotu DB hlídá check-fund-data (audit backtest).
+Ověřeno 11. 11. 2026 nezávisle proti Yahoo: všech 213 197 bodů po splice ve 37 indexech sedí na denní výnos přesně (i každý
+1. den v měsíci). Starší interpolační „oprava“ 1 229 bodů z 19. 7. (fix_outliers.py, nikdy nesloučeno) je tím překonaná –
+plný resync ji 17. 10. nahradil skutečnými daty. **Neinterpolovat body v DB** – vyrobená hodnota je horší než žádná.
+
+**Prodloužené řady (us_momentum, us_quality): akademická část se PŘEŠKÁLOVÁVÁ podle dnešní ceny ETF (23. 11. 2026).**
+Řada Ken French je řetěz zpětně od ceny ETF v kotevní den (`scripts/backtest/data/splice-kotvy.json`). Yahoo adj-close ETF
+se ale mění zpětně – split MTUM/QUAL 4:1 (5. 11. 2026) přepsal ETF část novou škálou a akademická zůstala → v DB umělý pád
+−75 % a `/faktorove-etf/momentum` ukazovalo +2,1 % ročně, nejhorší rok 2013 −66 % (8.–23. 11.). Loader (sync-indexes.mjs,
+zásada 10) proto po každém zápisu přepíše akademickou část na CSV × (cena ETF k `den` / kotevní `cena`). Výnosy akademické
+části se tím nemění – **není to zásah do „nepřepisovatelné“ historie, jen škála**. Hlídá SKOK > 25 % a SPLICE (výnos v kotevní
+den = akademický) v check_index_integrity.py a check-fund-data (blok „skoky indexů“). DB opraveno 23. 11. 2026, záloha
+`.secrets/splice-fix-backup-20261123T060928.json`.
 
 ## Data fondů a žebříčky (audit dat 17. 10. 2026)
 

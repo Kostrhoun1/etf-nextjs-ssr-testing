@@ -10,6 +10,11 @@ CO KONTROLUJE:
   1. OCAS  – každý index musí mít data max. N dní stará (default 5; víkendy/svátky).
   2. DÍRY  – žádná podezřele velká mezera mezi obchodními dny uvnitř řady.
   3. POČTY – nečekaný propad počtu řádků oproti minulému běhu (uloženo do historie).
+  4. SKOK  – denní pohyb > 25 % kdekoli v řadě (11. 11. 2026). Skutečný největší denní pohyb v datech
+     je ~−17 % (XLF 1. 12. 2008); nad 25 % byly jen umělé zlomy škály – split MTUM/QUAL 4:1 přepsal
+     ETF část, akademická zůstala → −75 % (us_momentum 2013-04-18, us_quality 2013-07-18).
+  5. SPLICE – výnos v kotevní den prodloužené řady (data/splice-kotvy.json) se musí rovnat výnosu
+     akademické řady (kotevní cena / poslední akademická cena v CSV). Chytí i malý zlom po dividendě.
 
 Návratový kód 1 = něco je špatně (vhodné pro cron / CI, ať to křičí).
 
@@ -33,6 +38,15 @@ if not KEY:
 HIST = '.secrets/index-integrity-history.json'
 MAX_STALE_DAYS = 5      # ocas starší než tohle = poplach
 MAX_GAP_DAYS = 10       # díra uvnitř řady delší než tohle = poplach
+MAX_SKOK = 0.25         # |denní pohyb| větší než tohle = poplach (zlom škály, ne trh)
+MAX_SPLICE_ODCHYLKA = 0.002  # výnos v kotevní den vs. akademický výnos (absolutně)
+
+_DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+KOTVY = {k: v for k, v in json.load(open(os.path.join(_DATA, 'splice-kotvy.json'))).items() if not k.startswith('_')}
+POSLEDNI_AKADEMICKY = {}  # code -> (date, price) posledního řádku akademické části v CSV
+for _r in open(os.path.join(_DATA, 'factor_extensions.csv')).read().strip().split('\n')[1:]:
+    _c, _d, _p = _r.split(',')
+    POSLEDNI_AKADEMICKY[_c] = (date.fromisoformat(_d), float(_p))
 
 # Měsíční indexy (v manifestu `monthly: true`) mají data jen v měsíční frekvenci — Yahoo pro ně nemá
 # čistou denní historii. Rozestupy ~30 dní a ocas až měsíc starý jsou u nich NORMÁLNÍ, takže denní
@@ -59,16 +73,34 @@ def all_codes():
     return sorted(codes)
 
 
-def series_dates(code):
+def series_rows(code):
+    """[(date, close_price)] seřazené podle data."""
     out, off = [], 0
     while True:
-        r = (sb.table('index_historical_data').select('date')
+        r = (sb.table('index_historical_data').select('date,close_price')
              .eq('index_code', code).order('date').range(off, off + 999).execute())
         if not r.data:
             break
-        out.extend(date.fromisoformat(x['date']) for x in r.data)
+        out.extend((date.fromisoformat(x['date']), float(x['close_price'])) for x in r.data)
         off += 1000
     return out
+
+
+def kontrola_splice(code, rows):
+    """Zásada 10 loaderu: výnos v kotevní den = akademický výnos. Vrací text problému nebo None."""
+    k = KOTVY.get(code)
+    if not k:
+        return None
+    pd, pp = POSLEDNI_AKADEMICKY[code]
+    ceny = dict(rows)
+    kd = date.fromisoformat(k['den'])
+    if pd not in ceny or kd not in ceny:
+        return f"SPLICE chybi {pd} nebo {kd}"
+    ocekavano = k['cena'] / pp - 1
+    skutecne = ceny[kd] / ceny[pd] - 1
+    if abs(skutecne - ocekavano) > MAX_SPLICE_ODCHYLKA:
+        return f"SPLICE {kd}: vynos {skutecne:+.2%}, akademicky {ocekavano:+.2%} (zlom skaly – sync-indexes zasada 10)"
+    return None
 
 
 def main():
@@ -83,7 +115,8 @@ def main():
     print("-" * 72)
 
     for code in all_codes():
-        d = series_dates(code)
+        rows = series_rows(code)
+        d = [r[0] for r in rows]
         if not d:
             problems.append(f"{code}: ZADNA DATA")
             continue
@@ -102,6 +135,13 @@ def main():
         # Úklid vmíchaných měsíčních bodů (sync --uklid) úbytek řádků ZÁMĚRNĚ způsobí → jen pro ten běh.
         if was and len(d) < was and os.environ.get('POVOLIT_UBYTEK') != '1':
             flags.append(f"UBYLO {was - len(d)} radku (bylo {was})")
+        skoky = [(rows[i][0], rows[i][1] / rows[i - 1][1] - 1) for i in range(1, len(rows))
+                 if rows[i - 1][1] and abs(rows[i][1] / rows[i - 1][1] - 1) > MAX_SKOK]
+        if skoky:
+            flags.append("SKOK " + ", ".join(f"{s[0]} {s[1]:+.0%}" for s in skoky[:5]))
+        sp = kontrola_splice(code, rows)
+        if sp:
+            flags.append(sp)
         if flags:
             problems.append(f"{code}: " + "; ".join(flags))
         print(f"{code:32} {len(d):7} {last!s:>12}  {'!! ' + '; '.join(flags) if flags else 'OK'}")
@@ -115,7 +155,7 @@ def main():
         for p in problems:
             print("   -", p)
         sys.exit(1)
-    print(f"VSE OK – {len(counts)} indexu, zadna dira ani utnuty ocas.")
+    print(f"VSE OK – {len(counts)} indexu, zadna dira, utnuty ocas, skok ani zlom splice.")
 
 
 if __name__ == '__main__':

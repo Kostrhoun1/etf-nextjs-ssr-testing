@@ -26,6 +26,16 @@
  *  9. ÚKLID (`--full --uklid`, jednorázově po opravě 8): smaže řádky, které v čerstvé úplné denní
  *     historii NEJSOU (vmíchané měsíční svíčky, víkendy). Pojistky: jen u úplné historie, max 20 %
  *     řádků indexu, nikdy v dopočtené části (splicedFrom).
+ * 10. NAPOJENÍ SPLICE + ZMĚNA ŠKÁLY (11. 11. 2026): MTUM a QUAL měly 5. 11. 2026 split 4:1. Plný resync
+ *     přepsal ETF část novou (÷4) škálou, ale dopočtená akademická část (Ken French, factor_extensions.csv)
+ *     zůstala na staré → v DB umělý pád −75 % (us_momentum 18. 4. 2013, us_quality 18. 7. 2013) a web
+ *     ukazoval momentum +2,1 % ročně, nejhorší rok 2013 −66 %. Proto:
+ *     a) po KAŽDÉM zápisu spliced indexu se akademická část přepočte na dnešní cenu ETF v kotevní den
+ *        (data/splice-kotvy.json): hodnota = CSV × (cena ETF v DB k `den` / kotevní `cena`). Výnosy
+ *        akademické části se nemění, mění se jen škála; idempotentní (když sedí, nic nepíše).
+ *     b) přírůstkový běh porovná nejstarší stažený den s DB; liší-li se (dividenda/split přeškáloval
+ *        adj-close zpětně), stáhne a zapíše CELOU historii indexu – jinak by mezi denními řádky a
+ *        historií vznikl zlom (u splitu −75 % měsíc zpátky) a trval by do nedělního plného resyncu.
  *
  * SPUŠTĚNÍ:
  *   set -a && . ./.secrets/supabase.env && set +a
@@ -35,7 +45,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -151,6 +161,63 @@ async function upsert(rows) {
   return rows.length
 }
 
+const hlavicky = () => ({ apikey: KEY, Authorization: `Bearer ${KEY}` })
+
+/** Cena indexu v DB k danému dni (null = řádek není). */
+async function dbCena(code, den) {
+  const res = await fetchRetry(`${SUPABASE_URL}/rest/v1/index_historical_data?select=close_price&index_code=eq.${code}&date=eq.${den}`,
+    { headers: hlavicky() }, { popis: `čtení ${code} ${den}` })
+  if (!res.ok) throw new Error(`čtení ${code} ${den}: ${res.status}`)
+  const b = await res.json()
+  return b.length ? Number(b[0].close_price) : null
+}
+
+/** Počet řádků indexu v DB v intervalu [od, doVcetne). */
+async function dbPocet(code, od, doMimo) {
+  const res = await fetchRetry(`${SUPABASE_URL}/rest/v1/index_historical_data?select=date&index_code=eq.${code}&date=gte.${od}&date=lt.${doMimo}`,
+    { method: 'HEAD', headers: { ...hlavicky(), Prefer: 'count=exact' } }, { popis: `počet ${code}` })
+  const n = Number((res.headers.get('content-range') || '').split('/')[1])
+  if (!Number.isFinite(n)) throw new Error(`počet ${code}: content-range ${res.headers.get('content-range')}`)
+  return n
+}
+
+/** Kotvy a akademická část prodloužených řad (zásada 10). */
+const KOTVY = JSON.parse(readFileSync(new URL('./data/splice-kotvy.json', import.meta.url), 'utf8'))
+const AKADEMICKA = new Map()
+for (const radek of readFileSync(new URL('./data/factor_extensions.csv', import.meta.url), 'utf8').trim().split('\n').slice(1)) {
+  const [code, date, price] = radek.split(',')
+  if (!AKADEMICKA.has(code)) AKADEMICKA.set(code, [])
+  AKADEMICKA.get(code).push({ date, price: Number(price) })
+}
+
+/**
+ * Zásada 10a: akademickou část spliced indexu napojí na dnešní škálu ETF v kotevní den.
+ * Vrací popis stavu do výpisu. Spadne nahlas, když data nesedí (pak radši nesahá na nic).
+ */
+async function napojeniSplice(idx, payload) {
+  const k = KOTVY[idx.code]
+  if (!k) return ''
+  const rada = AKADEMICKA.get(idx.code)
+  if (!rada?.length) throw new Error(`splice: chybí akademická řada ${idx.code} v factor_extensions.csv`)
+  const posl = rada.at(-1)
+  if (!(posl.date < k.den)) throw new Error(`splice: poslední akademický den ${posl.date} není před kotvou ${k.den}`)
+  // Cena ETF v kotevní den: z čerstvě stažených dat (v --dry-run se nezapisovalo), jinak z DB.
+  const etf = payload.find((r) => r.date === k.den)?.close_price ?? await dbCena(idx.code, k.den)
+  const dbPosl = await dbCena(idx.code, posl.date)
+  if (etf == null || dbPosl == null) throw new Error(`splice: v DB chybí kotevní den ${k.den} nebo poslední akademický ${posl.date}`)
+  const meritko = etf / k.cena            // správná škála akademické části
+  const pomer = meritko / (dbPosl / posl.price) // vůči škále, která je v DB teď
+  if (Math.abs(pomer - 1) < 1e-6) return 'splice OK'
+  if (!(meritko > 0.05 && meritko < 20)) throw new Error(`splice: podezřelé měřítko ${meritko} – nesahám`)
+  const n = await dbPocet(idx.code, rada[0].date, k.den)
+  if (n !== rada.length) throw new Error(`splice: v DB ${n} akademických řádků, v CSV ${rada.length} – nesahám`)
+  const rows = rada.map((r) => ({ index_code: idx.code, date: r.date, close_price: Number((r.price * meritko).toFixed(6)) }))
+  const popis = `splice přeškálován ×${pomer.toFixed(6)} (${rows.length} akademických řádků, měřítko ${meritko.toFixed(6)})`
+  if (DRY) return `[dry-run] ${popis}`
+  await upsert(rows)
+  return popis
+}
+
 /** Zásada 9: smaže řádky indexu, které v čerstvé úplné historii nejsou. */
 async function uklid(idx, payload) {
   const cerstve = new Set(payload.map((r) => r.date))
@@ -163,7 +230,8 @@ async function uklid(idx, payload) {
     if (!res.ok) throw new Error(`úklid čtení ${res.status}`)
     const dav = await res.json(); ulozene.push(...dav.map((x) => x.date)); if (dav.length < 1000) break
   }
-  const smazat = ulozene.filter((d) => !cerstve.has(d) && (!idx.splicedFrom || d >= idx.splicedFrom))
+  const odEtf = KOTVY[idx.code]?.den ?? idx.splicedFrom // akademické dny mezi splicedFrom a kotvou Yahoo nezná
+  const smazat = ulozene.filter((d) => !cerstve.has(d) && (!odEtf || d >= odEtf))
   // Po upsertu jsou v DB všechny čerstvé řádky → základ = sjednocení (v --dry-run se nezapisuje, proto max).
   const zaklad = Math.max(ulozene.length, new Set([...ulozene, ...cerstve]).size)
   if (smazat.length > 0.2 * zaklad) throw new Error(`úklid: ${smazat.length} z ${zaklad} řádků je moc – nemažu`)
@@ -194,7 +262,17 @@ const main = async () => {
       // je to jen ~223 řádků (levné) a drží se tak správně adjclose drift po výplatách kupónů.
       const range = idx.monthly ? 'max' : (FULL ? 'max' : '1mo')
       const interval = idx.monthly ? '1mo' : '1d'
-      const { currency, rows } = await fetchYahoo(idx.ticker, range, interval)
+      let { currency, rows } = await fetchYahoo(idx.ticker, range, interval)
+      let poznamka = ''
+      // Zásada 10b: přírůstkově – změnila se škála adj-close (dividenda, split)? Pak celou historii.
+      if (!FULL && !idx.monthly && rows.length) {
+        const prvni = rows.find((r) => !idx.splicedFrom || r.date >= idx.splicedFrom)
+        const vDb = prvni ? await dbCena(idx.code, prvni.date) : null
+        if (vDb != null && Math.abs(Number(prvni.price.toFixed(6)) / vDb - 1) > 5e-4) {
+          poznamka = `škála ×${(prvni.price / vDb).toFixed(4)} k ${prvni.date} → celá historie`
+          ;({ currency, rows } = await fetchYahoo(idx.ticker, 'max', interval))
+        }
+      }
 
       // POJISTKA: měna musí sedět na manifest, jinak bychom zapsali nesmysl (past starého scraperu).
       if (currency && currency !== idx.currency) {
@@ -208,8 +286,9 @@ const main = async () => {
 
       const n = await upsert(payload)
       if (UKLID) await uklid(idx, payload)
+      const splice = await napojeniSplice(idx, payload)
       const last = payload.at(-1)?.date ?? '-'
-      console.log(`${idx.code.padEnd(30)} ${idx.ticker.padEnd(8)} ${String(n).padStart(6)}  OK (do ${last})`)
+      console.log(`${idx.code.padEnd(30)} ${idx.ticker.padEnd(8)} ${String(n).padStart(6)}  OK (do ${last})${[poznamka, splice].filter(Boolean).map((x) => ` | ${x}`).join('')}`)
     } catch (e) {
       problems.push(`${idx.code} (${idx.ticker}): ${e.message}`)
       console.log(`${idx.code.padEnd(30)} ${idx.ticker.padEnd(8)} ${'-'.padStart(6)}  !! ${e.message}`)

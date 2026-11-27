@@ -18,7 +18,10 @@ BASE = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
 START = "19991231"  # FX kurzy v DB zacinaji 1999-12-30 -> drive nema v Kc smysl
 
 ANCHORS = {
-    # index_code: (french_zip, sloupec, kotevni datum = prvni den ETF v DB, kotevni cena, kalibracni ticker|None)
+    # POZOR: kotevní den a cena jsou i v data/splice-kotvy.json – loader (sync-indexes.mjs, zásada 10) podle nich
+    # přeškáluje akademickou část na dnešní cenu ETF (adj-close se mění dividendami a splitem; MTUM/QUAL 4:1 5. 11. 2026).
+    # Při změně kotvy upravit OBA soubory a přegenerovat CSV.
+    # index_code:(french_zip, sloupec, kotevni datum = prvni den ETF v DB, kotevni cena, kalibracni ticker|None)
     "us_momentum": ("6_Portfolios_ME_Prior_12_2_Daily_CSV.zip", "BIG HiPRIOR", "2013-04-18", 43.593906, None),
     "us_quality": ("Portfolios_Formed_on_OP_Daily_CSV.zip", "Hi 30", "2013-07-18", 41.594921, "QUAL"),
 }

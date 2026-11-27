@@ -1,0 +1,5 @@
+{
+  "_popis": "Kotvy prodloužených (spliced) řad. Akademická část (factor_extensions.csv, řádky PŘED `den`) je řetěz postavený zpětně od ceny ETF `cena` v den `den` (build_factor_extensions.py, ANCHORS). Yahoo adj-close ETF se ale mění zpětně (dividendy, split MTUM/QUAL 4:1 5. 11. 2026) → loader (sync-indexes.mjs, zásada 10) po každém zápisu přeškáluje akademickou část na dnešní cenu ETF v den `den`: hodnota = CSV × (cena ETF v DB k `den` / `cena`). Výnosy akademické části se nemění. Hodnoty musí sedět s ANCHORS v build_factor_extensions.py.",
+  "us_momentum": { "den": "2013-04-18", "cena": 43.593906 },
+  "us_quality": { "den": "2013-07-18", "cena": 41.594921 }
+}

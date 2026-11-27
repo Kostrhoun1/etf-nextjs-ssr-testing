@@ -106,6 +106,45 @@ const sDnemVetsiny = (f) => {
   return f.filter((x) => den(x) === vetsina);
 };
 
+/** Odlehlý výnos 12 m ověřený BURZOU (26. 11. 2026): výnos fondu v EUR (return_1y) proti závěrečným cenám jeho vlastního
+ *  listingu na Xetře (Yahoo, adjclose = s dividendami) ke dni returns_as_of. Sedí-li do 2,5 p. b., číslo zdroje je skutečné –
+ *  fond se jen oceňuje v jiný čas než ostatní fondy trhu (25. 11. 2026: XMCM Xtrackers MSCI EM Swap +20,9 % × medián trhu
+ *  +15,1 % v týdnu, kdy se trh hýbal o 4–7 % denně; Xetra XMCM.DE k 23. 11. +19,1 % EUR, fyzické fondy mají NAV z asijských
+ *  závěrů). To je varování, ne poplach. Vadná data zdroje (VRTN −82 %, HASH −97 %) burze neodpovídají → dál poplach.
+ *  Bez tickeru, bez listingu na Xetře nebo když Yahoo neodpoví = NEověřeno (false) → poplach zůstává. */
+const PRAH_BURZA_PB = 2.5;
+const _overenoBurzou = new Map();
+const overenoBurzou = async (x) => {
+  if (!x?.isin) return null;
+  if (_overenoBurzou.has(x.isin)) return _overenoBurzou.get(x.isin);
+  let vysl = null;
+  try {
+    const t = String(x.primary_ticker ?? '').trim();
+    const D = String(x.returns_as_of ?? '').slice(0, 10);
+    const db = x.return_1y == null ? NaN : Number(x.return_1y);
+    if (/^[A-Z0-9]{2,6}$/.test(t) && /^\d{4}-\d{2}-\d{2}$/.test(D) && Number.isFinite(db)) {
+      const j = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${t}.DE?interval=1d&range=2y`, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; etfpruvodce.cz kontrola dat)' } })
+        .then((r) => (r.ok ? r.json() : null));
+      const res = j?.chart?.result?.[0];
+      const adj = res?.indicators?.adjclose?.[0]?.adjclose;
+      if (res?.meta?.currency === 'EUR' && res?.timestamp && adj) {
+        const rada = res.timestamp.map((ts, i) => [new Date(ts * 1000).toISOString().slice(0, 10), adj[i]]).filter(([, v]) => v > 0);
+        const kDni = (den) => rada.filter(([d]) => d <= den).at(-1);
+        const pred = `${Number(D.slice(0, 4)) - 1}${D.slice(4)}`;
+        const k = kDni(D), z = kDni(pred);
+        const dniMezi = (a, b) => (new Date(b) - new Date(a)) / 864e5;
+        // konec nejvýš 4 dny před dnem dat (svátek burzy), začátek nejvýš 6 dní před dnem o rok dřív
+        if (k && z && dniMezi(k[0], D) <= 4 && dniMezi(z[0], pred) <= 6) {
+          const burza = (k[1] / z[1] - 1) * 100;
+          if (Math.abs(burza - db) <= PRAH_BURZA_PB) vysl = { ticker: `${t}.DE`, den: k[0], burza, db };
+        }
+      }
+    }
+  } catch { /* neověřeno */ }
+  _overenoBurzou.set(x.isin, vysl);
+  return vysl;
+};
+
 const main = async () => {
   const fondy = await nactiFondy();
   const isinList = await fetch(ISIN_CSV).then((r) => (r.ok ? r.text() : ''))
@@ -577,7 +616,7 @@ const main = async () => {
       .map((m) => ({ id: m[1], isins: [...m[2].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
     if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
     const vse = trhy.flatMap((t) => t.isins);
-    const r = await fetch(`${URL_DB}?select=isin,name,return_1y_czk,scraping_date,returns_as_of,primary_ticker,exchange_1_ticker&isin=in.(${vse.join(',')})`, {
+    const r = await fetch(`${URL_DB}?select=isin,name,return_1y,return_1y_czk,scraping_date,returns_as_of,primary_ticker,exchange_1_ticker&isin=in.(${vse.join(',')})`, {
       headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
     }).then((x) => x.json());
     if (!Array.isArray(r)) throw new Error('neplatná odpověď DB');
@@ -592,13 +631,20 @@ const main = async () => {
       if (v.length < 3) { poplach.push({ co: `Trh ${t.id} na homepage má jen ${v.length} fondů s daty (ke dni většiny)`, ukazka: [] }); continue; }
       const med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
       for (const x of fv) if (Math.abs(Number(x.return_1y_czk) - med) > 1.5)
-        odlehle.push({ o: Math.abs(Number(x.return_1y_czk) - med), t: `${t.id}: ${x.isin} ${String(x.name).slice(0, 34)} ${Number(x.return_1y_czk).toFixed(1)} % vs. medián ${med.toFixed(1)} %` });
+        odlehle.push({ x, o: Math.abs(Number(x.return_1y_czk) - med), t: `${t.id}: ${x.isin} ${String(x.name).slice(0, 34)} ${Number(x.return_1y_czk).toFixed(1)} % vs. medián ${med.toFixed(1)} %` });
     }
     // 5. 11. 2026 (majitel: „každý den nový e-mail“): 1,5–5 p. b. od trhu je u fondů s jiným časem ocenění u zdroje
     // (Invesco, swapové fondy, BNP) běžné po každém prudším dni – web je sám skryje („—“, spocitejTrh) a další den se
     // srovnají. To je VAROVÁNÍ, ne poplach. Poplach jen > 5 p. b. (VRTN −82 %, HASH −97 % – skutečně vadná data).
     const ODLEHLE_POPLACH_PB = 5;
-    const velke = odlehle.filter((x) => x.o > ODLEHLE_POPLACH_PB), male = odlehle.filter((x) => x.o <= ODLEHLE_POPLACH_PB);
+    // 26. 11. 2026: > 5 p. b., ale výnos sedí s cenami vlastního listingu na Xetře = skutečnost (jiný čas ocenění) → varování.
+    const burzou = [];
+    for (const o of odlehle.filter((x) => x.o > ODLEHLE_POPLACH_PB)) {
+      const b = await overenoBurzou(o.x);
+      if (b) { o.burza = true; burzou.push(`${o.t} – Xetra ${b.ticker} k ${b.den}: ${b.burza.toFixed(1)} % EUR × zdroj ${b.db.toFixed(1)} % EUR`); }
+    }
+    if (burzou.length) varovani.push({ co: `${burzou.length} fondů má výnos 12 m o víc než ${ODLEHLE_POPLACH_PB} p. b. mimo svůj trh, ale sedí s cenami Xetry (jiný čas ocenění u zdroje, skutečnost; web je skrývá „—“)`, ukazka: burzou.slice(0, 8) });
+    const velke = odlehle.filter((x) => x.o > ODLEHLE_POPLACH_PB && !x.burza), male = odlehle.filter((x) => x.o <= ODLEHLE_POPLACH_PB);
     if (velke.length) poplach.push({ co: `${velke.length} fondů má výnos 12 m o víc než ${ODLEHLE_POPLACH_PB} p. b. mimo svůj trh – vadná data u zdroje? Ověřit na burzovních cenách`, ukazka: velke.map((x) => x.t).slice(0, 8) });
     if (male.length) varovani.push({ co: `${male.length} fondů má výnos 12 m 1,5–${ODLEHLE_POPLACH_PB} p. b. mimo svůj trh (jiný čas ocenění u zdroje; web je skrývá „—“)`, ukazka: male.map((x) => x.t).slice(0, 8) });
     if (chybi.length) varovani.push({ co: `${chybi.length} fondů ze seznamu trhů chybí nebo nemá čerstvá data`, ukazka: chybi.slice(0, 6) });
@@ -2161,7 +2207,7 @@ const main = async () => {
       const trhy = [...zdroj.matchAll(/id: '([a-z0-9]+)'[\s\S]*?href: '([^']+)',[\s\S]*?isins: \[([\s\S]*?)\]/g)]
         .map((m) => ({ id: m[1], href: m[2], isins: [...m[3].matchAll(/'([A-Z]{2}[A-Z0-9]{10})'/g)].map((x) => x[1]) }));
       if (trhy.length < 6) throw new Error(`v seznamu trhů jen ${trhy.length} trhů`);
-      const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,return_1y_czk,scraping_date,returns_as_of&isin=in.(${trhy.flatMap((t) => t.isins).join(',')})`, hlav).then((x) => x.json());
+      const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,return_1y,return_1y_czk,scraping_date,returns_as_of&isin=in.(${trhy.flatMap((t) => t.isins).join(',')})`, hlav).then((x) => x.json());
       const podle = new Map(db.map((x) => [x.isin, x]));
       const odlehle = []; // { isin, ticker, trh, ref }
       for (const t of trhy) {
@@ -2173,6 +2219,9 @@ const main = async () => {
         const ok = f.filter((x) => Math.abs(Number(x.return_1y_czk) - med) <= 1.5);
         for (const x of f) if (Math.abs(Number(x.return_1y_czk) - med) > 1.5) odlehle.push({ isin: x.isin, ticker: x.primary_ticker, trh: t, ref: ok[0]?.isin, o: Math.abs(Number(x.return_1y_czk) - med) });
       }
+      // 26. 11. 2026: odlehlý výnos > 5 p. b. ověřený cenami Xetry (overenoBurzou) je skutečné číslo fondu s jiným časem
+      // ocenění – stránka vykreslená během stahování ho může ukázat; počítá se jako mírný (varování), ne jako chyba.
+      for (const o of odlehle) if (o.o > 5 && await overenoBurzou(podle.get(o.isin))) o.o = 5;
       const OBDOBI = /^(return_(ytd|1y|3y|5y)(_czk|_usd)?)$/;
       // 5. 11. 2026: fond 1,5–5 p. b. od trhu (jiný čas ocenění u zdroje) se na stránce vykreslené během stahování může
       // ještě ukázat s číslem – varování; chyba (e-mail) jen u > 5 p. b. (skutečně vadná data).
@@ -3516,6 +3565,7 @@ const main = async () => {
   await kontrolaPorovnaniCdn(poplach, varovani); // blok „porovnání z CDN“ (12. 11. 2026) – definice na konci souboru
   await kontrolaEgressSupabase(poplach); // blok „egress Supabase“ (19. 11. 2026) – definice na konci souboru
   await kontrolaVahyStranek(varovani); // blok „váha stránek“ (21. 11. 2026) – definice na konci souboru
+  await kontrolaSkokyIndexu(poplach, varovani); // blok „skoky indexů“ (split MTUM/QUAL, 11. 11. 2026) – definice na konci souboru
 
   // --- kolo8 zebricky --- (kolo 8, 22. 10. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
   //  A) KATEGORIE ŽEBŘÍČKŮ: filtry názvem chytaly cizí fondy („US “ v „PLUS “/„Focus “, „Latin“ v „Accumulating“, S&P Global
@@ -4622,3 +4672,54 @@ async function kontrolaVahyStranek(varovani) {
     varovani.push({ co: `Kontrola váhy stránek neproběhla: ${e.message}`, ukazka: [] });
   }
 }
+
+// --- skoky indexů --- (11. 11. 2026; pravidlo č. 1, bod 4 – každá oprava má kontrolu)
+// MTUM a QUAL měly 5. 11. 2026 split 4:1. Nedělní plný resync (sync-indexes.mjs) přepsal ETF část řady novou škálou,
+// dopočtená akademická část (Ken French) zůstala na staré → v DB umělý pád −75 % a /faktorove-etf/momentum ukazovalo
+// +2,1 % ročně a nejhorší rok 2013 −66 %. Integrity check po syncu to nehlídal a jeho selhání e-mail neposílá.
+//  A) SPLICE: výnos v kotevní den prodloužené řady = výnos akademické řady (scripts/backtest/data/splice-kotvy.json
+//     + factor_extensions.csv); odchylka > 0,2 p. b. = zlom škály → POPLACH.
+//  B) SKOK: denní pohyb > 25 % v posledních 70 dnech u kteréhokoli indexu (zlom po splitu z přírůstkového syncu leží
+//     ~30 dní zpátky; skutečný největší denní pohyb v celé historii je ~−17 %) → POPLACH. Celou historii hlídá
+//     check_index_integrity.py (SKOK) po každém syncu.
+async function kontrolaSkokyIndexu(poplach, varovani) {
+  const chyby = [];
+  try {
+    const hl = { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } };
+    const URL_IDX = URL_DB.replace('etf_funds', 'index_historical_data');
+    const kotvy = JSON.parse(readFileSync(new URL('./backtest/data/splice-kotvy.json', import.meta.url), 'utf8'));
+    const posledni = {};
+    for (const r of readFileSync(new URL('./backtest/data/factor_extensions.csv', import.meta.url), 'utf8').trim().split('\n').slice(1)) {
+      const [c, d, p] = r.split(','); posledni[c] = { d, p: Number(p) };
+    }
+    for (const [kod, k] of Object.entries(kotvy)) {
+      if (kod.startsWith('_')) continue;
+      const pa = posledni[kod];
+      if (!pa) { chyby.push(`${kod}: v factor_extensions.csv chybí akademická řada`); continue; }
+      const b = await fetch(`${URL_IDX}?select=date,close_price&index_code=eq.${kod}&date=in.(${pa.d},${k.den})`, hl).then((r) => r.json());
+      const cena = Object.fromEntries((Array.isArray(b) ? b : []).map((x) => [x.date, Number(x.close_price)]));
+      if (!cena[pa.d] || !cena[k.den]) { chyby.push(`${kod}: v DB chybí ${pa.d} nebo ${k.den}`); continue; }
+      const skutecne = cena[k.den] / cena[pa.d] - 1, ocekavano = k.cena / pa.p - 1;
+      if (Math.abs(skutecne - ocekavano) > 0.002) chyby.push(`${kod} ${k.den}: výnos ${(skutecne * 100).toFixed(2)} %, akademický ${(ocekavano * 100).toFixed(2)} % – zlom škály (split/dividenda ETF), sync-indexes zásada 10`);
+    }
+    const od = new Date(Date.now() - 70 * 864e5).toISOString().slice(0, 10);
+    const rady = {};
+    for (let off = 0; ; off += 1000) {
+      const b = await fetch(`${URL_IDX}?select=index_code,date,close_price&date=gte.${od}&order=index_code,date&limit=1000&offset=${off}`, hl).then((r) => r.json());
+      if (!Array.isArray(b)) throw new Error('index_historical_data: neočekávaná odpověď');
+      for (const x of b) (rady[x.index_code] ??= []).push([x.date, Number(x.close_price)]);
+      if (b.length < 1000) break;
+    }
+    if (Object.keys(rady).length < 30) chyby.push(`za posledních 70 dní má data jen ${Object.keys(rady).length} indexů (čekáno ~37)`);
+    for (const [kod, r] of Object.entries(rady)) {
+      for (let i = 1; i < r.length; i++) {
+        const z = r[i][1] / r[i - 1][1] - 1;
+        if (Math.abs(z) > 0.25) chyby.push(`${kod} ${r[i][0]}: denní pohyb ${(z * 100).toFixed(1)} % – zlom škály (split?), ne trh`);
+      }
+    }
+    if (chyby.length) poplach.push({ co: `Historie indexů (backtest, faktory, graf indexu): ${chyby.length}× zlom škály`, ukazka: chyby.slice(0, 8) });
+  } catch (e) {
+    varovani.push({ co: `Kontrolu skoků v historii indexů se nepodařilo provést: ${e.message}`, ukazka: chyby.slice(0, 5) });
+  }
+}
+// --- konec skoky indexů ---
