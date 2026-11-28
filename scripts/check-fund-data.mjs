@@ -1267,6 +1267,10 @@ const main = async () => {
       ['IE00B5BMR087', 'SXR8.DE'], ['IE00BK5BQT80', 'VWCE.DE'], ['IE00B4L5Y983', 'EUNL.DE'], ['DE0002635307', 'EXSA.DE'],
       ['IE00BKM4GZ66', 'IS3N.DE'], ['IE00B53SZB19', 'SXRV.DE'], ['IE00B4ND3602', 'PPFB.DE'], // IS3N = EMIM na Xetře, PPFB = SGLN
     ];
+    // 28. 11. 2026: kdy se počítá NAV fondu proti závěru Xetry (17:30). 'po' = NAV z pozdějšího závěru (USA, svět s USA)
+    // → leží mezi Xetrou dne D a D+1; 'pred' = NAV z dřívějšího závěru (Asie, EM) → mezi Xetrou D−1 a D. Ve dni velkého
+    // pohybu během dne (25. 11.: Xetra SXR8 −2,1 %, USA k večeru −0,3 %) se pak výnosy liší o 3–4 p. b., i když jsou správně.
+    const CAS_NAV = { 'SXR8.DE': 'po', 'VWCE.DE': 'po', 'EUNL.DE': 'po', 'SXRV.DE': 'po', 'IS3N.DE': 'pred' };
     const OBDOBI = { ytd: 'letos', '1m': '1 m', '3m': '3 m', '6m': '6 m', '1y': '1 r', '3y': '3 r', '5y': '5 let' };
     const MESICU = { '1m': 1, '3m': 3, '6m': 6, '1y': 12, '3y': 36, '5y': 60 };
     const PRAH_A = 0.4, PRAH_B = 2.5; // p. b.
@@ -1296,7 +1300,7 @@ const main = async () => {
     const db = await fetch(`${URL_DB}?select=isin,name,primary_ticker,scraping_date,returns_as_of,${Object.keys(OBDOBI).map((o) => `return_${o}`).join(',')}&isin=in.(${KOTVY.map((k) => k[0]).join(',')})`,
       { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } }).then((r) => r.json());
     if (!Array.isArray(db)) throw new Error('neplatná odpověď DB');
-    const vysA = [], vysB = [], nejdeA = [], nejdeB = [];
+    const vysA = [], vysB = [], nejdeA = [], nejdeB = [], casB = [];
     for (const [isin, xetra] of KOTVY) {
       const f = db.find((x) => x.isin === isin);
       if (!f?.scraping_date) { nejdeA.push(`${isin}: v DB chybí`); continue; }
@@ -1335,7 +1339,30 @@ const main = async () => {
         if (rozdily.length < 3) nejdeB.push(`${xetra}: k ${D} málo dat (${rozdily.length} období)`);
         else {
           const med = rozdily[Math.floor(rozdily.length / 2)];
-          if (Math.abs(med.r) > PRAH_B) vysB.push(`${jm} (${xetra}) k ${D}: medián rozdílu ${fmt(med.r)} p. b. (${rozdily.map((x) => `${OBDOBI[x.o]} ${fmt(x.dbV)} vs. ${fmt(x.v)}`).join(', ')})`);
+          if (Math.abs(med.r) > PRAH_B) {
+            const popis = `${jm} (${xetra}) k ${D}: medián rozdílu ${fmt(med.r)} p. b. (${rozdily.map((x) => `${OBDOBI[x.o]} ${fmt(x.dbV)} vs. ${fmt(x.v)}`).join(', ')})`;
+            // Jiný čas ocenění: výnos z DB leží (±0,5 p. b.) mezi výnosy z Xetry ke dni D a k sousednímu obchodnímu dni
+            // (po/před, viz CAS_NAV) u aspoň 2/3 období → varování. Data o den pozadu (NAV D−1 u fondu na USA) tím neprojdou.
+            const smer = CAS_NAV[xetra];
+            const iD = rada.findIndex((b) => b[0] > D);
+            const posl = iD === -1 ? rada.length - 1 : iD - 1; // poslední bod ≤ D
+            const soused = smer === 'po' ? (iD === -1 ? null : rada[iD]) : smer === 'pred' && posl > 0 ? rada[posl - 1] : null;
+            const uvnitr = soused && Math.abs(dnu(D, soused[0])) <= 5
+              ? rozdily.filter((x) => {
+                const s = bod(rada, zacatek(D, x.o)); if (!s) return false;
+                const v2 = (soused[1] / s[1] - 1) * 100;
+                return x.dbV >= Math.min(x.v, v2) - 0.5 && x.dbV <= Math.max(x.v, v2) + 0.5;
+              }).length : 0;
+            // Pojistka: data o den pozadu (u 'po' = Xetra D−1, u 'pred' = Xetra D+1) leží v takovém „V“ dni také mezi
+            // sousedy – sedí-li DB do 0,3 p. b. na ten den u 2/3 období, zůstává poplach (zkouška: SXR8 19. 11. vydaný za 20. 11.).
+            const iP = smer === 'po' ? posl - 1 : smer === 'pred' && iD !== -1 ? iD : -1;
+            const stary = iP >= 0 ? rada[iP] : null;
+            const sediNaStary = stary ? rozdily.filter((x) => {
+              const s = bod(rada, zacatek(D, x.o)); return s && Math.abs(x.dbV - (stary[1] / s[1] - 1) * 100) <= 0.3;
+            }).length : 0;
+            if (uvnitr * 3 >= rozdily.length * 2 && sediNaStary * 3 < rozdily.length * 2) casB.push(`${popis} – leží mezi Xetrou ${D} a ${soused[0]} u ${uvnitr} z ${rozdily.length} období`);
+            else vysB.push(popis);
+          }
         }
       } catch (e) { nejdeB.push(`${xetra}: Yahoo neodpověděl (${e.message})`); }
     }
@@ -1344,6 +1371,7 @@ const main = async () => {
     else if (vysA.length === 1) varovani.push({ co: `Výnosy za období: 1 kotevní fond se liší o víc než ${fmt(PRAH_A)} p. b. od přepočtu z denních cen (justETF)`, ukazka: vysA });
     if (vysB.length >= 2) poplach.push({ co: `${TEXT} – ${vysB.length} z ${KOTVY.length} kotevních fondů se liší od závěrečných cen Xetra o víc než ${fmt(PRAH_B)} p. b. (medián přes období)`, ukazka: vysB });
     else if (vysB.length === 1) varovani.push({ co: `Výnosy za období: 1 kotevní fond se liší od závěrečných cen Xetra o víc než ${fmt(PRAH_B)} p. b.`, ukazka: vysB });
+    if (casB.length) varovani.push({ co: `Výnosy za období: ${casB.length} kotevních fondů se liší od závěru Xetry o víc než ${fmt(PRAH_B)} p. b., ale leží mezi závěry dvou sousedních dnů (NAV fondu z jiného času než Xetra 17:30, den velkého pohybu během dne)`, ukazka: casB });
     if (nejdeA.length) varovani.push({ co: `Kontrolu výnosů za období proti denním cenám (justETF) nešlo provést u ${nejdeA.length} z ${KOTVY.length} kotevních fondů`, ukazka: nejdeA });
     if (nejdeB.length) varovani.push({ co: `Kontrolu výnosů za období proti cenám Xetra (Yahoo) nešlo provést u ${nejdeB.length} z ${KOTVY.length} kotevních fondů`, ukazka: nejdeB });
   } catch (e) {

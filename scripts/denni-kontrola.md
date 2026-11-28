@@ -237,6 +237,16 @@ která metrika přetekla (Usage, klouzavých 30 dní), a Pro zrušit až po náv
   **Dnes neověřeno:** Supabase (dotaz tříd, egress – konektor v této relaci není), místní běh `check-fund-data.mjs` se znovu zasekl
   (uspávání Macu) → úprava ověřena ručním během workflow na GitHubu.
   **Čeká na majitele (beze změny):** sobotní přestavba 5. 12. – nechat, nebo vynechat; verdikt k zrušení Pro do 1. 12.
+- 28. 11. 2026 10:30–11:30 UTC (denní kontrola, sobota): web běží (200, build 27. 11. 10:33 = nasazení EBUD + WOR2; EBUD v main
+  `fbf1b3d`, poplach WOR2 „trhy × žebříček“ z kontroly zmizel ✓). Smoke test, IndexNow, sync indexů a scraper 27. 11. zelené
+  (o víkendu neběží). Usage Vercelu přečetla ráno souběžná úloha (řádek 28. 11. v tabulce). Kontrola dat 27. 11. 23:37 UTC –
+  **1 poplach, falešný**: „4 ze 7 kotevních fondů (SXR8, VWCE, IS3N, SXRV) k 25. 11. o 3–4 p. b. nad závěrem Xetry“. Vrstva A
+  (holá řada justETF) seděla. Nezávisle (Yahoo): Xetra 25. 11. zavřela na denním minimu (SXR8.DE 705,18 → 690,04, −2,1 %),
+  USA se do večera vrátily (SPY 718,78 → 716,70, −0,3 %) → NAV SXR8 709,45 leží mezi Xetrou 25. 11. a 26. 11. (712,14);
+  IS3N (NAV z asijského závěru 41,99) mezi Xetrou 24. 11. (42,10) a 25. 11. (40,72). Web chybu nemá. Kontrola upravena
+  (`CAS_NAV`): rozdíl > 2,5 p. b., který u 2/3 období leží mezi Xetrou dne D a sousedního dne (po/před podle času NAV), je
+  varování; když DB sedí do 0,3 p. b. na Xetru dne D−1 (data o den pozadu), dál poplach (zkouška: SXR8 19. 11. vydaný za 20. 11.
+  = poplach; skutečná čísla 25. 11. = varování u všech 4). Ostatní varování beze změny proti 26. 11.
 - 7. 11. 2026: Fluid CPU 4 h 4 min / 4 h → Vercel ohlásil pozastavení účtu (majitel zvolil čekat, ne platit). Middleware
   zrušen (37 % CPU). **Vypnuté workflow** `zlate-pripady.yml` a `prod-smoke.yml` (šetří CPU) – znovu zapnout
   (`gh workflow enable … --repo Kostrhoun1/etf-nextjs-ssr-testing`), až bude rezerva CPU ≥ 30 min. Je-li web
